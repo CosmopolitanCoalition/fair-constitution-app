@@ -1,0 +1,152 @@
+services:
+
+  # ─── PHP 8.4 / Laravel 12 Application ───────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: fc_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html                    # bind mount — edits are instant
+      - composer_cache:/root/.composer     # cache composer downloads
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      PHP_OPCACHE_ENABLE: 0                # disable opcache in dev for live changes
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - fc_network
+
+  # ─── Nginx ───────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: fc_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"                          # app at localhost:8080
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - fc_network
+
+  # ─── PostgreSQL 17 + PostGIS 3.5 ─────────────────────────────
+  postgres:
+    image: postgis/postgis:17-3.5
+    container_name: fc_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"                        # expose for DB GUI tools (TablePlus, DBeaver)
+    environment:
+      POSTGRES_DB: fair_constitution
+      POSTGRES_USER: fc_user
+      POSTGRES_PASSWORD: fc_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # named volume — persists across rebuilds
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fc_user -d fair_constitution"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - fc_network
+
+  # ─── Redis 7 ─────────────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: fc_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data                   # persists cache/queue data
+    networks:
+      - fc_network
+
+  # ─── Vite Dev Server (Vue 3 hot reload) ──────────────────────
+  vite:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: fc_vite
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - node_modules:/var/www/html/node_modules
+    ports:
+      - "5173:5173"                        # Vite HMR at localhost:5173
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    depends_on:
+      - app
+    networks:
+      - fc_network
+
+  # ─── Laravel Horizon (queue worker) ──────────────────────────
+  horizon:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: fc_horizon
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - composer_cache:/root/.composer
+    command: php artisan horizon
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - fc_network
+
+  # ─── Python ETL (geoBoundaries + WorldPop + SKATER) ──────────
+  etl:
+    build:
+      context: .
+      dockerfile: docker/etl/Dockerfile
+    container_name: fc_etl
+    working_dir: /etl
+    volumes:
+      - ./scripts/etl:/etl                 # your python scripts
+      - etl_geodata:/data                  # downloaded geodata persists (can be large)
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fair_constitution
+      DB_USER: fc_user
+      DB_PASSWORD: fc_password
+    command: tail -f /dev/null             # keeps container running; exec in to run scripts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fc_network
+
+# ─── Named Volumes ────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  etl_geodata:
+    driver: local
+  composer_cache:
+    driver: local
+  node_modules:
+    driver: local
+
+# ─── Network ─────────────────────────────────────────────────
+networks:
+  fc_network:
+    driver: bridge
