@@ -120,6 +120,7 @@ services:
     volumes:
       - ./scripts/etl:/etl                 # your python scripts
       - etl_geodata:/data                  # downloaded geodata persists (can be large)
+      - ./docs:/docs:ro                          # source geodata (geoBoundaries + WorldPop)
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
