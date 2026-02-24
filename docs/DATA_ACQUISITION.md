@@ -61,6 +61,7 @@ sparse checkout patterns to include only the files `import_geoboundaries.py` act
 
 If you already have a full or directory-level sparse clone and want to retroactively slim it:
 
+**Bash / Git Bash (Linux, macOS, Windows Git Bash):**
 ```bash
 cd docs/geoBoundaries_repo
 git sparse-checkout init --no-cone
@@ -72,6 +73,24 @@ git sparse-checkout set \
   "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].prj" \
   "releaseData/geoBoundariesOpen-meta.csv"
 ```
+
+**PowerShell (Windows — note: PowerShell uses backtick `` ` `` for line continuation, not `\`):**
+```powershell
+cd docs/geoBoundaries_repo
+git sparse-checkout init --no-cone
+git sparse-checkout set `
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].geojson" `
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shp" `
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].dbf" `
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shx" `
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].prj" `
+  "releaseData/geoBoundariesOpen-meta.csv"
+```
+
+> **Warning:** Do not mix these up. Running the bash `\` syntax in PowerShell will cause
+> `sparse-checkout set` to receive only the last argument, leaving all GeoJSON files absent
+> from your working tree. If this happens, re-run the `git sparse-checkout set` line above
+> (PowerShell version) from inside `docs/geoBoundaries_repo` to restore the correct file set.
 
 After cloning, the pipeline reads from:
 ```
