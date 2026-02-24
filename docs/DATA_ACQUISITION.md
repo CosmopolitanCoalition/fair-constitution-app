@@ -4,7 +4,7 @@ This guide explains how to acquire the geospatial source data required to popula
 Cosmopolitan Governance App database from scratch.
 
 > **Why isn't this data in the repository?**
-> - **geoBoundaries** full release: ~2–4 GB of GeoJSON boundary files
+> - **geoBoundaries** gbOpen release: ~1–2 GB of GeoJSON boundary files (sparse checkout; full repo is ~3–5 GB)
 > - **WorldPop** 100m rasters: ~9.5 GB of GeoTIFF files (229 countries)
 >
 > GitHub enforces a 100 MB per-file limit and a ~2 GB total repository soft limit.
@@ -24,31 +24,52 @@ The ETL pipeline requires two datasets, both mounted read-only into the Docker E
 
 ---
 
-## Step 1 — Clone geoBoundaries
+## Step 1 — Clone geoBoundaries (filtered)
 
 geoBoundaries provides administrative boundary polygons (ADM0–ADM5) for 232 countries under
-CC BY 4.0. Clone their repository directly into `docs/geoBoundaries_repo/`:
+CC BY 4.0. Download scripts are provided for both Windows and Linux/Mac. They use **Git sparse
+checkout** to download only the files the importer actually reads, skipping the humanitarian
+and authoritative release types that are never used.
+
+### Linux / macOS
 
 ```bash
-git clone https://github.com/wmgeolab/geoBoundaries.git docs/geoBoundaries_repo
+bash docs/fetch_geoboundaries.sh
 ```
 
-**Expected size:** ~2–4 GB (the full release data including all ADM levels)
-**Expected time:** 10–30 minutes depending on connection speed
+### Windows (PowerShell)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File docs\fetch_geoboundaries.ps1
+```
+
+Both scripts use `git clone --depth 1 --filter=blob:none --sparse` and apply sparse checkout
+to include only:
+
+| Included | Excluded |
+|---|---|
+| `releaseData/gbOpen/` — all ADM-level GeoJSON files | `releaseData/gbHumanitarian/` |
+| `releaseData/geoBoundariesOpen-meta.csv` — metadata | `releaseData/gbAuthoritative/` |
+| | All repo scaffolding (README, LICENSE, .github/, scripts) |
+
+**Requirements:** git ≥ 2.26 (ships with macOS Ventura+, Ubuntu 22.04+, Windows Git 2.26+)
+**Expected size:** ~1–2 GB (gbOpen only, vs ~3–5 GB for a full clone)
+**Expected time:** 5–15 minutes depending on connection speed
 **Version used:** 6.0.0 (September 2023)
+
+If you already have a full clone and want to retroactively slim it:
+
+```bash
+cd docs/geoBoundaries_repo
+git sparse-checkout init --no-cone
+git sparse-checkout set "releaseData/gbOpen/" "releaseData/geoBoundariesOpen-meta.csv"
+```
 
 After cloning, the pipeline reads from:
 ```
-docs/geoBoundaries_repo/releaseData/gbOpen/{ISO3}/ADM{N}/{ISO3}_ADM{N}.geojson
+docs/geoBoundaries_repo/releaseData/gbOpen/{ISO3}/ADM{N}/geoBoundaries-{ISO3}-ADM{N}.geojson
 docs/geoBoundaries_repo/releaseData/geoBoundariesOpen-meta.csv
 ```
-
-> **Note:** The geoBoundaries repo is large. Once cloned it does not need to be updated
-> unless you want newer boundary data. The `.git` history inside it is not needed — you
-> can do a shallow clone to save space:
-> ```bash
-> git clone --depth 1 https://github.com/wmgeolab/geoBoundaries.git docs/geoBoundaries_repo
-> ```
 
 ---
 
