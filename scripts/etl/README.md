@@ -1,200 +1,122 @@
-# ETL Scripts — Geospatial Data Pipeline
+# ETL Scripts — Fair Constitution App
 
-This directory contains the Python ETL pipeline that populates the `jurisdictions` and
-`constitutional_settings` tables from two open-licensed geospatial datasets.
+Geospatial data pipeline for importing boundary polygons, population data,
+and WorldPop raster tiles into PostgreSQL/PostGIS.
 
-**Before running:** Acquire the source data by following `docs/DATA_ACQUISITION.md`.
-
----
-
-## Script Inventory
+## Scripts
 
 | Script | Purpose |
 |---|---|
-| `seed_database.py` | Master orchestrator — runs both phases in sequence with progress tracking |
-| `import_geoboundaries.py` | Phase 1 — imports ~951K jurisdiction rows from geoBoundaries GeoJSON files |
-| `import_worldpop.py` | Phase 2 — overlays WorldPop 2023 100m rasters onto jurisdiction polygons |
-| `db.py` | Shared database connection, bulk insert/update helpers, TCP keepalive config |
-| `languages.py` | Static ISO3 → ISO 639-1 language mapping (249 countries) |
-| `fix_orphans.py` | Utility — re-chains jurisdictions with missing `parent_id` via spatial intersection |
-| `rebuild_worldpop_progress.py` | Utility — rebuilds `progress.json` worldpop section from current DB state |
-| `run_skater.py` | Phase 3 stub — SKATER district drawing (Phase 2 of app roadmap, not yet implemented) |
+| `seed_database.py` | Master orchestrator — runs the full pipeline in order |
+| `import_geoboundaries.py` | Phase 1: boundary polygons + hierarchy from geoBoundaries |
+| `import_worldpop.py` | Phase 2: WorldPop 100m raster → `jurisdictions.population` + optional tile loading |
+| `run_skater.py` | Phase 3 stub: SKATER district drawing (Phase 2 app roadmap) |
+| `db.py` | Shared DB connection and bulk insert/update helpers |
 
----
+## Quickstart
 
-## Prerequisites
-
-1. **Docker Compose** running (`docker compose up -d postgres`)
-2. **Source data** present at `docs/geoBoundaries_repo/` and `docs/worldpop_100m_latest/`
-   — see `docs/DATA_ACQUISITION.md` for download instructions
-
-The ETL container (`fc_etl`) mounts:
-- `./scripts/etl` → `/etl` (scripts)
-- `./docs` → `/docs` (read-only source data)
-
----
-
-## Running the Pipeline
-
-> **Important:** Use `docker compose run --rm etl` (not `exec`) — the ETL container exits
-> after each run and must be started fresh each time.
-
-### Full pipeline (recommended first run)
+Always run via `docker compose run --rm etl` (not `exec`) so the container exits when done
+and doesn't stay attached.
 
 ```bash
+# Full pipeline: boundaries + population (no rasters)
 docker compose run --rm etl python seed_database.py
-```
 
-Runs Phase 1 (boundaries) then Phase 2 (population). Total runtime: 6–12 hours globally.
+# Full pipeline including WorldPop raster tiles (one-time; eliminates TIF file dependency)
+docker compose run --rm etl python seed_database.py --load-rasters
 
-### Smoke test — New Zealand only (~5 seconds)
+# Smoke test — NZL only, boundaries only
+docker compose run --rm etl python seed_database.py --countries NZL --skip-population --fresh
 
-```bash
-docker compose run --rm etl python seed_database.py \
-    --countries NZL --skip-population --fresh
-```
+# Specific countries with population and rasters
+docker compose run --rm etl python seed_database.py --countries USA GBR DEU --load-rasters
 
-### Boundaries only (skip population raster step)
+# Resume after a crash
+docker compose run --rm etl python seed_database.py --resume
 
-```bash
+# Boundaries only (skip WorldPop)
 docker compose run --rm etl python seed_database.py --skip-population
 ```
 
-### Resume after crash or interruption
+## CLI Reference — `seed_database.py`
+
+| Flag | Default | Description |
+|---|---|---|
+| `--countries ISO3 [...]` | all | Limit to these ISO3 codes |
+| `--adm-levels N [...]` | all | Limit to these ADM levels (0–5) |
+| `--skip-population` | off | Skip Phase 2 WorldPop import |
+| `--load-rasters` | off | Load TIF tiles into `worldpop_rasters` table after population aggregation. One-time; after this the TIF files are not needed at runtime |
+| `--fresh` | off | Ignore `progress.json`, reprocess from scratch |
+| `--resume` | on | Resume from `progress.json` (default behaviour) |
+| `--log-file PATH` | `/etl/etl.log` | Log file path |
+
+## WorldPop Raster Loading (`--load-rasters`)
+
+After the population aggregation step, each country's GeoTIFF is loaded into
+the `worldpop_rasters` PostGIS table as 256×256 pixel tiles. This is a
+**one-time operation** — once complete, the `docs/worldpop_100m_latest/`
+directory is no longer needed at runtime.
 
 ```bash
-docker compose run --rm etl python seed_database.py --resume
+# Load rasters for all countries (hours; run once)
+docker compose run --rm etl python seed_database.py --load-rasters
+
+# Load rasters for specific countries
+docker compose run --rm etl python seed_database.py --countries USA CAN GBR --load-rasters
+
+# Verify tiles were loaded
+docker compose exec postgres psql -U fc_user -d fair_constitution \
+  -c "SELECT iso_code, COUNT(*) AS tiles FROM worldpop_rasters GROUP BY iso_code ORDER BY tiles DESC LIMIT 10;"
+
+# Test district population query (validate NC 6/13 seat split)
+docker compose exec postgres psql -U fc_user -d fair_constitution \
+  -c "SELECT population_within('USA', ST_Buffer(ST_Point(-79.0, 35.5), 2.0)) AS nc_sample_pop;"
 ```
 
-Progress is saved after every ~90 seconds of work. Resuming skips all completed chunks.
+Storage estimates per country in `worldpop_rasters`:
+- Small (NZL): ~50–80 MB
+- Medium (DEU): ~80–150 MB
+- Large (USA): ~400–700 MB
+- Very large (RUS): ~1–1.5 GB
+- All 232 countries: ~20–50 GB
 
-### Specific countries
-
+Once all countries are loaded, `pg_dump` will include raster data. For
+logical backups, exclude the raster table (it can be re-loaded from source):
 ```bash
-# Single country (boundaries + population)
-docker compose run --rm etl python seed_database.py --countries NZL
-
-# Multiple countries
-docker compose run --rm etl python seed_database.py --countries USA GBR DEU FRA
-
-# Re-run a country from scratch (purges its DB rows first)
-docker compose run --rm etl python seed_database.py --countries NZL --fresh
+pg_dump --exclude-table=worldpop_rasters fair_constitution > backup.sql
 ```
-
----
-
-## `seed_database.py` CLI Reference
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `--countries ISO3 [...]` | list | all | Only process these ISO3 country codes |
-| `--adm-levels N [...]` | list | all | Only process these ADM levels (0–5) |
-| `--skip-population` | flag | off | Skip Phase 2 WorldPop raster overlay |
-| `--fresh` | flag | off | Delete existing DB rows and ignore `progress.json` before starting |
-| `--resume` | flag | on | Resume from `progress.json` (default behaviour) |
-| `--log-file PATH` | string | `/etl/etl.log` | Log file path inside the container |
-
----
-
-## Progress Tracking
-
-Progress is stored in `scripts/etl/progress.json` (gitignored — machine-specific state).
-It is written atomically (`.tmp` → `os.replace`) after every completed chunk so a crash
-never corrupts the file.
-
-**Structure:**
-```json
-{
-  "earth_inserted": true,
-  "geoboundaries": {
-    "USA-ADM0": {"status": "done", "inserted": 1, "timestamp": "..."},
-    "USA-ADM1": {"status": "done", "inserted": 51, "timestamp": "..."}
-  },
-  "worldpop": {
-    "USA": {"status": "done", "updated": 3143, "timestamp": "..."},
-    "USA:adm1": {"status": "done", "updated": 1, "timestamp": "..."},
-    "USA:adm1:chunk0": {"status": "done", "updated": 1, "timestamp": "..."}
-  }
-}
-```
-
-**If `progress.json` is lost but data is already in the DB:**
-
-```bash
-docker compose run --rm etl python rebuild_worldpop_progress.py
-```
-
-This rebuilds the worldpop section from the database, allowing the pipeline to resume
-without re-processing countries that already have population data.
-
----
 
 ## Architecture Notes
 
+### Why `docker compose run --rm` instead of `exec`
+
+`exec` attaches to a running container. The ETL container has no persistent
+process — it starts on demand, runs the script, and exits. `run --rm` creates
+a fresh container and removes it on exit.
+
 ### Why Phase 2 runs in a subprocess
 
-`seed_database.py` launches `import_worldpop.py` as a subprocess (not a direct import).
-This is intentional: Phase 1 uses `geopandas` (GEOS/GDAL) and Phase 2 uses `rasterio`
-(also GDAL). Running both in the same process causes shared-library conflicts that result
-in segfaults. Subprocess isolation is the safe solution.
+`import_geoboundaries.py` uses geopandas/fiona (one GDAL instance). `import_worldpop.py`
+uses rasterio (another GDAL instance). Two GDAL instances in the same process cause
+a segfault. `seed_database.py` runs Phase 2 in a subprocess via `sys.executable -c "..."`
+to isolate the GDAL instances.
 
-### Memory management for large countries
+### Memory management
 
-India (IND) has 649,710 ADM6 polygons. The pipeline handles this with three layers:
-1. **DB chunking** (`DB_FETCH_CHUNK_SIZE=2000`) — geometries fetched in 2,000-row batches
-2. **zonal_stats sub-batching** (`ZONAL_STATS_BATCH_SIZE=50`) — limits numpy mask memory per call
-3. **Tiled raster fallback** — polygons whose bounding box exceeds 400 megapixels (e.g. large
-   Australian outback LGAs, Siberian oblasts) are processed via windowed `rasterio.mask` reads
-   in 5000×5000 pixel tiles, preventing OOM kills
+- IND ADM6: 649,710 polygons — fetched in chunks of 2,000 to avoid OOM
+- Large polygons (AUS outback): tiled raster reads (5,000×5,000 px windows)
+- Raster tile loading: 50 tiles per INSERT batch (~15–25 MB peak)
 
 ### Idempotency
 
-All inserts use `ON CONFLICT DO NOTHING`. All population updates use `UPDATE ... SET`.
-Re-running any phase or country is always safe and produces the same result.
+All scripts are safe to re-run. Geometries use `ON CONFLICT DO NOTHING` on
+`slug`. Population uses `UPDATE`. Raster tiles DELETE + re-INSERT on re-run.
+Progress tracked per `(iso3, adm_level)` in `progress.json` — `--resume`
+skips already-completed steps; `--fresh` starts over.
 
----
+## Data Sources
 
-## Known Data Gaps
-
-| Country | ISO3 | Issue |
+| Dataset | License | Location |
 |---|---|---|
-| Antarctica | ATA | No WorldPop raster; skipped |
-| Vatican City | VAT | ITA raster fallback used; 0 population returned (Vatican's ~44px footprint has no modelled pixels) |
-| Kosovo | XKX | SRB raster fallback used; 0 population returned (WorldPop excludes Kosovo from SRB raster) |
-| Greenland | GRL | National = 369, adm2 = 23,614; WorldPop constrained model limitation for sparse Arctic settlements |
-
-These are source data limitations, not pipeline bugs. See `docs/DATA_ACQUISITION.md` for details.
-
----
-
-## Database Schema (key columns)
-
-```sql
-jurisdictions (
-    id              UUID PRIMARY KEY,
-    name            TEXT,
-    slug            TEXT UNIQUE,          -- e.g. "usa-1-united-states"
-    iso_code        CHAR(3),              -- ISO 3166-1 alpha-3
-    adm_level       SMALLINT,             -- 0=Earth, 1=National, 2=State, ..., 6=Sub-sub-local
-    parent_id       UUID REFERENCES jurisdictions(id),
-    source          TEXT,                 -- 'geoboundaries' | 'synthetic'
-    geom            GEOMETRY(MultiPolygon, 4326),
-    centroid        GEOMETRY(Point, 4326),
-    population      BIGINT,
-    population_year SMALLINT,
-    official_languages JSONB,             -- e.g. ["en", "fr"]
-    ...
-)
-```
-
-**ADM level mapping (geoBoundaries → app):**
-
-| geoBoundaries | `adm_level` | Meaning |
-|---|---|---|
-| (synthetic) | 0 | Earth — single root parent |
-| ADM0 | 1 | National |
-| ADM1 | 2 | State / Province |
-| ADM2 | 3 | County / Region |
-| ADM3 | 4 | Local |
-| ADM4 | 5 | Sub-local |
-| ADM5 | 6 | Sub-sub-local |
+| geoBoundaries v6.0 | CC BY 4.0 | `docs/geoBoundaries_repo/` (see `docs/fetch_geoboundaries.sh`) |
+| WorldPop 2023 100m | CC BY 4.0 | `docs/worldpop_100m_latest/` (see `docs/fetch_worldpop.sh`) |

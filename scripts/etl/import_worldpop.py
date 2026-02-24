@@ -51,7 +51,9 @@ from pathlib import Path
 
 import numpy as np
 import psycopg2
+import psycopg2.extras
 import rasterio
+from rasterio.io import MemoryFile
 from rasterio.mask import mask as rio_mask
 from affine import Affine
 from rasterstats import zonal_stats
@@ -107,6 +109,17 @@ MAX_BBOX_PIXELS = 400_000_000    # 400 megapixels
 # At 5000×5000 = 25 megapixels × 4 bytes (float32) = ~100 MB peak per tile.
 # This is safe even in a 512 MB Docker container.
 TILE_PIXELS = 5000
+
+# ─── PostGIS raster loading parameters ───────────────────────────────────────
+# Tile size for worldpop_rasters table.  256×256 splits the TIF's internal
+# 512×512 blocks into 4 subtiles per block, giving the PostGIS GIST index
+# fine enough granularity to quickly find tiles that overlap a query polygon
+# without loading the entire country raster.
+RASTER_TILE_SIZE = 256
+
+# How many tiles to INSERT per database round-trip.  Each tile is ~300–500 KB
+# as an in-memory GeoTIFF; 50 tiles ≈ 15–25 MB per batch — safe in 512 MB container.
+RASTER_BATCH_SIZE = 50
 
 # ─── TIF filename pattern ─────────────────────────────────────────────────────
 
@@ -729,6 +742,151 @@ def validate_national_population(
         log.info(msg, *args)
 
 
+# ─── PostGIS raster loading ──────────────────────────────────────────────────
+
+def _insert_raster_batch(
+    conn: psycopg2.extensions.connection,
+    batch: list[tuple],
+) -> None:
+    """
+    Bulk-insert a list of (iso_code, year, resolution_m, tile_bytes) tuples
+    into worldpop_rasters using ST_FromGDALRaster.
+
+    Each tile_bytes value is a raw GeoTIFF produced by rasterio MemoryFile —
+    PostGIS decodes it via its GDAL GeoTIFF driver and stores it as a raster.
+    """
+    with get_cursor(conn) as cur:
+        psycopg2.extras.execute_values(
+            cur,
+            """
+            INSERT INTO worldpop_rasters (iso_code, year, resolution_m, rast)
+            VALUES %s
+            """,
+            batch,
+            template="(%s, %s, %s, ST_SetSRID(ST_FromGDALRaster(%s::bytea), 4326))",
+            page_size=RASTER_BATCH_SIZE,
+        )
+
+
+def load_raster_to_db(
+    conn: psycopg2.extensions.connection,
+    iso3: str,
+    tif_path: Path,
+    log: logging.Logger,
+    year: int = 2023,
+    resolution_m: int = 100,
+) -> int:
+    """
+    Load a WorldPop GeoTIFF into the worldpop_rasters table as 256×256 pixel tiles.
+
+    Each tile is written to an in-memory GeoTIFF via rasterio.MemoryFile, then
+    inserted using PostGIS's ST_FromGDALRaster — no external tools required.
+
+    Tiles that are entirely nodata or zero (ocean, uninhabited land) are skipped
+    to keep storage compact.  For a country like the USA this typically eliminates
+    ~40–60% of potential tiles.
+
+    Idempotent: existing tiles for (iso3, year) are deleted before inserting.
+
+    Args:
+        conn:         Open psycopg2 connection (fresh per country).
+        iso3:         ISO3 country code to tag tiles with.
+        tif_path:     Path to the WorldPop GeoTIFF for this country.
+        log:          Logger instance.
+        year:         WorldPop year (default 2023).
+        resolution_m: Pixel resolution in metres (default 100).
+
+    Returns:
+        Number of tiles inserted.
+
+    Notes:
+        Fallback countries (VAT→ITA, XKX→SRB) should NOT be passed here — their
+        fallback TIFs cover a much larger territory.  Skip them at the call site.
+    """
+    log.info("%s: loading raster into DB from %s …", iso3, tif_path.name)
+
+    # Delete existing tiles for this country/year (idempotent re-runs)
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "DELETE FROM worldpop_rasters WHERE iso_code = %s AND year = %s",
+            (iso3, year),
+        )
+        deleted = cur.rowcount
+    if deleted:
+        log.debug("%s: removed %d stale raster tiles", iso3, deleted)
+
+    tiles_inserted = 0
+    batch: list[tuple] = []
+
+    with rasterio.open(tif_path) as _src:
+        # Wrap in WarpedVRT if CRS is not EPSG:4326 (defensive; WorldPop is always 4326)
+        if _src.crs and _src.crs.to_epsg() != 4326:
+            from rasterio.vrt import WarpedVRT
+            src_ctx = WarpedVRT(_src, crs="EPSG:4326")
+        else:
+            src_ctx = _src
+
+        nodata = _src.nodata
+        width  = src_ctx.width
+        height = src_ctx.height
+
+        col_steps = range(0, width,  RASTER_TILE_SIZE)
+        row_steps = range(0, height, RASTER_TILE_SIZE)
+        total_potential = len(col_steps) * len(row_steps)
+        log.debug(
+            "%s: raster %d×%d → up to %d tiles at %d×%d px",
+            iso3, width, height, total_potential, RASTER_TILE_SIZE, RASTER_TILE_SIZE,
+        )
+
+        for row_off in row_steps:
+            for col_off in col_steps:
+                tile_h = min(RASTER_TILE_SIZE, height - row_off)
+                tile_w = min(RASTER_TILE_SIZE, width  - col_off)
+
+                window = rasterio.windows.Window(col_off, row_off, tile_w, tile_h)
+                data   = src_ctx.read(1, window=window)
+
+                # Skip tiles that are entirely nodata / zero (ocean, uninhabited)
+                finite = data[~np.isnan(data)]
+                if nodata is not None:
+                    finite = finite[finite != nodata]
+                if finite.size == 0 or float(finite.sum()) == 0.0:
+                    continue
+
+                tile_transform = src_ctx.window_transform(window)
+
+                # Encode tile as an in-memory GeoTIFF for ST_FromGDALRaster
+                with MemoryFile() as mf:
+                    with mf.open(
+                        driver    = "GTiff",
+                        height    = tile_h,
+                        width     = tile_w,
+                        count     = 1,
+                        dtype     = "float32",
+                        crs       = src_ctx.crs,
+                        transform = tile_transform,
+                        nodata    = nodata,
+                    ) as dst:
+                        dst.write(data.astype("float32"), 1)
+                    tile_bytes = mf.read()
+
+                batch.append((iso3, year, resolution_m, tile_bytes))
+
+                if len(batch) >= RASTER_BATCH_SIZE:
+                    _insert_raster_batch(conn, batch)
+                    tiles_inserted += len(batch)
+                    batch = []
+
+    # Flush remaining tiles
+    if batch:
+        _insert_raster_batch(conn, batch)
+        tiles_inserted += len(batch)
+
+    log.info("%s: loaded %d raster tiles (skipped %d empty)",
+             iso3, tiles_inserted, total_potential - tiles_inserted)
+    return tiles_inserted
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def import_worldpop(
@@ -737,6 +895,7 @@ def import_worldpop(
     log: logging.Logger = None,
     save_progress_fn=None,
     level_filter: list[int] | None = None,
+    load_rasters: bool = False,
 ) -> int:
     """
     Update jurisdictions.population for all countries using WorldPop rasters.
@@ -762,6 +921,10 @@ def import_worldpop(
         log:              Logger instance
         save_progress_fn: callable(progress) — called after each chunk, ADM level,
                           and country to flush progress to disk atomically.
+        load_rasters:     If True, also load the country's GeoTIFF into the
+                          worldpop_rasters table after population aggregation.
+                          Skipped for fallback countries (VAT→ITA, XKX→SRB).
+                          Once loaded, TIF files are not needed at runtime.
 
     Returns:
         Total number of jurisdiction rows updated.
@@ -870,6 +1033,32 @@ def import_worldpop(
 
             # Validate: direct raster national total vs. sum of children
             validate_national_population(conn, iso3, log)
+
+            # ── Optional: load raster tiles into worldpop_rasters table ──
+            # Skip fallback countries — their TIF covers a larger territory,
+            # so storing it under the fallback iso_code would be misleading.
+            # (VAT/XKX are tiny and will never need district drawing.)
+            if load_rasters and iso3 not in RASTER_FALLBACKS:
+                raster_key = f"rasters:{iso3}"
+                if progress.get("worldpop_rasters", {}).get(raster_key, {}).get("status") != "done":
+                    try:
+                        tiles = load_raster_to_db(conn, iso3, tif_path, log, year=2023)
+                        progress.setdefault("worldpop_rasters", {})[raster_key] = {
+                            "status":    "done",
+                            "tiles":     tiles,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }
+                        if save_progress_fn:
+                            save_progress_fn(progress)
+                    except Exception as exc:
+                        log.error("%s: raster load failed — %s", iso3, exc, exc_info=True)
+                        progress.setdefault("worldpop_rasters", {})[raster_key] = {
+                            "status":    "error",
+                            "error":     str(exc),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }
+                else:
+                    log.debug("%s: raster already loaded — skipping", iso3)
 
             progress.setdefault("worldpop", {})[iso3] = {
                 "status":    "done",

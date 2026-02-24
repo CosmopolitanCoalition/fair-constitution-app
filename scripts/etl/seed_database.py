@@ -6,8 +6,11 @@ Runs the full geospatial data pipeline in order:
   Phase 2: import_worldpop       — population raster → zonal stats
 
 Usage:
-    # Full global run
+    # Full global run (boundaries + population aggregates)
     python seed_database.py
+
+    # Full run including raster tiles for PostGIS district drawing
+    python seed_database.py --load-rasters
 
     # Smoke test (NZL only, no population)
     python seed_database.py --countries NZL --adm-levels 0 1 --skip-population --fresh
@@ -18,6 +21,9 @@ Usage:
     # Specific countries with all ADM levels + population
     python seed_database.py --countries USA GBR DEU FRA
 
+    # Specific countries with population AND raster tiles
+    python seed_database.py --countries USA --load-rasters
+
     # Boundaries only (no WorldPop)
     python seed_database.py --skip-population
 
@@ -25,6 +31,9 @@ Options:
     --countries ISO3 [ISO3 ...]   Only process these ISO3 codes (default: all)
     --adm-levels N [N ...]        Only process these ADM levels 0-5 (default: all)
     --skip-population             Skip Phase 2 WorldPop import
+    --load-rasters                Also load each country's TIF into worldpop_rasters
+                                  table after population aggregation. One-time cost;
+                                  after this the TIF files are not needed at runtime.
     --fresh                       Ignore progress.json, reprocess everything
     --resume                      Explicitly resume from progress.json (default)
     --log-file PATH               Log file path (default: /etl/etl.log)
@@ -151,6 +160,7 @@ def print_summary(progress: dict, elapsed: float, log: logging.Logger):
     """Print a summary table of what was processed."""
     gb_entries  = progress.get("geoboundaries", {})
     wp_entries  = progress.get("worldpop", {})
+    wr_entries  = progress.get("worldpop_rasters", {})
 
     gb_done     = sum(1 for v in gb_entries.values() if v.get("status") == "done")
     gb_skipped  = sum(1 for v in gb_entries.values() if v.get("status") == "skipped")
@@ -160,6 +170,9 @@ def print_summary(progress: dict, elapsed: float, log: logging.Logger):
     wp_done     = sum(1 for v in wp_entries.values() if v.get("status") == "done")
     wp_skipped  = sum(1 for v in wp_entries.values() if v.get("status") == "skipped")
     wp_updated  = sum(v.get("updated", 0) for v in wp_entries.values())
+
+    wr_done     = sum(1 for v in wr_entries.values() if v.get("status") == "done")
+    wr_tiles    = sum(v.get("tiles", 0) for v in wr_entries.values())
 
     elapsed_str = f"{int(elapsed // 3600)}h {int((elapsed % 3600) // 60)}m {int(elapsed % 60)}s"
 
@@ -174,10 +187,21 @@ def print_summary(progress: dict, elapsed: float, log: logging.Logger):
         f"║    Files errored:            {gb_errors:<6}          ║",
         f"║    Jurisdictions inserted:   {gb_inserted:<7}         ║",
         "╠══════════════════════════════════════════════╣",
-        f"║  Phase 2 — WorldPop                          ║",
+        f"║  Phase 2 — WorldPop population               ║",
         f"║    Countries processed:      {wp_done:<6}          ║",
         f"║    Countries skipped:        {wp_skipped:<6}          ║",
         f"║    Population rows updated:  {wp_updated:<7}         ║",
+    ]
+
+    if wr_entries:
+        lines += [
+            "╠══════════════════════════════════════════════╣",
+            f"║  Phase 2 — WorldPop rasters (--load-rasters) ║",
+            f"║    Countries loaded:         {wr_done:<6}          ║",
+            f"║    Total raster tiles:       {wr_tiles:<7}         ║",
+        ]
+
+    lines += [
         "╠══════════════════════════════════════════════╣",
         f"║  Total elapsed: {elapsed_str:<29}║",
         "╚══════════════════════════════════════════════╝",
@@ -251,6 +275,14 @@ def main():
         help="Skip Phase 2 WorldPop population import"
     )
     parser.add_argument(
+        "--load-rasters", action="store_true",
+        help=(
+            "Load each country's WorldPop TIF into the worldpop_rasters table "
+            "after population aggregation. One-time cost; after this the TIF files "
+            "are not needed at runtime. Implies Phase 2 runs (ignores --skip-population)."
+        )
+    )
+    parser.add_argument(
         "--fresh", action="store_true",
         help="Ignore progress.json and reprocess everything"
     )
@@ -276,6 +308,8 @@ def main():
         log.info("Filtering to ADM levels: %s", args.adm_levels)
     if args.skip_population:
         log.info("--skip-population: WorldPop phase will be skipped")
+    if args.load_rasters:
+        log.info("--load-rasters: TIF tiles will be loaded into worldpop_rasters table")
     if args.fresh:
         log.info("--fresh: ignoring any existing progress.json")
 
@@ -327,7 +361,11 @@ def main():
     # initialises a second GDAL instance. Two GDAL instances in the same process
     # cause a segfault (exit 139 / SIGKILL) when rasterstats opens the raster.
     # Running worldpop in a fresh subprocess avoids this entirely.
-    if not args.skip_population:
+    #
+    # --load-rasters implies Phase 2 must run (raster loading happens inside
+    # import_worldpop after population aggregation, per-country).
+    run_phase2 = not args.skip_population or args.load_rasters
+    if run_phase2:
         log.info("")
         log.info("═══ Phase 2: import_worldpop ════════════════════")
 
@@ -365,6 +403,7 @@ import_worldpop(
     progress=progress,
     log=log,
     save_progress_fn=_save_progress,
+    load_rasters={args.load_rasters!r},
 )
 
 _save_progress(progress)
