@@ -26,6 +26,11 @@ return new class extends Migration
         // Required for existing postgres_data volumes that pre-date this migration.
         DB::statement('CREATE EXTENSION IF NOT EXISTS postgis_raster');
 
+        // Enable GDAL GTiff driver so ST_FromGDALRaster can load WorldPop tiles.
+        // GDAL drivers are disabled by default in PostGIS for security; GTiff is the
+        // only driver this application needs. Safe to run on existing databases.
+        DB::statement("ALTER DATABASE fair_constitution SET postgis.gdal_enabled_drivers TO 'GTiff'");
+
         // Raster tile table — one row per 256×256 pixel tile per country
         DB::statement('
             CREATE TABLE worldpop_rasters (

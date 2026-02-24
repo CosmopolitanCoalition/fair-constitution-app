@@ -763,7 +763,7 @@ def _insert_raster_batch(
             VALUES %s
             """,
             batch,
-            template="(%s, %s, %s, ST_SetSRID(ST_FromGDALRaster(%s::bytea), 4326))",
+            template="(%s, %s, %s, ST_SetSRID(ST_FromGDALRaster(%s), 4326))",
             page_size=RASTER_BATCH_SIZE,
         )
 
@@ -870,7 +870,7 @@ def load_raster_to_db(
                         dst.write(data.astype("float32"), 1)
                     tile_bytes = mf.read()
 
-                batch.append((iso3, year, resolution_m, tile_bytes))
+                batch.append((iso3, year, resolution_m, psycopg2.Binary(tile_bytes)))
 
                 if len(batch) >= RASTER_BATCH_SIZE:
                     _insert_raster_batch(conn, batch)
