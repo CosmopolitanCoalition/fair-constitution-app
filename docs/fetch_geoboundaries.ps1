@@ -2,14 +2,18 @@
 # Git sparse checkout so only the files used by import_geoboundaries.py are
 # downloaded.
 #
-# Files included:
-#   releaseData/gbOpen/                    all ADM-level GeoJSON boundary files
+# Files included (per country/ADM directory):
+#   geoBoundaries-{ISO3}-ADM{N}.geojson   primary boundary file (~1.4 MB each)
+#   geoBoundaries-{ISO3}-ADM{N}.shp/.dbf/.shx/.prj  shapefile fallback set
 #   releaseData/geoBoundariesOpen-meta.csv supplementary metadata (UNSDG region etc.)
 #
-# Files excluded (never read by the importer):
-#   releaseData/gbHumanitarian/
-#   releaseData/gbAuthoritative/
-#   All repo scaffolding (LICENSE, README, .github/, scripts, etc.)
+# Files excluded (never read by the importer — ~68% of each ADM directory):
+#   *-simplified.geojson/shp/topojson/dbf/shx/prj   simplified geometry variants
+#   *.topojson                                         TopoJSON format (unused)
+#   *-all.zip                                          redundant archive of same dir
+#   *-metaData.json/.txt, *-PREVIEW.png               per-boundary metadata/previews
+#   CITATION-AND-USE-*.txt, desktop.ini               repo scaffolding
+#   releaseData/gbHumanitarian/, gbAuthoritative/      other release types
 #
 # Usage (from repo root):
 #   powershell -ExecutionPolicy Bypass -File docs\fetch_geoboundaries.ps1
@@ -23,7 +27,11 @@ $Dest       = Join-Path $RepoRoot "docs\geoBoundaries_repo"
 $Remote     = "https://github.com/wmgeolab/geoBoundaries.git"
 
 $SparsePaths = @(
-    "releaseData/gbOpen/",
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].geojson",
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shp",
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].dbf",
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shx",
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].prj",
     "releaseData/geoBoundariesOpen-meta.csv"
 )
 
@@ -98,8 +106,30 @@ if (-not (Test-Path $GbOpen)) {
     $errors++
 } else {
     $countryCount = (Get-ChildItem $GbOpen -Directory).Count
-    $geojsonCount = (Get-ChildItem $GbOpen -Recurse -Filter "*.geojson").Count
-    Write-Host "  OK     releaseData/gbOpen/ — $countryCount countries, $geojsonCount GeoJSON files" -ForegroundColor Green
+    $geojsonCount = (Get-ChildItem $GbOpen -Recurse -Filter "geoBoundaries-*-ADM[0-9].geojson" |
+        Where-Object { $_.Name -notmatch "-simplified" }).Count
+    Write-Host "  OK     releaseData/gbOpen/ — $countryCount countries, $geojsonCount primary GeoJSON files" -ForegroundColor Green
+}
+
+# Spot-check USA/ADM0 for excluded file types
+$Sample = Join-Path $GbOpen "USA\ADM0"
+if (Test-Path $Sample) {
+    $excludedPatterns = @(
+        "geoBoundaries-USA-ADM0-simplified.geojson",
+        "geoBoundaries-USA-ADM0-all.zip",
+        "geoBoundaries-USA-ADM0.topojson",
+        "geoBoundaries-USA-ADM0-PREVIEW.png"
+    )
+    $foundExcluded = $false
+    foreach ($p in $excludedPatterns) {
+        if (Test-Path (Join-Path $Sample $p)) {
+            Write-Host "  WARN   $p is present (should have been excluded)" -ForegroundColor Yellow
+            $foundExcluded = $true
+        }
+    }
+    if (-not $foundExcluded) {
+        Write-Host "  OK     excluded file types absent from USA/ADM0 spot-check" -ForegroundColor Green
+    }
 }
 
 foreach ($excluded in @("releaseData\gbHumanitarian", "releaseData\gbAuthoritative")) {

@@ -4,7 +4,7 @@ This guide explains how to acquire the geospatial source data required to popula
 Cosmopolitan Governance App database from scratch.
 
 > **Why isn't this data in the repository?**
-> - **geoBoundaries** gbOpen release: ~1–2 GB of GeoJSON boundary files (sparse checkout; full repo is ~3–5 GB)
+> - **geoBoundaries** gbOpen release: ~300–600 MB (file-level sparse checkout; directory-level ~1–2 GB; full repo ~3–5 GB)
 > - **WorldPop** 100m rasters: ~9.5 GB of GeoTIFF files (229 countries)
 >
 > GitHub enforces a 100 MB per-file limit and a ~2 GB total repository soft limit.
@@ -43,26 +43,34 @@ bash docs/fetch_geoboundaries.sh
 powershell -ExecutionPolicy Bypass -File docs\fetch_geoboundaries.ps1
 ```
 
-Both scripts use `git clone --depth 1 --filter=blob:none --sparse` and apply sparse checkout
-to include only:
+Both scripts use `git clone --depth 1 --filter=blob:none --sparse` and apply file-level
+sparse checkout patterns to include only the files `import_geoboundaries.py` actually reads:
 
-| Included | Excluded |
+| Included | Excluded (~68% of each ADM directory) |
 |---|---|
-| `releaseData/gbOpen/` — all ADM-level GeoJSON files | `releaseData/gbHumanitarian/` |
-| `releaseData/geoBoundariesOpen-meta.csv` — metadata | `releaseData/gbAuthoritative/` |
-| | All repo scaffolding (README, LICENSE, .github/, scripts) |
+| `geoBoundaries-*-ADM[0-9].geojson` — primary boundary (~1.4 MB each) | `*-simplified.geojson/shp/topojson/dbf/shx/prj` |
+| `geoBoundaries-*-ADM[0-9].shp/.dbf/.shx/.prj` — shapefile fallback | `*.topojson` + `*-simplified.topojson` |
+| `geoBoundariesOpen-meta.csv` — supplementary metadata | `*-all.zip` (redundant archive of the same files) |
+| | `*-metaData.json/.txt`, `*-PREVIEW.png`, citation files |
+| | `releaseData/gbHumanitarian/`, `gbAuthoritative/` |
 
 **Requirements:** git ≥ 2.26 (ships with macOS Ventura+, Ubuntu 22.04+, Windows Git 2.26+)
-**Expected size:** ~1–2 GB (gbOpen only, vs ~3–5 GB for a full clone)
+**Expected size:** ~300–600 MB (file-level filtered, vs ~1–2 GB directory-level, vs ~3–5 GB full clone)
 **Expected time:** 5–15 minutes depending on connection speed
 **Version used:** 6.0.0 (September 2023)
 
-If you already have a full clone and want to retroactively slim it:
+If you already have a full or directory-level sparse clone and want to retroactively slim it:
 
 ```bash
 cd docs/geoBoundaries_repo
 git sparse-checkout init --no-cone
-git sparse-checkout set "releaseData/gbOpen/" "releaseData/geoBoundariesOpen-meta.csv"
+git sparse-checkout set \
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].geojson" \
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shp" \
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].dbf" \
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shx" \
+  "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].prj" \
+  "releaseData/geoBoundariesOpen-meta.csv"
 ```
 
 After cloning, the pipeline reads from:

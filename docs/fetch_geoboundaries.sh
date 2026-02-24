@@ -3,14 +3,18 @@
 # Git sparse checkout so only the files used by import_geoboundaries.py are
 # downloaded.
 #
-# Files included:
-#   releaseData/gbOpen/                    all ADM-level GeoJSON boundary files
+# Files included (per country/ADM directory):
+#   geoBoundaries-{ISO3}-ADM{N}.geojson   primary boundary file (~1.4 MB each)
+#   geoBoundaries-{ISO3}-ADM{N}.shp/.dbf/.shx/.prj  shapefile fallback set
 #   releaseData/geoBoundariesOpen-meta.csv supplementary metadata (UNSDG region etc.)
 #
-# Files excluded (never read by the importer):
-#   releaseData/gbHumanitarian/
-#   releaseData/gbAuthoritative/
-#   All repo scaffolding (LICENSE, README, .github/, scripts, etc.)
+# Files excluded (never read by the importer — ~68% of each ADM directory):
+#   *-simplified.geojson/shp/topojson/dbf/shx/prj   simplified geometry variants
+#   *.topojson                                         TopoJSON format (unused)
+#   *-all.zip                                          redundant archive of same dir
+#   *-metaData.json/.txt, *-PREVIEW.png               per-boundary metadata/previews
+#   CITATION-AND-USE-*.txt, desktop.ini               repo scaffolding
+#   releaseData/gbHumanitarian/, gbAuthoritative/      other release types
 #
 # Usage (from repo root):
 #   bash docs/fetch_geoboundaries.sh
@@ -25,7 +29,11 @@ DEST="${REPO_ROOT}/docs/geoBoundaries_repo"
 REMOTE="https://github.com/wmgeolab/geoBoundaries.git"
 
 SPARSE_PATHS=(
-    "releaseData/gbOpen/"
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].geojson"
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shp"
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].dbf"
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].shx"
+    "releaseData/gbOpen/**/geoBoundaries-*-ADM[0-9].prj"
     "releaseData/geoBoundariesOpen-meta.csv"
 )
 
@@ -88,11 +96,26 @@ if [[ ! -d "$GBOPEN" ]]; then
     errors=$((errors + 1))
 else
     country_count=$(find "$GBOPEN" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-    geojson_count=$(find "$GBOPEN" -name "*.geojson" | wc -l | tr -d ' ')
-    echo "  OK  releaseData/gbOpen/ — ${country_count} countries, ${geojson_count} GeoJSON files"
+    geojson_count=$(find "$GBOPEN" -name "geoBoundaries-*-ADM[0-9].geojson" | wc -l | tr -d ' ')
+    echo "  OK  releaseData/gbOpen/ — ${country_count} countries, ${geojson_count} primary GeoJSON files"
 fi
 
-# Confirm excluded paths are absent
+# Confirm excluded file types are absent (spot-check USA/ADM0 if present)
+SAMPLE="${GBOPEN}/USA/ADM0"
+if [[ -d "$SAMPLE" ]]; then
+    for excluded_pattern in \
+        "geoBoundaries-USA-ADM0-simplified.geojson" \
+        "geoBoundaries-USA-ADM0-all.zip" \
+        "geoBoundaries-USA-ADM0.topojson" \
+        "geoBoundaries-USA-ADM0-PREVIEW.png"; do
+        if [[ -f "${SAMPLE}/${excluded_pattern}" ]]; then
+            echo "  WARN ${excluded_pattern} is present (should have been excluded)"
+        fi
+    done
+    echo "  OK  excluded file types absent from USA/ADM0 spot-check"
+fi
+
+# Confirm other release types are absent
 for excluded in "releaseData/gbHumanitarian" "releaseData/gbAuthoritative"; do
     if [[ -d "${DEST}/${excluded}" ]]; then
         echo "  WARN ${excluded}/ is present (unexpected for sparse checkout)"
