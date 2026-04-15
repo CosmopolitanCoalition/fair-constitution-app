@@ -301,6 +301,7 @@
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
                                         Measures how evenly each district's population-per-seat matches the ideal quota — the "one person, one vote" standard. Lower deviation means each vote carries more equal weight.
+                                        <span class="block mt-1 text-gray-400">(Includes all sub-national districts in this map.)</span>
                                     </div>
                                 </div>
 
@@ -686,6 +687,17 @@
                                     : 'bg-teal-900 border-teal-700 text-teal-300 hover:bg-teal-800 hover:text-white'">
                             🎨 Recolor
                         </button>
+                        <button @click="isDragSelectMode = !isDragSelectMode"
+                                :disabled="!editingDistrictId"
+                                :title="editingDistrictId ? 'Rubber-band select jurisdictions (Shift = include assigned)' : 'Enter edit mode first'"
+                                class="px-2 py-1 rounded text-xs border transition-colors"
+                                :class="!editingDistrictId
+                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                    : isDragSelectMode
+                                        ? 'bg-blue-700 border-blue-500 text-white'
+                                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-blue-300 hover:border-blue-700'">
+                            ⬚ Select
+                        </button>
                     </div>
 
                     <!-- Scope picker panel -->
@@ -733,7 +745,7 @@
                     </div>
 
                     <!-- Scrollable content area -->
-                    <div class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+                    <div ref="sidebarListEl" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
 
                     <!-- Rounding readiness banner -->
                     <div v-if="roundingReady"
@@ -757,6 +769,7 @@
 
                         <!-- Top-level district row (with full expansion) -->
                         <div v-if="row.type === 'district' && !row.nested"
+                             :data-district-id="row.district.id"
                              class="border-b border-gray-800">
 
                             <!-- District header row -->
@@ -1063,6 +1076,10 @@
                 </div>
 
                 <div id="legislature-map" class="w-full h-full"></div>
+                <!-- Rubber-band selection overlay (drag-select mode) -->
+                <div ref="rubberBandEl"
+                     class="rubber-band"
+                     style="display:none; left:0; top:0; width:0; height:0;"></div>
 
                 <!-- Label toggle buttons -->
                 <div class="absolute top-3 right-3 z-[1001] flex flex-col gap-1">
@@ -1174,8 +1191,15 @@ function districtFillColor(colorIndex) {
 // Single-member districts use the MEMBER's own code (e.g. Texas → "TEX"), not the parent.
 // Multi-member districts use the grandparent code (if depth-2) or parent code (depth-1) + number.
 function revealedDistrictName(feat, memberCount) {
+    // Mirror PHP makeShortCode(): use ISO suffix for any adm_level when available.
+    // "CHN" → "CHN", "CN-HB" → "HB", "IN-UP" → "UP", "US-CA" → "CA"
+    // Falls back to word-initials or first-3 when iso is null or suffix is numeric.
     function codeFrom(iso, adm, name) {
-        if (adm === 1 && iso) return iso.toUpperCase()
+        if (iso) {
+            const pos = iso.lastIndexOf('-')
+            const suffix = pos >= 0 ? iso.slice(pos + 1) : iso
+            if (!/^\d+$/.test(suffix)) return suffix.toUpperCase()
+        }
         const words = (name ?? '').trim().split(/\s+/)
         return words.length > 1
             ? words.map(w => w[0]).join('').toUpperCase()
@@ -1242,6 +1266,9 @@ const selectedDistrictId  = ref(null)   // district highlighted on map
 const editingDistrictId   = ref(null)   // 'new' | district_id | null
 const pendingAdd          = ref(new Set())   // jids staged to add
 const pendingRemove       = ref(new Set())   // jids staged to remove
+const sidebarListEl       = ref(null)   // ref to scrollable district list container
+const isDragSelectMode    = ref(false)  // rubber-band selection active
+const rubberBandEl        = ref(null)   // rubber-band overlay div
 const savingEdit          = ref(false)
 const deletingDistrictId  = ref(null)
 const statusMsg           = ref(null)
@@ -2055,11 +2082,40 @@ function unhighlightJids(jids) {
 }
 
 // ── Selection & edit state management ────────────────────────────────────────
-function toggleSelectDistrict(districtId) {
+
+/** Pan/zoom the map to fit a district's member polygons. */
+function panMapToDistrict(districtId) {
+    const dist = districtsRef.value.find(x => x.id === districtId)
+    if (!dist || !_map) return
+    const bounds = L.latLngBounds([])
+    for (const m of dist.members) {
+        const layer = layerByJid[m.id]
+        if (layer) try { bounds.extend(layer.getBounds()) } catch (_) {}
+    }
+    if (bounds.isValid()) _map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 })
+}
+
+/** Scroll the sidebar district list to the row for the given districtId. */
+function scrollToSidebarRow(districtId) {
+    if (!sidebarListEl.value) return
+    const el = sidebarListEl.value.querySelector(`[data-district-id="${districtId}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+/**
+ * Toggle district selection.
+ * fromMap=true  → called from a map polygon click: scroll sidebar, skip pan.
+ * fromMap=false → called from a sidebar row click: pan map, skip sidebar scroll.
+ */
+function toggleSelectDistrict(districtId, fromMap = false) {
     if (editingDistrictId.value) return
     const prev = selectedDistrictId.value
     selectedDistrictId.value = prev === districtId ? null : districtId
     restyleAll()
+    if (selectedDistrictId.value) {
+        if (fromMap) scrollToSidebarRow(districtId)
+        else         panMapToDistrict(districtId)
+    }
 }
 
 function startEdit(districtId) {
@@ -2082,6 +2138,7 @@ function cancelEdit() {
     pendingAdd.value         = new Set()
     pendingRemove.value      = new Set()
     deletingDistrictId.value = null
+    isDragSelectMode.value   = false
     if (wasEditing) restyleAll()
 }
 
@@ -2608,7 +2665,7 @@ async function reinitMapLayers() {
                     if (isGiant && c.child_count > 0) {
                         drillTo(jid)
                     } else if (c.district_id) {
-                        toggleSelectDistrict(c.district_id)
+                        toggleSelectDistrict(c.district_id, /* fromMap */ true)
                     } else {
                         // Click unassigned compositable polygon → auto-start new district
                         startNewDistrict()
@@ -2680,7 +2737,9 @@ async function reinitMapLayers() {
         }
 
         // Jurisdiction name labels: one per child polygon.
-        // Skipped when the polygon center is within 0.2° of a district label badge (collision guard).
+        // If the polygon center is within 0.2° of a district label badge, offset the
+        // jurisdiction label upward by 30% of the polygon's latitude span rather than
+        // suppressing it — both labels then appear without stacking on the same point.
         const JURS_COLLIDE = 0.2
         for (const child of childrenRef.value) {
             const layer = layerByJid[child.id]
@@ -2697,7 +2756,14 @@ async function reinitMapLayers() {
                 if (Math.abs(dc.lat - center.lat) < JURS_COLLIDE &&
                     Math.abs(dc.lng - center.lng) < JURS_COLLIDE) { collides = true; break }
             }
-            if (collides) continue
+            if (collides) {
+                // Offset upward so the jurisdiction label clears the district badge.
+                try {
+                    const b      = layer.getBounds()
+                    const latOff = (b.getNorth() - b.getSouth()) * 0.30
+                    center       = L.latLng(center.lat + latOff, center.lng)
+                } catch (_) {}
+            }
             jurisdictionLabelGroup.addLayer(L.marker(center, {
                 icon: L.divIcon({
                     className: '',
@@ -2899,6 +2965,65 @@ onMounted(async () => {
         }
     })
 
+    // ── Drag / rubber-band select ─────────────────────────────────────────────
+    // Activated when isDragSelectMode is true (only available in edit mode).
+    // No modifier: select unassigned only.  Shift held: include already-assigned.
+    let _dragStart = null  // container point where the drag began
+
+    _map.on('mousedown', function (e) {
+        if (!isDragSelectMode.value) return
+        e.originalEvent.preventDefault()
+        _map.dragging.disable()
+        _dragStart = _map.latLngToContainerPoint(e.latlng)
+        if (rubberBandEl.value) {
+            const rb = rubberBandEl.value
+            rb.style.left    = _dragStart.x + 'px'
+            rb.style.top     = _dragStart.y + 'px'
+            rb.style.width   = '0'
+            rb.style.height  = '0'
+            rb.style.display = 'block'
+        }
+    })
+
+    _map.on('mousemove', function (e) {
+        if (!isDragSelectMode.value || !_dragStart) return
+        const cur = _map.latLngToContainerPoint(e.latlng)
+        if (rubberBandEl.value) {
+            const rb = rubberBandEl.value
+            rb.style.left   = Math.min(_dragStart.x, cur.x) + 'px'
+            rb.style.top    = Math.min(_dragStart.y, cur.y) + 'px'
+            rb.style.width  = Math.abs(cur.x - _dragStart.x) + 'px'
+            rb.style.height = Math.abs(cur.y - _dragStart.y) + 'px'
+        }
+    })
+
+    _map.on('mouseup', function (e) {
+        if (!isDragSelectMode.value || !_dragStart) return
+        _map.dragging.enable()
+        if (rubberBandEl.value) rubberBandEl.value.style.display = 'none'
+
+        const end   = _map.latLngToContainerPoint(e.latlng)
+        const swPx  = L.point(Math.min(_dragStart.x, end.x), Math.max(_dragStart.y, end.y))
+        const nePx  = L.point(Math.max(_dragStart.x, end.x), Math.min(_dragStart.y, end.y))
+        const sw    = _map.containerPointToLatLng(swPx)
+        const ne    = _map.containerPointToLatLng(nePx)
+        const selBounds  = L.latLngBounds(sw, ne)
+        const shiftHeld  = e.originalEvent.shiftKey
+        _dragStart = null
+
+        for (const child of childrenRef.value) {
+            const layer = layerByJid[child.id]
+            if (!layer) continue
+            let center = null
+            try { center = layer.getBounds().getCenter() } catch (_) {}
+            if (!center || !selBounds.contains(center)) continue
+            const isAssigned = !!child.district_id
+            if (isAssigned && !shiftHeld) continue  // unassigned-only unless Shift held
+            if (!pendingAdd.value.has(child.id)) togglePendingAdd(child.id)
+        }
+        restyleAll()
+    })
+
     await reinitMapLayers()
 })
 
@@ -3012,5 +3137,14 @@ watch(selectedDistrictId, (newId, oldId) => {
     color: #cbd5e1;
     font-size: 10px;
     font-weight: 400;
+}
+
+/* Rubber-band drag-select overlay */
+.rubber-band {
+    position: absolute;
+    border: 2px dashed #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+    pointer-events: none;
+    z-index: 1000;
 }
 </style>

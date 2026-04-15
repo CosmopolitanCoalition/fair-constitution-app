@@ -228,13 +228,22 @@ class LegislatureController extends Controller
                 j.adm_level         AS jadm,
                 ROUND(CAST(j.population AS numeric) / :quota, 4) AS jfrac,
                 (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
-                                    AS jchild_count
+                                    AS jchild_count,
+                j_dscope.name      AS district_scope_name,
+                j_dscope.iso_code  AS district_scope_iso,
+                j_dscope.adm_level AS district_scope_adm,
+                j_dspar.name       AS district_scope_parent_name,
+                j_dspar.iso_code   AS district_scope_parent_iso,
+                j_dspar.adm_level  AS district_scope_parent_adm,
+                (j_dspar.parent_id IS NULL) AS district_scope_gp_is_root
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
             JOIN jurisdictions j
                 ON j.id = ldj.jurisdiction_id
                AND j.parent_id = :scope_id
                AND j.deleted_at IS NULL
+            JOIN jurisdictions j_dscope ON j_dscope.id = ld.jurisdiction_id AND j_dscope.deleted_at IS NULL
+            LEFT JOIN jurisdictions j_dspar ON j_dspar.id = j_dscope.parent_id AND j_dspar.deleted_at IS NULL
             WHERE ld.legislature_id = :leg_id
               AND ld.deleted_at IS NULL
               {$mapFilter}
@@ -261,6 +270,13 @@ class LegislatureController extends Controller
                     'fractional_seats' => (float) $row->district_frac,
                     'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
+                    'scope_iso'        => $row->district_scope_iso,
+                    'scope_adm'        => (int) $row->district_scope_adm,
+                    'scope_name'       => $row->district_scope_name,
+                    'parent_iso'       => $row->district_scope_parent_iso,
+                    'parent_adm'       => $row->district_scope_parent_adm !== null ? (int) $row->district_scope_parent_adm : null,
+                    'parent_name'      => $row->district_scope_parent_name,
+                    'gp_is_root'       => (bool) $row->district_scope_gp_is_root,
                     '_member_codes'    => [],
                     'members'          => [],
                 ];
@@ -321,15 +337,22 @@ class LegislatureController extends Controller
             if ($memberCount === 1) {
                 // Single-member district: the district IS the jurisdiction — just use its short code.
                 $d['name'] = reset($d['_member_codes']);
-            } elseif ($isRootScope) {
-                // Use root jurisdiction short code + sequential number (e.g. "EAR 01")
-                // instead of the long hyphenated member-code chain ("ABW-AIA-ATG-...").
-                $rootShortCode = $this->makeShortCode($scope->name, $scope->iso_code ?? null, (int) $scope->adm_level);
-                $num           = str_pad($d['district_number'], 2, '0', STR_PAD_LEFT);
-                $d['name']     = $rootShortCode . ' ' . $num;
             } else {
+                // Mirror revealedDistrictName() — build prefix from district's own scope ancestry.
+                // scope = the jurisdiction ld.jurisdiction_id (e.g. UP for India-scope districts)
+                // parent = scope's parent (e.g. India)
+                // gp_is_root = parent.parent_id IS NULL (true when parent is Earth/root → skip parent code)
+                //
+                // Earth-scope (scope=CHN, parent=Earth→gp_is_root=true): prefix=["CHN"] → "CHN 01"
+                // India-scope (scope=UP, parent=India→gp_is_root=false): prefix=["IND","UP"] → "IND UP 01"
+                // USA-scope   (scope=CA, parent=USA→gp_is_root=false):  prefix=["USA","CA"] → "USA CA 01"
+                $prefix = [];
+                if (!$d['gp_is_root'] && ($d['parent_iso'] || $d['parent_name'])) {
+                    $prefix[] = $this->makeShortCode($d['parent_name'] ?? '', $d['parent_iso'], $d['parent_adm'] ?? 0);
+                }
+                $prefix[] = $this->makeShortCode($d['scope_name'] ?? '', $d['scope_iso'], $d['scope_adm']);
                 $num       = str_pad($d['district_number'], 2, '0', STR_PAD_LEFT);
-                $d['name'] = $scopeShortCode . ' ' . $num;
+                $d['name'] = implode(' ', $prefix) . ' ' . $num;
             }
             unset($d['_member_codes']);
         }
@@ -3645,15 +3668,24 @@ class LegislatureController extends Controller
     /**
      * Derive a short jurisdiction code for district naming.
      *
-     * Rules:
-     *   - ADM1 (country) with iso_code  → use iso_code directly (e.g. "USA", "GBR")
-     *   - Multi-word name (ADM2+)        → first letter of each word, uppercase ("New York" → "NY")
-     *   - Single-word name (ADM2+)       → first 3 characters, uppercase ("California" → "CAL")
+     * Rules (any adm_level):
+     *   - iso_code present with a non-numeric suffix → use the suffix after the last '-'.
+     *     "USA"   → "USA"   (country codes, no hyphen)
+     *     "CN-HB" → "HB"    (Hubei, not "HP" word-initials → fixes CHN HP 01 collisions)
+     *     "IN-UP" → "UP"    (Uttar Pradesh)
+     *     "US-CA" → "CA"    (California)
+     *   - Numeric suffix (some countries use numeric region codes) or no iso_code →
+     *     fall back to name-based code:
+     *       multi-word → first letter of each word (mb-safe)
+     *       single-word → first 3 characters (mb-safe)
      */
     private function makeShortCode(string $name, ?string $isoCode, int $admLevel): string
     {
-        if ($admLevel === 1 && $isoCode) {
-            return strtoupper($isoCode);
+        if ($isoCode) {
+            $pos    = strrpos($isoCode, '-');
+            $suffix = $pos !== false ? substr($isoCode, $pos + 1) : $isoCode;
+            // Skip purely numeric suffixes — fall through to name-based code instead.
+            if (!is_numeric($suffix)) return strtoupper($suffix);
         }
         $words = preg_split('/\s+/', trim($name));
         if (count($words) > 1) {
