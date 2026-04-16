@@ -709,6 +709,11 @@ class LegislatureController extends Controller
             // that all member junctions are inserted and the transaction is still open.
             $this->recomputeDistrict($districtId, $legislature_id, $leg);
 
+            // Hamilton rebalance: ensures SUM(seats) == scope budget exactly.
+            // Webster round() of individually-created districts can leave 1–2 seats
+            // unallocated (e.g. round(9.03)+round(7.91)+round(8.07)=25, budget=26).
+            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $scopeId, $mapId, $leg);
+
             // Renumber so the sequence stays compact (new district gets MAX+1 above,
             // but renumbering here ensures any prior gaps are healed too)
             $this->renumberDistricts($legislature_id, $scopeId, $mapId);
@@ -737,16 +742,18 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
-            // Fetch updated data for districts that lost members (so frontend can refresh their seat counts)
+            // All sibling districts may have had their seats rebalanced — include them
+            // all so the frontend can sync seat counts without a full page reload.
             $affectedDistrictsData = [];
-            foreach ($existingDistrictIds as $affId) {
-                $affRow = DB::table('legislature_districts')->where('id', $affId)->whereNull('deleted_at')->first();
+            foreach ($seatChanges as $did => $change) {
+                if ($did === $districtId) continue;  // new district returned separately
+                $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
-                        'id'           => $affRow->id,
-                        'seats'        => (int) $affRow->seats,
-                        'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'  => (int) $affRow->color_index,
+                        'id'             => $did,
+                        'seats'          => $change['seats'],
+                        'floor_override' => $change['floor_override'],
+                        'color_index'    => (int) $affRow->color_index,
                     ];
                 }
             }
@@ -763,11 +770,15 @@ class LegislatureController extends Controller
             }
             $colorUpdates = $colorUpdatesQuery->pluck('color_index', 'id');
 
+            // Use rebalanced seat count for the new district (may differ from initial Webster round)
+            $rebalancedSeats = $seatChanges[$districtId]['seats'] ?? (int) $newDistrict->seats;
+            $rebalancedFloor = $seatChanges[$districtId]['floor_override'] ?? (bool) $newDistrict->floor_override;
+
             return response()->json([
                 'district' => [
                     'id'               => $newDistrict->id,
-                    'seats'            => (int) $newDistrict->seats,
-                    'floor_override'   => (bool) $newDistrict->floor_override,
+                    'seats'            => $rebalancedSeats,
+                    'floor_override'   => $rebalancedFloor,
                     'color_index'      => (int) $newDistrict->color_index,
                     'status'           => $newDistrict->status,
                     'member_count'     => count($jids),
@@ -912,6 +923,9 @@ class LegislatureController extends Controller
                 $this->recomputeDistrict($affectedId, $legislature_id, $leg);
             }
 
+            // Hamilton rebalance: seat changes in one district shift remainders for siblings
+            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $district->jurisdiction_id, $district->map_id, $leg);
+
             DB::commit();
 
             // Recompute 4-color assignment for all districts at this scope
@@ -940,16 +954,18 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
-            // Fetch updated data for districts that lost members (so frontend can refresh their seat counts)
+            // Include ALL sibling districts from the Hamilton rebalance so the
+            // frontend can update every district's seat count in one round-trip.
             $affectedDistrictsData = [];
-            foreach (array_unique($affectedDistrictIds) as $affId) {
-                $affRow = DB::table('legislature_districts')->where('id', $affId)->whereNull('deleted_at')->first();
+            foreach ($seatChanges as $did => $change) {
+                if ($did === $district_id) continue;  // edited district returned in 'district' key
+                $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
-                        'id'           => $affRow->id,
-                        'seats'        => (int) $affRow->seats,
-                        'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'  => (int) $affRow->color_index,
+                        'id'             => $did,
+                        'seats'          => $change['seats'],
+                        'floor_override' => $change['floor_override'],
+                        'color_index'    => (int) $affRow->color_index,
                     ];
                 }
             }
@@ -957,11 +973,14 @@ class LegislatureController extends Controller
             $resolvedMapId = $this->getMapId($legislature_id, $district->map_id);
             $this->flushRevealedCache($legislature_id, $resolvedMapId, $district->jurisdiction_id);
 
+            $rebalancedSeats2 = $seatChanges[$district_id]['seats'] ?? (int) $updated->seats;
+            $rebalancedFloor2 = $seatChanges[$district_id]['floor_override'] ?? (bool) $updated->floor_override;
+
             return response()->json([
                 'district' => [
                     'id'               => $updated->id,
-                    'seats'            => (int) $updated->seats,
-                    'floor_override'   => (bool) $updated->floor_override,
+                    'seats'            => $rebalancedSeats2,
+                    'floor_override'   => $rebalancedFloor2,
                     'color_index'      => (int) $updated->color_index,
                     'status'           => $updated->status,
                     'member_count'     => $memberCount,
@@ -1012,6 +1031,12 @@ class LegislatureController extends Controller
             $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
         }
 
+        // Hamilton rebalance: removing a district frees its seat budget for redistribution
+        $seatChanges = [];
+        if ($scopeId && $leg) {
+            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $scopeId, $distMapId, $leg);
+        }
+
         // Recompute 4-color assignment for remaining districts at this scope
         if ($scopeId && $leg) {
             $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $distMapId);
@@ -1019,7 +1044,7 @@ class LegislatureController extends Controller
 
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
 
-        // Return updated district_numbers so frontend can update labels immediately
+        // Return updated district_numbers + seat_updates so frontend can sync immediately
         $remainingNumbers = DB::table('legislature_districts')
             ->where('legislature_id', $legislature_id)
             ->where('jurisdiction_id', $scopeId)
@@ -1027,7 +1052,13 @@ class LegislatureController extends Controller
             ->when($distMapId, fn($q) => $q->where('map_id', $distMapId))
             ->pluck('district_number', 'id');
 
-        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers]);
+        // Build seat_updates: id → seats (flat map for easy frontend lookup)
+        $seatUpdates = [];
+        foreach ($seatChanges as $did => $change) {
+            $seatUpdates[$did] = $change['seats'];
+        }
+
+        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers, 'seat_updates' => $seatUpdates]);
     }
 
     /**
@@ -2448,6 +2479,117 @@ class LegislatureController extends Controller
         }
 
         return ['districts_created' => $districtsCreated, 'error' => null];
+    }
+
+    /**
+     * Rebalance seat allocations across all districts in a scope using Hamilton
+     * (Largest Remainder) method so that SUM(seats) == scope budget exactly.
+     *
+     * Webster rounding of individually-created districts can leave 1–2 seats
+     * unallocated (sum of round(frac_i) ≠ total seats). Hamilton guarantees the
+     * sum matches the budget by distributing leftover seats to the districts with
+     * the largest fractional remainders.
+     *
+     * Must be called AFTER recomputeDistrict() for every district in the scope
+     * (so actual_population is current) and INSIDE the write transaction
+     * so the seat updates are atomic with the district write that triggered them.
+     *
+     * Returns [district_id => ['seats' => int, 'floor_override' => bool]] for
+     * all districts in the scope so callers can include changes in API responses.
+     */
+    private function rebalanceScopeSeats(
+        string $legislatureId,
+        string $scopeId,
+        ?string $mapId,
+        object $leg
+    ): array {
+        // Fetch all active districts — actual_population is fresh because
+        // recomputeDistrict() was just called for each one.
+        $query = DB::table('legislature_districts')
+            ->where('legislature_id', $legislatureId)
+            ->where('jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at');
+        if ($mapId !== null) {
+            $query->where('map_id', $mapId);
+        }
+        $districts = $query->get(['id', 'actual_population']);
+
+        if ($districts->isEmpty()) return [];
+
+        // Seat budget for this scope
+        $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
+        $rootPop  = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        if ($scopeId === $leg->jurisdiction_id) {
+            $budget = (int) $leg->type_a_seats;
+        } elseif ($scopeRow && $scopeRow->type_a_apportioned !== null) {
+            $budget = (int) $scopeRow->type_a_apportioned;
+        } else {
+            $budget = max(5, (int) round((int) ($scopeRow->population ?? 0) * (int) $leg->type_a_seats / $rootPop));
+        }
+
+        // Local quota = scope children total pop / budget
+        $scopeChildrenPop = (int) DB::table('jurisdictions')
+            ->where('parent_id', $scopeId)->whereNull('deleted_at')->sum('population');
+        $quota = $scopeChildrenPop / max($budget, 1);
+
+        // Lock in giant seats so we know the non-giant budget
+        $giantSeatsCommitted = 0;
+        $allChildPops = DB::table('jurisdictions')
+            ->where('parent_id', $scopeId)->whereNull('deleted_at')->pluck('population');
+        foreach ($allChildPops as $cp) {
+            if ($quota > 0 && ((float) $cp) / $quota >= 9.5) {
+                $giantSeatsCommitted += max(5, (int) round(((float) $cp) / $quota));
+            }
+        }
+        $distCount      = $districts->count();
+        $nonGiantBudget = max($distCount, $budget - $giantSeatsCommitted);
+        $effectiveFloor = ($nonGiantBudget >= 5 * $distCount)
+            ? 5
+            : max(1, (int) floor($nonGiantBudget / max($distCount, 1)));
+
+        // Compute fractional seats per district
+        $fracs = [];
+        foreach ($districts as $d) {
+            $fracs[$d->id] = $quota > 0 ? ((float) $d->actual_population) / $quota : 0.0;
+        }
+
+        // Hamilton step 1: floor assignment with constitutional bounds
+        $seats      = [];
+        $totalFloor = 0;
+        foreach ($districts as $d) {
+            $fl           = max($effectiveFloor, min(9, (int) floor($fracs[$d->id])));
+            $seats[$d->id] = $fl;
+            $totalFloor   += $fl;
+        }
+
+        // Hamilton step 2: distribute remaining seats by largest remainder
+        $remaining = $nonGiantBudget - $totalFloor;
+        if ($remaining > 0) {
+            $remainders = [];
+            foreach ($districts as $d) {
+                $remainders[$d->id] = $fracs[$d->id] - floor($fracs[$d->id]);
+            }
+            arsort($remainders);
+            foreach (array_keys($remainders) as $did) {
+                if ($remaining <= 0) break;
+                if ($seats[$did] < 9) {
+                    $seats[$did]++;
+                    $remaining--;
+                }
+            }
+        }
+
+        // Persist updated seat counts and collect changes
+        $changes = [];
+        foreach ($districts as $d) {
+            $newSeats = $seats[$d->id];
+            $newFloor = ($newSeats === 5 && $fracs[$d->id] < 5.0);
+            $changes[$d->id] = ['seats' => $newSeats, 'floor_override' => $newFloor];
+            DB::table('legislature_districts')
+                ->where('id', $d->id)
+                ->update(['seats' => $newSeats, 'floor_override' => $newFloor]);
+        }
+        return $changes;
     }
 
     /**

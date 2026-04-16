@@ -2384,7 +2384,12 @@ async function createDistrictFromPending() {
                         ...(affUpdate ? { seats: affUpdate.seats, floor_override: affUpdate.floor_override } : {}),
                     }
                 }
-                return { ...existing, color_index: newColor }
+                // Apply Hamilton rebalanced seat counts to all siblings (not just stolen-member ones)
+                return {
+                    ...existing,
+                    color_index: newColor,
+                    ...(affUpdate ? { seats: affUpdate.seats, floor_override: affUpdate.floor_override } : {}),
+                }
             }),
             {
                 id: d.id, seats: d.seats, floor_override: d.floor_override,
@@ -2490,15 +2495,17 @@ async function deleteDistrict(districtId) {
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
 
-        const memberIds      = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
-        const numUpdates     = data.district_numbers ?? {}
+        const memberIds   = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
+        const numUpdates  = data.district_numbers ?? {}
+        const seatUpdates = data.seat_updates     ?? {}
 
         districtsRef.value = districtsRef.value
             .filter(d => d.id !== districtId)
-            .map(d => numUpdates[d.id] !== undefined
-                ? { ...d, district_number: numUpdates[d.id] }
-                : d
-            )
+            .map(d => ({
+                ...d,
+                ...(numUpdates[d.id]  !== undefined ? { district_number: numUpdates[d.id] } : {}),
+                ...(seatUpdates[d.id] !== undefined ? { seats: seatUpdates[d.id] }          : {}),
+            }))
         childrenRef.value  = childrenRef.value.map(c =>
             memberIds.includes(c.id) ? { ...c, district_id: null, district_seats: null } : c
         )
