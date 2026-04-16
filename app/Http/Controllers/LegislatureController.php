@@ -705,12 +705,17 @@ class LegislatureController extends Controller
             // that all member junctions are inserted and the transaction is still open.
             $this->recomputeDistrict($districtId, $legislature_id, $leg);
 
+            // Renumber so the sequence stays compact (new district gets MAX+1 above,
+            // but renumbering here ensures any prior gaps are healed too)
+            $this->renumberDistricts($legislature_id, $scopeId, $mapId);
+
             DB::commit();
 
             // Recompute 4-color assignment for all districts at this scope
             $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $mapId);
 
             $newDistrict = DB::table('legislature_districts')->where('id', $districtId)->first();
+            $districtNumber = (int) $newDistrict->district_number;  // refresh after renumber
 
             // Compute district name — scope-aware (root: codes only; sub-scope: scope code + number).
             // Uses $labelScopeId (first child of root) so grandchild scopes label correctly.
@@ -756,14 +761,16 @@ class LegislatureController extends Controller
 
             return response()->json([
                 'district' => [
-                    'id'              => $newDistrict->id,
-                    'seats'           => (int) $newDistrict->seats,
-                    'floor_override'  => (bool) $newDistrict->floor_override,
-                    'color_index'     => (int) $newDistrict->color_index,
-                    'status'          => $newDistrict->status,
-                    'member_count'    => count($jids),
-                    'district_number' => $districtNumber,
-                    'name'            => $districtName,
+                    'id'               => $newDistrict->id,
+                    'seats'            => (int) $newDistrict->seats,
+                    'floor_override'   => (bool) $newDistrict->floor_override,
+                    'color_index'      => (int) $newDistrict->color_index,
+                    'status'           => $newDistrict->status,
+                    'member_count'     => count($jids),
+                    'district_number'  => $districtNumber,
+                    'name'             => $districtName,
+                    'convex_hull_ratio' => $newDistrict->convex_hull_ratio !== null ? round((float) $newDistrict->convex_hull_ratio, 3) : null,
+                    'is_contiguous'     => $newDistrict->is_contiguous !== null ? (bool) $newDistrict->is_contiguous : null,
                 ],
                 'affected_districts' => $affectedDistrictsData,
                 'color_updates'      => $colorUpdates,
@@ -948,14 +955,16 @@ class LegislatureController extends Controller
 
             return response()->json([
                 'district' => [
-                    'id'              => $updated->id,
-                    'seats'           => (int) $updated->seats,
-                    'floor_override'  => (bool) $updated->floor_override,
-                    'color_index'     => (int) $updated->color_index,
-                    'status'          => $updated->status,
-                    'member_count'    => $memberCount,
-                    'district_number' => (int) $updated->district_number,
-                    'name'            => $districtName,
+                    'id'               => $updated->id,
+                    'seats'            => (int) $updated->seats,
+                    'floor_override'   => (bool) $updated->floor_override,
+                    'color_index'      => (int) $updated->color_index,
+                    'status'           => $updated->status,
+                    'member_count'     => $memberCount,
+                    'district_number'  => (int) $updated->district_number,
+                    'name'             => $districtName,
+                    'convex_hull_ratio' => $updated->convex_hull_ratio !== null ? round((float) $updated->convex_hull_ratio, 3) : null,
+                    'is_contiguous'     => $updated->is_contiguous !== null ? (bool) $updated->is_contiguous : null,
                 ],
                 'affected_districts' => $affectedDistrictsData,
             ]);
@@ -994,6 +1003,11 @@ class LegislatureController extends Controller
         DB::table('legislature_district_jurisdictions')->where('district_id', $district_id)->delete();
         DB::table('legislature_districts')->where('id', $district_id)->update(['deleted_at' => now()]);
 
+        // Renumber remaining districts so the sequence stays compact (no gaps from soft deletes)
+        if ($scopeId) {
+            $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
+        }
+
         // Recompute 4-color assignment for remaining districts at this scope
         if ($scopeId && $leg) {
             $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $distMapId);
@@ -1001,7 +1015,15 @@ class LegislatureController extends Controller
 
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
 
-        return response()->json(['success' => true]);
+        // Return updated district_numbers so frontend can update labels immediately
+        $remainingNumbers = DB::table('legislature_districts')
+            ->where('legislature_id', $legislature_id)
+            ->where('jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->when($distMapId, fn($q) => $q->where('map_id', $distMapId))
+            ->pluck('district_number', 'id');
+
+        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers]);
     }
 
     /**
@@ -2417,6 +2439,35 @@ class LegislatureController extends Controller
         }
 
         return ['districts_created' => $districtsCreated, 'error' => null];
+    }
+
+    /**
+     * Renumber all non-deleted districts for a given (legislature, scope, map) triple
+     * so that district_number is a compact 1..N sequence ordered by creation date.
+     *
+     * Called after any create or soft-delete so draft maps never have gaps.
+     * Safe to call inside or outside a transaction — uses a single UPDATE per record.
+     */
+    private function renumberDistricts(string $legislatureId, string $jurisdictionId, ?string $mapId): void
+    {
+        $query = DB::table('legislature_districts')
+            ->where('legislature_id', $legislatureId)
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->orderBy('created_at')
+            ->orderBy('id');   // tie-break: stable sort
+
+        if ($mapId !== null) {
+            $query->where('map_id', $mapId);
+        }
+
+        $rows = $query->pluck('id');
+
+        foreach ($rows as $i => $id) {
+            DB::table('legislature_districts')
+                ->where('id', $id)
+                ->update(['district_number' => $i + 1]);
+        }
     }
 
     /**

@@ -804,17 +804,17 @@
                                       :class="selectedDistrictId === row.district.id ? 'rotate-90' : ''">›</span>
                             </div>
 
-                            <!-- Quality strip — always visible, mirrors map Stats label -->
-                            <div class="flex items-center gap-2 px-3 py-0.5 border-b border-gray-800/60 bg-gray-900/40 text-[10px] tabular-nums"
+                            <!-- Quality strip — always visible, mirrors Map Quality section labels -->
+                            <div class="flex items-center gap-2 px-3 py-0.5 border-b border-gray-800/60 bg-gray-900/40 text-[10px] tabular-nums flex-wrap"
                                  :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
-                                <!-- Population deviation -->
+                                <!-- Population Equality deviation -->
                                 <span :style="{ color: devColor((() => {
                                     const frac = row.district.fractional_seats > 0
                                         ? row.district.fractional_seats
                                         : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
                                     return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
                                 })()) }"
-                                      title="Population deviation from ideal quota">
+                                      title="Population Equality: deviation from ideal quota">
                                     {{ devLabel((() => {
                                         const frac = row.district.fractional_seats > 0
                                             ? row.district.fractional_seats
@@ -823,16 +823,16 @@
                                     })()) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
-                                <!-- Compactness (CHR) -->
+                                <!-- Shape Compactness -->
                                 <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
-                                      title="Shape compactness: Convex Hull Ratio (≥0.70 compact, 0.50–0.70 moderate, <0.50 irregular)">
-                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
+                                      :title="shapeLabel(row.district.convex_hull_ratio)">
+                                    Shape {{ chrLabel(row.district.convex_hull_ratio) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <!-- Contiguity -->
                                 <span :style="{ color: contigColor(row.district.is_contiguous) }"
-                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Not yet computed'">
-                                    {{ contigLabel(row.district.is_contiguous) }} contig
+                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Contiguity not yet computed'">
+                                    {{ contigLabel(row.district.is_contiguous) }}
                                 </span>
                             </div>
 
@@ -1165,8 +1165,9 @@
                             bg-gray-900/90 border border-gray-700 text-gray-300 pointer-events-none whitespace-nowrap">
                     <template v-if="isDragSelectMode">
                         <span class="text-blue-400">Drag</span> to add ·
-                        <span class="text-blue-300">Shift+drag</span> includes assigned ·
-                        <span class="text-red-400">Ctrl+drag</span> to remove
+                        <span class="text-blue-300">Shift+drag</span> incl. assigned ·
+                        <span class="text-red-400">Ctrl+drag</span> to remove ·
+                        <span class="text-orange-300">Shift+Ctrl+drag</span> undo remove
                     </template>
                     <template v-else-if="editingDistrictId === 'new'">
                         Click <span class="text-amber-400">unassigned</span> or <span class="text-green-400">green</span> polygons to select · Create from left panel
@@ -1452,19 +1453,28 @@ function contigColor(isContiguous) {
     if (isContiguous === false) return '#f87171'
     return '#6b7280'
 }
+// Label text mirrors Map Quality section headings so users can correlate at a glance:
+//   devLabel    → "Population Equality" section  (e.g. "Pop +1.5%")
+//   shapeLabel  → "Shape Compactness" section    (e.g. "Shape 0.742 (Moderate)")
+//   contigLabel → "Contiguity" section            (e.g. "✓ Contig" / "✗ Non-contig")
 function devLabel(dev) {
-    if (dev == null) return '?'
+    if (dev == null) return 'Pop ?'
     const sign = dev >= 0 ? '+' : ''
-    return `${sign}${dev.toFixed(1)}%`
+    return `Pop ${sign}${dev.toFixed(1)}%`
 }
-function chrLabel(chr) {
+function shapeLabel(chr) {
+    if (chr == null) return 'Shape —'
+    const tier = chr >= 0.70 ? 'Compact' : chr >= 0.50 ? 'Moderate' : 'Irregular'
+    return `Shape ${chr.toFixed(3)} (${tier})`
+}
+function chrLabel(chr) {   // short form for map badges where space is tight
     if (chr == null) return '—'
     return chr.toFixed(3)
 }
 function contigLabel(isContiguous) {
-    if (isContiguous === true)  return '✓'
-    if (isContiguous === false) return '✗'
-    return '?'
+    if (isContiguous === true)  return '✓ Contig'
+    if (isContiguous === false) return '✗ Non-contig'
+    return '? Contig'
 }
 
 function rebuildDistrictLabelGroup() {
@@ -1481,19 +1491,15 @@ function rebuildDistrictLabelGroup() {
         if (showMembersLabels.value)
             lines.push(`<span class="district-label-stat">${item.popStr} · ${item.fracStr}</span>`)
         if (showStatsLabels.value) {
-            // Three color-coded pills: deviation | compactness | contiguity
+            // Three color-coded lines matching Map Quality section names
             const dCol  = devColor(item.dev)
             const cCol  = chrColor(item.chr)
             const kCol  = contigColor(item.isContiguous)
-            const dTxt  = devLabel(item.dev)
-            const cTxt  = `CHR ${chrLabel(item.chr)}`
-            const kTxt  = item.isContiguous === true ? '✓ contig'
-                        : item.isContiguous === false ? '✗ split' : '? contig'
             lines.push(
                 `<span class="district-label-stat">` +
-                `<span style="color:${dCol}">${dTxt}</span>` +
-                ` · <span style="color:${cCol}">${cTxt}</span>` +
-                ` · <span style="color:${kCol}">${kTxt}</span>` +
+                `<span style="color:${dCol}">${devLabel(item.dev)}</span>` +
+                ` · <span style="color:${cCol}">Shape ${chrLabel(item.chr)}</span>` +
+                ` · <span style="color:${kCol}">${contigLabel(item.isContiguous)}</span>` +
                 `</span>`
             )
         }
@@ -2317,6 +2323,8 @@ async function createDistrictFromPending() {
                 status: d.status,
                 district_number: d.district_number ?? 0,
                 name: d.name ?? '',
+                convex_hull_ratio: d.convex_hull_ratio ?? null,
+                is_contiguous:     d.is_contiguous     ?? null,
                 members,
             },
         ]
@@ -2367,7 +2375,10 @@ async function saveDistrictEdit(districtId) {
                 }
                 return { ...d, seats: updated.seats, floor_override: updated.floor_override,
                     color_index: updated.color_index ?? d.color_index,
-                    name: updated.name ?? d.name, members }
+                    name: updated.name ?? d.name,
+                    convex_hull_ratio: updated.convex_hull_ratio !== undefined ? updated.convex_hull_ratio : d.convex_hull_ratio,
+                    is_contiguous:     updated.is_contiguous     !== undefined ? updated.is_contiguous     : d.is_contiguous,
+                    members }
             }
             // Strip stolen jids from source districts and update their seat counts
             const affUpdate2 = affectedMap2[d.id]
@@ -2407,10 +2418,18 @@ async function deleteDistrict(districtId) {
             `/api/legislatures/${props.legislature.id}/districts/${districtId}`,
             { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
         )
+        const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
 
-        const memberIds = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
-        districtsRef.value = districtsRef.value.filter(d => d.id !== districtId)
+        const memberIds      = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
+        const numUpdates     = data.district_numbers ?? {}
+
+        districtsRef.value = districtsRef.value
+            .filter(d => d.id !== districtId)
+            .map(d => numUpdates[d.id] !== undefined
+                ? { ...d, district_number: numUpdates[d.id] }
+                : d
+            )
         childrenRef.value  = childrenRef.value.map(c =>
             memberIds.includes(c.id) ? { ...c, district_id: null, district_seats: null } : c
         )
@@ -3128,11 +3147,17 @@ onMounted(async () => {
             if (!center || !selBounds.contains(center)) continue
 
             if (isRemove) {
-                // Remove mode: un-stage pending adds, or stage current members for removal
-                if (pendingAdd.value.has(child.id)) {
-                    togglePendingAdd(child.id)  // un-stage
-                } else if (editDist?.members.some(m => m.id === child.id)) {
-                    if (!pendingRemove.value.has(child.id)) togglePendingRemove(child.id)
+                if (shiftHeld) {
+                    // Shift+Ctrl drag — undo staged removes (mirror of Ctrl undoing adds)
+                    if (pendingRemove.value.has(child.id)) togglePendingRemove(child.id)
+                } else {
+                    // Ctrl drag — stage for removal: un-stage pending adds first,
+                    // then queue confirmed district members into pendingRemove
+                    if (pendingAdd.value.has(child.id)) {
+                        togglePendingAdd(child.id)  // un-stage staged add
+                    } else if (editDist?.members.some(m => m.id === child.id)) {
+                        if (!pendingRemove.value.has(child.id)) togglePendingRemove(child.id)
+                    }
                 }
             } else {
                 // Add mode: skip already-assigned unless Shift held
