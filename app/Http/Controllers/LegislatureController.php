@@ -229,9 +229,12 @@ class LegislatureController extends Controller
                 ROUND(CAST(j.population AS numeric) / :quota, 4) AS jfrac,
                 (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
                                     AS jchild_count,
-                j_dscope.name      AS district_scope_name,
-                j_dscope.iso_code  AS district_scope_iso,
-                j_dscope.adm_level AS district_scope_adm,
+                j_dscope.name       AS district_scope_name,
+                j_dscope.iso_code   AS district_scope_iso,
+                j_dscope.adm_level  AS district_scope_adm,
+                j_dscope.population AS district_scope_pop,
+                (SELECT COUNT(*) FROM jurisdictions jcc WHERE jcc.parent_id = j_dscope.id AND jcc.deleted_at IS NULL)
+                                    AS district_scope_child_count,
                 j_dspar.name       AS district_scope_parent_name,
                 j_dspar.iso_code   AS district_scope_parent_iso,
                 j_dspar.adm_level  AS district_scope_parent_adm,
@@ -270,6 +273,7 @@ class LegislatureController extends Controller
                     'fractional_seats' => (float) $row->district_frac,
                     'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
+                    'has_integrity'     => !(($quota > 0 ? (float) $row->district_scope_pop / $quota : 0) >= 9.5 && (int) $row->district_scope_child_count === 0),
                     'scope_iso'        => $row->district_scope_iso,
                     'scope_adm'        => (int) $row->district_scope_adm,
                     'scope_name'       => $row->district_scope_name,

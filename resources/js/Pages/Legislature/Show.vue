@@ -404,8 +404,7 @@
                                     </div>
                                 </div>
                                 <div v-if="props.stats.shape_compactness" class="space-y-0.5">
-                                    <div class="text-gray-500 text-[10px] mb-0.5">Mean: <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span>
-                                        &nbsp;·&nbsp; {{ props.stats.shape_compactness.scored }}/{{ props.stats.shape_compactness.total }} scored</div>
+                                    <div class="text-gray-500 text-[10px] mb-0.5">Mean CHR: <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span></div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-emerald-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">Compact (&ge;0.70):</span>
@@ -807,14 +806,14 @@
                             <!-- Quality strip — always visible, mirrors Map Quality section labels -->
                             <div class="flex items-center gap-2 px-3 py-0.5 border-b border-gray-800/60 bg-gray-900/40 text-[10px] tabular-nums flex-wrap"
                                  :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
-                                <!-- Population Equality deviation -->
+                                <!-- Population deviation -->
                                 <span :style="{ color: devColor((() => {
                                     const frac = row.district.fractional_seats > 0
                                         ? row.district.fractional_seats
                                         : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
                                     return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
                                 })()) }"
-                                      title="Population Equality: deviation from ideal quota">
+                                      title="Population deviation from ideal quota per seat">
                                     {{ devLabel((() => {
                                         const frac = row.district.fractional_seats > 0
                                             ? row.district.fractional_seats
@@ -823,16 +822,22 @@
                                     })()) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
-                                <!-- Shape Compactness -->
+                                <!-- Compactness (CHR) -->
                                 <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
                                       :title="shapeLabel(row.district.convex_hull_ratio)">
-                                    Shape {{ chrLabel(row.district.convex_hull_ratio) }}
+                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
                                 </span>
                                 <span class="text-gray-700">·</span>
                                 <!-- Contiguity -->
                                 <span :style="{ color: contigColor(row.district.is_contiguous) }"
                                       :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Contiguity not yet computed'">
                                     {{ contigLabel(row.district.is_contiguous) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <!-- Community Integrity -->
+                                <span :style="{ color: integrityColor(row.district.has_integrity) }"
+                                      :title="row.district.has_integrity === true ? 'Drawn along admin boundaries' : row.district.has_integrity === false ? 'Leaf giant — requires manual line-drawing' : 'Integrity not computed'">
+                                    {{ integrityLabel(row.district.has_integrity) }}
                                 </span>
                             </div>
 
@@ -1454,18 +1459,29 @@ function contigColor(isContiguous) {
     return '#6b7280'
 }
 // Label text mirrors Map Quality section headings so users can correlate at a glance:
-//   devLabel    → "Population Equality" section  (e.g. "Pop +1.5%")
-//   shapeLabel  → "Shape Compactness" section    (e.g. "Shape 0.742 (Moderate)")
-//   contigLabel → "Contiguity" section            (e.g. "✓ Contig" / "✗ Non-contig")
+//   devLabel       → "Population Equality" section  (e.g. "Dev +1.5%")
+//   shapeLabel     → "Shape Compactness" section    (e.g. "CHR 0.742 (Moderate)")
+//   contigLabel    → "Contiguity" section            (e.g. "✓ Contig" / "✗ Non-contig")
+//   integrityLabel → "Community Integrity" section  (e.g. "✓ Intact" / "✗ Needs tools")
 function devLabel(dev) {
-    if (dev == null) return 'Pop ?'
+    if (dev == null) return 'Dev ?'
     const sign = dev >= 0 ? '+' : ''
-    return `Pop ${sign}${dev.toFixed(1)}%`
+    return `Dev ${sign}${dev.toFixed(1)}%`
 }
 function shapeLabel(chr) {
-    if (chr == null) return 'Shape —'
+    if (chr == null) return 'CHR —'
     const tier = chr >= 0.70 ? 'Compact' : chr >= 0.50 ? 'Moderate' : 'Irregular'
-    return `Shape ${chr.toFixed(3)} (${tier})`
+    return `CHR ${chr.toFixed(3)} (${tier})`
+}
+function integrityColor(hasIntegrity) {
+    if (hasIntegrity === true)  return '#34d399'
+    if (hasIntegrity === false) return '#f87171'
+    return '#6b7280'
+}
+function integrityLabel(hasIntegrity) {
+    if (hasIntegrity === true)  return '✓ Intact'
+    if (hasIntegrity === false) return '✗ Needs tools'
+    return '? Integrity'
 }
 function chrLabel(chr) {   // short form for map badges where space is tight
     if (chr == null) return '—'
@@ -1489,17 +1505,23 @@ function rebuildDistrictLabelGroup() {
         if (showSeatsLabels.value && item.seats != null)
             lines.push(`<span class="district-label-stat">${item.seats} seats</span>`)
         if (showMembersLabels.value)
-            lines.push(`<span class="district-label-stat">${item.popStr} · ${item.fracStr}</span>`)
+            lines.push(`<span class="district-label-stat">Pop: ${item.popStr} · Rep: ${item.fracStr}</span>`)
         if (showStatsLabels.value) {
-            // Three color-coded lines matching Map Quality section names
+            // Four color-coded quality indicators across two lines
             const dCol  = devColor(item.dev)
             const cCol  = chrColor(item.chr)
             const kCol  = contigColor(item.isContiguous)
+            const iCol  = integrityColor(item.hasIntegrity)
             lines.push(
                 `<span class="district-label-stat">` +
                 `<span style="color:${dCol}">${devLabel(item.dev)}</span>` +
-                ` · <span style="color:${cCol}">Shape ${chrLabel(item.chr)}</span>` +
-                ` · <span style="color:${kCol}">${contigLabel(item.isContiguous)}</span>` +
+                ` · <span style="color:${cCol}">CHR ${chrLabel(item.chr)}</span>` +
+                `</span>`
+            )
+            lines.push(
+                `<span class="district-label-stat">` +
+                `<span style="color:${kCol}">${contigLabel(item.isContiguous)}</span>` +
+                ` · <span style="color:${iCol}">${integrityLabel(item.hasIntegrity)}</span>` +
                 `</span>`
             )
         }
@@ -2900,6 +2922,7 @@ async function reinitMapLayers() {
                 popStr: formatPop(totalPop), fracStr: totalFrac.toFixed(2), color,
                 chr:          dist.convex_hull_ratio != null ? dist.convex_hull_ratio : null,
                 isContiguous: dist.is_contiguous    != null ? dist.is_contiguous    : null,
+                hasIntegrity: dist.has_integrity    != null ? dist.has_integrity    : null,
                 dev,
             })
         }
@@ -3160,7 +3183,13 @@ onMounted(async () => {
                     }
                 }
             } else {
-                // Add mode: skip already-assigned unless Shift held
+                // Add mode: dragging over a pending-remove member un-stages the removal
+                // (works regardless of Shift — intuitive undo gesture)
+                if (pendingRemove.value.has(child.id)) {
+                    togglePendingRemove(child.id)
+                    continue
+                }
+                // Skip already-assigned jurisdictions unless Shift held
                 const isAssigned = !!child.district_id
                 if (isAssigned && !shiftHeld) continue
                 if (!pendingAdd.value.has(child.id)) togglePendingAdd(child.id)
