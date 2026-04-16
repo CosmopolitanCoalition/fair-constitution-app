@@ -89,8 +89,10 @@
                         </button>
                         <!-- New map -->
                         <button @click="newMapFormOpen = !newMapFormOpen; mapSelectorOpen = false"
+                                :disabled="creatingMap"
                                 title="Create a new district map"
-                                class="px-1.5 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors shrink-0">
+                                class="px-1.5 py-1 rounded text-xs border transition-colors shrink-0"
+                                :class="creatingMap ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700'">
                             +
                         </button>
                     </div>
@@ -181,19 +183,24 @@
                     <div v-if="newMapFormOpen" class="mt-2 flex items-center gap-1.5">
                         <input v-model="newMapName"
                                @keyup.enter="submitNewMap"
-                               @keyup.escape="newMapFormOpen = false; newMapName = ''"
+                               @keyup.escape="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
+                               :disabled="creatingMap"
                                placeholder="Map name…"
-                               class="flex-1 px-2 py-1 rounded text-xs bg-gray-800 border border-gray-600 text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-600 min-w-0" />
+                               class="flex-1 px-2 py-1 rounded text-xs bg-gray-800 border border-gray-600 text-gray-200 placeholder-gray-600 focus:outline-none focus:border-emerald-600 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed" />
                         <button @click="submitNewMap"
-                                :disabled="!newMapName.trim()"
-                                class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
-                                :class="newMapName.trim()
+                                :disabled="!newMapName.trim() || creatingMap"
+                                class="px-2 py-1 rounded text-xs border transition-colors shrink-0 flex items-center gap-1"
+                                :class="newMapName.trim() && !creatingMap
                                     ? 'bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600'
                                     : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
-                            Create
+                            <span v-if="creatingMap"
+                                  class="inline-block w-2.5 h-2.5 rounded-full border border-emerald-400 border-t-transparent animate-spin shrink-0"></span>
+                            {{ creatingMap ? 'Creating…' : 'Create' }}
                         </button>
-                        <button @click="newMapFormOpen = false; newMapName = ''"
-                                class="px-1.5 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors shrink-0">
+                        <button @click="if (!creatingMap) { newMapFormOpen = false; newMapName = '' }"
+                                :disabled="creatingMap"
+                                class="px-1.5 py-1 rounded text-xs border bg-gray-800 border-gray-700 transition-colors shrink-0"
+                                :class="creatingMap ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'">
                             ✕
                         </button>
                     </div>
@@ -1379,6 +1386,7 @@ function qualityColorInverse(value, goodAbove, badBelow) {
 const mapSelectorOpen   = ref(false)
 const newMapFormOpen    = ref(false)
 const newMapName        = ref('')
+const creatingMap       = ref(false)   // true while POST /maps is in-flight — prevents double-submit
 const renamingMapId     = ref(null)   // map currently being renamed inline
 const renameValue       = ref('')
 const deletingMapId     = ref(null)   // map pending delete confirmation
@@ -2015,7 +2023,8 @@ function switchMap(mapId) {
 
 async function submitNewMap() {
     const name = newMapName.value.trim()
-    if (!name) return
+    if (!name || creatingMap.value) return
+    creatingMap.value = true
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
             method:  'POST',
@@ -2023,13 +2032,19 @@ async function submitNewMap() {
             body:    JSON.stringify({ name }),
         })
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to create map'); return }
+        if (!resp.ok) {
+            showStatus('error', data.error ?? 'Failed to create map')
+            creatingMap.value = false
+            return
+        }
         newMapFormOpen.value = false
         newMapName.value     = ''
+        // creatingMap stays true — the router.visit() navigation will unmount this component
         router.visit(mapUrl(props.scope.id, data.id))
     } catch (e) {
         console.error('createMap:', e)
         showStatus('error', 'Network error')
+        creatingMap.value = false
     }
 }
 
