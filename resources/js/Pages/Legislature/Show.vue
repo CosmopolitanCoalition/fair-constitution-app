@@ -689,7 +689,9 @@
                         </button>
                         <button @click="isDragSelectMode = !isDragSelectMode"
                                 :disabled="!editingDistrictId"
-                                :title="editingDistrictId ? 'Rubber-band select jurisdictions (Shift = include assigned)' : 'Enter edit mode first'"
+                                :title="editingDistrictId
+                                    ? 'Drag-select: add unassigned · Shift = include assigned · Ctrl = remove'
+                                    : 'Enter edit mode first'"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
                                 :class="!editingDistrictId
                                     ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
@@ -1128,8 +1130,13 @@
                 <!-- Edit mode hint overlay -->
                 <div v-if="editingDistrictId"
                      class="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] px-4 py-2 rounded text-xs font-medium
-                            bg-gray-900/90 border border-gray-700 text-gray-300 pointer-events-none">
-                    <template v-if="editingDistrictId === 'new'">
+                            bg-gray-900/90 border border-gray-700 text-gray-300 pointer-events-none whitespace-nowrap">
+                    <template v-if="isDragSelectMode">
+                        <span class="text-blue-400">Drag</span> to add ·
+                        <span class="text-blue-300">Shift+drag</span> includes assigned ·
+                        <span class="text-red-400">Ctrl+drag</span> to remove
+                    </template>
+                    <template v-else-if="editingDistrictId === 'new'">
                         Click <span class="text-amber-400">unassigned</span> or <span class="text-green-400">green</span> polygons to select · Create from left panel
                     </template>
                     <template v-else>
@@ -1191,19 +1198,29 @@ function districtFillColor(colorIndex) {
 // Single-member districts use the MEMBER's own code (e.g. Texas → "TEX"), not the parent.
 // Multi-member districts use the grandparent code (if depth-2) or parent code (depth-1) + number.
 function revealedDistrictName(feat, memberCount) {
-    // Mirror PHP makeShortCode(): use ISO suffix for any adm_level when available.
-    // "CHN" → "CHN", "CN-HB" → "HB", "IN-UP" → "UP", "US-CA" → "CA"
-    // Falls back to word-initials or first-3 when iso is null or suffix is numeric.
+    // Mirror PHP makeShortCode():
+    //   ADM1: use iso_code directly ("IND", "CHN", "USA")
+    //   ADM2+ with hyphen in iso_code: use suffix ("US-CA"→"CA", "CN-HB"→"HB")
+    //     (geoBoundaries stores country ISO3 at every level; hyphen = subdivision code)
+    //   Fallback: strip generic geographic suffixes ("Province", "Autonomous", "Region"…)
+    //     then word-initials ("Uttar Pradesh"→"UP") or first-3 ("Hubei"→"HUB")
+    const GENERIC = new Set(['province', 'autonomous', 'region', 'territory', 'oblast', 'krai'])
     function codeFrom(iso, adm, name) {
         if (iso) {
+            if (adm === 1) return iso.toUpperCase()  // country code: "IND", "CHN", "USA"
             const pos = iso.lastIndexOf('-')
-            const suffix = pos >= 0 ? iso.slice(pos + 1) : iso
-            if (!/^\d+$/.test(suffix)) return suffix.toUpperCase()
+            if (pos >= 0) {  // subdivision code: "US-CA" → "CA", "CN-HB" → "HB"
+                const suffix = iso.slice(pos + 1)
+                if (!/^\d+$/.test(suffix)) return suffix.toUpperCase()
+            }
         }
-        const words = (name ?? '').trim().split(/\s+/)
-        return words.length > 1
-            ? words.map(w => w[0]).join('').toUpperCase()
-            : (name ?? '').trim().slice(0, 3).toUpperCase()
+        // Name fallback with generic-suffix stripping (fixes CHN "HP" collision)
+        const allWords = (name ?? '').trim().split(/\s+/)
+        const words    = allWords.filter(w => !GENERIC.has(w.toLowerCase()))
+        const use      = words.length ? words : allWords
+        return use.length > 1
+            ? use.map(w => w[0]).join('').toUpperCase()
+            : (use[0] ?? '').slice(0, 3).toUpperCase()
     }
     // Build scope prefix shared by both single- and multi-member districts:
     //   depth-1 (parent=India, grandparent=Earth→root): skip grandparent → ["IND"]
@@ -2099,7 +2116,10 @@ function panMapToDistrict(districtId) {
 function scrollToSidebarRow(districtId) {
     if (!sidebarListEl.value) return
     const el = sidebarListEl.value.querySelector(`[data-district-id="${districtId}"]`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    if (!el) return
+    // 'start' ensures the row anchors to the top of the scroll container so the
+    // district header and its expanded members are all visible, not just the header.
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 /**
@@ -2757,10 +2777,11 @@ async function reinitMapLayers() {
                     Math.abs(dc.lng - center.lng) < JURS_COLLIDE) { collides = true; break }
             }
             if (collides) {
-                // Offset upward so the jurisdiction label clears the district badge.
+                // Offset upward just enough so the jurisdiction label clears the district badge
+                // without moving too far from the polygon center.
                 try {
                     const b      = layer.getBounds()
-                    const latOff = (b.getNorth() - b.getSouth()) * 0.30
+                    const latOff = (b.getNorth() - b.getSouth()) * 0.20
                     center       = L.latLng(center.lat + latOff, center.lng)
                 } catch (_) {}
             }
@@ -2965,18 +2986,28 @@ onMounted(async () => {
         }
     })
 
-    // ── Drag / rubber-band select ─────────────────────────────────────────────
+    // ── Drag / rubber-band select / deselect ─────────────────────────────────
     // Activated when isDragSelectMode is true (only available in edit mode).
-    // No modifier: select unassigned only.  Shift held: include already-assigned.
-    let _dragStart = null  // container point where the drag began
+    //
+    // Modifiers at mousedown determine the operation for the whole drag gesture:
+    //   No modifier  → ADD: queue unassigned jurisdictions into pendingAdd
+    //   Shift held   → ADD (all): like above but also include already-assigned ones
+    //   Ctrl held    → REMOVE: dequeue from pendingAdd (for unconfirmed staged adds),
+    //                  or queue into pendingRemove (for confirmed district members)
+    let _dragStart    = null   // container point where the drag began
+    let _dragIsRemove = false  // true = Ctrl was held at mousedown → remove gesture
 
     _map.on('mousedown', function (e) {
         if (!isDragSelectMode.value) return
         e.originalEvent.preventDefault()
         _map.dragging.disable()
-        _dragStart = _map.latLngToContainerPoint(e.latlng)
+        _dragStart    = _map.latLngToContainerPoint(e.latlng)
+        _dragIsRemove = e.originalEvent.ctrlKey || e.originalEvent.metaKey
         if (rubberBandEl.value) {
             const rb = rubberBandEl.value
+            // Red border for remove, blue for add
+            rb.style.borderColor = _dragIsRemove ? '#f87171' : '#60a5fa'
+            rb.style.background  = _dragIsRemove ? 'rgba(248,113,113,0.08)' : 'rgba(96,165,250,0.08)'
             rb.style.left    = _dragStart.x + 'px'
             rb.style.top     = _dragStart.y + 'px'
             rb.style.width   = '0'
@@ -3002,14 +3033,20 @@ onMounted(async () => {
         _map.dragging.enable()
         if (rubberBandEl.value) rubberBandEl.value.style.display = 'none'
 
-        const end   = _map.latLngToContainerPoint(e.latlng)
-        const swPx  = L.point(Math.min(_dragStart.x, end.x), Math.max(_dragStart.y, end.y))
-        const nePx  = L.point(Math.max(_dragStart.x, end.x), Math.min(_dragStart.y, end.y))
-        const sw    = _map.containerPointToLatLng(swPx)
-        const ne    = _map.containerPointToLatLng(nePx)
+        const end        = _map.latLngToContainerPoint(e.latlng)
+        const swPx       = L.point(Math.min(_dragStart.x, end.x), Math.max(_dragStart.y, end.y))
+        const nePx       = L.point(Math.max(_dragStart.x, end.x), Math.min(_dragStart.y, end.y))
+        const sw         = _map.containerPointToLatLng(swPx)
+        const ne         = _map.containerPointToLatLng(nePx)
         const selBounds  = L.latLngBounds(sw, ne)
         const shiftHeld  = e.originalEvent.shiftKey
-        _dragStart = null
+        const isRemove   = _dragIsRemove
+        _dragStart       = null
+        _dragIsRemove    = false
+
+        const editDist = editingDistrictId.value !== 'new'
+            ? districtsRef.value.find(d => d.id === editingDistrictId.value)
+            : null
 
         for (const child of childrenRef.value) {
             const layer = layerByJid[child.id]
@@ -3017,9 +3054,20 @@ onMounted(async () => {
             let center = null
             try { center = layer.getBounds().getCenter() } catch (_) {}
             if (!center || !selBounds.contains(center)) continue
-            const isAssigned = !!child.district_id
-            if (isAssigned && !shiftHeld) continue  // unassigned-only unless Shift held
-            if (!pendingAdd.value.has(child.id)) togglePendingAdd(child.id)
+
+            if (isRemove) {
+                // Remove mode: un-stage pending adds, or stage current members for removal
+                if (pendingAdd.value.has(child.id)) {
+                    togglePendingAdd(child.id)  // un-stage
+                } else if (editDist?.members.some(m => m.id === child.id)) {
+                    if (!pendingRemove.value.has(child.id)) togglePendingRemove(child.id)
+                }
+            } else {
+                // Add mode: skip already-assigned unless Shift held
+                const isAssigned = !!child.district_id
+                if (isAssigned && !shiftHeld) continue
+                if (!pendingAdd.value.has(child.id)) togglePendingAdd(child.id)
+            }
         }
         restyleAll()
     })
@@ -3139,7 +3187,9 @@ watch(selectedDistrictId, (newId, oldId) => {
     font-weight: 400;
 }
 
-/* Rubber-band drag-select overlay */
+/* Rubber-band drag-select/remove overlay.
+   Border color and background are set dynamically in JS:
+   blue (#60a5fa) for add, red (#f87171) for remove (Ctrl held). */
 .rubber-band {
     position: absolute;
     border: 2px dashed #60a5fa;

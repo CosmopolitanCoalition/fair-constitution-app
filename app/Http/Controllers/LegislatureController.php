@@ -3668,35 +3668,44 @@ class LegislatureController extends Controller
     /**
      * Derive a short jurisdiction code for district naming.
      *
-     * Rules (any adm_level):
-     *   - iso_code present with a non-numeric suffix → use the suffix after the last '-'.
-     *     "USA"   → "USA"   (country codes, no hyphen)
-     *     "CN-HB" → "HB"    (Hubei, not "HP" word-initials → fixes CHN HP 01 collisions)
-     *     "IN-UP" → "UP"    (Uttar Pradesh)
-     *     "US-CA" → "CA"    (California)
-     *   - Numeric suffix (some countries use numeric region codes) or no iso_code →
-     *     fall back to name-based code:
-     *       multi-word → first letter of each word (mb-safe)
-     *       single-word → first 3 characters (mb-safe)
+     * Priority order:
+     *   1. ADM1 (country): use iso_code directly       "USA" → "USA", "CHN" → "CHN"
+     *   2. ADM2+ with hyphenated subdivision code:      "US-CA" → "CA", "CN-HB" → "HB"
+     *      (geoBoundaries stores country ISO3 at every level, so subdivision codes are
+     *       only present when the ETL explicitly imports them — guard with hyphen check)
+     *   3. Name-based fallback: strip common geographic suffix words ("Province",
+     *      "Autonomous", "Region", etc.) then:
+     *        multi-word  → word initials (mb-safe)   "Uttar Pradesh" → "UP"
+     *        single-word → first 3 chars (mb-safe)   "Hubei" → "HUB"
+     *
+     * Stripping "Province" from Chinese province names fixes the HP collision:
+     *   "Hubei Province" → "HUB", "Heilongjiang Province" → "HEI" (was both "HP").
      */
     private function makeShortCode(string $name, ?string $isoCode, int $admLevel): string
     {
         if ($isoCode) {
-            $pos    = strrpos($isoCode, '-');
-            $suffix = $pos !== false ? substr($isoCode, $pos + 1) : $isoCode;
-            // Skip purely numeric suffixes — fall through to name-based code instead.
-            if (!is_numeric($suffix)) return strtoupper($suffix);
+            if ($admLevel === 1) return strtoupper($isoCode);
+            // ADM2+: only use iso_code if it is a subdivision code (contains '-')
+            $pos = strrpos($isoCode, '-');
+            if ($pos !== false) {
+                $suffix = substr($isoCode, $pos + 1);
+                if (!is_numeric($suffix)) return strtoupper($suffix);
+            }
         }
-        $words = preg_split('/\s+/', trim($name));
-        if (count($words) > 1) {
+        // Name-based fallback: strip common non-distinctive geographic suffix words.
+        static $GENERIC = ['province', 'autonomous', 'region', 'territory', 'oblast', 'krai'];
+        $words    = preg_split('/\s+/', trim($name));
+        $filtered = array_values(array_filter($words, fn($w) => !in_array(mb_strtolower($w), $GENERIC)));
+        $use      = count($filtered) ? $filtered : $words;
+        if (count($use) > 1) {
             // Use mb_substr to safely extract the first character of each word —
             // $w[0] is byte-based and would truncate multi-byte UTF-8 characters.
-            return strtoupper(implode('', array_map(fn($w) => mb_substr($w, 0, 1), $words)));
+            return strtoupper(implode('', array_map(fn($w) => mb_substr($w, 0, 1), $use)));
         }
         // Use mb_substr to safely extract the first 3 characters —
         // substr($name, 0, 3) is byte-based and truncates multi-byte sequences
         // (e.g. "Jhārkhand" where ā = 2 bytes → substr produces invalid UTF-8 "JH\xc4").
-        return strtoupper(mb_substr($name, 0, 3));
+        return strtoupper(mb_substr($use[0] ?? $name, 0, 3));
     }
 
     /**
