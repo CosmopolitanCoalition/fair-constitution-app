@@ -1117,7 +1117,9 @@ class LegislatureController extends Controller
                 j_member.name      AS member_name,
                 j_member.iso_code  AS member_iso_code,
                 j_member.adm_level AS member_adm_level,
-                ST_AsGeoJSON(ST_Simplify(j_member.geom, {$tol})) AS geojson
+                ST_AsGeoJSON(ST_Simplify(j_member.geom, {$tol})) AS geojson,
+                (SELECT jsc.population FROM jurisdictions jsc WHERE jsc.id = ld.jurisdiction_id AND jsc.deleted_at IS NULL) AS scope_pop,
+                (SELECT COUNT(*) FROM jurisdictions jcc WHERE jcc.parent_id = ld.jurisdiction_id AND jcc.deleted_at IS NULL) AS scope_child_count
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
@@ -1161,7 +1163,9 @@ class LegislatureController extends Controller
                 j_member.name,
                 j_member.iso_code,
                 j_member.adm_level,
-                ST_AsGeoJSON(ST_Simplify(j_member.geom, {$tol}))
+                ST_AsGeoJSON(ST_Simplify(j_member.geom, {$tol})),
+                (SELECT jsc2.population FROM jurisdictions jsc2 WHERE jsc2.id = ld.jurisdiction_id AND jsc2.deleted_at IS NULL),
+                (SELECT COUNT(*) FROM jurisdictions jcc2 WHERE jcc2.parent_id = ld.jurisdiction_id AND jcc2.deleted_at IS NULL)
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
@@ -1214,6 +1218,7 @@ class LegislatureController extends Controller
                     'district_fractional_seats' => (float) $row->district_fractional_seats,
                     'convex_hull_ratio'         => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'             => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
+                    'has_integrity'             => !(($revTotalSeats > 0 && $revRootPop > 0 ? ((float) ($row->scope_pop ?? 0)) * $revTotalSeats / $revRootPop : 0) >= 9.5 && (int) ($row->scope_child_count ?? 0) === 0),
                     'member_name'               => $row->member_name,
                     'member_iso_code'           => $row->member_iso_code,
                     'member_adm_level'          => $row->member_adm_level !== null ? (int) $row->member_adm_level : null,
@@ -3085,9 +3090,12 @@ class LegislatureController extends Controller
             ->select(
                 'ld.id', 'ld.seats', 'ld.district_number', 'ld.actual_population',
                 'ld.fractional_seats', 'ld.color_index', 'ld.floor_override',
+                'ld.convex_hull_ratio', 'ld.is_contiguous',
                 'j.id AS jid', 'j.name AS jname', 'j.iso_code AS jiso', 'j.adm_level AS jadm',
                 'j.population AS jpop',
-                DB::raw('(SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS jchild_count')
+                DB::raw('(SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS jchild_count'),
+                DB::raw('(SELECT jsc.population FROM jurisdictions jsc WHERE jsc.id = ld.jurisdiction_id AND jsc.deleted_at IS NULL) AS scope_pop'),
+                DB::raw('(SELECT COUNT(*) FROM jurisdictions jcc WHERE jcc.parent_id = ld.jurisdiction_id AND jcc.deleted_at IS NULL) AS scope_child_count')
             )
             ->get();
 
@@ -3095,6 +3103,7 @@ class LegislatureController extends Controller
         foreach ($dmRows as $row) {
             $did = $row->id;
             if (!isset($dmap[$did])) {
+                $scopeFrac = $rootQuota > 0 ? ((float) ($row->scope_pop ?? 0)) / $rootQuota : 0;
                 $dmap[$did] = [
                     'id'               => $did,
                     'seats'            => (int) $row->seats,
@@ -3103,6 +3112,9 @@ class LegislatureController extends Controller
                     'fractional_seats' => (float) $row->fractional_seats,
                     'color_index'      => (int) $row->color_index,
                     'floor_override'   => (bool) $row->floor_override,
+                    'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
+                    'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
+                    'has_integrity'     => !(($scopeFrac >= 9.5) && ((int) ($row->scope_child_count ?? 0) === 0)),
                     '_member_codes'    => [],
                     'members'          => [],
                 ];

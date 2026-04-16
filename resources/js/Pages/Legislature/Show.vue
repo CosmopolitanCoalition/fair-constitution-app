@@ -934,25 +934,57 @@
 
                         <!-- Nested district row (from expandedNodes data — expandable to show members) -->
                         <div v-else-if="row.type === 'district' && row.nested"
-                             class="border-b border-gray-800 flex items-center gap-1 py-1.5 text-xs cursor-pointer hover:bg-gray-800/30 transition-colors"
-                             :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }"
-                             @click="toggleNestedDistrict(row.district.id)">
-                            <span class="shrink-0 w-2 h-2 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
-                            <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
-                            <span class="font-semibold w-12 text-right shrink-0"
-                                  :class="row.district.floor_override ? 'text-amber-400' : seatClass(row.district.seats)"
-                                  :title="row.district.floor_override ? 'Floor override — fractional < 5' : undefined">{{ row.district.seats }}</span>
-                            <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
-                                {{ (() => {
-                                    const dp = row.district.population
-                                    if (dp > 0) return formatPop(dp)
-                                    const ms = (row.district.members ?? []).reduce((s, m) => s + m.population, 0)
-                                    return ms > 0 ? formatPop(ms) : '—'
-                                })() }}
-                            </span>
-                            <span class="text-gray-600 tabular-nums w-12 text-right shrink-0">{{ Number(row.district.fractional_seats).toFixed(2) }}</span>
-                            <span class="text-gray-600 text-xs transition-transform w-4 text-center shrink-0"
-                                  :class="expandedNestedDistricts[row.district.id] ? 'rotate-90' : ''">›</span>
+                             class="border-b border-gray-800">
+                            <!-- Header line -->
+                            <div class="flex items-center gap-1 py-1.5 text-xs cursor-pointer hover:bg-gray-800/30 transition-colors"
+                                 :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }"
+                                 @click="toggleNestedDistrict(row.district.id)">
+                                <span class="shrink-0 w-2 h-2 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
+                                <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
+                                <span class="font-semibold w-12 text-right shrink-0"
+                                      :class="row.district.floor_override ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.floor_override ? 'Floor override — fractional < 5' : undefined">{{ row.district.seats }}</span>
+                                <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
+                                    {{ (() => {
+                                        const dp = row.district.population
+                                        if (dp > 0) return formatPop(dp)
+                                        const ms = (row.district.members ?? []).reduce((s, m) => s + m.population, 0)
+                                        return ms > 0 ? formatPop(ms) : '—'
+                                    })() }}
+                                </span>
+                                <span class="text-gray-600 tabular-nums w-12 text-right shrink-0">{{ Number(row.district.fractional_seats).toFixed(2) }}</span>
+                                <span class="text-gray-600 text-xs transition-transform w-4 text-center shrink-0"
+                                      :class="expandedNestedDistricts[row.district.id] ? 'rotate-90' : ''">›</span>
+                            </div>
+                            <!-- Quality strip — same stats as top-level district rows -->
+                            <div class="flex items-center gap-2 py-0.5 border-t border-gray-800/40 bg-gray-900/40 text-[10px] tabular-nums flex-wrap"
+                                 :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
+                                <span :style="{ color: devColor((() => {
+                                    const frac = row.district.fractional_seats
+                                    return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
+                                })()) }"
+                                      title="Population deviation from ideal quota per seat">
+                                    {{ devLabel((() => {
+                                        const frac = row.district.fractional_seats
+                                        return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
+                                    })()) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
+                                      :title="shapeLabel(row.district.convex_hull_ratio)">
+                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: contigColor(row.district.is_contiguous) }"
+                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Not yet computed'">
+                                    {{ contigLabel(row.district.is_contiguous) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: integrityColor(row.district.has_integrity) }"
+                                      :title="row.district.has_integrity === true ? 'Drawn along admin boundaries' : row.district.has_integrity === false ? 'Leaf giant — requires manual line-drawing' : 'Not computed'">
+                                    {{ integrityLabel(row.district.has_integrity) }}
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Expandable node (formerly "giant") row -->
@@ -3045,6 +3077,7 @@ async function reinitMapLayers() {
                     color,
                     chr:          feat.properties.convex_hull_ratio ?? null,
                     isContiguous: feat.properties.is_contiguous ?? null,
+                    hasIntegrity: feat.properties.has_integrity  ?? null,
                     dev:          (seats > 0 && distFrac > 0) ? (distFrac / seats - 1) * 100 : null,
                 })
             }
