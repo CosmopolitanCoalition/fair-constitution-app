@@ -2552,9 +2552,16 @@ class LegislatureController extends Controller
         // Contiguity: graph connectivity check via ST_Intersects adjacency + BFS.
         // Single-member districts are always contiguous by definition — their
         // internal island geography (Michigan UP, Hawaiian islands, etc.) is irrelevant.
+        //
         // Multi-member districts: two members are "adjacent" if their geometries
-        // intersect (share a border).  BFS from the first member; if all N are
-        // visited the district is contiguous.  FALSE means ≥1 member is isolated.
+        // actually intersect (share at least one point — i.e., a real land border).
+        // We use the GiST index bbox operator && as a fast pre-filter, then confirm
+        // with ST_Intersects.  This prevents coastal jurisdictions separated by water
+        // (harbors, straits, bays) from being falsely declared adjacent; the old
+        // approach used ST_Expand(geom, 1.35) which created ~150 km false adjacencies.
+        //
+        // BFS from the first member; if all N members are reachable the district is
+        // contiguous.  FALSE means ≥1 member is isolated (not reachable via real borders).
         if (count($jids) <= 1) {
             $isContiguous = true;
         } else {
@@ -2566,7 +2573,8 @@ class LegislatureController extends Controller
                 JOIN jurisdictions b ON b.id > a.id
                     AND b.id IN ({$jidPh2})
                     AND b.geom IS NOT NULL AND b.deleted_at IS NULL
-                    AND a.geom && ST_Expand(b.geom, 1.35)
+                    AND a.geom && b.geom
+                    AND ST_Intersects(a.geom, b.geom)
                 WHERE a.id IN ({$jidPh1})
                   AND a.geom IS NOT NULL AND a.deleted_at IS NULL
             ", array_merge($jids, $jids));
