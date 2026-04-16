@@ -804,6 +804,38 @@
                                       :class="selectedDistrictId === row.district.id ? 'rotate-90' : ''">›</span>
                             </div>
 
+                            <!-- Quality strip — always visible, mirrors map Stats label -->
+                            <div class="flex items-center gap-2 px-3 py-0.5 border-b border-gray-800/60 bg-gray-900/40 text-[10px] tabular-nums"
+                                 :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
+                                <!-- Population deviation -->
+                                <span :style="{ color: devColor((() => {
+                                    const frac = row.district.fractional_seats > 0
+                                        ? row.district.fractional_seats
+                                        : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
+                                    return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
+                                })()) }"
+                                      title="Population deviation from ideal quota">
+                                    {{ devLabel((() => {
+                                        const frac = row.district.fractional_seats > 0
+                                            ? row.district.fractional_seats
+                                            : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
+                                        return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
+                                    })()) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <!-- Compactness (CHR) -->
+                                <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
+                                      title="Shape compactness: Convex Hull Ratio (≥0.70 compact, 0.50–0.70 moderate, <0.50 irregular)">
+                                    CHR {{ chrLabel(row.district.convex_hull_ratio) }}
+                                </span>
+                                <span class="text-gray-700">·</span>
+                                <!-- Contiguity -->
+                                <span :style="{ color: contigColor(row.district.is_contiguous) }"
+                                      :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Not yet computed'">
+                                    {{ contigLabel(row.district.is_contiguous) }} contig
+                                </span>
+                            </div>
+
                             <!-- Expanded member list -->
                             <div v-if="selectedDistrictId === row.district.id" class="bg-gray-850">
 
@@ -1405,6 +1437,36 @@ const showStatsLabels        = ref(localStorage.getItem(LS.stats) === '1')
 let districtLabelGroup = null
 let _districtLabelData = []   // [{ distId, center, name, seats, popStr, fracStr, color }]
 
+// ── Quality-tier color helpers (used in both map labels and sidebar strip) ────
+// These mirror the thresholds in computeConstitutionalStats() and the sidebar CSS.
+function devColor(dev) {   // population deviation %
+    if (dev == null) return '#6b7280'
+    return Math.abs(dev) <= 5 ? '#34d399' : Math.abs(dev) <= 10 ? '#fbbf24' : '#f87171'
+}
+function chrColor(chr) {   // convex hull ratio
+    if (chr == null) return '#6b7280'
+    return chr >= 0.70 ? '#34d399' : chr >= 0.50 ? '#fbbf24' : '#f87171'
+}
+function contigColor(isContiguous) {
+    if (isContiguous === true)  return '#34d399'
+    if (isContiguous === false) return '#f87171'
+    return '#6b7280'
+}
+function devLabel(dev) {
+    if (dev == null) return '?'
+    const sign = dev >= 0 ? '+' : ''
+    return `${sign}${dev.toFixed(1)}%`
+}
+function chrLabel(chr) {
+    if (chr == null) return '—'
+    return chr.toFixed(3)
+}
+function contigLabel(isContiguous) {
+    if (isContiguous === true)  return '✓'
+    if (isContiguous === false) return '✗'
+    return '?'
+}
+
 function rebuildDistrictLabelGroup() {
     if (!districtLabelGroup) return
     districtLabelGroup.clearLayers()
@@ -1419,18 +1481,21 @@ function rebuildDistrictLabelGroup() {
         if (showMembersLabels.value)
             lines.push(`<span class="district-label-stat">${item.popStr} · ${item.fracStr}</span>`)
         if (showStatsLabels.value) {
-            const chr = item.chr != null ? `CHR ${item.chr}` : 'CHR —'
-            const con = item.isContiguous === true  ? '✓ contig'
-                      : item.isContiguous === false ? '✗ split'
-                      : '? contig'
-            let devStr = ''
-            if (item.dev != null) {
-                const d     = item.dev
-                const color = Math.abs(d) <= 5 ? '#34d399' : Math.abs(d) <= 10 ? '#fbbf24' : '#f87171'
-                const sign  = d >= 0 ? '+' : ''
-                devStr = ` · <span style="color:${color}">${sign}${d.toFixed(1)}%</span>`
-            }
-            lines.push(`<span class="district-label-stat">${chr} · ${con}${devStr}</span>`)
+            // Three color-coded pills: deviation | compactness | contiguity
+            const dCol  = devColor(item.dev)
+            const cCol  = chrColor(item.chr)
+            const kCol  = contigColor(item.isContiguous)
+            const dTxt  = devLabel(item.dev)
+            const cTxt  = `CHR ${chrLabel(item.chr)}`
+            const kTxt  = item.isContiguous === true ? '✓ contig'
+                        : item.isContiguous === false ? '✗ split' : '? contig'
+            lines.push(
+                `<span class="district-label-stat">` +
+                `<span style="color:${dCol}">${dTxt}</span>` +
+                ` · <span style="color:${cCol}">${cTxt}</span>` +
+                ` · <span style="color:${kCol}">${kTxt}</span>` +
+                `</span>`
+            )
         }
         if (!lines.length) continue
         districtLabelGroup.addLayer(L.marker(item.center, {
@@ -2117,9 +2182,14 @@ function scrollToSidebarRow(districtId) {
     if (!sidebarListEl.value) return
     const el = sidebarListEl.value.querySelector(`[data-district-id="${districtId}"]`)
     if (!el) return
-    // 'start' ensures the row anchors to the top of the scroll container so the
-    // district header and its expanded members are all visible, not just the header.
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // scrollIntoView block:'start' would land under the sticky sort header.
+    // Instead manually compute the target scrollTop so the row appears just
+    // below the sticky header (approx 28px — "Name Seats Population Rep" bar).
+    const STICKY_HEADER_H = 28
+    const containerTop = sidebarListEl.value.getBoundingClientRect().top
+    const rowTop        = el.getBoundingClientRect().top
+    const offset        = rowTop - containerTop - STICKY_HEADER_H
+    sidebarListEl.value.scrollBy({ top: offset, behavior: 'smooth' })
 }
 
 /**
@@ -2977,6 +3047,8 @@ onMounted(async () => {
     if (massJobRunning.value) startMassStatusPolling()
 
     // No tile layer — runs fully offline. Background colour set via CSS (#000000 ocean/space).
+    // boxZoom is Leaflet's built-in shift+drag-to-zoom; we disable it while our own
+    // drag-select mode is active so Shift+drag can be used for "include assigned" instead.
     _map = L.map('legislature-map', { zoomControl: true })
 
     // Clicking ocean/background in new-district mode with nothing selected = implicit cancel
@@ -3080,6 +3152,14 @@ onMounted(async () => {
 // re-runs — we need this watch to reload the correct children + districts.
 watch(() => props.scope.id, async () => {
     await reinitMapLayers()
+})
+
+// Disable Leaflet's native boxZoom (shift+drag to zoom) while our rubber-band
+// drag-select mode is active, so Shift can be used for "include assigned" instead.
+watch(isDragSelectMode, (active) => {
+    if (!_map) return
+    if (active) _map.boxZoom.disable()
+    else        _map.boxZoom.enable()
 })
 
 // Re-initialize map layers when the active map changes (e.g. switching from Test Map to another).
