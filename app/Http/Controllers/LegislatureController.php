@@ -177,6 +177,7 @@ class LegislatureController extends Controller
                 j.name,
                 j.adm_level,
                 j.population,
+                j.type_a_apportioned,
                 ROUND(CAST(j.population AS numeric) / :quota, 4)  AS fractional_seats,
                 ld.id                                              AS district_id,
                 ld.seats                                           AS district_seats,
@@ -207,6 +208,28 @@ class LegislatureController extends Controller
         // Re-sort in PHP after DISTINCT ON forces ORDER BY j.id above.
         usort($children, fn($a, $b) => $b->population - $a->population);
 
+        // ── Non-giant quota adjustment ────────────────────────────────────────
+        // When giants are present, their true fractional seats (non-integer) are rounded
+        // to integer type_a_apportioned values.  Using the full quota for non-giant fracs
+        // causes them to sum to a non-integer value instead of exactly (scopeSeats − giantSeats).
+        // Example: Indonesia 70 seats, WJ 12.63→13, EJ 10.57→11; non-giant fracs sum to
+        // 46.83 with full quota instead of 46.  The non-giant quota fixes this exactly.
+        // Giants keep their full-quota frac for Vue GIANT_THRESHOLD identification (>= 9.5).
+        $ngQuota = $this->computeNonGiantQuota(
+            $children,
+            $quota,         // full quota = effectivePop / scopeSeats
+            $scopeSeats,
+            $effectivePop
+        );
+        if ($ngQuota !== $quota) {
+            foreach ($children as &$c) {
+                if ((float) $c->fractional_seats < 9.5) {
+                    $c->fractional_seats = round((float) $c->population / max($ngQuota, 1), 4);
+                }
+            }
+            unset($c);
+        }
+
         // Districts with full member data — one row per district-member pair at this scope.
         // Grouped in PHP so each district gets a `members` array with IDs for map highlighting.
         $dmRows = DB::select("
@@ -218,7 +241,11 @@ class LegislatureController extends Controller
                 ld.color_index,
                 ld.district_number  AS dnum,
                 ld.actual_population AS district_pop,
-                ld.fractional_seats  AS district_frac,
+                -- Compute fractional live from actual_population / current-scope quota
+                -- so district Rep always matches member Rep (both use the same quota).
+                -- Using ld.fractional_seats (stored) caused discrepancies when
+                -- district.jurisdiction_id's population base differed from the viewed scope.
+                ROUND(CAST(ld.actual_population AS numeric) / NULLIF(CAST(:quota_d AS numeric), 0), 4) AS district_frac,
                 ld.convex_hull_ratio,
                 ld.is_contiguous,
                 j.id                AS jid,
@@ -252,7 +279,8 @@ class LegislatureController extends Controller
               {$mapFilter}
             ORDER BY ld.seats DESC, j.population DESC
         ", array_merge([
-            'quota'    => $quota,
+            'quota'    => $ngQuota,   // non-giant quota: member fracs (jfrac) sum to ngBudget
+            'quota_d'  => $ngQuota,   // PDO disallows duplicate named params; alias for district_frac
             'leg_id'   => $legislature_id,
             'scope_id' => $scopeId,
         ], $mapBindings));
@@ -417,7 +445,7 @@ class LegislatureController extends Controller
         unset($d);
 
         $flags = $this->computeValidationFlags($legislature_id, $leg, $scopeId, $children, $districts, $mapId);
-        $stats = $this->computeConstitutionalStats($legislature_id, $scopeId, $districts, $quota, $mapId);
+        $stats = $this->computeConstitutionalStats($legislature_id, $scopeId, $districts, $ngQuota, $mapId);
 
         $massToolRunning = (bool) Cache::get("legislature.{$legislature_id}.mass_running", false);
 
@@ -508,6 +536,7 @@ class LegislatureController extends Controller
                 'floor_override'   => (bool) $c->floor_override,
                 'child_count'          => (int) $c->child_count,
                 'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
+                'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
             ], $children),
             'districts' => $districts,  // [{id, seats, floor_override, status, color_index, district_number, name, members:[...]}]
             'quota'           => round($quota),
@@ -609,26 +638,43 @@ class LegislatureController extends Controller
             ], 422);
         }
 
-        // Calculate fractional seats for this composite using local quota
-        $totalPop   = (int) $jRows->sum('population');
-        $fractional = $totalPop / max($localQuota, 1);
-
-        // Compute effective floor — mirrors runAutoCompositeForScope() logic.
-        // When giants consume most of the budget, the remaining non-giant budget
-        // may be less than 5, so the floor is capped at that remainder.
-        $allScopeChildPops = DB::table('jurisdictions')
+        // Compute effective floor + non-giant quota — mirrors runAutoCompositeForScope() logic.
+        // When giants consume most of the budget, the remaining non-giant budget may be less
+        // than 5, so the floor is capped at that remainder.
+        // Also derive ngLocalQuota (non-giant quota) so the stored fractional correctly
+        // represents the district's share of the non-giant seat pool.
+        $allScopeChildren = DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
             ->whereNull('deleted_at')
-            ->pluck('population');
+            ->get(['population', 'type_a_apportioned']);
         $giantSeatsCommitted = 0;
-        foreach ($allScopeChildPops as $childPop) {
-            $childFrac = (int) $childPop / max($localQuota, 1);
+        $giantPopCommitted   = 0;
+        foreach ($allScopeChildren as $child) {
+            $childFrac = (int) $child->population / max($localQuota, 1);
             if ($childFrac >= 9.5) {
-                $giantSeatsCommitted += max(5, (int) round($childFrac));
+                // Use type_a_apportioned (locked integer budget) when available;
+                // otherwise round the fractional seats (same fallback as runAutoCompositeForScope).
+                $childSeats = ($child->type_a_apportioned !== null)
+                    ? (int) $child->type_a_apportioned
+                    : max(5, (int) round($childFrac));
+                $giantSeatsCommitted += $childSeats;
+                $giantPopCommitted   += (int) $child->population;
             }
         }
         $nonGiantBudget = max(1, $seatBudget - $giantSeatsCommitted);
         $effectiveFloor = min(5, $nonGiantBudget);
+
+        // Non-giant quota: guarantees SUM(non-giant fracs) = nonGiantBudget exactly.
+        $ngLocalQuota = $giantSeatsCommitted > 0
+            ? max($scopeChildrenPop - $giantPopCommitted, 1) / $nonGiantBudget
+            : $localQuota;
+
+        // Calculate fractional seats for this composite using non-giant quota.
+        // The per-member giant check (above) and the total-frac composite check (above)
+        // both use $localQuota (full quota) for consistent giant identification.
+        // Only the stored $fractional uses $ngLocalQuota so it's comparable to sibling fracs.
+        $totalPop   = (int) $jRows->sum('population');
+        $fractional = $totalPop / max($ngLocalQuota, 1);
 
         // Webster (Sainte-Laguë) rounding — clamp to [effectiveFloor, 9]
         $seats        = max($effectiveFloor, min(9, (int) round($fractional)));
@@ -709,11 +755,6 @@ class LegislatureController extends Controller
             // that all member junctions are inserted and the transaction is still open.
             $this->recomputeDistrict($districtId, $legislature_id, $leg);
 
-            // Hamilton rebalance: ensures SUM(seats) == scope budget exactly.
-            // Webster round() of individually-created districts can leave 1–2 seats
-            // unallocated (e.g. round(9.03)+round(7.91)+round(8.07)=25, budget=26).
-            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $scopeId, $mapId, $leg);
-
             // Renumber so the sequence stays compact (new district gets MAX+1 above,
             // but renumbering here ensures any prior gaps are healed too)
             $this->renumberDistricts($legislature_id, $scopeId, $mapId);
@@ -742,17 +783,16 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
-            // All sibling districts may have had their seats rebalanced — include them
-            // all so the frontend can sync seat counts without a full page reload.
+            // Districts that lost members had their seats recomputed via recomputeDistrict() above.
+            // Return their fresh seat counts so the frontend can sync without a full page reload.
             $affectedDistrictsData = [];
-            foreach ($seatChanges as $did => $change) {
-                if ($did === $districtId) continue;  // new district returned separately
+            foreach ($existingDistrictIds as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
                         'id'             => $did,
-                        'seats'          => $change['seats'],
-                        'floor_override' => $change['floor_override'],
+                        'seats'          => (int) $affRow->seats,
+                        'floor_override' => (bool) $affRow->floor_override,
                         'color_index'    => (int) $affRow->color_index,
                     ];
                 }
@@ -770,15 +810,12 @@ class LegislatureController extends Controller
             }
             $colorUpdates = $colorUpdatesQuery->pluck('color_index', 'id');
 
-            // Use rebalanced seat count for the new district (may differ from initial Webster round)
-            $rebalancedSeats = $seatChanges[$districtId]['seats'] ?? (int) $newDistrict->seats;
-            $rebalancedFloor = $seatChanges[$districtId]['floor_override'] ?? (bool) $newDistrict->floor_override;
-
             return response()->json([
                 'district' => [
                     'id'               => $newDistrict->id,
-                    'seats'            => $rebalancedSeats,
-                    'floor_override'   => $rebalancedFloor,
+                    'seats'            => (int) $newDistrict->seats,
+                    'floor_override'   => (bool) $newDistrict->floor_override,
+                    'fractional_seats' => round($fractional, 4),
                     'color_index'      => (int) $newDistrict->color_index,
                     'status'           => $newDistrict->status,
                     'member_count'     => count($jids),
@@ -786,6 +823,7 @@ class LegislatureController extends Controller
                     'name'             => $districtName,
                     'convex_hull_ratio' => $newDistrict->convex_hull_ratio !== null ? round((float) $newDistrict->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $newDistrict->is_contiguous !== null ? (bool) $newDistrict->is_contiguous : null,
+                    'has_integrity'     => true,  // always true — composited from existing admin children
                 ],
                 'affected_districts' => $affectedDistrictsData,
                 'color_updates'      => $colorUpdates,
@@ -923,9 +961,6 @@ class LegislatureController extends Controller
                 $this->recomputeDistrict($affectedId, $legislature_id, $leg);
             }
 
-            // Hamilton rebalance: seat changes in one district shift remainders for siblings
-            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $district->jurisdiction_id, $district->map_id, $leg);
-
             DB::commit();
 
             // Recompute 4-color assignment for all districts at this scope
@@ -954,17 +989,16 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
-            // Include ALL sibling districts from the Hamilton rebalance so the
-            // frontend can update every district's seat count in one round-trip.
+            // Districts that lost members had their seats recomputed via recomputeDistrict() above.
+            // Return their fresh seat counts so the frontend can sync without a full page reload.
             $affectedDistrictsData = [];
-            foreach ($seatChanges as $did => $change) {
-                if ($did === $district_id) continue;  // edited district returned in 'district' key
+            foreach (array_unique($affectedDistrictIds) as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
                         'id'             => $did,
-                        'seats'          => $change['seats'],
-                        'floor_override' => $change['floor_override'],
+                        'seats'          => (int) $affRow->seats,
+                        'floor_override' => (bool) $affRow->floor_override,
                         'color_index'    => (int) $affRow->color_index,
                     ];
                 }
@@ -973,14 +1007,12 @@ class LegislatureController extends Controller
             $resolvedMapId = $this->getMapId($legislature_id, $district->map_id);
             $this->flushRevealedCache($legislature_id, $resolvedMapId, $district->jurisdiction_id);
 
-            $rebalancedSeats2 = $seatChanges[$district_id]['seats'] ?? (int) $updated->seats;
-            $rebalancedFloor2 = $seatChanges[$district_id]['floor_override'] ?? (bool) $updated->floor_override;
-
             return response()->json([
                 'district' => [
                     'id'               => $updated->id,
-                    'seats'            => $rebalancedSeats2,
-                    'floor_override'   => $rebalancedFloor2,
+                    'seats'            => (int) $updated->seats,
+                    'floor_override'   => (bool) $updated->floor_override,
+                    'fractional_seats' => round((float) $updated->fractional_seats, 4),
                     'color_index'      => (int) $updated->color_index,
                     'status'           => $updated->status,
                     'member_count'     => $memberCount,
@@ -988,6 +1020,7 @@ class LegislatureController extends Controller
                     'name'             => $districtName,
                     'convex_hull_ratio' => $updated->convex_hull_ratio !== null ? round((float) $updated->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $updated->is_contiguous !== null ? (bool) $updated->is_contiguous : null,
+                    'has_integrity'     => true,  // always true — composited from existing admin children
                 ],
                 'affected_districts' => $affectedDistrictsData,
             ]);
@@ -1031,12 +1064,6 @@ class LegislatureController extends Controller
             $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
         }
 
-        // Hamilton rebalance: removing a district frees its seat budget for redistribution
-        $seatChanges = [];
-        if ($scopeId && $leg) {
-            $seatChanges = $this->rebalanceScopeSeats($legislature_id, $scopeId, $distMapId, $leg);
-        }
-
         // Recompute 4-color assignment for remaining districts at this scope
         if ($scopeId && $leg) {
             $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $distMapId);
@@ -1044,7 +1071,9 @@ class LegislatureController extends Controller
 
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
 
-        // Return updated district_numbers + seat_updates so frontend can sync immediately
+        // Return updated district_numbers so frontend can sync numbering immediately.
+        // Sibling seat counts are unchanged — each district's seats were computed from its
+        // own population (Webster per-district) and do not shift when a sibling is deleted.
         $remainingNumbers = DB::table('legislature_districts')
             ->where('legislature_id', $legislature_id)
             ->where('jurisdiction_id', $scopeId)
@@ -1052,13 +1081,7 @@ class LegislatureController extends Controller
             ->when($distMapId, fn($q) => $q->where('map_id', $distMapId))
             ->pluck('district_number', 'id');
 
-        // Build seat_updates: id → seats (flat map for easy frontend lookup)
-        $seatUpdates = [];
-        foreach ($seatChanges as $did => $change) {
-            $seatUpdates[$did] = $change['seats'];
-        }
-
-        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers, 'seat_updates' => $seatUpdates]);
+        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers]);
     }
 
     /**
@@ -1606,27 +1629,7 @@ class LegislatureController extends Controller
             $legislature_id, $leg, $scopeId, $operationScope, $rootQuota, $mapId
         );
 
-        // For map_view_* disband operations, also cascade to giant direct children of the scope.
-        // Giant children render their sub-districts visually ON the current map view (their colored
-        // polygons are what the user sees). When the user selects "Clear all at this map view" they
-        // expect every colored polygon to disappear — not just the ones whose district record sits at
-        // exactly jurisdiction_id=$scopeId. Cascading to giant children makes the disband match the
-        // visual expectation without changing reseed behavior (massReseed keeps map_view_* scoped to
-        // this level only so it doesn't over-seed giant sub-scopes).
-        if (str_starts_with($operationScope, 'map_view_')) {
-            $giantChildIds = DB::table('jurisdictions')
-                ->where('parent_id', $scopeId)
-                ->whereNull('deleted_at')
-                ->get(['id', 'population'])
-                ->filter(fn($j) => ((int) $j->population / max($rootQuota, 1)) >= 9.5)
-                ->pluck('id')
-                ->toArray();
-            if (!empty($giantChildIds)) {
-                $scopeIds = array_unique(array_merge($scopeIds, $giantChildIds));
-            }
-        }
-
-        // Also include non-giant direct child scopes that have existing districts in this map.
+        // Clean up non-giant direct child scopes that have existing districts in this map.
         // These are ETL artifacts — non-giants should never have sub-scope districts.
         // Unconditionally safe to clear: constitutionally they cannot hold districts.
         $nonGiantQuery = DB::table('jurisdictions AS j')
@@ -2264,11 +2267,8 @@ class LegislatureController extends Controller
             SELECT a.id AS j1, b.id AS j2
             FROM jurisdictions a
             JOIN jurisdictions b ON a.id < b.id
-                AND ST_DWithin(
-                    ST_SimplifyPreserveTopology(a.geom, 0.01),
-                    ST_SimplifyPreserveTopology(b.geom, 0.01),
-                    0.1
-                )
+                AND ST_Intersects(a.geom, b.geom)
+                AND ST_Dimension(ST_Intersection(a.geom, b.geom)) >= 1
             WHERE a.id = ANY(:ids1::uuid[])
               AND b.id = ANY(:ids2::uuid[])
               AND a.deleted_at IS NULL
@@ -2302,11 +2302,84 @@ class LegislatureController extends Controller
             $components[] = $component;
         }
 
-        // ── Step 8: Geographic seed expansion per connected component ─────────
-        $allBins = [];
+        // ── Step 8: Multi-attempt seed expansion — retain best by constitutional priority ───
+        // For each component, tries every integer k in [kMin, min(kMax, kMin+7)] across 3 seed
+        // strategies, scoring every candidate in-memory.  Constitutional scoring priority:
+        //   1. Fewest non-contiguous bins
+        //   2. Lowest avg deviation %   (overall population equality — primary equality metric)
+        //   3. Lowest seat variance     (UPD uniformity: 9×6+1×7 beats 5×9+2×8 for same budget)
+        //   4. Lowest max deviation %   (worst-district tiebreaker)
+        //
+        // avg_deviation ranks above max_deviation because a uniform configuration (e.g. 9×6+1×7=61)
+        // produces a large max_dev only for the single "rounding" district — rewarding that with a
+        // penalty would incorrectly prefer mixed-seat configurations that have higher overall deviation.
+        // Zero DB queries; uses the adjacency graph already in memory.
+        $allBins     = [];
+        $totalBinPop = array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $childIds));
+
         foreach ($components as $component) {
-            $bins    = $this->geographicSeedExpansion($component, $childById, $adj, $centroids);
-            $allBins = array_merge($allBins, $bins);
+            $compFrac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $component));
+
+            // Single-district components need no splitting — skip multi-attempt overhead
+            if ($compFrac < 9.5) {
+                $allBins[] = $component;
+                continue;
+            }
+
+            // k range: constitutional ceiling (9 seats max) → constitutional floor (5 seats min)
+            $kMin = max(2, (int) ceil($compFrac / 9.0));
+            $kMax = max($kMin, (int) floor($compFrac / 5.0));
+
+            // Exhaustive integer range [kMin, min(kMax, kMin+7)].
+            // Cap at kMin+7 so runtime stays bounded for very large budgets (≤8 k values × 3 strategies = ≤24 BFS runs).
+            // Full range ensures UPD-optimal k values (e.g. k=10 for a 61-seat budget) are never skipped.
+            $kCandidates = range($kMin, min($kMax, $kMin + 7));
+
+            // Component-level proportional budget (fixed regardless of k)
+            $compBinPop = array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $component));
+            $compBudget = $totalBinPop > 0
+                ? (int) round($compBinPop * $nonGiantBudget / $totalBinPop)
+                : $nonGiantBudget;
+
+            $bestBins  = null;
+            $bestScore = null;
+
+            foreach ($kCandidates as $k) {
+                foreach (['northernmost', 'largest_pop', 'center_out', 'southernmost', 'easternmost', 'westernmost'] as $strategy) {
+                    $seeds = $this->selectSeedsByStrategy($strategy, $component, $childById, $centroids, $k);
+                    $bins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds);
+
+                    $effectiveBudget = max(count($bins), $compBudget); // at least 1 seat per bin
+
+                    $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget);
+
+                    // Lexicographic: fewest non-contiguous → lowest avg deviation → lowest seat variance
+                    //   → lowest max deviation → lowest avg Rg² (most compact)
+                    if (
+                        $bestScore === null ||
+                        $score['non_contiguous_count'] < $bestScore['non_contiguous_count'] ||
+                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
+                         $score['avg_deviation_pct']    < $bestScore['avg_deviation_pct']) ||
+                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
+                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
+                         $score['seat_variance']        < $bestScore['seat_variance']) ||
+                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
+                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
+                         $score['seat_variance']        === $bestScore['seat_variance'] &&
+                         $score['max_deviation_pct']    < $bestScore['max_deviation_pct']) ||
+                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
+                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
+                         $score['seat_variance']        === $bestScore['seat_variance'] &&
+                         $score['max_deviation_pct']    === $bestScore['max_deviation_pct'] &&
+                         $score['avg_rg_sq']            < $bestScore['avg_rg_sq'])
+                    ) {
+                        $bestBins  = $bins;
+                        $bestScore = $score;
+                    }
+                }
+            }
+
+            $allBins = array_merge($allBins, $bestBins ?? [$component]);
         }
 
         // Cross-component post-repair: merge undersized bins (< 5.0 fractional) into nearest
@@ -2424,6 +2497,25 @@ class LegislatureController extends Controller
             if ($bestIdx >= 0) $binData[$bestIdx]['seats']++;
         }
 
+        // ── Safety: exhaust any budget not placed by the main Webster loop ────────
+        // Occurs when floor_override bins were skipped AND all other bins hit the 9-seat cap,
+        // leaving bestIdx=-1 for one or more rounds.  Distribute leftover seats by Webster
+        // priority without the floor_override gate — the constitutional ceiling (9) is the
+        // only hard limit.  floor_override stays recorded on the district for audit purposes.
+        $safeAssigned = array_sum(array_column($binData, 'seats'));
+        $safeRemain   = $effectiveBudget - $safeAssigned;
+        for ($r = 0; $r < $safeRemain; $r++) {
+            $bestIdx = -1; $bestPri = -1.0;
+            foreach ($binData as $i => $b) {
+                if ($b['seats'] >= 9) continue;          // constitutional max is still hard
+                $priority = $b['pop'] / (2 * $b['seats'] + 1);
+                if ($priority > $bestPri) { $bestPri = $priority; $bestIdx = $i; }
+            }
+            if ($bestIdx >= 0) $binData[$bestIdx]['seats']++;
+            // If bestIdx is -1 here, ALL bins are at the constitutional ceiling and the
+            // budget genuinely cannot be placed (only possible if budget > 9 × binCount).
+        }
+
         // ── Step 12: Insert districts + update type_a_apportioned on members ──
         $districtsCreated = 0;
         foreach ($binData as $bin) {
@@ -2471,125 +2563,16 @@ class LegislatureController extends Controller
                 }
             }
 
-            // Compute and cache spatial stats (polsby_popper, num_geom_parts, is_contiguous)
+            // Compute and cache spatial stats (convex_hull_ratio, num_geom_parts, is_contiguous)
             // so reseeded districts have stats immediately — same as manual create/update.
-            $this->recomputeDistrict($districtId, $legislature_id, $leg);
+            // Pass $skipSeatsUpdate=true: Webster already assigned the correct seats at INSERT;
+            // recomputeDistrict must not overwrite them with independent per-district rounding.
+            $this->recomputeDistrict($districtId, $legislature_id, $leg, true);
 
             $districtsCreated++;
         }
 
         return ['districts_created' => $districtsCreated, 'error' => null];
-    }
-
-    /**
-     * Rebalance seat allocations across all districts in a scope using Hamilton
-     * (Largest Remainder) method so that SUM(seats) == scope budget exactly.
-     *
-     * Webster rounding of individually-created districts can leave 1–2 seats
-     * unallocated (sum of round(frac_i) ≠ total seats). Hamilton guarantees the
-     * sum matches the budget by distributing leftover seats to the districts with
-     * the largest fractional remainders.
-     *
-     * Must be called AFTER recomputeDistrict() for every district in the scope
-     * (so actual_population is current) and INSIDE the write transaction
-     * so the seat updates are atomic with the district write that triggered them.
-     *
-     * Returns [district_id => ['seats' => int, 'floor_override' => bool]] for
-     * all districts in the scope so callers can include changes in API responses.
-     */
-    private function rebalanceScopeSeats(
-        string $legislatureId,
-        string $scopeId,
-        ?string $mapId,
-        object $leg
-    ): array {
-        // Fetch all active districts — actual_population is fresh because
-        // recomputeDistrict() was just called for each one.
-        $query = DB::table('legislature_districts')
-            ->where('legislature_id', $legislatureId)
-            ->where('jurisdiction_id', $scopeId)
-            ->whereNull('deleted_at');
-        if ($mapId !== null) {
-            $query->where('map_id', $mapId);
-        }
-        $districts = $query->get(['id', 'actual_population']);
-
-        if ($districts->isEmpty()) return [];
-
-        // Seat budget for this scope
-        $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-        $rootPop  = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
-        if ($scopeId === $leg->jurisdiction_id) {
-            $budget = (int) $leg->type_a_seats;
-        } elseif ($scopeRow && $scopeRow->type_a_apportioned !== null) {
-            $budget = (int) $scopeRow->type_a_apportioned;
-        } else {
-            $budget = max(5, (int) round((int) ($scopeRow->population ?? 0) * (int) $leg->type_a_seats / $rootPop));
-        }
-
-        // Local quota = scope children total pop / budget
-        $scopeChildrenPop = (int) DB::table('jurisdictions')
-            ->where('parent_id', $scopeId)->whereNull('deleted_at')->sum('population');
-        $quota = $scopeChildrenPop / max($budget, 1);
-
-        // Lock in giant seats so we know the non-giant budget
-        $giantSeatsCommitted = 0;
-        $allChildPops = DB::table('jurisdictions')
-            ->where('parent_id', $scopeId)->whereNull('deleted_at')->pluck('population');
-        foreach ($allChildPops as $cp) {
-            if ($quota > 0 && ((float) $cp) / $quota >= 9.5) {
-                $giantSeatsCommitted += max(5, (int) round(((float) $cp) / $quota));
-            }
-        }
-        $distCount      = $districts->count();
-        $nonGiantBudget = max($distCount, $budget - $giantSeatsCommitted);
-        $effectiveFloor = ($nonGiantBudget >= 5 * $distCount)
-            ? 5
-            : max(1, (int) floor($nonGiantBudget / max($distCount, 1)));
-
-        // Compute fractional seats per district
-        $fracs = [];
-        foreach ($districts as $d) {
-            $fracs[$d->id] = $quota > 0 ? ((float) $d->actual_population) / $quota : 0.0;
-        }
-
-        // Hamilton step 1: floor assignment with constitutional bounds
-        $seats      = [];
-        $totalFloor = 0;
-        foreach ($districts as $d) {
-            $fl           = max($effectiveFloor, min(9, (int) floor($fracs[$d->id])));
-            $seats[$d->id] = $fl;
-            $totalFloor   += $fl;
-        }
-
-        // Hamilton step 2: distribute remaining seats by largest remainder
-        $remaining = $nonGiantBudget - $totalFloor;
-        if ($remaining > 0) {
-            $remainders = [];
-            foreach ($districts as $d) {
-                $remainders[$d->id] = $fracs[$d->id] - floor($fracs[$d->id]);
-            }
-            arsort($remainders);
-            foreach (array_keys($remainders) as $did) {
-                if ($remaining <= 0) break;
-                if ($seats[$did] < 9) {
-                    $seats[$did]++;
-                    $remaining--;
-                }
-            }
-        }
-
-        // Persist updated seat counts and collect changes
-        $changes = [];
-        foreach ($districts as $d) {
-            $newSeats = $seats[$d->id];
-            $newFloor = ($newSeats === 5 && $fracs[$d->id] < 5.0);
-            $changes[$d->id] = ['seats' => $newSeats, 'floor_override' => $newFloor];
-            DB::table('legislature_districts')
-                ->where('id', $d->id)
-                ->update(['seats' => $newSeats, 'floor_override' => $newFloor]);
-        }
-        return $changes;
     }
 
     /**
@@ -2622,10 +2605,54 @@ class LegislatureController extends Controller
     }
 
     /**
+     * Compute the non-giant quota for a scope.
+     *
+     * When giants lock in integer seats (via type_a_apportioned or round(frac)), the
+     * remaining non-giant pool is apportioned over exactly (seatBudget − giantSeats) seats.
+     * ngQuota = nonGiantPop / (seatBudget − giantSeats) guarantees SUM(non-giant fracs) is
+     * exactly (seatBudget − giantSeats).  This mirrors what runAutoCompositeForScope() does
+     * via $binQuota.  Returns $fullQuota unchanged when no giants are present.
+     *
+     * @param array $allChildren  stdClass rows with ->population, ->fractional_seats (full-quota),
+     *                            and optionally ->type_a_apportioned.
+     * @param float $fullQuota    effectivePop / seatBudget
+     * @param int   $seatBudget   Total seat budget at this scope
+     * @param int   $effectivePop SUM(all direct children pops)
+     */
+    private function computeNonGiantQuota(
+        array $allChildren,
+        float $fullQuota,
+        int   $seatBudget,
+        int   $effectivePop
+    ): float {
+        $giantSeatsTotal = 0;
+        $giantPopTotal   = 0;
+        foreach ($allChildren as $c) {
+            $frac = (float) ($c->fractional_seats ?? ((float) $c->population / max($fullQuota, 1)));
+            if ($frac >= 9.5) {
+                $lockedSeats = isset($c->type_a_apportioned) && $c->type_a_apportioned !== null
+                    ? (int) $c->type_a_apportioned
+                    : max(5, (int) round($frac));
+                $giantSeatsTotal += $lockedSeats;
+                $giantPopTotal   += (int) $c->population;
+            }
+        }
+        if ($giantSeatsTotal === 0) return $fullQuota;
+        $ngBudget = max($seatBudget - $giantSeatsTotal, 1);
+        $ngPop    = max($effectivePop - $giantPopTotal, 1);
+        return $ngPop / $ngBudget;
+    }
+
+    /**
      * Recompute seats + geometry for a district based on its current members.
      * If the district has no remaining members, soft-delete it.
      */
-    private function recomputeDistrict(string $districtId, string $legislatureId, object $leg): void
+    private function recomputeDistrict(
+        string $districtId,
+        string $legislatureId,
+        object $leg,
+        bool   $skipSeatsUpdate = false  // true when called from auto-composite: preserve Webster seats
+    ): void
     {
         $jids = DB::table('legislature_district_jurisdictions as ldj')
             ->where('ldj.district_id', $districtId)
@@ -2658,14 +2685,41 @@ class LegislatureController extends Controller
             } else {
                 $distSeatBudget = max(5, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $reRootPop));
             }
-            $quota = $scopeChildrenPop / max($distSeatBudget, 1);
+            $fullQuota = $scopeChildrenPop / max($distSeatBudget, 1);
+            // Adjust to non-giant quota so stored fractional is comparable to sibling fracs.
+            $distChildren = DB::table('jurisdictions')
+                ->where('parent_id', $distScopeId)
+                ->whereNull('deleted_at')
+                ->get(['population', 'type_a_apportioned']);
+            $distChildStd = $distChildren->map(function ($c) use ($fullQuota) {
+                $obj = new \stdClass();
+                $obj->population         = $c->population;
+                $obj->fractional_seats   = (float) $c->population / max($fullQuota, 1);
+                $obj->type_a_apportioned = $c->type_a_apportioned;
+                return $obj;
+            })->all();
+            $quota = $this->computeNonGiantQuota($distChildStd, $fullQuota, $distSeatBudget, $scopeChildrenPop);
+
+            // Quota cap: when giants consume most of the seat budget, the remaining
+            // non-giant pool may be < 5. effectiveFloor = min(5, nonGiantBudget) so
+            // that the constitutional floor yields to the quota cap (not the reverse).
+            $giantSeatsForFloor = 0;
+            foreach ($distChildStd as $c) {
+                if ((float) $c->fractional_seats >= 9.5) {
+                    $giantSeatsForFloor += $c->type_a_apportioned !== null
+                        ? (int) $c->type_a_apportioned
+                        : max(5, (int) round((float) $c->fractional_seats));
+                }
+            }
+            $effectiveFloor = min(5, max(1, $distSeatBudget - $giantSeatsForFloor));
         } else {
             $reRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
             $quota = $reRootPop / max((int) $leg->type_a_seats, 1);
+            $effectiveFloor = 5;   // no scope context — cannot determine quota cap
         }
         $fractional = $totalPop / max($quota, 1);
-        $seats      = max(5, min(9, (int) round($fractional)));
-        $floorOverride = $seats === 5 && $fractional < 5.0;
+        $seats      = max($effectiveFloor, min(9, (int) round($fractional)));
+        $floorOverride = $seats < 5;
 
         // Pre-compute spatial stats from member jurisdiction geometries.
         // Running per-district at write time (create/update) is fast — typically
@@ -2721,13 +2775,31 @@ class LegislatureController extends Controller
                   AND a.geom IS NOT NULL AND a.deleted_at IS NULL
             ", array_merge($jids, $jids));
 
-            $adj = [];
+            $adj       = [];
+            $adjCounts = [];
             foreach ($adjPairs as $p) {
                 $adj[$p->a_id][] = $p->b_id;
                 $adj[$p->b_id][] = $p->a_id;
+                $adjCounts[$p->a_id] = ($adjCounts[$p->a_id] ?? 0) + 1;
+                $adjCounts[$p->b_id] = ($adjCounts[$p->b_id] ?? 0) + 1;
             }
+
+            // Start BFS from the most-connected member (highest adjacency count).
+            // This prevents the case where $jids[0] is a geographic island with zero
+            // land borders (e.g. Nanaoxian in Guangzhou Province): if BFS starts at
+            // the island it visits only 1 node, wrongly orphaning all mainland members
+            // and causing the island-exemption loop to check mainland nodes (which all
+            // have sibling borders), so the exemption never fires.
+            // Starting from the most-connected node guarantees BFS finds the largest
+            // mainland cluster first, leaving only true islands as orphans.
+            $startNode = $jids[0];
+            if (!empty($adjCounts)) {
+                arsort($adjCounts);
+                $startNode = (string) array_key_first($adjCounts);
+            }
+
             $visited = [];
-            $queue   = [$jids[0]];
+            $queue   = [$startNode];
             while (!empty($queue)) {
                 $node = array_shift($queue);
                 if (isset($visited[$node])) continue;
@@ -2751,6 +2823,18 @@ class LegislatureController extends Controller
             if (!$isContiguous) {
                 $orphanedJids = array_values(array_filter($jids, fn($j) => !isset($visited[$j])));
                 foreach ($orphanedJids as $oj) {
+                    // Ask: does this orphaned member share any spatial border with
+                    // any sibling (same parent_id) jurisdiction at all?
+                    // Uses ST_Intersects (not ST_Touches or ST_Dimension) because:
+                    //   • Simplified geoBoundaries polygons sometimes share only a vertex
+                    //     (dim=0) rather than a full edge; ST_Intersects still returns TRUE.
+                    //   • The BFS start-node fix (most-connected node) is what correctly
+                    //     orphans true islands. Once Nanaoxian-style islands ARE orphaned,
+                    //     they have NO bbox-overlapping siblings at all → this query returns
+                    //     nothing → $hasSiblingBorder = null → exemption fires correctly.
+                    //   • ST_Intersects only fails for containment artifacts (coastal polygon
+                    //     geometrically containing an island), but those islands have no bbox
+                    //     overlap with any sibling anyway, so this query never reaches them.
                     $hasSiblingBorder = DB::selectOne("
                         SELECT 1
                         FROM jurisdictions a
@@ -2759,6 +2843,7 @@ class LegislatureController extends Controller
                             AND b.id != a.id
                             AND b.deleted_at IS NULL
                             AND b.geom IS NOT NULL
+                            AND a.geom && b.geom
                             AND ST_Intersects(a.geom, b.geom)
                         WHERE a.id = ?
                           AND a.deleted_at IS NULL
@@ -2774,19 +2859,27 @@ class LegislatureController extends Controller
 
         // No geometry stored on the district record itself —
         // the revealed layer renders member jurisdiction polygons directly.
+        //
+        // When $skipSeatsUpdate is true (called from auto-composite), Webster already assigned
+        // the correct seats at INSERT time — do NOT overwrite with per-district rounding, which
+        // can diverge from the guaranteed-total Webster result (e.g. frac 7.49 rounds to 7 but
+        // Webster gave 8 to balance the scope total).  Only spatial stats are refreshed.
+        $distUpdate = [
+            'actual_population' => $totalPop,
+            'polsby_popper'     => null,
+            'num_geom_parts'    => $spatialRow?->num_geom_parts !== null ? (int) $spatialRow->num_geom_parts : null,
+            'convex_hull_ratio' => $spatialRow?->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
+            'is_contiguous'     => $isContiguous,
+            'updated_at'        => now(),
+        ];
+        if (!$skipSeatsUpdate) {
+            $distUpdate['seats']            = $seats;
+            $distUpdate['fractional_seats'] = $fractional;
+            $distUpdate['floor_override']   = $floorOverride;
+        }
         DB::table('legislature_districts')
             ->where('id', $districtId)
-            ->update([
-                'seats'             => $seats,
-                'fractional_seats'  => $fractional,
-                'floor_override'    => $floorOverride,
-                'actual_population' => $totalPop,
-                'polsby_popper'     => null,
-                'num_geom_parts'    => $spatialRow?->num_geom_parts !== null ? (int) $spatialRow->num_geom_parts : null,
-                'convex_hull_ratio' => $spatialRow?->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
-                'is_contiguous'     => $isContiguous,
-                'updated_at'        => now(),
-            ]);
+            ->update($distUpdate);
 
         // Flush all revealed GeoJSON caches for this legislature.
         // The broad tag "revealed.{$legislatureId}" was added to every revealedGeoJson()
@@ -2902,21 +2995,86 @@ class LegislatureController extends Controller
      * @param  int   $k         Number of seeds to select
      * @return array            Array of k jurisdiction IDs
      */
-    private function selectSeeds(array $jids, array $centroids, int $k): array
-    {
+    /**
+     * Select k seed jurisdictions using one of three strategies.
+     * All strategies share the same greedy farthest-from-nearest logic for seeds 2…k;
+     * only the first seed differs.
+     *
+     * Strategies:
+     *   'northernmost' — first seed = highest latitude (original behaviour)
+     *   'largest_pop'  — first seed = highest population
+     *   'center_out'   — first seed = jurisdiction nearest the component's geographic centroid
+     */
+    private function selectSeedsByStrategy(
+        string $strategy,
+        array  $jids,
+        array  $childById,
+        array  $centroids,
+        int    $k
+    ): array {
         if ($k >= count($jids)) return $jids;
 
-        // Start from the northernmost jurisdiction (highest latitude = top of map)
-        $firstSeed = $jids[0];
-        $maxLat    = PHP_FLOAT_MIN;
-        foreach ($jids as $jid) {
-            $lat = $centroids[$jid]['y'] ?? 0.0;
-            if ($lat > $maxLat) {
-                $maxLat    = $lat;
-                $firstSeed = $jid;
-            }
+        switch ($strategy) {
+            case 'largest_pop':
+                $firstSeed = $jids[0];
+                $maxPop    = -1;
+                foreach ($jids as $jid) {
+                    $pop = (int) ($childById[$jid]->population ?? 0);
+                    if ($pop > $maxPop) { $maxPop = $pop; $firstSeed = $jid; }
+                }
+                break;
+
+            case 'center_out':
+                // Start from the jurisdiction nearest to the component's geographic centroid
+                $cx = array_sum(array_map(fn($id) => $centroids[$id]['x'] ?? 0.0, $jids)) / count($jids);
+                $cy = array_sum(array_map(fn($id) => $centroids[$id]['y'] ?? 0.0, $jids)) / count($jids);
+                $firstSeed = $jids[0];
+                $minDist   = PHP_FLOAT_MAX;
+                foreach ($jids as $jid) {
+                    $dx = ($centroids[$jid]['x'] ?? 0.0) - $cx;
+                    $dy = ($centroids[$jid]['y'] ?? 0.0) - $cy;
+                    $d  = $dx * $dx + $dy * $dy;
+                    if ($d < $minDist) { $minDist = $d; $firstSeed = $jid; }
+                }
+                break;
+
+            case 'southernmost':
+                $firstSeed = $jids[0];
+                $minLat    = PHP_FLOAT_MAX;
+                foreach ($jids as $jid) {
+                    $lat = $centroids[$jid]['y'] ?? 0.0;
+                    if ($lat < $minLat) { $minLat = $lat; $firstSeed = $jid; }
+                }
+                break;
+
+            case 'easternmost':
+                $firstSeed = $jids[0];
+                $maxLon    = PHP_FLOAT_MIN;
+                foreach ($jids as $jid) {
+                    $lon = $centroids[$jid]['x'] ?? 0.0;
+                    if ($lon > $maxLon) { $maxLon = $lon; $firstSeed = $jid; }
+                }
+                break;
+
+            case 'westernmost':
+                $firstSeed = $jids[0];
+                $minLon    = PHP_FLOAT_MAX;
+                foreach ($jids as $jid) {
+                    $lon = $centroids[$jid]['x'] ?? 0.0;
+                    if ($lon < $minLon) { $minLon = $lon; $firstSeed = $jid; }
+                }
+                break;
+
+            default: // 'northernmost'
+                $firstSeed = $jids[0];
+                $maxLat    = PHP_FLOAT_MIN;
+                foreach ($jids as $jid) {
+                    $lat = $centroids[$jid]['y'] ?? 0.0;
+                    if ($lat > $maxLat) { $maxLat = $lat; $firstSeed = $jid; }
+                }
         }
 
+        // Seeds 2…k: greedy farthest-from-nearest (maximises minimum inter-seed distance)
         $seeds   = [$firstSeed];
         $seedSet = [$firstSeed => true];
 
@@ -2927,23 +3085,19 @@ class LegislatureController extends Controller
             foreach ($jids as $jid) {
                 if (isset($seedSet[$jid])) continue;
 
-                // Minimum squared distance from this jurisdiction to any existing seed
                 $minDist = PHP_FLOAT_MAX;
                 foreach ($seeds as $seed) {
                     $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$seed]['x'] ?? 0.0);
                     $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$seed]['y'] ?? 0.0);
-                    $d  = $dx * $dx + $dy * $dy; // squared — fine for argmax comparison
+                    $d  = $dx * $dx + $dy * $dy;
                     if ($d < $minDist) $minDist = $d;
                 }
 
-                if ($minDist > $maxMinDist) {
-                    $maxMinDist = $minDist;
-                    $farthest   = $jid;
-                }
+                if ($minDist > $maxMinDist) { $maxMinDist = $minDist; $farthest = $jid; }
             }
 
             if ($farthest === null) break;
-            $seeds[]           = $farthest;
+            $seeds[]            = $farthest;
             $seedSet[$farthest] = true;
         }
 
@@ -2952,53 +3106,79 @@ class LegislatureController extends Controller
 
     /**
      * Partition a connected component into geographically compact, contiguous districts
-     * using seeded BFS expansion from k geographically spread starting jurisdictions.
+     * using distance-filtered BFS expansion from pre-selected starting jurisdictions.
+     *
+     * The adjacency table may contain false-positive long-distance edges (data artefacts).
+     * All adjacency traversals in this function filter out edges longer than 4× the
+     * 90th-percentile edge length for the component.  This prevents false edges from
+     * pulling distant jids into a bin during BFS (root cause of geometric non-contiguity)
+     * and from fooling the per-swap contiguity guard or post-swap full-revert check.
+     *
+     * The multi-attempt loop in runAutoCompositeForScope() calls this 3× (one per
+     * seed strategy) per k value and keeps the best-scoring configuration.
      *
      * Algorithm:
-     *  1. Determine k (number of districts) = ceil(totalFrac / 9.0)
-     *  2. Select k seeds via selectSeeds() — northernmost first, then farthest-from-nearest
-     *  3. Initialize k BFS queues, one per seed
-     *  4. Round-robin: each turn, each bin BFS-grows by one adjacent unassigned jurisdiction
-     *     (skipping bins already past 110% of target population unless they're the last active)
-     *  5. Isolated jurisdictions (not reachable via adjacency) assigned to nearest bin by centroid
-     *  6. Post-repair: merge undersized bins (< 5.0 fractional) into another if merged total < 9.5
+     *  1. Distance threshold: compute p90 × 16 of adjacency edge lengths for the component
+     *  2. BFS expansion (distance-filtered): round-robin from k seeds
+     *  3. Isolated-jid assignment: adjacency-aware, distance-filtered, standalone fallback
+     *  4. Population balance swaps: border transfers that strictly reduce avg deviation
+     *  5. Post-swap contiguity validation: full revert if any swap broke contiguity
+     *  6. Post-repair merge: merge undersized bins (< 5.0 frac) into adjacent absorbers
      *
-     * This replaces balancedLptPartition() which ignored geography entirely and produced
-     * non-contiguous, geographically interleaved results.
-     *
-     * @param  array $jids      Jurisdiction IDs in this component
-     * @param  array $childById jurisdiction data keyed by ID (population, fractional_seats, …)
-     * @param  array $adj       Adjacency map [jid => [neighbor_jid, …]]
+     * @param  array $seeds    Pre-computed seed jurisdiction IDs (one per desired district)
+     * @param  array $jids     Jurisdiction IDs in this component
+     * @param  array $childById Jurisdiction data keyed by ID (population, fractional_seats, …)
+     * @param  array $adj      Adjacency map [jid => [neighbor_jid, …]]
      * @param  array $centroids ['x' => lon, 'y' => lat] keyed by jurisdiction ID
-     * @return array            Array of bins; each bin = array of jurisdiction IDs
+     * @return array           Array of bins; each bin = array of jurisdiction IDs
      */
     private function geographicSeedExpansion(
         array $jids,
         array $childById,
         array $adj,
-        array $centroids
+        array $centroids,
+        array $seeds
     ): array {
         if (empty($jids)) return [];
 
-        $totalFrac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $jids));
+        // Degenerate: caller provided no seeds — return everything as one bin
+        $k = count($seeds);
+        if ($k < 1) return [$jids];
 
-        // Single district — no split needed
-        if ($totalFrac < 9.5) return [$jids];
-
-        $k         = max(2, (int) ceil($totalFrac / 9.0));
         $jidSet    = array_flip($jids); // O(1) membership test
         $totalPop  = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $jids));
         $targetPop = $totalPop / $k;
 
-        // --- Seed selection ---
-        $seeds = $this->selectSeeds($jids, $centroids, $k);
+        // ── Distance filter — computed once, used throughout all phases ──────────────
+        // BFS expansion is the root cause of non-contiguous districts: when the adjacency
+        // table contains a false-positive long-distance edge, BFS traverses it during
+        // expansion and pulls a geographically distant jid into a bin.  The resulting bin
+        // looks contiguous in the adjacency graph (reachable via the false edge) but is
+        // geometrically non-contiguous.
+        //
+        // Fix: compute the 90th-percentile squared distance of all adjacency edges in this
+        // component, multiply by 16 (= 4²).  Any edge longer than 4× the "typical longest
+        // real edge" is ignored in BFS queuing, isolated-jid lookup, swap guards, and the
+        // post-swap full-revert check.
+        $adjDistsSq = [];
+        foreach ($jids as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($jidSet[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $adjDistsSq[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($adjDistsSq);
+        $p90Idx        = max(0, (int) floor(count($adjDistsSq) * 0.90) - 1);
+        $maxEdgeDistSq = !empty($adjDistsSq) ? $adjDistsSq[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
 
-        // --- Initialize bins ---
+        // --- Initialize BFS bins ---
         $bins     = array_fill(0, $k, []);
         $binPops  = array_fill(0, $k, 0.0);
-        $binFracs = array_fill(0, $k, 0.0); // track fractional total per bin — hard cap 9.5
+        $binFracs = array_fill(0, $k, 0.0);
         $assigned = [];
-        $queues   = array_fill(0, $k, []); // BFS frontier per bin
+        $queues   = array_fill(0, $k, []);
 
         foreach ($seeds as $i => $seed) {
             $bins[$i][]      = $seed;
@@ -3006,26 +3186,28 @@ class LegislatureController extends Controller
             $binFracs[$i]    = (float) $childById[$seed]->fractional_seats;
             $assigned[$seed] = $i;
             foreach ($adj[$seed] ?? [] as $n) {
-                if (isset($jidSet[$n]) && !isset($assigned[$n])) {
-                    $queues[$i][] = $n;
-                }
+                if (!isset($jidSet[$n]) || isset($assigned[$n])) continue;
+                $dx = ($centroids[$seed]['x'] ?? 0.0) - ($centroids[$n]['x'] ?? 0.0);
+                $dy = ($centroids[$seed]['y'] ?? 0.0) - ($centroids[$n]['y'] ?? 0.0);
+                if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                $queues[$i][] = $n;
             }
         }
 
-        // --- BFS round-robin expansion ---
-        // A bin is "full" when it exceeds the population target OR when it's already at/near
-        // the constitutional 9.5 fractional cap (adding any more would breach the limit).
-        $maxIter = count($jids) * $k * 3; // generous upper bound
+        // --- BFS round-robin expansion (distance-filtered) ---
+        // A bin is "full" when it exceeds the population target OR is at/near the 9.5
+        // fractional cap.  Each iteration each bin BFS-grows by one adjacent jurisdiction.
+        // Edges longer than $maxEdgeDistSq are skipped to prevent false-positive entries
+        // from assigning geographically distant jids to the same bin.
+        $maxIter = count($jids) * $k * 3;
         for ($iter = 0; $iter < $maxIter; $iter++) {
             $anyProgress = false;
 
             for ($i = 0; $i < $k; $i++) {
-                // A bin is full if it has hit the population target OR the fractional cap
                 $popFull  = $binPops[$i]  >= $targetPop  * 1.1;
-                $fracFull = $binFracs[$i] >= 9.49; // leave a tiny buffer for float rounding
+                $fracFull = $binFracs[$i] >= 9.49;
                 $binFull  = $popFull || $fracFull;
 
-                // How many bins still have room?
                 $activeBins = 0;
                 for ($j = 0; $j < $k; $j++) {
                     if ($binPops[$j] < $targetPop * 1.1 && $binFracs[$j] < 9.49) $activeBins++;
@@ -3033,48 +3215,47 @@ class LegislatureController extends Controller
 
                 if ($binFull && $activeBins > 0) continue;
 
-                // Drain stale (already-assigned) entries and find next live neighbor
                 while (!empty($queues[$i])) {
-                    $next     = array_shift($queues[$i]);
+                    $next = array_shift($queues[$i]);
                     if (isset($assigned[$next]) || !isset($jidSet[$next])) continue;
 
                     $nextFrac = (float) $childById[$next]->fractional_seats;
 
-                    // Constitutional hard limit: cannot exceed 9.5 fractional in one district.
-                    // If this neighbor would push the bin over the cap, broadcast it to other
-                    // bins' queues so it can be picked up geographically (don't discard it).
                     if ($binFracs[$i] + $nextFrac >= 9.5) {
-                        for ($j = 0; $j < $k; $j++) {
-                            if ($j !== $i && $binFracs[$j] + $nextFrac < 9.5) {
-                                $queues[$j][] = $next;
+                        foreach ($adj[$next] ?? [] as $nbOfNext) {
+                            if (!isset($assigned[$nbOfNext])) continue;
+                            $adjJ = $assigned[$nbOfNext];
+                            if ($adjJ !== $i && $binFracs[$adjJ] + $nextFrac < 9.5) {
+                                $queues[$adjJ][] = $next;
                             }
                         }
-                        continue; // skip for this bin, try next item in queue
+                        continue;
                     }
 
-                    // Assign to this bin
                     $bins[$i][]      = $next;
                     $binPops[$i]    += (float) $childById[$next]->population;
                     $binFracs[$i]   += $nextFrac;
                     $assigned[$next]  = $i;
 
-                    // Enqueue unassigned neighbors
                     foreach ($adj[$next] ?? [] as $n) {
-                        if (isset($jidSet[$n]) && !isset($assigned[$n])) {
-                            $queues[$i][] = $n;
-                        }
+                        if (!isset($jidSet[$n]) || isset($assigned[$n])) continue;
+                        $dx = ($centroids[$next]['x'] ?? 0.0) - ($centroids[$n]['x'] ?? 0.0);
+                        $dy = ($centroids[$next]['y'] ?? 0.0) - ($centroids[$n]['y'] ?? 0.0);
+                        if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                        $queues[$i][] = $n;
                     }
                     $anyProgress = true;
-                    break; // one per bin per round — true round-robin
+                    break;
                 }
             }
 
-            if (!$anyProgress) break; // all queues drained — done or isolated jids remain
+            if (!$anyProgress) break;
         }
 
-        // --- Assign isolated jurisdictions (islands not reachable via adjacency) ---
-        // Find nearest bin by centroid distance that won't exceed the 9.5 fractional cap.
-        // If no existing bin can absorb it, create a new standalone bin.
+        // --- Assign isolated jurisdictions ---
+        // Jids not reached by BFS (their only adjacency paths exceeded the distance
+        // threshold, or all neighbouring bins were full).  Distance filter applied here
+        // too — prevents the same false edges from pulling them into non-adjacent bins.
         foreach ($jids as $jid) {
             if (isset($assigned[$jid])) continue;
 
@@ -3082,11 +3263,33 @@ class LegislatureController extends Controller
             $nearestBin = -1;
             $minDist    = PHP_FLOAT_MAX;
 
-            for ($i = 0; $i < $k; $i++) {
-                if ($binFracs[$i] + $jFrac >= 9.5) continue; // would breach cap
-                foreach ($bins[$i] as $binJid) {
-                    $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$binJid]['x'] ?? 0.0);
-                    $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$binJid]['y'] ?? 0.0);
+            $adjacentBins = [];
+            foreach ($adj[$jid] ?? [] as $neighbor) {
+                if (!isset($assigned[$neighbor])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$neighbor]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$neighbor]['y'] ?? 0.0);
+                if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                $adjacentBins[$assigned[$neighbor]] = true;
+            }
+
+            if (!empty($adjacentBins)) {
+                foreach (array_keys($adjacentBins) as $i) {
+                    if (!isset($binFracs[$i])) continue;
+                    if ($binFracs[$i] + $jFrac >= 9.5) continue;
+                    $iCenter = $this->binCentroid($bins[$i], $centroids);
+                    $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
+                    $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
+                    $d  = $dx * $dx + $dy * $dy;
+                    if ($d < $minDist) { $minDist = $d; $nearestBin = $i; }
+                }
+            } else {
+                // No real adjacency or all filtered — nearest centroid fallback
+                foreach (range(0, $k - 1) as $i) {
+                    if (!isset($binFracs[$i])) continue;
+                    if ($binFracs[$i] + $jFrac >= 9.5) continue;
+                    $iCenter = $this->binCentroid($bins[$i], $centroids);
+                    $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
+                    $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
                     $d  = $dx * $dx + $dy * $dy;
                     if ($d < $minDist) { $minDist = $d; $nearestBin = $i; }
                 }
@@ -3095,9 +3298,8 @@ class LegislatureController extends Controller
             if ($nearestBin >= 0) {
                 $bins[$nearestBin][] = $jid;
                 $binFracs[$nearestBin] += $jFrac;
-                $assigned[$jid]      = $nearestBin;
+                $assigned[$jid]       = $nearestBin;
             } else {
-                // No bin can absorb without exceeding 9.5 — standalone district
                 $bins[]     = [$jid];
                 $binFracs[] = $jFrac;
                 $k++;
@@ -3105,37 +3307,609 @@ class LegislatureController extends Controller
             }
         }
 
+        // --- Border swap refinement: improve population balance after BFS ---
+        // Iteratively moves border jurisdictions between adjacent bins to minimise
+        // population imbalance (sum of |binPop − targetPop| across all bins).
+        // Each move must: (a) strictly reduce total imbalance, (b) keep the donor bin
+        // at ≥ 5.0 fractional (constitutional floor), (c) keep the receiver bin
+        // below 9.5 fractional (constitutional ceiling).
+        //
+        // The per-swap BFS contiguity guard and the post-swap full-revert both use
+        // $maxEdgeDistSq (computed before BFS above) so false-positive edges cannot
+        // trick them into allowing or missing a contiguity break.
+        //
+        // Runs at most count($jids) improvements (typically converges in much fewer).
+
+        // Recompute $binPops — the isolated-jid section above does not update it.
+        $binPops = array_map(
+            fn($b) => (float) array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)),
+            $bins
+        );
+
+        // Save pre-swap state so we can fully revert if the post-swap validation
+        // detects that swaps created non-contiguous bins despite the per-swap guard.
+        $preSwapBins  = array_map(fn($b) => array_values($b), $bins);
+        $preSwapFracs = $binFracs;
+
+        // Per-bin moment-of-inertia statistics for O(1) incremental Rg² computation.
+        // Identity: Rg²_i = (Sx2_i + Sy2_i)/M_i − (Sx_i²+Sy_i²)/M_i²
+        // Updated in O(1) after every swap by adding/subtracting the moved jid's contribution.
+        $binSx  = array_fill(0, $k, 0.0); // sum(pop × lon)
+        $binSy  = array_fill(0, $k, 0.0); // sum(pop × lat)
+        $binSx2 = array_fill(0, $k, 0.0); // sum(pop × lon²)
+        $binSy2 = array_fill(0, $k, 0.0); // sum(pop × lat²)
+        for ($i = 0; $i < $k; $i++) {
+            foreach ($bins[$i] as $sid) {
+                $sp  = (float) $childById[$sid]->population;
+                $sx  = $centroids[$sid]['x'] ?? 0.0;
+                $sy  = $centroids[$sid]['y'] ?? 0.0;
+                $binSx[$i]  += $sp * $sx;
+                $binSy[$i]  += $sp * $sy;
+                $binSx2[$i] += $sp * $sx * $sx;
+                $binSy2[$i] += $sp * $sy * $sy;
+            }
+        }
+
+        // --- Balance swap refinement: "best improvement" steepest-descent ---
+        // Each pass scans ALL border-jid candidates and applies the single swap that most
+        // reduces total |deviation from targetPop|.  "Best improvement" (steepest descent)
+        // converges to deeper local optima than "first improvement" — critical for k=10
+        // where each jid is a larger fraction of the target population.
+        // Constitutional constraints: donor bin stays ≥ 5.0 frac; receiver stays < 9.5 frac.
+        $swapIter = 0;
+        $swapMax  = count($jids) * 3; // tripled vs first-improvement since each pass is a net steepest step
+        do {
+            $bestImprovement = 0.0;
+            $bestBI = -1; $bestBJ = -1;
+            $bestBJid = null; $bestBRemainingI = null;
+            $bestBJPop = 0.0; $bestBJFrac = 0.0;
+
+            for ($i = 0; $i < $k; $i++) {
+                if (empty($bins[$i])) continue;
+                foreach ($bins[$i] as $jid) {
+                    $jFrac = (float) $childById[$jid]->fractional_seats;
+                    if ($binFracs[$i] - $jFrac < 5.0) continue; // donor floor
+
+                    $adjBins = [];
+                    foreach ($adj[$jid] ?? [] as $nb) {
+                        if (isset($assigned[$nb]) && $assigned[$nb] !== $i) {
+                            $adjBins[$assigned[$nb]] = true;
+                        }
+                    }
+                    if (empty($adjBins)) continue;
+
+                    $jPop = (float) $childById[$jid]->population;
+                    foreach (array_keys($adjBins) as $j) {
+                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+
+                        $before      = abs($binPops[$i] - $targetPop) + abs($binPops[$j] - $targetPop);
+                        $after       = abs($binPops[$i] - $jPop - $targetPop) + abs($binPops[$j] + $jPop - $targetPop);
+                        $improvement = $before - $after;
+                        if ($improvement <= $bestImprovement) continue; // not the global best yet
+
+                        // Contiguity guard — only run BFS for genuinely better candidates
+                        $remainingI = array_values(array_filter($bins[$i], fn($x) => $x !== $jid));
+                        if (count($remainingI) >= 2) {
+                            $remSet = array_flip($remainingI);
+                            $vis    = [$remainingI[0] => true];
+                            $bfsQ   = [$remainingI[0]];
+                            while (!empty($bfsQ)) {
+                                $cur = array_shift($bfsQ);
+                                foreach ($adj[$cur] ?? [] as $nb) {
+                                    if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
+                                    $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                                    $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                                    if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                                    $vis[$nb] = true;
+                                    $bfsQ[]   = $nb;
+                                }
+                            }
+                            if (count($vis) < count($remainingI)) continue;
+                        }
+
+                        $bestImprovement  = $improvement;
+                        $bestBI = $i; $bestBJ = $j; $bestBJid = $jid;
+                        $bestBRemainingI  = $remainingI;
+                        $bestBJPop = $jPop; $bestBJFrac = $jFrac;
+                    }
+                }
+            }
+
+            $swapMade = false;
+            if ($bestBI >= 0) {
+                $bx = $centroids[$bestBJid]['x'] ?? 0.0;
+                $by = $centroids[$bestBJid]['y'] ?? 0.0;
+                $bins[$bestBJ][]     = $bestBJid;
+                $binPops[$bestBJ]   += $bestBJPop;
+                $binFracs[$bestBJ]  += $bestBJFrac;
+                $binSx[$bestBJ]     += $bestBJPop * $bx;
+                $binSy[$bestBJ]     += $bestBJPop * $by;
+                $binSx2[$bestBJ]    += $bestBJPop * $bx * $bx;
+                $binSy2[$bestBJ]    += $bestBJPop * $by * $by;
+                $bins[$bestBI]       = $bestBRemainingI;
+                $binPops[$bestBI]   -= $bestBJPop;
+                $binFracs[$bestBI]  -= $bestBJFrac;
+                $binSx[$bestBI]     -= $bestBJPop * $bx;
+                $binSy[$bestBI]     -= $bestBJPop * $by;
+                $binSx2[$bestBI]    -= $bestBJPop * $bx * $bx;
+                $binSy2[$bestBI]    -= $bestBJPop * $by * $by;
+                $assigned[$bestBJid] = $bestBJ;
+                $swapMade = true;
+            }
+            $swapIter++;
+        } while ($swapMade && $swapIter < $swapMax);
+
+        // --- Compactness refinement pass ---
+        // After population balance converges, reshape bins toward compact forms by moving
+        // border jids that reduce the sum of per-bin radius-of-gyration² (Rg²) across the
+        // two affected bins, subject to:
+        //   (a) constitutional floor/ceiling (≥5.0 frac donor; <9.5 frac receiver),
+        //   (b) neither bin's population deviation worsens by more than $compactTol %pts,
+        //   (c) donor bin remains contiguous after the move.
+        // Uses the O(1) per-bin Sx/Sy/Sx2/Sy2 statistics maintained above.
+        // Rg² formula: (Sx2+Sy2)/M − Sx²/M² − Sy²/M²   (in geographic degree² units)
+        $compactTol  = 0.05; // absolute maximum deviation fraction (5%) for any bin touched by this pass
+        $compactIter = 0;
+        $compactMax  = count($jids) * 2;
+        do {
+            $bestCGain = 0.0;
+            $bestCI = -1; $bestCJ = -1;
+            $bestCJid = null; $bestCRemainingI = null;
+            $bestCJPop = 0.0; $bestCJFrac = 0.0;
+
+            for ($i = 0; $i < $k; $i++) {
+                if (count($bins[$i]) <= 1) continue;
+
+                $iM  = $binPops[$i];
+                $iRg = $iM > 0
+                    ? ($binSx2[$i] + $binSy2[$i]) / $iM
+                      - ($binSx[$i] * $binSx[$i] + $binSy[$i] * $binSy[$i]) / ($iM * $iM)
+                    : 0.0;
+
+                foreach ($bins[$i] as $jid) {
+                    $jFrac = (float) $childById[$jid]->fractional_seats;
+                    if ($binFracs[$i] - $jFrac < 5.0) continue;
+
+                    $jPop = (float) $childById[$jid]->population;
+                    $jx   = $centroids[$jid]['x'] ?? 0.0;
+                    $jy   = $centroids[$jid]['y'] ?? 0.0;
+
+                    // Absolute deviation cap for donor bin i after removal.
+                    // Using an absolute cap (not a per-swap delta) prevents successive compactness
+                    // swaps from accumulating large deviations in a single bin.
+                    $newIM = $iM - $jPop;
+                    if ($newIM <= 0) continue;
+                    $devIAfter = abs($newIM - $targetPop) / max($targetPop, 1.0);
+                    if ($devIAfter > $compactTol) continue;
+
+                    // Incremental Rg² for bin i after removing jid (O(1) via statistics)
+                    $nISx  = $binSx[$i]  - $jPop * $jx;
+                    $nISy  = $binSy[$i]  - $jPop * $jy;
+                    $nISx2 = $binSx2[$i] - $jPop * $jx * $jx;
+                    $nISy2 = $binSy2[$i] - $jPop * $jy * $jy;
+                    $nIRg  = ($nISx2 + $nISy2) / $newIM
+                           - ($nISx * $nISx + $nISy * $nISy) / ($newIM * $newIM);
+
+                    $adjBins = [];
+                    foreach ($adj[$jid] ?? [] as $nb) {
+                        if (isset($assigned[$nb]) && $assigned[$nb] !== $i) {
+                            $adjBins[$assigned[$nb]] = true;
+                        }
+                    }
+                    if (empty($adjBins)) continue;
+
+                    foreach (array_keys($adjBins) as $j) {
+                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+
+                        $jM  = $binPops[$j];
+                        $jRg = $jM > 0
+                            ? ($binSx2[$j] + $binSy2[$j]) / $jM
+                              - ($binSx[$j] * $binSx[$j] + $binSy[$j] * $binSy[$j]) / ($jM * $jM)
+                            : 0.0;
+
+                        // Absolute deviation cap for receiver bin j after addition.
+                        $newJM = $jM + $jPop;
+                        $devJAfter = abs($newJM - $targetPop) / max($targetPop, 1.0);
+                        if ($devJAfter > $compactTol) continue;
+
+                        // Incremental Rg² for bin j after adding jid (O(1))
+                        $nJSx  = $binSx[$j]  + $jPop * $jx;
+                        $nJSy  = $binSy[$j]  + $jPop * $jy;
+                        $nJSx2 = $binSx2[$j] + $jPop * $jx * $jx;
+                        $nJSy2 = $binSy2[$j] + $jPop * $jy * $jy;
+                        $nJRg  = ($nJSx2 + $nJSy2) / $newJM
+                               - ($nJSx * $nJSx + $nJSy * $nJSy) / ($newJM * $newJM);
+
+                        $cGain = ($iRg + $jRg) - ($nIRg + $nJRg); // positive = more compact
+                        if ($cGain <= $bestCGain) continue;
+
+                        // Contiguity guard for donor bin i
+                        $remainingI = array_values(array_filter($bins[$i], fn($x) => $x !== $jid));
+                        if (count($remainingI) >= 2) {
+                            $remSet = array_flip($remainingI);
+                            $vis    = [$remainingI[0] => true];
+                            $bfsQ   = [$remainingI[0]];
+                            while (!empty($bfsQ)) {
+                                $cur = array_shift($bfsQ);
+                                foreach ($adj[$cur] ?? [] as $nb) {
+                                    if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
+                                    $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                                    $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                                    if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                                    $vis[$nb] = true; $bfsQ[] = $nb;
+                                }
+                            }
+                            if (count($vis) < count($remainingI)) continue;
+                        }
+
+                        $bestCGain = $cGain;
+                        $bestCI = $i; $bestCJ = $j; $bestCJid = $jid;
+                        $bestCRemainingI = $remainingI;
+                        $bestCJPop = $jPop; $bestCJFrac = $jFrac;
+                    }
+                }
+            }
+
+            $compactSwapMade = false;
+            if ($bestCI >= 0) {
+                $cx = $centroids[$bestCJid]['x'] ?? 0.0;
+                $cy = $centroids[$bestCJid]['y'] ?? 0.0;
+                $bins[$bestCJ][]     = $bestCJid;
+                $binPops[$bestCJ]   += $bestCJPop;
+                $binFracs[$bestCJ]  += $bestCJFrac;
+                $binSx[$bestCJ]     += $bestCJPop * $cx;
+                $binSy[$bestCJ]     += $bestCJPop * $cy;
+                $binSx2[$bestCJ]    += $bestCJPop * $cx * $cx;
+                $binSy2[$bestCJ]    += $bestCJPop * $cy * $cy;
+                $bins[$bestCI]       = $bestCRemainingI;
+                $binPops[$bestCI]   -= $bestCJPop;
+                $binFracs[$bestCI]  -= $bestCJFrac;
+                $binSx[$bestCI]     -= $bestCJPop * $cx;
+                $binSy[$bestCI]     -= $bestCJPop * $cy;
+                $binSx2[$bestCI]    -= $bestCJPop * $cx * $cx;
+                $binSy2[$bestCI]    -= $bestCJPop * $cy * $cy;
+                $assigned[$bestCJid] = $bestCJ;
+                $compactSwapMade = true;
+            }
+            $compactIter++;
+        } while ($compactSwapMade && $compactIter < $compactMax);
+
+        // --- Post-compact balance pass ---
+        // Re-optimises population equality after the compactness reshaping phase may have
+        // moved jurisdictions out of densely-populated bins (e.g. pulling jids away from
+        // an already-large bin to improve its shape, leaving it under-populated).
+        // Uses the same "best improvement" steepest-descent strategy as the initial balance
+        // pass.  The $binSx/Sy/Sx2/Sy2 statistics are already up-to-date from the compact
+        // phase so no re-initialisation is needed.
+        $swapIter2 = 0;
+        $swapMax2  = count($jids) * 2;
+        do {
+            $bestImprovement2  = 0.0;
+            $bestBI2 = -1; $bestBJ2 = -1;
+            $bestBJid2 = null; $bestBRemainingI2 = null;
+            $bestBJPop2 = 0.0; $bestBJFrac2 = 0.0;
+
+            for ($i = 0; $i < $k; $i++) {
+                if (empty($bins[$i])) continue;
+                foreach ($bins[$i] as $jid) {
+                    $jFrac = (float) $childById[$jid]->fractional_seats;
+                    if ($binFracs[$i] - $jFrac < 5.0) continue;
+
+                    $adjBins = [];
+                    foreach ($adj[$jid] ?? [] as $nb) {
+                        if (isset($assigned[$nb]) && $assigned[$nb] !== $i) {
+                            $adjBins[$assigned[$nb]] = true;
+                        }
+                    }
+                    if (empty($adjBins)) continue;
+
+                    $jPop = (float) $childById[$jid]->population;
+                    foreach (array_keys($adjBins) as $j) {
+                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+
+                        $before      = abs($binPops[$i] - $targetPop) + abs($binPops[$j] - $targetPop);
+                        $after       = abs($binPops[$i] - $jPop - $targetPop) + abs($binPops[$j] + $jPop - $targetPop);
+                        $improvement = $before - $after;
+                        if ($improvement <= $bestImprovement2) continue;
+
+                        // Contiguity guard — only run BFS for genuinely better candidates
+                        $remainingI = array_values(array_filter($bins[$i], fn($x) => $x !== $jid));
+                        if (count($remainingI) >= 2) {
+                            $remSet = array_flip($remainingI);
+                            $vis    = [$remainingI[0] => true];
+                            $bfsQ   = [$remainingI[0]];
+                            while (!empty($bfsQ)) {
+                                $cur = array_shift($bfsQ);
+                                foreach ($adj[$cur] ?? [] as $nb) {
+                                    if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
+                                    $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                                    $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                                    if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                                    $vis[$nb] = true;
+                                    $bfsQ[]   = $nb;
+                                }
+                            }
+                            if (count($vis) < count($remainingI)) continue;
+                        }
+
+                        $bestImprovement2 = $improvement;
+                        $bestBI2 = $i; $bestBJ2 = $j; $bestBJid2 = $jid;
+                        $bestBRemainingI2 = $remainingI;
+                        $bestBJPop2 = $jPop; $bestBJFrac2 = $jFrac;
+                    }
+                }
+            }
+
+            $swapMade2 = false;
+            if ($bestBI2 >= 0) {
+                $bx = $centroids[$bestBJid2]['x'] ?? 0.0;
+                $by = $centroids[$bestBJid2]['y'] ?? 0.0;
+                $bins[$bestBJ2][]     = $bestBJid2;
+                $binPops[$bestBJ2]   += $bestBJPop2;
+                $binFracs[$bestBJ2]  += $bestBJFrac2;
+                $binSx[$bestBJ2]     += $bestBJPop2 * $bx;
+                $binSy[$bestBJ2]     += $bestBJPop2 * $by;
+                $binSx2[$bestBJ2]    += $bestBJPop2 * $bx * $bx;
+                $binSy2[$bestBJ2]    += $bestBJPop2 * $by * $by;
+                $bins[$bestBI2]       = $bestBRemainingI2;
+                $binPops[$bestBI2]   -= $bestBJPop2;
+                $binFracs[$bestBI2]  -= $bestBJFrac2;
+                $binSx[$bestBI2]     -= $bestBJPop2 * $bx;
+                $binSy[$bestBI2]     -= $bestBJPop2 * $by;
+                $binSx2[$bestBI2]    -= $bestBJPop2 * $bx * $bx;
+                $binSy2[$bestBI2]    -= $bestBJPop2 * $by * $by;
+                $assigned[$bestBJid2] = $bestBJ2;
+                $swapMade2 = true;
+            }
+            $swapIter2++;
+        } while ($swapMade2 && $swapIter2 < $swapMax2);
+
+        // --- Post-swap full contiguity validation ---
+        // Even with the per-swap BFS guard, a false-positive adjacency edge can trick
+        // the guard into allowing a bridge-removal swap.  After ALL swaps settle, run
+        // a second distance-filtered BFS over every bin.  If ANY bin fails the check,
+        // revert the entire swap phase — the clean BFS layout is always contiguous.
+        $swapValid = true;
+        foreach ($bins as $checkBin) {
+            if (count($checkBin) <= 1) continue;
+            $cs = array_flip($checkBin);
+            $cv = [$checkBin[0] => true];
+            $cq = [$checkBin[0]];
+            while (!empty($cq)) {
+                $cur = array_shift($cq);
+                foreach ($adj[$cur] ?? [] as $nb) {
+                    if (!isset($cs[$nb]) || isset($cv[$nb])) continue;
+                    $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                    $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                    if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                    $cv[$nb] = true;
+                    $cq[]    = $nb;
+                }
+            }
+            if (count($cv) < count($checkBin)) { $swapValid = false; break; }
+        }
+        if (!$swapValid) {
+            // Revert bins and fracs; rebuild assigned map so post-repair uses correct data
+            $bins     = $preSwapBins;
+            $binFracs = $preSwapFracs;
+            $assigned = [];
+            foreach ($bins as $bi => $binJids) {
+                foreach ($binJids as $bj) {
+                    $assigned[$bj] = $bi;
+                }
+            }
+        }
+
         // --- Post-repair: merge undersized bins (< 5.0 fractional) if possible ---
         // $binFracs is already live-tracked throughout BFS — no need to recompute.
-        // Merges standalone tiny bins into adjacent ones (e.g. single-jurisdiction tiny islands)
-        // as long as the merged total stays under 9.5. The cross-component post-repair in
-        // autoComposite() handles the inter-component version of this same problem.
+        // After swap refinement this path is rare (standalone isolated-jid bins only).
+        //
+        // Priority: merge into an ADJACENT absorber (shares a border in $adj) to preserve
+        // contiguity.  Only fall back to nearest-centroid when no adjacent absorber exists
+        // (truly isolated jids with no adjacency data — unavoidable non-contiguity).
         $changed = true;
         while ($changed) {
             $changed = false;
             foreach ($binFracs as $i => $t) {
                 if ($t >= 5.0 || empty($bins[$i])) continue;
-                $bestJ     = -1;
-                $bestTotal = PHP_FLOAT_MAX;
-                foreach ($binFracs as $j => $tj) {
-                    if ($j === $i || empty($bins[$j])) continue;
-                    if ($tj + $t < 9.5 && $tj < $bestTotal) {
-                        $bestJ     = $j;
-                        $bestTotal = $tj;
+
+                // Collect bins that share at least one adjacency edge with bin i
+                $adjBorderBins = [];
+                foreach ($bins[$i] as $myJid) {
+                    foreach ($adj[$myJid] ?? [] as $nb) {
+                        if (isset($assigned[$nb])) {
+                            $bj = $assigned[$nb];
+                            if ($bj !== $i && !empty($bins[$bj])) {
+                                $adjBorderBins[$bj] = true;
+                            }
+                        }
                     }
                 }
+
+                $bestJ    = -1;
+                $bestDist = PHP_FLOAT_MAX;
+                $iCenter  = $this->binCentroid($bins[$i], $centroids);
+
+                // Phase 1: adjacent absorbers only (contiguity-safe merge)
+                foreach (array_keys($adjBorderBins) as $j) {
+                    if ($binFracs[$j] + $t >= 9.5) continue;
+                    $jCenter = $this->binCentroid($bins[$j], $centroids);
+                    $dx = $iCenter['x'] - $jCenter['x'];
+                    $dy = $iCenter['y'] - $jCenter['y'];
+                    $d  = $dx * $dx + $dy * $dy;
+                    if ($d < $bestDist) { $bestDist = $d; $bestJ = $j; }
+                }
+
+                // Phase 2: fallback to any absorber by centroid (truly isolated jids only)
+                if ($bestJ < 0) {
+                    foreach ($binFracs as $j => $tj) {
+                        if ($j === $i || empty($bins[$j])) continue;
+                        if ($tj + $t >= 9.5) continue;
+                        $jCenter = $this->binCentroid($bins[$j], $centroids);
+                        $dx = $iCenter['x'] - $jCenter['x'];
+                        $dy = $iCenter['y'] - $jCenter['y'];
+                        $d  = $dx * $dx + $dy * $dy;
+                        if ($d < $bestDist) { $bestDist = $d; $bestJ = $j; }
+                    }
+                }
+
                 if ($bestJ >= 0) {
-                    $bins[$bestJ]    = array_merge($bins[$bestJ], $bins[$i]);
+                    $bins[$bestJ]     = array_merge($bins[$bestJ], $bins[$i]);
                     $binFracs[$bestJ] += $binFracs[$i];
-                    $bins[$i]        = [];
-                    $binFracs[$i]    = 0.0;
-                    $changed         = true;
+                    $bins[$i]         = [];
+                    $binFracs[$i]     = 0.0;
+                    $changed          = true;
                     break;
                 }
             }
         }
 
         return array_values(array_filter($bins, fn($b) => !empty($b)));
+    }
+
+    /**
+     * Score a candidate bin configuration against constitutional priority criteria.
+     * Returns an array suitable for lexicographic comparison (lower = better for all fields).
+     *
+     * Priority order:
+     *   1. Fewest non-contiguous bins  (BFS reachability check in-memory via $adj)
+     *   2. Lowest average deviation %  (overall population equality — primary equality metric)
+     *   3. Lowest seat variance        (UPD uniformity: prefer 9×6+1×7 over 5×9+2×8 for same budget)
+     *   4. Lowest max deviation %      (worst single district — final tiebreaker)
+     *
+     * avg_deviation ranks above max_deviation because the "worst district" in a uniform
+     * configuration (e.g. the one 7-seat bin in 9×6+1×7=61) looks penalised by max_dev even
+     * though the overall equality is far better than a mixed 6/7/8/9 configuration.
+     * seat_variance rewards UPD-uniform configurations (all districts same seats) which is
+     * constitutionally desirable — fewer distinct tier sizes = fairer representation.
+     *
+     * Simulates Webster apportionment in-memory to compute accurate per-district deviations.
+     * Zero DB queries — uses the adjacency graph already loaded in runAutoCompositeForScope().
+     *
+     * Note: compactness (convex_hull_ratio) requires ST_Union geometry — scored post-insert
+     * by recomputeDistrict(). Community integrity is determined at classification time
+     * (giants pre-separated) — not scored here.
+     */
+    private function scoreConfiguration(
+        array $bins,
+        array $childById,
+        array $adj,
+        float $totalBinPop,
+        int   $nonGiantBudget
+    ): array {
+        $binCount      = count($bins);
+        $binQuota      = $totalBinPop / max($nonGiantBudget, 1);
+        $floorFeasible = ($nonGiantBudget >= $binCount * 5);
+        $startSeats    = $floorFeasible ? 5 : 1;
+
+        // Simulate Webster (Sainte-Laguë) apportionment in-memory
+        $binPops        = array_map(
+            fn($b) => array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $b)),
+            $bins
+        );
+        $binSeats       = array_fill(0, $binCount, $startSeats);
+        $floorOverrides = array_map(fn($p) => $binQuota > 0 && ($p / $binQuota) < 5.0, $binPops);
+
+        $remaining = $nonGiantBudget - $startSeats * $binCount;
+        for ($r = 0; $r < $remaining; $r++) {
+            $bestIdx = -1;
+            $bestPri = -1.0;
+            foreach ($binSeats as $i => $s) {
+                if ($s >= 9) continue;
+                if ($floorFeasible && $floorOverrides[$i]) continue;
+                $pri = $binPops[$i] / (2 * $s + 1);
+                if ($pri > $bestPri) { $bestPri = $pri; $bestIdx = $i; }
+            }
+            if ($bestIdx >= 0) $binSeats[$bestIdx]++;
+        }
+
+        // Compute per-bin deviation percentages
+        $deviations = [];
+        foreach ($bins as $i => $binJids) {
+            $pop   = $binPops[$i];
+            $seats = $binSeats[$i];
+            if ($seats <= 0 || $binQuota <= 0) { $deviations[] = 0.0; continue; }
+            $deviations[] = abs($pop / $seats - $binQuota) / $binQuota * 100;
+        }
+
+        // Seat variance: penalises mixed-seat configurations (e.g. 5×9+2×8 has higher variance
+        // than 9×6+1×7 even though both sum to the same budget).  Lower = more UPD-uniform.
+        $meanSeats    = $binCount > 0 ? array_sum($binSeats) / $binCount : 0.0;
+        $seatVariance = 0.0;
+        foreach ($binSeats as $s) {
+            $diff          = $s - $meanSeats;
+            $seatVariance += $diff * $diff;
+        }
+        $seatVariance = $binCount > 0 ? $seatVariance / $binCount : 0.0;
+
+        // In-memory contiguity: BFS reachability within each bin using the adjacency graph.
+        // Apply the same distance-based false-positive filter used in geographicSeedExpansion:
+        // ignore adjacency edges whose centroid distance exceeds 4× the 90th-percentile edge
+        // length for this component.  Without this, a false-positive long-distance edge in the
+        // adjacency table lets two disconnected halves appear "reachable" and hides the
+        // non-contiguous configuration from the scorer — causing it to win the competition.
+        // Centroids are available as centroid_x / centroid_y on each $childById entry.
+        $allJids      = array_merge(...$bins);
+        $jidInComp    = array_flip($allJids);
+        $scAdjDistsSq = [];
+        foreach ($allJids as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($jidInComp[$nb])) continue;
+                $dx = ($childById[$jid]->centroid_x ?? 0.0) - ($childById[$nb]->centroid_x ?? 0.0);
+                $dy = ($childById[$jid]->centroid_y ?? 0.0) - ($childById[$nb]->centroid_y ?? 0.0);
+                $scAdjDistsSq[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($scAdjDistsSq);
+        $scP90Idx        = max(0, (int) floor(count($scAdjDistsSq) * 0.90) - 1);
+        $scMaxEdgeDistSq = !empty($scAdjDistsSq) ? $scAdjDistsSq[$scP90Idx] * 16.0 : PHP_FLOAT_MAX;
+
+        // Average radius of gyration² (compactness proxy, lower = more compact).
+        // Computed in-memory using centroid_x/y; no PostGIS required.
+        // Formula: Rg²_i = (Sx2+Sy2)/M − (Sx²+Sy²)/M²  where M=total pop, Sx=sum(pop×lon), etc.
+        $totalRgSq = 0.0;
+        foreach ($bins as $i => $binJids) {
+            $M = (float) $binPops[$i];
+            if ($M <= 0.0) continue;
+            $sx = 0.0; $sy = 0.0; $sx2 = 0.0; $sy2 = 0.0;
+            foreach ($binJids as $jid) {
+                $p  = (float) $childById[$jid]->population;
+                $x  = $childById[$jid]->centroid_x ?? 0.0;
+                $y  = $childById[$jid]->centroid_y ?? 0.0;
+                $sx  += $p * $x;   $sy  += $p * $y;
+                $sx2 += $p * $x * $x; $sy2 += $p * $y * $y;
+            }
+            $totalRgSq += ($sx2 + $sy2) / $M - ($sx * $sx + $sy * $sy) / ($M * $M);
+        }
+        $avgRgSq = $binCount > 0 ? $totalRgSq / $binCount : 0.0;
+
+        $nonContiguousCount = 0;
+        foreach ($bins as $binJids) {
+            if (count($binJids) <= 1) continue; // single-member bins are trivially contiguous
+            $binSet  = array_flip($binJids);
+            $visited = [$binJids[0] => true];
+            $queue   = [$binJids[0]];
+            while (!empty($queue)) {
+                $curr = array_shift($queue);
+                foreach ($adj[$curr] ?? [] as $nb) {
+                    if (!isset($binSet[$nb]) || isset($visited[$nb])) continue;
+                    $dx = ($childById[$curr]->centroid_x ?? 0.0) - ($childById[$nb]->centroid_x ?? 0.0);
+                    $dy = ($childById[$curr]->centroid_y ?? 0.0) - ($childById[$nb]->centroid_y ?? 0.0);
+                    if ($dx * $dx + $dy * $dy > $scMaxEdgeDistSq) continue;
+                    $visited[$nb] = true;
+                    $queue[]      = $nb;
+                }
+            }
+            if (count($visited) < count($binJids)) $nonContiguousCount++;
+        }
+
+        return [
+            'non_contiguous_count' => $nonContiguousCount,
+            'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
+            'seat_variance'        => $seatVariance,
+            'max_deviation_pct'    => empty($deviations) ? 0.0 : max($deviations),
+            'avg_rg_sq'            => $avgRgSq,
+        ];
     }
 
     /**
@@ -3327,6 +4101,7 @@ class LegislatureController extends Controller
         $childRows = DB::select("
             SELECT
                 j.id, j.name, j.iso_code, j.adm_level, j.population,
+                j.type_a_apportioned,
                 (CAST(j.population AS numeric) * :total_seats / :root_pop) AS fractional_seats,
                 (SELECT COUNT(*) FROM jurisdictions c
                  WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
@@ -3346,7 +4121,24 @@ class LegislatureController extends Controller
                                 AND jp.deleted_at IS NULL
                           )
                       )
-                ) AS has_districts
+                ) AS has_districts,
+                COALESCE((
+                    SELECT SUM(ld3.seats)
+                    FROM legislature_districts ld3
+                    JOIN legislature_district_jurisdictions ldj3 ON ldj3.district_id = ld3.id
+                    JOIN jurisdictions jm3 ON jm3.id = ldj3.jurisdiction_id AND jm3.deleted_at IS NULL
+                    WHERE ld3.legislature_id = :leg_id2
+                      AND ld3.deleted_at IS NULL
+                      AND (
+                          jm3.parent_id = j.id
+                          OR EXISTS (
+                              SELECT 1 FROM jurisdictions jp3
+                              WHERE jp3.id = jm3.parent_id
+                                AND jp3.parent_id = j.id
+                                AND jp3.deleted_at IS NULL
+                          )
+                      )
+                ), 0) AS child_assigned_seats
             FROM jurisdictions j
             WHERE j.parent_id = :scope_id
               AND j.deleted_at IS NULL
@@ -3355,6 +4147,7 @@ class LegislatureController extends Controller
             'total_seats'  => $totalSeats,
             'root_pop'     => $rootPop,
             'leg_id'       => $legislature_id,
+            'leg_id2'      => $legislature_id,
             'scope_id'     => $scopeId,
             'total_seats2' => $totalSeats,
             'root_pop2'    => $rootPop,
@@ -3363,12 +4156,14 @@ class LegislatureController extends Controller
         $giants = [];
         foreach ($childRows as $c) {
             $giants[] = [
-                'id'               => $c->id,
-                'name'             => $c->name,
-                'population'       => (int) $c->population,
-                'fractional_seats' => round((float) $c->fractional_seats, 2),
-                'child_count'      => (int) $c->child_count,
-                'has_districts'    => (bool) $c->has_districts,
+                'id'                   => $c->id,
+                'name'                 => $c->name,
+                'population'           => (int) $c->population,
+                'fractional_seats'     => round((float) $c->fractional_seats, 2),
+                'child_count'          => (int) $c->child_count,
+                'has_districts'        => (bool) $c->has_districts,
+                'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
+                'child_assigned_seats' => (int) $c->child_assigned_seats,
             ];
         }
 
@@ -3401,14 +4196,15 @@ class LegislatureController extends Controller
         $flags = [
             'cap'               => null,
             'floor_exceptions'  => [],
-            'deep_overages'     => [],   // over OR under budget (delta = actual − budget)
-            'deep_unevenness'   => [],
+            'deep_overages'     => [],   // over budget (delta = actual − budget)
             'incomplete_scopes' => [],   // scopes with unassigned compositable children
         ];
 
-        // ── Flag 1: Legislature seat cap (root scope only) — over budget only ─
-        // Under-budget at root is expected during districting (not all scopes drilled yet).
-        // The incomplete_scopes flag handles the "not fully assigned" signal separately.
+        // ── Flag 1: Seat cap / undercount — both root and sub-scopes ────────────
+        // Root scope: SUM(all legislature districts) vs. total seat budget.
+        // Sub-scope:  SUM(districts created at this scope) vs. type_a_apportioned
+        //             for the scope jurisdiction — so drilling into India shows
+        //             "Undercount: 0/358 seats" just like the root shows "-1999".
         if ($scopeId === $leg->jurisdiction_id) {
             $capQuery = DB::table('legislature_districts')
                 ->where('legislature_id', $legId)
@@ -3416,19 +4212,44 @@ class LegislatureController extends Controller
             if ($mapId !== null) {
                 $capQuery->where('map_id', $mapId);
             }
-            $total = (int) $capQuery->sum('seats');
-            if ($total !== (int) $leg->type_a_seats) {
-                $flags['cap'] = [
-                    'total' => $total,
-                    'max'   => (int) $leg->type_a_seats,
-                    'delta' => $total - (int) $leg->type_a_seats,  // positive = over, negative = under
-                ];
+            $total  = (int) $capQuery->sum('seats');
+            $budget = (int) $leg->type_a_seats;
+        } else {
+            $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
+            $budget   = $scopeRow ? (int) $scopeRow->type_a_apportioned : 0;
+
+            // Mirror the Vue's currentConfigLabel: direct districts + giant-children subtrees.
+            // Giant children (frac >= 9.5) hold their seats at sub-scope levels; we must include
+            // their child_assigned_seats (already CTE-computed in $children) so the cap reflects
+            // all seats committed within India's full subtree, not just India-scope districts.
+            $GIANT_THRESHOLD = 9.5;
+            $directSeats = 0;
+            foreach ($districts as $d) {
+                $directSeats += (int) $d['seats'];
             }
+            $giantSubtreeSeats = 0;
+            foreach ($children as $child) {
+                $frac = $child->fractional_seats ?? 0.0;
+                if ((float) $frac >= $GIANT_THRESHOLD) {
+                    $giantSubtreeSeats += (int) ($child->child_assigned_seats ?? 0);
+                }
+            }
+            $total = $directSeats + $giantSubtreeSeats;
+        }
+        if ($budget > 0 && $total !== $budget) {
+            $flags['cap'] = [
+                'total' => $total,
+                'max'   => $budget,
+                'delta' => $total - $budget,
+            ];
         }
 
-        // ── Flag 4: Floor exceptions (informational) ──────────────────────────
+        // ── Flag 4: Floor exceptions — only genuine cases ─────────────────────
+        // A floor exception is meaningful only when the district's fractional seats
+        // would round BELOW the floor (5) via Webster rounding: fractional < 4.5.
+        // Values like 4.85 round naturally to 5 and do NOT need a flag.
         foreach ($districts as $d) {
-            if ($d['floor_override']) {
+            if ((float)($d['fractional_seats'] ?? 5.0) < 4.5) {
                 $flags['floor_exceptions'][] = [
                     'district_id'   => $d['id'],
                     'district_name' => $d['name'],
@@ -3492,18 +4313,6 @@ class LegislatureController extends Controller
                     'actual'     => $seatSum,
                     'delta'      => $seatSum - $budget,
                 ];
-            } elseif ($numDist >= 2 && !$hasFloor && ($maxS - $minS) > 1) {
-                $idLo = (int) floor($seatSum / $numDist);
-                $idHi = (int) ceil($seatSum / $numDist);
-                if ($idLo >= 5 && $idHi <= 9) {
-                    $flags['deep_unevenness'][] = [
-                        'scope_id'    => $row->scope_id,
-                        'scope_name'  => $row->scope_name,
-                        'ideal_range' => [$idLo, $idHi],
-                        'max_seats'   => $maxS,
-                        'min_seats'   => $minS,
-                    ];
-                }
             }
         }
 
@@ -3619,7 +4428,9 @@ class LegislatureController extends Controller
             'contiguity'          => null,
             'community_integrity' => null,
         ];
-        if (empty($districts) || $quota <= 0) return $stats;
+        // Allow stats computation even when no districts exist directly at this scope:
+        // sub-scope districts (giant children's sub-districts) still show quality data.
+        if ($quota <= 0) return $stats;
 
         $mapClauseLeaf  = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $mapBindingLeaf = $mapId !== null ? [$mapId] : [];
@@ -3681,6 +4492,7 @@ class LegislatureController extends Controller
             $label = $code . ' ' . str_pad((int) $r->district_number, 2, '0', STR_PAD_LEFT);
 
             $districtData[] = [
+                'district_id'       => $r->id,
                 'scope_id'          => $r->scope_id,
                 'scope_name'        => $r->scope_name,
                 'district_label'    => $label,
@@ -3738,12 +4550,14 @@ class LegislatureController extends Controller
                 'avg_deviation_pct' => round(array_sum($deviations) / count($deviations) * 100, 2),
                 'range_ratio'       => round(max($popPerSeats) / max(min($popPerSeats), 1), 3),
                 'most_over' => [
+                    'district_id'    => $mostOver['district_id'],
                     'scope_id'       => $mostOver['scope_id'],
                     'scope_name'     => $mostOver['scope_name'],
                     'district_label' => $mostOver['district_label'],
                     'deviation_pct'  => $mostOver['deviation_pct'],
                 ],
                 'most_under' => [
+                    'district_id'    => $mostUnder['district_id'],
                     'scope_id'       => $mostUnder['scope_id'],
                     'scope_name'     => $mostUnder['scope_name'],
                     'district_label' => $mostUnder['district_label'],
@@ -4007,7 +4821,6 @@ class LegislatureController extends Controller
         return ($flags['cap'] !== null ? 1 : 0)
             + count($flags['floor_exceptions'] ?? [])
             + count($flags['deep_overages'] ?? [])
-            + count($flags['deep_unevenness'] ?? [])
             + count($flags['incomplete_scopes'] ?? []);
     }
 
@@ -4019,5 +4832,98 @@ class LegislatureController extends Controller
         // degrades quality below the baseline — it can only improve it at zoom ≥ 8.
         // At zoom ≤ 7 the formula gives ≥ 0.011°, so the cap always applies there.
         return max(min(360.0 / (256.0 * (2 ** $zoom)), 0.01), 0.00005);
+    }
+
+    // ── Wizard Stepper ────────────────────────────────────────────────────────
+
+    /**
+     * Returns a post-order depth-first sequence of all "giant" scopes
+     * (fractional_seats ≥ 9.5 relative to the root quota) for the given
+     * legislature, with giants sorted largest-first at every level.
+     * Root scope is always appended as the final step.
+     *
+     * GET /api/legislatures/{legislature_id}/wizard-steps
+     *   ?scope_id=<uuid>   (optional, used to compute current_index)
+     */
+    public function wizardSteps(Request $request, string $legislature_id): JsonResponse
+    {
+        $leg = DB::table('legislatures')
+            ->where('id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->first();
+        if (!$leg) {
+            return response()->json(['error' => 'Legislature not found'], 404);
+        }
+
+        $rootId     = $leg->jurisdiction_id;
+        $totalSeats = (int) $leg->type_a_seats;
+        $rootPop    = (int) DB::scalar('SELECT population FROM jurisdictions WHERE id = ?', [$rootId]);
+
+        if ($rootPop <= 0) {
+            return response()->json(['steps' => [['scope_id' => $rootId, 'scope_name' => '']], 'current_index' => 0]);
+        }
+
+        // Single recursive CTE collects every giant scope in the tree
+        $rows = DB::select("
+            WITH RECURSIVE giant_tree AS (
+                SELECT j.id, j.name, j.parent_id,
+                       ROUND(CAST(j.population AS numeric) * :ts1 / :rp1, 4) AS fractional_seats
+                FROM jurisdictions j
+                WHERE j.parent_id = :root
+                  AND j.deleted_at IS NULL
+                  AND CAST(j.population AS numeric) * :ts2 / :rp2 >= 9.5
+                UNION ALL
+                SELECT j.id, j.name, j.parent_id,
+                       ROUND(CAST(j.population AS numeric) * :ts3 / :rp3, 4) AS fractional_seats
+                FROM jurisdictions j
+                JOIN giant_tree gt ON j.parent_id = gt.id
+                WHERE j.deleted_at IS NULL
+                  AND CAST(j.population AS numeric) * :ts4 / :rp4 >= 9.5
+            )
+            SELECT id, name, parent_id, fractional_seats FROM giant_tree
+        ", [
+            'ts1' => $totalSeats, 'rp1' => $rootPop, 'root' => $rootId,
+            'ts2' => $totalSeats, 'rp2' => $rootPop,
+            'ts3' => $totalSeats, 'rp3' => $rootPop,
+            'ts4' => $totalSeats, 'rp4' => $rootPop,
+        ]);
+
+        // Build adjacency list: parent_id → children sorted by fractional_seats DESC
+        $adj = [];
+        foreach ($rows as $r) {
+            $adj[$r->parent_id][] = $r;
+        }
+        foreach ($adj as &$kids) {
+            usort($kids, fn($a, $b) => (float)$b->fractional_seats <=> (float)$a->fractional_seats);
+        }
+        unset($kids);
+
+        // Post-order DFS: children before parent, largest-first within each level
+        $steps = [];
+        $this->postOrderGiants($rootId, $adj, $steps);
+
+        // Root scope is always the final step
+        $rootName = DB::scalar('SELECT name FROM jurisdictions WHERE id = ?', [$rootId]);
+        $steps[] = ['scope_id' => $rootId, 'scope_name' => (string) $rootName];
+
+        // Find the index for the requested scope
+        $currentId  = $request->query('scope_id', $rootId);
+        $currentIdx = count($steps) - 1;  // default to root (last)
+        foreach ($steps as $i => $s) {
+            if ($s['scope_id'] === $currentId) {
+                $currentIdx = $i;
+                break;
+            }
+        }
+
+        return response()->json(['steps' => $steps, 'current_index' => $currentIdx]);
+    }
+
+    private function postOrderGiants(string $scopeId, array &$adj, array &$steps): void
+    {
+        foreach ($adj[$scopeId] ?? [] as $child) {
+            $this->postOrderGiants($child->id, $adj, $steps);
+            $steps[] = ['scope_id' => $child->id, 'scope_name' => (string) $child->name];
+        }
     }
 }
