@@ -2345,33 +2345,61 @@ class LegislatureController extends Controller
             $bestScore = null;
 
             foreach ($kCandidates as $k) {
-                foreach (['northernmost', 'largest_pop', 'center_out', 'southernmost', 'easternmost', 'westernmost'] as $strategy) {
-                    $seeds = $this->selectSeedsByStrategy($strategy, $component, $childById, $centroids, $k);
-                    $bins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds);
+                $targetPopK = $compBinPop > 0 ? (float) $compBinPop / $k : 0.0;
 
-                    $effectiveBudget = max(count($bins), $compBudget); // at least 1 seat per bin
+                // ── Phase A: BFS-only scan over ALL jids as potential first seeds ─────
+                // geographicSeedExpansion($bfsOnly=true) returns after BFS before passes.
+                // Scoring here is a cheap raw sum-of-absolute-deviations proxy (no Webster).
+                // This lets us try every possible geographic partition from every starting
+                // point, rather than just 6 fixed cardinal-direction anchors.
+                $bfsCandidates = [];
+                foreach ($component as $firstSeed) {
+                    $seeds    = $this->farPointSeeds($firstSeed, $k, $component, $centroids);
+                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, true);
+                    $devProxy = 0.0;
+                    foreach ($bfsBins as $bin) {
+                        $pop       = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin));
+                        $devProxy += abs($pop - $targetPopK);
+                    }
+                    $bfsCandidates[] = ['seeds' => $seeds, 'dev' => $devProxy];
+                }
+                usort($bfsCandidates, fn($a, $b) => $a['dev'] <=> $b['dev']);
+
+                // ── Phase B: Full pipeline (balance + compact + balance) on top 20 ────
+                // Running balance+compact+balance on every jid as first seed is unnecessary;
+                // the raw BFS score is a reliable proxy for which starting configurations
+                // will converge to better final results.
+                $topN = min(count($component), 20);
+                foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
+                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds']);
+
+                    $effectiveBudget = max(count($bins), $compBudget);
 
                     $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget);
 
-                    // Lexicographic: fewest non-contiguous → lowest avg deviation → lowest seat variance
-                    //   → lowest max deviation → lowest avg Rg² (most compact)
+                    // Lexicographic priority:
+                    //   1. Fewest non-contiguous bins (hard constraint)
+                    //   2. Fewest districts with |dev| > 2%  (per-district balance target)
+                    //   3. Lowest avg Rg²                    (compactness — stringy = bad)
+                    //   4. Lowest seat variance              (UPD uniformity)
+                    //   5. Lowest avg deviation %            (fine-tune balance)
                     if (
                         $bestScore === null ||
                         $score['non_contiguous_count'] < $bestScore['non_contiguous_count'] ||
                         ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['avg_deviation_pct']    < $bestScore['avg_deviation_pct']) ||
+                         $score['count_over_2pct']      < $bestScore['count_over_2pct']) ||
                         ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
+                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
+                         $score['avg_rg_sq']            < $bestScore['avg_rg_sq']) ||
+                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
+                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
+                         $score['avg_rg_sq']            === $bestScore['avg_rg_sq'] &&
                          $score['seat_variance']        < $bestScore['seat_variance']) ||
                         ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
+                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
+                         $score['avg_rg_sq']            === $bestScore['avg_rg_sq'] &&
                          $score['seat_variance']        === $bestScore['seat_variance'] &&
-                         $score['max_deviation_pct']    < $bestScore['max_deviation_pct']) ||
-                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['avg_deviation_pct']    === $bestScore['avg_deviation_pct'] &&
-                         $score['seat_variance']        === $bestScore['seat_variance'] &&
-                         $score['max_deviation_pct']    === $bestScore['max_deviation_pct'] &&
-                         $score['avg_rg_sq']            < $bestScore['avg_rg_sq'])
+                         $score['avg_deviation_pct']    < $bestScore['avg_deviation_pct'])
                     ) {
                         $bestBins  = $bins;
                         $bestScore = $score;
@@ -2982,6 +3010,38 @@ class LegislatureController extends Controller
     }
 
     /**
+     * Build k seeds via greedy farthest-point from a given first seed.
+     * Seeds 2..k are chosen iteratively as the jurisdiction whose minimum distance
+     * to any already-chosen seed is maximised (maximises inter-seed spread).
+     * Used by the Phase-A exhaustive scan to generate diverse BFS starting configurations
+     * from every possible first seed.
+     */
+    private function farPointSeeds(string $firstSeed, int $k, array $jids, array $centroids): array
+    {
+        $seeds   = [$firstSeed];
+        $seedSet = [$firstSeed => true];
+        while (count($seeds) < $k) {
+            $farthest   = null;
+            $maxMinDist = -1.0;
+            foreach ($jids as $jid) {
+                if (isset($seedSet[$jid])) continue;
+                $minDist = PHP_FLOAT_MAX;
+                foreach ($seeds as $seed) {
+                    $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$seed]['x'] ?? 0.0);
+                    $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$seed]['y'] ?? 0.0);
+                    $d  = $dx * $dx + $dy * $dy;
+                    if ($d < $minDist) $minDist = $d;
+                }
+                if ($minDist > $maxMinDist) { $maxMinDist = $minDist; $farthest = $jid; }
+            }
+            if ($farthest === null) break;
+            $seeds[]            = $farthest;
+            $seedSet[$farthest] = true;
+        }
+        return $seeds;
+    }
+
+    /**
      * Select k geographically spread seeds using a greedy farthest-first strategy
      * (k-means++ style initialization).
      *
@@ -3137,7 +3197,8 @@ class LegislatureController extends Controller
         array $childById,
         array $adj,
         array $centroids,
-        array $seeds
+        array $seeds,
+        bool  $bfsOnly = false  // when true: return after BFS expansion, skip balance/compact passes
     ): array {
         if (empty($jids)) return [];
 
@@ -3326,6 +3387,13 @@ class LegislatureController extends Controller
             $bins
         );
 
+        // BFS-only mode: return raw partition without running balance/compact passes.
+        // Used by the Phase A exhaustive-seed scan in runAutoCompositeForScope() to
+        // cheaply evaluate all N first-seed candidates before committing to the full pipeline.
+        if ($bfsOnly) {
+            return array_values(array_filter($bins, fn($b) => !empty($b)));
+        }
+
         // Save pre-swap state so we can fully revert if the post-swap validation
         // detects that swaps created non-contiguous bins despite the per-swap guard.
         $preSwapBins  = array_map(fn($b) => array_values($b), $bins);
@@ -3350,15 +3418,24 @@ class LegislatureController extends Controller
             }
         }
 
-        // --- Balance swap refinement: "best improvement" steepest-descent ---
-        // Each pass scans ALL border-jid candidates and applies the single swap that most
-        // reduces total |deviation from targetPop|.  "Best improvement" (steepest descent)
-        // converges to deeper local optima than "first improvement" — critical for k=10
-        // where each jid is a larger fraction of the target population.
+        // --- Balance swap refinement: "best improvement" minimax steepest-descent ---
+        // Each pass scans border-jid candidates and applies the single swap that most reduces
+        // the MAXIMUM per-district deviation (Chebyshev / minimax norm), directly targeting
+        // the user's goal of sub-2% deviation per district rather than sub-2% on average.
+        //
+        // Fast-skip: only swaps involving the current max-deviation bin can reduce the max.
+        // New max is recomputed in O(k) per candidate (k ≤ 12 — negligible cost).
         // Constitutional constraints: donor bin stays ≥ 5.0 frac; receiver stays < 9.5 frac.
         $swapIter = 0;
-        $swapMax  = count($jids) * 3; // tripled vs first-improvement since each pass is a net steepest step
+        $swapMax  = count($jids) * 3;
         do {
+            // Precompute current maximum deviation — once per iteration, O(k)
+            $currentMaxDev = 0.0;
+            foreach ($binPops as $bp) {
+                $d = abs($bp - $targetPop);
+                if ($d > $currentMaxDev) $currentMaxDev = $d;
+            }
+
             $bestImprovement = 0.0;
             $bestBI = -1; $bestBJ = -1;
             $bestBJid = null; $bestBRemainingI = null;
@@ -3382,9 +3459,22 @@ class LegislatureController extends Controller
                     foreach (array_keys($adjBins) as $j) {
                         if ($binFracs[$j] + $jFrac >= 9.5) continue;
 
-                        $before      = abs($binPops[$i] - $targetPop) + abs($binPops[$j] - $targetPop);
-                        $after       = abs($binPops[$i] - $jPop - $targetPop) + abs($binPops[$j] + $jPop - $targetPop);
-                        $improvement = $before - $after;
+                        // Fast skip: if neither bin i nor bin j holds the current max deviation,
+                        // no swap between them can reduce the maximum.
+                        $devI = abs($binPops[$i] - $targetPop);
+                        $devJ = abs($binPops[$j] - $targetPop);
+                        if ($devI < $currentMaxDev && $devJ < $currentMaxDev) continue;
+
+                        // Compute new maximum if this swap were applied — O(k)
+                        $newMaxDev = 0.0;
+                        foreach ($binPops as $bi => $bp) {
+                            $newPop = $bp;
+                            if ($bi === $i) $newPop -= $jPop;
+                            if ($bi === $j) $newPop += $jPop;
+                            $d = abs($newPop - $targetPop);
+                            if ($d > $newMaxDev) $newMaxDev = $d;
+                        }
+                        $improvement = $currentMaxDev - $newMaxDev;
                         if ($improvement <= $bestImprovement) continue; // not the global best yet
 
                         // Contiguity guard — only run BFS for genuinely better candidates
@@ -3448,7 +3538,7 @@ class LegislatureController extends Controller
         //   (c) donor bin remains contiguous after the move.
         // Uses the O(1) per-bin Sx/Sy/Sx2/Sy2 statistics maintained above.
         // Rg² formula: (Sx2+Sy2)/M − Sx²/M² − Sy²/M²   (in geographic degree² units)
-        $compactTol  = 0.05; // absolute maximum deviation fraction (5%) for any bin touched by this pass
+        $compactTol  = 0.025; // absolute cap (2.5%) — leaves margin for post-compact minimax pass to reach sub-2%
         $compactIter = 0;
         $compactMax  = count($jids) * 2;
         do {
@@ -3574,16 +3664,21 @@ class LegislatureController extends Controller
             $compactIter++;
         } while ($compactSwapMade && $compactIter < $compactMax);
 
-        // --- Post-compact balance pass ---
-        // Re-optimises population equality after the compactness reshaping phase may have
-        // moved jurisdictions out of densely-populated bins (e.g. pulling jids away from
-        // an already-large bin to improve its shape, leaving it under-populated).
-        // Uses the same "best improvement" steepest-descent strategy as the initial balance
-        // pass.  The $binSx/Sy/Sx2/Sy2 statistics are already up-to-date from the compact
-        // phase so no re-initialisation is needed.
+        // --- Post-compact balance pass (minimax) ---
+        // Re-optimises population equality after the compactness reshaping phase.
+        // Uses the same minimax (Chebyshev) objective as the initial balance pass:
+        // minimises max|dev| rather than sum|dev|, directly targeting sub-2% per district.
+        // The $binSx/Sy/Sx2/Sy2 statistics are already up-to-date from the compact phase.
         $swapIter2 = 0;
         $swapMax2  = count($jids) * 2;
         do {
+            // Precompute current maximum deviation — once per iteration, O(k)
+            $currentMaxDev2 = 0.0;
+            foreach ($binPops as $bp) {
+                $d = abs($bp - $targetPop);
+                if ($d > $currentMaxDev2) $currentMaxDev2 = $d;
+            }
+
             $bestImprovement2  = 0.0;
             $bestBI2 = -1; $bestBJ2 = -1;
             $bestBJid2 = null; $bestBRemainingI2 = null;
@@ -3607,9 +3702,21 @@ class LegislatureController extends Controller
                     foreach (array_keys($adjBins) as $j) {
                         if ($binFracs[$j] + $jFrac >= 9.5) continue;
 
-                        $before      = abs($binPops[$i] - $targetPop) + abs($binPops[$j] - $targetPop);
-                        $after       = abs($binPops[$i] - $jPop - $targetPop) + abs($binPops[$j] + $jPop - $targetPop);
-                        $improvement = $before - $after;
+                        // Fast skip: neither bin involved = cannot reduce the max
+                        $devI2 = abs($binPops[$i] - $targetPop);
+                        $devJ2 = abs($binPops[$j] - $targetPop);
+                        if ($devI2 < $currentMaxDev2 && $devJ2 < $currentMaxDev2) continue;
+
+                        // Compute new maximum — O(k)
+                        $newMaxDev2 = 0.0;
+                        foreach ($binPops as $bi2 => $bp2) {
+                            $newPop2 = $bp2;
+                            if ($bi2 === $i) $newPop2 -= $jPop;
+                            if ($bi2 === $j) $newPop2 += $jPop;
+                            $d2 = abs($newPop2 - $targetPop);
+                            if ($d2 > $newMaxDev2) $newMaxDev2 = $d2;
+                        }
+                        $improvement = $currentMaxDev2 - $newMaxDev2;
                         if ($improvement <= $bestImprovement2) continue;
 
                         // Contiguity guard — only run BFS for genuinely better candidates
@@ -3772,16 +3879,19 @@ class LegislatureController extends Controller
      * Returns an array suitable for lexicographic comparison (lower = better for all fields).
      *
      * Priority order:
-     *   1. Fewest non-contiguous bins  (BFS reachability check in-memory via $adj)
-     *   2. Lowest average deviation %  (overall population equality — primary equality metric)
-     *   3. Lowest seat variance        (UPD uniformity: prefer 9×6+1×7 over 5×9+2×8 for same budget)
-     *   4. Lowest max deviation %      (worst single district — final tiebreaker)
+     *   1. Fewest non-contiguous bins       (BFS reachability check in-memory via $adj)
+     *   2. Fewest districts with |dev| > 2% (per-district balance: sub-2% is the primary goal)
+     *   3. Lowest avg Rg²                   (compactness — stringy districts penalised heavily)
+     *   4. Lowest seat variance             (UPD uniformity: prefer 9×6+1×7 over 5×9+2×8)
+     *   5. Lowest average deviation %       (fine-tune balance within tied configurations)
      *
-     * avg_deviation ranks above max_deviation because the "worst district" in a uniform
-     * configuration (e.g. the one 7-seat bin in 9×6+1×7=61) looks penalised by max_dev even
-     * though the overall equality is far better than a mixed 6/7/8/9 configuration.
-     * seat_variance rewards UPD-uniform configurations (all districts same seats) which is
-     * constitutionally desirable — fewer distinct tier sizes = fairer representation.
+     * count_over_2pct as criterion 2 encodes the user's priority hierarchy: get every district
+     * under 2% first, then optimise compactness, then UPD, then average balance.  The implicit
+     * "expand by 2% and retry" relaxation emerges naturally: if no configuration achieves
+     * count_over_2pct = 0, the one with fewest over-threshold districts wins, and the algorithm
+     * still found the best solution it could at the strict tolerance before relaxing.
+     * avg_rg_sq (radius of gyration², lower = more compact) ranks above seat_variance because
+     * stringy non-compact districts are almost as bad as non-contiguity.
      *
      * Simulates Webster apportionment in-memory to compute accurate per-district deviations.
      * Zero DB queries — uses the adjacency graph already loaded in runAutoCompositeForScope().
@@ -3903,12 +4013,18 @@ class LegislatureController extends Controller
             if (count($visited) < count($binJids)) $nonContiguousCount++;
         }
 
+        // count_over_2pct: number of districts whose per-seat deviation exceeds 2%.
+        // This is the primary post-contiguity criterion: the algorithm prefers configurations
+        // where every district is ≤2% over configurations that are merely better on average.
+        $countOver2pct = count(array_filter($deviations, fn($d) => $d > 2.0));
+
         return [
             'non_contiguous_count' => $nonContiguousCount,
-            'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
-            'seat_variance'        => $seatVariance,
-            'max_deviation_pct'    => empty($deviations) ? 0.0 : max($deviations),
+            'count_over_2pct'      => $countOver2pct,
             'avg_rg_sq'            => $avgRgSq,
+            'seat_variance'        => $seatVariance,
+            'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
+            'max_deviation_pct'    => empty($deviations) ? 0.0 : max($deviations),
         ];
     }
 
