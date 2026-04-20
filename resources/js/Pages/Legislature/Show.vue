@@ -23,17 +23,6 @@
                         to assign here
                         · Quota: {{ quota.toLocaleString() }} pop/seat
                     </div>
-                    <!-- Optimal district config hint -->
-                    <div v-if="optimalLabel" class="text-xs text-gray-400 mt-0.5 space-y-0.5">
-                        <div>
-                            <span class="text-gray-500">Optimal: </span>
-                            <span class="text-cyan-400 font-medium">{{ optimalLabel }}</span>
-                        </div>
-                        <div v-if="currentConfigLabel">
-                            <span class="text-gray-500">Current: </span>
-                            <span class="text-amber-400">{{ currentConfigLabel }}</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Breadcrumb -->
@@ -224,134 +213,170 @@
                         <span v-else class="text-[10px] text-indigo-500 ml-auto">Controls disabled</span>
                     </div>
 
-                    <!-- Constitutional validation flags panel -->
-                    <div v-if="hasAnyFlag"
-                         class="mx-2 mt-2 mb-1 rounded border bg-gray-900 shrink-0"
-                         :class="hardFlagCount > 0 ? 'border-red-900' : 'border-amber-900'">
-                        <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800 cursor-pointer"
-                             @click="flagsPanelCollapsed = !flagsPanelCollapsed">
-                            <span class="text-xs font-semibold uppercase tracking-wide"
-                                  :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
-                                Constitutional Flags
-                            </span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-500">
-                                    {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.deep_unevenness?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }}
-                                    issue(s)
-                                </span>
-                                <button v-if="props.maps.length >= 2"
-                                        @click.stop="openCompare"
-                                        class="px-1.5 py-0.5 rounded text-[10px] border border-indigo-800 bg-indigo-950 text-indigo-400 hover:bg-indigo-900 hover:text-indigo-200 transition-colors">
-                                    ⊕ Compare
-                                </button>
-                                <span class="text-gray-600 text-xs transition-transform"
-                                      :class="flagsPanelCollapsed ? '' : 'rotate-90'">›</span>
-                            </div>
-                        </div>
-                        <div v-if="!flagsPanelCollapsed"
-                             class="px-3 py-2 space-y-1.5 text-xs max-h-52 overflow-y-auto">
-                            <div v-if="props.flags.cap" class="flex items-start gap-2 text-red-400">
-                                <span class="shrink-0">⛔</span>
-                                <span>
-                                    {{ props.flags.cap.delta > 0 ? 'Overcount' : 'Undercount' }}:
-                                    {{ props.flags.cap.total.toLocaleString() }} / {{ props.flags.cap.max.toLocaleString() }} seats
-                                    ({{ props.flags.cap.delta > 0 ? '+' : '' }}{{ props.flags.cap.delta }})
-                                </span>
-                            </div>
-                            <div v-for="ov in (props.flags.deep_overages ?? [])" :key="'do-' + ov.scope_id"
-                                 class="flex items-start gap-2 text-red-400">
-                                <span class="shrink-0">⛔</span>
-                                <span>
-                                    <a @click.prevent="drillTo(ov.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ ov.scope_name }}</a>:
-                                    districts total {{ ov.actual }} seats (budget {{ ov.budget }}, {{ ov.delta > 0 ? '+' : '' }}{{ ov.delta }})
-                                </span>
-                            </div>
-                            <div v-for="sc in (props.flags.incomplete_scopes ?? [])" :key="'is-' + sc.scope_id"
-                                 class="flex items-start gap-2 text-red-400">
-                                <span class="shrink-0">⛔</span>
-                                <span>
-                                    <a @click.prevent="drillTo(sc.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ sc.scope_name }}</a>:
-                                    {{ sc.unassigned_count }} unassigned jurisdiction{{ sc.unassigned_count === 1 ? '' : 's' }}
-                                </span>
-                            </div>
-                            <div v-for="un in (props.flags.deep_unevenness ?? [])" :key="'du-' + un.scope_id"
-                                 class="flex items-start gap-2 text-amber-400">
-                                <span class="shrink-0">⚠</span>
-                                <span>
-                                    <a @click.prevent="drillTo(un.scope_id)" href="#" class="underline hover:text-amber-300 cursor-pointer">{{ un.scope_name }}</a>:
-                                    uneven [{{ un.min_seats }}–{{ un.max_seats }}]; ideal {{ un.ideal_range[0] === un.ideal_range[1] ? un.ideal_range[0] : un.ideal_range[0] + '–' + un.ideal_range[1] }} each
-                                </span>
-                            </div>
-                            <div v-if="(props.flags.floor_exceptions ?? []).length > 0"
-                                 class="flex items-start gap-2 text-amber-400">
-                                <span class="shrink-0">ℹ</span>
-                                <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — below 5.0 fractional, compositing impossible</span>
-                            </div>
-                        </div><!-- end scrollable flags content -->
-                    </div>
-
-                    <!-- Map Quality statistics panel -->
-                    <div v-if="props.stats && districtsRef.length > 0"
-                         class="mx-2 mt-1 mb-1 rounded border border-cyan-900 bg-gray-900 shrink-0">
+                    <!-- Map Quality + Constitutional Flags — unified panel -->
+                    <div v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag"
+                         class="mx-2 mt-2 mb-1 rounded bg-gray-900 shrink-0 border"
+                         :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                         <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800 cursor-pointer select-none"
                              @click="statsPanelCollapsed = !statsPanelCollapsed">
-                            <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
+                                <span v-if="hardFlagCount > 0" class="text-[10px] text-red-400">⛔ {{ hardFlagCount }}</span>
+                                <span v-else-if="hasAnyFlag" class="text-[10px] text-amber-400">⚠</span>
+                            </div>
                             <span class="text-gray-600 text-xs transition-transform"
                                   :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
                         </div>
                         <div v-if="!statsPanelCollapsed" class="px-3 py-2 space-y-2.5 text-xs">
-                            <!-- Population Equality -->
-                            <div v-if="props.stats.population_equality">
-                                <div class="relative group inline-flex items-center gap-1 mb-1">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Population Equality</span>
-                                    <span class="text-gray-600 normal-case font-normal text-[10px]">({{ props.stats.population_equality.district_count }} districts)</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Measures how evenly each district's population-per-seat matches the ideal quota — the "one person, one vote" standard. Lower deviation means each vote carries more equal weight.
-                                        <span class="block mt-1 text-gray-400">(Includes all sub-national districts in this map.)</span>
-                                    </div>
-                                </div>
 
-                                <!-- Extremes -->
-                                <div v-if="props.stats.population_equality.most_over" class="mb-1.5">
-                                    <div class="flex items-baseline justify-between gap-2 mb-0.5">
-                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Extremes</span>
-                                        <span class="text-gray-400">
-                                            Range
-                                            <span :class="qualityColor((props.stats.population_equality.range_ratio - 1) * 100, 5, 10)">
-                                                {{ props.stats.population_equality.range_ratio }}:1
-                                            </span>
+                            <!-- ── Constitutional Flags (inline, shown when any exist) ── -->
+                            <div v-if="hasAnyFlag" class="pb-2 border-b border-gray-800">
+                                <div class="text-[10px] uppercase font-semibold mb-1"
+                                     :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
+                                    Constitutional Flags
+                                    <span class="text-gray-500 normal-case font-normal ml-1">
+                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }} issue(s)
+                                    </span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div v-if="props.flags.cap" class="flex items-start gap-2 text-red-400">
+                                        <span class="shrink-0">⛔</span>
+                                        <span>
+                                            {{ props.flags.cap.delta > 0 ? 'Overcount' : 'Undercount' }}:
+                                            {{ props.flags.cap.total.toLocaleString() }} / {{ props.flags.cap.max.toLocaleString() }} seats
+                                            ({{ props.flags.cap.delta > 0 ? '+' : '' }}{{ props.flags.cap.delta }})
                                         </span>
                                     </div>
-                                    <div class="space-y-0.5">
-                                        <div>
-                                            <span class="text-emerald-400">&#9650;</span>
-                                            <span class="text-gray-400">Over-rep:</span>
-                                            <a @click.prevent="drillTo(props.stats.population_equality.most_over.scope_id)"
-                                               href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
-                                                {{ props.stats.population_equality.most_over.district_label }}
-                                            </a>
-                                            <span class="text-emerald-400">
-                                                (-{{ props.stats.population_equality.most_over.deviation_pct }}%)
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="text-red-400">&#9660;</span>
-                                            <span class="text-gray-400">Under-rep:</span>
-                                            <a @click.prevent="drillTo(props.stats.population_equality.most_under.scope_id)"
-                                               href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
-                                                {{ props.stats.population_equality.most_under.district_label }}
-                                            </a>
-                                            <span class="text-red-400">
-                                                (+{{ props.stats.population_equality.most_under.deviation_pct }}%)
-                                            </span>
-                                        </div>
+                                    <div v-for="ov in (props.flags.deep_overages ?? [])" :key="'do-' + ov.scope_id"
+                                         class="flex items-start gap-2 text-red-400">
+                                        <span class="shrink-0">⛔</span>
+                                        <span>
+                                            <a @click.prevent="drillTo(ov.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ ov.scope_name }}</a>:
+                                            districts total {{ ov.actual }} seats (budget {{ ov.budget }}, {{ ov.delta > 0 ? '+' : '' }}{{ ov.delta }})
+                                        </span>
+                                    </div>
+                                    <div v-for="sc in (props.flags.incomplete_scopes ?? [])" :key="'is-' + sc.scope_id"
+                                         class="flex items-start gap-2 text-red-400">
+                                        <span class="shrink-0">⛔</span>
+                                        <span>
+                                            <a @click.prevent="drillTo(sc.scope_id)" href="#" class="underline hover:text-red-300 cursor-pointer">{{ sc.scope_name }}</a>:
+                                            {{ sc.unassigned_count }} unassigned jurisdiction{{ sc.unassigned_count === 1 ? '' : 's' }}
+                                        </span>
+                                    </div>
+                                    <div v-if="(props.flags.floor_exceptions ?? []).length > 0"
+                                         class="flex items-start gap-2 text-amber-400">
+                                        <span class="shrink-0">ℹ</span>
+                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; 4.5, rounds below minimum without override</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Tier distribution -->
+                            <!-- ── 1. Community Integrity ── -->
+                            <div>
+                                <div class="relative group inline-flex items-center gap-1 mb-0.5">
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Community Integrity</span>
+                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                        Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.
+                                    </div>
+                                </div>
+                                <div v-if="props.stats?.community_integrity" class="space-y-0.5">
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-emerald-400">&#9632;</span>
+                                        <span class="text-gray-400 whitespace-nowrap">Intact:</span>
+                                        <span class="text-gray-200">
+                                            {{ props.stats.community_integrity.good_count }}
+                                            ({{ pct(props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
+                                        </span>
+                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            {{ formatPop(props.stats.community_integrity.good_population) }} pop
+                                            ({{ pct(props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
+                                        </span>
+                                    </div>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-amber-400">&#9632;</span>
+                                        <span class="text-gray-400 whitespace-nowrap">Segmented:</span>
+                                        <span class="text-gray-200">
+                                            {{ props.stats.community_integrity.total_count - props.stats.community_integrity.good_count }}
+                                            ({{ pct(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
+                                        </span>
+                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} pop
+                                            ({{ pct(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
+                                        </span>
+                                    </div>
+                                </div>
+                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
+                            </div>
+
+                            <!-- ── 2. Constitutional Contiguity ── -->
+                            <div>
+                                <div class="relative group inline-flex items-center gap-1 mb-0.5">
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Constitutional Contiguity</span>
+                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                        Contiguity is considered broken only when it was achievable in the first place. Geographic impossibilities are exempt. These include island jurisdictions with no land border to any sibling, members completely surrounded by jurisdictions too large to combine without breaching the constitutional ceiling, and single-member districts, which are never constitutionally incongruous. The same applies to similarly isolated clusters that cannot reach the constitutional floor.
+                                    </div>
+                                </div>
+                                <div v-if="props.stats?.contiguity" class="space-y-0.5">
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-emerald-400">&#9632;</span>
+                                        <span class="text-gray-400 whitespace-nowrap">Contiguous:</span>
+                                        <span class="text-gray-200">
+                                            {{ props.stats.contiguity.contiguous_count }}
+                                            ({{ pct(props.stats.contiguity.contiguous_count, props.stats.contiguity.checked_count) }})
+                                        </span>
+                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            {{ formatPop(props.stats.contiguity.contiguous_pop) }} pop
+                                            ({{ pct(props.stats.contiguity.contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
+                                        </span>
+                                    </div>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-red-400">&#9632;</span>
+                                        <span class="text-gray-400 whitespace-nowrap">Non-contiguous:</span>
+                                        <span class="text-gray-200">
+                                            {{ props.stats.contiguity.non_contiguous_count }}
+                                            ({{ pct(props.stats.contiguity.non_contiguous_count, props.stats.contiguity.checked_count) }})
+                                        </span>
+                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
+                                            {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} pop
+                                            ({{ pct(props.stats.contiguity.non_contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
+                                        </span>
+                                    </div>
+                                    <div v-if="props.stats.contiguity.unchecked_count > 0" class="flex items-baseline gap-1">
+                                        <span class="text-gray-600">&#9632;</span>
+                                        <span class="text-gray-500 whitespace-nowrap">Not computed:</span>
+                                        <span class="text-gray-500">
+                                            {{ props.stats.contiguity.unchecked_count }}
+                                            ({{ pct(props.stats.contiguity.unchecked_count, props.stats.contiguity.checked_count) }})
+                                        </span>
+                                        <span class="text-gray-600 ml-auto whitespace-nowrap">
+                                            {{ formatPop(props.stats.contiguity.unchecked_pop) }} pop
+                                        </span>
+                                    </div>
+                                </div>
+                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
+                            </div>
+
+                            <!-- ── 3. Population Equality ── -->
+                            <div v-if="props.stats?.population_equality">
+                                <div class="relative group flex items-baseline justify-between gap-2 mb-1">
+                                    <div class="inline-flex items-center gap-1">
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Population Equality</span>
+                                        <span class="text-gray-600 normal-case font-normal text-[10px]">({{ props.stats.population_equality.district_count }} districts)</span>
+                                        <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                        <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                            Measures how evenly each district's population-per-seat matches the ideal "one person, one vote" standard. Lower deviation means each vote carries more equal weight.
+                                            <span class="block mt-1 text-gray-400">(Includes all sub-national districts in this map.)</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-400 text-[10px] shrink-0">
+                                        Avg <span :class="qualityColor(props.stats.population_equality.avg_deviation_pct, 3, 7)">{{ props.stats.population_equality.avg_deviation_pct }}%</span>
+                                    </span>
+                                </div>
+
+                                <!-- Tiers first -->
                                 <div v-if="props.stats.population_equality.tiers" class="mb-1.5">
-                                    <div class="text-gray-500 text-[10px] uppercase mb-0.5 font-semibold">Distribution</div>
                                     <div class="space-y-0.5">
                                         <div class="flex items-baseline gap-1">
                                             <span class="text-emerald-400">&#9632;</span>
@@ -392,26 +417,59 @@
                                     </div>
                                 </div>
 
-                                <!-- Avg deviation -->
-                                <div class="grid grid-cols-2 gap-x-3">
-                                    <span class="text-gray-400">Avg deviation</span>
-                                    <span :class="qualityColor(props.stats.population_equality.avg_deviation_pct, 3, 7)">
-                                        {{ props.stats.population_equality.avg_deviation_pct }}%
-                                    </span>
+                                <!-- Extremes below distribution -->
+                                <div v-if="props.stats.population_equality.most_over">
+                                    <div class="flex items-baseline justify-between gap-2 mb-0.5">
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Extremes</span>
+                                        <span class="text-gray-400 text-[10px]">
+                                            Range
+                                            <span :class="qualityColor((props.stats.population_equality.range_ratio - 1) * 100, 5, 10)">
+                                                {{ props.stats.population_equality.range_ratio }}:1
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div class="space-y-0.5">
+                                        <div>
+                                            <span class="text-emerald-400">&#9650;</span>
+                                            <span class="text-gray-400">Over-rep:</span>
+                                            <a @click.prevent="focusDistrictFromStats(props.stats.population_equality.most_over.scope_id, props.stats.population_equality.most_over.district_id)"
+                                               href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
+                                                {{ props.stats.population_equality.most_over.district_label }}
+                                            </a>
+                                            <span class="text-emerald-400">
+                                                (-{{ props.stats.population_equality.most_over.deviation_pct }}%)
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-red-400">&#9660;</span>
+                                            <span class="text-gray-400">Under-rep:</span>
+                                            <a @click.prevent="focusDistrictFromStats(props.stats.population_equality.most_under.scope_id, props.stats.population_equality.most_under.district_id)"
+                                               href="#" class="underline hover:text-cyan-300 cursor-pointer text-cyan-400">
+                                                {{ props.stats.population_equality.most_under.district_label }}
+                                            </a>
+                                            <span class="text-red-400">
+                                                (+{{ props.stats.population_equality.most_under.deviation_pct }}%)
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Shape Compactness (Convex Hull Ratio) -->
+                            <!-- ── 4. Shape Compactness ── -->
                             <div>
-                                <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Shape Compactness</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex). Measures whether the district's outer boundary is compact or irregular. Unlike Polsby-Popper, this is not affected by coastlines or water bodies — only by the overall shape of the grouped territory.
+                                <div class="relative group flex items-baseline justify-between gap-2 mb-0.5">
+                                    <div class="inline-flex items-center gap-1">
+                                        <span class="text-gray-500 text-[10px] uppercase font-semibold">Shape Compactness</span>
+                                        <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+                                        <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
+                                            Measures whether the district's outer boundary is compact or irregular using the Convex Hull Ratio: district area divided by the area of its convex hull (1.0 = perfectly convex).
+                                        </div>
                                     </div>
+                                    <span v-if="props.stats?.shape_compactness" class="text-gray-400 text-[10px] shrink-0">
+                                        Mean <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span>
+                                    </span>
                                 </div>
-                                <div v-if="props.stats.shape_compactness" class="space-y-0.5">
-                                    <div class="text-gray-500 text-[10px] mb-0.5">Mean CHR: <span class="text-gray-300">{{ props.stats.shape_compactness.mean }}</span></div>
+                                <div v-if="props.stats?.shape_compactness" class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-emerald-400">&#9632;</span>
                                         <span class="text-gray-400 whitespace-nowrap">Compact (&ge;0.70):</span>
@@ -443,222 +501,31 @@
                                 <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
                             </div>
 
-                            <!-- Contiguity -->
-                            <div>
-                                <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Contiguity</span>
+                            <!-- ── 5. Uniform Political Diversity ── -->
+                            <div v-if="optimalLabel">
+                                <div class="relative group inline-flex items-center gap-1 mb-1">
+                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Uniform Political Diversity</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Multi-member districts must be composed of jurisdictions that share land borders — forming a single connected territory. Checked via BFS on spatial adjacency (ST_Intersects). Island jurisdictions with no sibling land border (e.g. Hawaii, Puerto Rico) are never flagged: their geography makes non-contiguity unavoidable and there is no possible redistricting fix. Single-member districts are excluded.
+                                        Tracks whether the current map produces evenly-sized districts. Optimal shows the mathematically ideal grouping for this scope. Suboptimal (if shown) is the best achievable given giants and floor exceptions. Current shows what has been committed so far.
                                     </div>
                                 </div>
-                                <div v-if="props.stats.contiguity" class="space-y-0.5">
+                                <div class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-emerald-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Contiguous:</span>
-                                        <span class="text-gray-200">
-                                            {{ props.stats.contiguity.contiguous_count }}
-                                            ({{ pct(props.stats.contiguity.contiguous_count, props.stats.contiguity.checked_count) }})
-                                        </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.contiguous_pop) }} pop
-                                            ({{ pct(props.stats.contiguity.contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
-                                        </span>
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Optimal:</span>
+                                        <span class="text-cyan-400 font-medium">{{ optimalLabel }}</span>
                                     </div>
-                                    <div class="flex items-baseline gap-1">
-                                        <span class="text-red-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Non-contiguous:</span>
-                                        <span class="text-gray-200">
-                                            {{ props.stats.contiguity.non_contiguous_count }}
-                                            ({{ pct(props.stats.contiguity.non_contiguous_count, props.stats.contiguity.checked_count) }})
-                                        </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.non_contiguous_pop) }} pop
-                                            ({{ pct(props.stats.contiguity.non_contiguous_pop, props.stats.contiguity.contiguous_pop + props.stats.contiguity.non_contiguous_pop + props.stats.contiguity.unchecked_pop) }})
-                                        </span>
+                                    <div v-if="suboptimalLabel" class="flex items-baseline gap-1">
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Suboptimal:</span>
+                                        <span class="text-violet-400 font-medium">{{ suboptimalLabel }}</span>
                                     </div>
-                                    <div v-if="props.stats.contiguity.unchecked_count > 0" class="flex items-baseline gap-1">
-                                        <span class="text-gray-600">&#9632;</span>
-                                        <span class="text-gray-500 whitespace-nowrap">Not computed:</span>
-                                        <span class="text-gray-500">
-                                            {{ props.stats.contiguity.unchecked_count }}
-                                            ({{ pct(props.stats.contiguity.unchecked_count, props.stats.contiguity.checked_count) }})
-                                        </span>
-                                        <span class="text-gray-600 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.contiguity.unchecked_pop) }} pop
-                                        </span>
+                                    <div v-if="currentConfigLabel" class="flex items-baseline gap-1">
+                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Current:</span>
+                                        <span class="text-amber-400">{{ currentConfigLabel }}</span>
                                     </div>
                                 </div>
-                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
                             </div>
 
-                            <!-- Community Integrity -->
-                            <div>
-                                <div class="relative group inline-flex items-center gap-1 mb-0.5">
-                                    <span class="text-gray-500 text-[10px] uppercase font-semibold">Community Integrity</span>
-                                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
-                                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Districts drawn along pre-existing administrative boundaries preserve community integrity. The only case requiring manual line-drawing tools is a jurisdiction with 10+ fractional seats and no child subdivisions — all others can be sub-districted along natural administrative borders.
-                                    </div>
-                                </div>
-                                <div v-if="props.stats.community_integrity" class="space-y-0.5">
-                                    <div class="flex items-baseline gap-1">
-                                        <span class="text-emerald-400">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Intact:</span>
-                                        <span class="text-gray-200">
-                                            {{ props.stats.community_integrity.good_count }}
-                                            ({{ pct(props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
-                                        </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.community_integrity.good_population) }} pop
-                                            ({{ pct(props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
-                                        </span>
-                                    </div>
-                                    <div class="flex items-baseline gap-1">
-                                        <span :class="(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count) > 0 ? 'text-red-400' : 'text-gray-600'">&#9632;</span>
-                                        <span class="text-gray-400 whitespace-nowrap">Needs tools:</span>
-                                        <span :class="(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count) > 0 ? 'text-gray-200' : 'text-gray-600'">
-                                            {{ props.stats.community_integrity.total_count - props.stats.community_integrity.good_count }}
-                                            ({{ pct(props.stats.community_integrity.total_count - props.stats.community_integrity.good_count, props.stats.community_integrity.total_count) }})
-                                        </span>
-                                        <span class="text-gray-500 ml-auto whitespace-nowrap">
-                                            {{ formatPop(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population) }} pop
-                                            ({{ pct(props.stats.community_integrity.total_population - props.stats.community_integrity.good_population, props.stats.community_integrity.total_population) }})
-                                        </span>
-                                    </div>
-                                </div>
-                                <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Map comparison panel -->
-                    <div v-if="compareOpen && props.maps.length >= 2"
-                         class="mx-2 mt-1 mb-1 rounded border border-indigo-900 bg-gray-900 shrink-0">
-                        <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
-                            <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wide">Compare Maps</span>
-                            <button @click="compareOpen = false" class="text-gray-600 hover:text-gray-400 text-xs">✕</button>
-                        </div>
-                        <!-- Map A / Map B selectors -->
-                        <div class="px-3 pt-2 pb-1 flex gap-2">
-                            <div class="flex-1 min-w-0">
-                                <div class="text-[10px] text-gray-500 mb-0.5">Map A</div>
-                                <select v-model="compareMapAId"
-                                        class="w-full px-1.5 py-1 rounded text-xs bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:border-indigo-600">
-                                    <option v-for="m in props.maps" :key="m.id" :value="m.id">{{ m.name }}</option>
-                                </select>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-[10px] text-gray-500 mb-0.5">Map B</div>
-                                <select v-model="compareMapBId"
-                                        class="w-full px-1.5 py-1 rounded text-xs bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:border-indigo-600">
-                                    <option v-for="m in props.maps" :key="m.id" :value="m.id">{{ m.name }}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <!-- Flag comparison table -->
-                        <div class="px-3 pb-2">
-                            <table class="w-full text-[10px]">
-                                <thead>
-                                    <tr class="text-gray-500">
-                                        <th class="text-left py-0.5 font-normal">Flag</th>
-                                        <th class="text-right py-0.5 font-normal w-20 truncate">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.name ?? 'A' }}
-                                        </th>
-                                        <th class="text-right py-0.5 font-normal w-20 truncate">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.name ?? 'B' }}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-800">
-                                    <tr>
-                                        <td class="py-0.5 text-gray-400">Districts</td>
-                                        <td class="py-0.5 text-right tabular-nums text-gray-200">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.district_count ?? '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums text-gray-200">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.district_count ?? '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-red-400">⛔ Cap</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="props.maps.find(m => m.id === compareMapAId)?.flags?.cap ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.cap ? 'yes' : '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="props.maps.find(m => m.id === compareMapBId)?.flags?.cap ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.cap ? 'yes' : '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-red-400">⛔ Overages</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapAId)?.flags?.overages?.length ?? 0) > 0 ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.overages?.length || '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapBId)?.flags?.overages?.length ?? 0) > 0 ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.overages?.length || '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-amber-400">⚠ Unevenness</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapAId)?.flags?.unevenness?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.unevenness?.length || '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapBId)?.flags?.unevenness?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.unevenness?.length || '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-amber-400">ℹ Floor exceptions</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapAId)?.flags?.floor_exceptions?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.floor_exceptions?.length || '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapBId)?.flags?.floor_exceptions?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.floor_exceptions?.length || '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-red-400">⛔ Deep overages</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapAId)?.flags?.deep_overages?.length ?? 0) > 0 ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.deep_overages?.length || '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapBId)?.flags?.deep_overages?.length ?? 0) > 0 ? 'text-red-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.deep_overages?.length || '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-0.5 text-amber-400">⚠ Deep unevenness</td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapAId)?.flags?.deep_unevenness?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapAId)?.flags?.deep_unevenness?.length || '—' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums"
-                                            :class="(props.maps.find(m => m.id === compareMapBId)?.flags?.deep_unevenness?.length ?? 0) > 0 ? 'text-amber-400' : 'text-gray-500'">
-                                            {{ props.maps.find(m => m.id === compareMapBId)?.flags?.deep_unevenness?.length || '—' }}
-                                        </td>
-                                    </tr>
-                                    <tr class="border-t border-indigo-900">
-                                        <td class="py-0.5 text-gray-300 font-semibold">Total flags</td>
-                                        <td class="py-0.5 text-right tabular-nums font-semibold"
-                                            :class="countFlags(props.maps.find(m => m.id === compareMapAId)?.flags) > 0 ? 'text-red-300' : 'text-emerald-400'">
-                                            {{ countFlags(props.maps.find(m => m.id === compareMapAId)?.flags) || '✓ 0' }}
-                                        </td>
-                                        <td class="py-0.5 text-right tabular-nums font-semibold"
-                                            :class="countFlags(props.maps.find(m => m.id === compareMapBId)?.flags) > 0 ? 'text-red-300' : 'text-emerald-400'">
-                                            {{ countFlags(props.maps.find(m => m.id === compareMapBId)?.flags) || '✓ 0' }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
 
@@ -693,18 +560,17 @@
                                     : 'bg-teal-900 border-teal-700 text-teal-300 hover:bg-teal-800 hover:text-white'">
                             🎨 Recolor
                         </button>
-                        <button @click="isDragSelectMode = !isDragSelectMode"
-                                :disabled="!editingDistrictId"
-                                :title="editingDistrictId
-                                    ? 'Drag-select: add unassigned · Shift = include assigned · Ctrl = remove'
-                                    : 'Enter edit mode first'"
+                        <button @click="wizardActive ? deactivateWizard() : activateWizard()"
+                                :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
-                                :class="!editingDistrictId
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
-                                    : isDragSelectMode
-                                        ? 'bg-blue-700 border-blue-500 text-white'
-                                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-blue-300 hover:border-blue-700'">
-                            ⬚ Select
+                                :class="wizardLoading
+                                    ? 'bg-violet-900 border-violet-700 text-violet-400 cursor-wait animate-pulse'
+                                    : wizardActive
+                                        ? 'bg-violet-700 border-violet-500 text-white'
+                                        : massToolRunning || massJobRunning
+                                            ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                            : 'bg-violet-900 border-violet-700 text-violet-300 hover:bg-violet-800 hover:text-white'">
+                            🧭 Stepper
                         </button>
                     </div>
 
@@ -790,8 +656,8 @@
                                 <span class="shrink-0 w-2.5 h-2.5 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-xs text-gray-100 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="text-xs font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.floor_override ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.floor_override ? 'Floor override — fractional < 5' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-xs text-gray-400 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -856,13 +722,20 @@
                                     <template v-if="editingDistrictId === row.district.id">
                                         <!-- Seat preview pill -->
                                         <span v-if="pendingAdd.size > 0 || pendingRemove.size > 0"
-                                              class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                              class="text-xs px-2 py-0.5 rounded-full font-medium flex flex-col items-start"
                                               :class="!pendingValid ? 'bg-red-900 text-red-300'
                                                     : pendingFloor  ? 'bg-orange-900 text-orange-300'
                                                     :                 'bg-emerald-900 text-emerald-300'">
-                                            {{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
+                                            <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
                                             <span v-if="!pendingValid"> ✗ exceeds 9</span>
-                                            <span v-else-if="pendingFloor"> ⚑ floor</span>
+                                            <span v-else-if="pendingFloor"> ⚑ floor</span></span>
+                                            <span v-if="suboptimalConfig &&
+                                                        suboptimalConfig.d > 0 &&
+                                                        !(pendingSeats >= suboptimalConfig.q &&
+                                                          pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
+                                                  class="text-[10px] text-gray-400 font-normal">
+                                                target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
+                                            </span>
                                         </span>
                                         <!-- Save -->
                                         <button @click="saveDistrictEdit(row.district.id)"
@@ -949,8 +822,8 @@
                                 <span class="shrink-0 w-2 h-2 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.floor_override ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.floor_override ? 'Floor override — fractional < 5' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -1003,13 +876,28 @@
                              @mouseleave="unhighlightJids([row.giant.id])">
                             <span class="shrink-0 w-2.5 h-2.5 rounded-full bg-gray-600 mr-0.5"></span>
                             <span class="text-gray-400 flex-1 truncate">{{ row.giant.name }}</span>
-                            <span v-if="giantFlagType(row.giant.id)"
-                                  class="shrink-0 leading-none"
-                                  :class="giantFlagType(row.giant.id) === 'overage' ? 'text-red-400' : 'text-amber-400'"
-                                  :title="giantFlagType(row.giant.id) === 'overage'
-                                      ? 'Child districts exceed apportioned budget'
-                                      : 'Districts could be distributed more evenly'">
-                                {{ giantFlagType(row.giant.id) === 'overage' ? '⛔' : '⚠' }}
+                            <!-- Giant status: progress indicator + inherited child flags -->
+                            <span class="shrink-0 flex items-center gap-0.5 leading-none">
+                                <span class="text-[10px] tabular-nums font-semibold"
+                                      :class="giantStatusCache.get(row.giant.id)?.clean        ? 'text-emerald-400'
+                                            : giantStatusCache.get(row.giant.id)?.overage      ? 'text-red-400'
+                                            : giantStatusCache.get(row.giant.id)?.progress === 'partial' ? 'text-amber-400'
+                                            : 'text-gray-500'"
+                                      :title="giantStatusCache.get(row.giant.id)?.clean               ? 'All sub-districts complete, no issues'
+                                            : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? 'No sub-districts yet'
+                                            : giantStatusCache.get(row.giant.id)?.progress === 'partial'
+                                                ? `${giantStatusCache.get(row.giant.id)?.assigned} of ${giantStatusCache.get(row.giant.id)?.budget} seats assigned`
+                                            : `${giantStatusCache.get(row.giant.id)?.budget}/${giantStatusCache.get(row.giant.id)?.budget} seats assigned`">
+                                    {{ giantStatusCache.get(row.giant.id)?.clean               ? '✓'
+                                     : giantStatusCache.get(row.giant.id)?.progress === 'undistricted' ? '○'
+                                     : `${giantStatusCache.get(row.giant.id)?.assigned}/${giantStatusCache.get(row.giant.id)?.budget}` }}
+                                </span>
+                                <span v-if="giantStatusCache.get(row.giant.id)?.overage"
+                                      class="text-red-400 text-[10px]"
+                                      title="Child districts exceed apportioned budget">⛔</span>
+                                <span v-if="giantStatusCache.get(row.giant.id)?.incomplete"
+                                      class="text-amber-300 text-[10px]"
+                                      title="Unassigned compositable children within this scope">…</span>
                             </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(Math.round(row.giant.fractional_seats))">{{ Math.round(row.giant.fractional_seats) }}</span><!-- Seats -->
@@ -1050,22 +938,41 @@
                     </template>
 
                     <!-- ── Unassigned (compositable) ── -->
-                    <div v-if="unassignedAssignable.length > 0" class="border-t-2 border-gray-700">
+                    <div v-if="unassignedAssignable.length > 0" ref="unassignedSectionEl" class="border-t-2 border-gray-700">
                         <div class="px-3 py-2 flex items-center justify-between border-b border-gray-800 bg-gray-900/70 sticky top-0 z-10">
-                            <span class="text-xs font-semibold text-amber-400">
-                                Unassigned ({{ unassignedAssignable.length }})
-                            </span>
+                            <!-- Left: ✕ cancel (draw mode only) + label — ✕ is on the LEFT so it
+                                 can never spatially collide with the right-aligned + New button -->
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <button v-if="editingDistrictId === 'new'"
+                                        @click.stop="cancelEdit"
+                                        class="shrink-0 px-1.5 py-0.5 rounded border border-gray-600 bg-gray-800
+                                               text-gray-400 hover:text-white hover:border-gray-400 transition-colors
+                                               text-xs leading-none">
+                                    ✕
+                                </button>
+                                <span class="text-xs font-semibold text-amber-400 truncate">
+                                    Unassigned ({{ unassignedAssignable.length }})
+                                </span>
+                            </div>
+                            <!-- Right: seat pill + Create button (draw mode) OR + New (browse) -->
                             <template v-if="editingDistrictId === 'new'">
-                                <div class="flex items-center gap-1 flex-wrap justify-end">
+                                <div class="flex items-center gap-1 flex-wrap justify-end shrink-0">
                                     <!-- Seat preview pill in new-district mode -->
                                     <span v-if="pendingAdd.size > 0"
-                                          class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                          class="text-xs px-2 py-0.5 rounded-full font-medium flex flex-col items-start"
                                           :class="!pendingValid ? 'bg-red-900 text-red-300'
                                                 : pendingFloor  ? 'bg-orange-900 text-orange-300'
                                                 :                 'bg-emerald-900 text-emerald-300'">
-                                        {{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
+                                        <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
                                         <span v-if="!pendingValid"> ✗</span>
-                                        <span v-else-if="pendingFloor"> ⚑</span>
+                                        <span v-else-if="pendingFloor"> ⚑</span></span>
+                                        <span v-if="suboptimalConfig &&
+                                                    suboptimalConfig.d > 0 &&
+                                                    !(pendingSeats >= suboptimalConfig.q &&
+                                                      pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
+                                              class="text-[10px] text-gray-400 font-normal">
+                                            target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
+                                        </span>
                                     </span>
                                     <button @click="createDistrictFromPending"
                                             :disabled="pendingAdd.size === 0 || savingEdit || !pendingValid"
@@ -1075,13 +982,9 @@
                                                 : 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'">
                                         {{ savingEdit ? 'Creating…' : `Create (${pendingAdd.size})` }}
                                     </button>
-                                    <button @click="cancelEdit"
-                                            class="px-2 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
-                                        ✕
-                                    </button>
                                 </div>
                             </template>
-                            <div v-else class="flex items-center gap-1">
+                            <div v-else class="flex items-center gap-1 shrink-0">
                                 <button @click="startNewDistrict"
                                         class="px-2 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors">
                                     + New
@@ -1094,7 +997,7 @@
                              :class="[
                                  pendingAdd.has(child.id) ? 'bg-yellow-900/30' : 'hover:bg-gray-800/40',
                              ]"
-                             @click="handleUnassignedClick(child)"
+                             @click="handleUnassignedClick(child, true)"
                              @mouseenter="highlightJids([child.id])"
                              @mouseleave="unhighlightJids([child.id])">
                             <span class="shrink-0 w-2 h-2 rounded-full transition-colors"
@@ -1118,7 +1021,7 @@
             </aside>
 
             <!-- ══ Right panel: map ════════════════════════════════════ -->
-            <div class="flex-1 relative min-w-0">
+            <div class="flex-1 flex flex-col min-w-0 relative">
                 <!-- Map loading indicator — circular progress ring -->
                 <div v-if="mapLoading"
                      class="absolute inset-0 z-[1000] flex items-center justify-center pointer-events-none">
@@ -1153,7 +1056,102 @@
                     </div>
                 </div>
 
-                <div id="legislature-map" class="w-full h-full"></div>
+                <!-- ── Wizard Stepper control bar ─────────────────────────────────── -->
+                <div v-if="wizardActive"
+                     class="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-violet-950 border-b border-violet-800">
+
+                    <!-- Back: shows prev scope name -->
+                    <button @click="wizardStepBackward"
+                            :disabled="wizardCurrentIndex <= 0 || wizardLoading"
+                            :title="wizardSteps[wizardCurrentIndex - 1]?.scope_name"
+                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                   text-violet-300 hover:bg-violet-800 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        ←&nbsp;<span class="max-w-[110px] truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
+                    </button>
+
+                    <!-- Step indicator: N / Total · Current scope name -->
+                    <span class="text-[10px] text-violet-400 shrink-0 whitespace-nowrap px-1">
+                        <template v-if="wizardLoading">Loading…</template>
+                        <template v-else-if="wizardCurrentIndex >= 0 && wizardSteps.length > 0">
+                            {{ wizardCurrentIndex + 1 }}&thinsp;/&thinsp;{{ wizardSteps.length }}
+                            &middot;
+                            <span class="text-violet-200 font-medium">{{ wizardSteps[wizardCurrentIndex]?.scope_name }}</span>
+                        </template>
+                    </span>
+
+                    <!-- Forward: shows next scope name -->
+                    <button @click="wizardStepForward"
+                            :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
+                            :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
+                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                   text-violet-300 hover:bg-violet-800 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span class="max-w-[110px] truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
+                    </button>
+
+                    <!-- Up: shows parent scope name -->
+                    <button @click="wizardStepUp"
+                            :disabled="props.ancestors.length < 2 || wizardLoading"
+                            :title="props.ancestors[props.ancestors.length - 2]?.name"
+                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                   text-violet-300 hover:bg-violet-800 transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        ↑&nbsp;<span class="max-w-[90px] truncate">{{ props.ancestors[props.ancestors.length - 2]?.name ?? '—' }}</span>
+                    </button>
+
+                    <!-- Toggles pushed to far right -->
+                    <label class="flex items-center gap-1 cursor-pointer ml-auto shrink-0">
+                        <input type="checkbox" v-model="wizardAutoSeed" class="w-3 h-3 accent-violet-400">
+                        <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto-seed</span>
+                    </label>
+                    <label class="flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" v-model="wizardSkipSeeded" class="w-3 h-3 accent-violet-400">
+                        <span class="text-[10px] text-violet-400 whitespace-nowrap">Skip Complete</span>
+                    </label>
+
+                    <!-- Auto-step: checkbox + live countdown + adjustable delay -->
+                    <label class="flex items-center gap-1 cursor-pointer shrink-0">
+                        <input type="checkbox" v-model="wizardAutoStep" class="w-3 h-3 accent-violet-400">
+                        <span class="text-[10px] text-violet-400 whitespace-nowrap">
+                            Auto
+                            <!-- Live countdown pill — only visible while timer is running -->
+                            <span v-if="wizardAutoCountdown > 0"
+                                  class="ml-0.5 font-bold tabular-nums text-violet-200">{{ wizardAutoCountdown }}s</span>
+                        </span>
+                    </label>
+                    <!-- Delay selector — shown only when auto-step is on -->
+                    <select v-if="wizardAutoStep"
+                            v-model.number="wizardAutoDelay"
+                            title="Auto-step delay (seconds)"
+                            class="shrink-0 text-[10px] bg-violet-900 border border-violet-700 rounded
+                                   text-violet-200 py-0 px-1 leading-tight cursor-pointer">
+                        <option :value="3">3s</option>
+                        <option :value="5">5s</option>
+                        <option :value="10">10s</option>
+                        <option :value="15">15s</option>
+                        <option :value="30">30s</option>
+                        <option :value="60">60s</option>
+                        <option :value="120">2m</option>
+                    </select>
+
+                    <!-- Exit -->
+                    <button @click="deactivateWizard"
+                            title="Exit wizard"
+                            class="px-1.5 py-0.5 rounded text-[10px] border border-violet-700 text-violet-500
+                                   hover:text-violet-200 hover:border-violet-500 transition-colors ml-1 shrink-0">
+                        ✕ Exit
+                    </button>
+                </div>
+
+                <!-- ── Map area: inner wrapper gives a fresh positioning context  ──
+                     All absolute overlays (label buttons, edit hint, status toast,
+                     rubber-band) are anchored to this div, not to the outer panel.
+                     This means "top-3 right-3" always means "inside the map area",
+                     regardless of whether the wizard bar is showing above it. -->
+                <div class="flex-1 relative flex flex-col min-w-0 overflow-hidden">
+
+                <div id="legislature-map" class="w-full flex-1"></div>
                 <!-- Rubber-band selection overlay (drag-select mode) -->
                 <div ref="rubberBandEl"
                      class="rubber-band"
@@ -1205,21 +1203,25 @@
 
                 <!-- Edit mode hint overlay -->
                 <div v-if="editingDistrictId"
-                     class="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] px-4 py-2 rounded text-xs font-medium
-                            bg-gray-900/90 border border-gray-700 text-gray-300 pointer-events-none whitespace-nowrap">
-                    <template v-if="isDragSelectMode">
-                        <span class="text-blue-400">Drag</span> to add ·
-                        <span class="text-blue-300">Shift+drag</span> incl. assigned ·
-                        <span class="text-red-400">Ctrl+drag</span> to remove ·
-                        <span class="text-orange-300">Shift+Ctrl+drag</span> undo remove
-                    </template>
-                    <template v-else-if="editingDistrictId === 'new'">
-                        Click <span class="text-amber-400">unassigned</span> or <span class="text-green-400">green</span> polygons to select · Create from left panel
-                    </template>
-                    <template v-else>
-                        <span class="text-yellow-400">Click unassigned</span> or <span class="text-green-400">green</span> to add ·
-                        <span class="text-red-400">Click members</span> to remove · Save from left panel
-                    </template>
+                     class="absolute top-3 left-1/2 -translate-x-1/2 z-[1001] flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium
+                            bg-gray-900/90 border border-gray-700 text-gray-300 whitespace-nowrap">
+                    <span class="pointer-events-none">
+                        <template v-if="isSpaceHeld">
+                            <span class="text-cyan-400">Pan mode</span> — release <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> to resume select
+                        </template>
+                        <template v-else>
+                            <span class="text-blue-400">Drag</span> to add ·
+                            <span class="text-blue-300">Shift+drag</span> incl. assigned ·
+                            <span class="text-red-400">Ctrl+drag</span> to remove ·
+                            <span class="text-gray-500">hold</span> <kbd class="bg-gray-700 px-0.5 rounded text-[10px]">Space</kbd> <span class="text-gray-500">to pan</span>
+                        </template>
+                    </span>
+                    <button @click.stop="cancelEdit"
+                            @mousedown.stop
+                            @mouseup.stop
+                            class="shrink-0 px-1.5 py-0.5 rounded border border-gray-600 bg-gray-800 text-gray-400 hover:text-white hover:border-gray-400 transition-colors leading-none">
+                        ✕
+                    </button>
                 </div>
 
                 <!-- Status toast -->
@@ -1232,13 +1234,14 @@
                         {{ statusMsg.text }}
                     </div>
                 </transition>
+                </div><!-- end inner map area wrapper -->
             </div>
         </div>
     </AppLayout>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import L from 'leaflet'
@@ -1253,7 +1256,7 @@ const props = defineProps({
     children: Array,      // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
     districts: Array,     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[{id,name,population,fractional_seats,child_count}] }]
     quota: Number,
-    flags: { type: Object, default: () => ({ cap: null, overages: [], unevenness: [], floor_exceptions: [], deep_overages: [], deep_unevenness: [] }) },
+    flags: { type: Object, default: () => ({ cap: null, floor_exceptions: [], deep_overages: [], incomplete_scopes: [] }) },
     stats: { type: Object, default: null },
     mass_tool_running: { type: Boolean, default: false },
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
@@ -1361,13 +1364,15 @@ const editingDistrictId   = ref(null)   // 'new' | district_id | null
 const pendingAdd          = ref(new Set())   // jids staged to add
 const pendingRemove       = ref(new Set())   // jids staged to remove
 const sidebarListEl       = ref(null)   // ref to scrollable district list container
-const isDragSelectMode    = ref(false)  // rubber-band selection active
+const unassignedSectionEl = ref(null)   // ref to unassigned section root div
+const isSpaceHeld         = ref(false)  // Space bar held → temporary pan mode
+// Rubber-band select is always on while editing; holding Space temporarily suspends it.
+const rubberBandActive    = computed(() => !!editingDistrictId.value && !isSpaceHeld.value)
 const rubberBandEl        = ref(null)   // rubber-band overlay div
 const savingEdit          = ref(false)
 const deletingDistrictId  = ref(null)
 const statusMsg           = ref(null)
 let   statusTimer         = null
-const flagsPanelCollapsed = ref(false)   // constitutional flags panel collapse state
 const statsPanelCollapsed = ref(true)   // map quality stats panel (collapsed by default)
 
 // Quality-stat color helpers: green / amber / red based on thresholds
@@ -1391,9 +1396,47 @@ const renamingMapId     = ref(null)   // map currently being renamed inline
 const renameValue       = ref('')
 const deletingMapId     = ref(null)   // map pending delete confirmation
 const copyingMapId      = ref(null)   // non-null while copy request is in-flight
-const compareOpen       = ref(false)
-const compareMapAId     = ref(null)
-const compareMapBId     = ref(null)
+
+// ── Wizard Stepper ────────────────────────────────────────────────────────────
+// Wizard active-state, toggles, and last direction are stored in localStorage so
+// they survive router.visit() remounts — same pattern as label visibility toggles.
+// (wizardSteps and wizardCurrentIndex are not persisted; they are re-fetched and
+//  re-derived on every mount from the current scope.)
+const _wizardLs = {
+    active:     `leg_wizard_${props.legislature.id}_active`,
+    autoSeed:   `leg_wizard_${props.legislature.id}_autoseed`,
+    skip:       `leg_wizard_${props.legislature.id}_skip`,
+    lastDir:    `leg_wizard_${props.legislature.id}_lastdir`,
+    newmap:     `leg_wizard_${props.legislature.id}_newmap`,
+    autoStep:   `leg_wizard_${props.legislature.id}_autostep`,
+    autoDelay:  `leg_wizard_${props.legislature.id}_autodelay`,
+}
+const wizardActive        = ref(localStorage.getItem(_wizardLs.active)   === '1')
+const wizardSteps         = ref([])     // [{ scope_id, scope_name }] — re-fetched on every mount
+const wizardCurrentIndex  = ref(-1)    // synced to current scope after steps load
+const wizardAutoSeed      = ref(localStorage.getItem(_wizardLs.autoSeed) === '1')
+const wizardSkipSeeded    = ref(localStorage.getItem(_wizardLs.skip)     === '1')
+const wizardAutoStep      = ref(localStorage.getItem(_wizardLs.autoStep) === '1')
+const wizardAutoDelay     = ref(Math.max(1, parseInt(localStorage.getItem(_wizardLs.autoDelay) ?? '10') || 10))
+const wizardAutoCountdown = ref(0)     // live countdown display (0 = timer not running)
+const wizardLoading       = ref(false)
+let   _wizardLastDir      = parseInt(localStorage.getItem(_wizardLs.lastDir) ?? '1') || 1
+let   _autoStepTimer      = null       // interval handle for auto-step countdown
+
+// Persist wizard toggles to localStorage whenever they change
+watch(wizardActive,     v => localStorage.setItem(_wizardLs.active,   v ? '1' : '0'))
+watch(wizardAutoSeed,   v => localStorage.setItem(_wizardLs.autoSeed, v ? '1' : '0'))
+watch(wizardSkipSeeded, v => localStorage.setItem(_wizardLs.skip,     v ? '1' : '0'))
+watch(wizardAutoDelay,  v => {
+    const clamped = Math.max(1, Math.min(120, v || 10))
+    wizardAutoDelay.value = clamped
+    localStorage.setItem(_wizardLs.autoDelay, String(clamped))
+})
+watch(wizardAutoStep, v => {
+    localStorage.setItem(_wizardLs.autoStep, v ? '1' : '0')
+    if (!v) clearAutoStepTimer()
+    else    startAutoStepTimer()   // toggled on mid-session → start immediately
+})
 
 // Set of parent jurisdiction IDs whose sub-districts are shown on the map
 // (the parent polygon is hidden; the sub-district polygons are shown instead)
@@ -1611,9 +1654,128 @@ function toggleJurisdictionLabels() {
     else                              jurisdictionLabelGroup.remove()
 }
 
+// ── Jurisdiction label HTML builder ──────────────────────────────────────────
+// Generates the divIcon HTML for a single child jurisdiction, including:
+//   • Font weight proportional to fractional_seats (gravity indicator)
+//   • In draw mode: delta indicator (+/−X.XX ▲/▼) and adjacency-based opacity
+function buildJursLabelHtml(child) {
+    const frac        = child.fractional_seats
+    const isEditing   = !!editingDistrictId.value
+    const isInPending = pendingAdd.value.has(child.id)
+
+    // Font weight scales with fractional seats — heavier = more decision "gravity"
+    const fw = frac >= 8 ? 800 : frac >= 6 ? 700 : frac >= 4 ? 500 : 400
+
+    // ── Draw-mode delta indicator ─────────────────────────────────────────────
+    let deltaHtml = ''
+    if (isEditing && frac < GIANT_THRESHOLD) {
+        const baseFrac  = pendingFractionalTotal.value
+        const afterFrac = isInPending ? baseFrac - frac : baseFrac + frac
+
+        // Use raw fractional distance — integer rounding masks progress when the
+        // pending total is close to (but not yet at) an integer target like 5.0.
+        const curDist  = distFromSuboptimalTarget(baseFrac)
+        const nextDist = distFromSuboptimalTarget(afterFrac)
+        const closer   = nextDist < curDist
+        const further  = nextDist > curDist
+
+        const sigStr = isInPending ? '−' : '+'
+        const numStr = frac.toFixed(2)
+        const arrow  = closer ? '▲' : further ? '▼' : '↔'
+        const color  = closer ? '#4ade80' : further ? '#f87171' : '#94a3b8'
+
+        deltaHtml = `<span style="color:${color};font-size:9px;display:block;line-height:1.3;letter-spacing:0">${sigStr}${numStr} ${arrow}</span>`
+    }
+
+    // ── Adjacency-based opacity ───────────────────────────────────────────────
+    // Only dim non-adjacent labels once the fractional total reaches the target —
+    // while still accumulating toward the target the whole map should stay visible
+    // so the user can keep chain-selecting toward it without a "grey wall" forming.
+    let opacity = 1.0
+    if (isEditing && pendingAdd.value.size > 0 && !isInPending) {
+        const cfg           = suboptimalConfig.value
+        // d === 0 means floor-exception scope — no meaningful compositable target,
+        // so never dim (the user should select all available jurisdictions freely).
+        const atOrPastTarget = cfg && cfg.d > 0 && pendingFractionalTotal.value >= cfg.q
+        if (atOrPastTarget) {
+            const adj             = _adjacencyMap?.[child.id]
+            const bordersSelection = adj && [...pendingAdd.value].some(pid => adj.has(pid))
+            if (!bordersSelection) opacity = 0.45
+        }
+    }
+
+    return `<div class="jurisdiction-name-label" style="font-weight:${fw};opacity:${opacity}">`
+         + `${child.name}<br>`
+         + `<span class="jurisdiction-pop-label">${formatPop(child.population)}</span>`
+         + `<span class="jurisdiction-rep-label"> · ${frac.toFixed(2)}</span>`
+         + deltaHtml
+         + `</div>`
+}
+
+// ── Adjacency map builder ─────────────────────────────────────────────────────
+// O(n²) bounding-box proximity check. Called once after map layers load.
+// EPS = 0.01° (~1 km) tolerates border gaps in simplified GeoJSON.
+function buildAdjacencyMap() {
+    _adjacencyMap = {}
+    const children = childrenRef.value
+    for (const c of children) _adjacencyMap[c.id] = new Set()
+    const EPS = 0.01
+    for (let i = 0; i < children.length; i++) {
+        const li = layerByJid[children[i].id]
+        if (!li) continue
+        let bi; try { bi = li.getBounds() } catch { continue }
+        for (let j = i + 1; j < children.length; j++) {
+            const lj = layerByJid[children[j].id]
+            if (!lj) continue
+            let bj; try { bj = lj.getBounds() } catch { continue }
+            if (bi.getWest()  <= bj.getEast()  + EPS &&
+                bi.getEast()  >= bj.getWest()  - EPS &&
+                bi.getSouth() <= bj.getNorth() + EPS &&
+                bi.getNorth() >= bj.getSouth() - EPS) {
+                _adjacencyMap[children[i].id].add(children[j].id)
+                _adjacencyMap[children[j].id].add(children[i].id)
+            }
+        }
+    }
+}
+
+// ── Jurs label refresh (draw-mode reactive update) ────────────────────────────
+// Calls setIcon() on each stored marker so label content/style updates in-place
+// without rebuilding or repositioning the layer.
+function refreshJursLabels() {
+    if (!jurisdictionLabelGroup) return
+    for (const child of childrenRef.value) {
+        const marker = jursLabelMarkers[child.id]
+        if (!marker) continue
+        marker.setIcon(L.divIcon({
+            className:  '',
+            html:       buildJursLabelHtml(child),
+            iconSize:   null,
+            iconAnchor: [0, 0],
+        }))
+    }
+}
+
 // Reference to the Leaflet map instance (set in onMounted)
 let _map = null
 let _reinitRevision = 0   // incremented on every reinitMapLayers() call; guards against stale fetches
+
+// Rubber-band drag state — module-level so cancelEdit() can reset it
+let _dragStart    = null   // container point where the drag began; null = no drag in progress
+let _dragIsRemove = false  // true = Ctrl was held at mousedown → remove gesture
+
+// Jurs label marker registry — populated during jurisdictionLabelGroup build;
+// cleared on scope change; used by refreshJursLabels() to call setIcon() in-place.
+const jursLabelMarkers = {}  // jid → L.Marker
+
+// Bounding-box adjacency map — jid → Set<jid>; built once after layers load.
+let _adjacencyMap = null
+
+// Timestamp of the last cancelEdit() call — used to suppress the auto-start-on-click
+// behaviour for a brief window after cancel so that clicking ✕ can't accidentally
+// re-enter draw mode within the same (or a near-simultaneous) event sequence.
+let _lastCancelTime = 0
+const CANCEL_DEBOUNCE_MS = 300
 
 // Map layer registry  { jid: leafletLayer }
 const layerByJid = {}
@@ -1632,11 +1794,11 @@ const giantChildren = computed(() =>
 )
 
 // ── Optimal district configuration hint ───────────────────────────────────────
-// Giants (frac >= 9.5) and iteratively-detected oversize singles are excluded
-// from the seat budget before computing the optimal split.
-// Oversize singles: non-giant children whose individual rounded seat count
-// exceeds the max allowed per district in the current optimal split.
-// Both categories accumulate into largeSeats+giantSeats shown as a bare total.
+// Giants (frac >= 9.5) are excluded from the pool upfront — their seats appear
+// as a bare number in the label because they must be drilled into, not composed.
+// Expansion singles: non-giant children whose rounded seats exceed maxAllowed for
+// the current compositable split. These CAN form valid 1-jur districts, so they
+// are tracked by seat count in `expansionGroups` and rendered in parens (not bare).
 const optimalConfig = computed(() => {
     const n = props.scope_seats
     if (!n || n < 5) return null
@@ -1645,10 +1807,9 @@ const optimalConfig = computed(() => {
     const giantSeats = giants.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
     const giantCount = giants.length
 
-    let pool       = [...assignableChildren.value]
-    let poolSeats  = n - giantSeats
-    let largeCount = 0
-    let largeSeats = 0
+    let pool            = [...assignableChildren.value]
+    let poolSeats       = n - giantSeats
+    const expansionGroups = {}   // seats → count; shown in parens in the label
 
     for (let iter = 0; iter < 20; iter++) {
         if (poolSeats < 5 || pool.length === 0) break
@@ -1666,13 +1827,16 @@ const optimalConfig = computed(() => {
         const maxAllowed = best.q + (best.r > 0 ? 1 : 0)
         const newLarge   = pool.filter(c => Math.round(c.fractional_seats) > maxAllowed)
         if (newLarge.length === 0) {
-            return { ...best, largeCount, largeSeats, giantCount, giantSeats }
+            return { ...best, expansionGroups, giantCount, giantSeats }
+        }
+        // Peel expansion singles out — group by rounded seat count
+        for (const c of newLarge) {
+            const s = Math.round(c.fractional_seats)
+            expansionGroups[s] = (expansionGroups[s] ?? 0) + 1
         }
         const newLargeSeats = newLarge.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
-        largeCount += newLarge.length
-        largeSeats += newLargeSeats
-        poolSeats  -= newLargeSeats
-        pool        = pool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
+        poolSeats -= newLargeSeats
+        pool       = pool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
     }
 
     // Fallback after loop exhausted
@@ -1684,84 +1848,248 @@ const optimalConfig = computed(() => {
                 const q = Math.floor(poolSeats / d), r = poolSeats % d
                 if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
             }
-            if (best) return { ...best, largeCount, largeSeats, giantCount, giantSeats }
+            if (best) return { ...best, expansionGroups, giantCount, giantSeats }
         }
     }
-    return { d: 0, q: 0, r: 0, largeCount, largeSeats, giantCount, giantSeats }
+    // Floor exception: compositable jurisdictions remain but poolSeats < 5 — they
+    // can't form a valid district normally, but must still be placed in one.
+    // Use the ACTUAL apportioned seat count (poolSeats), not the floor value of 5.
+    // The Constitutional Flag already shows the floor enforcement; Optimal shows
+    // the mathematical ideal so the gap between Optimal and Current reveals the
+    // overcount caused by the floor.  RHS stays at scope_seats.
+    if (pool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+        expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
+    }
+    return { d: 0, q: 0, r: 0, expansionGroups, giantCount, giantSeats }
 })
 
-// Shared builder: "(3 × 8) + (1 × 9) + 331 = 358"
-// groups = [{ count, seats }, ...] sorted by seats asc
-// largeTotal = combined large+giant seat count (shown as bare number, no parens)
-// total = the = N terminal value
-function buildEquationLabel(groups, largeTotal, total) {
-    const parts = groups
-        .filter(g => g.count > 0)
-        .map(g => `(${g.count} \u00d7 ${g.seats})`)
-        .join(' + ')
-    const lhs = largeTotal > 0
-        ? (parts ? `${parts} + ${largeTotal}` : `${largeTotal}`)
-        : parts
-    return `${lhs} = ${total}`
+// ── Suboptimal target — same algorithm as optimalConfig but scoped to the REMAINING
+// unassigned pool (compositable children not yet in any committed district).
+// Giant seats are subtracted from the budget the same way as in optimalConfig —
+// they cannot be composed at this scope level regardless of assignment status.
+// Returns { d, q, r, expansionGroups, assignedSeats, giantSeats } or null.
+const suboptimalConfig = computed(() => {
+    // Pool = unassigned compositable children (not yet in any committed district)
+    const pool = childrenRef.value.filter(c =>
+        c.fractional_seats < GIANT_THRESHOLD && !c.district_id
+    )
+    const assignedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    // Giant seats must always be excluded — they're never compositable at this scope.
+    // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
+    const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+    const poolSeats0    = (props.scope_seats ?? 0) - assignedSeats - giantSeats
+    // Allow poolSeats0 in (0, 5) — those jurisdictions still need a floor-exception district.
+    // Only skip when pool is empty (nothing left to district) or budget is fully exhausted.
+    if (pool.length === 0 || poolSeats0 <= 0) return null
+
+    let remainingPool     = [...pool]
+    let poolSeats         = poolSeats0
+    const expansionGroups = {}   // seats → count; shown in parens (same as optimalConfig)
+
+    for (let iter = 0; iter < 20; iter++) {
+        if (poolSeats < 5 || remainingPool.length === 0) break
+        const dMin = Math.ceil(poolSeats / 9)
+        const dMax = Math.floor(poolSeats / 5)
+        if (dMin > dMax) break
+        let best = null
+        for (let d = dMin; d <= dMax; d++) {
+            const q = Math.floor(poolSeats / d), r = poolSeats % d
+            if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+        }
+        if (!best) break
+        const maxAllowed = best.q + (best.r > 0 ? 1 : 0)
+        const newLarge   = remainingPool.filter(c => Math.round(c.fractional_seats) > maxAllowed)
+        if (newLarge.length === 0) return { ...best, expansionGroups, assignedSeats, giantSeats }
+        for (const c of newLarge) {
+            const s = Math.round(c.fractional_seats)
+            expansionGroups[s] = (expansionGroups[s] ?? 0) + 1
+        }
+        const newLargeSeats = newLarge.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+        poolSeats    -= newLargeSeats
+        remainingPool = remainingPool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
+    }
+    // Fallback after loop exhausted
+    if (poolSeats >= 5) {
+        const dMin = Math.ceil(poolSeats / 9), dMax = Math.floor(poolSeats / 5)
+        if (dMin <= dMax) {
+            let best = null
+            for (let d = dMin; d <= dMax; d++) {
+                const q = Math.floor(poolSeats / d), r = poolSeats % d
+                if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+            }
+            if (best) return { ...best, expansionGroups, assignedSeats, giantSeats }
+        }
+    }
+    // Floor exception: remaining pool can't reach 5 seats but still needs a district.
+    // Use actual apportioned seat count (poolSeats), not the floor value of 5 — the
+    // Constitutional Flag shows the enforcement; Suboptimal shows the math.
+    if (remainingPool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+        expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
+        return { d: 0, q: 0, r: 0, expansionGroups, assignedSeats, giantSeats }
+    }
+    return null
+})
+
+// Fractional distance from the suboptimal target range.
+// Uses the raw fractional pending total — NOT integer-rounded — so guidance arrows
+// remain meaningful while accumulating partial seats toward the target.
+// Target range: [q, q+1] when r > 0, or exactly q when r === 0.
+// Returns Infinity (→ neutral ↔ arrows) when d === 0 (floor-exception scope or no
+// compositable target), since the district count concept doesn't apply there.
+// Returns 0 when frac is already inside the range.
+function distFromSuboptimalTarget(frac) {
+    const cfg = suboptimalConfig.value
+    if (!cfg || cfg.d === 0) return Infinity    // no compositable target → neutral
+    const { q, r } = cfg
+    const hi = q + (r > 0 ? 1 : 0)
+    if (frac >= q && frac <= hi) return 0       // in valid range
+    return frac < q ? q - frac : frac - hi      // below or above range
 }
 
-// Optimal label: always equals scope_seats on the right-hand side
+// Shared builder: "(3 × 6) + (1 × 7) + (2 × 9) + 297 = 358"
+// compGroups      = [{ count, seats }] multi-jur compositable groups (shown in parens)
+// expansionGroups = { seats: count }  single-jur expansion districts + committed districts
+//                   (shown in parens — valid districts at this level, not drill-down giants)
+// bareSeats       = true-giant seat total (bare number — cannot be districted at this level)
+// total           = the = N terminal value
+//
+// All paren groups are merged by seat count so same-size entries consolidate cleanly.
+function buildEquationLabel(compGroups, expansionGroups, bareSeats, total) {
+    // Merge all in-parens sources by seat count
+    const merged = {}
+    for (const g of (compGroups ?? [])) {
+        merged[g.seats] = (merged[g.seats] ?? 0) + g.count
+    }
+    for (const [s, c] of Object.entries(expansionGroups ?? {})) {
+        merged[Number(s)] = (merged[Number(s)] ?? 0) + Number(c)
+    }
+    const parts = Object.entries(merged)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .filter(([, c]) => c > 0)
+        .map(([seats, count]) => `(${count} \u00d7 ${seats})`)
+        .join(' + ')
+    const lhs = bareSeats > 0
+        ? (parts ? `${parts} + ${bareSeats}` : `${bareSeats}`)
+        : parts
+    return lhs ? `${lhs} = ${total}` : `0 = ${total}`
+}
+
+// Optimal label: expansion singles and floor-exception districts shown in parens;
+// true-giant seats shown as bare number.  RHS is the actual achievable total —
+// normally equals scope_seats, but exceeds it when a floor exception is unavoidable.
 const optimalLabel = computed(() => {
     const cfg = optimalConfig.value
     if (!cfg) return null
-    const { d, q, r, largeSeats, giantSeats } = cfg
-    const largeTotal = (largeSeats ?? 0) + (giantSeats ?? 0)
-    if (d === 0 && largeTotal === 0) return null
+    const { d, q, r, expansionGroups, giantSeats } = cfg
+    const hasContent = d > 0
+        || Object.values(expansionGroups ?? {}).some(c => c > 0)
+        || (giantSeats ?? 0) > 0
+    if (!hasContent) return null
 
-    const groups = []
+    const compGroups = []
     if (d > 0) {
-        if (d - r > 0) groups.push({ count: d - r, seats: q })
-        if (r > 0)     groups.push({ count: r,     seats: q + 1 })
+        if (d - r > 0) compGroups.push({ count: d - r, seats: q })
+        if (r > 0)     compGroups.push({ count: r,     seats: q + 1 })
     }
-    return buildEquationLabel(groups, largeTotal, props.scope_seats)
+    // Compute actual achievable total (may exceed scope_seats on floor exception)
+    const compTotal = compGroups.reduce((s, g) => s + g.count * g.seats, 0)
+    const expTotal  = Object.entries(expansionGroups ?? {}).reduce((s, [seats, c]) => s + Number(seats) * Number(c), 0)
+    const total     = compTotal + expTotal + (giantSeats ?? 0)
+    return buildEquationLabel(compGroups, expansionGroups ?? {}, giantSeats ?? 0, total)
+})
+
+// Suboptimal label: best achievable distribution for the REMAINING unassigned pool.
+// Committed districts appear in parens (they ARE valid districts, not drill-down giants).
+// Bare number = true giant seats only — same semantics as Optimal.
+// Hidden when it matches Optimal (nothing committed yet) or when null.
+const suboptimalLabel = computed(() => {
+    const cfg = suboptimalConfig.value
+    if (!cfg) return null
+    const { d, q, r, expansionGroups, giantSeats } = cfg
+
+    // True giants are the only bare-number term (can't be districted at this scope)
+    const bareSeats = giantSeats ?? 0
+
+    const compGroups = []
+    if (d > 0) {
+        if (d - r > 0) compGroups.push({ count: d - r, seats: q })
+        if (r > 0)     compGroups.push({ count: r,     seats: q + 1 })
+    }
+
+    // Already-committed districts shown in parens alongside expansion singles —
+    // NOT lumped into the bare-number pile (which would make them look like giants)
+    const allExpansion = { ...(expansionGroups ?? {}) }
+    for (const dist of districtsRef.value) {
+        allExpansion[dist.seats] = (allExpansion[dist.seats] ?? 0) + 1
+    }
+
+    const hasContent = d > 0
+        || Object.values(allExpansion).some(c => c > 0)
+        || bareSeats > 0
+    if (!hasContent) return null
+
+    // Compute actual achievable total (may exceed scope_seats on floor exception)
+    const compTotal = compGroups.reduce((s, g) => s + g.count * g.seats, 0)
+    const expTotal  = Object.entries(allExpansion).reduce((s, [seats, c]) => s + Number(seats) * Number(c), 0)
+    const total     = compTotal + expTotal + bareSeats
+
+    const label = buildEquationLabel(compGroups, allExpansion, bareSeats, total)
+    // Suppress when identical to optimalLabel — no progress yet, nothing to show
+    return label === optimalLabel.value ? null : label
 })
 
 // Current label: same equation format but using actual created districts.
-// RHS = createdSeats + largeTotal (grows toward scope_seats as districts are added).
-// Always visible once an Optimal exists — never hidden, even when matching optimal
-// or when no districts have been created yet (shows 0 in that case).
+// For floor-override districts, uses the mathematical seat count (rounded fractional sum
+// of members) rather than the stored floor-enforced value — the Constitutional Flag
+// already surfaces the floor enforcement; this label shows the apportionment math.
 const currentConfigLabel = computed(() => {
     const cfg = optimalConfig.value
     if (!cfg) return null
 
     // Seats committed inside giants by drilling down (child_assigned_seats is injected by PHP).
     // We only count giants because assignable children are captured via districtsRef instead.
-    // West Bengal (a giant with 0 sub-districts in this map) contributes 0 — correct.
     const committedGiantSeats = giantChildren.value
         .reduce((s, c) => s + (c.child_assigned_seats ?? 0), 0)
 
-    const createdSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    // For floor-override districts, derive the mathematical seat count from member fractions.
+    // All other districts: use stored d.seats (already correct).
+    const effectiveSeats = (d) => {
+        if (d.floor_override) {
+            const fracTotal = (d.members ?? []).reduce((s, m) => s + (m.fractional_seats ?? 0), 0)
+            return Math.round(fracTotal)
+        }
+        return d.seats
+    }
+
+    const createdSeats = districtsRef.value.reduce((s, d) => s + effectiveSeats(d), 0)
     const total = createdSeats + committedGiantSeats
 
     if (total === 0) return '0 = 0'
 
-    // Build seat-count groups from directly created normal districts
+    // Build seat-count groups using the effective (mathematical) seat count
     const countMap = {}
-    for (const d of districtsRef.value) countMap[d.seats] = (countMap[d.seats] || 0) + 1
+    for (const d of districtsRef.value) {
+        const s = effectiveSeats(d)
+        countMap[s] = (countMap[s] || 0) + 1
+    }
     const groups = Object.entries(countMap)
         .sort((a, b) => Number(a[0]) - Number(b[0]))
         .map(([seats, count]) => ({ count, seats: Number(seats) }))
 
-    // committedGiantSeats rendered as a bare number (same style as Optimal's largeTotal)
-    return buildEquationLabel(groups, committedGiantSeats, total)
+    // committedGiantSeats rendered as a bare number (drill-down giants, same as Optimal)
+    return buildEquationLabel(groups, {}, committedGiantSeats, total)
 })
 
 // ── Constitutional validation flags ───────────────────────────────────────────
 const flagIndex = computed(() => ({
-    overageIds: new Set((props.flags?.deep_overages  ?? []).map(o => o.scope_id)),
-    unevenIds:  new Set((props.flags?.deep_unevenness ?? []).map(u => u.scope_id)),
+    overageIds:    new Set((props.flags?.deep_overages    ?? []).map(o => o.scope_id)),
+    incompleteIds: new Set((props.flags?.incomplete_scopes ?? []).map(s => s.scope_id)),
 }))
 
 const hasAnyFlag = computed(() =>
     !!(props.flags?.cap
     || props.flags?.floor_exceptions?.length
     || props.flags?.deep_overages?.length
-    || props.flags?.deep_unevenness?.length
     || props.flags?.incomplete_scopes?.length)
 )
 
@@ -1773,9 +2101,46 @@ const hardFlagCount = computed(() =>
 
 function giantFlagType(id) {
     if (flagIndex.value.overageIds.has(id)) return 'overage'
-    if (flagIndex.value.unevenIds.has(id))  return 'uneven'
     return null
 }
+
+/**
+ * Compute full status for a giant jurisdiction row.
+ * progress: 'undistricted' | 'partial' | 'complete'
+ * clean: true = complete with no flags (show ✓)
+ * overage / incomplete: inherited from child scopes via flagIndex
+ */
+function giantStatus(giant) {
+    const budget   = giant.type_a_apportioned != null
+        ? parseInt(giant.type_a_apportioned)
+        : Math.round(giant.fractional_seats)   // fallback for root-scope raw fracs
+    const assigned = giant.child_assigned_seats ?? 0
+    const progress = assigned === 0 ? 'undistricted'
+                   : assigned >= budget ? 'complete'
+                   : 'partial'
+    const overage    = flagIndex.value.overageIds.has(giant.id)
+    const incomplete = flagIndex.value.incompleteIds.has(giant.id)
+    const clean      = progress === 'complete' && !overage && !incomplete
+    return { progress, assigned, budget, overage, incomplete, clean }
+}
+
+// Pre-computed map of giantId → status so the template calls giantStatus() once per row.
+// Rebuilt whenever childrenRef, nestedData, or flagIndex changes.
+const giantStatusCache = computed(() => {
+    const map = new Map()
+    for (const child of childrenRef.value) {
+        if (child.fractional_seats >= GIANT_THRESHOLD) {
+            map.set(child.id, giantStatus(child))
+        }
+    }
+    // Also cover nested giants loaded via toggleExpand
+    for (const scopeData of Object.values(nestedData)) {
+        for (const g of (scopeData.giants ?? [])) {
+            if (!map.has(g.id)) map.set(g.id, giantStatus(g))
+        }
+    }
+    return map
+})
 
 // ── Inline giant expansion tree ───────────────────────────────────────────────
 const expandedNodes           = reactive({})   // scopeId → true/false (giant nodes)
@@ -1943,7 +2308,18 @@ const pendingFractionalTotal = computed(() => {
     }
     return total
 })
-const pendingSeats = computed(() => Math.max(5, Math.round(pendingFractionalTotal.value)))
+// Remaining seat budget for non-giant compositable pool (quota cap takes precedence over floor)
+const remainingBudget = computed(() => {
+    const giantSeats     = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+    const committedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
+})
+const pendingSeats = computed(() => {
+    const natural = Math.max(5, Math.round(pendingFractionalTotal.value))
+    const budget  = remainingBudget.value
+    // When remaining budget is less than the constitutional floor, the budget wins
+    return budget > 0 && budget < natural ? budget : natural
+})
 // Valid: composite sum < GIANT_THRESHOLD (would round to ≤ 9 seats)
 const pendingValid = computed(() =>
     pendingAdd.value.size === 0 && pendingRemove.value.size === 0
@@ -2012,7 +2388,6 @@ function countFlags(flags) {
     return (flags.cap ? 1 : 0)
         + (flags.floor_exceptions?.length ?? 0)
         + (flags.deep_overages?.length ?? 0)
-        + (flags.deep_unevenness?.length ?? 0)
         + (flags.incomplete_scopes?.length ?? 0)
 }
 
@@ -2039,8 +2414,27 @@ async function submitNewMap() {
         }
         newMapFormOpen.value = false
         newMapName.value     = ''
+
+        // Pre-fetch wizard steps so we can navigate directly to step 0, skipping
+        // the intermediate root-scope load that would otherwise happen if we visited
+        // root first and then redirected from onMounted.
+        const rootScopeId = props.legislature.root_jurisdiction_id ?? props.scope.id
+        let firstStepScopeId = rootScopeId
+        try {
+            const stepsUrl = `/api/legislatures/${props.legislature.id}/wizard-steps`
+                           + `?scope_id=${rootScopeId}&map_id=${data.id}`
+            const stepsData = await fetch(stepsUrl).then(r => r.json())
+            if (stepsData.steps?.length > 0) {
+                firstStepScopeId = stepsData.steps[0].scope_id
+            }
+        } catch (_) { /* silently fall back to root */ }
+
+        // Write wizard-active to localStorage BEFORE navigating so it survives the remount.
+        // No newmap flag needed — we're jumping straight to the target scope.
+        localStorage.setItem(_wizardLs.active,  '1')
+        localStorage.setItem(_wizardLs.lastDir, '1')
         // creatingMap stays true — the router.visit() navigation will unmount this component
-        router.visit(mapUrl(props.scope.id, data.id))
+        router.visit(mapUrl(firstStepScopeId, data.id))
     } catch (e) {
         console.error('createMap:', e)
         showStatus('error', 'Network error')
@@ -2062,13 +2456,6 @@ async function activateCurrentMap() {
         console.error('activateMap:', e)
         showStatus('error', 'Network error')
     }
-}
-
-function openCompare() {
-    // Default: compare active map vs the first other map
-    compareMapAId.value = props.active_map?.id ?? props.maps[0]?.id ?? null
-    compareMapBId.value = props.maps.find(m => m.id !== compareMapAId.value)?.id ?? null
-    compareOpen.value   = true
 }
 
 function startRename(map) {
@@ -2252,6 +2639,17 @@ function panMapToDistrict(districtId) {
     if (bounds.isValid()) _map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 })
 }
 
+/** Fit map to show all currently-pending jurisdictions. Used when adding from sidebar during draw mode. */
+function fitBoundsToPendingMembers() {
+    if (!_map || pendingAdd.value.size === 0) return
+    const bounds = L.latLngBounds([])
+    for (const jid of pendingAdd.value) {
+        const layer = layerByJid[jid]
+        if (layer) try { bounds.extend(layer.getBounds()) } catch (_) {}
+    }
+    if (bounds.isValid()) _map.fitBounds(bounds, { padding: [60, 60] })
+}
+
 /** Scroll the sidebar district list to the row for the given districtId. */
 function scrollToSidebarRow(districtId) {
     if (!sidebarListEl.value) return
@@ -2265,6 +2663,15 @@ function scrollToSidebarRow(districtId) {
     const rowTop        = el.getBoundingClientRect().top
     const offset        = rowTop - containerTop - STICKY_HEADER_H
     sidebarListEl.value.scrollBy({ top: offset, behavior: 'smooth' })
+}
+
+/** Scroll the sidebar so the Unassigned section header (which holds the Create
+ *  button and seat-preview pill) is visible at the top of the list area. */
+function scrollToUnassignedSection() {
+    if (!sidebarListEl.value || !unassignedSectionEl.value) return
+    const containerTop = sidebarListEl.value.getBoundingClientRect().top
+    const sectionTop   = unassignedSectionEl.value.getBoundingClientRect().top
+    sidebarListEl.value.scrollBy({ top: sectionTop - containerTop, behavior: 'smooth' })
 }
 
 /**
@@ -2303,7 +2710,17 @@ function cancelEdit() {
     pendingAdd.value         = new Set()
     pendingRemove.value      = new Set()
     deletingDistrictId.value = null
-    isDragSelectMode.value   = false
+    isSpaceHeld.value        = false
+    // Record cancel time so auto-start is suppressed for a brief window afterwards
+    _lastCancelTime = Date.now()
+    // Reset rubber-band drag state in case the user released the mouse outside the map
+    // (e.g. mousedown on map, release on ✕ button) — prevents stale _dragStart and locked dragging
+    if (_dragStart !== null) {
+        _dragStart    = null
+        _dragIsRemove = false
+        if (rubberBandEl.value) rubberBandEl.value.style.display = 'none'
+        if (_map) _map.dragging.enable()
+    }
     if (wasEditing) restyleAll()
 }
 
@@ -2313,6 +2730,11 @@ function togglePendingAdd(jid) {
     else            s.add(jid)
     pendingAdd.value = s
     restyleLayer(jid)
+    // If the user just deselected the last member while creating a new district,
+    // treat it as an implicit cancel (same as pressing ✕)
+    if (editingDistrictId.value === 'new' && s.size === 0) {
+        cancelEdit()
+    }
 }
 
 function togglePendingRemove(jid) {
@@ -2324,19 +2746,153 @@ function togglePendingRemove(jid) {
 }
 
 // ── Unassigned click handler ──────────────────────────────────────────────────
-function handleUnassignedClick(child) {
+function handleUnassignedClick(child, fromSidebar = false) {
     // Only compositable (non-giant) jurisdictions can be added
     if (child.fractional_seats >= GIANT_THRESHOLD) return
     if (!editingDistrictId.value) {
-        // Browse mode: auto-start a new district and pre-select this jurisdiction
+        // Browse mode: auto-start draw mode and pre-select this jurisdiction.
+        // Guard: if cancel was just fired (within CANCEL_DEBOUNCE_MS), do not re-enter draw mode.
+        if (Date.now() - _lastCancelTime < CANCEL_DEBOUNCE_MS) return
         startNewDistrict()
     }
     togglePendingAdd(child.id)
+    // When triggered from the sidebar: scroll to show the Create button,
+    // and zoom the map to show all currently-pending members
+    if (fromSidebar) {
+        scrollToUnassignedSection()
+        fitBoundsToPendingMembers()
+    }
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function drillTo(jid) {
     router.visit(mapUrl(jid))
+}
+
+/** From stats-panel district links: focus in-scope districts without a reload; navigate for others. */
+function focusDistrictFromStats(scopeId, districtId) {
+    if (scopeId === props.scope.id) {
+        selectedDistrictId.value = districtId
+        panMapToDistrict(districtId)
+        scrollToSidebarRow(districtId)
+    } else {
+        drillTo(scopeId)
+    }
+}
+
+// ── Wizard Stepper ────────────────────────────────────────────────────────────
+
+async function loadWizardSteps() {
+    wizardLoading.value = true
+    try {
+        let url = `/api/legislatures/${props.legislature.id}/wizard-steps?scope_id=${props.scope.id}`
+        if (props.active_map?.id) url += `&map_id=${props.active_map.id}`
+        const data = await fetch(url).then(r => r.json())
+        wizardSteps.value        = data.steps ?? []
+        wizardCurrentIndex.value = data.current_index ?? 0
+    } catch (e) {
+        console.error('wizardSteps:', e)
+        showStatus('error', 'Failed to load wizard sequence')
+    } finally {
+        wizardLoading.value = false
+    }
+}
+
+async function activateWizard() {
+    wizardActive.value = true
+    await loadWizardSteps()
+    // Stay at current scope — user controls navigation via Forward/Back/Up.
+    // (New-map flow auto-navigates via the _wizardLs.newmap flag instead.)
+}
+
+function deactivateWizard() {
+    clearAutoStepTimer()
+    wizardActive.value        = false
+    wizardSteps.value         = []
+    wizardCurrentIndex.value  = -1
+    wizardAutoSeed.value      = false
+    wizardSkipSeeded.value    = false
+    wizardAutoStep.value      = false
+    wizardAutoCountdown.value = 0
+    // Purge all wizard localStorage keys for this legislature
+    Object.values(_wizardLs).forEach(k => localStorage.removeItem(k))
+}
+
+// ── Auto-step timer ───────────────────────────────────────────────────────────
+
+function startAutoStepTimer() {
+    clearAutoStepTimer()
+    if (!wizardAutoStep.value) return
+    wizardAutoCountdown.value = wizardAutoDelay.value
+    _autoStepTimer = setInterval(() => {
+        wizardAutoCountdown.value--
+        if (wizardAutoCountdown.value <= 0) {
+            clearAutoStepTimer()
+            // At last step — deactivate auto-step rather than wrapping around
+            if (wizardCurrentIndex.value >= wizardSteps.value.length - 1) {
+                wizardAutoStep.value = false
+                return
+            }
+            wizardStepForward()
+        }
+    }, 1000)
+}
+
+function clearAutoStepTimer() {
+    if (_autoStepTimer !== null) {
+        clearInterval(_autoStepTimer)
+        _autoStepTimer = null
+    }
+    wizardAutoCountdown.value = 0
+}
+
+// ── Auto-seed + skip-seeded — shared logic run after every step landing ──────
+// Returns true if we navigated away (skip fired), false if we stayed.
+// onMounted calls this after wizard bootstrap; the scope watch calls it too.
+async function runWizardAutoActions() {
+    // Auto-seed: silently reseed unassigned compositable children at this scope.
+    // router.reload() inside runMassReseed is now awaitable, so unassignedAssignable
+    // will be fresh by the time we reach the skip-seeded check below.
+    if (wizardAutoSeed.value) {
+        await runMassReseed('map_view_unassigned', null, /* silent */ true)
+        await nextTick()   // let Vue flush the updated props into computeds
+    }
+
+    // Skip-seeded: if no compositable children remain unassigned, step one hop
+    // in the current direction.  Chaining across multiple complete scopes happens
+    // naturally because each drillTo() remounts the component and onMounted runs
+    // this function again — no while-loop needed here.
+    if (wizardSkipSeeded.value && unassignedAssignable.value.length === 0) {
+        const next = wizardCurrentIndex.value + _wizardLastDir
+        if (next >= 0 && next < wizardSteps.value.length) {
+            wizardCurrentIndex.value = next
+            drillTo(wizardSteps.value[next].scope_id)
+            return true   // navigated away — caller should NOT start auto-step timer
+        }
+    }
+    return false  // staying at this scope — caller may start auto-step timer
+}
+
+function wizardGoToIndex(idx) {
+    if (idx < 0 || idx >= wizardSteps.value.length) return
+    clearAutoStepTimer()   // cancel any running countdown before navigating
+    _wizardLastDir = idx > wizardCurrentIndex.value ? 1 : -1
+    localStorage.setItem(_wizardLs.lastDir, String(_wizardLastDir))
+    wizardCurrentIndex.value = idx
+    drillTo(wizardSteps.value[idx].scope_id)
+    // auto-seed, skip-seeded, and auto-step timer restart in onMounted bootstrap
+}
+
+function wizardStepForward()  { wizardGoToIndex(wizardCurrentIndex.value + 1) }
+function wizardStepBackward() { wizardGoToIndex(wizardCurrentIndex.value - 1) }
+
+function wizardStepUp() {
+    // Go to the immediate parent scope in the wizard sequence (or via ancestors fallback)
+    const parent = props.ancestors[props.ancestors.length - 2]
+    if (!parent) return
+    const idx = wizardSteps.value.findIndex(s => s.scope_id === parent.id)
+    if (idx >= 0) wizardGoToIndex(idx)
+    else          drillTo(parent.id)
 }
 
 // ── District CRUD API calls ───────────────────────────────────────────────────
@@ -2367,7 +2923,8 @@ async function createDistrictFromPending() {
                 fractional_seats: c?.fractional_seats ?? 0, child_count: c?.child_count ?? 0,
             }
         })
-        // Strip stolen jids from any source district, update their seat counts, then add the new district
+        // Strip stolen jids from any source district and update their recomputed seat counts,
+        // then add the new district. Color indices are refreshed for all districts.
         const affectedMap  = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
         const colorUpdates = data.color_updates ?? {}
         districtsRef.value = [
@@ -2377,28 +2934,27 @@ async function createDistrictFromPending() {
                 // Always apply server-recomputed color_index (neighbor colors change on every new district)
                 const newColor = colorUpdates[existing.id] ?? existing.color_index
                 if (hasStolenMember) {
+                    const remainingMembers = existing.members.filter(m => !jids.includes(m.id))
                     return {
                         ...existing,
-                        members: existing.members.filter(m => !jids.includes(m.id)),
+                        members: remainingMembers,
+                        fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
                         color_index: newColor,
                         ...(affUpdate ? { seats: affUpdate.seats, floor_override: affUpdate.floor_override } : {}),
                     }
                 }
-                // Apply Hamilton rebalanced seat counts to all siblings (not just stolen-member ones)
-                return {
-                    ...existing,
-                    color_index: newColor,
-                    ...(affUpdate ? { seats: affUpdate.seats, floor_override: affUpdate.floor_override } : {}),
-                }
+                return { ...existing, color_index: newColor }
             }),
             {
                 id: d.id, seats: d.seats, floor_override: d.floor_override,
+                fractional_seats: d.fractional_seats ?? 0,
                 color_index: d.color_index ?? 0,
                 status: d.status,
                 district_number: d.district_number ?? 0,
                 name: d.name ?? '',
                 convex_hull_ratio: d.convex_hull_ratio ?? null,
                 is_contiguous:     d.is_contiguous     ?? null,
+                has_integrity:     d.has_integrity     ?? true,
                 members,
             },
         ]
@@ -2409,6 +2965,7 @@ async function createDistrictFromPending() {
         selectedDistrictId.value = d.id
         restyleAll()
         showStatus('success', `District created: ${d.seats} seats · ${jids.length} jurisdictions`)
+        router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('createDistrict:', e)
         showStatus('error', 'Network error')
@@ -2448,23 +3005,24 @@ async function saveDistrictEdit(districtId) {
                         fractional_seats: c.fractional_seats, child_count: c.child_count })
                 }
                 return { ...d, seats: updated.seats, floor_override: updated.floor_override,
+                    fractional_seats: updated.fractional_seats !== undefined ? updated.fractional_seats : d.fractional_seats,
                     color_index: updated.color_index ?? d.color_index,
                     name: updated.name ?? d.name,
                     convex_hull_ratio: updated.convex_hull_ratio !== undefined ? updated.convex_hull_ratio : d.convex_hull_ratio,
                     is_contiguous:     updated.is_contiguous     !== undefined ? updated.is_contiguous     : d.is_contiguous,
+                    has_integrity:     updated.has_integrity     !== undefined ? updated.has_integrity     : (d.has_integrity ?? true),
                     members }
             }
-            // Strip stolen jids from source districts and update their seat counts
+            // Strip stolen jids from source districts and update their recomputed seat counts
             const affUpdate2 = affectedMap2[d.id]
             if (add.length > 0 && d.members.some(m => add.includes(m.id))) {
+                const remainingMembers = d.members.filter(m => !add.includes(m.id))
                 return {
                     ...d,
-                    members: d.members.filter(m => !add.includes(m.id)),
+                    members: remainingMembers,
+                    fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
                     ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override, color_index: affUpdate2.color_index } : {}),
                 }
-            }
-            if (affUpdate2) {
-                return { ...d, seats: affUpdate2.seats, floor_override: affUpdate2.floor_override, color_index: affUpdate2.color_index }
             }
             return d
         })
@@ -2478,6 +3036,7 @@ async function saveDistrictEdit(districtId) {
         selectedDistrictId.value = districtId
         restyleAll()
         showStatus('success', `District updated: ${updated.seats} seats`)
+        router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('saveDistrictEdit:', e)
         showStatus('error', 'Network error')
@@ -2495,24 +3054,27 @@ async function deleteDistrict(districtId) {
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
 
-        const memberIds   = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
-        const numUpdates  = data.district_numbers ?? {}
-        const seatUpdates = data.seat_updates     ?? {}
+        const memberIds  = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
+        const numUpdates = data.district_numbers ?? {}
 
         districtsRef.value = districtsRef.value
             .filter(d => d.id !== districtId)
             .map(d => ({
                 ...d,
-                ...(numUpdates[d.id]  !== undefined ? { district_number: numUpdates[d.id] } : {}),
-                ...(seatUpdates[d.id] !== undefined ? { seats: seatUpdates[d.id] }          : {}),
+                ...(numUpdates[d.id] !== undefined ? { district_number: numUpdates[d.id] } : {}),
             }))
         childrenRef.value  = childrenRef.value.map(c =>
             memberIds.includes(c.id) ? { ...c, district_id: null, district_seats: null } : c
         )
         if (selectedDistrictId.value === districtId) selectedDistrictId.value = null
         deletingDistrictId.value = null
+        // Remove the disbanded district from the label cache and rebuild so
+        // its seat-count / name label disappears from the map immediately
+        _districtLabelData = _districtLabelData.filter(item => item.distId !== districtId)
+        rebuildDistrictLabelGroup()
         restyleAll()
         showStatus('success', 'District disbanded')
+        router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('deleteDistrict:', e)
         showStatus('error', 'Network error')
@@ -2537,26 +3099,43 @@ function runMassTool() {
     else runMassDisband(scope)
 }
 
-async function runMassReseed(scope) {
+// overrideScopeId — wizard passes null to use current props.scope.id
+// silent — when true (wizard path) suppresses mass-job polling + navigation,
+//           and does a partial reload instead of a full router.visit()
+async function runMassReseed(scope, overrideScopeId = null, silent = false) {
     closeMassToolPanel()
     massToolRunning.value = true
-    massJobRunning.value  = true
-    startMassStatusPolling()
+    if (!silent) {
+        massJobRunning.value = true
+        startMassStatusPolling()
+    }
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-reseed`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body:    JSON.stringify({ operation_scope: scope, scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
+            body:    JSON.stringify({
+                operation_scope: scope,
+                scope_id: overrideScopeId ?? props.scope.id,
+                map_id:   props.active_map?.id ?? null,
+            }),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
-        showStatus('success', `Reseed: ${data.districts_created} districts created across ${data.scopes_processed} scope(s)`)
-        // Stop polling before navigating — prevents the polling timer from firing a
-        // second router.visit() while this one is already in flight (double-navigation bug)
-        clearInterval(massStatusTimer)
-        massStatusTimer = null
-        massJobRunning.value = false
-        router.visit(mapUrl(props.scope.id))
+        showStatus('success', `Reseed: ${data.districts_created} district(s) created`)
+        if (!silent) {
+            // Stop polling before navigating — prevents double router.visit()
+            clearInterval(massStatusTimer)
+            massStatusTimer = null
+            massJobRunning.value = false
+            router.visit(mapUrl(props.scope.id))
+        } else {
+            // Wizard path: reload only the data props, no full navigation.
+            // Wrapped in a Promise so callers can await completion and read
+            // fresh unassignedAssignable before deciding whether to skip.
+            await new Promise(resolve => {
+                router.reload({ only: ['districts', 'children', 'flags', 'stats'], onFinish: resolve })
+            })
+        }
     } catch (e) {
         console.error('massReseed:', e)
         showStatus('error', 'Network error')
@@ -2674,6 +3253,10 @@ async function reinitMapLayers() {
     districtLabelGroup = null
     _districtLabelData = []
     jurisdictionLabelGroup = null
+
+    // 4b. Clear Jurs label marker registry and adjacency map — rebuilt for each scope.
+    for (const k of Object.keys(jursLabelMarkers)) delete jursLabelMarkers[k]
+    _adjacencyMap = null
 
     // 5. Sync childrenRef / districtsRef from the latest Inertia props
     childrenRef.value = props.children.map(c => ({ ...c }))
@@ -2826,7 +3409,8 @@ async function reinitMapLayers() {
                     layer.setStyle(getLayerStyle(jid))
                 })
 
-                layer.on('click', function () {
+                layer.on('click', function (e) {
+                    L.DomEvent.stop(e)  // prevent map background _map.on('click') from also firing
                     const c = childrenRef.value.find(x => x.id === jid) ?? child
                     const isGiant = c.fractional_seats >= GIANT_THRESHOLD
 
@@ -2842,7 +3426,14 @@ async function reinitMapLayers() {
 
                     // New district mode — allow clicking unassigned OR stealable polygons
                     if (editingDistrictId.value === 'new') {
-                        if (!isGiant) togglePendingAdd(jid)
+                        if (!isGiant) {
+                            togglePendingAdd(jid)
+                            // Scroll sidebar to show Create button (only if still in draw mode
+                            // — fix 7 may have just cancelled if we removed the last member)
+                            if (editingDistrictId.value === 'new' && pendingAdd.value.size > 0) {
+                                scrollToUnassignedSection()
+                            }
+                        }
                         return
                     }
 
@@ -2852,9 +3443,13 @@ async function reinitMapLayers() {
                     } else if (c.district_id) {
                         toggleSelectDistrict(c.district_id, /* fromMap */ true)
                     } else {
-                        // Click unassigned compositable polygon → auto-start new district
+                        // Click unassigned compositable polygon → auto-start new district.
+                        // Guard: if cancel was just fired (within CANCEL_DEBOUNCE_MS), skip
+                        // to prevent the ✕ click from immediately re-entering draw mode.
+                        if (Date.now() - _lastCancelTime < CANCEL_DEBOUNCE_MS) return
                         startNewDistrict()
                         togglePendingAdd(jid)
+                        scrollToUnassignedSection()
                     }
                 })
             },
@@ -2950,15 +3545,17 @@ async function reinitMapLayers() {
                     center       = L.latLng(center.lat + latOff, center.lng)
                 } catch (_) {}
             }
-            jurisdictionLabelGroup.addLayer(L.marker(center, {
+            const jursMarker = L.marker(center, {
                 icon: L.divIcon({
-                    className: '',
-                    html: `<div class="jurisdiction-name-label">${child.name}<br><span class="jurisdiction-pop-label">${formatPop(child.population)}</span></div>`,
+                    className:  '',
+                    html:       buildJursLabelHtml(child),
                     iconSize:   null,
                     iconAnchor: [0, 0],
                 }),
                 interactive: false,
-            }))
+            })
+            jursLabelMarkers[child.id] = jursMarker
+            jurisdictionLabelGroup.addLayer(jursMarker)
         }
 
         // Build _districtLabelData for regular districts.
@@ -3131,6 +3728,9 @@ async function reinitMapLayers() {
         rebuildDistrictLabelGroup()
         if (showJurisdictionLabels.value && jurisdictionLabelGroup) jurisdictionLabelGroup.addTo(_map)
 
+        // Build bounding-box adjacency map now that all layerByJid entries are populated.
+        buildAdjacencyMap()
+
     } catch (e) {
         console.error('Failed to load GeoJSON:', e)
     } finally {
@@ -3156,18 +3756,16 @@ onMounted(async () => {
     })
 
     // ── Drag / rubber-band select / deselect ─────────────────────────────────
-    // Activated when isDragSelectMode is true (only available in edit mode).
+    // Always active in edit mode (no toggle required).
+    // Hold Space to temporarily switch to pan mode.
     //
     // Modifiers at mousedown determine the operation for the whole drag gesture:
     //   No modifier  → ADD: queue unassigned jurisdictions into pendingAdd
     //   Shift held   → ADD (all): like above but also include already-assigned ones
     //   Ctrl held    → REMOVE: dequeue from pendingAdd (for unconfirmed staged adds),
     //                  or queue into pendingRemove (for confirmed district members)
-    let _dragStart    = null   // container point where the drag began
-    let _dragIsRemove = false  // true = Ctrl was held at mousedown → remove gesture
-
     _map.on('mousedown', function (e) {
-        if (!isDragSelectMode.value) return
+        if (!rubberBandActive.value) return
         e.originalEvent.preventDefault()
         _map.dragging.disable()
         _dragStart    = _map.latLngToContainerPoint(e.latlng)
@@ -3186,7 +3784,7 @@ onMounted(async () => {
     })
 
     _map.on('mousemove', function (e) {
-        if (!isDragSelectMode.value || !_dragStart) return
+        if (!rubberBandActive.value || !_dragStart) return
         const cur = _map.latLngToContainerPoint(e.latlng)
         if (rubberBandEl.value) {
             const rb = rubberBandEl.value
@@ -3198,7 +3796,7 @@ onMounted(async () => {
     })
 
     _map.on('mouseup', function (e) {
-        if (!isDragSelectMode.value || !_dragStart) return
+        if (!rubberBandActive.value || !_dragStart) return
         _map.dragging.enable()
         if (rubberBandEl.value) rubberBandEl.value.style.display = 'none'
 
@@ -3218,6 +3816,10 @@ onMounted(async () => {
             : null
 
         for (const child of childrenRef.value) {
+            // Giants cannot be composited at this scope — skip them entirely.
+            // This mirrors the single-click handler's `if (isGiant) return` guard.
+            if (child.fractional_seats >= GIANT_THRESHOLD) continue
+
             const layer = layerByJid[child.id]
             if (!layer) continue
             let center = null
@@ -3254,21 +3856,105 @@ onMounted(async () => {
     })
 
     await reinitMapLayers()
+
+    // ── Wizard bootstrap on mount ─────────────────────────────────────────────
+    // router.visit() remounts the component, so wizardSteps (transient) must be
+    // re-loaded here whenever the wizard is active.  Auto-seed, skip-seeded, and
+    // the auto-step timer are also started here — they do NOT live in the scope
+    // watch below because router.visit() causes a remount (not a prop-only update).
+    if (wizardActive.value) {
+        await loadWizardSteps()
+        const isNewMap = localStorage.getItem(_wizardLs.newmap) === '1'
+        if (isNewMap) {
+            localStorage.removeItem(_wizardLs.newmap)
+            const first = wizardSteps.value[0]
+            if (first && first.scope_id !== props.scope.id) {
+                _wizardLastDir = 1
+                localStorage.setItem(_wizardLs.lastDir, '1')
+                drillTo(first.scope_id)
+                return
+            }
+        }
+        // Sync index to where we actually landed
+        const idx = wizardSteps.value.findIndex(s => s.scope_id === props.scope.id)
+        if (idx >= 0) wizardCurrentIndex.value = idx
+
+        // Run auto-seed + skip-seeded.  Returns true if skip navigated away (so
+        // we skip starting the auto-step timer — the next mount will handle it).
+        const navigatedAway = await runWizardAutoActions()
+        if (!navigatedAway && wizardAutoStep.value) {
+            startAutoStepTimer()
+        }
+    }
 })
 
-// Re-initialize map layers when the user drills to a different scope.
-// Inertia does a partial prop update (not a full remount), so onMounted never
-// re-runs — we need this watch to reload the correct children + districts.
+// Re-initialize map layers when the scope changes within the same mounted instance.
+// onMounted handles the initial load; this watch handles subsequent prop-only updates
+// (e.g. if Inertia ever delivers a partial update rather than a full remount).
 watch(() => props.scope.id, async () => {
     await reinitMapLayers()
+
+    if (!wizardActive.value) return
+
+    // Steps may be empty if this fires before onMounted's bootstrap completes.
+    // Load them now if missing.
+    if (wizardSteps.value.length === 0) {
+        await loadWizardSteps()
+    }
+
+    // Sync the current-index to wherever we actually landed
+    const idx = wizardSteps.value.findIndex(s => s.scope_id === props.scope.id)
+    if (idx >= 0) wizardCurrentIndex.value = idx
+
+    // Delegate to the shared auto-seed + skip-seeded + auto-step logic.
+    // This watch fires for prop-only updates (rare — most navigations use
+    // router.visit() which remounts and goes through onMounted instead).
+    const navigatedAway = await runWizardAutoActions()
+    if (!navigatedAway && wizardAutoStep.value) {
+        startAutoStepTimer()
+    }
 })
 
-// Disable Leaflet's native boxZoom (shift+drag to zoom) while our rubber-band
-// drag-select mode is active, so Shift can be used for "include assigned" instead.
-watch(isDragSelectMode, (active) => {
+// Disable Leaflet's native boxZoom while rubber-band is active so Shift+drag
+// works for "include assigned" rather than zooming.
+// Also: when rubber-band is suspended (Space held), cancel any in-progress drag
+// and re-enable map panning.
+watch(rubberBandActive, (active) => {
     if (!_map) return
-    if (active) _map.boxZoom.disable()
-    else        _map.boxZoom.enable()
+    if (active) {
+        _map.boxZoom.disable()
+    } else {
+        _map.boxZoom.enable()
+        // Cancel mid-rubber-band drag if space was pressed during it
+        if (_dragStart) {
+            _dragStart = null
+            _dragIsRemove = false
+            if (rubberBandEl.value) rubberBandEl.value.style.display = 'none'
+            _map.dragging.enable()
+        }
+    }
+})
+
+// ── Space-to-pan: hold Space to temporarily suspend rubber-band and pan the map ──
+function _onSpaceDown(e) {
+    if (e.code !== 'Space' || !editingDistrictId.value || isSpaceHeld.value) return
+    // Don't steal Space from inputs / textareas
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return
+    e.preventDefault()
+    isSpaceHeld.value = true
+    if (_map) _map.dragging.enable()
+}
+function _onSpaceUp(e) {
+    if (e.code !== 'Space') return
+    isSpaceHeld.value = false
+    // Dragging is re-disabled automatically by the rubber-band mousedown handler
+}
+window.addEventListener('keydown', _onSpaceDown)
+window.addEventListener('keyup',   _onSpaceUp)
+onUnmounted(() => {
+    window.removeEventListener('keydown', _onSpaceDown)
+    window.removeEventListener('keyup',   _onSpaceUp)
+    clearAutoStepTimer()   // safety cleanup in case of unexpected unmount mid-countdown
 })
 
 // Re-initialize map layers when the active map changes (e.g. switching from Test Map to another).
@@ -3295,6 +3981,10 @@ watch(selectedDistrictId, (newId, oldId) => {
         })
     }
 })
+
+// Refresh Jurs label content whenever the pending set or edit mode changes.
+// flush:'post' ensures Vue has finished rendering before we update Leaflet icons.
+watch([pendingAdd, editingDistrictId], refreshJursLabels, { flush: 'post' })
 </script>
 
 <style>
@@ -3362,7 +4052,7 @@ watch(selectedDistrictId, (newId, oldId) => {
     color: #e2e8f0;
     border-radius: 3px;
     padding: 2px 5px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
     pointer-events: none;
@@ -3371,9 +4061,14 @@ watch(selectedDistrictId, (newId, oldId) => {
     text-shadow: 0 1px 3px rgba(0,0,0,0.95);
 }
 .jurisdiction-pop-label {
-    color: #cbd5e1;
-    font-size: 10px;
+    color: #94a3b8;
+    font-size: 12px;
     font-weight: 400;
+}
+.jurisdiction-rep-label {
+    color: #fbbf24;   /* amber-400 — apportionment weight, visually distinct from pop */
+    font-size: 12px;
+    font-weight: 600;
 }
 
 /* Rubber-band drag-select/remove overlay.
