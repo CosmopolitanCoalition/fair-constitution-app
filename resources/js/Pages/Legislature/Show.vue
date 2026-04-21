@@ -200,17 +200,32 @@
 
                     <!-- Persistent mass-job progress banner (survives page navigation) -->
                     <div v-if="massJobRunning"
-                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex items-center gap-2">
-                        <span class="inline-block w-3 h-3 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
-                        <span class="text-xs text-indigo-300 font-medium">
-                            <template v-if="recolorProgress">
-                                {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
-                            </template>
-                            <template v-else>Mass operation in progress…</template>
-                        </span>
-                        <span v-if="recolorProgress && recolorElapsed"
-                              class="text-[10px] text-indigo-400 ml-auto shrink-0">{{ recolorElapsed }} elapsed</span>
-                        <span v-else class="text-[10px] text-indigo-500 ml-auto">Controls disabled</span>
+                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block w-3 h-3 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
+                            <span class="text-xs text-indigo-300 font-medium truncate">
+                                <template v-if="recolorProgress">
+                                    {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
+                                </template>
+                                <template v-else-if="massProgress">
+                                    {{ massProgress.current_scope }}
+                                </template>
+                                <template v-else>Mass operation in progress…</template>
+                            </span>
+                            <span v-if="recolorProgress && recolorElapsed"
+                                  class="text-[10px] text-indigo-400 ml-auto shrink-0">{{ recolorElapsed }} elapsed</span>
+                            <span v-else-if="massProgress"
+                                  class="text-[10px] text-indigo-400 ml-auto shrink-0 tabular-nums">
+                                {{ massProgress.completed + 1 }}/{{ massProgress.total }}
+                            </span>
+                            <span v-else class="text-[10px] text-indigo-500 ml-auto">Controls disabled</span>
+                        </div>
+                        <!-- Scope progress bar -->
+                        <div v-if="massProgress && massProgress.total > 1"
+                             class="h-1 rounded-full bg-indigo-900 overflow-hidden">
+                            <div class="h-full bg-indigo-400 transition-all duration-300"
+                                 :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
+                        </div>
                     </div>
 
                     <!-- Map Quality + Constitutional Flags — unified panel -->
@@ -567,14 +582,14 @@
 
                         <!-- Row 1: three-column navigation grid -->
                         <div class="shrink-0 grid grid-cols-3 gap-1 px-2 py-1.5 bg-violet-950 border-b border-violet-800">
-                            <!-- Left: previous scope -->
+                            <!-- Left: previous scope (wraps from first → last) -->
                             <button @click="wizardStepBackward"
-                                    :disabled="wizardCurrentIndex <= 0 || wizardLoading"
-                                    :title="wizardSteps[wizardCurrentIndex - 1]?.scope_name"
+                                    :disabled="wizardSteps.length === 0 || wizardLoading"
+                                    :title="wizardSteps.length > 0 ? wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]?.scope_name : ''"
                                     class="flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
                                            disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                ←&nbsp;<span class="truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
+                                ←&nbsp;<span class="truncate">{{ wizardSteps.length > 0 ? (wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]?.scope_name ?? '—') : '—' }}</span>
                             </button>
                             <!-- Centre: parent scope (↑ up) -->
                             <button @click="wizardStepUp"
@@ -586,21 +601,25 @@
                                 <span class="shrink-0">↑</span>
                                 <span class="truncate">{{ props.ancestors[props.ancestors.length - 2]?.name ?? '—' }}</span>
                             </button>
-                            <!-- Right: next scope -->
+                            <!-- Right: next scope (wraps from last → first) -->
                             <button @click="wizardStepForward"
-                                    :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
-                                    :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
+                                    :disabled="wizardSteps.length === 0 || wizardLoading"
+                                    :title="wizardSteps.length > 0 ? wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]?.scope_name : ''"
                                     class="flex items-center justify-end gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
                                            disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                <span class="truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
+                                <span class="truncate">{{ wizardSteps.length > 0 ? (wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]?.scope_name ?? '—') : '—' }}</span>&nbsp;→
                             </button>
                         </div>
                         <!-- Row 2: options / in-progress indicator + pagination -->
                         <div class="shrink-0 flex items-center gap-2.5 px-3 py-1.5 bg-violet-900/20 border-b border-violet-800">
                             <template v-if="massToolRunning">
                                 <span class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-ping shrink-0"></span>
-                                <span class="text-[10px] text-violet-300 animate-pulse font-medium">Seeding…</span>
+                                <span v-if="massProgress" class="text-[10px] text-violet-300 font-medium truncate">
+                                    {{ massProgress.current_scope }}
+                                    <span class="text-violet-500 ml-0.5">{{ massProgress.completed + 1 }}/{{ massProgress.total }}</span>
+                                </span>
+                                <span v-else class="text-[10px] text-violet-300 animate-pulse font-medium">Seeding…</span>
                             </template>
                             <template v-else>
                                 <label class="flex items-center gap-1 cursor-pointer shrink-0">
@@ -1431,6 +1450,7 @@ const massToolRunning = ref(false)
 // Set to true if a mass operation is in flight (persists across navigation via cache flag).
 const massJobRunning    = ref(props.mass_tool_running ?? false)
 const recolorProgress   = ref(null)   // { phase, total, started_at } or null
+const massProgress      = ref(null)   // { current_scope, completed, total } or null (reseed/disband)
 const recolorElapsed    = ref('')
 let   massStatusTimer   = null
 let   elapsedTimer      = null
@@ -1466,9 +1486,13 @@ function startMassStatusPolling() {
                 recolorProgress.value = data.recolor_progress
                 updateElapsed()
             }
+            if (data.mass_progress) {
+                massProgress.value = data.mass_progress
+            }
             if (!data.running) {
                 massJobRunning.value  = false
                 recolorProgress.value = null
+                massProgress.value    = null
                 clearInterval(massStatusTimer)
                 clearInterval(elapsedTimer)
                 massStatusTimer = null
@@ -1481,12 +1505,10 @@ function startMassStatusPolling() {
 }
 
 const MASS_SCOPES = [
-    { key: 'map_view_unassigned',              label: 'Unassigned — this scope',               desc: 'Fill gaps only, keep existing districts' },
-    { key: 'map_view_all',                     label: 'All — this scope',                      desc: 'Clear and redo all districts at this level' },
-    { key: 'map_plus_children_unassigned',     label: 'Unassigned — scope + descendants',      desc: 'Fill gaps here and at each giant descendant scope' },
-    { key: 'map_plus_children_all',            label: 'All — scope + descendants',             desc: 'Clear and redo here and at each giant descendant scope' },
-    { key: 'giant_descendants_only_unassigned',label: 'Unassigned — large descendants only',   desc: 'Fill gaps at each giant descendant scope (skip this view)' },
-    { key: 'giant_descendants_only_all',       label: 'All — large descendants only',          desc: 'Clear and redo only giant descendant scopes (skip this view)' },
+    { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts' },
+    { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level' },
+    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope' },
+    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope' },
 ]
 
 // Label layer visibility toggles
@@ -2817,11 +2839,6 @@ function startAutoStepTimer() {
         wizardAutoCountdown.value--
         if (wizardAutoCountdown.value <= 0) {
             clearAutoStepTimer()
-            // At last step — deactivate auto-step rather than wrapping around
-            if (wizardCurrentIndex.value >= wizardSteps.value.length - 1) {
-                wizardAutoStep.value = false
-                return
-            }
             wizardStepForward()
         }
     }, 1000)
@@ -2879,8 +2896,16 @@ function wizardGoToIndex(idx) {
     // auto-seed, skip-seeded, and auto-step timer restart in onMounted bootstrap
 }
 
-function wizardStepForward()  { wizardGoToIndex(wizardCurrentIndex.value + 1) }
-function wizardStepBackward() { wizardGoToIndex(wizardCurrentIndex.value - 1) }
+function wizardStepForward() {
+    const n = wizardSteps.value.length
+    if (n === 0) return
+    wizardGoToIndex((wizardCurrentIndex.value + 1) % n)
+}
+function wizardStepBackward() {
+    const n = wizardSteps.value.length
+    if (n === 0) return
+    wizardGoToIndex((wizardCurrentIndex.value - 1 + n) % n)
+}
 
 function wizardStepUp() {
     // Go to the immediate parent scope in the wizard sequence (or via ancestors fallback)

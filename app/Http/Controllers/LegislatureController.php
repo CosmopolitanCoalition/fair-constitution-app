@@ -1534,9 +1534,23 @@ class LegislatureController extends Controller
         $scopesProcessed = 0;
         $errors          = [];
 
+        // Pre-fetch scope names for real-time progress display (polled by frontend)
+        $scopeNames  = DB::table('jurisdictions')
+            ->whereIn('id', $scopeIds)
+            ->pluck('name', 'id')
+            ->toArray();
+        $totalScopes = count($scopeIds);
+
         DB::beginTransaction();
         try {
-            foreach ($scopeIds as $sid) {
+            foreach ($scopeIds as $scopeIdx => $sid) {
+                // Publish progress so the frontend progress banner can show current scope
+                Cache::put("legislature.{$legislature_id}.mass_progress", [
+                    'current_scope' => $scopeNames[$sid] ?? $sid,
+                    'completed'     => $scopeIdx,
+                    'total'         => $totalScopes,
+                ], 7200);
+
                 // Compute per-scope seat budget
                 if ($sid === $leg->jurisdiction_id) {
                     $seatBudget = (int) $leg->type_a_seats;
@@ -1565,6 +1579,7 @@ class LegislatureController extends Controller
                 }
             }
             DB::commit();
+            Cache::forget("legislature.{$legislature_id}.mass_progress");
         } catch (\Throwable $e) {
             DB::rollBack();
             Cache::forget("legislature.{$legislature_id}.mass_running");
@@ -1651,9 +1666,21 @@ class LegislatureController extends Controller
         $totalDisbanded  = 0;
         $scopesProcessed = 0;
 
+        // Pre-fetch scope names for real-time progress display
+        $scopeNames  = DB::table('jurisdictions')
+            ->whereIn('id', $scopeIds)
+            ->pluck('name', 'id')
+            ->toArray();
+        $totalScopes = count($scopeIds);
+
         DB::beginTransaction();
         try {
-            foreach ($scopeIds as $sid) {
+            foreach ($scopeIds as $scopeIdx => $sid) {
+                Cache::put("legislature.{$legislature_id}.mass_progress", [
+                    'current_scope' => $scopeNames[$sid] ?? $sid,
+                    'completed'     => $scopeIdx,
+                    'total'         => $totalScopes,
+                ], 7200);
                 // Hard-delete all districts at this scope in this map (any deleted_at state — clean slate)
                 $districtIdsQuery = DB::table('legislature_districts')
                     ->where('legislature_id', $legislature_id)
@@ -1734,9 +1761,11 @@ class LegislatureController extends Controller
             }
 
             DB::commit();
+            Cache::forget("legislature.{$legislature_id}.mass_progress");
         } catch (\Throwable $e) {
             DB::rollBack();
             Cache::forget("legislature.{$legislature_id}.mass_running");
+            Cache::forget("legislature.{$legislature_id}.mass_progress");
             return response()->json(['error' => 'Mass disband failed: ' . $e->getMessage()], 500);
         }
 
@@ -1795,6 +1824,7 @@ class LegislatureController extends Controller
         return response()->json([
             'running'          => (bool) Cache::get("legislature.{$legislature_id}.mass_running", false),
             'recolor_progress' => Cache::get("legislature.{$legislature_id}.recolor_progress"),
+            'mass_progress'    => Cache::get("legislature.{$legislature_id}.mass_progress"),
         ]);
     }
 
@@ -2084,10 +2114,45 @@ class LegislatureController extends Controller
      * Resolve the ordered list of jurisdiction scope IDs for a mass operation.
      *
      * map_view_*:          [$scopeId]
-     * map_plus_children_*: [$scopeId, ...giantChildIds]
+     * map_plus_children_*: [$scopeId, ...allGiantDescendantsAtEveryDepth]
      * legislature_*:       All distinct non-null jurisdiction_ids in legislature_districts.
      *                      For _unassigned also adds $scopeId if not already present.
      */
+
+    /**
+     * BFS walk that returns every giant-scope descendant ID at any depth below $rootId.
+     * A jurisdiction is "giant" when its population / rootQuota >= 9.5 — meaning it
+     * needs its own sub-districting scope rather than being aggregated with siblings.
+     * The walk recurses into each giant so multi-level hierarchies (e.g. India → UP)
+     * are fully captured.
+     */
+    private function collectGiantDescendants(string $rootId, float $rootQuota): array
+    {
+        $result = [];
+        $queue  = [$rootId];
+        $seen   = [$rootId => true];
+
+        while (!empty($queue)) {
+            $parentId = array_shift($queue);
+            $children = DB::table('jurisdictions')
+                ->where('parent_id', $parentId)
+                ->whereNull('deleted_at')
+                ->whereNotNull('geom')
+                ->get(['id', 'population']);
+
+            foreach ($children as $child) {
+                if (isset($seen[$child->id])) continue;
+                $seen[$child->id] = true;
+                if (((int) $child->population / max($rootQuota, 1)) >= 9.5) {
+                    $result[] = $child->id;
+                    $queue[]  = $child->id;   // recurse into this giant's children too
+                }
+            }
+        }
+
+        return $result;
+    }
+
     private function resolveMassScopeIds(
         string  $legislature_id,
         object  $leg,
@@ -2101,31 +2166,11 @@ class LegislatureController extends Controller
         }
 
         if (str_starts_with($operationScope, 'map_plus_children_')) {
-            // Giant children = direct children with population / rootQuota >= 9.5
-            $giantChildIds = DB::table('jurisdictions')
-                ->where('parent_id', $scopeId)
-                ->whereNull('deleted_at')
-                ->whereNotNull('geom')
-                ->get(['id', 'population'])
-                ->filter(fn($j) => ((int) $j->population / max($rootQuota, 1)) >= 9.5)
-                ->pluck('id')
-                ->toArray();
-            return array_merge([$scopeId], $giantChildIds);
-        }
-
-        if (str_starts_with($operationScope, 'giant_descendants_only_')) {
-            // Only the giant direct children — excludes $scopeId itself.
-            // Useful when the current scope is already seeded and you only want
-            // to reseed/clear the sub-scopes of giant children.
-            $giantChildIds = DB::table('jurisdictions')
-                ->where('parent_id', $scopeId)
-                ->whereNull('deleted_at')
-                ->whereNotNull('geom')
-                ->get(['id', 'population'])
-                ->filter(fn($j) => ((int) $j->population / max($rootQuota, 1)) >= 9.5)
-                ->pluck('id')
-                ->toArray();
-            return $giantChildIds;
+            // Full BFS — every giant-scope descendant at every depth.
+            // This fixes the bug where India's sub-states were skipped when clearing
+            // at Earth scope (only direct giant children were previously included).
+            $allGiantIds = $this->collectGiantDescendants($scopeId, $rootQuota);
+            return array_merge([$scopeId], $allGiantIds);
         }
 
         // legislature_* — build the scope list from three sources so that a
