@@ -539,7 +539,7 @@
                                     : massToolPanel === 'reseed'
                                         ? 'bg-indigo-700 border-indigo-500 text-white'
                                         : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
-                            ⚡ Reseed
+                            ⚡ Autoseed
                         </button>
                         <button @click="openMassTool('clear')"
                                 :disabled="massToolRunning || massJobRunning"
@@ -559,63 +559,44 @@
                                     : 'bg-teal-900 border-teal-700 text-teal-300 hover:bg-teal-800 hover:text-white'">
                             🎨 Recolor
                         </button>
-                        <button @click="wizardActive ? deactivateWizard() : activateWizard()"
-                                :disabled="massToolRunning || massJobRunning"
-                                class="px-2 py-1 rounded text-xs border transition-colors"
-                                :class="wizardLoading
-                                    ? 'bg-violet-900 border-violet-700 text-violet-400 cursor-wait animate-pulse'
-                                    : wizardActive
-                                        ? 'bg-violet-700 border-violet-500 text-white'
-                                        : massToolRunning || massJobRunning
-                                            ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
-                                            : 'bg-violet-900 border-violet-700 text-violet-300 hover:bg-violet-800 hover:text-white'">
-                            🧭 {{ wizardActive ? 'Stepper ✕' : 'Stepper' }}
-                        </button>
                     </div>
 
-                    <!-- ── Wizard Stepper control rows (sidebar) ──────────────────────
-                         Shown below the tool bar when the stepper is active.
-                         Row 1: navigation (prev / indicator / next / up)
-                         Row 2: options (auto-seed / skip / auto-step / timer)
-                                OR in-progress indicator while a seed op is running -->
-                    <template v-if="wizardActive">
-                        <!-- Row 1: navigation -->
-                        <div class="shrink-0 flex items-center gap-1 px-2 py-1.5 bg-violet-950 border-b border-violet-800">
+                    <!-- ── Wizard Stepper control rows (always visible) ───────────────
+                         Row 1: ← prev  |  ↑ parent name (center)  |  next →
+                         Row 2: Auto-seed □  Skip □  Auto Step □  [delay]  · N/M [·Xs] -->
+
+                        <!-- Row 1: three-column navigation grid -->
+                        <div class="shrink-0 grid grid-cols-3 gap-1 px-2 py-1.5 bg-violet-950 border-b border-violet-800">
+                            <!-- Left: previous scope -->
                             <button @click="wizardStepBackward"
                                     :disabled="wizardCurrentIndex <= 0 || wizardLoading"
                                     :title="wizardSteps[wizardCurrentIndex - 1]?.scope_name"
-                                    class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                    class="flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed">
-                                ←&nbsp;<span class="max-w-[70px] truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
+                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
+                                ←&nbsp;<span class="truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
                             </button>
-                            <span class="flex-1 text-center text-[10px] text-violet-400 px-1 truncate">
-                                <template v-if="wizardLoading">Loading…</template>
-                                <template v-else-if="wizardCurrentIndex >= 0 && wizardSteps.length > 0">
-                                    {{ wizardCurrentIndex + 1 }}&thinsp;/&thinsp;{{ wizardSteps.length }}
-                                    &middot;
-                                    <span class="text-violet-200 font-medium">{{ wizardSteps[wizardCurrentIndex]?.scope_name }}</span>
-                                </template>
-                            </span>
-                            <button @click="wizardStepForward"
-                                    :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
-                                    :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
-                                    class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                           text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed">
-                                <span class="max-w-[70px] truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
-                            </button>
+                            <!-- Centre: parent scope (↑ up) -->
                             <button @click="wizardStepUp"
                                     :disabled="props.ancestors.length < 2 || wizardLoading"
                                     :title="props.ancestors[props.ancestors.length - 2]?.name"
-                                    class="shrink-0 px-1.5 py-0.5 rounded text-xs border border-violet-700
+                                    class="flex items-center justify-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed"
-                                    title="Go to parent scope">
-                                ↑
+                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
+                                <span class="shrink-0">↑</span>
+                                <span class="truncate">{{ props.ancestors[props.ancestors.length - 2]?.name ?? '—' }}</span>
+                            </button>
+                            <!-- Right: next scope -->
+                            <button @click="wizardStepForward"
+                                    :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
+                                    :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
+                                    class="flex items-center justify-end gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                           text-violet-300 hover:bg-violet-800 transition-colors
+                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
+                                <span class="truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
                             </button>
                         </div>
-                        <!-- Row 2: options / in-progress indicator -->
+                        <!-- Row 2: options / in-progress indicator + pagination -->
                         <div class="shrink-0 flex items-center gap-2.5 px-3 py-1.5 bg-violet-900/20 border-b border-violet-800">
                             <template v-if="massToolRunning">
                                 <span class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-ping shrink-0"></span>
@@ -632,10 +613,7 @@
                                 </label>
                                 <label class="flex items-center gap-1 cursor-pointer shrink-0">
                                     <input type="checkbox" v-model="wizardAutoStep" class="w-3 h-3 accent-violet-400">
-                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto Step
-                                        <span v-if="wizardAutoCountdown > 0"
-                                              class="ml-0.5 font-bold tabular-nums text-violet-200">{{ wizardAutoCountdown }}s</span>
-                                    </span>
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto Step</span>
                                 </label>
                                 <select v-if="wizardAutoStep"
                                         v-model.number="wizardAutoDelay"
@@ -651,8 +629,15 @@
                                     <option :value="120">2m</option>
                                 </select>
                             </template>
+                            <!-- Pagination + live countdown — pushed to far right -->
+                            <span v-if="wizardCurrentIndex >= 0 && wizardSteps.length > 0"
+                                  class="ml-auto text-[10px] tabular-nums shrink-0"
+                                  :class="wizardLoading ? 'text-violet-600 animate-pulse' : 'text-violet-500'">
+                                {{ wizardCurrentIndex + 1 }}/{{ wizardSteps.length }}
+                                <span v-if="wizardAutoCountdown > 0"
+                                      class="ml-0.5 font-bold text-violet-300">· {{ wizardAutoCountdown }}s</span>
+                            </span>
                         </div>
-                    </template>
 
                     <!-- Scope picker panel -->
                     <div v-if="massToolPanel !== null"
@@ -1366,7 +1351,9 @@ const savingEdit          = ref(false)
 const deletingDistrictId  = ref(null)
 const statusMsg           = ref(null)
 let   statusTimer         = null
-const statsPanelCollapsed = ref(true)   // map quality stats panel (collapsed by default)
+// Map quality panel collapse — persisted across scope navigations (same as label toggles)
+const statsPanelCollapsed = ref(localStorage.getItem('leg_quality_collapsed') !== '0')
+watch(statsPanelCollapsed, v => localStorage.setItem('leg_quality_collapsed', v ? '1' : '0'))
 
 // Quality-stat color helpers: green / amber / red based on thresholds
 function qualityColor(value, warnAt, badAt) {
@@ -3867,39 +3854,34 @@ onMounted(async () => {
     await reinitMapLayers()
 
     // ── Wizard bootstrap on mount ─────────────────────────────────────────────
+    // Stepper is always visible, so wizard steps are always loaded on mount.
     // router.visit() remounts the component, so wizardSteps (transient) must be
-    // re-loaded here whenever the wizard is active.  Auto-seed, skip-seeded, and
-    // the auto-step timer are also started here — they do NOT live in the scope
-    // watch below because router.visit() causes a remount (not a prop-only update).
-    if (wizardActive.value) {
-        await loadWizardSteps()
-        const isNewMap = localStorage.getItem(_wizardLs.newmap) === '1'
-        if (isNewMap) {
-            localStorage.removeItem(_wizardLs.newmap)
-            const first = wizardSteps.value[0]
-            if (first && first.scope_id !== props.scope.id) {
-                _wizardLastDir = 1
-                localStorage.setItem(_wizardLs.lastDir, '1')
-                drillTo(first.scope_id)
-                return
-            }
+    // re-fetched here.  Auto-seed, skip-seeded, and the auto-step timer are
+    // guarded by justStepped so they only run after an explicit step navigation.
+    await loadWizardSteps()
+    const isNewMap = localStorage.getItem(_wizardLs.newmap) === '1'
+    if (isNewMap) {
+        localStorage.removeItem(_wizardLs.newmap)
+        const first = wizardSteps.value[0]
+        if (first && first.scope_id !== props.scope.id) {
+            _wizardLastDir = 1
+            localStorage.setItem(_wizardLs.lastDir, '1')
+            drillTo(first.scope_id)
+            return
         }
-        // Sync index to where we actually landed
-        const idx = wizardSteps.value.findIndex(s => s.scope_id === props.scope.id)
-        if (idx >= 0) wizardCurrentIndex.value = idx
+    }
+    // Sync index to where we actually landed
+    const idx = wizardSteps.value.findIndex(s => s.scope_id === props.scope.id)
+    if (idx >= 0) wizardCurrentIndex.value = idx
 
-        // Only run auto-actions when we arrived via an explicit wizard step.
-        // Without this guard, auto-seed + the timer would fire on any page open /
-        // browser refresh while the wizard is active (e.g. localStorage auto-step=1
-        // left over from a previous session).
-        const justStepped = localStorage.getItem(_wizardLs.justStepped) === '1'
-        localStorage.removeItem(_wizardLs.justStepped)   // consume immediately
+    // Only run auto-actions when we arrived via an explicit wizard step.
+    const justStepped = localStorage.getItem(_wizardLs.justStepped) === '1'
+    localStorage.removeItem(_wizardLs.justStepped)   // consume immediately
 
-        if (justStepped) {
-            const navigatedAway = await runWizardAutoActions()
-            if (!navigatedAway && wizardAutoStep.value) {
-                startAutoStepTimer()
-            }
+    if (justStepped) {
+        const navigatedAway = await runWizardAutoActions()
+        if (!navigatedAway && wizardAutoStep.value) {
+            startAutoStepTimer()
         }
     }
 })
@@ -3909,8 +3891,6 @@ onMounted(async () => {
 // (e.g. if Inertia ever delivers a partial update rather than a full remount).
 watch(() => props.scope.id, async () => {
     await reinitMapLayers()
-
-    if (!wizardActive.value) return
 
     // Steps may be empty if this fires before onMounted's bootstrap completes.
     // Load them now if missing.
