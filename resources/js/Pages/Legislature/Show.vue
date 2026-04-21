@@ -530,8 +530,7 @@
                     </div>
 
                     <!-- Mass tools toolbar -->
-                    <div class="flex items-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
-                        <span class="text-xs text-gray-500 mr-1">Tools:</span>
+                    <div class="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
                         <button @click="openMassTool('reseed')"
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
@@ -570,9 +569,90 @@
                                         : massToolRunning || massJobRunning
                                             ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
                                             : 'bg-violet-900 border-violet-700 text-violet-300 hover:bg-violet-800 hover:text-white'">
-                            🧭 Stepper
+                            🧭 {{ wizardActive ? 'Stepper ✕' : 'Stepper' }}
                         </button>
                     </div>
+
+                    <!-- ── Wizard Stepper control rows (sidebar) ──────────────────────
+                         Shown below the tool bar when the stepper is active.
+                         Row 1: navigation (prev / indicator / next / up)
+                         Row 2: options (auto-seed / skip / auto-step / timer)
+                                OR in-progress indicator while a seed op is running -->
+                    <template v-if="wizardActive">
+                        <!-- Row 1: navigation -->
+                        <div class="shrink-0 flex items-center gap-1 px-2 py-1.5 bg-violet-950 border-b border-violet-800">
+                            <button @click="wizardStepBackward"
+                                    :disabled="wizardCurrentIndex <= 0 || wizardLoading"
+                                    :title="wizardSteps[wizardCurrentIndex - 1]?.scope_name"
+                                    class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                           text-violet-300 hover:bg-violet-800 transition-colors
+                                           disabled:opacity-40 disabled:cursor-not-allowed">
+                                ←&nbsp;<span class="max-w-[70px] truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
+                            </button>
+                            <span class="flex-1 text-center text-[10px] text-violet-400 px-1 truncate">
+                                <template v-if="wizardLoading">Loading…</template>
+                                <template v-else-if="wizardCurrentIndex >= 0 && wizardSteps.length > 0">
+                                    {{ wizardCurrentIndex + 1 }}&thinsp;/&thinsp;{{ wizardSteps.length }}
+                                    &middot;
+                                    <span class="text-violet-200 font-medium">{{ wizardSteps[wizardCurrentIndex]?.scope_name }}</span>
+                                </template>
+                            </span>
+                            <button @click="wizardStepForward"
+                                    :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
+                                    :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
+                                    class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
+                                           text-violet-300 hover:bg-violet-800 transition-colors
+                                           disabled:opacity-40 disabled:cursor-not-allowed">
+                                <span class="max-w-[70px] truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
+                            </button>
+                            <button @click="wizardStepUp"
+                                    :disabled="props.ancestors.length < 2 || wizardLoading"
+                                    :title="props.ancestors[props.ancestors.length - 2]?.name"
+                                    class="shrink-0 px-1.5 py-0.5 rounded text-xs border border-violet-700
+                                           text-violet-300 hover:bg-violet-800 transition-colors
+                                           disabled:opacity-40 disabled:cursor-not-allowed"
+                                    title="Go to parent scope">
+                                ↑
+                            </button>
+                        </div>
+                        <!-- Row 2: options / in-progress indicator -->
+                        <div class="shrink-0 flex items-center gap-2.5 px-3 py-1.5 bg-violet-900/20 border-b border-violet-800">
+                            <template v-if="massToolRunning">
+                                <span class="w-2.5 h-2.5 rounded-full bg-violet-400 animate-ping shrink-0"></span>
+                                <span class="text-[10px] text-violet-300 animate-pulse font-medium">Seeding…</span>
+                            </template>
+                            <template v-else>
+                                <label class="flex items-center gap-1 cursor-pointer shrink-0">
+                                    <input type="checkbox" v-model="wizardAutoSeed" class="w-3 h-3 accent-violet-400">
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto-seed</span>
+                                </label>
+                                <label class="flex items-center gap-1 cursor-pointer shrink-0">
+                                    <input type="checkbox" v-model="wizardSkipSeeded" class="w-3 h-3 accent-violet-400">
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Skip Complete</span>
+                                </label>
+                                <label class="flex items-center gap-1 cursor-pointer shrink-0">
+                                    <input type="checkbox" v-model="wizardAutoStep" class="w-3 h-3 accent-violet-400">
+                                    <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto Step
+                                        <span v-if="wizardAutoCountdown > 0"
+                                              class="ml-0.5 font-bold tabular-nums text-violet-200">{{ wizardAutoCountdown }}s</span>
+                                    </span>
+                                </label>
+                                <select v-if="wizardAutoStep"
+                                        v-model.number="wizardAutoDelay"
+                                        title="Auto-step delay"
+                                        class="shrink-0 text-[10px] bg-violet-900 border border-violet-700 rounded
+                                               text-violet-200 py-0 px-1 leading-tight cursor-pointer">
+                                    <option :value="3">3s</option>
+                                    <option :value="5">5s</option>
+                                    <option :value="10">10s</option>
+                                    <option :value="15">15s</option>
+                                    <option :value="30">30s</option>
+                                    <option :value="60">60s</option>
+                                    <option :value="120">2m</option>
+                                </select>
+                            </template>
+                        </div>
+                    </template>
 
                     <!-- Scope picker panel -->
                     <div v-if="massToolPanel !== null"
@@ -1056,93 +1136,6 @@
                     </div>
                 </div>
 
-                <!-- ── Wizard Stepper control bar ─────────────────────────────────── -->
-                <div v-if="wizardActive"
-                     class="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-violet-950 border-b border-violet-800">
-
-                    <!-- Back: shows prev scope name -->
-                    <button @click="wizardStepBackward"
-                            :disabled="wizardCurrentIndex <= 0 || wizardLoading"
-                            :title="wizardSteps[wizardCurrentIndex - 1]?.scope_name"
-                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                   text-violet-300 hover:bg-violet-800 transition-colors
-                                   disabled:opacity-40 disabled:cursor-not-allowed">
-                        ←&nbsp;<span class="max-w-[110px] truncate">{{ wizardSteps[wizardCurrentIndex - 1]?.scope_name ?? '—' }}</span>
-                    </button>
-
-                    <!-- Step indicator: N / Total · Current scope name -->
-                    <span class="text-[10px] text-violet-400 shrink-0 whitespace-nowrap px-1">
-                        <template v-if="wizardLoading">Loading…</template>
-                        <template v-else-if="wizardCurrentIndex >= 0 && wizardSteps.length > 0">
-                            {{ wizardCurrentIndex + 1 }}&thinsp;/&thinsp;{{ wizardSteps.length }}
-                            &middot;
-                            <span class="text-violet-200 font-medium">{{ wizardSteps[wizardCurrentIndex]?.scope_name }}</span>
-                        </template>
-                    </span>
-
-                    <!-- Forward: shows next scope name -->
-                    <button @click="wizardStepForward"
-                            :disabled="wizardCurrentIndex >= wizardSteps.length - 1 || wizardLoading"
-                            :title="wizardSteps[wizardCurrentIndex + 1]?.scope_name"
-                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                   text-violet-300 hover:bg-violet-800 transition-colors
-                                   disabled:opacity-40 disabled:cursor-not-allowed">
-                        <span class="max-w-[110px] truncate">{{ wizardSteps[wizardCurrentIndex + 1]?.scope_name ?? '—' }}</span>&nbsp;→
-                    </button>
-
-                    <!-- Up: shows parent scope name -->
-                    <button @click="wizardStepUp"
-                            :disabled="props.ancestors.length < 2 || wizardLoading"
-                            :title="props.ancestors[props.ancestors.length - 2]?.name"
-                            class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                   text-violet-300 hover:bg-violet-800 transition-colors
-                                   disabled:opacity-40 disabled:cursor-not-allowed">
-                        ↑&nbsp;<span class="max-w-[90px] truncate">{{ props.ancestors[props.ancestors.length - 2]?.name ?? '—' }}</span>
-                    </button>
-
-                    <!-- Toggles pushed to far right -->
-                    <label class="flex items-center gap-1 cursor-pointer ml-auto shrink-0">
-                        <input type="checkbox" v-model="wizardAutoSeed" class="w-3 h-3 accent-violet-400">
-                        <span class="text-[10px] text-violet-400 whitespace-nowrap">Auto-seed</span>
-                    </label>
-                    <label class="flex items-center gap-1 cursor-pointer shrink-0">
-                        <input type="checkbox" v-model="wizardSkipSeeded" class="w-3 h-3 accent-violet-400">
-                        <span class="text-[10px] text-violet-400 whitespace-nowrap">Skip Complete</span>
-                    </label>
-
-                    <!-- Auto-step: checkbox + live countdown + adjustable delay -->
-                    <label class="flex items-center gap-1 cursor-pointer shrink-0">
-                        <input type="checkbox" v-model="wizardAutoStep" class="w-3 h-3 accent-violet-400">
-                        <span class="text-[10px] text-violet-400 whitespace-nowrap">
-                            Auto
-                            <!-- Live countdown pill — only visible while timer is running -->
-                            <span v-if="wizardAutoCountdown > 0"
-                                  class="ml-0.5 font-bold tabular-nums text-violet-200">{{ wizardAutoCountdown }}s</span>
-                        </span>
-                    </label>
-                    <!-- Delay selector — shown only when auto-step is on -->
-                    <select v-if="wizardAutoStep"
-                            v-model.number="wizardAutoDelay"
-                            title="Auto-step delay (seconds)"
-                            class="shrink-0 text-[10px] bg-violet-900 border border-violet-700 rounded
-                                   text-violet-200 py-0 px-1 leading-tight cursor-pointer">
-                        <option :value="3">3s</option>
-                        <option :value="5">5s</option>
-                        <option :value="10">10s</option>
-                        <option :value="15">15s</option>
-                        <option :value="30">30s</option>
-                        <option :value="60">60s</option>
-                        <option :value="120">2m</option>
-                    </select>
-
-                    <!-- Exit -->
-                    <button @click="deactivateWizard"
-                            title="Exit wizard"
-                            class="px-1.5 py-0.5 rounded text-[10px] border border-violet-700 text-violet-500
-                                   hover:text-violet-200 hover:border-violet-500 transition-colors ml-1 shrink-0">
-                        ✕ Exit
-                    </button>
-                </div>
 
                 <!-- ── Map area: inner wrapper gives a fresh positioning context  ──
                      All absolute overlays (label buttons, edit hint, status toast,
@@ -2868,7 +2861,8 @@ async function runWizardAutoActions() {
     // the auto-step timer (if on) fires and advances to the next scope.
     if (wizardAutoSeed.value && !wasAlreadyComplete) {
         await runMassReseed('map_view_unassigned', null, /* silent */ true)
-        await nextTick()   // let Vue flush updated props into computeds
+        await nextTick()           // let Vue flush updated props into computeds
+        await reinitMapLayers()    // repaint map with the newly created districts
         return false   // seeded — stay on scope for review
     }
 
