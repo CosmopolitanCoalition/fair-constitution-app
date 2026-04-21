@@ -1403,13 +1403,14 @@ const copyingMapId      = ref(null)   // non-null while copy request is in-fligh
 // (wizardSteps and wizardCurrentIndex are not persisted; they are re-fetched and
 //  re-derived on every mount from the current scope.)
 const _wizardLs = {
-    active:     `leg_wizard_${props.legislature.id}_active`,
-    autoSeed:   `leg_wizard_${props.legislature.id}_autoseed`,
-    skip:       `leg_wizard_${props.legislature.id}_skip`,
-    lastDir:    `leg_wizard_${props.legislature.id}_lastdir`,
-    newmap:     `leg_wizard_${props.legislature.id}_newmap`,
-    autoStep:   `leg_wizard_${props.legislature.id}_autostep`,
-    autoDelay:  `leg_wizard_${props.legislature.id}_autodelay`,
+    active:      `leg_wizard_${props.legislature.id}_active`,
+    autoSeed:    `leg_wizard_${props.legislature.id}_autoseed`,
+    skip:        `leg_wizard_${props.legislature.id}_skip`,
+    lastDir:     `leg_wizard_${props.legislature.id}_lastdir`,
+    newmap:      `leg_wizard_${props.legislature.id}_newmap`,
+    autoStep:    `leg_wizard_${props.legislature.id}_autostep`,
+    autoDelay:   `leg_wizard_${props.legislature.id}_autodelay`,
+    justStepped: `leg_wizard_${props.legislature.id}_stepped`,   // gates auto-actions to step-triggered mounts
 }
 const wizardActive        = ref(localStorage.getItem(_wizardLs.active)   === '1')
 const wizardSteps         = ref([])     // [{ scope_id, scope_name }] — re-fetched on every mount
@@ -1435,7 +1436,9 @@ watch(wizardAutoDelay,  v => {
 watch(wizardAutoStep, v => {
     localStorage.setItem(_wizardLs.autoStep, v ? '1' : '0')
     if (!v) clearAutoStepTimer()
-    else    startAutoStepTimer()   // toggled on mid-session → start immediately
+    // Timer is NOT started here on toggle-on — it starts from onMounted after
+    // runWizardAutoActions() completes, preventing a step fire mid-auto-seed.
+    // The timer will activate on the next scope the user navigates to.
 })
 
 // Set of parent jurisdiction IDs whose sub-districts are shown on the map
@@ -2825,6 +2828,12 @@ function startAutoStepTimer() {
     if (!wizardAutoStep.value) return
     wizardAutoCountdown.value = wizardAutoDelay.value
     _autoStepTimer = setInterval(() => {
+        // Self-terminate if auto-step or the wizard was turned off externally
+        // (e.g. user unchecks the box mid-countdown, or deactivates wizard).
+        if (!wizardAutoStep.value || !wizardActive.value) {
+            clearAutoStepTimer()
+            return
+        }
         wizardAutoCountdown.value--
         if (wizardAutoCountdown.value <= 0) {
             clearAutoStepTimer()
@@ -2850,21 +2859,26 @@ function clearAutoStepTimer() {
 // Returns true if we navigated away (skip fired), false if we stayed.
 // onMounted calls this after wizard bootstrap; the scope watch calls it too.
 async function runWizardAutoActions() {
-    // Auto-seed: silently reseed unassigned compositable children at this scope.
-    // router.reload() inside runMassReseed is now awaitable, so unassignedAssignable
-    // will be fresh by the time we reach the skip-seeded check below.
-    if (wizardAutoSeed.value) {
+    // Capture completion state BEFORE auto-seed so skip-seeded only fires when
+    // the scope was already complete on arrival — not because we just seeded it.
+    const wasAlreadyComplete = unassignedAssignable.value.length === 0
+
+    // Auto-seed: only run if there is actually something to seed.
+    // Returns false immediately so the user can review the seeded result before
+    // the auto-step timer (if on) fires and advances to the next scope.
+    if (wizardAutoSeed.value && !wasAlreadyComplete) {
         await runMassReseed('map_view_unassigned', null, /* silent */ true)
-        await nextTick()   // let Vue flush the updated props into computeds
+        await nextTick()   // let Vue flush updated props into computeds
+        return false   // seeded — stay on scope for review
     }
 
-    // Skip-seeded: if no compositable children remain unassigned, step one hop
-    // in the current direction.  Chaining across multiple complete scopes happens
-    // naturally because each drillTo() remounts the component and onMounted runs
-    // this function again — no while-loop needed here.
-    if (wizardSkipSeeded.value && unassignedAssignable.value.length === 0) {
+    // Skip-seeded: advance only if scope was already complete on arrival.
+    // Chaining across multiple complete scopes works naturally because each
+    // drillTo() remounts the component and onMounted runs this function again.
+    if (wizardSkipSeeded.value && wasAlreadyComplete) {
         const next = wizardCurrentIndex.value + _wizardLastDir
         if (next >= 0 && next < wizardSteps.value.length) {
+            localStorage.setItem(_wizardLs.justStepped, '1')   // gate auto-actions on next mount
             wizardCurrentIndex.value = next
             drillTo(wizardSteps.value[next].scope_id)
             return true   // navigated away — caller should NOT start auto-step timer
@@ -2879,6 +2893,7 @@ function wizardGoToIndex(idx) {
     _wizardLastDir = idx > wizardCurrentIndex.value ? 1 : -1
     localStorage.setItem(_wizardLs.lastDir, String(_wizardLastDir))
     wizardCurrentIndex.value = idx
+    localStorage.setItem(_wizardLs.justStepped, '1')   // signals onMounted to run auto-actions
     drillTo(wizardSteps.value[idx].scope_id)
     // auto-seed, skip-seeded, and auto-step timer restart in onMounted bootstrap
 }
@@ -3879,11 +3894,18 @@ onMounted(async () => {
         const idx = wizardSteps.value.findIndex(s => s.scope_id === props.scope.id)
         if (idx >= 0) wizardCurrentIndex.value = idx
 
-        // Run auto-seed + skip-seeded.  Returns true if skip navigated away (so
-        // we skip starting the auto-step timer — the next mount will handle it).
-        const navigatedAway = await runWizardAutoActions()
-        if (!navigatedAway && wizardAutoStep.value) {
-            startAutoStepTimer()
+        // Only run auto-actions when we arrived via an explicit wizard step.
+        // Without this guard, auto-seed + the timer would fire on any page open /
+        // browser refresh while the wizard is active (e.g. localStorage auto-step=1
+        // left over from a previous session).
+        const justStepped = localStorage.getItem(_wizardLs.justStepped) === '1'
+        localStorage.removeItem(_wizardLs.justStepped)   // consume immediately
+
+        if (justStepped) {
+            const navigatedAway = await runWizardAutoActions()
+            if (!navigatedAway && wizardAutoStep.value) {
+                startAutoStepTimer()
+            }
         }
     }
 })
@@ -3909,9 +3931,16 @@ watch(() => props.scope.id, async () => {
     // Delegate to the shared auto-seed + skip-seeded + auto-step logic.
     // This watch fires for prop-only updates (rare — most navigations use
     // router.visit() which remounts and goes through onMounted instead).
-    const navigatedAway = await runWizardAutoActions()
-    if (!navigatedAway && wizardAutoStep.value) {
-        startAutoStepTimer()
+    // Apply the same justStepped guard: onMounted didn't run here, so the flag
+    // is still in localStorage if this was triggered by a wizard step.
+    const justStepped = localStorage.getItem(_wizardLs.justStepped) === '1'
+    localStorage.removeItem(_wizardLs.justStepped)
+
+    if (justStepped) {
+        const navigatedAway = await runWizardAutoActions()
+        if (!navigatedAway && wizardAutoStep.value) {
+            startAutoStepTimer()
+        }
     }
 })
 
