@@ -1579,11 +1579,34 @@ class LegislatureController extends Controller
 
         $scopeId       = $request->input('scope_id');
         $clearExisting = (bool) $request->input('clear_existing', false);
-        $mapId         = $this->getMapId($legislature_id, $request->input('map_id'));
+        // ensureMapId auto-creates a "Draft N" map if none exists so the
+        // districts inserted here belong to a versioned plan instead of
+        // floating with map_id = NULL.
+        $mapId         = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         if (!$scopeId) {
             return response()->json(['error' => 'scope_id is required'], 422);
         }
+
+        // Publish a single-scope progress marker so the wizard's stepper-driven
+        // autoseed (which calls this endpoint one scope at a time) gets the
+        // same fine-grained phase visibility as massReseed's sweep.
+        $scopeName = DB::table('jurisdictions')
+            ->where('id', $scopeId)
+            ->value('name') ?? $scopeId;
+        Cache::put("legislature.{$legislature_id}.mass_running", true, 1800);
+        $this->publishMassProgress($legislature_id, [
+            'current_scope'    => $scopeName,
+            'current_scope_id' => $scopeId,
+            'completed'        => 0,
+            'total'            => 1,
+            'started_at'       => time(),
+            'scope_started_at' => time(),
+            'phase'            => 'starting',
+            'phase_label'      => "Starting autoseed for {$scopeName}",
+            'phase_current'    => 0,
+            'phase_total'      => 0,
+        ]);
 
         // At root scope: auto-update type_a_seats from cube root of sum(children populations).
         // At non-root scope: derive seat budget from the district graph
@@ -1617,18 +1640,30 @@ class LegislatureController extends Controller
             );
             if ($result['error'] !== null) {
                 DB::rollBack();
+                Cache::forget("legislature.{$legislature_id}.mass_running");
+                Cache::forget("legislature.{$legislature_id}.mass_progress");
                 return response()->json(['error' => $result['error']], 422);
             }
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Cache::forget("legislature.{$legislature_id}.mass_running");
+            Cache::forget("legislature.{$legislature_id}.mass_progress");
             return response()->json(['error' => 'Auto-composite failed: ' . $e->getMessage()], 500);
         }
 
+        $this->publishMassProgress($legislature_id, [
+            'completed'    => 1,
+            'phase'        => 'done',
+            'phase_label'  => "Autoseed complete: {$result['districts_created']} districts created",
+        ]);
         $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $mapId);
 
         // Invalidate revealed.geojson cache — autoComposite creates/replaces districts.
         $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
+
+        Cache::forget("legislature.{$legislature_id}.mass_running");
+        Cache::forget("legislature.{$legislature_id}.mass_progress");
 
         return response()->json([
             'success'          => true,
@@ -1667,7 +1702,10 @@ class LegislatureController extends Controller
 
         $operationScope = $request->input('operation_scope');
         $scopeId        = $request->input('scope_id');
-        $mapId          = $this->getMapId($legislature_id, $request->input('map_id'));
+        // ensureMapId auto-creates a "Draft N" map if none exists so the
+        // districts inserted by this sweep belong to a versioned plan
+        // instead of floating with map_id = NULL.
+        $mapId          = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         if (!$operationScope || !$scopeId) {
             return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
@@ -1710,52 +1748,85 @@ class LegislatureController extends Controller
             ->pluck('name', 'id')
             ->toArray();
         $totalScopes = count($scopeIds);
+        $runStartedAt = time();
 
-        DB::beginTransaction();
-        try {
-            foreach ($scopeIds as $scopeIdx => $sid) {
-                // Publish progress so the frontend progress banner can show current scope
-                Cache::put("legislature.{$legislature_id}.mass_progress", [
-                    'current_scope' => $scopeNames[$sid] ?? $sid,
-                    'completed'     => $scopeIdx,
-                    'total'         => $totalScopes,
-                ], 7200);
+        $this->publishMassProgress($legislature_id, [
+            'completed'     => 0,
+            'total'         => $totalScopes,
+            'started_at'    => $runStartedAt,
+            'current_scope' => $scopeNames[$scopeIds[0] ?? null] ?? null,
+            'phase'         => 'starting',
+            'phase_label'   => 'Starting mass-reseed sweep',
+        ]);
 
-                // Compute per-scope seat budget
-                if ($sid === $leg->jurisdiction_id) {
-                    $seatBudget = (int) $leg->type_a_seats;
-                } else {
-                    $sidScope    = DB::table('jurisdictions')->where('id', $sid)->whereNull('deleted_at')->first();
-                    // Use SUM(direct_children.population) for the proportional fallback — matches show()
-                    // level-by-level apportionment fix (2026-03-10). Stored population can differ from
-                    // the children sum due to ADM-level data-source inconsistencies in GeoBoundaries.
-                    $sidChildPop = (int) DB::table('jurisdictions')
-                        ->where('parent_id', $sid)
-                        ->whereNull('deleted_at')
-                        ->sum('population');
-                    $sidLocked   = $this->lookupApportionedSeats($sid, $legislature_id);
-                    $seatBudget  = $sidLocked !== null
-                        ? $sidLocked
-                        : max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round($sidChildPop * (int) $leg->type_a_seats / $rootPop));
-                }
+        // Per-scope transactions: each scope commits independently so partial
+        // progress survives any error in subsequent scopes. The previous
+        // single-tx wrap could lose hours of work to a single failed scope.
+        foreach ($scopeIds as $scopeIdx => $sid) {
+            $scopeStart = time();
+            $this->publishMassProgress($legislature_id, [
+                'current_scope'    => $scopeNames[$sid] ?? $sid,
+                'current_scope_id' => $sid,
+                'completed'        => $scopeIdx,
+                'total'            => $totalScopes,
+                'phase'            => 'scope_start',
+                'phase_label'      => "Starting scope: " . ($scopeNames[$sid] ?? $sid),
+                'phase_current'    => 0,
+                'phase_total'      => 0,
+                'scope_started_at' => $scopeStart,
+            ]);
+
+            // Compute per-scope seat budget
+            if ($sid === $leg->jurisdiction_id) {
+                $seatBudget = (int) $leg->type_a_seats;
+            } else {
+                $sidScope    = DB::table('jurisdictions')->where('id', $sid)->whereNull('deleted_at')->first();
+                // Use SUM(direct_children.population) for the proportional fallback — matches show()
+                // level-by-level apportionment fix (2026-03-10). Stored population can differ from
+                // the children sum due to ADM-level data-source inconsistencies in GeoBoundaries.
+                $sidChildPop = (int) DB::table('jurisdictions')
+                    ->where('parent_id', $sid)
+                    ->whereNull('deleted_at')
+                    ->sum('population');
+                $sidLocked   = $this->lookupApportionedSeats($sid, $legislature_id);
+                $seatBudget  = $sidLocked !== null
+                    ? $sidLocked
+                    : max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round($sidChildPop * (int) $leg->type_a_seats / $rootPop));
+            }
+
+            DB::beginTransaction();
+            try {
                 $result = $this->runAutoCompositeForScope(
                     $legislature_id, $leg, $sid, $clearExisting, $seatBudget, $mapId
                 );
                 if ($result['error'] !== null) {
-                    // Non-fatal (e.g. no compositable children) — record and continue
-                    $errors[] = $result['error'];
+                    // Non-fatal (e.g. no compositable children) — record, commit
+                    // the (empty) tx, and continue
+                    DB::commit();
+                    $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $result['error'];
                 } else {
+                    DB::commit();
                     $totalCreated    += $result['districts_created'];
                     $scopesProcessed++;
                 }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
+                $this->publishMassProgress($legislature_id, [
+                    'phase'       => 'scope_failed',
+                    'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
+                ]);
+                // Continue to the next scope — don't abort the whole sweep.
             }
-            DB::commit();
-            Cache::forget("legislature.{$legislature_id}.mass_progress");
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Cache::forget("legislature.{$legislature_id}.mass_running");
-            return response()->json(['error' => 'Mass reseed failed: ' . $e->getMessage()], 500);
         }
+
+        // Final completed marker.
+        $this->publishMassProgress($legislature_id, [
+            'completed'    => $totalScopes,
+            'phase'        => 'sweep_done',
+            'phase_label'  => "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts",
+        ]);
+        Cache::forget("legislature.{$legislature_id}.mass_progress");
 
         // Recompute 4-color indices outside the transaction (read-heavy, non-critical to atomicity)
         foreach ($scopeIds as $sid) {
@@ -2420,6 +2491,10 @@ class LegislatureController extends Controller
         $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
 
         // ── Step 1: Fetch ALL direct children with geometry ──────────────────
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'loading',
+            'phase_label' => 'Loading children + centroids',
+        ]);
         $allChildrenRows = DB::select("
             SELECT
                 j.id, j.name, j.population,
@@ -2454,6 +2529,15 @@ class LegislatureController extends Controller
                 $nonGiantRows[] = $c;
             }
         }
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'classified',
+            'phase_label'   => sprintf(
+                'Classified %d children: %d giant + %d compositable, budget %d seats',
+                count($allChildrenRows), count($giantRows), count($nonGiantRows), $seatBudget,
+            ),
+            'phase_current' => 0,
+            'phase_total'   => count($nonGiantRows),
+        ]);
 
         // ── Step 4: Lock giant seat allocations ───────────────────────────────
         // Each giant's locked seat count is the round-up of its fractional
@@ -2652,6 +2736,13 @@ class LegislatureController extends Controller
             $allBins = array_merge($allBins, $bestBins ?? [$component]);
         }
 
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'binning_done',
+            'phase_label'   => sprintf('Bin partitioning complete: %d bins formed', count($allBins)),
+            'phase_current' => count($allBins),
+            'phase_total'   => count($allBins),
+        ]);
+
         // Cross-component post-repair: merge undersized bins (< floor fractional) into
         // nearest absorbable bin (merged total < giant_threshold). Handles isolated
         // island jurisdictions.
@@ -2691,6 +2782,10 @@ class LegislatureController extends Controller
 
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
+            $this->publishMassProgress($legislature_id, [
+                'phase'       => 'clearing',
+                'phase_label' => 'Clearing existing districts at this scope',
+            ]);
             // Clear null-jurisdiction composites whose members are direct children of this scope
             $nullClearQuery = DB::table('legislature_districts AS ld')
                 ->join('legislature_district_jurisdictions AS ldj', 'ldj.district_id', '=', 'ld.id')
@@ -2795,7 +2890,27 @@ class LegislatureController extends Controller
         // composite-member proportional share is a deferred refinement —
         // current callers tolerate the full-district approximation).
         $districtsCreated = 0;
-        foreach ($binData as $bin) {
+        $totalDistricts   = count($binData);
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'inserting',
+            'phase_label'   => "Inserting {$totalDistricts} districts (computing geometry per district)",
+            'phase_current' => 0,
+            'phase_total'   => $totalDistricts,
+        ]);
+        foreach ($binData as $binIdx => $bin) {
+            // Per-district progress so the operator can tell whether a slow
+            // scope is stuck on geometry computation (Step 12, dominant cost)
+            // versus stuck in the bin-balancing inner loops (earlier steps).
+            $this->publishMassProgress($legislature_id, [
+                'phase'         => 'geometry',
+                'phase_label'   => sprintf(
+                    'District %d of %d — %d members, %d seats — running ST_Union…',
+                    $binIdx + 1, $totalDistricts, count($bin['jids']), $bin['seats'],
+                ),
+                'phase_current' => $binIdx + 1,
+                'phase_total'   => $totalDistricts,
+            ]);
+
             $distNumQ = DB::table('legislature_districts')
                 ->where('legislature_id', $legislature_id)
                 ->where('jurisdiction_id', $scopeId)
@@ -5261,6 +5376,68 @@ class LegislatureController extends Controller
         foreach ($ancestorRows as $row) {
             Cache::tags(["revealed.{$legislature_id}.{$mapKey}.{$row->id}"])->flush();
         }
+    }
+
+    /**
+     * Same as getMapId() but never returns null — auto-creates a "Draft 1"
+     * map row if none exists for this legislature. Called from autoseed
+     * paths so districts inserted by runAutoCompositeForScope always belong
+     * to a versioned map container instead of floating with map_id = NULL.
+     *
+     * Naming: "Draft N" where N is one more than the highest existing
+     * Draft-numbered map (resilient to manual map creation by the operator).
+     */
+    private function ensureMapId(string $legislature_id, ?string $requestedMapId): string
+    {
+        $existing = $this->getMapId($legislature_id, $requestedMapId);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        // Find the highest existing "Draft N" so we don't collide.
+        $existingNames = DB::table('legislature_district_maps')
+            ->where('legislature_id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->pluck('name')
+            ->toArray();
+        $maxDraftN = 0;
+        foreach ($existingNames as $n) {
+            if (preg_match('/^Draft\s+(\d+)\s*$/i', (string) $n, $m)) {
+                $maxDraftN = max($maxDraftN, (int) $m[1]);
+            }
+        }
+        $name = 'Draft ' . ($maxDraftN + 1);
+
+        $newId = (string) Str::uuid();
+        DB::table('legislature_district_maps')->insert([
+            'id'             => $newId,
+            'legislature_id' => $legislature_id,
+            'name'           => $name,
+            'description'    => 'Auto-created on first autoseed run.',
+            'status'         => 'draft',
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+        return $newId;
+    }
+
+    /**
+     * Publish granular phase progress for an in-flight mass operation.
+     * The Vue side polls /mass-status every 2.5 s and displays the latest
+     * snapshot. Cache::put is independent of any open DB transaction, so
+     * progress is visible to other backends even mid-tx.
+     *
+     * Pass a partial array — keys are merged into the existing snapshot so
+     * a phase change doesn't clobber unrelated fields like `completed`.
+     */
+    private function publishMassProgress(string $legislature_id, array $patch): void
+    {
+        $key = "legislature.{$legislature_id}.mass_progress";
+        $existing = Cache::get($key, []);
+        if (! is_array($existing)) $existing = [];
+        Cache::put($key, array_merge($existing, $patch, [
+            'last_update_at' => time(),
+        ]), 7200);
     }
 
     private function getMapId(string $legislature_id, ?string $requestedMapId): ?string

@@ -244,6 +244,19 @@
                             <div class="h-full bg-indigo-400 transition-all duration-300"
                                  :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
                         </div>
+                        <!-- Phase label + per-scope sub-progress -->
+                        <template v-if="massProgress && massProgress.phase_label">
+                            <div class="flex items-center gap-2 text-[10px] text-indigo-400 leading-tight">
+                                <span class="truncate">{{ massProgress.phase_label }}</span>
+                                <span v-if="massScopeElapsed"
+                                      class="ml-auto shrink-0 tabular-nums">{{ massScopeElapsed }} on scope</span>
+                            </div>
+                            <div v-if="massProgress.phase_total > 0 && massProgress.phase_current > 0"
+                                 class="h-0.5 rounded-full bg-indigo-900/60 overflow-hidden">
+                                <div class="h-full bg-indigo-300 transition-all duration-300"
+                                     :style="{ width: ((massProgress.phase_current / massProgress.phase_total) * 100) + '%' }"></div>
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Map Quality + Constitutional Flags — unified panel -->
@@ -1504,16 +1517,28 @@ const massToolRunning = ref(false)
 // Set to true if a mass operation is in flight (persists across navigation via cache flag).
 const massJobRunning    = ref(props.mass_tool_running ?? false)
 const recolorProgress   = ref(null)   // { phase, total, started_at } or null
-const massProgress      = ref(null)   // { current_scope, completed, total } or null (reseed/disband)
+const massProgress      = ref(null)   // { current_scope, completed, total, phase, phase_label, phase_current, phase_total, scope_started_at, ... }
 const recolorElapsed    = ref('')
+const massScopeElapsed  = ref('')
 let   massStatusTimer   = null
 let   elapsedTimer      = null
 
 function updateElapsed() {
-    if (!recolorProgress.value?.started_at) { recolorElapsed.value = ''; return }
-    const secs = Math.floor(Date.now() / 1000 - recolorProgress.value.started_at)
-    const m = Math.floor(secs / 60), s = secs % 60
-    recolorElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
+    if (recolorProgress.value?.started_at) {
+        const secs = Math.floor(Date.now() / 1000 - recolorProgress.value.started_at)
+        const m = Math.floor(secs / 60), s = secs % 60
+        recolorElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
+    } else {
+        recolorElapsed.value = ''
+    }
+
+    if (massProgress.value?.scope_started_at) {
+        const secs = Math.floor(Date.now() / 1000 - massProgress.value.scope_started_at)
+        const m = Math.floor(secs / 60), s = secs % 60
+        massScopeElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
+    } else {
+        massScopeElapsed.value = ''
+    }
 }
 
 function recolorPhaseLabel(phase, total) {
