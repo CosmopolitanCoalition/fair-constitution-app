@@ -149,6 +149,12 @@ Route::get('/api/legislatures/{legislature_id}/mass-status', [LegislatureControl
 Route::post('/api/legislatures/{legislature_id}/recolor', [LegislatureController::class, 'recolor'])->name('legislatures.recolor');
 Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureController::class, 'districtsAt'])->name('legislatures.districts-at');
 
+// Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
+// giant_threshold-aware). Returns { steps: [{ scope_id, scope_name }, ...],
+// current_index } so the District Mapper can step through every drillable
+// jurisdiction in the legislature's giant tree.
+Route::get('/api/legislatures/{legislature_id}/wizard-steps', [LegislatureController::class, 'wizardSteps'])->name('legislatures.wizard-steps');
+
 // District map management
 Route::get('/api/legislatures/{legislature_id}/maps', [LegislatureController::class, 'listMaps'])->name('legislatures.maps.list');
 Route::post('/api/legislatures/{legislature_id}/maps', [LegislatureController::class, 'createMap'])->name('legislatures.maps.create');
