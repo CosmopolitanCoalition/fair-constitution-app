@@ -100,6 +100,15 @@ class SetupController extends Controller
         ];
 
         $extra = [];
+        if ($n === 1) {
+            // Seed the Step 1 form with the operator's previously-saved values
+            // so revisits show the actual saved state, not the template defaults.
+            // Priority: live constitutional_settings on the planet row
+            //   → pending_constitutional_defaults stash (pre-map-data)
+            //   → Fair Constitution template defaults.
+            $extra['constants'] = $this->currentConstitutionalDefaults($settings);
+        }
+
         if ($n === 3) {
             $root = $this->resolveRootJurisdiction();
             $extra['root_jurisdiction'] = $root ? [
@@ -531,6 +540,76 @@ class SetupController extends Controller
             'settings' => $this->serializeSettings($settings->fresh()),
             'next'     => '/setup/step/2',
         ]);
+    }
+
+    /**
+     * Read the current constitutional defaults for the Step 1 form.
+     *
+     * Three sources, in priority order:
+     *   1. The planet row's `constitutional_settings` (post-Map-Data state)
+     *   2. `instance_settings.pending_constitutional_defaults` stash (pre-Map-Data:
+     *      Step 1 saved values that activateStep1 will apply when the planet
+     *      row eventually exists)
+     *   3. Fair Constitution Template defaults (fresh wizard, no edits yet)
+     *
+     * Returned shape matches the saveConstants() request payload so the Vue
+     * form can plug it straight into its refs.
+     */
+    private function currentConstitutionalDefaults(InstanceSettings $settings): array
+    {
+        $defaults = [
+            'legislature_min_seats'             => 5,
+            'legislature_max_seats'             => 9,
+            'legislature_sizing_law'            => 'cube_root',
+            'election_interval_months'          => 60,
+            'voting_method'                     => 'stv_droop',
+            'special_election_min_days'         => 90,
+            'special_election_max_days'         => 180,
+            'supermajority_numerator'           => 2,
+            'supermajority_denominator'         => 3,
+            'max_days_between_meetings'         => 90,
+            'emergency_powers_max_days'         => 90,
+            'civil_appointment_years'           => 10,
+            'judicial_appointment_years'        => 10,
+            'judiciary_min_judges_per_race'     => 5,
+            'judiciary_is_elected'              => false,
+            'worker_rep_min_employees'          => 100,
+            'worker_rep_parity_employees'       => 2000,
+            'residency_confirmation_days'       => 30,
+            'initiative_petition_threshold_pct' => 5.00,
+        ];
+
+        $root = $this->resolveRootJurisdiction();
+        if ($root) {
+            $row = DB::table('constitutional_settings')
+                ->where('jurisdiction_id', $root->id)
+                ->first();
+            if ($row) {
+                foreach (array_keys($defaults) as $k) {
+                    if (property_exists($row, $k) && $row->$k !== null) {
+                        // Cast to match the form-input types so Vue's number
+                        // inputs don't coerce a string "5" into the numeric 5
+                        // each refocus.
+                        $defaults[$k] = match ($k) {
+                            'judiciary_is_elected'              => (bool) $row->$k,
+                            'initiative_petition_threshold_pct' => (float) $row->$k,
+                            'legislature_sizing_law',
+                            'voting_method'                     => (string) $row->$k,
+                            default                             => (int) $row->$k,
+                        };
+                    }
+                }
+                return $defaults;
+            }
+        }
+
+        // No planet row yet — fall through to the stash if one exists.
+        $pending = $settings->pending_constitutional_defaults;
+        if (is_array($pending)) {
+            return array_merge($defaults, $pending);
+        }
+
+        return $defaults;
     }
 
     /**

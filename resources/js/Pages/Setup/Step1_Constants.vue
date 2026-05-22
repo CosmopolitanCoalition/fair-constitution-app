@@ -7,38 +7,50 @@ import SetupStepper from '@/Components/SetupStepper.vue'
 const props = defineProps({
     step: { type: Number, required: true },
     settings: { type: Object, required: true },
+    // Current constitutional defaults — comes from the planet row's
+    // constitutional_settings (post-Map-Data) or pending_constitutional_defaults
+    // (pre-Map-Data stash) or Fair Constitution Template defaults (fresh wizard).
+    // Lets the form display the actual saved state when the operator revisits
+    // Step 1 instead of always re-showing 5/9 template defaults.
+    constants: {
+        type: Object,
+        default: () => ({}),
+    },
 })
 
+// Pull from props.constants with the legacy hardcoded values as final fallback.
+const c = props.constants ?? {}
+
 // ── Legislature sizing ──────────────────────────────────────────────
-const minSeats = ref(5)
-const maxSeats = ref(9)
-const sizingLaw = ref('cube_root')
+const minSeats   = ref(c.legislature_min_seats   ?? 5)
+const maxSeats   = ref(c.legislature_max_seats   ?? 9)
+const sizingLaw  = ref(c.legislature_sizing_law  ?? 'cube_root')
 
 // ── Elections ──────────────────────────────────────────────────────
-const electionInterval = ref(60)
-const votingMethod = ref('stv_droop')
-const specialElectionMinDays = ref(90)
-const specialElectionMaxDays = ref(180)
+const electionInterval       = ref(c.election_interval_months  ?? 60)
+const votingMethod           = ref(c.voting_method             ?? 'stv_droop')
+const specialElectionMinDays = ref(c.special_election_min_days ?? 90)
+const specialElectionMaxDays = ref(c.special_election_max_days ?? 180)
 
 // ── Governance ─────────────────────────────────────────────────────
-const supermajorityN = ref(2)
-const supermajorityD = ref(3)
-const maxDaysBetweenMeetings = ref(90)
-const emergencyPowersMaxDays = ref(90)
+const supermajorityN         = ref(c.supermajority_numerator     ?? 2)
+const supermajorityD         = ref(c.supermajority_denominator   ?? 3)
+const maxDaysBetweenMeetings = ref(c.max_days_between_meetings   ?? 90)
+const emergencyPowersMaxDays = ref(c.emergency_powers_max_days   ?? 90)
 
 // ── Appointments & Judiciary ───────────────────────────────────────
-const civilAppointmentYears = ref(10)
-const judicialAppointmentYears = ref(10)
-const judiciaryMinJudgesPerRace = ref(5)
-const judiciaryIsElected = ref(false)
+const civilAppointmentYears      = ref(c.civil_appointment_years        ?? 10)
+const judicialAppointmentYears   = ref(c.judicial_appointment_years     ?? 10)
+const judiciaryMinJudgesPerRace  = ref(c.judiciary_min_judges_per_race  ?? 5)
+const judiciaryIsElected         = ref(c.judiciary_is_elected           ?? false)
 
 // ── Organizations & Workers ────────────────────────────────────────
-const workerRepMinEmployees = ref(100)
-const workerRepParityEmployees = ref(2000)
+const workerRepMinEmployees      = ref(c.worker_rep_min_employees       ?? 100)
+const workerRepParityEmployees   = ref(c.worker_rep_parity_employees    ?? 2000)
 
 // ── Residency & Initiative ─────────────────────────────────────────
-const residencyConfirmationDays = ref(30)
-const initiativePetitionThresholdPct = ref(5.00)
+const residencyConfirmationDays       = ref(c.residency_confirmation_days        ?? 30)
+const initiativePetitionThresholdPct  = ref(c.initiative_petition_threshold_pct  ?? 5.00)
 
 const submitting = ref(false)
 const submitError = ref(null)
