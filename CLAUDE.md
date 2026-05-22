@@ -133,15 +133,23 @@ jurisdictions                         PostGIS geometry, self-ref parent_id, fede
 constitutional_settings               Amendable defaults scoped per jurisdiction (1:1)
 organizations                         Universal entity (political_party|business|nonprofit|common_good_corp|informal)
 legislatures                          Legislature instances, term tracking, bicameral support
+legislature_district_maps             Versioned district plans per legislature (draft / active / archived)
+legislature_districts                 Districts within a plan, with seat counts (Webster-rounded)
+legislature_district_jurisdictions    Members of each district (join: district_id ↔ jurisdiction_id)
+legislature_members                   Elected reps, seat type, term dates, vacancy tracking
 elections                             Election trigger/cycle framework
-legislature_members                   Elected reps, faction affiliation, seat type, vacancy tracking
-legislature_faction_registrations     Org registered as faction for a legislature term (drives proportionality)
 endorsements                          Polymorphic — any org or individual can endorse any candidate
 location_pings                        Private GPS pings, PostGIS point, auto-trigger for geom
 residency_confirmations               Confirmed residency — unlocks voting + candidacy (absolute rights)
 ```
 
 Plus Laravel defaults: users, cache, jobs.
+
+**Forward-looking** (not yet implemented): a `jurisdiction_maps` table will
+parallel `legislature_district_maps` — `planet → jurisdiction_maps → jurisdictions`
+mirrors `legislature → district_maps → districts`. Allows boundary changes to
+be versioned over time without destroying historical data. Tracked as
+follow-up work.
 
 ---
 
@@ -158,16 +166,24 @@ Plus Laravel defaults: users, cache, jobs.
 - Eventual consistency, authoritative-instance-wins conflict resolution
 - No assumption of single-server authority anywhere
 
-### Organizations (not Factions)
+### Organizations (no Factions)
 Political parties, businesses, nonprofits, CGCs — all `organizations` with `organization_type`.
-Any org OR individual user can endorse candidates. `legislature_faction_registrations` links
-an org to a legislature term for committee proportionality.
+Any org OR individual user can endorse any candidate via the polymorphic `endorsements` table.
+The legacy `legislature_faction_registrations` table and the faction-id columns on
+`legislature_members` were removed in migration
+`2026_05_22_000002_apportionment_cleanup.php` — there is no faction layer.
 
-### Committee Assignment (Modified)
-Constitution assumed single-faction members. This app supports multi-faction and factionless:
-1. Each member ranks committee preferences
-2. `Total Reps / (Committees × seats_per_committee)` = each member's allocation
-3. Conflict resolution: 1st-choice election performance, then subsequent rank performance
+### Committee Assignment (Faction-Independent)
+Each legislature member rank-orders committee preferences. Each committee has a
+fixed number of seats per the constitutional settings; the total committee
+seats across all committees = the number of placements to fill.
+
+1. Each member rank-orders committee preferences
+2. Placements respect rank order
+3. Tie-breaks go to the legislative seat holder with the largest share of votes
+   after normalizing quotas to account for one-person-one-vote deviations.
+   This preserves the proportional representation produced by the STV election
+   while making committee assignment independent of any party/faction layer.
 
 ### Executive Types (Article III)
 - **Committee**: 5+ via PR-STV, equal voting power (UK model)

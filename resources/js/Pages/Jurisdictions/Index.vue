@@ -45,8 +45,6 @@
                             <th class="px-4 py-2 font-medium border-b border-gray-800">Name</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 font-mono text-xs">Slug</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 text-right">Population</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 text-right" title="Population-proportional seats in parent legislature">A Seats</th>
-                            <th class="px-4 py-2 font-medium border-b border-gray-800 text-right" title="Equal-house seats in parent legislature">B Seats</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -66,12 +64,6 @@
                             <td class="px-4 py-2 text-right text-gray-300 tabular-nums">
                                 {{ j.population ? Number(j.population).toLocaleString() : '—' }}
                                 <span v-if="j.population_year" class="text-gray-600 text-xs ml-1">'{{ String(j.population_year).slice(-2) }}</span>
-                            </td>
-                            <td class="px-4 py-2 text-right tabular-nums" :class="j.type_a_apportioned ? 'text-green-400 font-semibold' : 'text-gray-600'">
-                                {{ j.type_a_apportioned ?? '—' }}
-                            </td>
-                            <td class="px-4 py-2 text-right tabular-nums" :class="j.type_b_apportioned ? 'text-blue-400' : 'text-gray-600'">
-                                {{ j.type_b_apportioned ?? '—' }}
                             </td>
                         </tr>
                     </tbody>

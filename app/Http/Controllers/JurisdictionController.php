@@ -26,8 +26,7 @@ class JurisdictionController extends Controller
             ->orderBy('adm_level')
             ->orderBy('name')
             ->select(
-                'id', 'name', 'slug', 'adm_level', 'population', 'population_year',
-                'type_a_apportioned', 'type_b_apportioned'
+                'id', 'name', 'slug', 'adm_level', 'population', 'population_year'
             )
             ->paginate(50)
             ->withQueryString();
@@ -48,10 +47,13 @@ class JurisdictionController extends Controller
      * children list). The map pane gets WorldPop raster overlay toggle and
      * Protomaps base tiles (via P.7).
      *
-     * Per the P.4 constraint, this viewer does NOT echo `type_a_seats` /
-     * `type_b_seats` / `type_a_apportioned` / `type_b_apportioned` — those
-     * stay in the legislature browser (`/legislatures/{id}`) where the
-     * district mapper still owns the seat-budget concern.
+     * Per the P.4 constraint, this viewer does NOT echo `type_a_seats`
+     * or `type_b_seats` — those stay in the legislature browser
+     * (`/legislatures/{id}`) where the district mapper owns the
+     * seat-budget concern. (The previous per-jurisdiction
+     * `type_a_apportioned` / `type_b_apportioned` columns were dropped
+     * by migration 2026_05_22_000002_apportionment_cleanup.php —
+     * apportionment lives only at the district level now.)
      */
     public function show(Jurisdiction $jurisdiction): Response
     {
@@ -338,10 +340,24 @@ class JurisdictionController extends Controller
         ])->save();
 
         // Dispatch apportionment as a queued artisan command. Horizon picks
-        // it up; the wizard polls instance_settings.apportionment_completed_at
-        // to gate Step 3.
+        // it up; the UI polls instance_settings.apportionment_completed_at
+        // (which ApportionmentSeedCommand now stamps on completion) to
+        // flip the banner from "running…" → "completed".
+        //
+        // Earth-only scope for now: we look up the adm_level=0 jurisdiction
+        // (the planet root) by id and pass its UUID to apportionment:seed
+        // until apportionment + district building are proven on a single
+        // legislature. To enable other scopes later, derive the scope from
+        // the clicked jurisdiction (this endpoint is currently only wired
+        // up on the planet-scope page).
+        $earthId = DB::table('jurisdictions')
+            ->where('adm_level', 0)
+            ->whereNull('deleted_at')
+            ->value('id');
         try {
-            \Illuminate\Support\Facades\Artisan::queue('apportionment:seed');
+            \Illuminate\Support\Facades\Artisan::queue('apportionment:seed', [
+                '--jurisdiction' => $earthId,
+            ]);
         } catch (\Throwable $e) {
             // Don't fail the acceptance — the operator can re-run the command
             // manually if Horizon is down.
@@ -376,8 +392,6 @@ class JurisdictionController extends Controller
                     j.adm_level,
                     j.population,
                     j.iso_code,
-                    j.type_a_apportioned,
-                    j.type_b_apportioned,
                     COALESCE(cc.child_count, 0) AS child_count,
                     ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance)) AS geojson,
                     ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
@@ -413,8 +427,6 @@ class JurisdictionController extends Controller
                         'child_count'         => (int) $row->child_count,
                         'centroid_lat'        => (float) $row->centroid_lat,
                         'centroid_lng'        => (float) $row->centroid_lng,
-                        'type_a_apportioned'  => $row->type_a_apportioned !== null ? (int) $row->type_a_apportioned : null,
-                        'type_b_apportioned'  => $row->type_b_apportioned !== null ? (int) $row->type_b_apportioned : null,
                     ],
                 ];
             }, $rows);
@@ -448,8 +460,6 @@ class JurisdictionController extends Controller
                     j.adm_level,
                     j.population,
                     j.iso_code,
-                    j.type_a_apportioned,
-                    j.type_b_apportioned,
                     (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
                     ST_AsGeoJSON(ST_Simplify(j.geom, :tolerance)) AS geojson,
                     ST_Y(COALESCE(j.centroid, ST_PointOnSurface(j.geom))) AS centroid_lat,
@@ -481,8 +491,6 @@ class JurisdictionController extends Controller
                         'child_count'         => (int) $row->child_count,
                         'centroid_lat'        => (float) $row->centroid_lat,
                         'centroid_lng'        => (float) $row->centroid_lng,
-                        'type_a_apportioned'  => $row->type_a_apportioned !== null ? (int) $row->type_a_apportioned : null,
-                        'type_b_apportioned'  => $row->type_b_apportioned !== null ? (int) $row->type_b_apportioned : null,
                     ],
                 ];
             }, $rows);

@@ -27,6 +27,54 @@ use Inertia\Response;
 class LegislatureController extends Controller
 {
     /**
+     * Resolve the seat budget for a jurisdiction by reading from the
+     * existing district graph. Replaces the dropped
+     * `jurisdictions.type_a_apportioned` column (migration
+     * 2026_05_22_000002_apportionment_cleanup.php).
+     *
+     * How it works:
+     *   - Locate any district that has this jurisdiction as a member
+     *     (via legislature_district_jurisdictions).
+     *   - Return the district's `seats` value.
+     *
+     * Semantics for the two membership shapes:
+     *   - **Giant** (one jurisdiction = one district): the district's
+     *     full seat count IS this jurisdiction's locked seat budget.
+     *   - **Composite member** (N jurisdictions share one district):
+     *     this returns the district's TOTAL seats, not the member's
+     *     proportional share. Drill-down into a composite member's
+     *     sub-scope is a known follow-up — when needed, a future
+     *     refinement can prorate `seats * member_pop / sum_member_pop`.
+     *
+     * Returns null when the jurisdiction is not a member of any live
+     * district (i.e., districts haven't been drawn at the parent scope
+     * yet). Callers should fall back to the proportional approximation
+     * `max(5, round(pop * leg.type_a_seats / root_pop))` in that case,
+     * matching the legacy behavior of "null type_a_apportioned →
+     * compute proportionally".
+     */
+    private function lookupApportionedSeats(string $jurisdictionId, ?string $legislatureId = null): ?int
+    {
+        $bindings = ['jid' => $jurisdictionId];
+        $sql = "
+            SELECT ld.seats
+              FROM legislature_districts ld
+              JOIN legislature_district_jurisdictions ldj
+                ON ldj.district_id = ld.id
+             WHERE ldj.jurisdiction_id = :jid
+               AND ld.deleted_at IS NULL
+        ";
+        if ($legislatureId !== null) {
+            $sql .= " AND ld.legislature_id = :lid";
+            $bindings['lid'] = $legislatureId;
+        }
+        $sql .= " ORDER BY ld.seats DESC LIMIT 1";
+
+        $v = DB::scalar($sql, $bindings);
+        return $v === null ? null : (int) $v;
+    }
+
+    /**
      * Legislature browser.
      *
      * GET /legislatures/{legislature_id}[?scope={jurisdiction_id}]
@@ -111,13 +159,19 @@ class LegislatureController extends Controller
                 $effectivePop = (int) $scope->population;   // fallback for empty scopes
             }
             // Priority for scopeSeats at non-root scopes:
-            // 1. type_a_apportioned — authoritative Webster result from ETL Phase 1.
-            //    This is the correct budget regardless of how many districts exist in the
-            //    current map (important for multi-map support: a draft map with partial
-            //    districts must still show the full budget, not distSum).
-            // 2. Proportional approximation — last resort before any seeding has occurred.
-            if ($scope->type_a_apportioned !== null) {
-                $scopeSeats = (int) $scope->type_a_apportioned;
+            // 1. Locked seat count from the district graph — authoritative
+            //    Webster result. Read via lookupApportionedSeats() now that
+            //    the jurisdictions.type_a_apportioned column has been dropped
+            //    (migration 2026_05_22_000002_apportionment_cleanup.php).
+            //    This is the correct budget regardless of how many districts
+            //    exist in the current map (important for multi-map support:
+            //    a draft map with partial districts must still show the full
+            //    budget, not distSum).
+            // 2. Proportional approximation — last resort before any seeding
+            //    has occurred (no parent-scope districts yet).
+            $locked = $this->lookupApportionedSeats($scopeId, $legislature_id);
+            if ($locked !== null) {
+                $scopeSeats = $locked;
             } else {
                 $scopeSeats = max(5, (int) round($effectivePop * (int) $leg->type_a_seats / $rootPop));
             }
@@ -192,7 +246,13 @@ class LegislatureController extends Controller
                 j.name,
                 j.adm_level,
                 j.population,
-                j.type_a_apportioned,
+                (SELECT ld.seats
+                   FROM legislature_districts ld
+                   JOIN legislature_district_jurisdictions ldj
+                     ON ldj.district_id = ld.id
+                  WHERE ldj.jurisdiction_id = j.id
+                    AND ld.deleted_at IS NULL
+                  ORDER BY ld.seats DESC LIMIT 1)                AS type_a_apportioned,
                 ROUND(CAST(j.population AS numeric) / :quota, 4)  AS fractional_seats,
                 ld.id                                              AS district_id,
                 ld.seats                                           AS district_seats,
@@ -616,17 +676,21 @@ class LegislatureController extends Controller
         }
 
         // Compute local quota: scope children population / scope seat budget.
-        // Uses type_a_apportioned (set by parent autoComposite) when available; falls back to proportional.
+        // Uses district-derived seat budget (via lookupApportionedSeats)
+        // when available; falls back to proportional approximation otherwise.
         $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
         $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
         $scopeChildrenPop = (int) DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
             ->whereNull('deleted_at')
             ->sum('population');
+        $lockedScopeSeats = $scopeId === $leg->jurisdiction_id
+            ? null
+            : $this->lookupApportionedSeats($scopeId, $legislature_id);
         if ($scopeId === $leg->jurisdiction_id) {
             $seatBudget = (int) $leg->type_a_seats;
-        } elseif ($scopeRow && $scopeRow->type_a_apportioned !== null) {
-            $seatBudget = (int) $scopeRow->type_a_apportioned;
+        } elseif ($lockedScopeSeats !== null) {
+            $seatBudget = $lockedScopeSeats;
         } else {
             $seatBudget = max(5, (int) round((int) ($scopeRow ? $scopeRow->population : 0) * (int) $leg->type_a_seats / $rootPop));
         }
@@ -666,16 +730,18 @@ class LegislatureController extends Controller
         $allScopeChildren = DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
             ->whereNull('deleted_at')
-            ->get(['population', 'type_a_apportioned']);
+            ->get(['id', 'population']);
         $giantSeatsCommitted = 0;
         $giantPopCommitted   = 0;
         foreach ($allScopeChildren as $child) {
             $childFrac = (int) $child->population / max($localQuota, 1);
             if ($childFrac >= 9.5) {
-                // Use type_a_apportioned (locked integer budget) when available;
-                // otherwise round the fractional seats (same fallback as runAutoCompositeForScope).
-                $childSeats = ($child->type_a_apportioned !== null)
-                    ? (int) $child->type_a_apportioned
+                // Use district-derived seat count (locked integer budget) when
+                // available; otherwise round the fractional seats (same fallback
+                // as runAutoCompositeForScope).
+                $locked = $this->lookupApportionedSeats($child->id, $legislature_id);
+                $childSeats = $locked !== null
+                    ? $locked
                     : max(5, (int) round($childFrac));
                 $giantSeatsCommitted += $childSeats;
                 $giantPopCommitted   += (int) $child->population;
@@ -890,10 +956,13 @@ class LegislatureController extends Controller
                 ->where('parent_id', $distScopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
+            $distLockedSeats = $distScopeId === $leg->jurisdiction_id
+                ? null
+                : $this->lookupApportionedSeats($distScopeId, $legislature_id);
             if ($distScopeId === $leg->jurisdiction_id) {
                 $distSeatBudget = (int) $leg->type_a_seats;
-            } elseif ($distScopeRow && $distScopeRow->type_a_apportioned !== null) {
-                $distSeatBudget = (int) $distScopeRow->type_a_apportioned;
+            } elseif ($distLockedSeats !== null) {
+                $distSeatBudget = $distLockedSeats;
             } else {
                 $distSeatBudget = max(5, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $distRootPop));
             }
@@ -1439,7 +1508,9 @@ class LegislatureController extends Controller
         }
 
         // At root scope: auto-update type_a_seats from cube root of sum(children populations).
-        // At non-root scope: read type_a_apportioned set by parent scope's autoComposite.
+        // At non-root scope: derive seat budget from the district graph
+        // (lookupApportionedSeats), set by parent scope's autoComposite when
+        // its district containing this scope was created.
         $isAutoRoot = ($scopeId === $leg->jurisdiction_id);
         DB::beginTransaction();
         try {
@@ -1457,8 +1528,9 @@ class LegislatureController extends Controller
             } else {
                 $autoScope   = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
                 $autoRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
-                $seatBudget  = $autoScope && $autoScope->type_a_apportioned !== null
-                    ? (int) $autoScope->type_a_apportioned
+                $autoLocked  = $this->lookupApportionedSeats($scopeId, $legislature_id);
+                $seatBudget  = $autoLocked !== null
+                    ? $autoLocked
                     : max(5, (int) round((int) ($autoScope ? $autoScope->population : 0) * (int) $leg->type_a_seats / $autoRootPop));
             }
 
@@ -1583,8 +1655,9 @@ class LegislatureController extends Controller
                         ->where('parent_id', $sid)
                         ->whereNull('deleted_at')
                         ->sum('population');
-                    $seatBudget  = $sidScope && $sidScope->type_a_apportioned !== null
-                        ? (int) $sidScope->type_a_apportioned
+                    $sidLocked   = $this->lookupApportionedSeats($sid, $legislature_id);
+                    $seatBudget  = $sidLocked !== null
+                        ? $sidLocked
                         : max(5, (int) round($sidChildPop * (int) $leg->type_a_seats / $rootPop));
                 }
                 $result = $this->runAutoCompositeForScope(
@@ -2198,10 +2271,17 @@ class LegislatureController extends Controller
         //
         //   1. Active district scopes   — scopes that already have live districts
         //                                 (handles incremental / partial reseeds)
-        //   2. Apportioned sub-scopes   — jurisdictions with type_a_apportioned set
-        //                                 by the ETL (giant countries, provinces, etc.)
-        //                                 These must be re-seeded even when the table
-        //                                 is empty, e.g. immediately after a full disband.
+        //   2. Apportioned sub-scopes   — jurisdictions that are members of any
+        //                                 live district in this legislature
+        //                                 (giant countries, provinces, etc.).
+        //                                 These must be re-seeded even when the
+        //                                 district table at THIS scope is empty,
+        //                                 e.g. immediately after a full disband.
+        //                                 Replaces the legacy
+        //                                 `whereNotNull('type_a_apportioned')`
+        //                                 lookup now that the column is dropped
+        //                                 (migration
+        //                                 2026_05_22_000002_apportionment_cleanup.php).
         //   3. $scopeId itself          — always include the current view scope so the
         //                                 root level is never silently skipped.
         //
@@ -2217,10 +2297,14 @@ class LegislatureController extends Controller
         }
         $existingScopes = $existingScopesQuery->distinct()->pluck('jurisdiction_id')->toArray();
 
-        $apportionedScopes = DB::table('jurisdictions')
-            ->whereNotNull('type_a_apportioned')
-            ->whereNull('deleted_at')
-            ->pluck('id')
+        // Sub-scopes that are members of any live district in this legislature
+        // (and therefore have a locked seat budget worth re-seeding into).
+        $apportionedScopes = DB::table('legislature_district_jurisdictions as ldj')
+            ->join('legislature_districts as ld', 'ld.id', '=', 'ldj.district_id')
+            ->where('ld.legislature_id', $legislature_id)
+            ->whereNull('ld.deleted_at')
+            ->distinct()
+            ->pluck('ldj.jurisdiction_id')
             ->toArray();
 
         return array_values(array_unique(
@@ -2283,12 +2367,17 @@ class LegislatureController extends Controller
             }
         }
 
-        // ── Step 4: Lock giant seat allocations — write type_a_apportioned ────
+        // ── Step 4: Lock giant seat allocations ───────────────────────────────
+        // Each giant's locked seat count is the round-up of its fractional
+        // seats. We no longer write this to `jurisdictions.type_a_apportioned`
+        // (dropped in migration 2026_05_22_000002_apportionment_cleanup.php) —
+        // the value is persisted on the giant's `legislature_districts.seats`
+        // row instead (inserted in Step 12 below). Downstream readers go
+        // through lookupApportionedSeats() to derive it from the district graph.
         $giantSeats = [];
         foreach ($giantRows as $g) {
             $seats = max(5, (int) round($g->fractional_seats));
             $giantSeats[$g->id] = $seats;
-            DB::table('jurisdictions')->where('id', $g->id)->update(['type_a_apportioned' => $seats]);
         }
 
         // ── Step 5: Non-giant seat budget ─────────────────────────────────────
@@ -2609,7 +2698,13 @@ class LegislatureController extends Controller
             // budget genuinely cannot be placed (only possible if budget > 9 × binCount).
         }
 
-        // ── Step 12: Insert districts + update type_a_apportioned on members ──
+        // ── Step 12: Insert districts ──────────────────────────────────────────
+        // The district's `seats` value is now the canonical seat budget. When
+        // a downstream caller drills into one of this district's members and
+        // needs that member's locked seat budget, lookupApportionedSeats()
+        // returns this district's `seats` (full value for giants;
+        // composite-member proportional share is a deferred refinement —
+        // current callers tolerate the full-district approximation).
         $districtsCreated = 0;
         foreach ($binData as $bin) {
             $distNumQ = DB::table('legislature_districts')
@@ -2645,16 +2740,6 @@ class LegislatureController extends Controller
                 'jurisdiction_id' => $jid,
             ], $bin['jids']);
             DB::table('legislature_district_jurisdictions')->insert($memberships);
-
-            // Write type_a_apportioned on each member: their proportional share of district seats.
-            // Enables accurate sub-scope seat budgets if these jurisdictions are ever drilled into.
-            if ($bin['pop'] > 0) {
-                foreach ($bin['jids'] as $jid) {
-                    $memberPop   = (int) $childById[$jid]->population;
-                    $memberShare = (int) round($memberPop * $bin['seats'] / $bin['pop']);
-                    DB::table('jurisdictions')->where('id', $jid)->update(['type_a_apportioned' => max(1, $memberShare)]);
-                }
-            }
 
             // Compute and cache spatial stats (convex_hull_ratio, num_geom_parts, is_contiguous)
             // so reseeded districts have stats immediately — same as manual create/update.
@@ -2771,24 +2856,30 @@ class LegislatureController extends Controller
                 ->sum('population');
             $distScopeRow = DB::table('jurisdictions')->where('id', $distScopeId)->whereNull('deleted_at')->first();
             $reRootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+            $distLockedSeats = $distScopeId === $leg->jurisdiction_id
+                ? null
+                : $this->lookupApportionedSeats($distScopeId, $legislatureId);
             if ($distScopeId === $leg->jurisdiction_id) {
                 $distSeatBudget = (int) $leg->type_a_seats;
-            } elseif ($distScopeRow && $distScopeRow->type_a_apportioned !== null) {
-                $distSeatBudget = (int) $distScopeRow->type_a_apportioned;
+            } elseif ($distLockedSeats !== null) {
+                $distSeatBudget = $distLockedSeats;
             } else {
                 $distSeatBudget = max(5, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $reRootPop));
             }
             $fullQuota = $scopeChildrenPop / max($distSeatBudget, 1);
             // Adjust to non-giant quota so stored fractional is comparable to sibling fracs.
+            // `type_a_apportioned` here is the legacy property name kept for backward
+            // compatibility with computeNonGiantQuota() — populated via
+            // lookupApportionedSeats() now that the jurisdictions column is gone.
             $distChildren = DB::table('jurisdictions')
                 ->where('parent_id', $distScopeId)
                 ->whereNull('deleted_at')
-                ->get(['population', 'type_a_apportioned']);
-            $distChildStd = $distChildren->map(function ($c) use ($fullQuota) {
+                ->get(['id', 'population']);
+            $distChildStd = $distChildren->map(function ($c) use ($fullQuota, $legislatureId) {
                 $obj = new \stdClass();
                 $obj->population         = $c->population;
                 $obj->fractional_seats   = (float) $c->population / max($fullQuota, 1);
-                $obj->type_a_apportioned = $c->type_a_apportioned;
+                $obj->type_a_apportioned = $this->lookupApportionedSeats($c->id, $legislatureId);
                 return $obj;
             })->all();
             $quota = $this->computeNonGiantQuota($distChildStd, $fullQuota, $distSeatBudget, $scopeChildrenPop);
@@ -4282,7 +4373,13 @@ class LegislatureController extends Controller
         $childRows = DB::select("
             SELECT
                 j.id, j.name, j.iso_code, j.adm_level, j.population,
-                j.type_a_apportioned,
+                (SELECT ld.seats
+                   FROM legislature_districts ld
+                   JOIN legislature_district_jurisdictions ldj
+                     ON ldj.district_id = ld.id
+                  WHERE ldj.jurisdiction_id = j.id
+                    AND ld.deleted_at IS NULL
+                  ORDER BY ld.seats DESC LIMIT 1)                AS type_a_apportioned,
                 (CAST(j.population AS numeric) * :total_seats / :root_pop) AS fractional_seats,
                 (SELECT COUNT(*) FROM jurisdictions c
                  WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
@@ -4381,6 +4478,24 @@ class LegislatureController extends Controller
             'incomplete_scopes' => [],   // scopes with unassigned compositable children
         ];
 
+        // Short-circuit when no districts exist in this legislature yet.
+        // The deep-scan + incomplete-scopes queries below LEFT JOIN against
+        // the entire 951 k-row jurisdictions table; with zero districts they
+        // also produce no useful flags. The postgres container's 64 MB
+        // /dev/shm can't materialize the empty-district join plan on the
+        // full jurisdictions tree without exhausting shared memory. This
+        // guard skips the work for empty legislatures (the natural "just
+        // sized, no districts drawn yet" state immediately after
+        // apportionment:seed) and returns an empty flag set.
+        $hasAnyDistrict = DB::table('legislature_districts')
+            ->where('legislature_id', $legId)
+            ->whereNull('deleted_at')
+            ->when($mapId !== null, fn ($q) => $q->where('map_id', $mapId))
+            ->exists();
+        if (! $hasAnyDistrict) {
+            return $flags;
+        }
+
         // ── Flag 1: Seat cap / undercount — both root and sub-scopes ────────────
         // Root scope: SUM(all legislature districts) vs. total seat budget.
         // Sub-scope:  SUM(districts created at this scope) vs. type_a_apportioned
@@ -4396,8 +4511,8 @@ class LegislatureController extends Controller
             $total  = (int) $capQuery->sum('seats');
             $budget = (int) $leg->type_a_seats;
         } else {
-            $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-            $budget   = $scopeRow ? (int) $scopeRow->type_a_apportioned : 0;
+            $locked = $this->lookupApportionedSeats($scopeId, $legId);
+            $budget = $locked !== null ? $locked : 0;
 
             // Mirror the Vue's currentConfigLabel: direct districts + giant-children subtrees.
             // Giant children (frac >= 9.5) hold their seats at sub-scope levels; we must include
@@ -4442,11 +4557,18 @@ class LegislatureController extends Controller
 
         // ── Flag 5: Scoped deep scan — current scope and all descendants ─────────
         // Shows overage/unevenness for every jurisdiction-scope that has districts and
-        // a known seat budget (type_a_apportioned), provided it is the current scope or
-        // a descendant of it at any depth.  This is a fixed-depth ancestor-walk (up to
-        // p3 = great-grandparent) rather than a recursive CTE: the district table is
-        // small and LEFT JOIN on indexed parent_id is fast.  Depth-4 covers the maximum
-        // real hierarchy: Earth → Country → State → County.
+        // a known seat budget (derived from membership in a parent-scope district),
+        // provided it is the current scope or a descendant of it at any depth.
+        // This is a fixed-depth ancestor-walk (up to p3 = great-grandparent) rather
+        // than a recursive CTE: the district table is small and LEFT JOIN on indexed
+        // parent_id is fast. Depth-4 covers the maximum real hierarchy:
+        // Earth → Country → State → County.
+        //
+        // Replaces the legacy `j.type_a_apportioned IS NOT NULL` filter — the column
+        // is dropped in migration 2026_05_22_000002_apportionment_cleanup.php. Budget
+        // is now derived from the `scope_budget` CTE (jurisdictions that appear as
+        // members of any live district inherit that district's seat count).
+        //
         // Examples:
         //   Earth scope   → sees Earth + all countries + all states + all counties with districts
         //   USA scope     → sees USA + all US states + US county-level scopes
@@ -4455,27 +4577,36 @@ class LegislatureController extends Controller
         $deepMapBinding = $mapId !== null ? [$mapId] : [];
 
         $deepScopeRows = DB::select("
+            WITH scope_budget AS (
+                SELECT ldj.jurisdiction_id, MAX(ld2.seats) AS seats
+                  FROM legislature_districts ld2
+                  JOIN legislature_district_jurisdictions ldj
+                    ON ldj.district_id = ld2.id
+                 WHERE ld2.legislature_id = ?
+                   AND ld2.deleted_at IS NULL
+                 GROUP BY ldj.jurisdiction_id
+            )
             SELECT
-                j.id         AS scope_id,
-                j.name       AS scope_name,
-                j.type_a_apportioned AS budget,
-                COUNT(ld.id) AS num_districts,
-                SUM(ld.seats)::int AS seat_sum,
-                MAX(ld.seats)::int AS max_seats,
-                MIN(ld.seats)::int AS min_seats,
+                j.id                AS scope_id,
+                j.name              AS scope_name,
+                sb.seats            AS budget,
+                COUNT(ld.id)        AS num_districts,
+                SUM(ld.seats)::int  AS seat_sum,
+                MAX(ld.seats)::int  AS max_seats,
+                MIN(ld.seats)::int  AS min_seats,
                 BOOL_OR(ld.floor_override) AS has_floor
             FROM legislature_districts ld
             JOIN jurisdictions j  ON j.id  = ld.jurisdiction_id AND j.deleted_at  IS NULL
+            JOIN scope_budget sb  ON sb.jurisdiction_id = j.id
             LEFT JOIN jurisdictions p1 ON p1.id = j.parent_id  AND p1.deleted_at IS NULL
             LEFT JOIN jurisdictions p2 ON p2.id = p1.parent_id AND p2.deleted_at IS NULL
             LEFT JOIN jurisdictions p3 ON p3.id = p2.parent_id AND p3.deleted_at IS NULL
             WHERE ld.legislature_id = ?
               AND ld.deleted_at IS NULL
-              AND j.type_a_apportioned IS NOT NULL
               AND (j.id = ? OR p1.id = ? OR p2.id = ? OR p3.id = ?)
               {$deepMapClause}
-            GROUP BY j.id, j.name, j.type_a_apportioned
-        ", array_merge([$legId, $scopeId, $scopeId, $scopeId, $scopeId], $deepMapBinding));
+            GROUP BY j.id, j.name, sb.seats
+        ", array_merge([$legId, $legId, $scopeId, $scopeId, $scopeId, $scopeId], $deepMapBinding));
 
         foreach ($deepScopeRows as $row) {
             $budget   = (int) $row->budget;

@@ -18,10 +18,13 @@ use Illuminate\Support\Str;
  *   2. Computes total_seats from cube root of that sum
  *   3. Upserts a legislature record for the parent (type_a_seats only)
  *
- * It does NOT create districts and does NOT write type_a_apportioned.
- * Both are the exclusive responsibility of the district viewer's auto-composite
- * tools (LegislatureController::runAutoCompositeForScope), which compute the
- * exact level-local Webster result and write it atomically with district creation.
+ * It does NOT create districts. District drawing is the exclusive
+ * responsibility of the district viewer's auto-composite tools
+ * (LegislatureController::runAutoCompositeForScope), which compute the
+ * exact level-local Webster result and persist seat allocations on
+ * `legislature_districts.seats`. Per-jurisdiction apportionment columns
+ * were removed in migration 2026_05_22_000002_apportionment_cleanup.php
+ * — apportionment lives at the district level now.
  *
  * Usage:
  *   php artisan apportionment:seed
@@ -57,24 +60,53 @@ class ApportionmentSeedCommand extends Command
         }
 
         if ($targetSlug !== '') {
-            return $this->seedSingleJurisdiction($targetSlug, $dryRun);
+            $exitCode = $this->seedSingleJurisdiction($targetSlug, $dryRun);
+        } else {
+            for ($parentAdmLevel = 0; $parentAdmLevel <= $admMax; $parentAdmLevel++) {
+                $this->processLevel($parentAdmLevel, $dryRun);
+            }
+
+            if (! $dryRun) {
+                $this->newLine();
+                $this->info(sprintf(
+                    'Done. Legislatures: %d  Jurisdictions updated: %d',
+                    $this->legislaturesCreated,
+                    $this->jurisdictionsProcessed,
+                ));
+                $this->line('Use the district viewer auto-seed tools to create districts.');
+            }
+
+            $exitCode = self::SUCCESS;
         }
 
-        for ($parentAdmLevel = 0; $parentAdmLevel <= $admMax; $parentAdmLevel++) {
-            $this->processLevel($parentAdmLevel, $dryRun);
-        }
-
-        if (! $dryRun) {
-            $this->newLine();
-            $this->info(sprintf(
-                'Done. Legislatures: %d  Jurisdictions updated: %d',
+        // Stamp the canonical completion record on the singleton
+        // instance_settings row so both invocation paths agree on when
+        // apportionment finished:
+        //   - queued (button) from JurisdictionController::acceptMaps
+        //   - synchronous (wizard) from SetupController, if ever re-added
+        //
+        // The UI at /jurisdictions/earth-0-earth and the wizard's
+        // Step-4 confirm page both watch apportionment_completed_at
+        // to flip from "running…" → "completed".
+        if (! $dryRun && $exitCode === self::SUCCESS) {
+            $logSummary = sprintf(
+                'Apportionment %s — legislatures created/updated: %d, jurisdictions touched: %d. Scope: %s.',
+                now()->toIso8601String(),
                 $this->legislaturesCreated,
                 $this->jurisdictionsProcessed,
-            ));
-            $this->line('Use the district viewer auto-seed tools to create districts.');
+                $targetSlug !== '' ? "single jurisdiction '{$targetSlug}'" : "all parents up to ADM{$admMax}",
+            );
+
+            DB::table('instance_settings')
+                ->whereNull('deleted_at')
+                ->update([
+                    'apportionment_completed_at' => now(),
+                    'apportionment_log'          => $logSummary,
+                    'updated_at'                 => now(),
+                ]);
         }
 
-        return self::SUCCESS;
+        return $exitCode;
     }
 
     // -------------------------------------------------------------------------
@@ -208,9 +240,11 @@ class ApportionmentSeedCommand extends Command
 
         $this->upsertLegislature($parent->id, $totalSeats, $totalTypeB);
 
-        // type_a_apportioned is written exclusively by the viewer's auto-composite tools
-        // (runAutoCompositeForScope), which compute the exact Webster result at each scope.
-        // This command only sizes legislatures — it never writes apportionment columns.
+        // Seat allocations to individual districts (and the per-district members
+        // they contain) are written exclusively by the viewer's auto-composite
+        // tools (runAutoCompositeForScope), which compute the exact Webster
+        // result at each scope and persist it on `legislature_districts.seats`.
+        // This command only sizes the legislature as a whole.
         $this->jurisdictionsProcessed += $children->count();
     }
 
@@ -277,6 +311,6 @@ class ApportionmentSeedCommand extends Command
     {
         $this->warn('Resetting legislatures…');
         DB::table('legislatures')->delete();
-        $this->info('Reset complete. type_a_apportioned is managed by the viewer tools — use "Clear — entire legislature" in the district browser to wipe apportionment data.');
+        $this->info('Reset complete. District-level seat allocations live on legislature_districts.seats — use "Clear — entire legislature" in the district browser to wipe districts.');
     }
 }

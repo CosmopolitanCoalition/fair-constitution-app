@@ -1826,9 +1826,15 @@ class SetupController extends Controller
      *
      * If saveConstants stashed a pending_constitutional_defaults payload (because
      * the planet row didn't exist yet), apply it to the now-present planet row
-     * (adm_level = 0) and clear the stash. Then run apportionment synchronously
-     * (cube-root sizing of every legislature in the hierarchy) and advance
-     * setup_step_completed to 3.
+     * (adm_level = 0) and clear the stash. Then advance setup_step_completed to 3.
+     *
+     * Apportionment is no longer run inline here — the canonical trigger is the
+     * planet-scope "Accept Map Data & Continue" button on
+     * /jurisdictions/earth-0-earth, which queues `apportionment:seed
+     * --jurisdiction=earth` via Horizon. That command stamps the
+     * apportionment_completed_at timestamp on completion. This handler keeps
+     * the pending_constitutional_defaults apply logic and the step-completion
+     * advance; apportionment is decoupled.
      */
     public function activateStep1(): JsonResponse
     {
@@ -1846,35 +1852,13 @@ class SetupController extends Controller
             // the user is likely advancing without having loaded data yet.
         }
 
-        $apportionment = $this->runApportionmentForSetup();
-        $settings->apportionment_completed_at = now();
-        $settings->apportionment_log          = $apportionment['output'];
-
         $settings->setup_step_completed = max((int) $settings->setup_step_completed, 3);
         $settings->save();
 
         return response()->json([
-            'settings'      => $this->serializeSettings($settings->fresh()),
-            'apportionment' => $apportionment,
-            'next'          => '/setup/step/3',
+            'settings' => $this->serializeSettings($settings->fresh()),
+            'next'     => '/setup/step/3',
         ]);
-    }
-
-    /**
-     * Run `php artisan apportionment:seed` synchronously for setup.
-     *
-     * Cube-root sizing across every parent-with-children jurisdiction in the
-     * tree. For a USA-only run this finishes in seconds; for a whole-world
-     * run it's ~30-90s. If we ever push past PHP's request timeout we'll
-     * swap to a queued RunApportionmentJob mirroring RecolorDistrictsJob.
-     */
-    private function runApportionmentForSetup(): array
-    {
-        $exitCode = Artisan::call('apportionment:seed', ['--adm-max' => 6]);
-        return [
-            'exit_code' => $exitCode,
-            'output'    => Artisan::output(),
-        ];
     }
 
     /**
