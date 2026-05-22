@@ -171,10 +171,11 @@ class BackfillDistrictSpatialStatsCommand extends Command
                 }
             }
 
+            // polsby_popper column dropped by migration 2026_04_23_000003.
+            // convex_hull_ratio supersedes it; do not re-add.
             DB::table('legislature_districts')
                 ->where('id', $districtId)
                 ->update([
-                    'polsby_popper'     => null,
                     'num_geom_parts'    => $spatialRow && $spatialRow->num_geom_parts !== null    ? (int)   $spatialRow->num_geom_parts    : null,
                     'convex_hull_ratio' => $spatialRow && $spatialRow->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
                     'is_contiguous'     => $isContiguous,

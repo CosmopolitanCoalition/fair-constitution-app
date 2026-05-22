@@ -3145,9 +3145,11 @@ class LegislatureController extends Controller
         // the correct seats at INSERT time — do NOT overwrite with per-district rounding, which
         // can diverge from the guaranteed-total Webster result (e.g. frac 7.49 rounds to 7 but
         // Webster gave 8 to balance the scope total).  Only spatial stats are refreshed.
+        // NOTE: polsby_popper column was dropped by migration
+        // 2026_04_23_000003_drop_unused_district_and_jurisdiction_columns —
+        // superseded by convex_hull_ratio. Do NOT add it back here.
         $distUpdate = [
             'actual_population' => $totalPop,
-            'polsby_popper'     => null,
             'num_geom_parts'    => $spatialRow?->num_geom_parts !== null ? (int) $spatialRow->num_geom_parts : null,
             'convex_hull_ratio' => $spatialRow?->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
             'is_contiguous'     => $isContiguous,
