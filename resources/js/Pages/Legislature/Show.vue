@@ -885,7 +885,7 @@
                                     <span class="text-gray-300 truncate flex-1">{{ member.name }}</span>
                                     <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">{{ member.population > 0 ? formatPop(member.population) : '—' }}</span>
                                     <span class="tabular-nums w-12 text-right shrink-0"
-                                          :class="member.fractional_seats > 9 ? 'text-red-400' : 'text-gray-400'">
+                                          :class="member.fractional_seats > SEAT_CEILING ? 'text-red-400' : 'text-gray-400'">
                                         {{ member.fractional_seats.toFixed(2) }}
                                     </span>
                                     <button v-if="member.fractional_seats >= GIANT_THRESHOLD && member.child_count > 0"
@@ -1860,7 +1860,7 @@ const giantChildren = computed(() =>
 // are tracked by seat count in `expansionGroups` and rendered in parens (not bare).
 const optimalConfig = computed(() => {
     const n = props.scope_seats
-    if (!n || n < 5) return null
+    if (!n || n < SEAT_FLOOR) return null
 
     const giants     = giantChildren.value
     const giantSeats = giants.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
@@ -1871,9 +1871,9 @@ const optimalConfig = computed(() => {
     const expansionGroups = {}   // seats → count; shown in parens in the label
 
     for (let iter = 0; iter < 20; iter++) {
-        if (poolSeats < 5 || pool.length === 0) break
-        const dMin = Math.ceil(poolSeats / 9)
-        const dMax = Math.floor(poolSeats / 5)
+        if (poolSeats < SEAT_FLOOR || pool.length === 0) break
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING)
+        const dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin > dMax) break
 
         let best = null
@@ -1899,8 +1899,8 @@ const optimalConfig = computed(() => {
     }
 
     // Fallback after loop exhausted
-    if (poolSeats >= 5) {
-        const dMin = Math.ceil(poolSeats / 9), dMax = Math.floor(poolSeats / 5)
+    if (poolSeats >= SEAT_FLOOR) {
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING), dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin <= dMax) {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
@@ -1910,13 +1910,13 @@ const optimalConfig = computed(() => {
             if (best) return { ...best, expansionGroups, giantCount, giantSeats }
         }
     }
-    // Floor exception: compositable jurisdictions remain but poolSeats < 5 — they
+    // Floor exception: compositable jurisdictions remain but poolSeats < floor — they
     // can't form a valid district normally, but must still be placed in one.
-    // Use the ACTUAL apportioned seat count (poolSeats), not the floor value of 5.
+    // Use the ACTUAL apportioned seat count (poolSeats), not the floor value.
     // The Constitutional Flag already shows the floor enforcement; Optimal shows
     // the mathematical ideal so the gap between Optimal and Current reveals the
     // overcount caused by the floor.  RHS stays at scope_seats.
-    if (pool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+    if (pool.length > 0 && poolSeats > 0 && poolSeats < SEAT_FLOOR) {
         expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
     }
     return { d: 0, q: 0, r: 0, expansionGroups, giantCount, giantSeats }
@@ -1937,7 +1937,7 @@ const suboptimalConfig = computed(() => {
     // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
     const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
     const poolSeats0    = (props.scope_seats ?? 0) - assignedSeats - giantSeats
-    // Allow poolSeats0 in (0, 5) — those jurisdictions still need a floor-exception district.
+    // Allow poolSeats0 in (0, floor) — those jurisdictions still need a floor-exception district.
     // Only skip when pool is empty (nothing left to district) or budget is fully exhausted.
     if (pool.length === 0 || poolSeats0 <= 0) return null
 
@@ -1946,9 +1946,9 @@ const suboptimalConfig = computed(() => {
     const expansionGroups = {}   // seats → count; shown in parens (same as optimalConfig)
 
     for (let iter = 0; iter < 20; iter++) {
-        if (poolSeats < 5 || remainingPool.length === 0) break
-        const dMin = Math.ceil(poolSeats / 9)
-        const dMax = Math.floor(poolSeats / 5)
+        if (poolSeats < SEAT_FLOOR || remainingPool.length === 0) break
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING)
+        const dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin > dMax) break
         let best = null
         for (let d = dMin; d <= dMax; d++) {
@@ -1968,8 +1968,8 @@ const suboptimalConfig = computed(() => {
         remainingPool = remainingPool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
     }
     // Fallback after loop exhausted
-    if (poolSeats >= 5) {
-        const dMin = Math.ceil(poolSeats / 9), dMax = Math.floor(poolSeats / 5)
+    if (poolSeats >= SEAT_FLOOR) {
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING), dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin <= dMax) {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
@@ -1979,10 +1979,10 @@ const suboptimalConfig = computed(() => {
             if (best) return { ...best, expansionGroups, assignedSeats, giantSeats }
         }
     }
-    // Floor exception: remaining pool can't reach 5 seats but still needs a district.
-    // Use actual apportioned seat count (poolSeats), not the floor value of 5 — the
+    // Floor exception: remaining pool can't reach floor seats but still needs a district.
+    // Use actual apportioned seat count (poolSeats), not the floor value — the
     // Constitutional Flag shows the enforcement; Suboptimal shows the math.
-    if (remainingPool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+    if (remainingPool.length > 0 && poolSeats > 0 && poolSeats < SEAT_FLOOR) {
         expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
         return { d: 0, q: 0, r: 0, expansionGroups, assignedSeats, giantSeats }
     }
@@ -2374,7 +2374,10 @@ const remainingBudget = computed(() => {
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
 const pendingSeats = computed(() => {
-    const natural = Math.max(5, Math.round(pendingFractionalTotal.value))
+    // Webster rounding clamped to the constitutional [floor, ceiling] range.
+    // Was previously hardcoded as Math.max(5, ...) — now scales with operator-set
+    // floor (e.g. with floor=3 a frac of 3.08 rounds to 3, not 5).
+    const natural = Math.max(SEAT_FLOOR, Math.min(SEAT_CEILING, Math.round(pendingFractionalTotal.value)))
     const budget  = remainingBudget.value
     // When remaining budget is less than the constitutional floor, the budget wins
     return budget > 0 && budget < natural ? budget : natural
@@ -2404,15 +2407,21 @@ const roundingReady = computed(() =>
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function seatColor(seats) {
+    // Mirrors seatClass() — scales color bands with [floor, ceiling].
     if (!seats) return '#64748b'
-    if (seats <= 5) return '#93c5fd'   // blue-300
-    if (seats <= 7) return '#34d399'   // emerald-400
-    return '#f59e0b'                   // amber-400
+    const mid = Math.max(SEAT_FLOOR + 1, SEAT_CEILING - 2)
+    if (seats <= SEAT_FLOOR) return '#93c5fd'  // blue-300
+    if (seats <= mid)        return '#34d399'  // emerald-400
+    return '#f59e0b'                           // amber-400
 }
 function seatClass(seats) {
+    // Color bands scale with the constitutional [floor, ceiling] range.
+    // At default 5/9: ≤5 blue, ≤7 emerald, ≥8 amber (matches legacy).
+    // At 3/7:         ≤3 blue, ≤5 emerald, ≥6 amber.
     if (!seats) return 'text-gray-500'
-    if (seats <= 5) return 'text-blue-400'
-    if (seats <= 7) return 'text-emerald-400'
+    const mid = Math.max(SEAT_FLOOR + 1, SEAT_CEILING - 2)
+    if (seats <= SEAT_FLOOR) return 'text-blue-400'
+    if (seats <= mid)        return 'text-emerald-400'
     return 'text-amber-400'
 }
 function formatPop(n) {
