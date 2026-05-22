@@ -232,7 +232,7 @@ class ApportionmentSeedCommand extends Command
                 $entitlement = $quota > 0 ? ((float) $child->population / $quota) : 5.0;
                 $this->line(sprintf(
                     '  %s: pop=%d ent=%.2f (%s)',
-                    $child->name, $child->population, $entitlement, $this->classify($entitlement)
+                    $child->name, $child->population, $entitlement, $this->classify($entitlement, $parent->id)
                 ));
             }
             return;
@@ -252,10 +252,12 @@ class ApportionmentSeedCommand extends Command
     // Classification helper
     // -------------------------------------------------------------------------
 
-    private function classify(float $entitlement): string
+    private function classify(float $entitlement, ?string $jurisdictionId = null): string
     {
-        if ($entitlement < 5.0) return 'below_floor';
-        if ($entitlement <= 9.0) return 'mid';
+        $floor   = ConstitutionalDefaults::floor($jurisdictionId);
+        $ceiling = ConstitutionalDefaults::ceiling($jurisdictionId);
+        if ($entitlement < (float) $floor) return 'below_floor';
+        if ($entitlement <= (float) $ceiling) return 'mid';
         return 'giant';
     }
 

@@ -299,7 +299,7 @@
                                     <div v-if="(props.flags.floor_exceptions ?? []).length > 0"
                                          class="flex items-start gap-2 text-amber-400">
                                         <span class="shrink-0">ℹ</span>
-                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; 4.5, rounds below minimum without override</span>
+                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; {{ FLOOR_OVERRIDE }}, rounds below minimum without override</span>
                                     </div>
                                 </div>
                             </div>
@@ -758,8 +758,8 @@
                                 <span class="shrink-0 w-2.5 h-2.5 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-xs text-gray-100 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="text-xs font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-xs text-gray-400 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -924,8 +924,8 @@
                                 <span class="shrink-0 w-2 h-2 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -1277,6 +1277,13 @@ const props = defineProps({
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
     active_map: { type: Object, default: null },        // the map currently being displayed
     setup_mode: { type: Boolean, default: false },      // set when arrived via /setup/step/3?setup=1
+    constitutional: {
+        // Derived thresholds from the legislature's constitutional_settings.
+        // With default 5/9 settings these resolve to 9.5 / 5.0 / 4.5.
+        // With operator-set 3/7 they resolve to 7.5 / 3.0 / 2.5.
+        type: Object,
+        default: () => ({ floor: 5, ceiling: 9, giant_threshold: 9.5, floor_boundary: 5.0, floor_override: 4.5 }),
+    },
 })
 
 // Setup wizard banner — only shown when ?setup=1 on the URL.  When a map is
@@ -1300,7 +1307,17 @@ async function returnToSetup() {
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Jurisdictions with fractional_seats >= this threshold cannot be placed in a
 // district at this scope level — they must be drilled into (they would round to ≥ 10).
-const GIANT_THRESHOLD = 9.5
+// Constitutional thresholds — resolved from props.constitutional with default
+// 5/9 fallback (which produces 9.5 / 5.0 / 4.5 — matches the legacy
+// hardcoded literals). With operator-set 3/7 settings these come out
+// 7.5 / 3.0 / 2.5 and giants, floor-override flags, etc. scale accordingly.
+// Plain constants rather than refs/computed: constitutional settings don't
+// change mid-session (any change requires a page reload to re-fetch settings).
+const GIANT_THRESHOLD = props.constitutional?.giant_threshold ?? 9.5
+const FLOOR_BOUNDARY  = props.constitutional?.floor_boundary  ?? 5.0
+const FLOOR_OVERRIDE  = props.constitutional?.floor_override  ?? 4.5
+const SEAT_CEILING    = props.constitutional?.ceiling         ?? 9
+const SEAT_FLOOR      = props.constitutional?.floor           ?? 5
 
 // 7-color CB-friendly palette — greedy graph coloring guarantees adjacent districts differ
 const DISTRICT_COLORS = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7']
@@ -2368,10 +2385,10 @@ const pendingValid = computed(() =>
         ? true
         : pendingFractionalTotal.value < GIANT_THRESHOLD
 )
-// Floor override needed: total < 5.0 frac but we allow it (unavoidable cases)
+// Floor override needed: total < FLOOR_BOUNDARY frac but we allow it (unavoidable cases)
 const pendingFloor = computed(() =>
     (pendingAdd.value.size > 0 || pendingRemove.value.size > 0) &&
-    pendingFractionalTotal.value < 5.0
+    pendingFractionalTotal.value < FLOOR_BOUNDARY
 )
 
 // ── Rounding readiness ────────────────────────────────────────────────────────
@@ -2381,7 +2398,7 @@ const roundingReady = computed(() =>
     unassignedAssignable.value.length === 0 &&
     districtsRef.value.length > 0 &&
     districtsRef.value.every(d =>
-        d.members.reduce((s, m) => s + m.fractional_seats, 0) >= 5.0
+        d.members.reduce((s, m) => s + m.fractional_seats, 0) >= FLOOR_BOUNDARY
     )
 )
 

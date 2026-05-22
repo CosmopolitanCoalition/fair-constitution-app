@@ -63,6 +63,41 @@ class ConstitutionalDefaults
     }
 
     /**
+     * The fractional-seats boundary above which a jurisdiction must be
+     * subdivided (cannot fit into a single district because it would round
+     * to seats > ceiling). Mathematically: `ceiling + 0.5` — any fractional
+     * at or above this rounds to more than the ceiling.
+     *
+     * With default 5/9 settings this returns 9.5 (legacy hardcoded value).
+     * With a custom 3/7 setting this returns 7.5.
+     */
+    public static function giantThreshold(?string $jurisdictionId = null): float
+    {
+        return (float) self::ceiling($jurisdictionId) + 0.5;
+    }
+
+    /**
+     * The fractional-seats floor — the minimum acceptable rounded seat
+     * count for a district. A composite sum at or above this rounds to
+     * at least the floor. With default 5/9 settings this returns 5.0;
+     * with 3/7 it returns 3.0.
+     */
+    public static function floorBoundary(?string $jurisdictionId = null): float
+    {
+        return (float) self::floor($jurisdictionId);
+    }
+
+    /**
+     * The fractional-seats boundary below which a district triggers a
+     * floor-override (its rounded seat count would be < floor). With
+     * default 5/9 this returns 4.5; with 3/7 it returns 2.5.
+     */
+    public static function floorOverrideBoundary(?string $jurisdictionId = null): float
+    {
+        return (float) self::floor($jurisdictionId) - 0.5;
+    }
+
+    /**
      * Clear the per-request cache. Useful in tests.
      */
     public static function flush(): void
