@@ -4673,26 +4673,57 @@ class LegislatureController extends Controller
         // ── Flag 5: Scoped deep scan — current scope and all descendants ─────────
         // Shows overage/unevenness for every jurisdiction-scope that has districts and
         // a known seat budget (derived from membership in a parent-scope district),
-        // provided it is the current scope or a descendant of it at any depth.
-        // This is a fixed-depth ancestor-walk (up to p3 = great-grandparent) rather
-        // than a recursive CTE: the district table is small and LEFT JOIN on indexed
-        // parent_id is fast. Depth-4 covers the maximum real hierarchy:
-        // Earth → Country → State → County.
+        // provided it is the current scope or a descendant of it within 4 levels.
         //
-        // Replaces the legacy `j.type_a_apportioned IS NOT NULL` filter — the column
-        // is dropped in migration 2026_05_22_000002_apportionment_cleanup.php. Budget
-        // is now derived from the `scope_budget` CTE (jurisdictions that appear as
-        // members of any live district inherit that district's seat count).
+        // The query walks DOWN from $scopeId via a recursive CTE (`scope_subtree`)
+        // rather than starting from `jurisdictions` and filtering by an OR-chain of
+        // p1/p2/p3 ancestors. The recursive walk is bounded by both the subtree
+        // membership (small: scope + descendants) AND by `scopes_with_districts`
+        // (also small: only the handful of scopes that actually have districts on
+        // this map). Both sides of the final JOIN are O(districts), not O(all
+        // jurisdictions). This avoids the parallel-hash buffer overflow that the
+        // table-wide LEFT-JOIN variant produced on the 951 k-row jurisdictions table.
+        //
+        // Budget is derived from the `scope_budget` CTE: jurisdictions that appear
+        // as members of any live district inherit that district's seat count.
+        // Replaces the dropped `j.type_a_apportioned` lookup.
         //
         // Examples:
-        //   Earth scope   → sees Earth + all countries + all states + all counties with districts
-        //   USA scope     → sees USA + all US states + US county-level scopes
-        //   California    → sees California + California county-level scopes
+        //   Earth scope   → sees Earth + countries + states + counties THAT HAVE districts
+        //   USA scope     → sees USA + US states + US county-level scopes (that have districts)
+        //   California    → sees California + California county-level scopes (that have districts)
         $deepMapClause  = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $deepMapBinding = $mapId !== null ? [$mapId] : [];
 
         $deepScopeRows = DB::select("
-            WITH scope_budget AS (
+            -- Walk UP from each scope that has districts. interesting_scopes are
+            -- those whose ancestor chain (up to 4 levels) contains \$scopeId — i.e.,
+            -- they're inside \$scopeId's subtree. The intermediate state is bounded
+            -- by O(scopes_with_districts × 4), independent of how big the
+            -- jurisdictions table is.
+            WITH RECURSIVE scopes_with_districts AS (
+                SELECT DISTINCT ld.jurisdiction_id AS scope_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$deepMapClause}
+            ),
+            ancestor_walk(orig_scope_id, current_id, depth) AS (
+                SELECT swd.scope_id, swd.scope_id, 0
+                  FROM scopes_with_districts swd
+                UNION ALL
+                SELECT aw.orig_scope_id, j.parent_id, aw.depth + 1
+                  FROM ancestor_walk aw
+                  JOIN jurisdictions j ON j.id = aw.current_id AND j.deleted_at IS NULL
+                 WHERE aw.depth < 3
+                   AND j.parent_id IS NOT NULL
+            ),
+            interesting_scopes AS (
+                SELECT DISTINCT orig_scope_id AS scope_id
+                  FROM ancestor_walk
+                 WHERE current_id = ?
+            ),
+            scope_budget AS (
                 SELECT ldj.jurisdiction_id, MAX(ld2.seats) AS seats
                   FROM legislature_districts ld2
                   JOIN legislature_district_jurisdictions ldj
@@ -4710,18 +4741,21 @@ class LegislatureController extends Controller
                 MAX(ld.seats)::int  AS max_seats,
                 MIN(ld.seats)::int  AS min_seats,
                 BOOL_OR(ld.floor_override) AS has_floor
-            FROM legislature_districts ld
-            JOIN jurisdictions j  ON j.id  = ld.jurisdiction_id AND j.deleted_at  IS NULL
-            JOIN scope_budget sb  ON sb.jurisdiction_id = j.id
-            LEFT JOIN jurisdictions p1 ON p1.id = j.parent_id  AND p1.deleted_at IS NULL
-            LEFT JOIN jurisdictions p2 ON p2.id = p1.parent_id AND p2.deleted_at IS NULL
-            LEFT JOIN jurisdictions p3 ON p3.id = p2.parent_id AND p3.deleted_at IS NULL
-            WHERE ld.legislature_id = ?
-              AND ld.deleted_at IS NULL
-              AND (j.id = ? OR p1.id = ? OR p2.id = ? OR p3.id = ?)
-              {$deepMapClause}
+            FROM interesting_scopes is_
+            JOIN jurisdictions j ON j.id = is_.scope_id AND j.deleted_at IS NULL
+            JOIN legislature_districts ld
+                  ON ld.jurisdiction_id = j.id
+                 AND ld.legislature_id  = ?
+                 AND ld.deleted_at      IS NULL
+                 {$deepMapClause}
+            JOIN scope_budget sb ON sb.jurisdiction_id = j.id
             GROUP BY j.id, j.name, sb.seats
-        ", array_merge([$legId, $legId, $scopeId, $scopeId, $scopeId, $scopeId], $deepMapBinding));
+        ", array_merge(
+            [$legId], $deepMapBinding,   // scopes_with_districts
+            [$scopeId],                  // interesting_scopes WHERE current_id = ?
+            [$legId],                    // scope_budget
+            [$legId], $deepMapBinding    // outer JOIN to legislature_districts
+        ));
 
         foreach ($deepScopeRows as $row) {
             $budget   = (int) $row->budget;
@@ -4746,80 +4780,99 @@ class LegislatureController extends Controller
         // ── Flag 6: Incomplete scopes — unassigned compositable children ─────
         // A scope is flagged only when:
         //   (a) it is the root scope, OR it has ≥1 district on THIS legislature+map
-        //       (map-aware: avoids false positives from type_a_apportioned set by other maps)
+        //       (map-aware: avoids false positives from districts set by other maps)
         //   (b) it is NOT itself a district member (so non-giant composites like Puerto Rico
         //       are excluded — their sub-geography doesn't need separate assignment)
         //   (c) it has direct children with geometry not yet in any district on this map,
         //       where those children are NOT themselves giant drill-down scopes (identified
         //       by having their own districts on this map or being a district member).
-        $incompMapClause  = $mapId !== null ? 'AND ld.map_id = ?'   : '';
-        $incompMapClause2 = $mapId !== null ? 'AND ld2.map_id = ?'  : '';
-        $incompMapClause3 = $mapId !== null ? 'AND ld3.map_id = ?'  : '';
-        $incompMapClause4 = $mapId !== null ? 'AND ld4.map_id = ?'  : '';
+        //
+        // The query walks DOWN from $scopeId via a recursive CTE (`scope_subtree`)
+        // and pre-computes the small `scopes_with_districts` and `district_members`
+        // sets, then joins forward. Both sides of every JOIN are O(districts), not
+        // O(all jurisdictions). Avoids the parallel-hash buffer overflow that the
+        // table-wide LEFT-JOIN variant produced when run against a populated
+        // legislature on the 951 k-row jurisdictions table.
+        $incompMapClause = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $incompMapBinding = $mapId !== null ? [$mapId] : [];
+        $rootScopeId     = (string) $leg->jurisdiction_id;
 
+        // Build the "interesting scopes" set by walking UP from each scope that
+        // has districts (and from the root scope, in case the operator is sitting
+        // on a freshly-apportioned legislature with zero districts). A scope is
+        // interesting iff its ancestor chain within 4 levels contains \$scopeId.
+        // Joins to children are bounded by O(|interesting_scopes| × avg children).
         $incompleteRows = DB::select("
+            WITH RECURSIVE candidate_scopes AS (
+                SELECT DISTINCT ld.jurisdiction_id AS scope_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$incompMapClause}
+                UNION
+                SELECT ? AS scope_id   -- always consider the legislature's root scope
+            ),
+            ancestor_walk(orig_scope_id, current_id, depth) AS (
+                SELECT cs.scope_id, cs.scope_id, 0
+                  FROM candidate_scopes cs
+                UNION ALL
+                SELECT aw.orig_scope_id, j.parent_id, aw.depth + 1
+                  FROM ancestor_walk aw
+                  JOIN jurisdictions j ON j.id = aw.current_id AND j.deleted_at IS NULL
+                 WHERE aw.depth < 3
+                   AND j.parent_id IS NOT NULL
+            ),
+            interesting_scopes AS (
+                SELECT DISTINCT orig_scope_id AS scope_id
+                  FROM ancestor_walk
+                 WHERE current_id = ?
+            ),
+            district_members AS (
+                SELECT DISTINCT ldj.jurisdiction_id
+                  FROM legislature_district_jurisdictions ldj
+                  JOIN legislature_districts ld
+                    ON ld.id              = ldj.district_id
+                   AND ld.legislature_id  = ?
+                   AND ld.deleted_at      IS NULL
+                   {$incompMapClause}
+            ),
+            scopes_with_districts_only AS (
+                SELECT DISTINCT ld.jurisdiction_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$incompMapClause}
+            )
             SELECT
-                j.id         AS scope_id,
-                j.name       AS scope_name,
-                COUNT(child.id)::int AS unassigned_count
-            FROM jurisdictions j
-            LEFT JOIN jurisdictions p1 ON p1.id = j.parent_id  AND p1.deleted_at IS NULL
-            LEFT JOIN jurisdictions p2 ON p2.id = p1.parent_id AND p2.deleted_at IS NULL
-            LEFT JOIN jurisdictions p3 ON p3.id = p2.parent_id AND p3.deleted_at IS NULL
-            -- (a) scope has ≥1 district on this legislature+map
-            LEFT JOIN (
-                SELECT DISTINCT jurisdiction_id
-                FROM legislature_districts ld3
-                WHERE ld3.legislature_id = ?
-                  AND ld3.deleted_at IS NULL
-                  {$incompMapClause3}
-            ) scope_has_districts ON scope_has_districts.jurisdiction_id = j.id
-            -- (b) scope is NOT itself a district member on this legislature+map
-            LEFT JOIN (
-                SELECT ldj2.jurisdiction_id
-                FROM legislature_district_jurisdictions ldj2
-                JOIN legislature_districts ld2 ON ld2.id = ldj2.district_id
-                    AND ld2.legislature_id = ?
-                    AND ld2.deleted_at IS NULL
-                    {$incompMapClause2}
-            ) self_assigned ON self_assigned.jurisdiction_id = j.id
-            -- children to check
-            JOIN jurisdictions child ON child.parent_id = j.id
-                AND child.deleted_at IS NULL
-                AND child.geom IS NOT NULL
-            -- (c) child is not in any district on this map
-            LEFT JOIN (
-                SELECT ldj.jurisdiction_id
-                FROM legislature_district_jurisdictions ldj
-                JOIN legislature_districts ld ON ld.id = ldj.district_id
-                    AND ld.legislature_id = ?
-                    AND ld.deleted_at IS NULL
-                    {$incompMapClause}
-            ) assigned ON assigned.jurisdiction_id = child.id
-            -- (c) child is not itself a giant drill-down scope (has its own districts on this map)
-            LEFT JOIN (
-                SELECT DISTINCT jurisdiction_id
-                FROM legislature_districts ld4
-                WHERE ld4.legislature_id = ?
-                  AND ld4.deleted_at IS NULL
-                  {$incompMapClause4}
-            ) child_has_districts ON child_has_districts.jurisdiction_id = child.id
-            WHERE j.deleted_at IS NULL
-              AND (j.id = ? OR scope_has_districts.jurisdiction_id IS NOT NULL)
-              AND self_assigned.jurisdiction_id IS NULL
-              AND (j.id = ? OR p1.id = ? OR p2.id = ? OR p3.id = ?)
-              AND assigned.jurisdiction_id IS NULL
-              AND child_has_districts.jurisdiction_id IS NULL
+                j.id                  AS scope_id,
+                j.name                AS scope_name,
+                COUNT(child.id)::int  AS unassigned_count
+            FROM interesting_scopes is_
+            JOIN jurisdictions j     ON j.id = is_.scope_id AND j.deleted_at IS NULL
+            JOIN jurisdictions child
+                  ON child.parent_id  = j.id
+                 AND child.deleted_at IS NULL
+                 AND child.geom       IS NOT NULL
+            WHERE
+                -- (a) scope is the root OR has its own districts (already filtered
+                -- by interesting_scopes, but enforced again so a root-without-districts
+                -- doesn't show up unless it equals \$scopeId)
+                (j.id = ? OR j.id IN (SELECT jurisdiction_id FROM scopes_with_districts_only))
+                -- (b) scope is NOT itself a district member
+                AND j.id NOT IN (SELECT jurisdiction_id FROM district_members)
+                -- (c1) child is not in any district on this map
+                AND child.id NOT IN (SELECT jurisdiction_id FROM district_members)
+                -- (c2) child is not itself a giant drill-down scope
+                AND child.id NOT IN (SELECT jurisdiction_id FROM scopes_with_districts_only)
             GROUP BY j.id, j.name
             HAVING COUNT(child.id) > 0
         ", array_merge(
-            [$legId], $incompMapBinding,   // scope_has_districts subquery
-            [$legId], $incompMapBinding,   // self_assigned subquery
-            [$legId], $incompMapBinding,   // assigned subquery
-            [$legId], $incompMapBinding,   // child_has_districts subquery
-            [$leg->jurisdiction_id,        // root scope OR check
-             $scopeId, $scopeId, $scopeId, $scopeId]  // depth filter
+            [$legId], $incompMapBinding,   // candidate_scopes
+            [$rootScopeId],                // candidate_scopes UNION root
+            [$scopeId],                    // interesting_scopes WHERE current_id = ?
+            [$legId], $incompMapBinding,   // district_members
+            [$legId], $incompMapBinding,   // scopes_with_districts_only
+            [$rootScopeId]                 // outer (a) root-or-self check
         ));
 
         foreach ($incompleteRows as $row) {
