@@ -1702,21 +1702,85 @@ class LegislatureController extends Controller
 
         $operationScope = $request->input('operation_scope');
         $scopeId        = $request->input('scope_id');
-        // ensureMapId auto-creates a "Draft N" map if none exists so the
-        // districts inserted by this sweep belong to a versioned plan
-        // instead of floating with map_id = NULL.
-        $mapId          = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         if (!$operationScope || !$scopeId) {
             return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
         }
 
-        // Mark this legislature as having an active mass operation (for UI progress indicator)
+        // Refuse to start a new sweep if one is already in flight. The Halt
+        // button must be used to stop the existing run before launching another.
+        if (Cache::get("legislature.{$legislature_id}.mass_running")) {
+            return response()->json([
+                'error' => 'A mass operation is already running. Wait for it to finish or click Halt to stop it.',
+            ], 409);
+        }
+
+        // Auto-create a "Draft N" map if none exists so districts belong to a
+        // versioned plan instead of floating with map_id = NULL.
+        $mapId = $this->ensureMapId($legislature_id, $request->input('map_id'));
+
+        // Clear any stale halt flag from a previous run before dispatching.
+        Cache::forget("legislature.{$legislature_id}.mass_halt");
+
+        // Mark this legislature as having an active mass operation. The job's
+        // handle() and failed() callbacks clear this when it terminates so
+        // the UI can re-enable controls.
         Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
 
-        // Derive clear_existing from the scope name: _all → true, _unassigned → false
-        $clearExisting = str_ends_with($operationScope, '_all');
+        // Seed initial progress so the polling UI has something to show
+        // before the job's worker picks it up.
+        $this->publishMassProgress($legislature_id, [
+            'completed'   => 0,
+            'total'       => 0,
+            'started_at'  => time(),
+            'phase'       => 'queued',
+            'phase_label' => 'Queued — waiting for worker',
+        ]);
 
+        // Dispatch to Horizon. The job's timeout is 7200 s (2 h) which
+        // covers a whole-Earth recursive sweep; per-scope commits inside
+        // the job mean partial progress survives any worker death.
+        \App\Jobs\MassReseedJob::dispatch(
+            $legislature_id,
+            $operationScope,
+            $scopeId,
+            $mapId,
+        );
+
+        return response()->json([
+            'success'   => true,
+            'dispatched'=> true,
+            'map_id'    => $mapId,
+        ], 202);
+    }
+
+    /**
+     * Core mass-reseed sweep. Extracted from the massReseed endpoint so that
+     * MassReseedJob (running in Horizon) can call it without a Request and
+     * without holding a php-fpm worker for the duration.
+     *
+     * Each scope commits in its own transaction so partial progress survives
+     * any error or timeout. Between scopes the job polls a halt flag in
+     * cache (`legislature.{id}.mass_halt`) — if set, the sweep aborts
+     * cleanly with `halted => true`.
+     *
+     * @return array{districts_created:int, scopes_processed:int, errors:array<int,string>, halted:bool, scope_ids:array<int,string>}
+     */
+    public function executeMassReseedSweep(
+        string $legislature_id,
+        string $operationScope,
+        string $scopeId,
+        string $mapId,
+    ): array {
+        $leg = DB::table('legislatures')
+            ->where('id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->first();
+        if (!$leg) {
+            throw new \RuntimeException("Legislature {$legislature_id} not found");
+        }
+
+        $clearExisting = str_ends_with($operationScope, '_all');
         $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
 
         // At root scope: auto-update type_a_seats from cube root of children sum.
@@ -1738,11 +1802,12 @@ class LegislatureController extends Controller
             $legislature_id, $leg, $scopeId, $operationScope, $rootQuota, $mapId
         );
 
-        $totalCreated   = 0;
+        $totalCreated    = 0;
         $scopesProcessed = 0;
         $errors          = [];
+        $halted          = false;
 
-        // Pre-fetch scope names for real-time progress display (polled by frontend)
+        // Pre-fetch scope names for real-time progress display
         $scopeNames  = DB::table('jurisdictions')
             ->whereIn('id', $scopeIds)
             ->pluck('name', 'id')
@@ -1760,9 +1825,20 @@ class LegislatureController extends Controller
         ]);
 
         // Per-scope transactions: each scope commits independently so partial
-        // progress survives any error in subsequent scopes. The previous
-        // single-tx wrap could lose hours of work to a single failed scope.
+        // progress survives any error in subsequent scopes.
         foreach ($scopeIds as $scopeIdx => $sid) {
+            // Halt poll — checked between scopes so a halt request takes effect
+            // on the next scope boundary instead of mid-tx.
+            if (Cache::get("legislature.{$legislature_id}.mass_halt")) {
+                $halted = true;
+                $this->publishMassProgress($legislature_id, [
+                    'phase'       => 'halted',
+                    'phase_label' => "Halted by operator after {$scopesProcessed}/{$totalScopes} scopes",
+                    'completed'   => $scopeIdx,
+                ]);
+                break;
+            }
+
             $scopeStart = time();
             $this->publishMassProgress($legislature_id, [
                 'current_scope'    => $scopeNames[$sid] ?? $sid,
@@ -1781,9 +1857,6 @@ class LegislatureController extends Controller
                 $seatBudget = (int) $leg->type_a_seats;
             } else {
                 $sidScope    = DB::table('jurisdictions')->where('id', $sid)->whereNull('deleted_at')->first();
-                // Use SUM(direct_children.population) for the proportional fallback — matches show()
-                // level-by-level apportionment fix (2026-03-10). Stored population can differ from
-                // the children sum due to ADM-level data-source inconsistencies in GeoBoundaries.
                 $sidChildPop = (int) DB::table('jurisdictions')
                     ->where('parent_id', $sid)
                     ->whereNull('deleted_at')
@@ -1800,8 +1873,6 @@ class LegislatureController extends Controller
                     $legislature_id, $leg, $sid, $clearExisting, $seatBudget, $mapId
                 );
                 if ($result['error'] !== null) {
-                    // Non-fatal (e.g. no compositable children) — record, commit
-                    // the (empty) tx, and continue
                     DB::commit();
                     $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $result['error'];
                 } else {
@@ -1816,36 +1887,46 @@ class LegislatureController extends Controller
                     'phase'       => 'scope_failed',
                     'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
                 ]);
-                // Continue to the next scope — don't abort the whole sweep.
             }
         }
 
-        // Final completed marker.
         $this->publishMassProgress($legislature_id, [
-            'completed'    => $totalScopes,
-            'phase'        => 'sweep_done',
-            'phase_label'  => "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts",
+            'completed'   => $halted ? $scopesProcessed : $totalScopes,
+            'phase'       => $halted ? 'halted' : 'sweep_done',
+            'phase_label' => $halted
+                ? "Halted by operator: {$scopesProcessed}/{$totalScopes} scopes complete, {$totalCreated} districts"
+                : "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts",
         ]);
-        Cache::forget("legislature.{$legislature_id}.mass_progress");
 
-        // Recompute 4-color indices outside the transaction (read-heavy, non-critical to atomicity)
-        foreach ($scopeIds as $sid) {
-            $this->recomputeColorIndices($legislature_id, $sid, $leg->jurisdiction_id, $mapId);
+        return [
+            'districts_created' => $totalCreated,
+            'scopes_processed'  => $scopesProcessed,
+            'errors'            => $errors,
+            'halted'            => $halted,
+            'scope_ids'         => $scopeIds,
+        ];
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/mass-halt
+     *
+     * Set the halt flag in cache. The running MassReseedJob polls it between
+     * scopes and exits cleanly after the current scope commits. Already-
+     * committed scopes are preserved.
+     */
+    public function massHalt(string $legislature_id): JsonResponse
+    {
+        $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
+        if (!$leg) {
+            return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        Cache::forget("legislature.{$legislature_id}.mass_running");
-        $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
-
-        // Auto-queue adjacency recolor after any bulk seed so colors are always correct
-        // without requiring a manual Recolor click.
-        \App\Jobs\RecolorDistrictsJob::dispatch($legislature_id, $mapId);
-
-        return response()->json([
-            'success'          => true,
-            'districts_created'=> $totalCreated,
-            'scopes_processed' => $scopesProcessed,
-            'errors'           => $errors,
+        Cache::put("legislature.{$legislature_id}.mass_halt", true, 3600);
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'halting',
+            'phase_label' => 'Halt requested — will stop after current scope',
         ]);
+        return response()->json(['ok' => true]);
     }
 
     /**
@@ -3295,7 +3376,7 @@ class LegislatureController extends Controller
      * @param string|null $rootJurisdictionId When provided, also includes ETL districts
      *                                        (jurisdiction_id IS NULL) if scopeId === root.
      */
-    private function recomputeColorIndices(
+    public function recomputeColorIndices(
         string  $legislatureId,
         ?string $scopeId,
         ?string $rootJurisdictionId = null,
@@ -5359,7 +5440,7 @@ class LegislatureController extends Controller
      * of S (up to the root) must be invalidated — each ancestor scope may display S's
      * sub-districts via the Branch 1 / Branch 2 SQL in revealedGeoJson().
      */
-    private function flushRevealedCache(string $legislature_id, ?string $mapId, ?string $districtScopeId): void
+    public function flushRevealedCache(string $legislature_id, ?string $mapId, ?string $districtScopeId): void
     {
         if (!$districtScopeId) return;
         $mapKey = $mapId ?? 'null';

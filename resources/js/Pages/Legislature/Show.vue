@@ -244,7 +244,7 @@
                             <div class="h-full bg-indigo-400 transition-all duration-300"
                                  :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
                         </div>
-                        <!-- Phase label + per-scope sub-progress -->
+                        <!-- Phase label + per-scope sub-progress + Halt button -->
                         <template v-if="massProgress && massProgress.phase_label">
                             <div class="flex items-center gap-2 text-[10px] text-indigo-400 leading-tight">
                                 <span class="truncate">{{ massProgress.phase_label }}</span>
@@ -257,6 +257,24 @@
                                      :style="{ width: ((massProgress.phase_current / massProgress.phase_total) * 100) + '%' }"></div>
                             </div>
                         </template>
+                        <!-- Halt control. Only meaningful for mass operations (not recolor),
+                             and only when not already halting. -->
+                        <div v-if="massProgress && !recolorProgress && massProgress.phase !== 'halting' && massProgress.phase !== 'halted'"
+                             class="flex items-center gap-2 mt-0.5">
+                            <button type="button"
+                                    @click="haltMassOperation"
+                                    :disabled="haltRequesting"
+                                    class="px-2 py-0.5 rounded text-[10px] border bg-red-900/60 border-red-700 text-red-200
+                                           hover:bg-red-800 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed
+                                           transition-colors">
+                                {{ haltRequesting ? 'Halting…' : 'Halt run' }}
+                            </button>
+                            <span class="text-[10px] text-indigo-500 italic">stops after current scope commits</span>
+                        </div>
+                        <div v-if="massProgress && massProgress.phase === 'halting'"
+                             class="text-[10px] text-amber-300 italic">
+                            Halt requested — finishing current scope, then stopping…
+                        </div>
                     </div>
 
                     <!-- Map Quality + Constitutional Flags — unified panel -->
@@ -1520,8 +1538,33 @@ const recolorProgress   = ref(null)   // { phase, total, started_at } or null
 const massProgress      = ref(null)   // { current_scope, completed, total, phase, phase_label, phase_current, phase_total, scope_started_at, ... }
 const recolorElapsed    = ref('')
 const massScopeElapsed  = ref('')
+const haltRequesting    = ref(false)
 let   massStatusTimer   = null
 let   elapsedTimer      = null
+
+async function haltMassOperation() {
+    if (haltRequesting.value) return
+    haltRequesting.value = true
+    try {
+        await fetch(`/api/legislatures/${props.legislature.id}/mass-halt`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+        })
+    } catch (e) {
+        // Non-fatal — operator can retry. The Halt is a cache flag; if the
+        // POST hits the server, the job will see it on the next scope boundary.
+        console.warn('mass-halt POST failed (will retry on next click):', e)
+    } finally {
+        // Keep the button locked briefly so a double-click doesn't spam the
+        // server; the polling loop will pick up the new "halting" phase.
+        setTimeout(() => { haltRequesting.value = false }, 1500)
+    }
+}
 
 function updateElapsed() {
     if (recolorProgress.value?.started_at) {
