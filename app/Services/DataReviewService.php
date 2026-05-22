@@ -126,12 +126,13 @@ class DataReviewService
      * Cheap to compute on demand (one indexed row read + a child rollup) so
      * it can run on every viewer page-load without caching.
      *
-     * Phase T.3 — also surfaces pixel-attribution correction metadata:
-     *   population_baseline, population_overlap_correction,
-     *   population_gap_correction. These let the operator see how much the
-     *   ETL's gap+overlap correction adjusted this polygon's count, and
-     *   detect polygons whose attribution is unstable (large gap_correction
-     *   = polygon absorbed a chunk that may belong to a sibling).
+     * Surfaces `population_baseline` as a historical snapshot of the Phase 2
+     * baseline value (set by the ETL after baseline injection + topological
+     * raster fallback). The Phase T pixel-attribution correction columns
+     * (overlap/gap/cross-iso) were ripped in migration
+     * 2026_05_22_000001_rip_pixel_attribution_correction.php — that approach
+     * produced row-level garbage (tiny hamlets credited with millions of
+     * people) and was abandoned in favor of pure Phase 2 baseline.
      *
      * @return array{
      *   is_population_gap:             bool,
@@ -143,10 +144,7 @@ class DataReviewService
      *   children_with_pop:             int,
      *   children_total:                int,
      *   rollup_delta_pct:              float|null,
-     *   population_baseline:           int|null,
-     *   population_overlap_correction: int,
-     *   population_gap_correction:     int,
-     *   has_population_correction:     bool
+     *   population_baseline:           int|null
      * }
      */
     public function summaryForJurisdiction(string $jurisdictionId): array
@@ -156,8 +154,6 @@ class DataReviewService
             SELECT j.id::text, j.iso_code, j.adm_level, j.population, j.parent_id::text,
                    j.parent_assigned_via,
                    j.population_baseline,
-                   j.population_overlap_correction,
-                   j.population_gap_correction,
                    p.iso_code AS parent_iso
             FROM jurisdictions j
             LEFT JOIN jurisdictions p ON p.id = j.parent_id
@@ -177,9 +173,6 @@ class DataReviewService
                 'children_total'                => 0,
                 'rollup_delta_pct'              => null,
                 'population_baseline'           => null,
-                'population_overlap_correction' => 0,
-                'population_gap_correction'     => 0,
-                'has_population_correction'     => false,
             ];
         }
 
@@ -223,17 +216,14 @@ class DataReviewService
             }
         }
 
-        // Phase T.3 — pixel-attribution correction surface. Either or
-        // both of the correction columns may be 0 (no overlap / no gap
-        // at this polygon); a non-zero magnitude on either signals an
-        // adjustment the operator can audit. population_baseline is
-        // NULL for rows the correction pass has never visited (e.g.,
-        // on a partial ETL re-run before correction has propagated).
+        // population_baseline is the Phase 2 baseline snapshot (set by
+        // the ETL after baseline injection + topological raster fallback).
+        // The columns that recorded the abandoned pixel-attribution
+        // correction (overlap/gap/cross-iso) were dropped in migration
+        // 2026_05_22_000001_rip_pixel_attribution_correction.php.
         $popBaseline = $row->population_baseline !== null
             ? (int) $row->population_baseline
             : null;
-        $popOverlapCorr = (int) ($row->population_overlap_correction ?? 0);
-        $popGapCorr     = (int) ($row->population_gap_correction ?? 0);
 
         return [
             'is_population_gap'             => $isPopGap,
@@ -247,9 +237,6 @@ class DataReviewService
             'children_total'                => $childrenTotal,
             'rollup_delta_pct'              => $rollupDeltaPct,
             'population_baseline'           => $popBaseline,
-            'population_overlap_correction' => $popOverlapCorr,
-            'population_gap_correction'     => $popGapCorr,
-            'has_population_correction'     => $popOverlapCorr !== 0 || $popGapCorr !== 0,
         ];
     }
 
