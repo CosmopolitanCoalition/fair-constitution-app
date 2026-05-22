@@ -53,7 +53,7 @@
                         <tr
                             v-for="j in jurisdictions.data"
                             :key="j.id"
-                            @click="visit(j.id)"
+                            @click="visit(j.slug)"
                             class="border-b border-gray-800/60 hover:bg-gray-800/50 cursor-pointer transition-colors"
                         >
                             <td class="px-4 py-2">
@@ -156,7 +156,9 @@ function goToPage(url) {
     router.visit(url, { preserveState: true })
 }
 
-function visit(id) {
-    router.visit(`/jurisdictions/${id}`)
+function visit(slug) {
+    // Slug-based URLs for the public viewer; UUID-bound API endpoints stay
+    // unchanged. Slugs are unique per parent and human-readable.
+    router.visit(`/jurisdictions/${slug}`)
 }
 </script>

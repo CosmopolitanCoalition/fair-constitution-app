@@ -4,6 +4,9 @@ LABEL maintainer="Cosmopolitan Coalition"
 LABEL description="Fair Constitution App — PHP 8.4 service"
 
 # ─── System dependencies ──────────────────────────────────────
+# postgresql-client provides pg_dump / pg_restore, used by Phase P.9's
+# MapDataExportService / MapDataImportService for portable backup/restore
+# of the full map-data state (jurisdictions + worldpop_rasters + meta).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
@@ -11,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     unzip \
     libpq-dev \
+    postgresql-client \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \

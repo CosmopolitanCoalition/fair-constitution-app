@@ -21,9 +21,9 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 5173,
-        origin: 'http://localhost:5173',
+        origin: 'http://localhost:5174',
         cors: {
-            origin: ['http://localhost:8080', 'http://localhost:5173'],
+            origin: ['http://localhost:8081', 'http://localhost:5174'],
             credentials: true,
         },
         watch: {

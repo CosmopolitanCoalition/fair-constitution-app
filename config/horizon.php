@@ -210,6 +210,31 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+
+        // Dedicated supervisor for jobs that run for hours-to-days. The
+        // 60 s timeout on supervisor-1 would SIGTERM a multi-day pre-warm
+        // within seconds, so PrewarmRasterTilesJob (and any future
+        // export/import workers) goes on this queue instead.
+        //
+        // maxProcesses=1: the prewarm writes to a shared disk cache; one
+        // worker at a time avoids file_put_contents races. The export job
+        // (Phase P) writes to per-id files so it could parallelise, but
+        // we don't gain much because it's I/O-bound on pg_dump.
+        //
+        // timeout=0: no per-job ceiling. The job's own ->timeout hint is
+        // also 0. The operator cancels via Horizon's UI if needed.
+        'supervisor-long-running' => [
+            'connection' => 'redis',
+            'queue' => ['long-running'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 0,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -219,11 +244,17 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'supervisor-long-running' => [
+                'maxProcesses' => 1,
+            ],
         ],
 
         'local' => [
             'supervisor-1' => [
                 'maxProcesses' => 3,
+            ],
+            'supervisor-long-running' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

@@ -1,5 +1,23 @@
 <template>
     <AppLayout>
+        <div
+            v-if="setup_mode"
+            class="shrink-0 bg-blue-900/40 border-b border-blue-700 px-4 py-2 flex items-center justify-between gap-3 text-sm"
+        >
+            <div class="text-blue-100">
+                <span class="font-semibold">Setup · Step 3 of 5 ·</span>
+                {{ active_map && active_map.status === 'active'
+                    ? 'District map activated — you can return to the wizard to continue.'
+                    : 'Build or auto-seed districts for this legislature, then activate a map to continue.' }}
+            </div>
+            <button
+                type="button"
+                @click="returnToSetup"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md font-semibold transition-colors shrink-0"
+            >
+                {{ active_map && active_map.status === 'active' ? '← Back to Setup' : '← Return to Setup' }}
+            </button>
+        </div>
         <div class="flex flex-1 min-h-0 overflow-hidden">
 
             <!-- ══ Left panel ══════════════════════════════════════════════ -->
@@ -1258,7 +1276,26 @@ const props = defineProps({
     mass_tool_running: { type: Boolean, default: false },
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
     active_map: { type: Object, default: null },        // the map currently being displayed
+    setup_mode: { type: Boolean, default: false },      // set when arrived via /setup/step/3?setup=1
 })
+
+// Setup wizard banner — only shown when ?setup=1 on the URL.  When a map is
+// active we surface the "Back to Setup →" action; otherwise we only remind the
+// user what this page is for.
+async function returnToSetup() {
+    try {
+        await fetch('/api/setup/wizard/step3/complete', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+        })
+    } catch (e) { /* fall through — user still gets redirected */ }
+    window.location.href = '/setup'
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Jurisdictions with fractional_seats >= this threshold cannot be placed in a

@@ -5,12 +5,25 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fc_app
+    container_name: fcw_app
     restart: unless-stopped
     working_dir: /var/www/html
+    # -R lets php-fpm run its pool as root in dev. Windows bind mounts show
+    # every file as root-owned, so running PHP as www-data causes permission
+    # errors on every write to storage/, bootstrap/cache/, and scripts/etl/control/.
+    command: ["php-fpm", "-R"]
     volumes:
       - .:/var/www/html                    # bind mount — edits are instant
+      - vendor:/var/www/html/vendor        # named volume — Linux FS (Windows bind mount chokes on composer archives)
       - composer_cache:/root/.composer     # cache composer downloads
+      # Bind mount the dev ini so edits on host survive container recreation
+      # (image still has a COPY of it baked in, but this overrides on start).
+      - ./docker/php/php-local.ini:/usr/local/etc/php/conf.d/99-local.ini:ro
+      # Protomaps PMTiles directory — Laravel's /api/maps/latest-pmtiles
+      # scans this folder to pick the most recent YYYYMMDD.pmtiles file.
+      # Matches the nginx mount so the same files are reachable via both
+      # the Laravel API (scan) and the HTTP /maps/protomaps/ path (serve).
+      - ${PROTOMAPS_DIR:-D:/fair-constitution-map-files/protomaps_pmtiles}:/var/www/html/public/maps/protomaps:ro
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -26,13 +39,20 @@ services:
   # ─── Nginx ───────────────────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
-    container_name: fc_nginx
+    container_name: fcw_nginx
     restart: unless-stopped
     ports:
-      - "8080:80"                          # app at localhost:8080
+      - "8081:80"                          # worktree nginx on host 8081 (main uses 8080)
     volumes:
       - .:/var/www/html
+      - vendor:/var/www/html/vendor
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Protomaps PMTiles bundles, served at /maps/protomaps/{filename}.
+      # Operator drops dated files (YYYYMMDD.pmtiles) into this host
+      # directory; the /api/maps/latest-pmtiles backend endpoint scans the
+      # directory and tells the frontend which one to load. Override the
+      # host path via PROTOMAPS_DIR in .env when needed.
+      - ${PROTOMAPS_DIR:-D:/fair-constitution-map-files/protomaps_pmtiles}:/var/www/html/public/maps/protomaps:ro
     depends_on:
       - app
     networks:
@@ -41,15 +61,80 @@ services:
   # ─── PostgreSQL 17 + PostGIS 3.5 ─────────────────────────────
   postgres:
     image: postgis/postgis:17-3.5
-    container_name: fc_postgres
+    container_name: fcw_postgres
     restart: unless-stopped
+    # P.1.2: bump stop grace period from Docker's 10 s default to 120 s.
+    # Mid-ETL postgres has GBs of dirty buffers + open transactions to
+    # flush + checkpoint on shutdown. 10 s isn't enough → SIGKILL →
+    # unclean shutdown → WAL recovery on next boot (minutes of downtime
+    # while the DB replays the WAL). 120 s lets postgres complete a clean
+    # shutdown even with the heaviest write workload. Docker only waits
+    # up to this long; clean shutdowns of an idle DB still take <1 s.
+    stop_grace_period: 120s
     ports:
-      - "5432:5432"                        # expose for DB GUI tools (TablePlus, DBeaver)
+      - "5433:5432"                        # worktree postgres on host 5433 (main uses 5432)
+    # Phase L (memory-tuned): pair with the etl container's 2 GB cap so the
+    # two of them together fit inside the host (~7.5 GB RAM) with margin.
+    # 5 GB covers shared_buffers=4GB + a few concurrent ST_Intersects work
+    # buffers (256 MB each). Without this cap, postgres + etl could both
+    # grab system memory and the kernel OOM-killer would terminate whichever
+    # was bigger when memory ran out (this is what happened during the
+    # ADM2-ADM3 phase of the world ETL: PG backend OOM at 03:56).
+    mem_limit: 5g
+    memswap_limit: 5g
     environment:
       POSTGRES_DB: fair_constitution
       POSTGRES_USER: fc_user
       POSTGRES_PASSWORD: fc_password
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    # Dev rig tuning — generous memory for bulk geospatial loads, SSD cost hints.
+    #
+    # Phase L (memory-tuned): shared_buffers dropped from 4 GB → 1 GB. We're
+    # write-heavy (ETL bulk-loads native-vertex GeoJSON) and barely re-read
+    # any pages, so a large buffer pool was wasted memory. Inserts of giant
+    # MultiPolygons (Nunavut: ~200 MB GeoJSON → multi-million-vertex geometry)
+    # need ~2–3 GB of transient operator memory for ST_GeomFromGeoJSON +
+    # ST_MakeValid + ST_Multi. With the 5 GB container cap, 4 GB of that was
+    # locked up by shared_buffers and the OS was OOM-killing the backend
+    # whenever a giant insert hit the 1 GB headroom. Dropping shared_buffers
+    # to 1 GB gives the operators ~4 GB of room — comfortable for any single
+    # feature in the world dataset.
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=4GB"
+      - "-c"
+      - "work_mem=256MB"
+      - "-c"
+      - "maintenance_work_mem=1GB"
+      - "-c"
+      - "max_wal_size=8GB"
+      - "-c"
+      - "min_wal_size=1GB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=64MB"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "max_worker_processes=8"
+      - "-c"
+      - "max_parallel_workers=8"
+      - "-c"
+      - "max_parallel_workers_per_gather=4"
+      - "-c"
+      - "max_parallel_maintenance_workers=4"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "statement_timeout=0"
+      - "-c"
+      - "idle_in_transaction_session_timeout=0"
     volumes:
       - postgres_data:/var/lib/postgresql/data   # named volume — persists across rebuilds
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -64,7 +149,7 @@ services:
   # ─── Redis 7 ─────────────────────────────────────────────────
   redis:
     image: redis:7.4-alpine
-    container_name: fc_redis
+    container_name: fcw_redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -77,13 +162,13 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fc_vite
+    container_name: fcw_vite
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
       - node_modules:/var/www/html/node_modules
     ports:
-      - "5173:5173"                        # Vite HMR at localhost:5173
+      - "5174:5173"                        # worktree Vite HMR on host 5174 (main uses 5173)
     command: npm run dev -- --host 0.0.0.0 --port 5173
     depends_on:
       - app
@@ -95,11 +180,12 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fc_horizon
+    container_name: fcw_horizon
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
+      - vendor:/var/www/html/vendor
       - composer_cache:/root/.composer
     command: php artisan horizon
     depends_on:
@@ -115,19 +201,41 @@ services:
     build:
       context: .
       dockerfile: docker/etl/Dockerfile
-    container_name: fc_etl
+    container_name: fcw_etl
     working_dir: /etl
+    # P.1.2: give the ETL supervisor up to 60 s to forward SIGTERM to its
+    # active subprocess and let Python's finally blocks close DB
+    # connections cleanly. Important so postgres doesn't see abandoned
+    # transactions when the containers are stopped mid-run.
+    stop_grace_period: 60s
+    # Phase L (memory-tuned): streaming-pipeline + 64 MB batch ceiling means
+    # per-feature peak is ~800 MB (worst case = Nunavut). 2 GB cap leaves
+    # generous headroom AND keeps the pair of containers (postgres ~4 GB +
+    # etl 2 GB) within the host's ~7.5 GB so the kernel OOM-killer doesn't
+    # fire system-wide if either side gets aggressive. The earlier 4 GB cap
+    # let etl + postgres compete for 8 GB of system memory and they took
+    # turns OOM-killing each other.
+    #
+    # IMPORTANT: docker compose only applies these limits when the container
+    # is RECREATED (`docker compose down etl && docker compose up -d etl`),
+    # not on a plain restart. `docker inspect fcw_etl --format '{{.HostConfig.Memory}}'`
+    # should report 2147483648; if it reports 0, the limit isn't actually
+    # bound and a recreate is needed.
+    mem_limit: 2g
+    memswap_limit: 2g
     volumes:
       - ./scripts/etl:/etl                 # your python scripts
       - etl_geodata:/data                  # downloaded geodata persists (can be large)
-      - ./docs:/docs:ro                          # source geodata (geoBoundaries + WorldPop)
+      - ./docs:/docs:ro                    # constitutional docs (not ETL data)
+      - ${ARCHIVE_PATH:-./data/archive}:/archive:ro  # geoBoundaries+WorldPop archive (override with ARCHIVE_PATH env in .env)
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: fair_constitution
       DB_USER: fc_user
       DB_PASSWORD: fc_password
-    command: tail -f /dev/null             # keeps container running; exec in to run scripts
+      DATA_ROOT: /archive                  # ETL scripts read geoBoundaries/WorldPop from here
+    command: python3 -u /etl/supervisor.py # polls /etl/control/request.json for Laravel-submitted jobs
     depends_on:
       postgres:
         condition: service_healthy
@@ -145,6 +253,8 @@ volumes:
   composer_cache:
     driver: local
   node_modules:
+    driver: local
+  vendor:
     driver: local
 
 # ─── Network ─────────────────────────────────────────────────

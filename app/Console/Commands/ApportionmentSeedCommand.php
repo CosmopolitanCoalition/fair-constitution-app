@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ConstitutionalDefaults;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -167,8 +168,11 @@ class ApportionmentSeedCommand extends Command
             ->get(['id', 'name', 'population']);
 
         if ($children->isEmpty()) {
-            // Leaf jurisdiction: size a legislature of 5–9 seats, no districts.
-            $leafSeats = max(5, min(9, (int) round(pow(max((float) $parent->population, 1), 1.0 / 3.0))));
+            // Leaf jurisdiction: size a legislature within [floor, ceiling], no districts.
+            $leafSeats = min(
+                ConstitutionalDefaults::ceiling($parent->id),
+                ConstitutionalDefaults::sizeFromPopulation((float) $parent->population, $parent->id)
+            );
 
             if ($dryRun) {
                 $this->line("  {$parent->name}: leaf, seats={$leafSeats}");
@@ -180,9 +184,9 @@ class ApportionmentSeedCommand extends Command
             return;
         }
 
-        // Cube-root law using SUM(children pops) as denominator — level-local.
+        // Level-local sizing: sum(children pops) → ConstitutionalDefaults (cube_root law in v1).
         $sumChildrenPop = (float) $children->sum('population');
-        $totalSeats     = max(5, (int) round(pow(max($sumChildrenPop, 1), 1.0 / 3.0)));
+        $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sumChildrenPop, $parent->id);
         $quota          = $sumChildrenPop > 0 ? $sumChildrenPop / $totalSeats : 1.0;
 
         // Equal-house seats per child (type_b) from constitutional settings

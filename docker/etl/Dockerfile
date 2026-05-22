@@ -16,7 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV GDAL_VERSION=3.6.2
 
 # Python geospatial stack
+# Phase L: ijson is the primary GeoJSON reader for import_geoboundaries (streaming
+# parser — handles 600 MB+ files like CAN-ADM1 without loading the whole tree
+# into memory). The previous geopandas/fiona path is kept installed for any
+# archived districting scripts but no longer used by the active ETL.
 RUN pip install --no-cache-dir \
+    ijson==3.3.0 \
     geopandas==0.14.4 \
     rasterio==1.3.10 \
     rasterstats==0.19.0 \

@@ -1,0 +1,21 @@
+{
+  "pid": 7,
+  "started_at": "2026-05-22T02:32:38.909101+00:00",
+  "finished_at": "2026-05-22T12:35:03.220522+00:00",
+  "exit_code": 130,
+  "request": {
+    "submitted_at": "2026-05-22T02:32:37+00:00",
+    "source": "archive",
+    "options": {
+      "fresh_scope": "phase2b_only",
+      "fresh": true,
+      "resume": false,
+      "skip_population": false,
+      "pause_on_exception": false,
+      "countries": [],
+      "adm_levels": [],
+      "data_root": null
+    }
+  },
+  "halted": true
+}

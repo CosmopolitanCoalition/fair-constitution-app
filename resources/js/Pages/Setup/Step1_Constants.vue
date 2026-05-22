@@ -1,0 +1,549 @@
+<script setup>
+import { computed, ref } from 'vue'
+import { router } from '@inertiajs/vue3'
+import AppLayout from '@/Layouts/AppLayout.vue'
+import SetupStepper from '@/Components/SetupStepper.vue'
+
+const props = defineProps({
+    step: { type: Number, required: true },
+    settings: { type: Object, required: true },
+})
+
+// ── Legislature sizing ──────────────────────────────────────────────
+const minSeats = ref(5)
+const maxSeats = ref(9)
+const sizingLaw = ref('cube_root')
+
+// ── Elections ──────────────────────────────────────────────────────
+const electionInterval = ref(60)
+const votingMethod = ref('stv_droop')
+const specialElectionMinDays = ref(90)
+const specialElectionMaxDays = ref(180)
+
+// ── Governance ─────────────────────────────────────────────────────
+const supermajorityN = ref(2)
+const supermajorityD = ref(3)
+const maxDaysBetweenMeetings = ref(90)
+const emergencyPowersMaxDays = ref(90)
+
+// ── Appointments & Judiciary ───────────────────────────────────────
+const civilAppointmentYears = ref(10)
+const judicialAppointmentYears = ref(10)
+const judiciaryMinJudgesPerRace = ref(5)
+const judiciaryIsElected = ref(false)
+
+// ── Organizations & Workers ────────────────────────────────────────
+const workerRepMinEmployees = ref(100)
+const workerRepParityEmployees = ref(2000)
+
+// ── Residency & Initiative ─────────────────────────────────────────
+const residencyConfirmationDays = ref(30)
+const initiativePetitionThresholdPct = ref(5.00)
+
+const submitting = ref(false)
+const submitError = ref(null)
+
+const SIZING_LAWS = [
+    { id: 'cube_root', label: 'Cube-Root Law — round(population^(1/3))', enabled: true },
+]
+
+const VOTING_METHODS = [
+    { id: 'stv_droop', label: 'STV with Droop Quota', enabled: true },
+]
+
+const supermajorityRatio = computed(() => {
+    if (!supermajorityD.value) return '0%'
+    return ((supermajorityN.value / supermajorityD.value) * 100).toFixed(1) + '%'
+})
+
+const supermajorityValid = computed(() =>
+    supermajorityD.value >= 2 && (supermajorityN.value / supermajorityD.value) > 0.5
+)
+
+const seatsValid = computed(() => minSeats.value >= 1 && maxSeats.value >= minSeats.value)
+
+const specialElectionValid = computed(() =>
+    specialElectionMinDays.value >= 1 && specialElectionMaxDays.value >= specialElectionMinDays.value
+)
+
+const workerThresholdsValid = computed(() =>
+    workerRepMinEmployees.value >= 1 && workerRepParityEmployees.value >= workerRepMinEmployees.value
+)
+
+const acceleratedHint = computed(() => {
+    if (props.settings.time_mode !== 'accelerated') return null
+    const secondsPerYear = props.settings.time_scale_seconds_per_year ?? 31536000
+    const totalSeconds = secondsPerYear * (electionInterval.value / 12)
+    if (totalSeconds < 60) return `≈ ${totalSeconds.toFixed(0)}s of wall-clock time`
+    if (totalSeconds < 3600) return `≈ ${(totalSeconds / 60).toFixed(1)} min`
+    if (totalSeconds < 86400) return `≈ ${(totalSeconds / 3600).toFixed(1)} hours`
+    if (totalSeconds < 31536000) return `≈ ${(totalSeconds / 86400).toFixed(1)} days`
+    return `≈ ${(totalSeconds / 31536000).toFixed(1)} years`
+})
+
+const canSubmit = computed(() =>
+    supermajorityValid.value &&
+    seatsValid.value &&
+    specialElectionValid.value &&
+    workerThresholdsValid.value &&
+    electionInterval.value > 0 &&
+    maxDaysBetweenMeetings.value > 0 &&
+    emergencyPowersMaxDays.value > 0 &&
+    civilAppointmentYears.value > 0 &&
+    judicialAppointmentYears.value > 0 &&
+    judiciaryMinJudgesPerRace.value >= 1 &&
+    residencyConfirmationDays.value > 0 &&
+    initiativePetitionThresholdPct.value > 0
+)
+
+async function onSubmit() {
+    submitting.value = true
+    submitError.value = null
+    try {
+        const res = await fetch('/api/setup/constants', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body: JSON.stringify({
+                legislature_min_seats: minSeats.value,
+                legislature_max_seats: maxSeats.value,
+                legislature_sizing_law: sizingLaw.value,
+                election_interval_months: electionInterval.value,
+                voting_method: votingMethod.value,
+                special_election_min_days: specialElectionMinDays.value,
+                special_election_max_days: specialElectionMaxDays.value,
+                supermajority_numerator: supermajorityN.value,
+                supermajority_denominator: supermajorityD.value,
+                max_days_between_meetings: maxDaysBetweenMeetings.value,
+                emergency_powers_max_days: emergencyPowersMaxDays.value,
+                civil_appointment_years: civilAppointmentYears.value,
+                judicial_appointment_years: judicialAppointmentYears.value,
+                judiciary_min_judges_per_race: judiciaryMinJudgesPerRace.value,
+                judiciary_is_elected: judiciaryIsElected.value,
+                worker_rep_min_employees: workerRepMinEmployees.value,
+                worker_rep_parity_employees: workerRepParityEmployees.value,
+                residency_confirmation_days: residencyConfirmationDays.value,
+                initiative_petition_threshold_pct: initiativePetitionThresholdPct.value,
+            }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+            submitError.value = data.error || data.message || 'Submission failed'
+            return
+        }
+        router.visit(data.next || '/setup/step/2')
+    } catch (e) {
+        submitError.value = e.message || 'Network error'
+    } finally {
+        submitting.value = false
+    }
+}
+</script>
+
+<template>
+    <AppLayout :hide-nav="true">
+        <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+            <SetupStepper :current="1" :completed="settings.setup_step_completed" />
+
+            <header class="mt-8 mb-6">
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    Per Jurisdiction Constitutional Defaults
+                </h1>
+                <p class="text-gray-400 text-sm max-w-3xl">
+                    These are the constitutional settings for your instance's root jurisdiction.
+                    You are founding the constitution now — the values below are the Fair Constitution
+                    Template's suggested defaults (the "defaults of defaults"), shown as reference.
+                    You can depart from them here. After setup, any further amendments must go
+                    through valid legislative acts.
+                </p>
+            </header>
+
+            <!-- ─────────── Legislature ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Legislature</h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Minimum seats per legislature
+                            </label>
+                            <input
+                                v-model.number="minSeats"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">5</span> · Art. II §2
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Maximum seats per legislature
+                            </label>
+                            <input
+                                v-model.number="maxSeats"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">9</span> (before mandatory subdivision) · Art. II §2
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            Legislature Sizing Law
+                        </label>
+                        <select
+                            v-model="sizingLaw"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
+                        >
+                            <option v-for="law in SIZING_LAWS" :key="law.id" :value="law.id" :disabled="!law.enabled">
+                                {{ law.label }}
+                            </option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Total legislature size is computed from population, then clamped to
+                            <code class="text-gray-400">[min, max]</code>, then partitioned into districts of size
+                            <code class="text-gray-400">[min_seats, max_seats]</code>.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            Max Days Between Meetings
+                        </label>
+                        <input
+                            v-model.number="maxDaysBetweenMeetings"
+                            type="number"
+                            min="1"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                        />
+                        <p class="text-xs text-gray-500 mt-1">
+                            Default of defaults: <span class="text-gray-300">90</span> days · Art. II §2
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────── Elections ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Elections</h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Election Interval (months)
+                            </label>
+                            <input
+                                v-model.number="electionInterval"
+                                type="number"
+                                min="1"
+                                max="1200"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">60</span> months (5 years) · Art. II §2
+                                <span v-if="acceleratedHint" class="block">{{ acceleratedHint }}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Voting Method
+                            </label>
+                            <select
+                                v-model="votingMethod"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
+                            >
+                                <option v-for="m in VOTING_METHODS" :key="m.id" :value="m.id" :disabled="!m.enabled">
+                                    {{ m.label }}
+                                </option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">STV Droop</span> · Art. II §2 ·
+                                currently the only implemented algorithm.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Special Election — Min Days After Vacancy
+                            </label>
+                            <input
+                                v-model.number="specialElectionMinDays"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">90</span> days · Art. II §5
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Special Election — Max Days After Vacancy
+                            </label>
+                            <input
+                                v-model.number="specialElectionMaxDays"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p
+                                :class="[
+                                    'text-xs mt-1',
+                                    specialElectionValid ? 'text-gray-500' : 'text-red-400',
+                                ]"
+                            >
+                                Default of defaults: <span class="text-gray-300">180</span> days · Art. II §5 ·
+                                must be ≥ min.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────── Governance Thresholds ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Governance Thresholds</h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Supermajority
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    v-model.number="supermajorityN"
+                                    type="number"
+                                    min="1"
+                                    class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
+                                />
+                                <span class="text-gray-500">/</span>
+                                <input
+                                    v-model.number="supermajorityD"
+                                    type="number"
+                                    min="2"
+                                    class="w-16 bg-gray-950 border border-gray-700 rounded-md px-2 py-2 text-gray-100 text-center"
+                                />
+                                <span class="text-xs text-gray-400 ml-2">= {{ supermajorityRatio }}</span>
+                            </div>
+                            <p
+                                :class="[
+                                    'text-xs mt-1',
+                                    supermajorityValid ? 'text-gray-500' : 'text-red-400',
+                                ]"
+                            >
+                                Default of defaults: <span class="text-gray-300">2/3</span> · Art. VII ·
+                                must exceed 1/2 (simple majority).
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Emergency Powers Max Duration (days)
+                            </label>
+                            <input
+                                v-model.number="emergencyPowersMaxDays"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">90</span> days · Art. II §7
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            Citizen Initiative Petition Threshold (% of population)
+                        </label>
+                        <input
+                            v-model.number="initiativePetitionThresholdPct"
+                            type="number"
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                        />
+                        <p class="text-xs text-gray-500 mt-1">
+                            Default of defaults: <span class="text-gray-300">5.00%</span> · Art. II §6
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────── Appointments & Judiciary ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Appointments & Judiciary</h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Civil Appointment Term (years)
+                            </label>
+                            <input
+                                v-model.number="civilAppointmentYears"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">10</span> years · Art. II §9
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Judicial Appointment Term (years)
+                            </label>
+                            <input
+                                v-model.number="judicialAppointmentYears"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">10</span> years · Art. IV §4
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Minimum Judges per Race
+                            </label>
+                            <input
+                                v-model.number="judiciaryMinJudgesPerRace"
+                                type="number"
+                                min="1"
+                                class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">5</span> · Art. IV §4
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-200 mb-1">
+                                Judiciary Selection Method
+                            </label>
+                            <div class="flex items-center gap-3 mt-2">
+                                <label class="flex items-center gap-2 text-sm text-gray-200">
+                                    <input
+                                        type="radio"
+                                        :value="false"
+                                        v-model="judiciaryIsElected"
+                                        class="text-blue-500 focus:ring-blue-500"
+                                    />
+                                    Appointed
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-200">
+                                    <input
+                                        type="radio"
+                                        :value="true"
+                                        v-model="judiciaryIsElected"
+                                        class="text-blue-500 focus:ring-blue-500"
+                                    />
+                                    Elected
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Default of defaults: <span class="text-gray-300">Appointed</span> · Art. IV §1
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────── Organizations & Workers ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Organizations & Workers</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            Worker Rep — First Seat Threshold (employees)
+                        </label>
+                        <input
+                            v-model.number="workerRepMinEmployees"
+                            type="number"
+                            min="1"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                        />
+                        <p class="text-xs text-gray-500 mt-1">
+                            Default of defaults: <span class="text-gray-300">100</span> · Art. III §6
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            Worker : Shareholder Parity (employees)
+                        </label>
+                        <input
+                            v-model.number="workerRepParityEmployees"
+                            type="number"
+                            min="1"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                        />
+                        <p
+                            :class="[
+                                'text-xs mt-1',
+                                workerThresholdsValid ? 'text-gray-500' : 'text-red-400',
+                            ]"
+                        >
+                            Default of defaults: <span class="text-gray-300">2000</span> · Art. III §6 ·
+                            must be ≥ first-seat threshold.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─────────── Residency ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-5">
+                <h2 class="text-lg font-semibold text-white mb-4">Residency</h2>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-1">
+                        Residency Confirmation Window (days)
+                    </label>
+                    <input
+                        v-model.number="residencyConfirmationDays"
+                        type="number"
+                        min="1"
+                        class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100 focus:border-blue-500 focus:outline-none"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                        Default of defaults: <span class="text-gray-300">30</span> days of qualifying GPS pings
+                        before residency is confirmed and voting/candidacy rights unlock.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ─────────── Submit ─────────── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <div v-if="submitError" class="text-sm text-red-400 bg-red-900/30 border border-red-800 rounded p-2 mb-3">
+                    {{ submitError }}
+                </div>
+                <div class="flex justify-between pt-2">
+                    <a href="/setup/step/0" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
+                        ← Back
+                    </a>
+                    <button
+                        type="button"
+                        :disabled="!canSubmit || submitting"
+                        @click="onSubmit"
+                        class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                    >
+                        {{ submitting ? 'Saving…' : 'Continue →' }}
+                    </button>
+                </div>
+            </section>
+        </div>
+    </AppLayout>
+</template>

@@ -39,62 +39,320 @@ class JurisdictionController extends Controller
     }
 
     /**
-     * Jurisdiction detail page — shows metadata + child map for any jurisdiction.
+     * Jurisdiction detail page — Phase P.6 redesign. Becomes the place where
+     * the operator reviews imported map data per-jurisdiction and accepts
+     * the global dataset (at planet scope).
+     *
+     * Adopted from Legislature/Show.vue's sidebar layout pattern (header,
+     * breadcrumb, quick stats, collapsible meta panel, review-issue badges,
+     * children list). The map pane gets WorldPop raster overlay toggle and
+     * Protomaps base tiles (via P.7).
+     *
+     * Per the P.4 constraint, this viewer does NOT echo `type_a_seats` /
+     * `type_b_seats` / `type_a_apportioned` / `type_b_apportioned` — those
+     * stay in the legislature browser (`/legislatures/{id}`) where the
+     * district mapper still owns the seat-budget concern.
      */
     public function show(Jurisdiction $jurisdiction): Response
     {
         $childCount = $jurisdiction->children()->count();
 
-        // Sum of children's apportioned seats — the composition of this jurisdiction's legislature
-        $childrenTypeATotal = $childCount > 0
-            ? (int) DB::table('jurisdictions')
-                ->where('parent_id', $jurisdiction->id)
-                ->whereNull('deleted_at')
-                ->sum('type_a_apportioned')
-            : null;
-
-        $childrenTypeBTotal = $childCount > 0
-            ? (int) DB::table('jurisdictions')
-                ->where('parent_id', $jurisdiction->id)
-                ->whereNull('deleted_at')
-                ->sum('type_b_apportioned')
-            : null;
-
-        // Treat 0 sums (not yet seeded) as null so the UI omits the card
-        if ($childrenTypeATotal === 0) { $childrenTypeATotal = null; }
-        if ($childrenTypeBTotal === 0) { $childrenTypeBTotal = null; }
-
-        // Legislature for this jurisdiction (if any) — drives the "View Legislature & Districts" link
+        // Legislature for this jurisdiction (if any) — drives the legislature-
+        // related button state machine. Every parent jurisdiction gets a
+        // legislature post-apportionment, but the legislature isn't
+        // meaningfully viewable until at least one district map exists.
         $legislatureId = DB::table('legislatures')
             ->where('jurisdiction_id', $jurisdiction->id)
             ->whereNull('deleted_at')
             ->value('id');
 
+        // P.6.x.3: has-district-map gate. When true, "View Legislature &
+        // Districts" button shows; when false (but legislature exists),
+        // "Create first district map" shows instead.
+        $hasDistrictMap = $legislatureId
+            ? DB::table('legislature_district_maps')
+                ->where('legislature_id', $legislatureId)
+                ->whereNull('deleted_at')
+                ->exists()
+            : false;
+
+        // P.6: pull supplementary metadata from the geoboundary_metadata table.
+        // Joined here rather than via the model's row to keep the show()
+        // response shape independent of the import-time meta dict — operator
+        // sees continent/region/income-group context from the same source
+        // the import script wrote.
+        $meta = DB::selectOne(
+            "
+            SELECT name AS boundary_name, continent, unsdg_region, unsdg_subregion,
+                   world_bank_income_group, year_represented, boundary_canonical
+            FROM   geoboundary_metadata
+            WHERE  iso_code = :iso AND adm_level = 0
+            LIMIT 1
+            ",
+            ['iso' => $jurisdiction->iso_code]
+        );
+
+        // P.6: orphan-children counter for the badge ("N orphans under this scope")
+        $orphanChildrenCount = (int) DB::table('jurisdictions')
+            ->where('parent_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->whereNull('parent_id')   // unreachable, just defensive
+            ->count();
+        // The above guard is structural — really we want orphans nested somewhere
+        // beneath this jurisdiction; the badge counts them only at depth 1.
+        $directChildOrphans = (int) DB::table('jurisdictions')
+            ->where('parent_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->whereRaw("COALESCE(population, 0) = 0")
+            ->count();
+
+        // P.6: review-issue summary for this specific jurisdiction
+        $reviewSummary = app(\App\Services\DataReviewService::class)
+            ->summaryForJurisdiction($jurisdiction->id);
+
+        // P.6: instance setup state — drives the "Accept Map Data" button
+        // gating at planet scope. The button is enabled only when the ETL
+        // is done AND map_accepted_at is null.
+        $instanceSettings = \App\Models\InstanceSettings::current();
+
         return Inertia::render('Jurisdictions/Show', [
             'jurisdiction' => [
-                'id'                 => $jurisdiction->id,
-                'name'               => $jurisdiction->name,
-                'slug'               => $jurisdiction->slug,
-                'iso_code'           => $jurisdiction->iso_code,
-                'adm_level'          => $jurisdiction->adm_level,
-                'adm_label'          => $jurisdiction->adm_label,
-                'population'         => $jurisdiction->population,
-                'population_year'    => $jurisdiction->population_year,
-                'timezone'           => $jurisdiction->timezone,
-                'source'             => $jurisdiction->source,
-                'official_languages' => $jurisdiction->official_languages ?? [],
+                'id'                      => $jurisdiction->id,
+                'name'                    => $jurisdiction->name,
+                'slug'                    => $jurisdiction->slug,
+                'iso_code'                => $jurisdiction->iso_code,
+                'adm_level'               => $jurisdiction->adm_level,
+                'adm_label'               => $jurisdiction->adm_label,
+                'population'              => $jurisdiction->population,
+                'population_year'         => $jurisdiction->population_year,
+                'timezone'                => $jurisdiction->timezone,
+                'source'                  => $jurisdiction->source,
+                'parent_assigned_via'     => $jurisdiction->parent_assigned_via ?? null,
+                'population_assigned_via' => $jurisdiction->population_assigned_via ?? null,
+                'official_languages'      => $jurisdiction->official_languages ?? [],
             ],
-            'ancestors'            => $jurisdiction->ancestors,
-            'childCount'           => $childCount,
-            'hasChildren'          => $childCount > 0,
-            // This jurisdiction's allocation in its parent's legislature
-            'type_a_apportioned'   => $jurisdiction->type_a_apportioned,
-            'type_b_apportioned'   => $jurisdiction->type_b_apportioned,
-            // Sum of children's allocations — this jurisdiction's own legislature composition
-            'children_type_a_total' => $childrenTypeATotal,
-            'children_type_b_total' => $childrenTypeBTotal,
-            // Legislature for this jurisdiction (drives "View Legislature & Districts" link)
-            'legislature_id'        => $legislatureId,
+            'ancestors'                  => $jurisdiction->ancestors,
+            'childCount'                 => $childCount,
+            'hasChildren'                => $childCount > 0,
+            'directChildOrphans'         => $directChildOrphans,
+            'meta'                       => $meta ? (array) $meta : null,
+            'review'                     => $reviewSummary,
+            'legislature_id'             => $legislatureId,
+            'has_district_map'           => $hasDistrictMap,
+            // Map-acceptance gate (only meaningful at planet scope, but
+            // always sent so the frontend can hide the button at sub-scopes
+            // without an extra round-trip).
+            'instance' => [
+                'is_planet_scope'              => (int) $jurisdiction->adm_level === 0,
+                'map_accepted_at'              => $instanceSettings?->map_accepted_at?->toIso8601String(),
+                'apportionment_completed_at'   => $instanceSettings?->apportionment_completed_at?->toIso8601String(),
+                'setup_step_completed'         => $instanceSettings?->setup_step_completed,
+            ],
+        ]);
+    }
+
+    /**
+     * Phase P.9 — Export full map-data state as a portable tarball. Streams
+     * the tar.gz directly to the operator's browser as a download.
+     *
+     * Two modes:
+     *   - Synchronous (default): pg_dump runs inline; browser holds the
+     *     connection until the file streams out. Fine for small instances
+     *     (single-country fresh runs) or skip_rasters=1 exports.
+     *   - Async (?async=1): dispatches ExportMapDataJob, returns the
+     *     export_id; operator polls /api/export/jurisdictions/list and
+     *     downloads via /api/export/jurisdictions/download/{filename} when
+     *     the status flips to "done".
+     *
+     * `?skip_rasters=1` drops worldpop_rasters from the dump (~7 GB saved;
+     * useful when the receiving instance will run WorldPop separately).
+     */
+    public function exportMaps(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse|JsonResponse
+    {
+        $skipRasters = $request->boolean('skip_rasters');
+        $async       = $request->boolean('async');
+
+        if ($async) {
+            $exportId = 'map-data-' . now()->format('Ymd-His') . '-' . substr(bin2hex(random_bytes(4)), 0, 8);
+            \App\Jobs\ExportMapDataJob::dispatch($exportId, $skipRasters);
+            return response()->json([
+                'ok'          => true,
+                'mode'        => 'async',
+                'export_id'   => $exportId,
+                'skip_rasters'=> $skipRasters,
+                'status_url'  => '/api/export/jurisdictions/list',
+            ]);
+        }
+
+        try {
+            $path = app(\App\Services\MapDataExportService::class)
+                ->export(skipRasters: $skipRasters);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('export failed: '.$e->getMessage());
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+        // deleteFileAfterSend: cleans up the tmp tarball after the browser
+        // finishes downloading. Operators can re-export anytime.
+        return response()->download($path)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Phase P.9 — list all on-disk export status files + archives. Drives
+     * the wizard's "past exports" panel. One row per status file; presence
+     * of an archive_filename means the tarball is ready to download.
+     */
+    public function exportMapsList(Request $request): JsonResponse
+    {
+        $dir = storage_path('app/exports');
+        if (! is_dir($dir)) {
+            return response()->json(['exports' => []]);
+        }
+
+        $exports = [];
+        foreach (glob("{$dir}/*.status.json") ?: [] as $statusFile) {
+            $raw = @file_get_contents($statusFile);
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            if (! is_array($decoded)) continue;
+
+            // Confirm the archive is actually present (could've been deleted
+            // out from under us). If status is "done" but the file is gone,
+            // surface as "expired".
+            $archiveName = $decoded['archive_filename'] ?? null;
+            $archiveOk   = $archiveName !== null && is_file("{$dir}/{$archiveName}");
+            $surface     = $decoded['status'] ?? 'unknown';
+            if ($surface === 'done' && ! $archiveOk) {
+                $surface = 'expired';
+            }
+
+            $exports[] = [
+                'export_id'        => $decoded['export_id']        ?? basename($statusFile, '.status.json'),
+                'status'           => $surface,
+                'skip_rasters'     => (bool) ($decoded['skip_rasters'] ?? false),
+                'started_at'       => $decoded['started_at']       ?? null,
+                'completed_at'     => $decoded['completed_at']     ?? null,
+                'error'            => $decoded['error']            ?? null,
+                'archive_filename' => $archiveOk ? $archiveName    : null,
+                'size_bytes'       => $decoded['size_bytes']       ?? null,
+            ];
+        }
+        // Newest first
+        usort($exports, fn ($a, $b) => strcmp((string) $b['started_at'], (string) $a['started_at']));
+        return response()->json(['exports' => $exports]);
+    }
+
+    /**
+     * Phase P.9 — download a previously-built export tarball. Filename is
+     * validated against the same `storage/app/exports/` directory to
+     * prevent path traversal.
+     */
+    public function exportMapsDownload(Request $request, string $filename): \Symfony\Component\HttpFoundation\BinaryFileResponse|JsonResponse
+    {
+        $dir = storage_path('app/exports');
+        // Disallow `..`, slashes, or any non-tarball pattern.
+        if (! preg_match('/^[A-Za-z0-9._-]+\.tar\.gz$/', $filename)) {
+            return response()->json(['error' => 'invalid filename'], 400);
+        }
+        $path = "{$dir}/{$filename}";
+        if (! is_file($path)) {
+            return response()->json(['error' => 'not found'], 404);
+        }
+        return response()->download($path);
+    }
+
+    /**
+     * Phase P.9 — delete a previously-built export tarball + status file.
+     * Operator-facing cleanup so the listing doesn't accumulate forever.
+     */
+    public function exportMapsDelete(Request $request, string $exportId): JsonResponse
+    {
+        if (! preg_match('/^[A-Za-z0-9._-]+$/', $exportId)) {
+            return response()->json(['error' => 'invalid export_id'], 400);
+        }
+        $dir = storage_path('app/exports');
+        @unlink("{$dir}/{$exportId}.status.json");
+        @unlink("{$dir}/{$exportId}.tar.gz");
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Phase P.9 — Import a tarball produced by exportMaps into a fresh
+     * instance. Truncates target tables and runs pg_restore.
+     *
+     * Refuses to import while an ETL run is active (control file present)
+     * to avoid clobbering in-flight data.
+     */
+    public function importMaps(Request $request): JsonResponse
+    {
+        $request->validate([
+            'archive' => ['required', 'file', 'mimetypes:application/gzip,application/x-gzip,application/octet-stream'],
+        ]);
+
+        $controlDir = base_path('scripts/etl/control');
+        if (is_file($controlDir.'/running.json')) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'An ETL run is in progress; import would clobber its in-flight data.',
+            ], 409);
+        }
+
+        try {
+            $result = app(\App\Services\MapDataImportService::class)
+                ->importFromUpload($request->file('archive'));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('import failed: '.$e->getMessage());
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+        return response()->json(['ok' => true] + $result);
+    }
+
+    /**
+     * Phase P.6 — operator clicks "Accept Map Data & Continue" on the
+     * planet-scope viewer. Stamps `instance_settings.map_accepted_at`,
+     * advances `setup_step_completed` to 2, and dispatches the
+     * `apportionment:seed` artisan command (Horizon-queued).
+     *
+     * Idempotent: re-clicking after acceptance is a no-op.
+     */
+    public function acceptMaps(Request $request): JsonResponse
+    {
+        $instance = \App\Models\InstanceSettings::current();
+        if (! $instance) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Instance settings row is missing — bootstrap not complete.',
+            ], 422);
+        }
+
+        if ($instance->map_accepted_at) {
+            return response()->json([
+                'ok'                          => true,
+                'already_accepted'            => true,
+                'map_accepted_at'             => $instance->map_accepted_at->toIso8601String(),
+                'apportionment_completed_at'  => $instance->apportionment_completed_at?->toIso8601String(),
+            ]);
+        }
+
+        $instance->forceFill([
+            'map_accepted_at'      => now(),
+            'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
+        ])->save();
+
+        // Dispatch apportionment as a queued artisan command. Horizon picks
+        // it up; the wizard polls instance_settings.apportionment_completed_at
+        // to gate Step 3.
+        try {
+            \Illuminate\Support\Facades\Artisan::queue('apportionment:seed');
+        } catch (\Throwable $e) {
+            // Don't fail the acceptance — the operator can re-run the command
+            // manually if Horizon is down.
+            \Illuminate\Support\Facades\Log::warning(
+                'apportionment:seed dispatch failed (acceptance still recorded): '.$e->getMessage()
+            );
+        }
+
+        return response()->json([
+            'ok'              => true,
+            'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
         ]);
     }
 
@@ -237,22 +495,47 @@ class JurisdictionController extends Controller
 
     /**
      * GeoJSON for a single jurisdiction's own geometry (used as reference outline).
+     *
+     * Query params:
+     *   - precise=1   Return the unsimplified geom. Used by the wizard MiniMap so
+     *                 the outline matches the population raster PNG (which is
+     *                 always clipped at the full-resolution polygon) pixel-for-
+     *                 pixel during visual verification of the ETL output.
+     *                 Larger payload but cached, so cold-start is the only cost.
+     *   - zoom=N      (Default mode) Apply ST_Simplify with a per-zoom tolerance
+     *                 from toleranceForZoom(). Used by the public jurisdictions
+     *                 page where the page-level map is much wider than the
+     *                 minimap and a coarser outline keeps payloads small.
      */
     public function selfGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
+        $precise   = $request->boolean('precise');
         $zoom      = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey  = "geojson.self.{$jurisdiction->id}.z{$zoom}";
+        $cacheKey  = $precise
+            ? "geojson.self.{$jurisdiction->id}.precise"
+            : "geojson.self.{$jurisdiction->id}.z{$zoom}";
 
-        $data = Cache::remember($cacheKey, 86400, function () use ($jurisdiction, $tolerance) {
-            $row = DB::selectOne("
-                SELECT
-                    ST_AsGeoJSON(ST_Simplify(geom, :tolerance)) AS geojson,
-                    ST_Y(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lat,
-                    ST_X(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lng
-                FROM jurisdictions
-                WHERE id = :id AND geom IS NOT NULL
-            ", ['id' => $jurisdiction->id, 'tolerance' => $tolerance]);
+        $data = Cache::remember($cacheKey, 86400, function () use ($jurisdiction, $tolerance, $precise) {
+            $sql = $precise
+                ? "SELECT
+                       ST_AsGeoJSON(geom) AS geojson,
+                       ST_Y(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lat,
+                       ST_X(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lng
+                   FROM jurisdictions
+                   WHERE id = :id AND geom IS NOT NULL"
+                : "SELECT
+                       ST_AsGeoJSON(ST_Simplify(geom, :tolerance)) AS geojson,
+                       ST_Y(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lat,
+                       ST_X(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lng
+                   FROM jurisdictions
+                   WHERE id = :id AND geom IS NOT NULL";
+
+            $bindings = $precise
+                ? ['id' => $jurisdiction->id]
+                : ['id' => $jurisdiction->id, 'tolerance' => $tolerance];
+
+            $row = DB::selectOne($sql, $bindings);
 
             if (!$row || !$row->geojson) {
                 return ['type' => 'FeatureCollection', 'features' => []];
@@ -277,59 +560,45 @@ class JurisdictionController extends Controller
     }
 
     /**
-     * GeoJSON for all legislature districts belonging to this jurisdiction's legislature.
-     * Used by the District overlay toggle in the viewer.
+     * Ancestry chain from this jurisdiction up to the planet root (adm_level = 0).
+     *
+     * Returned root-first so the UI can render a breadcrumb:
+     *   [{ id, name, adm_level }, ...]  → Earth › USA › Alabama › Madison County.
+     *
+     * Used by the Setup wizard's CurrentJurisdictionCard to give the user
+     * context during the ETL — seeing "Madison County" alone is meaningless;
+     * seeing the chain tells them which state + country it belongs to.
      */
-    public function districtsGeoJson(Jurisdiction $jurisdiction): JsonResponse
+    public function ancestors(Jurisdiction $jurisdiction): JsonResponse
     {
-        $legislature = DB::table('legislatures')
-            ->where('jurisdiction_id', $jurisdiction->id)
-            ->whereNull('deleted_at')
-            ->first();
+        $cacheKey = "ancestors.{$jurisdiction->id}";
 
-        if (!$legislature) {
-            return response()->json(['type' => 'FeatureCollection', 'features' => []]);
-        }
+        $chain = Cache::remember($cacheKey, 86400, function () use ($jurisdiction) {
+            $rows = DB::select("
+                WITH RECURSIVE chain AS (
+                    SELECT id, name, adm_level, parent_id, 0 AS depth
+                    FROM jurisdictions
+                    WHERE id = :id AND deleted_at IS NULL
+                    UNION ALL
+                    SELECT j.id, j.name, j.adm_level, j.parent_id, c.depth + 1
+                    FROM jurisdictions j
+                    INNER JOIN chain c ON j.id = c.parent_id
+                    WHERE j.deleted_at IS NULL
+                )
+                SELECT id, name, adm_level
+                FROM chain
+                ORDER BY depth DESC
+            ", ['id' => $jurisdiction->id]);
 
-        // Simplification tolerance mirrors childrenGeoJson: coarser at global level,
-        // finer at sub-national level where districts are smaller.
-        $tolerance = match (true) {
-            $jurisdiction->adm_level === 0 => 0.05,
-            $jurisdiction->adm_level === 1 => 0.01,
-            $jurisdiction->adm_level === 2 => 0.005,
-            default                        => 0.001,
-        };
+            return array_map(fn ($r) => [
+                'id'        => $r->id,
+                'name'      => $r->name,
+                'adm_level' => (int) $r->adm_level,
+            ], $rows);
+        });
 
-        $rows = DB::select("
-            SELECT
-                ld.id,
-                ld.seats,
-                ld.floor_override,
-                ld.status,
-                ST_AsGeoJSON(ST_Simplify(ld.geom, :tolerance)) AS geom_json,
-                COUNT(ldj.id) AS member_count
-            FROM legislature_districts ld
-            LEFT JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
-            WHERE ld.legislature_id = :legislature_id
-              AND ld.deleted_at IS NULL
-              AND ld.geom IS NOT NULL
-            GROUP BY ld.id, ld.seats, ld.floor_override, ld.status, ld.geom
-            ORDER BY ld.seats DESC
-        ", ['legislature_id' => $legislature->id, 'tolerance' => $tolerance]);
-
-        $features = array_map(fn($d) => [
-            'type'       => 'Feature',
-            'geometry'   => json_decode($d->geom_json),
-            'properties' => [
-                'id'             => $d->id,
-                'seats'          => $d->seats,
-                'floor_override' => (bool) $d->floor_override,
-                'member_count'   => (int) $d->member_count,
-                'status'         => $d->status,
-            ],
-        ], $rows);
-
-        return response()->json(['type' => 'FeatureCollection', 'features' => $features]);
+        return response()->json(['chain' => $chain])
+            ->header('Cache-Control', 'public, max-age=3600');
     }
 
     private function toleranceForZoom(int $zoom): float
@@ -341,4 +610,9 @@ class JurisdictionController extends Controller
         // At zoom ≤ 7 the formula gives ≥ 0.011°, so the cap always applies there.
         return max(min(360.0 / (256.0 * (2 ** $zoom)), 0.01), 0.00005);
     }
+
+    // rasterPng() removed: the WorldPop overlay is now served as a Leaflet
+    // TileLayer from RasterTileController::tile at GET /api/rasters/{z}/{x}/{y}.png.
+    // See that controller's docblock for the rationale (alignment, Earth-zoom
+    // coverage, country-zoom resolution all resolved by the tile architecture).
 }

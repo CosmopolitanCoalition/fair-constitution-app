@@ -9,3 +9,39 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Shared map-label styles — used by both the District Mapper
+   (Legislature/Show.vue) and the Jurisdiction Viewer (Jurisdictions/Show.vue).
+   Promoted here from Legislature/Show.vue so both viewers share the same
+   nameplate aesthetic without duplicating CSS.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.jurisdiction-name-label {
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.60);
+    color: #e2e8f0;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    text-align: center;
+    line-height: 1.4;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+}
+/* Wong colorblind-safe palette — same set the District Mapper uses for
+   distinct district fills. Picking two visually maximally-distinct
+   entries from it (orange vs sky blue) so the Pop / Members labels stay
+   separable for operators with red-green or blue-yellow colour deficits. */
+.jurisdiction-pop-label {
+    color: #E69F00;   /* Wong orange — matches the "Population" toggle button */
+    font-size: 12px;
+    font-weight: 500;
+}
+.jurisdiction-members-label {
+    color: #56B4E9;   /* Wong sky-blue — matches the "Members" toggle button */
+    font-size: 12px;
+    font-weight: 600;
+}

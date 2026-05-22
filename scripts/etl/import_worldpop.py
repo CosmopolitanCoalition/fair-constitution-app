@@ -1,51 +1,50 @@
 """
-import_worldpop.py — Overlay WorldPop 2023 100m population rasters onto
-jurisdiction polygons and update the jurisdictions.population column.
+import_worldpop.py — Load WorldPop 2023 100m population rasters into the
+worldpop_rasters PostGIS table, then derive jurisdictions.population directly
+from those tiles via the SQL function population_within().
 
-Data source:  /docs/worldpop_100m_latest/{iso3_lower}/{iso3_lower}_pop_2023_CN_100m_R2025A_v1.tif
-Target table: jurisdictions (columns: population, population_year)
+Pipeline per country (one TIF open per country):
+  1. Open the TIF's header for metadata (CRS, extent).
+  2. load_raster_to_db() — stream 256×256 tiles into worldpop_rasters.
+     This is the ONLY place the TIF is read. After this point every ADM level
+     below the country is computed in the database.
+  3. For each adm_level present (national + sub-national):
+         UPDATE jurisdictions
+         SET    population = population_within(iso_code, geom, 2023)
+         WHERE  id = ANY(<chunk_ids>)
+     — one SQL round-trip per DB_FETCH_CHUNK_SIZE chunk.
+  4. Planet-level rollup: sum country populations into the synthetic
+     adm_level=0 "Earth" row (there is no planet raster).
 
-Processing strategy:
-  - One country at a time (memory-safe; rasterio streams the raster in tiles)
-  - Always per-ADM-level for every country (avoids loading all ADM levels at
-    once; IND ADM6 alone has 649K polygons)
-  - Within each ADM level, geometries are fetched and processed in DB chunks
-    of DB_FETCH_CHUNK_SIZE rows — so 649K IND ADM6 polygons never live in
-    memory all at once
-  - Within each chunk, zonal_stats is called in sub-batches of
-    ZONAL_STATS_BATCH_SIZE polygons to limit numpy mask memory
-  - Per-polygon bbox pixel-area guard: polygons whose bounding box spans more
-    than MAX_BBOX_PIXELS raster pixels are processed via a TILED rasterio.mask
-    fallback instead of zonal_stats — this avoids OOM while still computing
-    accurate population values for large polygons like Western Australia,
-    Alaska, Nunavut, and large Siberian oblasts
-  - rasterstats.zonal_stats() sums pixel values within each polygon
-  - Bulk UPDATE via a VALUES() join — one round-trip per chunk per ADM level
-  - Idempotent: re-running overwrites population values (update, not insert)
-  - Progress tracked per (iso3, adm_level) AND per chunk for crash-safe resume;
-    save_progress_fn is called after every chunk commit so a mid-level crash
-    resumes from the last completed chunk, not the start of the level
+Why SQL instead of in-process rasterio zonal stats:
+  - The raster lives in the database once per country (already tiled with a
+    GIST index), so ST_Clip + ST_SummaryStats runs directly against those
+    tiles — no TIF reopening, no large numpy masks, no per-polygon tile-mode
+    fallback for Alaska-scale regions.
+  - The district mapper (PHP LegislatureController::runAutoCompositeForScope)
+    already depends on the DB-resident raster. Reusing that path here deletes
+    hundreds of lines of rasterio/rasterstats bookkeeping.
 
-Why population counts in the DB vs. raw raster data:
-  - The `population` column stores the AGGREGATE COUNT for display, legislature
-    sizing, and quick queries — it does not replace the raster for district drawing.
-  - District drawing (SKATER) needs 100m pixel resolution within a jurisdiction.
-    That is served directly from the on-disk TIF at draw time via rasterio windowed
-    reads — the TIF is never fully loaded, only the tiles overlapping the target
-    polygons are streamed. This is fast even for large countries because the TIFs
-    are internally tiled at 512×512 pixel blocks (confirmed: all WorldPop 2023 files
-    use this layout).
-  - So the workflow at district-draw time is:
-      1. Fetch child jurisdiction geometries from DB (fast, already simplified)
-      2. Open country TIF with rasterio (no full load — windowed)
-      3. Run zonal_stats on just those children (10s–minutes, not hours)
-      4. Pass population array + adjacency graph to SKATER
+An ISO with no own TIF (ATA, VAT, XKX, …) skips the raster-load step but
+still runs the per-ADM population pass. Phase Q's _topological_raster_fallback
+then discovers any overlapping neighbour rasters via ST_Intersects and uses
+the highest-yielding one. Outcome by case:
 
-Countries without WorldPop data (ATA, VAT, XKX) are skipped with a log message.
+  - ATA (Antarctica): no overlapping neighbour rasters → all rows stay 0
+  - VAT (Vatican): ITA's raster overlaps → 0 (Vatican < 1 WorldPop pixel,
+    upstream data limit, not a code limit)
+  - XKX (Kosovo): SRB's raster excludes Kosovo but ALB / MKD / MNE rasters
+    have border pixels → small non-zero number (better undercount than 0)
+  - Any future iso lacking an own TIF: handled identically with no curated
+    list maintenance.
+
+Phase R (2026-05-10) deleted the curated NO_WORLDPOP set and RASTER_FALLBACKS
+dict — the load step now derives behaviour from "does this iso have an own
+TIF on disk?" alone, and the population path is fully topological.
 """
 
 import logging
-import math
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -54,72 +53,74 @@ import psycopg2
 import psycopg2.extras
 import rasterio
 from rasterio.io import MemoryFile
-from rasterio.mask import mask as rio_mask
-from affine import Affine
-from rasterstats import zonal_stats
-from shapely import wkb as shapely_wkb
-from shapely.geometry import box, mapping
 
-from db import get_connection, get_cursor, bulk_update_populations
+from db import get_connection, get_cursor
+import heartbeat
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
+# DATA_ROOT env var selects source: /archive (local archive) or /docs (fresh download).
+# Defaults to /docs for backward compatibility with the legacy main-branch flow.
 
-WORLDPOP_ROOT = Path("/docs/worldpop_100m_latest")
+DATA_ROOT     = Path(os.environ.get("DATA_ROOT", "/docs"))
+WORLDPOP_ROOT = DATA_ROOT / "worldpop_100m_latest"
 
-# ─── Countries without WorldPop coverage ─────────────────────────────────────
+# ─── Adaptive chunk sizing (Phase N) ──────────────────────────────────────────
+# Profile-driven sizing. Selected once at import based on the container's
+# cgroup memory limit (or host RAM in non-containerised setups); override with
+# ETL_MEMORY_BUDGET_BYTES env var. See memory_budget.py for the tier table.
+#
+# DB_FETCH_CHUNK_SIZE: how many jurisdiction rows per population_within() UPDATE
+# round-trip. Small chunks keep the heartbeat sub_phase counter lively; big
+# chunks amortise psycopg2 overhead. The 'desktop' tier (8–16 GB) keeps the
+# legacy 2000 value so dev rigs see no behavior change.
+#
+# RASTER_BATCH_SIZE: how many tiles to INSERT per worldpop_rasters round-trip.
+# Each tile is ~300–500 KB as an in-memory GeoTIFF; the batch peak memory is
+# RASTER_BATCH_SIZE × ~400 KB on the etl side plus libpq buffer. The 'desktop'
+# tier keeps the legacy 50 value (~20 MB per batch).
+from memory_budget import chunk_profile, detect_memory_budget_bytes
 
-NO_WORLDPOP = {"ATA"}   # Antarctica — no WorldPop raster, no fallback available
+_MEMORY_BUDGET           = detect_memory_budget_bytes()
+_PROFILE_NAME, _PROFILE  = chunk_profile(_MEMORY_BUDGET)
+DB_FETCH_CHUNK_SIZE      = _PROFILE["DB_FETCH_CHUNK_SIZE"]
+RASTER_BATCH_SIZE        = _PROFILE["RASTER_BATCH_SIZE"]
 
-# ─── Raster fallbacks for countries without their own WorldPop file ───────────
-# VAT (Vatican City) is enclosed within Italy → use ITA raster.
-# XKX (Kosovo) has no own raster → try SRB raster (WorldPop may or may not
-# include Kosovo territory; outcome determined at run time).
-RASTER_FALLBACKS: dict[str, str] = {
-    "VAT": "ITA",
-    "XKX": "SRB",
-}
-
-# ─── Zonal stats batch size ───────────────────────────────────────────────────
-# rasterstats.zonal_stats() rasterizes each polygon into an in-memory mask.
-# For countries with complex coastlines (NZL, GBR, IDN, PHL) the mask arrays
-# are large enough to OOM-kill the container if all polygons are submitted at
-# once. Process at most this many polygons per zonal_stats call.
-ZONAL_STATS_BATCH_SIZE = 50
-
-# ─── DB geometry fetch chunk size ─────────────────────────────────────────────
-# How many jurisdiction rows to fetch from the DB at a time within a single
-# ADM level. IND ADM6 has 649,710 rows — fetching all at once would allocate
-# ~3–5 GB of shapely geometry objects. Instead we stream in chunks and
-# bulk-UPDATE after each chunk, then GC the geometry list.
-DB_FETCH_CHUNK_SIZE = 2000   # rows per DB fetch + zonal_stats + UPDATE cycle
-
-# ─── Per-polygon bounding-box pixel-area limit ────────────────────────────────
-# If a single polygon's axis-aligned bounding box covers more than this many
-# raster pixels, the standard zonal_stats path would try to allocate a numpy
-# mask that size — causing an OOM kill for continent-scale polygons.
-# Polygons that exceed this limit are processed via the TILED fallback path
-# (_compute_population_tiled) which reads the raster in manageable windows.
-# 400 megapixels ≈ 20,000×20,000 pixels — safe to allocate (~400 MB mask).
-# AUS outback LGAs can produce windows of 2.5 billion pixels → instant kill.
-MAX_BBOX_PIXELS = 400_000_000    # 400 megapixels
-
-# ─── Tiled raster reading parameters ─────────────────────────────────────────
-# For polygons exceeding MAX_BBOX_PIXELS, we subdivide the polygon's bbox into
-# tiles of TILE_PIXELS × TILE_PIXELS pixels and sum rasterio.mask reads.
-# At 5000×5000 = 25 megapixels × 4 bytes (float32) = ~100 MB peak per tile.
-# This is safe even in a 512 MB Docker container.
-TILE_PIXELS = 5000
-
-# ─── PostGIS raster loading parameters ───────────────────────────────────────
+# ─── PostGIS raster loading parameters (NOT memory-bound) ─────────────────────
 # Tile size for worldpop_rasters table.  256×256 splits the TIF's internal
 # 512×512 blocks into 4 subtiles per block, giving the PostGIS GIST index
 # fine enough granularity to quickly find tiles that overlap a query polygon
-# without loading the entire country raster.
+# without loading the entire country raster. Stays hardcoded — affects index
+# selectivity, not memory pressure.
 RASTER_TILE_SIZE = 256
 
-# How many tiles to INSERT per database round-trip.  Each tile is ~300–500 KB
-# as an in-memory GeoTIFF; 50 tiles ≈ 15–25 MB per batch — safe in 512 MB container.
-RASTER_BATCH_SIZE = 50
+# Heartbeat cadence during raster load. Emit a heartbeat every N tiles so the
+# frontend gets fresh rate samples for the interpolated progress bar. We trigger
+# on (tile_idx % 10 == 0) OR after every batch — whichever comes first.
+RASTER_HEARTBEAT_EVERY = 10
+
+# Natural-language labels for heartbeat sub_phase strings — keep in sync with
+# SetupController::jurisdictionsCounts() (PHP) and import_geoboundaries.py.
+# Index by app adm_level (NOT geoBoundaries' adm_n).
+NATURAL_LABEL = {
+    0: "Planet",
+    1: "Country",
+    2: "State / Province",
+    3: "County",
+    4: "Municipality",
+    5: "Township",
+    6: "Neighborhood",
+}
+
+# Phase P.1.2: plural form for bar labels. Matches import_geoboundaries.
+NATURAL_LABEL_PLURAL = {
+    0: "Planets",
+    1: "Countries",
+    2: "States / Provinces",
+    3: "Counties",
+    4: "Municipalities",
+    5: "Townships",
+    6: "Neighborhoods",
+}
 
 # ─── TIF filename pattern ─────────────────────────────────────────────────────
 
@@ -135,9 +136,15 @@ def _tif_path(iso3: str) -> Path:
 
 def find_worldpop_tif(iso3: str) -> Path | None:
     """
-    Return the .tif path if it exists, otherwise None.
-    Handles case-insensitive ISO3 matching by trying uppercase folder as well.
-    If no own raster is found, checks RASTER_FALLBACKS for a surrogate country.
+    Return the iso's own .tif path if it exists, otherwise None.
+
+    Phase R: no surrogate-raster lookup. ISOs without their own TIF return
+    None and the caller skips the raster-load step but still runs the
+    per-ADM population pass. The Phase Q topological raster fallback
+    (_topological_raster_fallback in this file) then picks up neighbour
+    rasters via ST_Intersects automatically — VAT gets ITA's tiles,
+    XKX gets ALB / MKD / MNE / SRB tiles, etc. — without any curated
+    fallback dict.
     """
     primary = _tif_path(iso3)
     if primary.exists():
@@ -150,51 +157,10 @@ def find_worldpop_tif(iso3: str) -> Path | None:
         if tifs:
             return tifs[0]
 
-    # No own raster — try fallback country
-    fallback_iso = RASTER_FALLBACKS.get(iso3.upper())
-    if fallback_iso:
-        fallback_path = _tif_path(fallback_iso)
-        if fallback_path.exists():
-            return fallback_path
-        # Also glob fallback folder in case filename pattern varies
-        fb_lower = fallback_iso.lower()
-        fb_parent = WORLDPOP_ROOT / fb_lower
-        if fb_parent.is_dir():
-            tifs = list(fb_parent.glob("*.tif"))
-            if tifs:
-                return tifs[0]
-
     return None
 
 
-# ─── Raster metadata ─────────────────────────────────────────────────────────
-
-def get_tif_metadata(tif_path: Path) -> dict:
-    """
-    Open a GeoTIFF and extract CRS, nodata value, dimensions, transform, and file size.
-
-    Returns a dict with keys: crs_epsg, nodata, width, height, transform, size_mb
-    """
-    with rasterio.open(tif_path) as src:
-        crs_epsg  = src.crs.to_epsg() if src.crs else None
-        nodata    = src.nodata
-        width     = src.width
-        height    = src.height
-        transform = src.transform   # Affine transform: maps pixel coords → geographic coords
-
-    size_mb = tif_path.stat().st_size / (1024 * 1024)
-
-    return {
-        "crs_epsg":  crs_epsg,
-        "nodata":    nodata,
-        "width":     width,
-        "height":    height,
-        "transform": transform,
-        "size_mb":   round(size_mb, 1),
-    }
-
-
-# ─── Jurisdiction geometry fetch (streaming / chunked) ───────────────────────
+# ─── Jurisdiction fetch helpers ──────────────────────────────────────────────
 
 def count_jurisdiction_rows_for_level(
     conn: psycopg2.extensions.connection,
@@ -216,30 +182,22 @@ def count_jurisdiction_rows_for_level(
     return int(row["n"]) if row else 0
 
 
-def fetch_jurisdiction_geometry_chunk(
+def fetch_jurisdiction_ids_chunk(
     conn: psycopg2.extensions.connection,
     iso3: str,
     adm_level: int,
     offset: int,
     limit: int,
-) -> list[dict]:
+) -> list[str]:
     """
-    Fetch a chunk of jurisdiction UUIDs and WKB geometries for one ADM level.
+    Fetch a chunk of jurisdiction UUIDs for one ADM level.
 
-    Uses OFFSET/LIMIT with ORDER BY id for stable pagination across chunks.
-    adm_level=1 (national) rows are now included — large country polygons are
-    handled by the tiled raster fallback in _run_zonal_stats_chunk().
-
-    Uses ST_AsBinary (not ST_AsEWKB): shapely_wkb.loads() expects standard
-    WKB without the 4-byte SRID prefix that EWKB includes. Using ST_AsEWKB
-    causes shapely to silently misparse the SRID bytes as geometry coordinates,
-    producing degenerate shapes with zonal_stats sum=0.
-
-    Returns:
-        [{"id": "uuid-...", "geom_wkb": "<hex-wkb>"}]
+    We only need ids — population_within() reads the geometry directly from
+    jurisdictions.geom inside the SQL UPDATE, so there is no point pulling
+    WKB back to Python.
     """
     sql = """
-        SELECT id, encode(ST_AsBinary(geom), 'hex') AS geom_wkb
+        SELECT id::text AS id
         FROM   jurisdictions
         WHERE  iso_code   = %s
           AND  adm_level  = %s
@@ -252,18 +210,17 @@ def fetch_jurisdiction_geometry_chunk(
     with get_cursor(conn) as cur:
         cur.execute(sql, (iso3, adm_level, limit, offset))
         rows = cur.fetchall()
-    return [
-        {"id": str(r["id"]), "geom_wkb": str(r["geom_wkb"])}
-        for r in rows
-    ]
+    return [str(r["id"]) for r in rows]
 
 
 def get_adm_levels_for_country(conn: psycopg2.extensions.connection, iso3: str) -> list[int]:
     """Return sorted list of distinct adm_levels >= 1 present for a country.
 
-    adm_level=1 (national) rows are now processed directly via tiled raster
-    reads rather than rollup, so they are included here.  Both 'geoboundaries'
-    and 'synthetic' sources are included (the latter covers PRI's country row).
+    Sources accepted:
+      - 'geoboundaries' — normal imported features
+      - 'synthetic'     — country-row synthesis (Phase J1.5 + legacy fix_orphans),
+                          covers PRI today and any future iso missing its
+                          country-level row in geoBoundaries
     """
     with get_cursor(conn) as cur:
         cur.execute("""
@@ -280,285 +237,166 @@ def get_adm_levels_for_country(conn: psycopg2.extensions.connection, iso3: str) 
     return [r["adm_level"] for r in rows]
 
 
-# ─── Per-polygon bbox pixel-area filter ──────────────────────────────────────
+# ─── Phase Q: topological raster fallback ──────────────────────────────────
 
-def _bbox_pixel_area(geom, transform: Affine) -> int:
-    """
-    Estimate the raster pixel count inside a geometry's bounding box.
-
-    This is an upper bound on the numpy mask that rasterstats would allocate.
-    Uses the raster's affine transform to convert geographic bbox → pixel size.
-
-    For a geographic raster (EPSG:4326) the pixel size in degrees is:
-        pixel_width  = abs(transform.a)   (e.g. 0.000833° ≈ 100m at equator)
-        pixel_height = abs(transform.e)
-
-    Args:
-        geom:      Shapely geometry
-        transform: Rasterio Affine transform from get_tif_metadata()
-
-    Returns:
-        Estimated pixel count (width_px × height_px of the bbox window).
-    """
-    minx, miny, maxx, maxy = geom.bounds
-    pixel_width  = abs(transform.a)
-    pixel_height = abs(transform.e)
-    if pixel_width == 0 or pixel_height == 0:
-        return 0
-    bbox_px_w = math.ceil((maxx - minx) / pixel_width)
-    bbox_px_h = math.ceil((maxy - miny) / pixel_height)
-    return bbox_px_w * bbox_px_h
-
-
-# ─── Tiled raster reading for large polygons ─────────────────────────────────
-
-def _compute_population_tiled(
-    geom,
-    tif_path: Path,
-    nodata: float,
-    transform: Affine,
-    log: logging.Logger,
-    jur_id: str = "",
+def _topological_raster_fallback_global(
+    conn: psycopg2.extensions.connection,
+    log,
 ) -> int:
     """
-    Sum population for a large polygon using tiled rasterio.mask reads.
+    End-of-Phase-2 cleanup pass that re-applies the topological raster
+    fallback over EVERY zero/null population row, now that all isos'
+    rasters have been loaded.
 
-    Instead of rasterizing the entire bbox into one numpy array (which would
-    OOM for polygons like Western Australia at ~508 megapixels), this function:
+    Why this exists (the bug it fixes). The per-chunk fallback inside
+    process_adm_level() runs DURING each iso's pass, joining
+    worldpop_rasters for tiles loaded so far. Phase 2 iterates isos
+    alphabetically, so an iso whose population depends on a neighbour
+    iso's raster (e.g. FRA-overseas commune rows in French Guiana /
+    Guadeloupe / Mayotte / Réunion territory) processes BEFORE that
+    neighbour loads its raster. GUF/GLP/MYT/REU all alphabetically
+    follow FRA, so when FRA's per-iso fallback ran, those rasters
+    didn't exist in the DB yet → fallback returned 0 → row stayed
+    pop=0 via=NULL. This pass catches them after every iso has
+    loaded its tiles.
 
-      1. Subdivides the polygon's bbox into tiles of TILE_PIXELS × TILE_PIXELS
-         pixels (~100 MB each at float32)
-      2. For each tile, clips the polygon to the tile bbox
-      3. If the clipped geometry is empty (ocean / outside polygon), skips
-      4. Otherwise, uses rasterio.mask.mask(crop=True) which does a windowed
-         read — only the relevant raster blocks are loaded from disk
-      5. Sums valid pixels (excluding nodata and NaN)
+    Naturally generalised — any future iso added with a similar
+    dual-footprint pattern gets picked up here without enumeration.
+    Same SQL as the per-iso fallback, just no chunk-id filter.
 
-    The WorldPop GeoTIFFs are internally tiled at 512×512 blocks, so
-    rasterio.mask with crop=True translates each tile request into a small
-    number of block reads — no full-raster load ever happens.
-
-    Args:
-        geom:      Shapely geometry (typically MultiPolygon)
-        tif_path:  Path to the country's WorldPop .tif
-        nodata:    Nodata value from rasterio profile (varies: -99999, -9999, NaN)
-        transform: Affine transform from get_tif_metadata()
-        log:       Logger instance
-        jur_id:    Jurisdiction UUID for log messages
-
-    Returns:
-        Population count (integer, ≥ 0). Returns 0 if all tiles fail.
+    Returns number of rows rescued. Tags rescued rows with
+    population_assigned_via='topological_raster_fallback' (same tag
+    as the per-iso fallback for review consistency).
     """
-    minx, miny, maxx, maxy = geom.bounds
-
-    # Convert tile size from pixels to CRS units (degrees for EPSG:4326)
-    pixel_w = abs(transform.a)
-    pixel_h = abs(transform.e)
-    tile_w  = TILE_PIXELS * pixel_w
-    tile_h  = TILE_PIXELS * pixel_h
-
-    # Build tile grid
-    tile_cols = math.ceil((maxx - minx) / tile_w)
-    tile_rows = math.ceil((maxy - miny) / tile_h)
-    total_tiles = tile_cols * tile_rows
-
-    total_pop     = 0.0
-    tiles_read    = 0
-    tiles_skipped = 0
-    tiles_failed  = 0
-
-    log.info(
-        "  tiled read for %s: bbox %.1f×%.1f° → %d×%d = %d tiles @ %dx%d px each",
-        jur_id[:12] if jur_id else "?",
-        maxx - minx, maxy - miny,
-        tile_cols, tile_rows, total_tiles,
-        TILE_PIXELS, TILE_PIXELS,
-    )
-
-    with rasterio.open(tif_path) as src:
-        # If the raster CRS doesn't match EPSG:4326, wrap in a WarpedVRT
-        # so coordinates align. This is rare for WorldPop but handled defensively.
-        if src.crs and src.crs.to_epsg() != 4326:
-            from rasterio.vrt import WarpedVRT
-            src = WarpedVRT(src, crs="EPSG:4326")
-
-        for col in range(tile_cols):
-            for row in range(tile_rows):
-                tile_minx = minx + col * tile_w
-                tile_miny = miny + row * tile_h
-                tile_maxx = min(tile_minx + tile_w, maxx)
-                tile_maxy = min(tile_miny + tile_h, maxy)
-
-                # Clip the polygon to this tile's bbox
-                tile_box  = box(tile_minx, tile_miny, tile_maxx, tile_maxy)
-                clipped   = geom.intersection(tile_box)
-
-                if clipped.is_empty:
-                    tiles_skipped += 1
-                    continue
-
-                try:
-                    out_image, _ = rio_mask(
-                        src,
-                        [mapping(clipped)],
-                        crop=True,
-                        nodata=nodata,
-                        filled=True,       # fill outside polygon with nodata
-                        all_touched=False,
-                    )
-                    data = out_image[0]    # single band
-
-                    # Build validity mask: exclude nodata and NaN
-                    valid_mask = ~np.isnan(data)
-                    if nodata is not None and not np.isnan(float(nodata)):
-                        valid_mask &= (data != nodata)
-
-                    tile_sum   = float(np.sum(data[valid_mask]))
-                    total_pop += tile_sum
-                    tiles_read += 1
-
-                except Exception as exc:
-                    tiles_failed += 1
-                    if tiles_failed <= 3:
-                        log.warning(
-                            "  tiled read: tile (%d,%d) failed for %s: %s",
-                            col, row, jur_id[:12] if jur_id else "?", exc,
-                        )
-                    continue
-
-    result = max(0, int(round(total_pop)))
-
-    log.info(
-        "  tiled read complete for %s: pop=%d | tiles: %d read, %d empty, %d failed / %d total",
-        jur_id[:12] if jur_id else "?",
-        result, tiles_read, tiles_skipped, tiles_failed, total_tiles,
-    )
-
-    return result
-
-
-# ─── Zonal stats for a chunk of geometries ───────────────────────────────────
-
-def _run_zonal_stats_chunk(
-    iso3: str,
-    adm_level: int,
-    chunk_label: str,
-    tif_path: Path,
-    nodata: float,
-    transform: Affine,
-    jurisdictions: list[dict],
-    log: logging.Logger,
-) -> dict[str, int]:
+    sql = """
+        UPDATE jurisdictions j
+        SET    population              = sub.max_pop,
+               population_year         = 2023,
+               population_assigned_via = 'topological_raster_fallback',
+               updated_at              = NOW()
+        FROM   (
+            SELECT j2.id,
+                   MAX(population_within(r.iso_code::varchar, j2.geom,
+                                         2023::smallint)) AS max_pop
+            FROM   jurisdictions j2
+            JOIN   worldpop_rasters r ON ST_Intersects(r.rast, j2.geom)
+            WHERE  j2.deleted_at IS NULL
+              AND  COALESCE(j2.population, 0) = 0
+              AND  r.iso_code != j2.iso_code
+            GROUP BY j2.id
+            HAVING MAX(population_within(r.iso_code::varchar, j2.geom,
+                                         2023::smallint)) > 0
+        ) sub
+        WHERE j.id = sub.id
     """
-    Run zonal_stats on a chunk of jurisdiction geometries, returning {uuid: pop}.
+    try:
+        with get_cursor(conn) as cur:
+            cur.execute(sql)
+            rescued = cur.rowcount
+        conn.commit()
+        return rescued
+    except Exception as exc:
+        log.warning("Global topological raster fallback failed: %s", exc)
+        conn.rollback()
+        return 0
 
-    Steps:
-      1. Decode WKB → shapely geometry for each row
-      2. For geometries whose bbox pixel area > MAX_BBOX_PIXELS, use the tiled
-         rasterio.mask fallback (_compute_population_tiled) — accurate but slower
-      3. Run zonal_stats on remaining (normal-sized) geometries in sub-batches
-         of ZONAL_STATS_BATCH_SIZE
-      4. Map results back to UUIDs; None → 0
+
+def _topological_raster_fallback(
+    conn: psycopg2.extensions.connection,
+    ids: list[str],
+    log,
+) -> int:
     """
-    # ── Decode WKB → shapely ─────────────────────────────────────────────────
-    geometries: list = []
-    uuid_order: list[str] = []
+    For rows whose primary population_within($iso, ...) returned 0, find ANY
+    iso whose raster tiles spatially overlap the row's geometry and use the
+    highest population_within() result among them. Pure topology — no
+    curated tables.
 
-    population_map: dict[str, int] = {}
+    Replaces the previous Phase K _territory_raster_fallback, which threaded
+    a curated `SOVEREIGN_TERRITORIES` dict (USA → [PRI, GUM, …]) and a
+    `RASTER_FALLBACKS` dict (VAT → ITA, XKX → SRB) to decide which
+    surrogate isos to retry under. Both dicts were deleted in Phase R
+    (2026-05-10) — same shape as Phase O's strategy ladder for parent
+    assignment: ask the spatial index instead of a hand-curated list.
 
-    for jur in jurisdictions:
-        try:
-            geom = shapely_wkb.loads(jur["geom_wkb"], hex=True)
-        except Exception as exc:
-            log.warning("%s adm%d: invalid WKB for %s: %s", iso3, adm_level, jur["id"], exc)
-            continue
+    What it covers automatically (no code changes needed for new cases):
+      - PRI/GUM/ASM/MNP/VIR under USA: USA's raster covers them at primary
+        pass already; this fallback doesn't fire (no-op for those rows).
+      - "Taiwan Province" under CHN, where CHN's raster excludes Taiwan
+        but TWN ships its own raster: ST_Intersects finds TWN's tiles,
+        population_within('TWN', taiwan_geom) ≈ 22.7 M.
+      - VAT (Vatican): ST_Intersects finds ITA's tiles; ITA raster's
+        pixel at the Vatican location is empty (Vatican < 1 WorldPop
+        pixel), so result stays 0 — upstream data limit, not lookup.
+      - XKX (Kosovo): ST_Intersects finds SRB tiles (excluded Kosovo, so
+        ~0) AND ALB / MKD / MNE tiles (border pixels with non-zero
+        population). GREATEST picks the largest → small but non-zero.
+      - Future ISOs with similar dual-footprint patterns: handled
+        automatically.
 
-        # ── Bbox pixel-area guard ─────────────────────────────────────────
-        bbox_px = _bbox_pixel_area(geom, transform)
-        if bbox_px > MAX_BBOX_PIXELS:
-            # TILED FALLBACK — read raster in manageable windows instead of
-            # skipping. This produces accurate population for large polygons
-            # like Western Australia (~508MP), Alaska, Nunavut, etc.
-            log.info(
-                "%s adm%d: %s bbox ~%dMP > %dMP limit — using tiled raster read",
-                iso3, adm_level, jur["id"],
-                bbox_px // 1_000_000, MAX_BBOX_PIXELS // 1_000_000,
-            )
-            tiled_pop = _compute_population_tiled(
-                geom, tif_path, nodata, transform, log, jur_id=jur["id"],
-            )
-            population_map[jur["id"]] = tiled_pop
-            continue
+    Tags rescued rows with population_assigned_via='topological_raster_fallback'
+    so the Step 2 review surface can surface them for inspection.
 
-        geometries.append(geom)
-        uuid_order.append(jur["id"])
-
-    if not geometries:
-        return population_map
-
-    # ── Chunked zonal_stats (normal-sized polygons) ─────────────────────────
-    all_stats: list[dict] = []
-    n_batches = (len(geometries) + ZONAL_STATS_BATCH_SIZE - 1) // ZONAL_STATS_BATCH_SIZE
-
-    for batch_idx in range(n_batches):
-        start       = batch_idx * ZONAL_STATS_BATCH_SIZE
-        end         = start + ZONAL_STATS_BATCH_SIZE
-        batch_geoms = geometries[start:end]
-
-        try:
-            batch_stats = zonal_stats(
-                vectors     = batch_geoms,
-                raster      = str(tif_path),
-                stats       = ["sum"],
-                nodata      = nodata,
-                all_touched = False,   # strict containment → more accurate totals
-            )
-            all_stats.extend(batch_stats)
-        except Exception as exc:
-            log.error(
-                "%s adm%d [%s]: zonal_stats failed on sub-batch %d/%d: %s",
-                iso3, adm_level, chunk_label, batch_idx + 1, n_batches, exc,
-            )
-            # Return what we have so far rather than dropping the whole chunk
-            for uid in uuid_order[start:]:
-                population_map[uid] = 0
-            uuid_order = uuid_order[:start]
-            break
-
-    for uid, stat in zip(uuid_order, all_stats):
-        raw_sum = stat.get("sum") if stat else None
-        population_map[uid] = max(0, round(raw_sum)) if raw_sum is not None else 0
-
-    return population_map
+    Returns the number of rows rescued.
+    """
+    # GREATEST against every overlapping iso's population_within result.
+    # ST_Intersects(rast, geom) uses the GIST index on worldpop_rasters, so
+    # the candidate set is bbox-bounded — typical row hits 0–4 candidate
+    # isos (own + neighbours), not all 229 loaded isos.
+    sql = """
+        UPDATE jurisdictions j
+        SET    population              = sub.max_pop,
+               population_year         = 2023,
+               population_assigned_via = 'topological_raster_fallback',
+               updated_at              = NOW()
+        FROM   (
+            SELECT j2.id,
+                   MAX(population_within(r.iso_code::varchar, j2.geom,
+                                         2023::smallint)) AS max_pop
+            FROM   jurisdictions j2
+            JOIN   worldpop_rasters r ON ST_Intersects(r.rast, j2.geom)
+            WHERE  j2.id = ANY(%s::uuid[])
+              AND  COALESCE(j2.population, 0) = 0
+              AND  r.iso_code != j2.iso_code   -- already tried in primary pass
+            GROUP BY j2.id
+            HAVING MAX(population_within(r.iso_code::varchar, j2.geom,
+                                         2023::smallint)) > 0
+        ) sub
+        WHERE j.id = sub.id
+    """
+    try:
+        with get_cursor(conn) as cur:
+            cur.execute(sql, (ids,))
+            rescued = cur.rowcount
+        conn.commit()
+        return rescued
+    except Exception as exc:
+        log.warning("Topological raster fallback failed: %s", exc)
+        conn.rollback()
+        return 0
 
 
-# ─── ADM level processor ─────────────────────────────────────────────────────
+# ─── ADM level processor (SQL-only) ──────────────────────────────────────────
 
 def process_adm_level(
     conn: psycopg2.extensions.connection,
     iso3: str,
     adm_level: int,
-    tif_path: Path,
-    tif_meta: dict,
     log: logging.Logger,
     progress: dict,
     save_progress_fn=None,
+    country_jur_id: str | None = None,
+    heartbeat_queue_preview: list[str] | None = None,
 ) -> int:
     """
-    Process one (iso3, adm_level) pair: fetch geometries in DB chunks,
-    run zonal_stats (or tiled fallback) per chunk, bulk-UPDATE DB after each chunk.
+    Update jurisdictions.population for all rows of (iso3, adm_level) using
+    the database-resident raster via the population_within() SQL function.
 
-    Progress is tracked per-chunk (key: "{iso3}:adm{level}:chunk{N}") AND flushed
-    to disk after every chunk via save_progress_fn. This means a crash mid-ADM-level
-    resumes from the last completed chunk (~90 seconds rework) rather than
-    reprocessing the entire level (up to ~8 hours for IND ADM6 / 325 chunks).
+    Progress is tracked per-chunk (key: "{iso3}:adm{level}:chunk{N}") AND
+    flushed to disk after every chunk via save_progress_fn, so a crash
+    mid-level resumes from the last completed chunk.
 
-    Since bulk_update_populations is idempotent (UPDATE, not INSERT), re-running
-    a completed chunk is always safe.
-
-    Args:
-        save_progress_fn: Optional callable(progress) — called after each chunk
-                          commit to flush progress to disk.
+    Since the UPDATE is idempotent, re-running a completed chunk is safe.
 
     Returns total rows updated for this ADM level.
     """
@@ -567,13 +405,24 @@ def process_adm_level(
         log.debug("%s adm%d: no geometry rows — skipping", iso3, adm_level)
         return 0
 
-    nodata    = tif_meta["nodata"]
-    transform = tif_meta["transform"]
-    n_chunks  = math.ceil(total_rows / DB_FETCH_CHUNK_SIZE)
+    n_chunks = (total_rows + DB_FETCH_CHUNK_SIZE - 1) // DB_FETCH_CHUNK_SIZE
 
     log.info(
-        "%s adm%d: %d polygons × %.0f MB raster — %d DB chunk(s)",
-        iso3, adm_level, total_rows, tif_meta["size_mb"], n_chunks,
+        "%s adm%d: %d polygons → %d DB chunk(s) via population_within()",
+        iso3, adm_level, total_rows, n_chunks,
+    )
+
+    # Phase P.1: stacked-progress-bar marker for this ADM level. The bar
+    # ticks forward by chunk size after each chunk commits.
+    # P.1.2: plural label + unit field, drop "(ADM{n})" suffix to match
+    # the geoBoundaries-side cleanup.
+    plural_label = NATURAL_LABEL_PLURAL.get(adm_level, f"Level {adm_level}")
+    wp_bar_key = f"wp:{iso3}:adm{adm_level}"
+    heartbeat.bar_start(
+        key   = wp_bar_key,
+        label = f"{iso3} — {plural_label}",
+        total = total_rows,
+        unit  = plural_label.lower(),
     )
 
     wp_progress   = progress.setdefault("worldpop", {})
@@ -584,6 +433,19 @@ def process_adm_level(
         chunk_label = f"chunk {chunk_idx + 1}/{n_chunks}"
         chunk_key   = f"{iso3}:adm{adm_level}:chunk{chunk_idx}"
 
+        level_label = NATURAL_LABEL.get(adm_level, f"Level {adm_level}")
+        heartbeat.write_current(
+            id               = country_jur_id,
+            name             = iso3,
+            iso_code         = iso3,
+            adm_level        = adm_level,
+            phase            = "worldpop",
+            sub_phase        = f"{level_label} {offset + 1:,} of {total_rows:,}",
+            queue_preview    = heartbeat_queue_preview or [],
+            progress_current = min(offset + DB_FETCH_CHUNK_SIZE, total_rows),
+            progress_total   = total_rows,
+        )
+
         # Resume: skip chunks already committed in a previous (interrupted) run
         if wp_progress.get(chunk_key, {}).get("status") == "done":
             prev_updated   = wp_progress[chunk_key].get("updated", 0)
@@ -592,89 +454,135 @@ def process_adm_level(
                       iso3, adm_level, chunk_label, prev_updated)
             continue
 
-        jurisdictions = fetch_jurisdiction_geometry_chunk(
-            conn, iso3, adm_level, offset, DB_FETCH_CHUNK_SIZE
+        ids = fetch_jurisdiction_ids_chunk(
+            conn, iso3, adm_level, offset, DB_FETCH_CHUNK_SIZE,
         )
-        if not jurisdictions:
+        if not ids:
             break
 
-        if n_chunks > 1:
-            log.debug(
-                "%s adm%d [%s]: fetched %d rows",
-                iso3, adm_level, chunk_label, len(jurisdictions),
+        with get_cursor(conn) as cur:
+            # population_within() is declared as (VARCHAR(3), GEOMETRY, SMALLINT)
+            # — PostgreSQL won't implicitly cast integer→smallint during function
+            # resolution, so the year literal must be explicitly cast.
+            #
+            # Phase JK: tag rows that get non-zero population from this primary
+            # pass with population_assigned_via='primary'. Rows that come back
+            # at 0 here will be retried by the territory-raster fallback below.
+            #
+            # Phase L: CTE evaluates population_within() exactly once per row;
+            # the UPDATE then reads the cached column twice (once for the value,
+            # once for the CASE) which is a column read, not a function call.
+            # This roughly halves the SQL function evaluation cost on this hot
+            # path (~470× chunked UPDATE per world run).
+            cur.execute(
+                """
+                WITH pop_calc AS (
+                    SELECT id,
+                           population_within(%s::varchar, geom, 2023::smallint) AS pop
+                    FROM   jurisdictions
+                    WHERE  id = ANY(%s::uuid[])
+                )
+                UPDATE jurisdictions AS j
+                SET    population              = pc.pop,
+                       population_year         = 2023,
+                       population_assigned_via = CASE
+                           WHEN pc.pop > 0
+                                THEN 'primary'::varchar(32)
+                           ELSE NULL
+                       END,
+                       updated_at              = NOW()
+                FROM   pop_calc pc
+                WHERE  j.id = pc.id
+                """,
+                (iso3, ids),
             )
+            updated = cur.rowcount
+        conn.commit()
 
-        population_map = _run_zonal_stats_chunk(
-            iso3, adm_level, chunk_label,
-            tif_path, nodata, transform, jurisdictions, log,
-        )
+        # Phase Q: topological raster fallback. For any rows still at 0 after
+        # the primary pass, find any iso whose raster tiles spatially overlap
+        # the row's geometry and use the highest population_within() result.
+        # Pure topology — same shape as Phase O's strategy ladder for parent
+        # assignment. The SQL's HAVING clause makes this a cheap no-op when no
+        # overlapping non-own-iso tiles yield anything; cost per call is
+        # bounded by the GIST bbox prefilter on worldpop_rasters.rast.
+        rescued = _topological_raster_fallback(conn, ids, log)
+        if rescued > 0:
+            log.info("%s adm%d [%s]: rescued %d zero-pop rows via topological raster fallback",
+                     iso3, adm_level, chunk_label, rescued)
 
-        updated = 0
-        if population_map:
-            updated        = bulk_update_populations(conn, population_map)
-            total_updated += updated
-
-        # ── Per-chunk progress: update in-memory dict then flush to disk ──
+        total_updated += updated
         wp_progress[chunk_key] = {
             "status":    "done",
             "updated":   updated,
+            "rescued_via_territory_fallback": rescued,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        # Flush after every chunk — a crash resumes from here, not the level start
         if save_progress_fn:
             save_progress_fn(progress)
 
-        # Free geometry memory before next chunk
-        del jurisdictions
-        del population_map
+        if n_chunks > 1:
+            log.debug(
+                "%s adm%d [%s]: updated %d rows",
+                iso3, adm_level, chunk_label, updated,
+            )
 
+        # Phase P.1: tick the bar forward by the size of this chunk.
+        heartbeat.bar_update(wp_bar_key, min(offset + DB_FETCH_CHUNK_SIZE, total_rows))
+
+    heartbeat.bar_complete(wp_bar_key, current=total_rows)
     log.info("%s adm%d: updated %d rows total", iso3, adm_level, total_updated)
     return total_updated
 
 
-# ─── ADM0 population rollup ──────────────────────────────────────────────────
+# ─── Planet-level population rollup ──────────────────────────────────────────
 
-def rollup_adm0_population(
+def rollup_planet_population(
     conn: psycopg2.extensions.connection,
-    iso3: str,
     log: logging.Logger,
 ) -> int:
     """
-    Set the ADM0 (national) population by summing its direct ADM1 children.
+    Set the synthetic planet row's (adm_level = 0, "Earth") population by
+    summing all national populations (adm_level = 1).
 
-    ADM0 boundaries span entire countries — their raster bounding boxes are
-    billions of pixels, causing OOM in zonal_stats. Instead we sum the ADM1
-    children (which have already been computed via zonal_stats or tiled reads)
-    and write the total to the ADM0 row.
+    There is no planet-scale WorldPop raster, so rollup is the only option at
+    this level. Every level below planet (countries and their descendants) is
+    computed directly from the DB raster via population_within() and must
+    NOT be rolled up — rollup here is exclusively for adm_level = 0.
+
+    Called once at the end of the WorldPop phase after every country in this
+    run has either succeeded, failed, or been skipped. Countries with NULL
+    population (never loaded, or failed mid-run) are excluded from the sum.
 
     Returns:
-        Number of rows updated (0 or 1).
+        Number of planet rows updated (0 if no countries have population yet,
+        otherwise 1).
     """
     with get_cursor(conn) as cur:
+        # Only update if at least one country has a population; otherwise
+        # leave Earth's value alone rather than overwriting with 0.
         cur.execute("""
-            UPDATE jurisdictions AS parent
+            UPDATE jurisdictions AS planet
             SET
                 population      = child_sum.total,
                 population_year = 2023,
                 updated_at      = NOW()
             FROM (
-                SELECT
-                    p.id              AS parent_id,
-                    SUM(c.population) AS total
-                FROM jurisdictions p
-                JOIN jurisdictions c ON c.parent_id = p.id
-                WHERE p.iso_code  = %s
-                  AND p.adm_level = 1
-                  AND p.source    IN ('geoboundaries', 'synthetic')
-                  AND p.deleted_at IS NULL
-                  AND c.deleted_at IS NULL
-                  AND c.population IS NOT NULL
-                GROUP BY p.id
+                SELECT SUM(population) AS total
+                FROM jurisdictions
+                WHERE adm_level  = 1
+                  AND deleted_at IS NULL
+                  AND population IS NOT NULL
             ) child_sum
-            WHERE parent.id = child_sum.parent_id
-        """, (iso3,))
+            WHERE planet.adm_level  = 0
+              AND planet.deleted_at IS NULL
+              AND child_sum.total   IS NOT NULL
+        """)
         updated = cur.rowcount
-    log.debug("%s ADM0 rollup: updated %d rows", iso3, updated)
+    if updated:
+        log.info("planet rollup: Earth population updated from sum of countries")
+    else:
+        log.debug("planet rollup: no countries have population yet — skipped")
     return updated
 
 
@@ -691,6 +599,10 @@ def validate_national_population(
 
     Delta > 5 % is flagged as WARNING; otherwise INFO.  Countries with no
     children population data yet are skipped silently.
+
+    Both sides of the comparison now come from population_within() reads
+    against the same DB tiles, so deltas should be dominated by ST_Clip's
+    partial-pixel handling (≤0.05 % in practice).
     """
     with get_cursor(conn) as cur:
         cur.execute("""
@@ -775,6 +687,8 @@ def load_raster_to_db(
     log: logging.Logger,
     year: int = 2023,
     resolution_m: int = 100,
+    country_jur_id: str | None = None,
+    heartbeat_queue_preview: list[str] | None = None,
 ) -> int:
     """
     Load a WorldPop GeoTIFF into the worldpop_rasters table as 256×256 pixel tiles.
@@ -789,12 +703,16 @@ def load_raster_to_db(
     Idempotent: existing tiles for (iso3, year) are deleted before inserting.
 
     Args:
-        conn:         Open psycopg2 connection (fresh per country).
-        iso3:         ISO3 country code to tag tiles with.
-        tif_path:     Path to the WorldPop GeoTIFF for this country.
-        log:          Logger instance.
-        year:         WorldPop year (default 2023).
-        resolution_m: Pixel resolution in metres (default 100).
+        conn:             Open psycopg2 connection (fresh per country).
+        iso3:             ISO3 country code to tag tiles with.
+        tif_path:         Path to the WorldPop GeoTIFF for this country.
+        log:              Logger instance.
+        year:             WorldPop year (default 2023).
+        resolution_m:     Pixel resolution in metres (default 100).
+        country_jur_id:   UUID of this country's adm_level=1 jurisdiction, for
+                          heartbeat continuity during the (potentially long)
+                          tile-insert loop.
+        heartbeat_queue_preview: ISO3 codes of the next countries in the queue.
 
     Returns:
         Number of tiles inserted.
@@ -830,16 +748,18 @@ def load_raster_to_db(
         width  = src_ctx.width
         height = src_ctx.height
 
-        col_steps = range(0, width,  RASTER_TILE_SIZE)
-        row_steps = range(0, height, RASTER_TILE_SIZE)
+        col_steps = list(range(0, width,  RASTER_TILE_SIZE))
+        row_steps = list(range(0, height, RASTER_TILE_SIZE))
         total_potential = len(col_steps) * len(row_steps)
         log.debug(
             "%s: raster %d×%d → up to %d tiles at %d×%d px",
             iso3, width, height, total_potential, RASTER_TILE_SIZE, RASTER_TILE_SIZE,
         )
 
+        tile_idx = 0
         for row_off in row_steps:
             for col_off in col_steps:
+                tile_idx += 1
                 tile_h = min(RASTER_TILE_SIZE, height - row_off)
                 tile_w = min(RASTER_TILE_SIZE, width  - col_off)
 
@@ -872,15 +792,43 @@ def load_raster_to_db(
 
                 batch.append((iso3, year, resolution_m, psycopg2.Binary(tile_bytes)))
 
-                if len(batch) >= RASTER_BATCH_SIZE:
-                    _insert_raster_batch(conn, batch)
-                    tiles_inserted += len(batch)
-                    batch = []
+                # Heartbeat fires either when a batch flushes OR every
+                # RASTER_HEARTBEAT_EVERY tiles, whichever comes first. This
+                # keeps client-side rate samples fresh enough that the
+                # interpolated progress bar advances smoothly between events.
+                if (len(batch) >= RASTER_BATCH_SIZE
+                        or tile_idx % RASTER_HEARTBEAT_EVERY == 0):
+                    if len(batch) >= RASTER_BATCH_SIZE:
+                        _insert_raster_batch(conn, batch)
+                        tiles_inserted += len(batch)
+                        batch = []
+                    heartbeat.write_current(
+                        id               = country_jur_id,
+                        name             = iso3,
+                        iso_code         = iso3,
+                        adm_level        = 1,
+                        phase            = "worldpop",
+                        sub_phase        = f"loading population data ({tile_idx:,}/{total_potential:,})",
+                        queue_preview    = heartbeat_queue_preview or [],
+                        progress_current = tile_idx,
+                        progress_total   = total_potential,
+                    )
+                    # P.1.2: also drive the stacked-bars panel — bar_start
+                    # registered this with total=0 (unknown), so pass
+                    # total_potential on every update to fix that and let
+                    # the bar render a real percentage.
+                    heartbeat.bar_update(
+                        f"wp:{iso3}:load",
+                        tile_idx,
+                        total=total_potential,
+                    )
 
     # Flush remaining tiles
     if batch:
         _insert_raster_batch(conn, batch)
         tiles_inserted += len(batch)
+
+    conn.commit()
 
     log.info("%s: loaded %d raster tiles (skipped %d empty)",
              iso3, tiles_inserted, total_potential - tiles_inserted)
@@ -895,44 +843,43 @@ def import_worldpop(
     log: logging.Logger = None,
     save_progress_fn=None,
     level_filter: list[int] | None = None,
-    load_rasters: bool = False,
+    pause_on_exception: bool = False,
+    # Legacy alias kept for backwards compatibility — promoted to the new flag.
+    stop_on_exception: bool = False,
 ) -> int:
     """
-    Update jurisdictions.population for all countries using WorldPop rasters.
+    Load WorldPop rasters into worldpop_rasters, then populate
+    jurisdictions.population via population_within() SQL.
 
     Args:
-        level_filter: If provided, only process these adm_levels.
-                      e.g. level_filter=[1] runs only the national polygon.
-                      Useful for targeted patches without re-running all levels.
+        countries:           Optional list of ISO3 codes (None = all in DB).
+        progress:            Shared progress dict (mutated in-place).
+        log:                 Logger instance.
+        save_progress_fn:    callable(progress) — called after each chunk, ADM
+                             level, and country to flush progress atomically.
+        level_filter:        If provided, only process these adm_levels AFTER the
+                             raster load completes. e.g. [1] runs only the
+                             national polygon update.
+        pause_on_exception:  If True, on per-country error pause and ask the
+                             operator (skip / retry / abort) via control files.
+        stop_on_exception:   Legacy alias — silently treated the same as
+                             pause_on_exception=True.
 
-    Every country is processed one ADM level at a time. Within each ADM level
-    geometries are fetched in chunks of DB_FETCH_CHUNK_SIZE and processed
-    chunk-by-chunk so that even IND ADM6 (649K polygons) never exceeds a few
-    hundred MB of geometry memory at once.
+    Per country the flow is:
+        load_raster_to_db() → for each adm_level: SQL UPDATE via population_within()
 
-    Progress is tracked per (iso3, adm_level) key AND per chunk within each
-    ADM level. save_progress_fn is called after every chunk commit, so a crash
-    anywhere in the run resumes from the last completed chunk with at most
-    ~90 seconds of rework (one DB_FETCH_CHUNK_SIZE batch).
-
-    Args:
-        countries:        Optional list of ISO3 codes to process (None = all in DB)
-        progress:         Shared progress dict (mutated in-place)
-        log:              Logger instance
-        save_progress_fn: callable(progress) — called after each chunk, ADM level,
-                          and country to flush progress to disk atomically.
-        load_rasters:     If True, also load the country's GeoTIFF into the
-                          worldpop_rasters table after population aggregation.
-                          Skipped for fallback countries (VAT→ITA, XKX→SRB).
-                          Once loaded, TIF files are not needed at runtime.
+    The TIF is opened exactly once per country. All ADM levels are computed
+    against the already-loaded DB tiles.
 
     Returns:
-        Total number of jurisdiction rows updated.
+        Total number of jurisdiction rows updated by the population step.
     """
     if log is None:
         log = logging.getLogger(__name__)
     if progress is None:
         progress = {}
+
+    pause_on_exception = pause_on_exception or stop_on_exception
 
     # ── Determine which ISO3 codes to process ──
     if countries:
@@ -954,95 +901,151 @@ def import_worldpop(
         finally:
             _conn.close()
 
+
     total_updated   = 0
     skipped_no_data = 0
     skipped_no_tif  = 0
 
     log.info("WorldPop: processing %d countries", len(iso3_list))
 
-    for iso3 in iso3_list:
+    # Phase P.1.1: pre-register the "Countries X / Y" summary bar BEFORE
+    # the first country starts so the operator sees the Population section
+    # show up at the same moment Phase 1 finishes — no flash of empty
+    # state between phases. started_at is stamped now and preserved
+    # across subsequent worldpop_advance_country calls so the overall
+    # "Population total: Xh Ym" timer measures the full phase.
+    heartbeat.worldpop_register_summary(total=len(iso3_list))
 
-        # Skip countries with no WorldPop coverage
-        if iso3 in NO_WORLDPOP:
-            log.info("%s: no WorldPop coverage — skipping", iso3)
-            skipped_no_data += 1
-            continue
+    for idx, iso3 in enumerate(iso3_list):
+        queue_preview = iso3_list[idx + 1 : idx + 3]
 
-        # Find the .tif file first (cheap check before opening a DB connection)
-        tif_path = find_worldpop_tif(iso3)
-        if tif_path is not None and iso3.upper() in RASTER_FALLBACKS:
-            log.info("%s: no own raster — using %s raster as fallback (%s)",
-                     iso3, RASTER_FALLBACKS[iso3.upper()], tif_path)
-        if tif_path is None:
-            log.warning("%s: WorldPop .tif not found — skipping", iso3)
-            skipped_no_tif += 1
-            progress.setdefault("worldpop", {})[iso3] = {
-                "status":    "skipped",
-                "reason":    "tif_not_found",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-            continue
+        # Phase P.1: advance the per-country worldpop summary AND reset the
+        # current-country bars list so the UI shows fresh bars for this iso.
+        heartbeat.worldpop_advance_country(iso3, idx + 1, len(iso3_list))
 
-        # Load raster metadata once per country (cheap — just opens header)
-        tif_meta = get_tif_metadata(tif_path)
+        # Phase P.1.1: pre-register all the bars THIS country will produce
+        # (raster load, then population at each ADM level that has rows).
+        # Operator sees the full per-country pipeline as pending bars the
+        # moment the country activates, with each transitioning pending →
+        # running → done in turn. Mirrors the geoboundaries pre-register.
+        try:
+            _conn_pre = get_connection()
+            try:
+                country_adm_levels = get_adm_levels_for_country(_conn_pre, iso3)
+            finally:
+                _conn_pre.close()
+        except Exception:
+            country_adm_levels = []
 
-        if tif_meta["crs_epsg"] and tif_meta["crs_epsg"] != 4326:
-            log.warning(
-                "%s: raster CRS is EPSG:%s — tiled reads will use WarpedVRT",
-                iso3, tif_meta["crs_epsg"]
+        tif_path_lookahead = find_worldpop_tif(iso3)
+        if tif_path_lookahead is not None:
+            heartbeat.bar_register(
+                key   = f"wp:{iso3}:load",
+                label = f"{iso3} — Load raster tiles",
+                total = 0,    # unknown until load_raster_to_db returns
+                unit  = "tiles",
+            )
+        for adm_level in country_adm_levels:
+            # P.1.2: plural label, drop "(ADM{n})" suffix.
+            plural_label = NATURAL_LABEL_PLURAL.get(adm_level, f"Level {adm_level}")
+            heartbeat.bar_register(
+                key   = f"wp:{iso3}:adm{adm_level}",
+                label = f"{iso3} — {plural_label}",
+                total = 0,    # populated by bar_start when process_adm_level fires
+                unit  = plural_label.lower(),
             )
 
+        # Find the iso's own .tif file. May be None — that's fine, the
+        # per-ADM population pass still runs and the Phase Q topological
+        # fallback picks up overlapping neighbour rasters via
+        # ST_Intersects(rast, geom). VAT/XKX/ATA/etc. flow through this
+        # path without any curated lookup.
+        tif_path = find_worldpop_tif(iso3)
+        if tif_path is None:
+            log.info("%s: no own .tif — skipping raster load (topological "
+                     "fallback will use overlapping neighbour rasters if any)",
+                     iso3)
+            skipped_no_tif += 1
+            progress.setdefault("worldpop", {})[iso3] = {
+                "status":    "no_own_tif",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+
         # ── Per-country connection (fresh per country to avoid timeout) ──
-        conn = get_connection()
-        try:
-            adm_levels = get_adm_levels_for_country(conn, iso3)
+        # Wrapped in `while True` so a "Retry" decision from the operator
+        # re-runs this country's whole pipeline (raster load + ADM updates).
+        # Most countries will exit on the first iteration via `break` at the
+        # end of the success path.
+        while True:
+            conn = get_connection()
+            try:
+                # Resolve the country's adm_level=1 jurisdiction id so heartbeats
+                # can drive the UI minimap during both the raster load and the
+                # subsequent SQL population passes.
+                country_jur_id = None
+                try:
+                    with get_cursor(conn) as cur:
+                        cur.execute(
+                            """
+                            SELECT id::text AS id FROM jurisdictions
+                            WHERE iso_code = %s AND adm_level = 1 AND deleted_at IS NULL
+                            LIMIT 1
+                            """,
+                            (iso3,),
+                        )
+                        row = cur.fetchone()
+                        if row:
+                            country_jur_id = row["id"]
+                except Exception:
+                    country_jur_id = None
 
-            if level_filter:
-                adm_levels = [l for l in adm_levels if l in level_filter]
-
-            if not adm_levels:
-                log.warning(
-                    "%s: no jurisdiction rows in DB — run import_geoboundaries first", iso3
+                # Heartbeat: country-level entry so the card shows iso_code immediately.
+                heartbeat.write_current(
+                    id            = country_jur_id,
+                    name          = iso3,
+                    iso_code      = iso3,
+                    adm_level     = 1,
+                    phase         = "worldpop",
+                    sub_phase     = "loading population data",
+                    queue_preview = queue_preview,
                 )
-                continue
 
-            country_updated = 0
-
-            for adm_level in adm_levels:
-                progress_key = f"{iso3}:adm{adm_level}"
-
-                if progress.get("worldpop", {}).get(progress_key, {}).get("status") == "done":
-                    log.debug("%s adm%d: already done — skipping", iso3, adm_level)
-                    continue
-
-                updated = process_adm_level(
-                    conn, iso3, adm_level, tif_path, tif_meta, log, progress,
-                    save_progress_fn=save_progress_fn,
-                )
-                total_updated   += updated
-                country_updated += updated
-
-                progress.setdefault("worldpop", {})[progress_key] = {
-                    "status":    "done",
-                    "updated":   updated,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
-                # Flush after each ADM level — crash-safe resume mid-country
-                if save_progress_fn:
-                    save_progress_fn(progress)
-
-            # Validate: direct raster national total vs. sum of children
-            validate_national_population(conn, iso3, log)
-
-            # ── Optional: load raster tiles into worldpop_rasters table ──
-            # Skip fallback countries — their TIF covers a larger territory,
-            # so storing it under the fallback iso_code would be misleading.
-            # (VAT/XKX are tiny and will never need district drawing.)
-            if load_rasters and iso3 not in RASTER_FALLBACKS:
+                # ── Step 1: raster load (only when this iso has its own TIF) ──
+                # No-own-TIF cases (ATA/VAT/XKX/...) already had tif_path set
+                # to None earlier; they skip this block entirely and proceed
+                # directly to the population pass, where the Phase Q
+                # topological fallback handles them via overlapping
+                # neighbour rasters.
                 raster_key = f"rasters:{iso3}"
-                if progress.get("worldpop_rasters", {}).get(raster_key, {}).get("status") != "done":
+                load_raster = (
+                    tif_path is not None
+                    and progress.get("worldpop_rasters", {}).get(raster_key, {}).get("status") != "done"
+                )
+                if load_raster:
+                    # Phase P.1: stacked-progress-bar marker for the raster
+                    # load step. Total is unknown until load_raster_to_db
+                    # returns the tile count; the bar shows as "running"
+                    # with elapsed time, then completes with the final count.
+                    load_bar_key = f"wp:{iso3}:load"
+                    heartbeat.bar_start(
+                        key   = load_bar_key,
+                        label = f"{iso3} — Load raster tiles",
+                        total = 0,   # unknown — frontend shows indeterminate
+                    )
                     try:
-                        tiles = load_raster_to_db(conn, iso3, tif_path, log, year=2023)
+                        tiles = load_raster_to_db(
+                            conn, iso3, tif_path, log, year=2023,
+                            country_jur_id=country_jur_id,
+                            heartbeat_queue_preview=queue_preview,
+                        )
+                        # P.1.2: pass total=tiles so the bar reads
+                        # "364 / 364 (100%)" at done — not "364 / 638 (57%)"
+                        # which would suggest a half-loaded raster. The 638
+                        # denominator was the iteration counter (grid slots,
+                        # including empty/ocean tiles that aren't worth
+                        # storing); the loaded headline is the only number
+                        # that matters at done time.
+                        heartbeat.bar_complete(load_bar_key, current=tiles, total=tiles)
                         progress.setdefault("worldpop_rasters", {})[raster_key] = {
                             "status":    "done",
                             "tiles":     tiles,
@@ -1051,37 +1054,202 @@ def import_worldpop(
                         if save_progress_fn:
                             save_progress_fn(progress)
                     except Exception as exc:
+                        heartbeat.bar_complete(load_bar_key, current=0)
                         log.error("%s: raster load failed — %s", iso3, exc, exc_info=True)
+                        # P.3: surface as a UI error event
+                        heartbeat.emit_event(
+                            level="error", type="raster_load_failed",
+                            phase="worldpop", iso=iso3,
+                            msg=f"raster load failed: {exc}",
+                        )
                         progress.setdefault("worldpop_rasters", {})[raster_key] = {
                             "status":    "error",
                             "error":     str(exc),
                             "timestamp": datetime.now(timezone.utc).isoformat(),
                         }
+                        if save_progress_fn:
+                            save_progress_fn(progress)
+                        # In pause mode, propagate to outer handler for the
+                        # operator decision. In legacy mode, skip the country.
+                        if pause_on_exception:
+                            raise
+                        # Without raster tiles, population_within() returns 0. Skip
+                        # the population pass for this country so we don't stamp
+                        # zeros over any previously computed values.
+                        break
+
+                # ── Step 2: run population_within() per ADM level ──
+                adm_levels = get_adm_levels_for_country(conn, iso3)
+
+                if level_filter:
+                    adm_levels = [l for l in adm_levels if l in level_filter]
+
+                if not adm_levels:
+                    log.warning(
+                        "%s: no jurisdiction rows in DB — run import_geoboundaries first", iso3
+                    )
+                    break
+
+                country_updated = 0
+                for adm_level in adm_levels:
+                    progress_key = f"{iso3}:adm{adm_level}"
+
+                    if progress.get("worldpop", {}).get(progress_key, {}).get("status") == "done":
+                        log.debug("%s adm%d: already done — skipping", iso3, adm_level)
+                        continue
+
+                    heartbeat.write_current(
+                        id            = country_jur_id,
+                        name          = iso3,
+                        iso_code      = iso3,
+                        adm_level     = adm_level,
+                        phase         = "worldpop",
+                        sub_phase     = f"{NATURAL_LABEL.get(adm_level, f'Level {adm_level}')} starting",
+                        queue_preview = queue_preview,
+                    )
+
+                    updated = process_adm_level(
+                        conn, iso3, adm_level, log, progress,
+                        save_progress_fn=save_progress_fn,
+                        country_jur_id=country_jur_id,
+                        heartbeat_queue_preview=queue_preview,
+                    )
+                    total_updated   += updated
+                    country_updated += updated
+
+                    progress.setdefault("worldpop", {})[progress_key] = {
+                        "status":    "done",
+                        "updated":   updated,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                    if save_progress_fn:
+                        save_progress_fn(progress)
+
+                # Validate: national total vs. sum of children
+                validate_national_population(conn, iso3, log)
+
+                progress.setdefault("worldpop", {})[iso3] = {
+                    "status":    "done",
+                    "updated":   country_updated,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+                log.info("%s: complete", iso3)
+
+                if save_progress_fn:
+                    save_progress_fn(progress)
+
+                break  # success path — exit the retry loop
+
+            except Exception as exc:
+                log.error("%s: unhandled error — %s", iso3, exc, exc_info=True)
+                progress.setdefault("worldpop", {})[iso3] = {
+                    "status":    "error",
+                    "error":     str(exc),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+
+                if pause_on_exception:
+                    from error_pause import wait_for_error_decision
+                    decision = wait_for_error_decision(
+                        country   = iso3,
+                        adm_level = 1,
+                        phase     = "worldpop",
+                        exception = exc,
+                        log       = log,
+                    )
+                    if decision == "abort":
+                        log.warning("Operator aborted the run from error pause.")
+                        raise SystemExit(2)
+                    elif decision == "retry":
+                        log.info("Retrying %s on operator request…", iso3)
+                        # `finally` below closes the connection; the next
+                        # iteration of `while True` will open a fresh one.
+                        continue
+                    else:  # skip
+                        progress["worldpop"][iso3]["status"] = "skipped"
+                        log.info("Skipping %s on operator request.", iso3)
+                        break
                 else:
-                    log.debug("%s: raster already loaded — skipping", iso3)
+                    # Legacy behaviour: log + mark error + move to next country.
+                    break
 
-            progress.setdefault("worldpop", {})[iso3] = {
-                "status":    "done",
-                "updated":   country_updated,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-            log.info("%s: complete", iso3)
+            finally:
+                conn.close()
 
-            # Flush after each country
-            if save_progress_fn:
-                save_progress_fn(progress)
+    # ── Cleanup phase — only the topological-raster-fallback rescue
+    # remains. The Phase T.8 pixel-attribution-correction work
+    # (within-iso gap/overlap + cross-iso orphan attribution) was
+    # ripped 2026-05-22 per the operator decision documented in
+    # migration 2026_05_22_000001_rip_pixel_attribution_correction.php.
+    # The within-iso nearest-sibling clamp produced row-level garbage
+    # on sparse-coverage L-levels (tiny hamlets credited with millions
+    # of people); the correction approach was abandoned. Phase 2's
+    # per-polygon population_within + the topological raster fallback
+    # below + the planet rollup is the canonical population pipeline
+    # going forward.
+    heartbeat.set_phase("cleanup")
+    heartbeat.bar_register(
+        key   = "cleanup:topo_fallback",
+        label = "Topological raster fallback rescue",
+        total = 1,
+        unit  = "passes",
+    )
 
-        except Exception as exc:
-            log.error("%s: unhandled error — %s", iso3, exc, exc_info=True)
-            progress.setdefault("worldpop", {})[iso3] = {
-                "status":    "error",
-                "error":     str(exc),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-            # Continue to next country rather than aborting the entire run
-
+    # Global topological-raster-fallback cleanup pass. Catches rows whose
+    # per-iso fallback ran with incomplete raster coverage (because the
+    # row's neighbour iso loaded later in the alphabetical loop). Most
+    # impactful for synthetic-intermediary trees and their commune
+    # descendants in foreign-iso territory (e.g. FRA-iso rows under
+    # synthetic "French Guiana" L2 → GUF raster). Runs once at the end,
+    # naturally generalised — no hardcoded iso lists.
+    try:
+        cleanup_conn = get_connection()
+        try:
+            log.info("Phase Q global cleanup: re-applying topological raster fallback over all zero/null-pop rows...")
+            heartbeat.bar_start(
+                key   = "cleanup:topo_fallback",
+                label = "Topological raster fallback rescue",
+                total = 1,
+                unit  = "passes",
+            )
+            heartbeat.write_current(
+                phase     = "cleanup",
+                sub_phase = "topological raster fallback (single pass over all zero/null-pop rows)",
+            )
+            rescued_global = _topological_raster_fallback_global(cleanup_conn, log)
+            log.info("Phase Q global cleanup: rescued %d rows via topological raster fallback", rescued_global)
+            # Final tally: number of rows rescued. total=max(rescued, 1) so
+            # the bar renders 100 % even when zero rows needed rescue (i.e.
+            # the per-iso passes already nailed everything).
+            heartbeat.bar_complete(
+                key     = "cleanup:topo_fallback",
+                current = max(rescued_global, 1),
+                total   = max(rescued_global, 1),
+            )
         finally:
-            conn.close()
+            cleanup_conn.close()
+    except Exception as exc:
+        log.warning("global topological fallback cleanup failed (non-fatal): %s", exc)
+        # Mark the bar done so the UI doesn't render a stuck "running" state
+        # for an aborted pass. Operator inspects log_tail / events for context.
+        heartbeat.bar_complete(key="cleanup:topo_fallback", current=0, total=1)
+
+    # All cleanup work done — clear the active iso heartbeat so the UI
+    # doesn't stick on the last processed country after the rollup runs.
+    heartbeat.clear_current()
+
+    # Planet-level rollup: sum country populations into Earth (adm_level=0).
+    # There is no planet raster, so rollup is the only way to populate this row.
+    # Runs AFTER the global cleanup so any newly-rescued populations roll up.
+    try:
+        rollup_conn = get_connection()
+        try:
+            rollup_planet_population(rollup_conn, log)
+            rollup_conn.commit()
+        finally:
+            rollup_conn.close()
+    except Exception as exc:
+        log.warning("planet rollup failed (non-fatal): %s", exc)
 
     log.info(
         "import_worldpop complete: %d rows updated | "

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\RecolorDistrictsJob;
+use App\Services\ConstitutionalDefaults;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,17 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * @see App\Services\ConstitutionalDefaults
+ *
+ * Constitutional constants (legislature floor=5, ceiling=9, cube-root sizing law)
+ * are gradually being lifted out of literals and into ConstitutionalDefaults.
+ * The total-legislature-sizing calls (cube-root) now route through the service.
+ * The internal rebalancing thresholds (9.5 giant-boundary, 5.0 undersized-bin)
+ * remain as literals for now — they're mathematically coupled to ceiling+0.5 and
+ * floor respectively, and replacing them requires equivalence tests against the
+ * current alpha build's outputs. Tracked as future work in the setup-wizard plan.
+ */
 class LegislatureController extends Controller
 {
     /**
@@ -84,8 +96,9 @@ class LegislatureController extends Controller
         // At root scope: just the legislature's own type_a_seats (e.g. 1999).
         // At non-root scope: use SUM(direct_children.population) as denominator — the same
         // population base that runAutoCompositeForScope() uses for $scopeBudget.  This
-        // eliminates the "28 vs 29" class of mismatches that arise when stored ADM0 population
-        // ≠ sum of ADM1 child populations (geoBoundaries ADM-level data quality variation).
+        // eliminates the "28 vs 29" class of mismatches that arise when a parent's stored
+        // population ≠ sum of its direct children (data-quality variation between
+        // geoBoundaries boundary levels).
         if ($scopeId === $leg->jurisdiction_id) {
             $scopeSeats   = (int) $leg->type_a_seats;
             $effectivePop = (int) $scope->population;
@@ -120,9 +133,10 @@ class LegislatureController extends Controller
         $mapBindings = $mapId !== null ? ['map_id' => $mapId] : [];
 
         // child_assigned_seats: seats committed inside each child's subtree at any depth.
-        // A correlated one-level subquery misses grandchildren (e.g. Earth→India→ADM3).
-        // A WITH RECURSIVE CTE walks all descendants (depth-limited to 5 levels) so that
-        // Earth scope correctly sums UP/Maharashtra's sub-districts that contain ADM3 members.
+        // A correlated one-level subquery misses grandchildren (e.g. Earth → India →
+        // states → sub-state districts at adm_level 4+). A WITH RECURSIVE CTE walks
+        // all descendants (depth-limited to 5 levels) so that Earth scope correctly
+        // sums UP/Maharashtra's sub-districts that contain deep-hierarchy members.
         // PDO does not allow reusing named parameters — scope_id_r / leg_id2 / map_id2 are
         // distinct aliases for the same values used in the outer query.
         $childMapFilter2 = $mapId !== null ? 'AND ld2.map_id = :map_id2' : '';
@@ -146,7 +160,8 @@ class LegislatureController extends Controller
                 SELECT id, id AS root_child_id, 0 AS lvl
                 FROM   giant_children
                 UNION ALL
-                -- Recurse: one level deeper, capped at lvl 4 (covers ADM0→ADM3 hierarchies)
+                -- Recurse: one level deeper, capped at lvl 4 (covers 4 levels of
+                -- descent from a giant country — e.g. country → state → county → local)
                 SELECT j.id, d.root_child_id, d.lvl + 1
                 FROM   jurisdictions j
                 JOIN   desc_tree d ON j.parent_id = d.id
@@ -549,6 +564,11 @@ class LegislatureController extends Controller
                 'name'   => $activeMapRow->name,
                 'status' => $activeMapRow->status,
             ] : null,
+            // Wizard integration: when the user arrives from /setup/step/3,
+            // ?setup=1 toggles a sticky banner with a return-to-wizard button.
+            // Whether an active map exists determines whether the banner
+            // surfaces a "Back to Setup →" action or only the reminder text.
+            'setup_mode' => (bool) $request->query('setup'),
         ]);
     }
 
@@ -1428,7 +1448,7 @@ class LegislatureController extends Controller
                     ->where('parent_id', $scopeId)
                     ->whereNull('deleted_at')
                     ->sum('population');
-                $newSeats = max(5, (int) round(pow(max($sumChildPop, 1), 1/3)));
+                $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
                 if ((int) $leg->type_a_seats !== $newSeats) {
                     DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
                     $leg->type_a_seats = $newSeats;
@@ -1517,7 +1537,7 @@ class LegislatureController extends Controller
                 ->where('parent_id', $scopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
-            $newSeats = max(5, (int) round(pow(max($sumChildPop, 1), 1/3)));
+            $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
             if ((int) $leg->type_a_seats !== $newSeats) {
                 DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
                 $leg->type_a_seats = $newSeats;

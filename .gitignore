@@ -56,3 +56,8 @@ scripts/etl/__pycache__/
 desktop.ini
 Thumbs.db
 *.ini
+
+# ─── Protomaps PMTiles bundle (P.7) ───────────────────────────────────────────
+# ~150 MB self-hostable base map; fetched via scripts/setup/fetch_protomaps.sh
+# at install time, never committed.
+public/maps/*.pmtiles
