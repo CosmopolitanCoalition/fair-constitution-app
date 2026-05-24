@@ -218,62 +218,100 @@
 
                     <!-- Persistent mass-job progress banner (survives page navigation) -->
                     <div v-if="massJobRunning"
-                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-block w-3 h-3 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
-                            <span class="text-xs text-indigo-300 font-medium truncate">
-                                <template v-if="recolorProgress">
-                                    {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
-                                </template>
-                                <template v-else-if="massProgress">
-                                    {{ massProgress.current_scope }}
-                                </template>
-                                <template v-else>Mass operation in progress…</template>
-                            </span>
-                            <span v-if="recolorProgress && recolorElapsed"
-                                  class="text-[10px] text-indigo-400 ml-auto shrink-0">{{ recolorElapsed }} elapsed</span>
-                            <span v-else-if="massProgress"
-                                  class="text-[10px] text-indigo-400 ml-auto shrink-0 tabular-nums">
-                                {{ massProgress.completed + 1 }}/{{ massProgress.total }}
-                            </span>
-                            <span v-else class="text-[10px] text-indigo-500 ml-auto">Controls disabled</span>
-                        </div>
-                        <!-- Scope progress bar -->
-                        <div v-if="massProgress && massProgress.total > 1"
-                             class="h-1 rounded-full bg-indigo-900 overflow-hidden">
-                            <div class="h-full bg-indigo-400 transition-all duration-300"
-                                 :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
-                        </div>
-                        <!-- Phase label + per-scope sub-progress + Halt button -->
-                        <template v-if="massProgress && massProgress.phase_label">
-                            <div class="flex items-center gap-2 text-[10px] text-indigo-400 leading-tight">
-                                <span class="truncate">{{ massProgress.phase_label }}</span>
-                                <span v-if="massScopeElapsed"
-                                      class="ml-auto shrink-0 tabular-nums">{{ massScopeElapsed }} on scope</span>
+                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-2">
+
+                        <!-- ─── Recolor section ─────────────────────────────────────────
+                             Background coloring pass over EVERY district in this
+                             legislature/map (the count is the total adjacency size,
+                             NOT scope-specific). Auto-dispatched after every successful
+                             mass-reseed so colors stay correct. Always shown when
+                             active, independent of any current operator action. -->
+                        <div v-if="recolorProgress"
+                             class="flex flex-col gap-1 px-2 py-1.5 rounded bg-cyan-950/60 border border-cyan-800/60">
+                            <div class="flex items-start gap-2">
+                                <span class="mt-1 inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[11px] font-semibold text-cyan-200">Recolor (background)</div>
+                                    <div class="text-[10px] text-cyan-300 leading-tight break-words">
+                                        {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
+                                    </div>
+                                    <div class="text-[9px] text-cyan-500 italic mt-0.5">
+                                        Adjacency pass over all {{ recolorProgress.total }} districts in this map —
+                                        unrelated to any scope you're currently autoseeding.
+                                    </div>
+                                </div>
+                                <span v-if="recolorElapsed"
+                                      class="text-[10px] text-cyan-400 shrink-0 tabular-nums">{{ recolorElapsed }} elapsed</span>
                             </div>
+                        </div>
+
+                        <!-- ─── Mass operation section ──────────────────────────────────
+                             The actual sweep/autoseed the operator kicked off. May be
+                             queued behind the recolor; shows scope-level + phase-level
+                             progress + halt control. -->
+                        <div v-if="massProgress"
+                             class="flex flex-col gap-1 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
+                            <div class="flex items-start gap-2">
+                                <span class="mt-1 inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[11px] font-semibold text-indigo-200">
+                                        {{ massProgress.current_scope ? `Autoseed: ${massProgress.current_scope}` : 'Autoseed (queued)' }}
+                                    </div>
+                                    <div v-if="massProgress.phase_label"
+                                         class="text-[10px] text-indigo-300 leading-tight break-words">
+                                        {{ massProgress.phase_label }}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 gap-0.5">
+                                    <span v-if="massProgress.total > 0"
+                                          class="text-[10px] text-indigo-400 tabular-nums">
+                                        scope {{ Math.min(massProgress.completed + 1, massProgress.total) }}/{{ massProgress.total }}
+                                    </span>
+                                    <span v-if="massScopeElapsed"
+                                          class="text-[10px] text-indigo-400 tabular-nums">{{ massScopeElapsed }} on scope</span>
+                                </div>
+                            </div>
+                            <!-- Scope-level progress bar (only meaningful for multi-scope sweeps) -->
+                            <div v-if="massProgress.total > 1"
+                                 class="h-1 rounded-full bg-indigo-950 overflow-hidden">
+                                <div class="h-full bg-indigo-400 transition-all duration-300"
+                                     :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
+                            </div>
+                            <!-- Sub-phase progress bar (e.g., district N of M within a scope) -->
                             <div v-if="massProgress.phase_total > 0 && massProgress.phase_current > 0"
-                                 class="h-0.5 rounded-full bg-indigo-900/60 overflow-hidden">
+                                 class="h-0.5 rounded-full bg-indigo-950/80 overflow-hidden">
                                 <div class="h-full bg-indigo-300 transition-all duration-300"
                                      :style="{ width: ((massProgress.phase_current / massProgress.phase_total) * 100) + '%' }"></div>
                             </div>
-                        </template>
-                        <!-- Halt control. Only meaningful for mass operations (not recolor),
-                             and only when not already halting. -->
-                        <div v-if="massProgress && !recolorProgress && massProgress.phase !== 'halting' && massProgress.phase !== 'halted'"
-                             class="flex items-center gap-2 mt-0.5">
-                            <button type="button"
-                                    @click="haltMassOperation"
-                                    :disabled="haltRequesting"
-                                    class="px-2 py-0.5 rounded text-[10px] border bg-red-900/60 border-red-700 text-red-200
-                                           hover:bg-red-800 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed
-                                           transition-colors">
-                                {{ haltRequesting ? 'Halting…' : 'Halt run' }}
-                            </button>
-                            <span class="text-[10px] text-indigo-500 italic">stops after current scope commits</span>
+                            <!-- Halt control. Hide once already halting/halted. -->
+                            <div v-if="massProgress.phase !== 'halting' && massProgress.phase !== 'halted'"
+                                 class="flex items-center gap-2 mt-0.5">
+                                <button type="button"
+                                        @click="haltMassOperation"
+                                        :disabled="haltRequesting"
+                                        class="px-2 py-0.5 rounded text-[10px] border bg-red-900/60 border-red-700 text-red-200
+                                               hover:bg-red-800 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed
+                                               transition-colors">
+                                    {{ haltRequesting ? 'Halting…' : 'Halt autoseed' }}
+                                </button>
+                                <span class="text-[10px] text-indigo-500 italic">stops after current scope commits</span>
+                            </div>
+                            <div v-if="massProgress.phase === 'halting'"
+                                 class="text-[10px] text-amber-300 italic">
+                                Halt requested — finishing current scope, then stopping…
+                            </div>
+                            <div v-if="massProgress.phase === 'halted'"
+                                 class="text-[10px] text-amber-400 italic">
+                                Halted by operator. Already-committed scopes preserved.
+                            </div>
                         </div>
-                        <div v-if="massProgress && massProgress.phase === 'halting'"
-                             class="text-[10px] text-amber-300 italic">
-                            Halt requested — finishing current scope, then stopping…
+
+                        <!-- Fallback when neither cache key is populated yet (e.g.,
+                             between dispatch and first poll) -->
+                        <div v-if="!recolorProgress && !massProgress"
+                             class="flex items-center gap-2 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
+                            <span class="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
+                            <span class="text-[11px] text-indigo-300 italic">Mass operation in progress — waiting for first progress update…</span>
                         </div>
                     </div>
 
@@ -1585,15 +1623,17 @@ function updateElapsed() {
 }
 
 function recolorPhaseLabel(phase, total) {
-    // Rough ETA for the adjacency phase: empirically ~0.3s per district at Earth scope
+    // Rough ETA for the adjacency phase: empirically ~0.3s per district at Earth scope.
+    // `total` is the count of districts in the WHOLE legislature/map being recolored —
+    // never scope-specific. The new banner caller surfaces that distinction explicitly.
     const etaSecs = phase === 'adjacency' ? Math.round(total * 0.3) : 0
     const etaStr  = etaSecs >= 10
-        ? ` — est. ${etaSecs >= 60 ? Math.round(etaSecs / 60) + ' min' : etaSecs + 's'}`
+        ? ` (est. ${etaSecs >= 60 ? Math.round(etaSecs / 60) + ' min' : etaSecs + 's'})`
         : ''
-    if (phase === 'adjacency')  return `Computing adjacency graph (${total} districts${etaStr})…`
-    if (phase === 'coloring')   return `Running 7-color algorithm…`
-    if (phase === 'persisting') return `Saving colors to database…`
-    return 'Finishing up…'
+    if (phase === 'adjacency')  return `Computing adjacency graph${etaStr}`
+    if (phase === 'coloring')   return `Running 7-color algorithm`
+    if (phase === 'persisting') return `Saving colors to database`
+    return 'Finishing up'
 }
 
 function startMassStatusPolling() {
