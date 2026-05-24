@@ -43,7 +43,14 @@ class MassReseedJob implements ShouldQueue
         private readonly string $operationScope,
         private readonly string $scopeId,
         private readonly string $mapId,
-    ) {}
+    ) {
+        // Route to the long-running Horizon supervisor (timeout=0, memory=512).
+        // The default supervisor-1 has timeout=60s which SIGKILLs workers
+        // mid-sweep on any non-trivial geometry. Big composite districts
+        // (Canada, Russia, etc.) can spend many minutes inside a single
+        // ST_Union call — the 60s wall would tear them apart.
+        $this->onQueue('long-running');
+    }
 
     public function handle(): void
     {

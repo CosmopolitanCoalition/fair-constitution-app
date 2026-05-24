@@ -25,7 +25,12 @@ class RecolorDistrictsJob implements ShouldQueue
     public function __construct(
         private readonly string  $legislatureId,
         private readonly ?string $mapId,
-    ) {}
+    ) {
+        // Route to the long-running Horizon supervisor. The default
+        // supervisor-1 has timeout=60s; the adjacency scan over a fully-
+        // populated Earth map takes several minutes and would be killed.
+        $this->onQueue('long-running');
+    }
 
     public function handle(): void
     {

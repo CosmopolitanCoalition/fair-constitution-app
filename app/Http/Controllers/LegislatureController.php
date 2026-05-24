@@ -1606,7 +1606,7 @@ class LegislatureController extends Controller
             'phase_label'      => "Starting autoseed for {$scopeName}",
             'phase_current'    => 0,
             'phase_total'      => 0,
-        ]);
+        ], reset: true);
 
         // At root scope: auto-update type_a_seats from cube root of sum(children populations).
         // At non-root scope: derive seat budget from the district graph
@@ -1728,14 +1728,22 @@ class LegislatureController extends Controller
         Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
 
         // Seed initial progress so the polling UI has something to show
-        // before the job's worker picks it up.
+        // before the job's worker picks it up. `reset=true` wipes stale
+        // fields (current_scope, phase_total, scope_started_at) from any
+        // previous run so the banner doesn't display "Queued — waiting
+        // for worker" paired with "5m on scope" leftover from earlier.
         $this->publishMassProgress($legislature_id, [
-            'completed'   => 0,
-            'total'       => 0,
-            'started_at'  => time(),
-            'phase'       => 'queued',
-            'phase_label' => 'Queued — waiting for worker',
-        ]);
+            'completed'        => 0,
+            'total'            => 0,
+            'started_at'       => time(),
+            'current_scope'    => null,
+            'current_scope_id' => null,
+            'scope_started_at' => null,
+            'phase_current'    => 0,
+            'phase_total'      => 0,
+            'phase'            => 'queued',
+            'phase_label'      => 'Queued — waiting for worker',
+        ], reset: true);
 
         // Dispatch to Horizon. The job's timeout is 7200 s (2 h) which
         // covers a whole-Earth recursive sweep; per-scope commits inside
@@ -5510,11 +5518,17 @@ class LegislatureController extends Controller
      *
      * Pass a partial array — keys are merged into the existing snapshot so
      * a phase change doesn't clobber unrelated fields like `completed`.
+     *
+     * Pass `$reset = true` when starting a fresh operation so stale fields
+     * from a previous run (e.g., scope_started_at, current_scope, phase_total)
+     * don't leak through the merge. Without this flag the UI shows a confusing
+     * "Queued — waiting for worker" paired with "5m 12s on scope" leftover
+     * from a previous Sudan run.
      */
-    private function publishMassProgress(string $legislature_id, array $patch): void
+    public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false): void
     {
         $key = "legislature.{$legislature_id}.mass_progress";
-        $existing = Cache::get($key, []);
+        $existing = $reset ? [] : (Cache::get($key, []) ?: []);
         if (! is_array($existing)) $existing = [];
         Cache::put($key, array_merge($existing, $patch, [
             'last_update_at' => time(),
