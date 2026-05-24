@@ -73,9 +73,12 @@ class MassReseedJob implements ShouldQueue
                 'errors'            => $result['errors'],
             ]);
 
-            // Post-sweep tasks: recolor indices, invalidate cached GeoJSON,
-            // dispatch the adjacency-based recolor refresh. Run even on
-            // halt so the partial districts have correct colors.
+            // Post-sweep tasks: per-scope cycling colors (cheap, scope-local)
+            // + cache invalidation. The HEAVY adjacency-based recolor is NOT
+            // dispatched here anymore — it fires lazily on the next legislature
+            // view via dispatchLazyRecolorIfStale(). This avoids running a
+            // 5-10 minute global recolor after every scope autoseed when the
+            // operator may not even be viewing the wide scope.
             foreach ($result['scope_ids'] ?? [] as $sid) {
                 try {
                     $ctrl->recomputeColorIndices(
@@ -94,7 +97,10 @@ class MassReseedJob implements ShouldQueue
                 Log::warning('flushRevealedCache failed (non-fatal): '.$e->getMessage());
             }
 
-            RecolorDistrictsJob::dispatch($this->legislatureId, $this->mapId);
+            // Mark the map's adjacency-based 7-coloring as stale. The next
+            // view of any scope in this legislature triggers RecolorDistrictsJob
+            // via dispatchLazyRecolorIfStale().
+            $ctrl->markMapColorsStale($this->legislatureId, $this->mapId);
         } finally {
             // Always clear the running + halt flags so the UI can re-enable
             // controls and a fresh run can be dispatched.

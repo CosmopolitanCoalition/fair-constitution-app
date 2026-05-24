@@ -123,6 +123,12 @@ class LegislatureController extends Controller
         // Resolve the district map to display (URL ?map= param → active → newest draft).
         $mapId = $this->getMapId($legislature_id, $request->query('map'));
 
+        // Lazy recolor: if any autoseed since the last recolor marked this map
+        // as colors-stale, dispatch the global adjacency-based recolor here on
+        // first view. Fire-and-forget — render with current colors, the next
+        // poll/refresh picks up the fresh ones once the job commits.
+        $this->dispatchLazyRecolorIfStale($legislature_id, $mapId);
+
         $scope = DB::table('jurisdictions')
             ->where('id', $scopeId)
             ->whereNull('deleted_at')
@@ -1661,6 +1667,12 @@ class LegislatureController extends Controller
 
         // Invalidate revealed.geojson cache — autoComposite creates/replaces districts.
         $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
+
+        // Mark map colors as stale. Per-scope cycling colors (recomputeColorIndices
+        // above) are correct locally; the heavier adjacency-based 7-color pass
+        // fires lazily on the next legislature view. Avoids running a multi-minute
+        // global recolor after every single-country autoseed.
+        $this->markMapColorsStale($legislature_id, $mapId);
 
         Cache::forget("legislature.{$legislature_id}.mass_running");
         Cache::forget("legislature.{$legislature_id}.mass_progress");
@@ -5508,6 +5520,54 @@ class LegislatureController extends Controller
             'updated_at'     => now(),
         ]);
         return $newId;
+    }
+
+    /**
+     * Mark a map's adjacency-based 7-coloring as stale.
+     *
+     * Per-scope `recomputeColorIndices()` still runs eagerly after every
+     * autoseed (cheap cycling colors, scope-local). The expensive
+     * RecolorDistrictsJob (legislature-wide adjacency pass over every
+     * district in the map) is now triggered lazily — on first view of any
+     * scope after this flag is set. See `dispatchLazyRecolorIfStale()`.
+     *
+     * Set after any operation that creates or modifies districts. The flag
+     * is one bit per map (not per scope) — the recolor is always global,
+     * so finer-grained tracking buys nothing.
+     */
+    public function markMapColorsStale(string $legislature_id, ?string $mapId): void
+    {
+        if ($mapId === null) return;
+        Cache::put(
+            "legislature.{$legislature_id}.map.{$mapId}.colors_stale_at",
+            time(),
+            604800,  // 7 days — colors don't drift on their own; only operator ops set this
+        );
+    }
+
+    /**
+     * If this map's colors are marked stale AND no recolor is currently
+     * running, fire-and-forget dispatch RecolorDistrictsJob and clear the
+     * stale flag. Called from view endpoints — the operator sees current
+     * (possibly stale-by-one-pass) colors, and the next page load/poll
+     * picks up the fresh ones once the job commits.
+     *
+     * Idempotent across rapid re-views: clearing the stale flag on dispatch
+     * prevents duplicate dispatches; if another change comes in mid-recolor,
+     * the new stale flag will get picked up by the NEXT view after the
+     * current recolor finishes.
+     */
+    public function dispatchLazyRecolorIfStale(string $legislature_id, ?string $mapId): void
+    {
+        if ($mapId === null) return;
+        $staleAt = Cache::get("legislature.{$legislature_id}.map.{$mapId}.colors_stale_at");
+        if (!$staleAt) return;
+
+        $recolorRunning = Cache::get("legislature.{$legislature_id}.recolor_progress") !== null;
+        if ($recolorRunning) return;
+
+        \App\Jobs\RecolorDistrictsJob::dispatch($legislature_id, $mapId);
+        Cache::forget("legislature.{$legislature_id}.map.{$mapId}.colors_stale_at");
     }
 
     /**
