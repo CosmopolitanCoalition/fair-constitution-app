@@ -225,6 +225,43 @@ class LegislatureController extends Controller
         // Uses the same population base as $scopeSeats so the displayed quota matches
         // what the ETL used when seeding districts (e.g. Philippines: SUM(ADM1 pops)/29).
         $quota = max($effectivePop, 1) / max($scopeSeats, 1);
+        $isRootScope = ($scopeId === $leg->jurisdiction_id);
+
+        // ── Ancestor chain (cheap, needed by both the render call AND the
+        // heavy block's district-name labeling) ────────────────────────────────
+        $ancestors = DB::select("
+            WITH RECURSIVE anc AS (
+                SELECT id, name, parent_id, iso_code, adm_level
+                FROM jurisdictions WHERE id = :start_id
+                UNION ALL
+                SELECT j.id, j.name, j.parent_id, j.iso_code, j.adm_level
+                FROM jurisdictions j
+                JOIN anc ON j.id = anc.parent_id
+                WHERE j.deleted_at IS NULL
+            )
+            SELECT id, name, iso_code, adm_level FROM anc
+        ", ['start_id' => $scopeId]);
+        // Reverse so we get root → current scope
+        $ancestors = array_reverse($ancestors);
+
+        // ── Heavy data block — wrapped in a memoized closure ───────────────────
+        // The 788 ms recursive CTE for children + assemble-districts + flags +
+        // stats computation collectively pushed initial page render north of
+        // 1 s, leaving the operator staring at a blank screen after every code
+        // change → restart cycle. Wrap the whole block in a closure and defer
+        // its execution via Inertia::defer (v2): the initial render returns the
+        // cheap header/scope/maps data immediately, the page mounts, and Vue
+        // auto-issues a partial reload to populate the heavy props in the
+        // background. The 5 defer closures share this memoized loader so the
+        // backend does the work exactly once per partial reload.
+        $heavyCache = null;
+        $loadHeavy = function () use (
+            &$heavyCache,
+            $legislature_id, $scopeId, $mapId, $leg,
+            $scopeSeats, $rootPop, $effectivePop, $isRootScope,
+            $giantThreshold, $floor, $quota, $ancestors,
+        ) {
+            if ($heavyCache !== null) return $heavyCache;
 
         // Children of scope with their fractional seats and current district assignment
         $mapFilter  = $mapId !== null ? 'AND ld.map_id = :map_id' : '';
@@ -448,24 +485,9 @@ class LegislatureController extends Controller
         }
 
         // Breadcrumb: ancestor chain from scope up to the legislature's root jurisdiction.
-        // Moved before district naming so we can use ancestors[1] (first child of root)
-        // as the label prefix — ensures grandchild scopes (e.g. California) label "USA 01"
-        // rather than "CAL 01".
-        $ancestors = DB::select("
-            WITH RECURSIVE anc AS (
-                SELECT id, name, parent_id, iso_code, adm_level
-                FROM jurisdictions WHERE id = :start_id
-                UNION ALL
-                SELECT j.id, j.name, j.parent_id, j.iso_code, j.adm_level
-                FROM jurisdictions j
-                JOIN anc ON j.id = anc.parent_id
-                WHERE j.deleted_at IS NULL
-            )
-            SELECT id, name, iso_code, adm_level FROM anc
-        ", ['start_id' => $scopeId]);
-
-        // Reverse so we get root → current scope
-        $ancestors = array_reverse($ancestors);
+        // $ancestors is now computed BEFORE the heavy closure (cheap query,
+        // needed by both the closure's district-name labeling AND the cheap
+        // Inertia render call). Captured via the closure's use() clause above.
 
         // Compute human-readable name from member codes (scope-aware)
         // Root scope: codes only, no number — "SAU", "AND-LIE-MCO" (every combo is unique)
@@ -571,6 +593,38 @@ class LegislatureController extends Controller
         $flags = $this->computeValidationFlags($legislature_id, $leg, $scopeId, $children, $districts, $mapId);
         $stats = $this->computeConstitutionalStats($legislature_id, $scopeId, $districts, $ngQuota, $mapId);
 
+            // ── End of deferred heavy block ───────────────────────────────────────
+            // Package the heavy results into the shared cache. The 5 defer
+            // closures in Inertia::render() pull individual props from this
+            // structure — all share one backend pass.
+            $heavyCache = [
+                'children'  => array_map(fn($c) => [
+                    'id'               => $c->id,
+                    'name'             => $c->name,
+                    'adm_level'        => $c->adm_level,
+                    'population'       => (int) $c->population,
+                    // At non-root scopes, giant children (frac >= giant_threshold) display
+                    // their integer allocation (round of local-quota frac) so that
+                    // composite_sum + giant_integers = scopeSeats exactly. Root scope keeps
+                    // raw fractionals (e.g. India 357.94).
+                    'fractional_seats' => !$isRootScope && (float) $c->fractional_seats >= $giantThreshold
+                        ? (float) round((float) $c->fractional_seats)
+                        : (float) $c->fractional_seats,
+                    'district_id'      => $c->district_id,
+                    'district_seats'   => $c->district_seats !== null ? (int) $c->district_seats : null,
+                    'floor_override'   => (bool) $c->floor_override,
+                    'child_count'          => (int) $c->child_count,
+                    'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
+                    'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
+                ], $children),
+                'districts' => $districts,
+                'flags'     => $flags,
+                'stats'     => $stats,
+                'quota'     => round($ngQuota),
+            ];
+            return $heavyCache;
+        };
+
         $massToolRunning = (bool) Cache::get("legislature.{$legislature_id}.mass_running", false);
 
         // All maps for this legislature — provides data for the map selector + comparison panel.
@@ -644,28 +698,20 @@ class LegislatureController extends Controller
             })(),
             'scope_seats' => $scopeSeats,   // rounded entitlement at this drill-down level
             'ancestors' => array_map(fn($a) => ['id' => $a->id, 'name' => $a->name], $ancestors),
-            'children'  => array_map(fn($c) => [
-                'id'               => $c->id,
-                'name'             => $c->name,
-                'adm_level'        => $c->adm_level,
-                'population'       => (int) $c->population,
-                // At non-root scopes, giant children (frac >= giant_threshold) display their integer
-                // allocation (round of local-quota frac) so that composite_sum + giant_integers
-                // = scopeSeats exactly.  Root scope keeps raw fractionals (e.g. India 357.94).
-                'fractional_seats' => !$isRootScope && (float) $c->fractional_seats >= $giantThreshold
-                    ? (float) round((float) $c->fractional_seats)
-                    : (float) $c->fractional_seats,
-                'district_id'      => $c->district_id,
-                'district_seats'   => $c->district_seats !== null ? (int) $c->district_seats : null,
-                'floor_override'   => (bool) $c->floor_override,
-                'child_count'          => (int) $c->child_count,
-                'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
-                'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
-            ], $children),
-            'districts' => $districts,  // [{id, seats, floor_override, status, color_index, district_number, name, members:[...]}]
-            'quota'           => round($quota),
-            'flags'           => $flags,
-            'stats'           => $stats,
+
+            // ── Deferred heavy props ──────────────────────────────────────────
+            // Initial render skips these and returns the cheap header/scope/maps
+            // data immediately — the page mounts and becomes interactive without
+            // waiting on the 788ms recursive CTE + district assembly + flag/stat
+            // computation. Inertia v2 auto-issues a partial reload for these on
+            // mount; Vue renders skeleton states until they populate. All five
+            // closures share the same memoized $loadHeavy() backend pass.
+            'children'  => Inertia::defer(fn() => $loadHeavy()['children']),
+            'districts' => Inertia::defer(fn() => $loadHeavy()['districts']),
+            'quota'     => Inertia::defer(fn() => $loadHeavy()['quota']),
+            'flags'     => Inertia::defer(fn() => $loadHeavy()['flags']),
+            'stats'     => Inertia::defer(fn() => $loadHeavy()['stats']),
+
             'mass_tool_running' => $massToolRunning,
             'maps'       => $allMaps,
             'active_map' => $activeMapRow ? [

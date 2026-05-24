@@ -1337,9 +1337,14 @@ const props = defineProps({
     scope: Object,        // { id, name, adm_level, population }
     scope_seats: Number,  // rounded entitlement at this drill-down level (e.g. 86 for USA)
     ancestors: Array,     // [{ id, name }, ...] root → scope
-    children: Array,      // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
-    districts: Array,     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[{id,name,population,fractional_seats,child_count}] }]
-    quota: Number,
+    // ── Deferred props (Inertia v2 Inertia::defer) ─────────────────────────
+    // These arrive in a partial-reload AFTER the page mounts. Initial render
+    // returns the cheap header/scope/maps props above; Vue mounts immediately
+    // and shows skeleton states for the heavy data below. Defaults make
+    // templates not crash on the undefined-until-loaded interval.
+    children:  { type: Array, default: () => [] },     // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
+    districts: { type: Array, default: () => [] },     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[...] }]
+    quota:     { type: Number, default: 0 },
     flags: { type: Object, default: () => ({ cap: null, floor_exceptions: [], deep_overages: [], incomplete_scopes: [] }) },
     stats: { type: Object, default: null },
     mass_tool_running: { type: Boolean, default: false },
