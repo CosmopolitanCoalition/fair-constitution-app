@@ -169,7 +169,18 @@ services:
       - node_modules:/var/www/html/node_modules
     ports:
       - "5174:5173"                        # worktree Vite HMR on host 5174 (main uses 5173)
-    command: npm run dev -- --host 0.0.0.0 --port 5173
+    # Dev iteration speed: `npm run build -- --watch` pre-builds bundles to
+    # public/build/ on container start (~30s one-time cost) and incrementally
+    # rebuilds on source-file changes (~1-2s per change). Browser loads static
+    # pre-built files — no on-demand module compilation, no 100+ serial module
+    # requests on cold incognito loads. The previous `npm run dev` mode was
+    # serving modules on demand, which made every fresh container restart
+    # cost 10-30s of compile-as-requested before the page was interactive.
+    #
+    # Trade-off: lose HMR (need a browser reload after a Vue change instead of
+    # automatic hot-replace). For an operator who restarts the container often,
+    # eliminating the per-page-load module compile cost is the bigger win.
+    command: npm run build -- --watch
     depends_on:
       - app
     networks:
