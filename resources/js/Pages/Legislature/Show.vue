@@ -220,35 +220,11 @@
                     <div v-if="massJobRunning"
                          class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-2">
 
-                        <!-- ─── Recolor section ─────────────────────────────────────────
-                             Background coloring pass over EVERY district in this
-                             legislature/map (the count is the total adjacency size,
-                             NOT scope-specific). Auto-dispatched after every successful
-                             mass-reseed so colors stay correct. Always shown when
-                             active, independent of any current operator action. -->
-                        <div v-if="recolorProgress"
-                             class="flex flex-col gap-1 px-2 py-1.5 rounded bg-cyan-950/60 border border-cyan-800/60">
-                            <div class="flex items-start gap-2">
-                                <span class="mt-1 inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
-                                <div class="flex-1 min-w-0">
-                                    <div class="text-[11px] font-semibold text-cyan-200">Recolor (background)</div>
-                                    <div class="text-[10px] text-cyan-300 leading-tight break-words">
-                                        {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
-                                    </div>
-                                    <div class="text-[9px] text-cyan-500 italic mt-0.5">
-                                        Adjacency pass over all {{ recolorProgress.total }} districts in this map —
-                                        unrelated to any scope you're currently autoseeding.
-                                    </div>
-                                </div>
-                                <span v-if="recolorElapsed"
-                                      class="text-[10px] text-cyan-400 shrink-0 tabular-nums">{{ recolorElapsed }} elapsed</span>
-                            </div>
-                        </div>
-
                         <!-- ─── Mass operation section ──────────────────────────────────
-                             The actual sweep/autoseed the operator kicked off. May be
-                             queued behind the recolor; shows scope-level + phase-level
-                             progress + halt control. -->
+                             The actual sweep/autoseed the operator kicked off; shows
+                             scope-level + phase-level progress + halt control.
+                             (Background recolor was retired — colors are now computed
+                             inline from district_number + scope by the server, no job.) -->
                         <div v-if="massProgress"
                              class="flex flex-col gap-1 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
                             <div class="flex items-start gap-2">
@@ -306,9 +282,9 @@
                             </div>
                         </div>
 
-                        <!-- Fallback when neither cache key is populated yet (e.g.,
-                             between dispatch and first poll) -->
-                        <div v-if="!recolorProgress && !massProgress"
+                        <!-- Fallback when mass_progress cache key isn't populated yet
+                             (e.g., between dispatch and first poll) -->
+                        <div v-if="!massProgress"
                              class="flex items-center gap-2 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
                             <span class="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
                             <span class="text-[11px] text-indigo-300 italic">Mass operation in progress — waiting for first progress update…</span>
@@ -652,14 +628,6 @@
                                         ? 'bg-red-700 border-red-500 text-white'
                                         : 'bg-red-900 border-red-800 text-red-300 hover:bg-red-800 hover:text-white'">
                             ✕ Clear
-                        </button>
-                        <button @click="runRecolor"
-                                :disabled="massToolRunning || massJobRunning"
-                                class="px-2 py-1 rounded text-xs border transition-colors"
-                                :class="massToolRunning || massJobRunning
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
-                                    : 'bg-teal-900 border-teal-700 text-teal-300 hover:bg-teal-800 hover:text-white'">
-                            🎨 Recolor
                         </button>
                     </div>
 
@@ -1577,9 +1545,7 @@ const massToolRunning = ref(false)
 // ── Background mass job tracking ───────────────────────────────────────────
 // Set to true if a mass operation is in flight (persists across navigation via cache flag).
 const massJobRunning    = ref(props.mass_tool_running ?? false)
-const recolorProgress   = ref(null)   // { phase, total, started_at } or null
 const massProgress      = ref(null)   // { current_scope, completed, total, phase, phase_label, phase_current, phase_total, scope_started_at, ... }
-const recolorElapsed    = ref('')
 const massScopeElapsed  = ref('')
 const haltRequesting    = ref(false)
 let   massStatusTimer   = null
@@ -1610,14 +1576,6 @@ async function haltMassOperation() {
 }
 
 function updateElapsed() {
-    if (recolorProgress.value?.started_at) {
-        const secs = Math.floor(Date.now() / 1000 - recolorProgress.value.started_at)
-        const m = Math.floor(secs / 60), s = secs % 60
-        recolorElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
-    } else {
-        recolorElapsed.value = ''
-    }
-
     if (massProgress.value?.scope_started_at) {
         const secs = Math.floor(Date.now() / 1000 - massProgress.value.scope_started_at)
         const m = Math.floor(secs / 60), s = secs % 60
@@ -1627,38 +1585,22 @@ function updateElapsed() {
     }
 }
 
-function recolorPhaseLabel(phase, total) {
-    // Rough ETA for the adjacency phase: empirically ~0.3s per district at Earth scope.
-    // `total` is the count of districts in the WHOLE legislature/map being recolored —
-    // never scope-specific. The new banner caller surfaces that distinction explicitly.
-    const etaSecs = phase === 'adjacency' ? Math.round(total * 0.3) : 0
-    const etaStr  = etaSecs >= 10
-        ? ` (est. ${etaSecs >= 60 ? Math.round(etaSecs / 60) + ' min' : etaSecs + 's'})`
-        : ''
-    if (phase === 'adjacency')  return `Computing adjacency graph${etaStr}`
-    if (phase === 'coloring')   return `Running 7-color algorithm`
-    if (phase === 'persisting') return `Saving colors to database`
-    return 'Finishing up'
-}
-
 function startMassStatusPolling() {
-    clearInterval(massStatusTimer)
-    clearInterval(elapsedTimer)
+    // Re-entry guard: if either timer is already running, the caller is asking
+    // for a poll that's already in progress — keep the existing one rather
+    // than tearing it down and starting fresh (a fresh start would re-trigger
+    // an immediate fetch and reset the cadence).
+    if (massStatusTimer || elapsedTimer) return
     elapsedTimer = setInterval(updateElapsed, 1000)
     massStatusTimer = setInterval(async () => {
         try {
             const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
             const data = await res.json()
-            if (data.recolor_progress) {
-                recolorProgress.value = data.recolor_progress
-                updateElapsed()
-            }
             if (data.mass_progress) {
                 massProgress.value = data.mass_progress
             }
             if (!data.running) {
                 massJobRunning.value  = false
-                recolorProgress.value = null
                 massProgress.value    = null
                 clearInterval(massStatusTimer)
                 clearInterval(elapsedTimer)
@@ -3121,9 +3063,12 @@ async function createDistrictFromPending() {
             }
         })
         // Strip stolen jids from any source district and update their recomputed seat counts,
-        // then add the new district. Color indices are refreshed for all districts.
+        // then add the new district. Greedy adjacency coloring may shift any
+        // sibling's color when a new district joins the scope — server returns
+        // the full scope's coloring in `color_indices` so we can sync without
+        // a reload.
         const affectedMap  = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
-        const colorUpdates = data.color_updates ?? {}
+        const colorUpdates = data.color_indices ?? {}
         districtsRef.value = [
             ...districtsRef.value.map(existing => {
                 const hasStolenMember = jids.some(jid => existing.members.some(m => m.id === jid))
@@ -3192,6 +3137,9 @@ async function saveDistrictEdit(districtId) {
 
         const updated = data.district
         const affectedMap2 = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
+        // Member moves change the scope's adjacency graph; server returns
+        // the full scope's greedy 7-coloring so every sibling stays in sync.
+        const colorUpdates2 = data.color_indices ?? {}
         districtsRef.value = districtsRef.value.map(d => {
             if (d.id === districtId) {
                 // Update the edited district — add new members, remove old ones
@@ -3203,7 +3151,7 @@ async function saveDistrictEdit(districtId) {
                 }
                 return { ...d, seats: updated.seats, floor_override: updated.floor_override,
                     fractional_seats: updated.fractional_seats !== undefined ? updated.fractional_seats : d.fractional_seats,
-                    color_index: updated.color_index ?? d.color_index,
+                    color_index: colorUpdates2[d.id] ?? updated.color_index ?? d.color_index,
                     name: updated.name ?? d.name,
                     convex_hull_ratio: updated.convex_hull_ratio !== undefined ? updated.convex_hull_ratio : d.convex_hull_ratio,
                     is_contiguous:     updated.is_contiguous     !== undefined ? updated.is_contiguous     : d.is_contiguous,
@@ -3212,16 +3160,19 @@ async function saveDistrictEdit(districtId) {
             }
             // Strip stolen jids from source districts and update their recomputed seat counts
             const affUpdate2 = affectedMap2[d.id]
+            const newColor   = colorUpdates2[d.id] ?? affUpdate2?.color_index ?? d.color_index
             if (add.length > 0 && d.members.some(m => add.includes(m.id))) {
                 const remainingMembers = d.members.filter(m => !add.includes(m.id))
                 return {
                     ...d,
                     members: remainingMembers,
                     fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
-                    ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override, color_index: affUpdate2.color_index } : {}),
+                    color_index: newColor,
+                    ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override } : {}),
                 }
             }
-            return d
+            // Sibling whose color shifted due to scope-wide re-coloring
+            return colorUpdates2[d.id] !== undefined ? { ...d, color_index: newColor } : d
         })
         childrenRef.value = childrenRef.value.map(c => {
             if (remove.includes(c.id)) return { ...c, district_id: null, district_seats: null }
@@ -3251,14 +3202,16 @@ async function deleteDistrict(districtId) {
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
 
-        const memberIds  = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
-        const numUpdates = data.district_numbers ?? {}
+        const memberIds    = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
+        const numUpdates   = data.district_numbers ?? {}
+        const colorUpdates = data.color_indices ?? {}
 
         districtsRef.value = districtsRef.value
             .filter(d => d.id !== districtId)
             .map(d => ({
                 ...d,
-                ...(numUpdates[d.id] !== undefined ? { district_number: numUpdates[d.id] } : {}),
+                ...(numUpdates[d.id]   !== undefined ? { district_number: numUpdates[d.id]   } : {}),
+                ...(colorUpdates[d.id] !== undefined ? { color_index:    colorUpdates[d.id] } : {}),
             }))
         childrenRef.value  = childrenRef.value.map(c =>
             memberIds.includes(c.id) ? { ...c, district_id: null, district_seats: null } : c
@@ -3299,6 +3252,28 @@ function runMassTool() {
 // overrideScopeId — wizard passes null to use current props.scope.id
 // silent — when true (wizard path) suppresses mass-job polling + navigation,
 //           and does a partial reload instead of a full router.visit()
+// Poll /mass-status until the Horizon job for this legislature is no longer
+// running. Resolves once `data.running === false`. Used by the silent
+// (auto-stepper) path of runMassReseed which can't rely on the interval-driven
+// polling that the manual path uses (the manual polling triggers a full
+// router.visit when it finishes; the wizard wants to remain on-scope and do
+// a partial reload instead). Updates `massProgress` while polling so the
+// banner shows live phase updates.
+async function waitForMassJob({ pollMs = 2500 } = {}) {
+    while (true) {
+        try {
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            const data = await res.json()
+            if (data.mass_progress) massProgress.value = data.mass_progress
+            if (!data.running) {
+                massProgress.value = null
+                return
+            }
+        } catch (_) { /* transient network hiccup — keep polling */ }
+        await new Promise(r => setTimeout(r, pollMs))
+    }
+}
+
 async function runMassReseed(scope, overrideScopeId = null, silent = false) {
     closeMassToolPanel()
     massToolRunning.value = true
@@ -3318,21 +3293,27 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
-        showStatus('success', `Reseed: ${data.districts_created} district(s) created`)
+        // The endpoint dispatches a Horizon job and returns 202 immediately —
+        // `data.districts_created` doesn't exist on the response. We learn the
+        // actual count after the job completes (via mass-status polling).
         if (!silent) {
-            // Stop polling before navigating — prevents double router.visit()
-            clearInterval(massStatusTimer)
-            massStatusTimer = null
-            massJobRunning.value = false
-            router.visit(mapUrl(props.scope.id))
-        } else {
-            // Wizard path: reload only the data props, no full navigation.
-            // Wrapped in a Promise so callers can await completion and read
-            // fresh unassignedAssignable before deciding whether to skip.
-            await new Promise(resolve => {
-                router.reload({ only: ['districts', 'children', 'flags', 'stats'], onFinish: resolve })
-            })
+            // Manual path: startMassStatusPolling()'s interval drives the
+            // full-page router.visit() once data.running flips to false.
+            return
         }
+        // Wizard path: wait for the job to actually finish before reloading.
+        // Without this wait, router.reload() fires before any districts have
+        // been created and the sidebar/map show stale data until the operator
+        // manually refreshes. Partial-reload the data props so we stay on
+        // scope (manual path navigates; we don't want that for the stepper).
+        await waitForMassJob()
+        await new Promise(resolve => {
+            router.reload({
+                only:     ['districts', 'children', 'flags', 'stats'],
+                onFinish: resolve,
+            })
+        })
+        showStatus('success', 'Auto-seed complete')
     } catch (e) {
         console.error('massReseed:', e)
         showStatus('error', 'Network error')
@@ -3368,33 +3349,6 @@ async function runMassDisband(scope) {
     }
 }
 
-async function runRecolor() {
-    if (massToolRunning.value || massJobRunning.value) return
-    massJobRunning.value = true
-    startMassStatusPolling()
-    try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/recolor`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body:    JSON.stringify({ map_id: props.active_map?.id ?? null }),
-        })
-        const data = await resp.json()
-        if (!resp.ok) {
-            clearInterval(massStatusTimer)
-            massStatusTimer = null
-            massJobRunning.value = false
-            showStatus('error', data.error ?? 'Recolor failed')
-            return
-        }
-        // Job queued — polling will detect completion and reload the page
-    } catch (e) {
-        console.error('recolor:', e)
-        clearInterval(massStatusTimer)
-        massStatusTimer = null
-        massJobRunning.value = false
-        showStatus('error', 'Network error')
-    }
-}
 
 // ── XHR-based fetch helper with accurate gzip-aware progress ─────────────────
 // fetch()+ReadableStream reports decompressed byte counts but Content-Length is
@@ -4159,6 +4113,17 @@ onUnmounted(() => {
     window.removeEventListener('keydown', _onSpaceDown)
     window.removeEventListener('keyup',   _onSpaceUp)
     clearAutoStepTimer()   // safety cleanup in case of unexpected unmount mid-countdown
+    // The mass-status + elapsed timers leak across navigation if a job is
+    // running when the operator leaves the page. Without this cleanup, every
+    // 2.5s the dead component still hits /api/legislatures/{id}/mass-status,
+    // burning a PHP-FPM worker per cycle. Multiple historical visits compound.
+    if (massStatusTimer) { clearInterval(massStatusTimer); massStatusTimer = null }
+    if (elapsedTimer)    { clearInterval(elapsedTimer);    elapsedTimer    = null }
+    // statusTimer is the toast auto-dismiss timeout. If the operator triggers
+    // a save → toast → navigates away within ~3.5s, the setTimeout callback
+    // would otherwise fire on a dead component. Vue 3 is forgiving but it's
+    // a latent leak we may as well close.
+    if (statusTimer)     { clearTimeout(statusTimer);      statusTimer     = null }
 })
 
 // Re-initialize map layers when the active map changes (e.g. switching from Test Map to another).

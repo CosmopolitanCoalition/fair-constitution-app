@@ -829,6 +829,14 @@ class SetupController extends Controller
         // re-fires at the end of this new fresh run.
         @unlink($controlDir.'/raster_prewarm_dispatched.json');
 
+        // mapDataProgress caches DataReviewService::summary() under this key
+        // (5 min TTL) so routine /progress polls don't redo the 14-second
+        // aggregate after the ETL finishes. A new run is about to mutate the
+        // jurisdictions table, so the cached summary is stale — drop it now
+        // and let the next ?include=review request rebuild against the new
+        // state.
+        Cache::forget('setup.review.summary');
+
         file_put_contents(
             $controlDir.'/request.json',
             json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
@@ -921,6 +929,13 @@ class SetupController extends Controller
     {
         $tailLines    = max(20, min(500, (int) $request->query('tail', 120)));
         $includeDebug = $request->boolean('include_debug');
+        // The `review` block runs 6+ aggregate queries over the jurisdictions
+        // table (DataReviewService::summary()) and costs 10-15s warm, much
+        // more cold. It's only meaningful in terminal lifecycle states, and
+        // even then a single fetch per page-load is plenty. The Vue page asks
+        // for it once with ?include=review when lifecycle flips to done/failed;
+        // routine 2-second polls (during a running ETL) skip it entirely.
+        $includeReview = $request->query('include') === 'review';
 
         $running    = $this->readEtlControlFile('running.json');
         $done       = $this->readEtlControlFile('done.json');
@@ -1029,12 +1044,20 @@ class SetupController extends Controller
             'pending_control'      => $pending,
             // Data-quality review surfaces after the run terminates so the
             // operator can audit populations + boundaries BEFORE clicking
-            // Continue (which fires apportionment in activateStep1). While
-            // running, review is null — the counts are mid-flight and would
-            // be misleading. Cheap enough (<200 ms) to compute on every poll
-            // post-completion; the frontend renders a card per category.
-            'review'               => in_array($lifecycle, ['done', 'failed'], true)
-                ? app(\App\Services\DataReviewService::class)->summary()
+            // Continue (which fires apportionment in activateStep1).
+            //
+            // OPT-IN: the heavy aggregate (DataReviewService::summary, ~14 s
+            // on world-scale data) only runs when the client passes
+            // ?include=review. Routine 2-second polls skip it — they're just
+            // tracking progress bars, which is cheap. Cached for 5 minutes
+            // because the underlying tables only change when the ETL runs,
+            // and startMapData() forgets the key when a new run kicks off.
+            'review'               => ($includeReview && in_array($lifecycle, ['done', 'failed'], true))
+                ? Cache::remember(
+                    'setup.review.summary',
+                    300,
+                    fn () => app(\App\Services\DataReviewService::class)->summary()
+                )
                 : null,
         ]);
     }

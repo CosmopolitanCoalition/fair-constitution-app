@@ -127,18 +127,41 @@ async function fetchProgress() {
         bars.value           = data.bars || null   // Phase P.1 stacked-bar state
         events.value         = Array.isArray(data.events) ? data.events : []   // P.3
         errorPause.value     = data.error_pause || null
-        review.value         = data.review || null
+        // The `review` block is no longer rendered in Step 2 — the legacy
+        // inline ReviewIssuesSection moved into the Jurisdiction Viewer's
+        // drill-down panels (see the comment above the "4. Review & Accept"
+        // section in the template). We never ask the backend for ?include=review
+        // from this page; the assignment below is kept defensive in case
+        // future code re-enables it.
+        if (data.review !== undefined && data.review !== null) {
+            review.value = data.review
+        }
         appendLogLines(Array.isArray(data.log_tail) ? data.log_tail : [])
         counts.value         = data.jurisdictions_counts || counts.value
         pendingControl.value = data.pending_control || { halt: false, pause: false, resume: false }
+
+        // Stop polling immediately once the run terminates. Without this the
+        // page keeps hammering the progress endpoint every 2s forever — and
+        // each call still costs hundreds of ms to read progress.json + tail
+        // the log + sum jurisdictions_counts. The terminal state is the
+        // steady state — re-polling adds no value.
+        if (lifecycle.value === 'done' || lifecycle.value === 'failed') {
+            stopPolling()
+        }
     } catch (e) {
         // swallow — poll will retry
     }
 }
 
-function startPolling() {
+async function startPolling() {
     stopPolling()
-    fetchProgress()
+    // Wait for the first fetch BEFORE arming the interval. If the response
+    // shows we're already in a terminal state (the steady state for most
+    // post-restart visits), don't arm at all — there's nothing to poll. The
+    // interval will be re-armed by submitRun() if the operator starts a new
+    // run from this page.
+    await fetchProgress()
+    if (lifecycle.value === 'done' || lifecycle.value === 'failed') return
     pollTimer = setInterval(fetchProgress, 2000)
 }
 
@@ -181,7 +204,9 @@ async function submitRun() {
             return
         }
         // Immediately refresh state so UI flips to "running" before the next tick.
-        await fetchProgress()
+        // Also re-arm polling — startPolling() may have exited without arming
+        // the interval if the previous lifecycle was terminal.
+        await startPolling()
     } catch (e) {
         submitError.value = String(e)
     } finally {

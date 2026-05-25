@@ -54,7 +54,18 @@ services:
       # host path via PROTOMAPS_DIR in .env when needed.
       - ${PROTOMAPS_DIR:-D:/fair-constitution-map-files/protomaps_pmtiles}:/var/www/html/public/maps/protomaps:ro
     depends_on:
-      - app
+      app:
+        condition: service_started
+      # nginx must wait for vite to be HEALTHY (assets warm) before accepting
+      # browser connections. Without this, the operator's browser hits nginx
+      # the moment containers come up, loads HTML, and fires module-script
+      # requests at a still-cold Vite. Vite's first compile of Tailwind +
+      # @vite/client takes a few seconds; Chromium aborts the script requests
+      # mid-flight with no console error, leaving the page silently blank
+      # forever. The vite healthcheck below only passes once Vite is actually
+      # serving its hot-path assets, so by the time nginx is up, Vite is warm.
+      vite:
+        condition: service_healthy
     networks:
       - fc_network
 
@@ -169,18 +180,33 @@ services:
       - node_modules:/var/www/html/node_modules
     ports:
       - "5174:5173"                        # worktree Vite HMR on host 5174 (main uses 5173)
-    # Dev iteration speed: `npm run build -- --watch` pre-builds bundles to
-    # public/build/ on container start (~30s one-time cost) and incrementally
-    # rebuilds on source-file changes (~1-2s per change). Browser loads static
-    # pre-built files — no on-demand module compilation, no 100+ serial module
-    # requests on cold incognito loads. The previous `npm run dev` mode was
-    # serving modules on demand, which made every fresh container restart
-    # cost 10-30s of compile-as-requested before the page was interactive.
+    # Dev mode (`vite`) with two cold-start mitigations configured in
+    # vite.config.js:
+    #   • optimizeDeps.include  — pre-bundles big libs (Inertia, Vue, axios,
+    #     leaflet, protomaps-leaflet, vue-leaflet) into single esbuild chunks
+    #     on first run; cached in node_modules/.vite/deps (named volume,
+    #     persistent across restarts). Avoids the cold-load waterfall through
+    #     hundreds of individual node_modules files.
+    #   • server.warmup        — eagerly compiles every page/component/layout
+    #     in parallel as soon as the dev server boots. By the time the operator
+    #     hits the page, the SFCs are already transformed.
     #
-    # Trade-off: lose HMR (need a browser reload after a Vue change instead of
-    # automatic hot-replace). For an operator who restarts the container often,
-    # eliminating the per-page-load module compile cost is the bigger win.
-    command: npm run build -- --watch
+    # Net cold-restart cost: ~5s dev server boot + ~5-10s parallel warmup,
+    # vs the 4-5min that `vite build --watch` incurred. HMR also restored —
+    # for the iterations where ONLY Vue changes (no PHP), no container restart
+    # is needed at all; just save the file and the browser hot-replaces.
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    # Healthcheck gates nginx: it doesn't pass until Vite's cold compile of
+    # the hot-path assets is done. The test fetches app.css internally; the
+    # first call triggers Tailwind's first scan + transform (a few seconds),
+    # subsequent calls are sub-100ms. start_period gives Vite room to boot
+    # AND complete that first compile without retries counting against it.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null --max-time 60 http://localhost:5173/resources/css/app.css && curl -fsS -o /dev/null --max-time 30 http://localhost:5173/@vite/client && curl -fsS -o /dev/null --max-time 30 http://localhost:5173/resources/js/app.js"]
+      interval: 5s
+      timeout: 65s
+      retries: 24
+      start_period: 90s
     depends_on:
       - app
     networks:

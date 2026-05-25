@@ -147,7 +147,6 @@ Route::post('/api/legislatures/{legislature_id}/mass-reseed', [LegislatureContro
 Route::post('/api/legislatures/{legislature_id}/mass-disband', [LegislatureController::class, 'massDisband'])->name('legislatures.mass-disband');
 Route::get('/api/legislatures/{legislature_id}/mass-status', [LegislatureController::class, 'massStatus'])->name('legislatures.mass-status');
 Route::post('/api/legislatures/{legislature_id}/mass-halt', [LegislatureController::class, 'massHalt'])->name('legislatures.mass-halt');
-Route::post('/api/legislatures/{legislature_id}/recolor', [LegislatureController::class, 'recolor'])->name('legislatures.recolor');
 Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureController::class, 'districtsAt'])->name('legislatures.districts-at');
 
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional

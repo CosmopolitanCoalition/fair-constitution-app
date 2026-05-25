@@ -53,6 +53,22 @@ RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 COPY docker/php/php-local.ini $PHP_INI_DIR/conf.d/99-local.ini
 
+# FPM pool tuning. The "zz-" filename loads AFTER the base www.conf so its
+# pm.max_children etc. override the defaults. See the file's header for the
+# reasoning behind the chosen values.
+COPY docker/php/zz-pool.conf /usr/local/etc/php-fpm.d/zz-pool.conf
+
+# OPcache pre-warm entrypoint. Fires one curl to http://nginx/ in the
+# background after the container starts, so Laravel's framework files are
+# already compiled into OPcache by the time the operator's browser arrives.
+# Without this, the first post-restart request takes 5-15 s to parse the
+# framework, which under the polling load this app generates is enough to
+# saturate the worker pool and hang the page. See the script's header for
+# the full reasoning.
+COPY docker/php/entrypoint.sh /usr/local/bin/fc-entrypoint.sh
+RUN chmod +x /usr/local/bin/fc-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/fc-entrypoint.sh"]
+
 # ─── Composer (latest) ────────────────────────────────────────
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

@@ -73,39 +73,24 @@ class MassReseedJob implements ShouldQueue
                 'errors'            => $result['errors'],
             ]);
 
-            // Post-sweep tasks: per-scope cycling colors (cheap, scope-local)
-            // + cache invalidation. The HEAVY adjacency-based recolor is NOT
-            // dispatched here anymore — it fires lazily on the next legislature
-            // view via dispatchLazyRecolorIfStale(). This avoids running a
-            // 5-10 minute global recolor after every scope autoseed when the
-            // operator may not even be viewing the wide scope.
-            foreach ($result['scope_ids'] ?? [] as $sid) {
-                try {
-                    $ctrl->recomputeColorIndices(
-                        $this->legislatureId,
-                        $sid,
-                        $this->scopeId,   // root scope for the recolor walk
-                        $this->mapId,
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning('Color-index recompute failed (non-fatal): '.$e->getMessage());
-                }
-            }
+            // Post-sweep: invalidate the revealed-geojson cache so the next
+            // legislature view re-renders with the new districts.
+            // color_index is now computed inline from district_number + scope
+            // in revealedGeoJson()'s SELECT — no recompute job, no stale flag.
             try {
                 $ctrl->flushRevealedCache($this->legislatureId, $this->mapId, $this->scopeId);
             } catch (\Throwable $e) {
                 Log::warning('flushRevealedCache failed (non-fatal): '.$e->getMessage());
             }
-
-            // Mark the map's adjacency-based 7-coloring as stale. The next
-            // view of any scope in this legislature triggers RecolorDistrictsJob
-            // via dispatchLazyRecolorIfStale().
-            $ctrl->markMapColorsStale($this->legislatureId, $this->mapId);
         } finally {
-            // Always clear the running + halt flags so the UI can re-enable
-            // controls and a fresh run can be dispatched.
+            // Always clear the running + halt + PID flags so the UI can
+            // re-enable controls and a fresh run can be dispatched. The
+            // recorded mass_db_pid is the worker's Postgres backend PID,
+            // captured at sweep start for massHalt() to use; meaningless
+            // once the worker exits, so clear it here.
             Cache::forget("legislature.{$this->legislatureId}.mass_running");
             Cache::forget("legislature.{$this->legislatureId}.mass_halt");
+            Cache::forget("legislature.{$this->legislatureId}.mass_db_pid");
         }
     }
 
@@ -126,5 +111,6 @@ class MassReseedJob implements ShouldQueue
         ], 7200);
         Cache::forget("legislature.{$this->legislatureId}.mass_running");
         Cache::forget("legislature.{$this->legislatureId}.mass_halt");
+        Cache::forget("legislature.{$this->legislatureId}.mass_db_pid");
     }
 }
