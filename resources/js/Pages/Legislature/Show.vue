@@ -1251,6 +1251,21 @@
                             title="Toggle per-district quality stats (CHR · contiguity)">
                         Stats
                     </button>
+                    <button @click="toggleRaster"
+                            class="px-2 py-1 rounded text-xs border transition-colors"
+                            :class="showRaster
+                                ? 'bg-amber-700 border-amber-500 text-white'
+                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            title="Toggle WorldPop population heatmap underlay">
+                        Raster
+                    </button>
+                </div>
+
+                <!-- Raster loading banner — shown while tile fetches are in flight. -->
+                <div v-if="rasterLoading"
+                     class="absolute top-3 left-3 z-[1001] px-2 py-1 rounded text-[11px]
+                            bg-amber-900/80 border border-amber-700 text-amber-100 pointer-events-none">
+                    Loading raster…
                 </div>
 
                 <!-- Edit mode hint overlay -->
@@ -1624,16 +1639,22 @@ const MASS_SCOPES = [
 // Label toggles — persisted in localStorage so they survive Inertia scope navigations
 // (router.visit() re-mounts the component; ref(false) would reset on every drill-down).
 const LS = {
-    seats: 'leg_label_seats',
-    pop:   'leg_label_pop',
-    names: 'leg_label_names',
-    jurs:  'leg_label_jurs',
-    stats: 'leg_label_stats',
+    seats:  'leg_label_seats',
+    pop:    'leg_label_pop',
+    names:  'leg_label_names',
+    jurs:   'leg_label_jurs',
+    stats:  'leg_label_stats',
+    raster: 'leg_overlay_raster',   // WorldPop heatmap visible? Off by default — opt-in.
 }
 const showSeatsLabels        = ref(localStorage.getItem(LS.seats) === '1')
 const showMembersLabels      = ref(localStorage.getItem(LS.pop)   === '1')
 const showNameLabels         = ref(localStorage.getItem(LS.names) === '1')
 const showStatsLabels        = ref(localStorage.getItem(LS.stats) === '1')
+// WorldPop raster overlay — mirrors the Jurisdictions/Show.vue pattern.
+// Uses a separate localStorage key from the jurisdiction page so the two
+// views can be toggled independently.
+const showRaster             = ref(localStorage.getItem(LS.raster) === '1')
+const rasterLoading          = ref(false)   // shown in the small banner while tiles fetch
 
 // Single combined district label group — one badge per district, rebuilt on every toggle change.
 // Pre-computed label data cached here so rebuilds are fast (no GeoJSON re-iteration).
@@ -1873,6 +1894,100 @@ function refreshJursLabels() {
 // Reference to the Leaflet map instance (set in onMounted)
 let _map = null
 let _reinitRevision = 0   // incremented on every reinitMapLayers() call; guards against stale fetches
+
+// ── Antimeridian wrap helpers ──────────────────────────────────────────────
+// Leaflet wraps TileLayers automatically across ±180° longitude, but vector
+// GeoJSON layers render once at their native coordinates. For Pacific-centred
+// or Americas-centred viewing, this leaves empty patches where Russia / NZ /
+// Fiji should appear on the wraparound. We address that by cloning each
+// polygon layer at -360° and +360° longitude as non-interactive companions.
+// Three copies (centre + two wraps) covers any standard-screen viewport
+// (~1.5× world width max). Mirrors the pattern in Jurisdictions/Show.vue.
+function shiftCoords(coords, delta) {
+    if (typeof coords[0] === 'number') return [coords[0] + delta, coords[1]]
+    return coords.map(c => shiftCoords(c, delta))
+}
+function shiftedGeojson(geojson, delta) {
+    if (!geojson || !geojson.features) return null
+    return {
+        type:     'FeatureCollection',
+        features: geojson.features.map(f => ({
+            ...f,
+            geometry: f.geometry ? {
+                ...f.geometry,
+                coordinates: shiftCoords(f.geometry.coordinates, delta),
+            } : null,
+        })),
+    }
+}
+function addAntimeridianWraps(geojson, styleFn) {
+    // Wrap clones are non-interactive on this page: the polygon click /
+    // hover handlers register a single layer per jurisdiction in
+    // `layerByJid`, and the rubber-band drag-select math expects one
+    // polygon-per-jurisdiction. Operators still see the world tile out
+    // continuously when scrolling east-west; selections happen on the
+    // central copy. (Jurisdictions/Show.vue makes its clones interactive
+    // because it has a slug-keyed registry of multiple layers per feature;
+    // adopting that here would require a bigger refactor.)
+    if (!_map) return
+    for (const dx of [-360, 360]) {
+        const shifted = shiftedGeojson(geojson, dx)
+        if (shifted && shifted.features.length > 0) {
+            L.geoJSON(shifted, {
+                style:       styleFn,
+                interactive: false,
+                keyboard:    false,
+            }).addTo(_map)
+        }
+    }
+}
+
+// WorldPop raster TileLayer — created lazily on first toggle-on so we don't
+// pay the network cost when the operator never enables the overlay. Pattern
+// mirrors Jurisdictions/Show.vue's applyRasterOverlay().
+let rasterLayer = null
+
+function applyRasterOverlay() {
+    if (!_map) return
+    if (showRaster.value) {
+        if (!rasterLayer) {
+            rasterLayer = L.tileLayer('/api/rasters/{z}/{x}/{y}.png', {
+                minZoom: 0,
+                maxZoom: 12,
+                opacity: 0.7,
+                tms: false,
+                attribution: 'Population &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>',
+                // Same flicker-prevention flags as the Jurisdictions page:
+                // don't keep stretched parent-zoom tiles while new tiles
+                // load — a semi-transparent overlay stacks visually when
+                // old + new coexist mid-zoom.
+                keepBuffer:        0,
+                updateWhenZooming: false,
+                updateWhenIdle:    true,
+            })
+            rasterLayer.on('loading', () => { rasterLoading.value = true })
+            rasterLayer.on('load',    () => { rasterLoading.value = false })
+        }
+        if (!_map.hasLayer(rasterLayer)) {
+            rasterLayer.addTo(_map)
+            // Default tilePane (z=200) sits above basemapPane (z=150) and
+            // below overlayPane (z=400). The district polygons stay on top.
+        }
+    } else if (rasterLayer && _map.hasLayer(rasterLayer)) {
+        _map.removeLayer(rasterLayer)
+        rasterLoading.value = false
+    }
+}
+
+// Persist toggle to localStorage AND apply the overlay change to the map.
+watch(showRaster, v => {
+    localStorage.setItem(LS.raster, v ? '1' : '0')
+    applyRasterOverlay()
+})
+
+function toggleRaster() {
+    showRaster.value = !showRaster.value
+}
 
 // Rubber-band drag state — module-level so cancelEdit() can reset it
 let _dragStart    = null   // container point where the drag began; null = no drag in progress
@@ -2659,21 +2774,25 @@ async function confirmDeleteMap(mapId) {
 }
 
 // ── Map layer styling ─────────────────────────────────────────────────────────
-const STYLE_UNASSIGNED  = { fillColor: '#94a3b8', fillOpacity: 0.55, color: '#475569', weight: 1, opacity: 1 }
-const STYLE_GIANT       = { fillColor: '#7f1d1d', fillOpacity: 0.45, color: '#ef4444', weight: 2, opacity: 1 }
-const STYLE_YELLOW      = { fillColor: '#fbbf24', fillOpacity: 0.70, color: '#78350f', weight: 2, opacity: 1 }
-const STYLE_RED         = { fillColor: '#f87171', fillOpacity: 0.65, color: '#7f1d1d', weight: 2, opacity: 1 }
-const STYLE_GREEN       = { fillColor: '#4ade80', fillOpacity: 0.60, color: '#14532d', weight: 2, opacity: 1 }
-const STYLE_HIGHLIGHT   = (fillColor) => ({ fillColor, fillOpacity: 0.65, color: '#fbbf24', weight: 3, opacity: 1 })
+// All district fills are ~67% transparent (fillOpacity 0.33) so the Protomaps
+// basemap and the optional WorldPop raster show through underneath. Border
+// strokes stay at opacity 1.0 to keep boundaries crisp. Hover and selection
+// states bump fillOpacity for visual feedback without obscuring the basemap.
+const STYLE_UNASSIGNED  = { fillColor: '#94a3b8', fillOpacity: 0.33, color: '#475569', weight: 1, opacity: 1 }
+const STYLE_GIANT       = { fillColor: '#7f1d1d', fillOpacity: 0.33, color: '#ef4444', weight: 2, opacity: 1 }
+const STYLE_YELLOW      = { fillColor: '#fbbf24', fillOpacity: 0.33, color: '#78350f', weight: 2, opacity: 1 }
+const STYLE_RED         = { fillColor: '#f87171', fillOpacity: 0.33, color: '#7f1d1d', weight: 2, opacity: 1 }
+const STYLE_GREEN       = { fillColor: '#4ade80', fillOpacity: 0.33, color: '#14532d', weight: 2, opacity: 1 }
+const STYLE_HIGHLIGHT   = (fillColor) => ({ fillColor, fillOpacity: 0.55, color: '#fbbf24', weight: 3, opacity: 1 })
 const STYLE_NORMAL      = (colorIndex) => ({
     fillColor:   districtFillColor(colorIndex),
-    fillOpacity: 0.65,
+    fillOpacity: 0.33,
     color:       '#0f172a',
     weight:      1,
     opacity:     1,
 })
 // Stealable polygon in edit mode — green-tinted (other district's member, can be reassigned)
-const STYLE_STEAL = { fillColor: '#86efac', fillOpacity: 0.30, color: '#22c55e', weight: 1.5, opacity: 0.8 }
+const STYLE_STEAL = { fillColor: '#86efac', fillOpacity: 0.33, color: '#22c55e', weight: 1.5, opacity: 0.8 }
 
 function getLayerStyle(jid) {
     const child = childrenRef.value.find(c => c.id === jid)
@@ -2737,7 +2856,7 @@ function highlightJids(jids) {
         const style = getLayerStyle(jid)
         layer.setStyle({
             ...style,
-            fillOpacity: Math.min((style.fillOpacity ?? 0.65) + 0.2, 0.92),
+            fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.2, 0.92),
             weight: Math.max((style.weight ?? 1) + 1, 2),
             color: '#fbbf24',
         })
@@ -3000,6 +3119,22 @@ async function runWizardAutoActions() {
             return true   // navigated away — caller should NOT start auto-step timer
         }
     }
+
+    // All-done halt: if we're sitting on the final wizard step (root scope,
+    // last element of wizardSteps) and the backend's incomplete_scopes flag
+    // is empty with no hard overages, the whole map is fully districted —
+    // signal "navigated away" so the caller doesn't restart the auto-step
+    // timer. Without this guard, wizardStepForward's modulo wrap would cycle
+    // the operator endlessly back to the first giant after a clean sweep.
+    const isFinalStep    = wizardCurrentIndex.value === wizardSteps.value.length - 1
+    const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
+    const noCap          = !props.flags?.cap
+    const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
+    if (isFinalStep && noIncomplete && noCap && noDeepOverages) {
+        showStatus('success', 'Map complete — every scope districted.')
+        return true   // skip startAutoStepTimer() in the caller
+    }
+
     return false  // staying at this scope — caller may start auto-step timer
 }
 
@@ -3386,8 +3521,16 @@ async function reinitMapLayers() {
     // letting us detect that our in-flight fetches have been superseded and should be discarded.
     const myRevision = ++_reinitRevision
 
-    // 1. Remove all Leaflet layers (no tile layer, so remove everything)
-    _map.eachLayer(layer => _map.removeLayer(layer))
+    // 1. Remove all per-scope Leaflet layers, but PRESERVE the basemap and
+    //    the WorldPop raster TileLayer — those are mounted once in onMounted
+    //    and intentionally outlive scope navigation. Without these guards
+    //    the basemap blinks out on every drill-down and the raster toggle
+    //    has to be re-clicked.
+    _map.eachLayer(layer => {
+        if (layer === rasterLayer) return                            // raster TileLayer
+        if (layer.options?.pane === 'basemapPane') return            // Protomaps basemap
+        _map.removeLayer(layer)
+    })
 
     // 2. Clear layer registry
     for (const k of Object.keys(layerByJid)) delete layerByJid[k]
@@ -3546,7 +3689,7 @@ async function reinitMapLayers() {
                     const style = getLayerStyle(jid)
                     layer.setStyle({
                         ...style,
-                        fillOpacity: Math.min((style.fillOpacity ?? 0.65) + 0.15, 0.9),
+                        fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.15, 0.9),
                         weight: Math.max((style.weight ?? 1) + 1, 2),
                     })
                     layer.bringToFront()
@@ -3605,6 +3748,10 @@ async function reinitMapLayers() {
                 })
             },
         }).addTo(_map)
+
+        // ±360° wrap clones so the at-scope polygons appear continuously
+        // when the operator scrolls east/west past the antimeridian.
+        addAntimeridianWraps(gj, feat => getLayerStyle(feat.id ?? feat.properties?.id))
 
         if (gj.features.length > 0) {
             _map.fitBounds(childLayer.getBounds(), { padding: [30, 30] })
@@ -3742,7 +3889,11 @@ async function reinitMapLayers() {
             const revealedLayer = L.geoJSON({ type: 'FeatureCollection', features: revColoredFeats }, {
                 style: feat => {
                     const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
-                    return { fillColor: color, fillOpacity: 0.65, color, weight: 1, opacity: 1 }
+                    // fillOpacity 0.33 = ~67% transparent so the Protomaps basemap
+                    // and the optional WorldPop raster show through underneath.
+                    // Border opacity stays 1.0 so districts remain crisply
+                    // outlined. Hover bumps fill to 0.55 for visual feedback.
+                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
                 },
                 onEachFeature(feat, layer) {
                     // Register this layer under its district so siblings can be found later
@@ -3760,7 +3911,7 @@ async function reinitMapLayers() {
                         const siblings = districtLayerMap.get(distId) ?? []
                         siblings.forEach(({ layer: l, feat: f }) => {
                             const c = DISTRICT_COLORS[f.properties.color_index ?? 0]
-                            l.setStyle({ fillColor: c, fillOpacity: 0.85, color: c, weight: 2, opacity: 1 })
+                            l.setStyle({ fillColor: c, fillOpacity: 0.55, color: c, weight: 2, opacity: 1 })
                         })
                     })
                     layer.on('mousemove', e => sharedTooltip.setLatLng(e.latlng))
@@ -3770,7 +3921,7 @@ async function reinitMapLayers() {
                         const siblings = districtLayerMap.get(distId) ?? []
                         siblings.forEach(({ layer: l, feat: f }) => {
                             const c = DISTRICT_COLORS[f.properties.color_index ?? 0]
-                            l.setStyle({ fillColor: c, fillOpacity: 0.65, color: c, weight: 1, opacity: 1 })
+                            l.setStyle({ fillColor: c, fillOpacity: 0.33, color: c, weight: 1, opacity: 1 })
                         })
                     })
                     // Click drills into the parent giant jurisdiction (skip in edit/new-district mode)
@@ -3780,6 +3931,17 @@ async function reinitMapLayers() {
                     })
                 },
             }).addTo(_map)
+
+            // ±360° wrap clones for the revealed sub-district fills so
+            // drilled-in views (e.g. Russia, Alaska) tile continuously
+            // across the antimeridian.
+            addAntimeridianWraps(
+                { type: 'FeatureCollection', features: revColoredFeats },
+                feat => {
+                    const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
+                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
+                },
+            )
 
             // Build per-district label data from revealed sub-layers:
             // group bounds, count members, keep one representative feature per district.
@@ -3857,22 +4019,29 @@ async function reinitMapLayers() {
         // sub-district fill. Preserves the outer border of every broken-down giant jurisdiction
         // at any depth (depth-1 country outlines at Earth scope, depth-2 province outlines, etc.).
         if (revOutlineFeats.length > 0) {
+            const outlineStyle = feat => {
+                const depth = feat.properties.depth ?? 1
+                if (depth >= 3) {
+                    // Great-grandchildren: fine dots, barely-there guide line
+                    return { fill: false, color: '#0f172a', weight: 0.5, opacity: 0.55, dashArray: '2 5' }
+                }
+                if (depth === 2) {
+                    // Grandchildren (e.g. California within USA at Earth scope): dashed, thinner
+                    return { fill: false, color: '#0f172a', weight: 0.75, opacity: 0.7, dashArray: '5 5' }
+                }
+                // depth 1: direct children of scope — solid weight 1, matches STYLE_NORMAL
+                return { fill: false, color: '#0f172a', weight: 1, opacity: 1 }
+            }
             L.geoJSON({ type: 'FeatureCollection', features: revOutlineFeats }, {
-                style: feat => {
-                    const depth = feat.properties.depth ?? 1
-                    if (depth >= 3) {
-                        // Great-grandchildren: fine dots, barely-there guide line
-                        return { fill: false, color: '#0f172a', weight: 0.5, opacity: 0.55, dashArray: '2 5' }
-                    }
-                    if (depth === 2) {
-                        // Grandchildren (e.g. California within USA at Earth scope): dashed, thinner
-                        return { fill: false, color: '#0f172a', weight: 0.75, opacity: 0.7, dashArray: '5 5' }
-                    }
-                    // depth 1: direct children of scope — solid weight 1, matches STYLE_NORMAL
-                    return { fill: false, color: '#0f172a', weight: 1, opacity: 1 }
-                },
+                style: outlineStyle,
                 interactive: false,
             }).addTo(_map)
+
+            // ±360° wrap clones for the outline strokes.
+            addAntimeridianWraps(
+                { type: 'FeatureCollection', features: revOutlineFeats },
+                outlineStyle,
+            )
         }
 
         // Apply the user's current toggle state to the freshly-built label groups.
@@ -3894,10 +4063,137 @@ onMounted(async () => {
     // If a mass job was already running when the page loaded, start polling immediately
     if (massJobRunning.value) startMassStatusPolling()
 
-    // No tile layer — runs fully offline. Background colour set via CSS (#000000 ocean/space).
     // boxZoom is Leaflet's built-in shift+drag-to-zoom; we disable it while our own
     // drag-select mode is active so Shift+drag can be used for "include assigned" instead.
-    _map = L.map('legislature-map', { zoomControl: true })
+    //
+    // Map options mirror Jurisdictions/Show.vue for consistent zoom + scroll behaviour:
+    //   - worldCopyJump=true: panning across the antimeridian snaps the view
+    //     back to the equivalent point on the original world copy. Combined
+    //     with the ±360° polygon clones added in reinitMapLayers(), this
+    //     gives infinite east-west scroll with no empty gaps.
+    //   - dynamicMinZoom: the floor zoom is computed from container height
+    //     so the world fills the viewport vertically. Below that, Leaflet
+    //     would show empty grey above/below the world — the longitudinal
+    //     wrap can't fix it. 256×2^z = container height → z = log2(h/256).
+    //   - maxBounds: lock latitude to Mercator's [-85.05, 85.05] range
+    //     (the projection diverges at the poles); leave longitude wide
+    //     (±540° = 1.5 world widths each direction) so worldCopyJump's
+    //     antimeridian wrap continues to work.
+    //   - maxBoundsViscosity=1.0: hard limit, no rubber-band overshoot.
+    const mapEl = document.getElementById('legislature-map')
+    const mapH  = (mapEl?.clientHeight) || 700
+    const dynamicMinZoom = Math.max(0, Math.ceil(Math.log2(mapH / 256)))
+    _map = L.map('legislature-map', {
+        zoomControl:        true,
+        worldCopyJump:      true,
+        minZoom:            dynamicMinZoom,
+        maxBounds:          [[-85.05, -540], [85.05, 540]],
+        maxBoundsViscosity: 1.0,
+    })
+
+    // Custom pane for the Protomaps basemap. zIndex=150 puts it below the
+    // default tilePane (200, used by the WorldPop raster) and well below
+    // overlayPane (400, used by district polygons). Order from bottom to
+    // top: basemap → raster → districts. Districts stay clickable on top.
+    _map.createPane('basemapPane')
+    _map.getPane('basemapPane').style.zIndex = 150
+
+    // Boundary-data attribution + drop Leaflet's default flag emoji. Mirrors
+    // the Jurisdictions/Show.vue attribution wiring so both views credit
+    // geoBoundaries explicitly (the polygon GeoJSON layer can't attribute
+    // itself the way TileLayer + Protomaps can).
+    _map.attributionControl.setPrefix(
+        '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'
+    )
+    _map.attributionControl.addAttribution(
+        'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>'
+    )
+
+    // Protomaps PMTiles basemap. Same fallback chain as Jurisdictions/Show.vue:
+    //   1. Dated bundle resolved by /api/maps/latest-pmtiles.
+    //   2. Legacy fixed-filename probe at /maps/world.pmtiles.
+    //   3. VITE_PROTOMAPS_URL env (e.g. demo bucket).
+    //   4. Nothing configured → polygon-only black background.
+    // Wrapped in async IIFE so it doesn't block the rest of onMounted; basemap
+    // tiles arrive whenever they arrive — the district layer is the priority.
+    ;(async () => {
+        try {
+            const protomaps = await import('protomaps-leaflet')
+            const basemaps  = await import('@protomaps/basemaps')
+            let pmtilesUrl = null
+
+            try {
+                const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' })
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data?.url) pmtilesUrl = data.url
+                }
+            } catch (e) { /* fall through to legacy probe */ }
+
+            if (!pmtilesUrl) {
+                try {
+                    const head = await fetch('/maps/world.pmtiles', { method: 'HEAD' })
+                    if (head.ok) pmtilesUrl = '/maps/world.pmtiles'
+                } catch (e) { /* ignore */ }
+            }
+
+            if (!pmtilesUrl) {
+                const remote = import.meta.env?.VITE_PROTOMAPS_URL || ''
+                if (remote) pmtilesUrl = remote
+            }
+
+            if (!pmtilesUrl) {
+                console.info('Protomaps PMTiles not configured for Legislature view — polygon-only basemap.')
+                return
+            }
+
+            // Bilingual labels: local `name` plus user's browser-language
+            // translation on a second line when it differs from local.
+            const browserLang = (navigator.language || 'en').split('-')[0].toLowerCase()
+            const flavor      = basemaps.namedFlavor('light')
+            const baseLabelRules = protomaps.labelRules(flavor, '')
+
+            const labelRules = baseLabelRules.map(rule => {
+                if (rule.dataLayer !== 'places') return rule
+                const orig = rule.symbolizer
+                if (!(orig instanceof protomaps.CenteredTextSymbolizer)) return rule
+                const sharedOpts = rule.__textOpts || { fill: '#333', stroke: '#fff', width: 1 }
+                const primary = new protomaps.CenteredTextSymbolizer({
+                    ...sharedOpts,
+                    labelProps: ['name'],
+                    lineHeight: 1.5,
+                    font:       '500 12px sans-serif',
+                })
+                const secondary = new protomaps.CenteredTextSymbolizer({
+                    ...sharedOpts,
+                    labelProps: (z, f) => {
+                        const local = f.props.name
+                        const trans = f.props['name:' + browserLang]
+                        if (!trans || trans === local) return ['__skip__']
+                        return ['name:' + browserLang]
+                    },
+                    font: '400 10px sans-serif',
+                })
+                return { ...rule, symbolizer: new protomaps.FlexSymbolizer([primary, secondary]) }
+            })
+
+            const layer = protomaps.leafletLayer({
+                url:        pmtilesUrl,
+                paintRules: protomaps.paintRules(flavor),
+                labelRules: labelRules,
+                lang:       browserLang,
+                pane:       'basemapPane',
+            })
+            layer.addTo(_map)
+            console.info('Protomaps basemap loaded from', pmtilesUrl, '(lang:', browserLang + ')')
+        } catch (e) {
+            console.warn('Legislature basemap init failed:', e)
+        }
+    })()
+
+    // Restore raster overlay if the operator had it on from a prior session.
+    // applyRasterOverlay() is a no-op until _map exists, which it now does.
+    if (showRaster.value) applyRasterOverlay()
 
     // Clicking ocean/background in new-district mode with nothing selected = implicit cancel
     _map.on('click', function () {

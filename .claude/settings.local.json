@@ -222,7 +222,8 @@
       "Bash(echo '=== PHP-FPM worker pool config + actual count ===' && docker compose exec -T app sh -c \"cat /usr/local/etc/php-fpm.d/www.conf 2>/dev/null | grep -E '^\\(pm|pm\\\\\\\\.|max_\\)' | head -20\"; echo ''; echo '=== Currently in-flight PHP requests \\(showing where FPM is busy\\) ===' && docker compose exec -T app sh -c \"for pid in \\\\$\\(ls /proc 2>/dev/null | grep -E '^[0-9]+\\\\$'\\); do c=\\\\$\\(cat /proc/\\\\$pid/comm 2>/dev/null\\); if [ \\\\\"\\\\$c\\\\\" = 'php-fpm' ]; then st=\\\\$\\(awk '{print \\\\$3}' /proc/\\\\$pid/stat 2>/dev/null\\); age=\\\\$\\(\\($\\(date +%s\\) - $\\(stat -c %Y /proc/\\\\$pid 2>/dev/null\\)\\)\\); echo \\\\\"PID=\\\\$pid state=\\\\$st age=\\\\${age}s\\\\\"; fi; done\" 2>&1; echo ''; echo '=== Currently running PG queries \\(for context\\) ===' && docker compose exec -T postgres psql -U fc_user -d fair_constitution -c \"SELECT pid, state, NOW\\(\\)-query_start AS dur, LEFT\\(query, 80\\) FROM pg_stat_activity WHERE datname='fair_constitution' AND pid <> pg_backend_pid\\(\\) AND state != 'idle' ORDER BY query_start LIMIT 10;\" 2>&1)",
       "Bash(grep -n \"^watch\\\\|^async function\\\\|function.*{$\" \"E:\\\\fair-constitution-app\\\\.claude\\\\worktrees\\\\practical-payne-17d537\\\\resources\\\\js\\\\Pages\\\\Legislature\\\\Show.vue\")",
       "Bash(grep -C 3 \"use \\(\\\\$\" \"E:\\\\fair-constitution-app\\\\app\\\\Http\\\\Controllers\\\\LegislatureController.php\")",
-      "Bash(xargs grep -l \"class MassReseedJob\")"
+      "Bash(xargs grep -l \"class MassReseedJob\")",
+      "Bash(xargs grep -l \"wizard\" -i)"
     ]
   }
 }
