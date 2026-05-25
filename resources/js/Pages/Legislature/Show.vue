@@ -1,5 +1,23 @@
 <template>
     <AppLayout>
+        <div
+            v-if="setup_mode"
+            class="shrink-0 bg-blue-900/40 border-b border-blue-700 px-4 py-2 flex items-center justify-between gap-3 text-sm"
+        >
+            <div class="text-blue-100">
+                <span class="font-semibold">Setup · Step 3 of 5 ·</span>
+                {{ active_map && active_map.status === 'active'
+                    ? 'District map activated — you can return to the wizard to continue.'
+                    : 'Build or auto-seed districts for this legislature, then activate a map to continue.' }}
+            </div>
+            <button
+                type="button"
+                @click="returnToSetup"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md font-semibold transition-colors shrink-0"
+            >
+                {{ active_map && active_map.status === 'active' ? '← Back to Setup' : '← Return to Setup' }}
+            </button>
+        </div>
         <div class="flex flex-1 min-h-0 overflow-hidden">
 
             <!-- ══ Left panel ══════════════════════════════════════════════ -->
@@ -200,31 +218,76 @@
 
                     <!-- Persistent mass-job progress banner (survives page navigation) -->
                     <div v-if="massJobRunning"
-                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-block w-3 h-3 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
-                            <span class="text-xs text-indigo-300 font-medium truncate">
-                                <template v-if="recolorProgress">
-                                    {{ recolorPhaseLabel(recolorProgress.phase, recolorProgress.total) }}
-                                </template>
-                                <template v-else-if="massProgress">
-                                    {{ massProgress.current_scope }}
-                                </template>
-                                <template v-else>Mass operation in progress…</template>
-                            </span>
-                            <span v-if="recolorProgress && recolorElapsed"
-                                  class="text-[10px] text-indigo-400 ml-auto shrink-0">{{ recolorElapsed }} elapsed</span>
-                            <span v-else-if="massProgress"
-                                  class="text-[10px] text-indigo-400 ml-auto shrink-0 tabular-nums">
-                                {{ massProgress.completed + 1 }}/{{ massProgress.total }}
-                            </span>
-                            <span v-else class="text-[10px] text-indigo-500 ml-auto">Controls disabled</span>
+                         class="shrink-0 px-3 py-2 bg-indigo-950 border-b border-indigo-800 flex flex-col gap-2">
+
+                        <!-- ─── Mass operation section ──────────────────────────────────
+                             The actual sweep/autoseed the operator kicked off; shows
+                             scope-level + phase-level progress + halt control.
+                             (Background recolor was retired — colors are now computed
+                             inline from district_number + scope by the server, no job.) -->
+                        <div v-if="massProgress"
+                             class="flex flex-col gap-1 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
+                            <div class="flex items-start gap-2">
+                                <span class="mt-1 inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[11px] font-semibold text-indigo-200">
+                                        {{ massProgress.current_scope ? `Autoseed: ${massProgress.current_scope}` : 'Autoseed (queued)' }}
+                                    </div>
+                                    <div v-if="massProgress.phase_label"
+                                         class="text-[10px] text-indigo-300 leading-tight break-words">
+                                        {{ massProgress.phase_label }}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 gap-0.5">
+                                    <span v-if="massProgress.total > 0"
+                                          class="text-[10px] text-indigo-400 tabular-nums">
+                                        scope {{ Math.min(massProgress.completed + 1, massProgress.total) }}/{{ massProgress.total }}
+                                    </span>
+                                    <span v-if="massScopeElapsed"
+                                          class="text-[10px] text-indigo-400 tabular-nums">{{ massScopeElapsed }} on scope</span>
+                                </div>
+                            </div>
+                            <!-- Scope-level progress bar (only meaningful for multi-scope sweeps) -->
+                            <div v-if="massProgress.total > 1"
+                                 class="h-1 rounded-full bg-indigo-950 overflow-hidden">
+                                <div class="h-full bg-indigo-400 transition-all duration-300"
+                                     :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
+                            </div>
+                            <!-- Sub-phase progress bar (e.g., district N of M within a scope) -->
+                            <div v-if="massProgress.phase_total > 0 && massProgress.phase_current > 0"
+                                 class="h-0.5 rounded-full bg-indigo-950/80 overflow-hidden">
+                                <div class="h-full bg-indigo-300 transition-all duration-300"
+                                     :style="{ width: ((massProgress.phase_current / massProgress.phase_total) * 100) + '%' }"></div>
+                            </div>
+                            <!-- Halt control. Hide once already halting/halted. -->
+                            <div v-if="massProgress.phase !== 'halting' && massProgress.phase !== 'halted'"
+                                 class="flex items-center gap-2 mt-0.5">
+                                <button type="button"
+                                        @click="haltMassOperation"
+                                        :disabled="haltRequesting"
+                                        class="px-2 py-0.5 rounded text-[10px] border bg-red-900/60 border-red-700 text-red-200
+                                               hover:bg-red-800 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed
+                                               transition-colors">
+                                    {{ haltRequesting ? 'Halting…' : 'Halt autoseed' }}
+                                </button>
+                                <span class="text-[10px] text-indigo-500 italic">stops after current scope commits</span>
+                            </div>
+                            <div v-if="massProgress.phase === 'halting'"
+                                 class="text-[10px] text-amber-300 italic">
+                                Halt requested — finishing current scope, then stopping…
+                            </div>
+                            <div v-if="massProgress.phase === 'halted'"
+                                 class="text-[10px] text-amber-400 italic">
+                                Halted by operator. Already-committed scopes preserved.
+                            </div>
                         </div>
-                        <!-- Scope progress bar -->
-                        <div v-if="massProgress && massProgress.total > 1"
-                             class="h-1 rounded-full bg-indigo-900 overflow-hidden">
-                            <div class="h-full bg-indigo-400 transition-all duration-300"
-                                 :style="{ width: ((massProgress.completed / massProgress.total) * 100) + '%' }"></div>
+
+                        <!-- Fallback when mass_progress cache key isn't populated yet
+                             (e.g., between dispatch and first poll) -->
+                        <div v-if="!massProgress"
+                             class="flex items-center gap-2 px-2 py-1.5 rounded bg-indigo-900/60 border border-indigo-700/60">
+                            <span class="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
+                            <span class="text-[11px] text-indigo-300 italic">Mass operation in progress — waiting for first progress update…</span>
                         </div>
                     </div>
 
@@ -281,7 +344,7 @@
                                     <div v-if="(props.flags.floor_exceptions ?? []).length > 0"
                                          class="flex items-start gap-2 text-amber-400">
                                         <span class="shrink-0">ℹ</span>
-                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; 4.5, rounds below minimum without override</span>
+                                        <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; {{ FLOOR_OVERRIDE }}, rounds below minimum without override</span>
                                     </div>
                                 </div>
                             </div>
@@ -566,14 +629,6 @@
                                         : 'bg-red-900 border-red-800 text-red-300 hover:bg-red-800 hover:text-white'">
                             ✕ Clear
                         </button>
-                        <button @click="runRecolor"
-                                :disabled="massToolRunning || massJobRunning"
-                                class="px-2 py-1 rounded text-xs border transition-colors"
-                                :class="massToolRunning || massJobRunning
-                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
-                                    : 'bg-teal-900 border-teal-700 text-teal-300 hover:bg-teal-800 hover:text-white'">
-                            🎨 Recolor
-                        </button>
                     </div>
 
                     <!-- ── Wizard Stepper control rows (always visible) ───────────────
@@ -740,8 +795,8 @@
                                 <span class="shrink-0 w-2.5 h-2.5 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-xs text-gray-100 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="text-xs font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-xs text-gray-400 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -867,7 +922,7 @@
                                     <span class="text-gray-300 truncate flex-1">{{ member.name }}</span>
                                     <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">{{ member.population > 0 ? formatPop(member.population) : '—' }}</span>
                                     <span class="tabular-nums w-12 text-right shrink-0"
-                                          :class="member.fractional_seats > 9 ? 'text-red-400' : 'text-gray-400'">
+                                          :class="member.fractional_seats > SEAT_CEILING ? 'text-red-400' : 'text-gray-400'">
                                         {{ member.fractional_seats.toFixed(2) }}
                                     </span>
                                     <button v-if="member.fractional_seats >= GIANT_THRESHOLD && member.child_count > 0"
@@ -906,8 +961,8 @@
                                 <span class="shrink-0 w-2 h-2 rounded-full mr-0.5" :style="{ background: districtFillColor(row.district.color_index) }"></span>
                                 <span class="font-mono text-gray-300 flex-1 truncate">{{ row.district.name ?? '' }}</span>
                                 <span class="font-semibold w-12 text-right shrink-0"
-                                      :class="row.district.fractional_seats < 4.5 ? 'text-amber-400' : seatClass(row.district.seats)"
-                                      :title="row.district.fractional_seats < 4.5 ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
+                                      :class="row.district.fractional_seats < FLOOR_OVERRIDE ? 'text-amber-400' : seatClass(row.district.seats)"
+                                      :title="row.district.fractional_seats < FLOOR_OVERRIDE ? 'Floor override — fractional seats rounds below minimum without override' : undefined">{{ row.district.seats }}</span>
                                 <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">
                                     {{ (() => {
                                         const dp = row.district.population
@@ -1196,6 +1251,21 @@
                             title="Toggle per-district quality stats (CHR · contiguity)">
                         Stats
                     </button>
+                    <button @click="toggleRaster"
+                            class="px-2 py-1 rounded text-xs border transition-colors"
+                            :class="showRaster
+                                ? 'bg-amber-700 border-amber-500 text-white'
+                                : 'bg-gray-900/80 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'"
+                            title="Toggle WorldPop population heatmap underlay">
+                        Raster
+                    </button>
+                </div>
+
+                <!-- Raster loading banner — shown while tile fetches are in flight. -->
+                <div v-if="rasterLoading"
+                     class="absolute top-3 left-3 z-[1001] px-2 py-1 rounded text-[11px]
+                            bg-amber-900/80 border border-amber-700 text-amber-100 pointer-events-none">
+                    Loading raster…
                 </div>
 
                 <!-- Edit mode hint overlay -->
@@ -1250,20 +1320,61 @@ const props = defineProps({
     scope: Object,        // { id, name, adm_level, population }
     scope_seats: Number,  // rounded entitlement at this drill-down level (e.g. 86 for USA)
     ancestors: Array,     // [{ id, name }, ...] root → scope
-    children: Array,      // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
-    districts: Array,     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[{id,name,population,fractional_seats,child_count}] }]
-    quota: Number,
+    // ── Deferred props (Inertia v2 Inertia::defer) ─────────────────────────
+    // These arrive in a partial-reload AFTER the page mounts. Initial render
+    // returns the cheap header/scope/maps props above; Vue mounts immediately
+    // and shows skeleton states for the heavy data below. Defaults make
+    // templates not crash on the undefined-until-loaded interval.
+    children:  { type: Array, default: () => [] },     // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
+    districts: { type: Array, default: () => [] },     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[...] }]
+    quota:     { type: Number, default: 0 },
     flags: { type: Object, default: () => ({ cap: null, floor_exceptions: [], deep_overages: [], incomplete_scopes: [] }) },
     stats: { type: Object, default: null },
     mass_tool_running: { type: Boolean, default: false },
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
     active_map: { type: Object, default: null },        // the map currently being displayed
+    setup_mode: { type: Boolean, default: false },      // set when arrived via /setup/step/3?setup=1
+    constitutional: {
+        // Derived thresholds from the legislature's constitutional_settings.
+        // With default 5/9 settings these resolve to 9.5 / 5.0 / 4.5.
+        // With operator-set 3/7 they resolve to 7.5 / 3.0 / 2.5.
+        type: Object,
+        default: () => ({ floor: 5, ceiling: 9, giant_threshold: 9.5, floor_boundary: 5.0, floor_override: 4.5 }),
+    },
 })
+
+// Setup wizard banner — only shown when ?setup=1 on the URL.  When a map is
+// active we surface the "Back to Setup →" action; otherwise we only remind the
+// user what this page is for.
+async function returnToSetup() {
+    try {
+        await fetch('/api/setup/wizard/step3/complete', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+        })
+    } catch (e) { /* fall through — user still gets redirected */ }
+    window.location.href = '/setup'
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Jurisdictions with fractional_seats >= this threshold cannot be placed in a
 // district at this scope level — they must be drilled into (they would round to ≥ 10).
-const GIANT_THRESHOLD = 9.5
+// Constitutional thresholds — resolved from props.constitutional with default
+// 5/9 fallback (which produces 9.5 / 5.0 / 4.5 — matches the legacy
+// hardcoded literals). With operator-set 3/7 settings these come out
+// 7.5 / 3.0 / 2.5 and giants, floor-override flags, etc. scale accordingly.
+// Plain constants rather than refs/computed: constitutional settings don't
+// change mid-session (any change requires a page reload to re-fetch settings).
+const GIANT_THRESHOLD = props.constitutional?.giant_threshold ?? 9.5
+const FLOOR_BOUNDARY  = props.constitutional?.floor_boundary  ?? 5.0
+const FLOOR_OVERRIDE  = props.constitutional?.floor_override  ?? 4.5
+const SEAT_CEILING    = props.constitutional?.ceiling         ?? 9
+const SEAT_FLOOR      = props.constitutional?.floor           ?? 5
 
 // 7-color CB-friendly palette — greedy graph coloring guarantees adjacent districts differ
 const DISTRICT_COLORS = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7']
@@ -1449,49 +1560,62 @@ const massToolRunning = ref(false)
 // ── Background mass job tracking ───────────────────────────────────────────
 // Set to true if a mass operation is in flight (persists across navigation via cache flag).
 const massJobRunning    = ref(props.mass_tool_running ?? false)
-const recolorProgress   = ref(null)   // { phase, total, started_at } or null
-const massProgress      = ref(null)   // { current_scope, completed, total } or null (reseed/disband)
-const recolorElapsed    = ref('')
+const massProgress      = ref(null)   // { current_scope, completed, total, phase, phase_label, phase_current, phase_total, scope_started_at, ... }
+const massScopeElapsed  = ref('')
+const haltRequesting    = ref(false)
 let   massStatusTimer   = null
 let   elapsedTimer      = null
 
-function updateElapsed() {
-    if (!recolorProgress.value?.started_at) { recolorElapsed.value = ''; return }
-    const secs = Math.floor(Date.now() / 1000 - recolorProgress.value.started_at)
-    const m = Math.floor(secs / 60), s = secs % 60
-    recolorElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
+async function haltMassOperation() {
+    if (haltRequesting.value) return
+    haltRequesting.value = true
+    try {
+        await fetch(`/api/legislatures/${props.legislature.id}/mass-halt`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+        })
+    } catch (e) {
+        // Non-fatal — operator can retry. The Halt is a cache flag; if the
+        // POST hits the server, the job will see it on the next scope boundary.
+        console.warn('mass-halt POST failed (will retry on next click):', e)
+    } finally {
+        // Keep the button locked briefly so a double-click doesn't spam the
+        // server; the polling loop will pick up the new "halting" phase.
+        setTimeout(() => { haltRequesting.value = false }, 1500)
+    }
 }
 
-function recolorPhaseLabel(phase, total) {
-    // Rough ETA for the adjacency phase: empirically ~0.3s per district at Earth scope
-    const etaSecs = phase === 'adjacency' ? Math.round(total * 0.3) : 0
-    const etaStr  = etaSecs >= 10
-        ? ` — est. ${etaSecs >= 60 ? Math.round(etaSecs / 60) + ' min' : etaSecs + 's'}`
-        : ''
-    if (phase === 'adjacency')  return `Computing adjacency graph (${total} districts${etaStr})…`
-    if (phase === 'coloring')   return `Running 7-color algorithm…`
-    if (phase === 'persisting') return `Saving colors to database…`
-    return 'Finishing up…'
+function updateElapsed() {
+    if (massProgress.value?.scope_started_at) {
+        const secs = Math.floor(Date.now() / 1000 - massProgress.value.scope_started_at)
+        const m = Math.floor(secs / 60), s = secs % 60
+        massScopeElapsed.value = m > 0 ? `${m}m ${s}s` : `${s}s`
+    } else {
+        massScopeElapsed.value = ''
+    }
 }
 
 function startMassStatusPolling() {
-    clearInterval(massStatusTimer)
-    clearInterval(elapsedTimer)
+    // Re-entry guard: if either timer is already running, the caller is asking
+    // for a poll that's already in progress — keep the existing one rather
+    // than tearing it down and starting fresh (a fresh start would re-trigger
+    // an immediate fetch and reset the cadence).
+    if (massStatusTimer || elapsedTimer) return
     elapsedTimer = setInterval(updateElapsed, 1000)
     massStatusTimer = setInterval(async () => {
         try {
             const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
             const data = await res.json()
-            if (data.recolor_progress) {
-                recolorProgress.value = data.recolor_progress
-                updateElapsed()
-            }
             if (data.mass_progress) {
                 massProgress.value = data.mass_progress
             }
             if (!data.running) {
                 massJobRunning.value  = false
-                recolorProgress.value = null
                 massProgress.value    = null
                 clearInterval(massStatusTimer)
                 clearInterval(elapsedTimer)
@@ -1515,16 +1639,22 @@ const MASS_SCOPES = [
 // Label toggles — persisted in localStorage so they survive Inertia scope navigations
 // (router.visit() re-mounts the component; ref(false) would reset on every drill-down).
 const LS = {
-    seats: 'leg_label_seats',
-    pop:   'leg_label_pop',
-    names: 'leg_label_names',
-    jurs:  'leg_label_jurs',
-    stats: 'leg_label_stats',
+    seats:  'leg_label_seats',
+    pop:    'leg_label_pop',
+    names:  'leg_label_names',
+    jurs:   'leg_label_jurs',
+    stats:  'leg_label_stats',
+    raster: 'leg_overlay_raster',   // WorldPop heatmap visible? Off by default — opt-in.
 }
 const showSeatsLabels        = ref(localStorage.getItem(LS.seats) === '1')
 const showMembersLabels      = ref(localStorage.getItem(LS.pop)   === '1')
 const showNameLabels         = ref(localStorage.getItem(LS.names) === '1')
 const showStatsLabels        = ref(localStorage.getItem(LS.stats) === '1')
+// WorldPop raster overlay — mirrors the Jurisdictions/Show.vue pattern.
+// Uses a separate localStorage key from the jurisdiction page so the two
+// views can be toggled independently.
+const showRaster             = ref(localStorage.getItem(LS.raster) === '1')
+const rasterLoading          = ref(false)   // shown in the small banner while tiles fetch
 
 // Single combined district label group — one badge per district, rebuilt on every toggle change.
 // Pre-computed label data cached here so rebuilds are fast (no GeoJSON re-iteration).
@@ -1765,6 +1895,100 @@ function refreshJursLabels() {
 let _map = null
 let _reinitRevision = 0   // incremented on every reinitMapLayers() call; guards against stale fetches
 
+// ── Antimeridian wrap helpers ──────────────────────────────────────────────
+// Leaflet wraps TileLayers automatically across ±180° longitude, but vector
+// GeoJSON layers render once at their native coordinates. For Pacific-centred
+// or Americas-centred viewing, this leaves empty patches where Russia / NZ /
+// Fiji should appear on the wraparound. We address that by cloning each
+// polygon layer at -360° and +360° longitude as non-interactive companions.
+// Three copies (centre + two wraps) covers any standard-screen viewport
+// (~1.5× world width max). Mirrors the pattern in Jurisdictions/Show.vue.
+function shiftCoords(coords, delta) {
+    if (typeof coords[0] === 'number') return [coords[0] + delta, coords[1]]
+    return coords.map(c => shiftCoords(c, delta))
+}
+function shiftedGeojson(geojson, delta) {
+    if (!geojson || !geojson.features) return null
+    return {
+        type:     'FeatureCollection',
+        features: geojson.features.map(f => ({
+            ...f,
+            geometry: f.geometry ? {
+                ...f.geometry,
+                coordinates: shiftCoords(f.geometry.coordinates, delta),
+            } : null,
+        })),
+    }
+}
+function addAntimeridianWraps(geojson, styleFn) {
+    // Wrap clones are non-interactive on this page: the polygon click /
+    // hover handlers register a single layer per jurisdiction in
+    // `layerByJid`, and the rubber-band drag-select math expects one
+    // polygon-per-jurisdiction. Operators still see the world tile out
+    // continuously when scrolling east-west; selections happen on the
+    // central copy. (Jurisdictions/Show.vue makes its clones interactive
+    // because it has a slug-keyed registry of multiple layers per feature;
+    // adopting that here would require a bigger refactor.)
+    if (!_map) return
+    for (const dx of [-360, 360]) {
+        const shifted = shiftedGeojson(geojson, dx)
+        if (shifted && shifted.features.length > 0) {
+            L.geoJSON(shifted, {
+                style:       styleFn,
+                interactive: false,
+                keyboard:    false,
+            }).addTo(_map)
+        }
+    }
+}
+
+// WorldPop raster TileLayer — created lazily on first toggle-on so we don't
+// pay the network cost when the operator never enables the overlay. Pattern
+// mirrors Jurisdictions/Show.vue's applyRasterOverlay().
+let rasterLayer = null
+
+function applyRasterOverlay() {
+    if (!_map) return
+    if (showRaster.value) {
+        if (!rasterLayer) {
+            rasterLayer = L.tileLayer('/api/rasters/{z}/{x}/{y}.png', {
+                minZoom: 0,
+                maxZoom: 12,
+                opacity: 0.7,
+                tms: false,
+                attribution: 'Population &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>',
+                // Same flicker-prevention flags as the Jurisdictions page:
+                // don't keep stretched parent-zoom tiles while new tiles
+                // load — a semi-transparent overlay stacks visually when
+                // old + new coexist mid-zoom.
+                keepBuffer:        0,
+                updateWhenZooming: false,
+                updateWhenIdle:    true,
+            })
+            rasterLayer.on('loading', () => { rasterLoading.value = true })
+            rasterLayer.on('load',    () => { rasterLoading.value = false })
+        }
+        if (!_map.hasLayer(rasterLayer)) {
+            rasterLayer.addTo(_map)
+            // Default tilePane (z=200) sits above basemapPane (z=150) and
+            // below overlayPane (z=400). The district polygons stay on top.
+        }
+    } else if (rasterLayer && _map.hasLayer(rasterLayer)) {
+        _map.removeLayer(rasterLayer)
+        rasterLoading.value = false
+    }
+}
+
+// Persist toggle to localStorage AND apply the overlay change to the map.
+watch(showRaster, v => {
+    localStorage.setItem(LS.raster, v ? '1' : '0')
+    applyRasterOverlay()
+})
+
+function toggleRaster() {
+    showRaster.value = !showRaster.value
+}
+
 // Rubber-band drag state — module-level so cancelEdit() can reset it
 let _dragStart    = null   // container point where the drag began; null = no drag in progress
 let _dragIsRemove = false  // true = Ctrl was held at mousedown → remove gesture
@@ -1806,7 +2030,7 @@ const giantChildren = computed(() =>
 // are tracked by seat count in `expansionGroups` and rendered in parens (not bare).
 const optimalConfig = computed(() => {
     const n = props.scope_seats
-    if (!n || n < 5) return null
+    if (!n || n < SEAT_FLOOR) return null
 
     const giants     = giantChildren.value
     const giantSeats = giants.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
@@ -1817,9 +2041,9 @@ const optimalConfig = computed(() => {
     const expansionGroups = {}   // seats → count; shown in parens in the label
 
     for (let iter = 0; iter < 20; iter++) {
-        if (poolSeats < 5 || pool.length === 0) break
-        const dMin = Math.ceil(poolSeats / 9)
-        const dMax = Math.floor(poolSeats / 5)
+        if (poolSeats < SEAT_FLOOR || pool.length === 0) break
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING)
+        const dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin > dMax) break
 
         let best = null
@@ -1845,8 +2069,8 @@ const optimalConfig = computed(() => {
     }
 
     // Fallback after loop exhausted
-    if (poolSeats >= 5) {
-        const dMin = Math.ceil(poolSeats / 9), dMax = Math.floor(poolSeats / 5)
+    if (poolSeats >= SEAT_FLOOR) {
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING), dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin <= dMax) {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
@@ -1856,13 +2080,13 @@ const optimalConfig = computed(() => {
             if (best) return { ...best, expansionGroups, giantCount, giantSeats }
         }
     }
-    // Floor exception: compositable jurisdictions remain but poolSeats < 5 — they
+    // Floor exception: compositable jurisdictions remain but poolSeats < floor — they
     // can't form a valid district normally, but must still be placed in one.
-    // Use the ACTUAL apportioned seat count (poolSeats), not the floor value of 5.
+    // Use the ACTUAL apportioned seat count (poolSeats), not the floor value.
     // The Constitutional Flag already shows the floor enforcement; Optimal shows
     // the mathematical ideal so the gap between Optimal and Current reveals the
     // overcount caused by the floor.  RHS stays at scope_seats.
-    if (pool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+    if (pool.length > 0 && poolSeats > 0 && poolSeats < SEAT_FLOOR) {
         expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
     }
     return { d: 0, q: 0, r: 0, expansionGroups, giantCount, giantSeats }
@@ -1883,7 +2107,7 @@ const suboptimalConfig = computed(() => {
     // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
     const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
     const poolSeats0    = (props.scope_seats ?? 0) - assignedSeats - giantSeats
-    // Allow poolSeats0 in (0, 5) — those jurisdictions still need a floor-exception district.
+    // Allow poolSeats0 in (0, floor) — those jurisdictions still need a floor-exception district.
     // Only skip when pool is empty (nothing left to district) or budget is fully exhausted.
     if (pool.length === 0 || poolSeats0 <= 0) return null
 
@@ -1892,9 +2116,9 @@ const suboptimalConfig = computed(() => {
     const expansionGroups = {}   // seats → count; shown in parens (same as optimalConfig)
 
     for (let iter = 0; iter < 20; iter++) {
-        if (poolSeats < 5 || remainingPool.length === 0) break
-        const dMin = Math.ceil(poolSeats / 9)
-        const dMax = Math.floor(poolSeats / 5)
+        if (poolSeats < SEAT_FLOOR || remainingPool.length === 0) break
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING)
+        const dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin > dMax) break
         let best = null
         for (let d = dMin; d <= dMax; d++) {
@@ -1914,8 +2138,8 @@ const suboptimalConfig = computed(() => {
         remainingPool = remainingPool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
     }
     // Fallback after loop exhausted
-    if (poolSeats >= 5) {
-        const dMin = Math.ceil(poolSeats / 9), dMax = Math.floor(poolSeats / 5)
+    if (poolSeats >= SEAT_FLOOR) {
+        const dMin = Math.ceil(poolSeats / SEAT_CEILING), dMax = Math.floor(poolSeats / SEAT_FLOOR)
         if (dMin <= dMax) {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
@@ -1925,10 +2149,10 @@ const suboptimalConfig = computed(() => {
             if (best) return { ...best, expansionGroups, assignedSeats, giantSeats }
         }
     }
-    // Floor exception: remaining pool can't reach 5 seats but still needs a district.
-    // Use actual apportioned seat count (poolSeats), not the floor value of 5 — the
+    // Floor exception: remaining pool can't reach floor seats but still needs a district.
+    // Use actual apportioned seat count (poolSeats), not the floor value — the
     // Constitutional Flag shows the enforcement; Suboptimal shows the math.
-    if (remainingPool.length > 0 && poolSeats > 0 && poolSeats < 5) {
+    if (remainingPool.length > 0 && poolSeats > 0 && poolSeats < SEAT_FLOOR) {
         expansionGroups[poolSeats] = (expansionGroups[poolSeats] ?? 0) + 1
         return { d: 0, q: 0, r: 0, expansionGroups, assignedSeats, giantSeats }
     }
@@ -2320,7 +2544,10 @@ const remainingBudget = computed(() => {
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
 const pendingSeats = computed(() => {
-    const natural = Math.max(5, Math.round(pendingFractionalTotal.value))
+    // Webster rounding clamped to the constitutional [floor, ceiling] range.
+    // Was previously hardcoded as Math.max(5, ...) — now scales with operator-set
+    // floor (e.g. with floor=3 a frac of 3.08 rounds to 3, not 5).
+    const natural = Math.max(SEAT_FLOOR, Math.min(SEAT_CEILING, Math.round(pendingFractionalTotal.value)))
     const budget  = remainingBudget.value
     // When remaining budget is less than the constitutional floor, the budget wins
     return budget > 0 && budget < natural ? budget : natural
@@ -2331,10 +2558,10 @@ const pendingValid = computed(() =>
         ? true
         : pendingFractionalTotal.value < GIANT_THRESHOLD
 )
-// Floor override needed: total < 5.0 frac but we allow it (unavoidable cases)
+// Floor override needed: total < FLOOR_BOUNDARY frac but we allow it (unavoidable cases)
 const pendingFloor = computed(() =>
     (pendingAdd.value.size > 0 || pendingRemove.value.size > 0) &&
-    pendingFractionalTotal.value < 5.0
+    pendingFractionalTotal.value < FLOOR_BOUNDARY
 )
 
 // ── Rounding readiness ────────────────────────────────────────────────────────
@@ -2344,21 +2571,27 @@ const roundingReady = computed(() =>
     unassignedAssignable.value.length === 0 &&
     districtsRef.value.length > 0 &&
     districtsRef.value.every(d =>
-        d.members.reduce((s, m) => s + m.fractional_seats, 0) >= 5.0
+        d.members.reduce((s, m) => s + m.fractional_seats, 0) >= FLOOR_BOUNDARY
     )
 )
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function seatColor(seats) {
+    // Mirrors seatClass() — scales color bands with [floor, ceiling].
     if (!seats) return '#64748b'
-    if (seats <= 5) return '#93c5fd'   // blue-300
-    if (seats <= 7) return '#34d399'   // emerald-400
-    return '#f59e0b'                   // amber-400
+    const mid = Math.max(SEAT_FLOOR + 1, SEAT_CEILING - 2)
+    if (seats <= SEAT_FLOOR) return '#93c5fd'  // blue-300
+    if (seats <= mid)        return '#34d399'  // emerald-400
+    return '#f59e0b'                           // amber-400
 }
 function seatClass(seats) {
+    // Color bands scale with the constitutional [floor, ceiling] range.
+    // At default 5/9: ≤5 blue, ≤7 emerald, ≥8 amber (matches legacy).
+    // At 3/7:         ≤3 blue, ≤5 emerald, ≥6 amber.
     if (!seats) return 'text-gray-500'
-    if (seats <= 5) return 'text-blue-400'
-    if (seats <= 7) return 'text-emerald-400'
+    const mid = Math.max(SEAT_FLOOR + 1, SEAT_CEILING - 2)
+    if (seats <= SEAT_FLOOR) return 'text-blue-400'
+    if (seats <= mid)        return 'text-emerald-400'
     return 'text-amber-400'
 }
 function formatPop(n) {
@@ -2541,21 +2774,25 @@ async function confirmDeleteMap(mapId) {
 }
 
 // ── Map layer styling ─────────────────────────────────────────────────────────
-const STYLE_UNASSIGNED  = { fillColor: '#94a3b8', fillOpacity: 0.55, color: '#475569', weight: 1, opacity: 1 }
-const STYLE_GIANT       = { fillColor: '#7f1d1d', fillOpacity: 0.45, color: '#ef4444', weight: 2, opacity: 1 }
-const STYLE_YELLOW      = { fillColor: '#fbbf24', fillOpacity: 0.70, color: '#78350f', weight: 2, opacity: 1 }
-const STYLE_RED         = { fillColor: '#f87171', fillOpacity: 0.65, color: '#7f1d1d', weight: 2, opacity: 1 }
-const STYLE_GREEN       = { fillColor: '#4ade80', fillOpacity: 0.60, color: '#14532d', weight: 2, opacity: 1 }
-const STYLE_HIGHLIGHT   = (fillColor) => ({ fillColor, fillOpacity: 0.65, color: '#fbbf24', weight: 3, opacity: 1 })
+// All district fills are ~67% transparent (fillOpacity 0.33) so the Protomaps
+// basemap and the optional WorldPop raster show through underneath. Border
+// strokes stay at opacity 1.0 to keep boundaries crisp. Hover and selection
+// states bump fillOpacity for visual feedback without obscuring the basemap.
+const STYLE_UNASSIGNED  = { fillColor: '#94a3b8', fillOpacity: 0.33, color: '#475569', weight: 1, opacity: 1 }
+const STYLE_GIANT       = { fillColor: '#7f1d1d', fillOpacity: 0.33, color: '#ef4444', weight: 2, opacity: 1 }
+const STYLE_YELLOW      = { fillColor: '#fbbf24', fillOpacity: 0.33, color: '#78350f', weight: 2, opacity: 1 }
+const STYLE_RED         = { fillColor: '#f87171', fillOpacity: 0.33, color: '#7f1d1d', weight: 2, opacity: 1 }
+const STYLE_GREEN       = { fillColor: '#4ade80', fillOpacity: 0.33, color: '#14532d', weight: 2, opacity: 1 }
+const STYLE_HIGHLIGHT   = (fillColor) => ({ fillColor, fillOpacity: 0.55, color: '#fbbf24', weight: 3, opacity: 1 })
 const STYLE_NORMAL      = (colorIndex) => ({
     fillColor:   districtFillColor(colorIndex),
-    fillOpacity: 0.65,
+    fillOpacity: 0.33,
     color:       '#0f172a',
     weight:      1,
     opacity:     1,
 })
 // Stealable polygon in edit mode — green-tinted (other district's member, can be reassigned)
-const STYLE_STEAL = { fillColor: '#86efac', fillOpacity: 0.30, color: '#22c55e', weight: 1.5, opacity: 0.8 }
+const STYLE_STEAL = { fillColor: '#86efac', fillOpacity: 0.33, color: '#22c55e', weight: 1.5, opacity: 0.8 }
 
 function getLayerStyle(jid) {
     const child = childrenRef.value.find(c => c.id === jid)
@@ -2619,7 +2856,7 @@ function highlightJids(jids) {
         const style = getLayerStyle(jid)
         layer.setStyle({
             ...style,
-            fillOpacity: Math.min((style.fillOpacity ?? 0.65) + 0.2, 0.92),
+            fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.2, 0.92),
             weight: Math.max((style.weight ?? 1) + 1, 2),
             color: '#fbbf24',
         })
@@ -2882,6 +3119,22 @@ async function runWizardAutoActions() {
             return true   // navigated away — caller should NOT start auto-step timer
         }
     }
+
+    // All-done halt: if we're sitting on the final wizard step (root scope,
+    // last element of wizardSteps) and the backend's incomplete_scopes flag
+    // is empty with no hard overages, the whole map is fully districted —
+    // signal "navigated away" so the caller doesn't restart the auto-step
+    // timer. Without this guard, wizardStepForward's modulo wrap would cycle
+    // the operator endlessly back to the first giant after a clean sweep.
+    const isFinalStep    = wizardCurrentIndex.value === wizardSteps.value.length - 1
+    const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
+    const noCap          = !props.flags?.cap
+    const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
+    if (isFinalStep && noIncomplete && noCap && noDeepOverages) {
+        showStatus('success', 'Map complete — every scope districted.')
+        return true   // skip startAutoStepTimer() in the caller
+    }
+
     return false  // staying at this scope — caller may start auto-step timer
 }
 
@@ -2945,9 +3198,12 @@ async function createDistrictFromPending() {
             }
         })
         // Strip stolen jids from any source district and update their recomputed seat counts,
-        // then add the new district. Color indices are refreshed for all districts.
+        // then add the new district. Greedy adjacency coloring may shift any
+        // sibling's color when a new district joins the scope — server returns
+        // the full scope's coloring in `color_indices` so we can sync without
+        // a reload.
         const affectedMap  = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
-        const colorUpdates = data.color_updates ?? {}
+        const colorUpdates = data.color_indices ?? {}
         districtsRef.value = [
             ...districtsRef.value.map(existing => {
                 const hasStolenMember = jids.some(jid => existing.members.some(m => m.id === jid))
@@ -3016,6 +3272,9 @@ async function saveDistrictEdit(districtId) {
 
         const updated = data.district
         const affectedMap2 = Object.fromEntries((data.affected_districts ?? []).map(a => [a.id, a]))
+        // Member moves change the scope's adjacency graph; server returns
+        // the full scope's greedy 7-coloring so every sibling stays in sync.
+        const colorUpdates2 = data.color_indices ?? {}
         districtsRef.value = districtsRef.value.map(d => {
             if (d.id === districtId) {
                 // Update the edited district — add new members, remove old ones
@@ -3027,7 +3286,7 @@ async function saveDistrictEdit(districtId) {
                 }
                 return { ...d, seats: updated.seats, floor_override: updated.floor_override,
                     fractional_seats: updated.fractional_seats !== undefined ? updated.fractional_seats : d.fractional_seats,
-                    color_index: updated.color_index ?? d.color_index,
+                    color_index: colorUpdates2[d.id] ?? updated.color_index ?? d.color_index,
                     name: updated.name ?? d.name,
                     convex_hull_ratio: updated.convex_hull_ratio !== undefined ? updated.convex_hull_ratio : d.convex_hull_ratio,
                     is_contiguous:     updated.is_contiguous     !== undefined ? updated.is_contiguous     : d.is_contiguous,
@@ -3036,16 +3295,19 @@ async function saveDistrictEdit(districtId) {
             }
             // Strip stolen jids from source districts and update their recomputed seat counts
             const affUpdate2 = affectedMap2[d.id]
+            const newColor   = colorUpdates2[d.id] ?? affUpdate2?.color_index ?? d.color_index
             if (add.length > 0 && d.members.some(m => add.includes(m.id))) {
                 const remainingMembers = d.members.filter(m => !add.includes(m.id))
                 return {
                     ...d,
                     members: remainingMembers,
                     fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
-                    ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override, color_index: affUpdate2.color_index } : {}),
+                    color_index: newColor,
+                    ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override } : {}),
                 }
             }
-            return d
+            // Sibling whose color shifted due to scope-wide re-coloring
+            return colorUpdates2[d.id] !== undefined ? { ...d, color_index: newColor } : d
         })
         childrenRef.value = childrenRef.value.map(c => {
             if (remove.includes(c.id)) return { ...c, district_id: null, district_seats: null }
@@ -3075,14 +3337,16 @@ async function deleteDistrict(districtId) {
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
 
-        const memberIds  = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
-        const numUpdates = data.district_numbers ?? {}
+        const memberIds    = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
+        const numUpdates   = data.district_numbers ?? {}
+        const colorUpdates = data.color_indices ?? {}
 
         districtsRef.value = districtsRef.value
             .filter(d => d.id !== districtId)
             .map(d => ({
                 ...d,
-                ...(numUpdates[d.id] !== undefined ? { district_number: numUpdates[d.id] } : {}),
+                ...(numUpdates[d.id]   !== undefined ? { district_number: numUpdates[d.id]   } : {}),
+                ...(colorUpdates[d.id] !== undefined ? { color_index:    colorUpdates[d.id] } : {}),
             }))
         childrenRef.value  = childrenRef.value.map(c =>
             memberIds.includes(c.id) ? { ...c, district_id: null, district_seats: null } : c
@@ -3123,6 +3387,28 @@ function runMassTool() {
 // overrideScopeId — wizard passes null to use current props.scope.id
 // silent — when true (wizard path) suppresses mass-job polling + navigation,
 //           and does a partial reload instead of a full router.visit()
+// Poll /mass-status until the Horizon job for this legislature is no longer
+// running. Resolves once `data.running === false`. Used by the silent
+// (auto-stepper) path of runMassReseed which can't rely on the interval-driven
+// polling that the manual path uses (the manual polling triggers a full
+// router.visit when it finishes; the wizard wants to remain on-scope and do
+// a partial reload instead). Updates `massProgress` while polling so the
+// banner shows live phase updates.
+async function waitForMassJob({ pollMs = 2500 } = {}) {
+    while (true) {
+        try {
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            const data = await res.json()
+            if (data.mass_progress) massProgress.value = data.mass_progress
+            if (!data.running) {
+                massProgress.value = null
+                return
+            }
+        } catch (_) { /* transient network hiccup — keep polling */ }
+        await new Promise(r => setTimeout(r, pollMs))
+    }
+}
+
 async function runMassReseed(scope, overrideScopeId = null, silent = false) {
     closeMassToolPanel()
     massToolRunning.value = true
@@ -3142,21 +3428,27 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
-        showStatus('success', `Reseed: ${data.districts_created} district(s) created`)
+        // The endpoint dispatches a Horizon job and returns 202 immediately —
+        // `data.districts_created` doesn't exist on the response. We learn the
+        // actual count after the job completes (via mass-status polling).
         if (!silent) {
-            // Stop polling before navigating — prevents double router.visit()
-            clearInterval(massStatusTimer)
-            massStatusTimer = null
-            massJobRunning.value = false
-            router.visit(mapUrl(props.scope.id))
-        } else {
-            // Wizard path: reload only the data props, no full navigation.
-            // Wrapped in a Promise so callers can await completion and read
-            // fresh unassignedAssignable before deciding whether to skip.
-            await new Promise(resolve => {
-                router.reload({ only: ['districts', 'children', 'flags', 'stats'], onFinish: resolve })
-            })
+            // Manual path: startMassStatusPolling()'s interval drives the
+            // full-page router.visit() once data.running flips to false.
+            return
         }
+        // Wizard path: wait for the job to actually finish before reloading.
+        // Without this wait, router.reload() fires before any districts have
+        // been created and the sidebar/map show stale data until the operator
+        // manually refreshes. Partial-reload the data props so we stay on
+        // scope (manual path navigates; we don't want that for the stepper).
+        await waitForMassJob()
+        await new Promise(resolve => {
+            router.reload({
+                only:     ['districts', 'children', 'flags', 'stats'],
+                onFinish: resolve,
+            })
+        })
+        showStatus('success', 'Auto-seed complete')
     } catch (e) {
         console.error('massReseed:', e)
         showStatus('error', 'Network error')
@@ -3192,33 +3484,6 @@ async function runMassDisband(scope) {
     }
 }
 
-async function runRecolor() {
-    if (massToolRunning.value || massJobRunning.value) return
-    massJobRunning.value = true
-    startMassStatusPolling()
-    try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/recolor`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body:    JSON.stringify({ map_id: props.active_map?.id ?? null }),
-        })
-        const data = await resp.json()
-        if (!resp.ok) {
-            clearInterval(massStatusTimer)
-            massStatusTimer = null
-            massJobRunning.value = false
-            showStatus('error', data.error ?? 'Recolor failed')
-            return
-        }
-        // Job queued — polling will detect completion and reload the page
-    } catch (e) {
-        console.error('recolor:', e)
-        clearInterval(massStatusTimer)
-        massStatusTimer = null
-        massJobRunning.value = false
-        showStatus('error', 'Network error')
-    }
-}
 
 // ── XHR-based fetch helper with accurate gzip-aware progress ─────────────────
 // fetch()+ReadableStream reports decompressed byte counts but Content-Length is
@@ -3256,8 +3521,16 @@ async function reinitMapLayers() {
     // letting us detect that our in-flight fetches have been superseded and should be discarded.
     const myRevision = ++_reinitRevision
 
-    // 1. Remove all Leaflet layers (no tile layer, so remove everything)
-    _map.eachLayer(layer => _map.removeLayer(layer))
+    // 1. Remove all per-scope Leaflet layers, but PRESERVE the basemap and
+    //    the WorldPop raster TileLayer — those are mounted once in onMounted
+    //    and intentionally outlive scope navigation. Without these guards
+    //    the basemap blinks out on every drill-down and the raster toggle
+    //    has to be re-clicked.
+    _map.eachLayer(layer => {
+        if (layer === rasterLayer) return                            // raster TileLayer
+        if (layer.options?.pane === 'basemapPane') return            // Protomaps basemap
+        _map.removeLayer(layer)
+    })
 
     // 2. Clear layer registry
     for (const k of Object.keys(layerByJid)) delete layerByJid[k]
@@ -3416,7 +3689,7 @@ async function reinitMapLayers() {
                     const style = getLayerStyle(jid)
                     layer.setStyle({
                         ...style,
-                        fillOpacity: Math.min((style.fillOpacity ?? 0.65) + 0.15, 0.9),
+                        fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.15, 0.9),
                         weight: Math.max((style.weight ?? 1) + 1, 2),
                     })
                     layer.bringToFront()
@@ -3475,6 +3748,10 @@ async function reinitMapLayers() {
                 })
             },
         }).addTo(_map)
+
+        // ±360° wrap clones so the at-scope polygons appear continuously
+        // when the operator scrolls east/west past the antimeridian.
+        addAntimeridianWraps(gj, feat => getLayerStyle(feat.id ?? feat.properties?.id))
 
         if (gj.features.length > 0) {
             _map.fitBounds(childLayer.getBounds(), { padding: [30, 30] })
@@ -3612,7 +3889,11 @@ async function reinitMapLayers() {
             const revealedLayer = L.geoJSON({ type: 'FeatureCollection', features: revColoredFeats }, {
                 style: feat => {
                     const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
-                    return { fillColor: color, fillOpacity: 0.65, color, weight: 1, opacity: 1 }
+                    // fillOpacity 0.33 = ~67% transparent so the Protomaps basemap
+                    // and the optional WorldPop raster show through underneath.
+                    // Border opacity stays 1.0 so districts remain crisply
+                    // outlined. Hover bumps fill to 0.55 for visual feedback.
+                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
                 },
                 onEachFeature(feat, layer) {
                     // Register this layer under its district so siblings can be found later
@@ -3630,7 +3911,7 @@ async function reinitMapLayers() {
                         const siblings = districtLayerMap.get(distId) ?? []
                         siblings.forEach(({ layer: l, feat: f }) => {
                             const c = DISTRICT_COLORS[f.properties.color_index ?? 0]
-                            l.setStyle({ fillColor: c, fillOpacity: 0.85, color: c, weight: 2, opacity: 1 })
+                            l.setStyle({ fillColor: c, fillOpacity: 0.55, color: c, weight: 2, opacity: 1 })
                         })
                     })
                     layer.on('mousemove', e => sharedTooltip.setLatLng(e.latlng))
@@ -3640,7 +3921,7 @@ async function reinitMapLayers() {
                         const siblings = districtLayerMap.get(distId) ?? []
                         siblings.forEach(({ layer: l, feat: f }) => {
                             const c = DISTRICT_COLORS[f.properties.color_index ?? 0]
-                            l.setStyle({ fillColor: c, fillOpacity: 0.65, color: c, weight: 1, opacity: 1 })
+                            l.setStyle({ fillColor: c, fillOpacity: 0.33, color: c, weight: 1, opacity: 1 })
                         })
                     })
                     // Click drills into the parent giant jurisdiction (skip in edit/new-district mode)
@@ -3650,6 +3931,17 @@ async function reinitMapLayers() {
                     })
                 },
             }).addTo(_map)
+
+            // ±360° wrap clones for the revealed sub-district fills so
+            // drilled-in views (e.g. Russia, Alaska) tile continuously
+            // across the antimeridian.
+            addAntimeridianWraps(
+                { type: 'FeatureCollection', features: revColoredFeats },
+                feat => {
+                    const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
+                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
+                },
+            )
 
             // Build per-district label data from revealed sub-layers:
             // group bounds, count members, keep one representative feature per district.
@@ -3727,22 +4019,29 @@ async function reinitMapLayers() {
         // sub-district fill. Preserves the outer border of every broken-down giant jurisdiction
         // at any depth (depth-1 country outlines at Earth scope, depth-2 province outlines, etc.).
         if (revOutlineFeats.length > 0) {
+            const outlineStyle = feat => {
+                const depth = feat.properties.depth ?? 1
+                if (depth >= 3) {
+                    // Great-grandchildren: fine dots, barely-there guide line
+                    return { fill: false, color: '#0f172a', weight: 0.5, opacity: 0.55, dashArray: '2 5' }
+                }
+                if (depth === 2) {
+                    // Grandchildren (e.g. California within USA at Earth scope): dashed, thinner
+                    return { fill: false, color: '#0f172a', weight: 0.75, opacity: 0.7, dashArray: '5 5' }
+                }
+                // depth 1: direct children of scope — solid weight 1, matches STYLE_NORMAL
+                return { fill: false, color: '#0f172a', weight: 1, opacity: 1 }
+            }
             L.geoJSON({ type: 'FeatureCollection', features: revOutlineFeats }, {
-                style: feat => {
-                    const depth = feat.properties.depth ?? 1
-                    if (depth >= 3) {
-                        // Great-grandchildren: fine dots, barely-there guide line
-                        return { fill: false, color: '#0f172a', weight: 0.5, opacity: 0.55, dashArray: '2 5' }
-                    }
-                    if (depth === 2) {
-                        // Grandchildren (e.g. California within USA at Earth scope): dashed, thinner
-                        return { fill: false, color: '#0f172a', weight: 0.75, opacity: 0.7, dashArray: '5 5' }
-                    }
-                    // depth 1: direct children of scope — solid weight 1, matches STYLE_NORMAL
-                    return { fill: false, color: '#0f172a', weight: 1, opacity: 1 }
-                },
+                style: outlineStyle,
                 interactive: false,
             }).addTo(_map)
+
+            // ±360° wrap clones for the outline strokes.
+            addAntimeridianWraps(
+                { type: 'FeatureCollection', features: revOutlineFeats },
+                outlineStyle,
+            )
         }
 
         // Apply the user's current toggle state to the freshly-built label groups.
@@ -3764,10 +4063,137 @@ onMounted(async () => {
     // If a mass job was already running when the page loaded, start polling immediately
     if (massJobRunning.value) startMassStatusPolling()
 
-    // No tile layer — runs fully offline. Background colour set via CSS (#000000 ocean/space).
     // boxZoom is Leaflet's built-in shift+drag-to-zoom; we disable it while our own
     // drag-select mode is active so Shift+drag can be used for "include assigned" instead.
-    _map = L.map('legislature-map', { zoomControl: true })
+    //
+    // Map options mirror Jurisdictions/Show.vue for consistent zoom + scroll behaviour:
+    //   - worldCopyJump=true: panning across the antimeridian snaps the view
+    //     back to the equivalent point on the original world copy. Combined
+    //     with the ±360° polygon clones added in reinitMapLayers(), this
+    //     gives infinite east-west scroll with no empty gaps.
+    //   - dynamicMinZoom: the floor zoom is computed from container height
+    //     so the world fills the viewport vertically. Below that, Leaflet
+    //     would show empty grey above/below the world — the longitudinal
+    //     wrap can't fix it. 256×2^z = container height → z = log2(h/256).
+    //   - maxBounds: lock latitude to Mercator's [-85.05, 85.05] range
+    //     (the projection diverges at the poles); leave longitude wide
+    //     (±540° = 1.5 world widths each direction) so worldCopyJump's
+    //     antimeridian wrap continues to work.
+    //   - maxBoundsViscosity=1.0: hard limit, no rubber-band overshoot.
+    const mapEl = document.getElementById('legislature-map')
+    const mapH  = (mapEl?.clientHeight) || 700
+    const dynamicMinZoom = Math.max(0, Math.ceil(Math.log2(mapH / 256)))
+    _map = L.map('legislature-map', {
+        zoomControl:        true,
+        worldCopyJump:      true,
+        minZoom:            dynamicMinZoom,
+        maxBounds:          [[-85.05, -540], [85.05, 540]],
+        maxBoundsViscosity: 1.0,
+    })
+
+    // Custom pane for the Protomaps basemap. zIndex=150 puts it below the
+    // default tilePane (200, used by the WorldPop raster) and well below
+    // overlayPane (400, used by district polygons). Order from bottom to
+    // top: basemap → raster → districts. Districts stay clickable on top.
+    _map.createPane('basemapPane')
+    _map.getPane('basemapPane').style.zIndex = 150
+
+    // Boundary-data attribution + drop Leaflet's default flag emoji. Mirrors
+    // the Jurisdictions/Show.vue attribution wiring so both views credit
+    // geoBoundaries explicitly (the polygon GeoJSON layer can't attribute
+    // itself the way TileLayer + Protomaps can).
+    _map.attributionControl.setPrefix(
+        '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'
+    )
+    _map.attributionControl.addAttribution(
+        'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>'
+    )
+
+    // Protomaps PMTiles basemap. Same fallback chain as Jurisdictions/Show.vue:
+    //   1. Dated bundle resolved by /api/maps/latest-pmtiles.
+    //   2. Legacy fixed-filename probe at /maps/world.pmtiles.
+    //   3. VITE_PROTOMAPS_URL env (e.g. demo bucket).
+    //   4. Nothing configured → polygon-only black background.
+    // Wrapped in async IIFE so it doesn't block the rest of onMounted; basemap
+    // tiles arrive whenever they arrive — the district layer is the priority.
+    ;(async () => {
+        try {
+            const protomaps = await import('protomaps-leaflet')
+            const basemaps  = await import('@protomaps/basemaps')
+            let pmtilesUrl = null
+
+            try {
+                const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' })
+                if (res.ok) {
+                    const data = await res.json()
+                    if (data?.url) pmtilesUrl = data.url
+                }
+            } catch (e) { /* fall through to legacy probe */ }
+
+            if (!pmtilesUrl) {
+                try {
+                    const head = await fetch('/maps/world.pmtiles', { method: 'HEAD' })
+                    if (head.ok) pmtilesUrl = '/maps/world.pmtiles'
+                } catch (e) { /* ignore */ }
+            }
+
+            if (!pmtilesUrl) {
+                const remote = import.meta.env?.VITE_PROTOMAPS_URL || ''
+                if (remote) pmtilesUrl = remote
+            }
+
+            if (!pmtilesUrl) {
+                console.info('Protomaps PMTiles not configured for Legislature view — polygon-only basemap.')
+                return
+            }
+
+            // Bilingual labels: local `name` plus user's browser-language
+            // translation on a second line when it differs from local.
+            const browserLang = (navigator.language || 'en').split('-')[0].toLowerCase()
+            const flavor      = basemaps.namedFlavor('light')
+            const baseLabelRules = protomaps.labelRules(flavor, '')
+
+            const labelRules = baseLabelRules.map(rule => {
+                if (rule.dataLayer !== 'places') return rule
+                const orig = rule.symbolizer
+                if (!(orig instanceof protomaps.CenteredTextSymbolizer)) return rule
+                const sharedOpts = rule.__textOpts || { fill: '#333', stroke: '#fff', width: 1 }
+                const primary = new protomaps.CenteredTextSymbolizer({
+                    ...sharedOpts,
+                    labelProps: ['name'],
+                    lineHeight: 1.5,
+                    font:       '500 12px sans-serif',
+                })
+                const secondary = new protomaps.CenteredTextSymbolizer({
+                    ...sharedOpts,
+                    labelProps: (z, f) => {
+                        const local = f.props.name
+                        const trans = f.props['name:' + browserLang]
+                        if (!trans || trans === local) return ['__skip__']
+                        return ['name:' + browserLang]
+                    },
+                    font: '400 10px sans-serif',
+                })
+                return { ...rule, symbolizer: new protomaps.FlexSymbolizer([primary, secondary]) }
+            })
+
+            const layer = protomaps.leafletLayer({
+                url:        pmtilesUrl,
+                paintRules: protomaps.paintRules(flavor),
+                labelRules: labelRules,
+                lang:       browserLang,
+                pane:       'basemapPane',
+            })
+            layer.addTo(_map)
+            console.info('Protomaps basemap loaded from', pmtilesUrl, '(lang:', browserLang + ')')
+        } catch (e) {
+            console.warn('Legislature basemap init failed:', e)
+        }
+    })()
+
+    // Restore raster overlay if the operator had it on from a prior session.
+    // applyRasterOverlay() is a no-op until _map exists, which it now does.
+    if (showRaster.value) applyRasterOverlay()
 
     // Clicking ocean/background in new-district mode with nothing selected = implicit cancel
     _map.on('click', function () {
@@ -3983,6 +4409,17 @@ onUnmounted(() => {
     window.removeEventListener('keydown', _onSpaceDown)
     window.removeEventListener('keyup',   _onSpaceUp)
     clearAutoStepTimer()   // safety cleanup in case of unexpected unmount mid-countdown
+    // The mass-status + elapsed timers leak across navigation if a job is
+    // running when the operator leaves the page. Without this cleanup, every
+    // 2.5s the dead component still hits /api/legislatures/{id}/mass-status,
+    // burning a PHP-FPM worker per cycle. Multiple historical visits compound.
+    if (massStatusTimer) { clearInterval(massStatusTimer); massStatusTimer = null }
+    if (elapsedTimer)    { clearInterval(elapsedTimer);    elapsedTimer    = null }
+    // statusTimer is the toast auto-dismiss timeout. If the operator triggers
+    // a save → toast → navigates away within ~3.5s, the setTimeout callback
+    // would otherwise fire on a dead component. Vue 3 is forgiving but it's
+    // a latent leak we may as well close.
+    if (statusTimer)     { clearTimeout(statusTimer);      statusTimer     = null }
 })
 
 // Re-initialize map layers when the active map changes (e.g. switching from Test Map to another).

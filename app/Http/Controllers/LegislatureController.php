@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\RecolorDistrictsJob;
+use App\Services\ConstitutionalDefaults;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,8 +12,166 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * @see App\Services\ConstitutionalDefaults
+ *
+ * Constitutional constants flow through ConstitutionalDefaults:
+ *   - floor / ceiling — `legislature_min_seats` / `legislature_max_seats`
+ *   - sizing law      — `legislature_sizing_law` (default cube_root)
+ *
+ * Derived thresholds used by the district mapper:
+ *   - giant boundary   = ceiling + 0.5  (frac ≥ this triggers subdivision)
+ *   - floor boundary   = floor           (composite minimum)
+ *   - floor override   = floor − 0.5    (frac < this means a floor-override flag)
+ *
+ * With the default 5/9 settings these resolve to 9.5 / 5.0 / 4.5 (matching the
+ * historical alpha-build literals). With operator-set values like 3/7 they
+ * resolve to 7.5 / 3.0 / 2.5. The literal substitution shipped in this PR.
+ */
 class LegislatureController extends Controller
 {
+    /**
+     * Resolve the three constitutional fractional-seats thresholds used
+     * throughout the district-mapper. With default 5/9 settings these
+     * return 9.5 / 5.0 / 4.5 (matching the historical hardcoded literals).
+     * With operator-set 3/7 they return 7.5 / 3.0 / 2.5.
+     *
+     * @return array{giant: float, floor: float, override: float}
+     *   giant    — fractional ≥ giant must be split (ceiling + 0.5)
+     *   floor    — composite fractional sum ≥ floor rounds to ≥ floor
+     *   override — fractional < override triggers a floor-override flag
+     */
+    private function thresholds(string $jurisdictionId): array
+    {
+        return [
+            'giant'    => ConstitutionalDefaults::giantThreshold($jurisdictionId),
+            'floor'    => ConstitutionalDefaults::floorBoundary($jurisdictionId),
+            'override' => ConstitutionalDefaults::floorOverrideBoundary($jurisdictionId),
+        ];
+    }
+
+    /** Per-request memo for getLegislature(). */
+    private array $legislatureMemo = [];
+
+    /** Per-request memo for computeSeatBudget(). Keyed "{legId}:{jid}". */
+    private array $seatBudgetMemo = [];
+
+    /**
+     * Memoized legislature row loader. Same row may be needed by several
+     * computeSeatBudget() walks during one request.
+     */
+    private function getLegislature(string $legislatureId): ?object
+    {
+        if (array_key_exists($legislatureId, $this->legislatureMemo)) {
+            return $this->legislatureMemo[$legislatureId];
+        }
+        $row = DB::table('legislatures')
+            ->where('id', $legislatureId)
+            ->whereNull('deleted_at')
+            ->first();
+        return $this->legislatureMemo[$legislatureId] = $row;
+    }
+
+    /**
+     * Returns the seat count for a jurisdiction at its own scope.
+     *
+     * Exit paths (first match wins):
+     *   1. ROOT     — jurisdiction is the legislature's root jurisdiction:
+     *                 return legislatures.type_a_seats.
+     *   2. LOOKUP   — jurisdiction is already a member of a non-deleted
+     *                 legislature_districts row in this legislature:
+     *                 return that row's seats. Cheap gate that covers
+     *                 ~all non-giant jurisdictions after autoseed.
+     *   3. CASCADE  — only fires when the lookup misses (jurisdiction is
+     *                 a GIANT at its parent's scope, so Step 12 never
+     *                 inserts a district for it; or parent scope hasn't
+     *                 been autoseeded yet). Recursively compute parent's
+     *                 budget, then apply Calc A at parent scope:
+     *                   Q(parent) = sum_children_pop(parent) / S(parent)
+     *                   frac(self) = self.pop / Q(parent)
+     *                 Return max(floor, round(frac)).
+     *
+     * Memoized per request. Recursion depth ≤ ADM hierarchy depth (~5).
+     * Works at N layers of nested giants (Earth → China → Guangzhou
+     * → Shenzhenxian → …) without code change.
+     *
+     * The lookup gate (Path 2) keeps the helper bounded when called
+     * across many jurisdictions: only giants reach Path 3, and giants
+     * are a small fraction of the table.
+     *
+     * @return int|null  null when chain breaks (no legislature, no
+     *                   parent, zero children pop, etc.)
+     */
+    private function computeSeatBudget(string $jurisdictionId, string $legislatureId): ?int
+    {
+        $key = "{$legislatureId}:{$jurisdictionId}";
+        if (array_key_exists($key, $this->seatBudgetMemo)) {
+            return $this->seatBudgetMemo[$key];
+        }
+
+        $leg = $this->getLegislature($legislatureId);
+        if (!$leg) return $this->seatBudgetMemo[$key] = null;
+
+        // ── Path 1: ROOT ─────────────────────────────────────────────
+        if ($jurisdictionId === $leg->jurisdiction_id) {
+            return $this->seatBudgetMemo[$key] = (int) $leg->type_a_seats;
+        }
+
+        // ── Path 2: LOOKUP (cheap; gates the recursion) ──────────────
+        // If this jurisdiction is already a member of a district in this
+        // legislature, return that district's seats. Avoids any cascade
+        // work for the common non-giant case.
+        $row = DB::selectOne("
+            SELECT ld.seats
+              FROM legislature_districts ld
+              JOIN legislature_district_jurisdictions ldj
+                ON ldj.district_id = ld.id
+             WHERE ldj.jurisdiction_id = ?
+               AND ld.legislature_id  = ?
+               AND ld.deleted_at IS NULL
+             ORDER BY ld.seats DESC LIMIT 1
+        ", [$jurisdictionId, $legislatureId]);
+        if ($row) {
+            return $this->seatBudgetMemo[$key] = (int) $row->seats;
+        }
+
+        // ── Path 3: CASCADE — only when lookup missed ────────────────
+        // Reaches here ONLY when the jurisdiction has no district
+        // membership: either it's a giant at its parent's scope
+        // (Step 12 doesn't insert a district for giants) or the parent
+        // scope's autoseed hasn't run yet (first-time-create path).
+        $self = DB::table('jurisdictions')
+            ->where('id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->first(['id', 'parent_id', 'population']);
+        if (!$self || !$self->parent_id) {
+            return $this->seatBudgetMemo[$key] = null;
+        }
+
+        $parentBudget = $this->computeSeatBudget($self->parent_id, $legislatureId);
+        if ($parentBudget === null) {
+            return $this->seatBudgetMemo[$key] = null;
+        }
+
+        // Calc A: Q(parent) = Σ children pop / S(parent);
+        //         frac(self) = self.pop / Q(parent).
+        // Sum of all parent-children fracs equals S(parent) exactly,
+        // so chaining stays budget-exact at every level.
+        $parentChildrenPop = (int) DB::table('jurisdictions')
+            ->where('parent_id', $self->parent_id)
+            ->whereNull('deleted_at')
+            ->sum('population');
+        if ($parentChildrenPop <= 0) {
+            return $this->seatBudgetMemo[$key] = null;
+        }
+
+        $parentLocalQuota = $parentChildrenPop / max($parentBudget, 1);
+        $frac  = ((int) $self->population) / max($parentLocalQuota, 1);
+        $floor = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+
+        return $this->seatBudgetMemo[$key] = max($floor, (int) round($frac));
+    }
+
     /**
      * Legislature browser.
      *
@@ -52,11 +210,24 @@ class LegislatureController extends Controller
             ->value('population');
         $rootPop = max($rootPop, 1);
 
-        // Guard: non-root scopes must be giants (fractional_seats >= 9.5 at root quota).
+        // Constitutional thresholds — resolved from the legislature's root
+        // jurisdiction's constitutional_settings. Substituting these for the
+        // legacy hardcoded 9.5 / 5.0 / 4.5 literals lets operator-set floor
+        // and ceiling values actually flow through into the district mapper.
+        // With default 5/9 settings these come out 9.5 / 5.0 / 4.5 (matching
+        // the legacy alpha-build behavior). With operator-set 3/7 they come
+        // out 7.5 / 3.0 / 2.5.
+        $floor          = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling        = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+        $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
+        $floorBoundary  = ConstitutionalDefaults::floorBoundary($leg->jurisdiction_id);
+        $floorOverride  = ConstitutionalDefaults::floorOverrideBoundary($leg->jurisdiction_id);
+
+        // Guard: non-root scopes must be giants (fractional_seats >= giant threshold at root quota).
         // Prevents URL-based access to non-giant sub-scopes (indivisible jurisdictions).
         if ($scopeId !== $leg->jurisdiction_id) {
             $scopeFrac = (int) $scope->population * (int) $leg->type_a_seats / $rootPop;
-            if ($scopeFrac < 9.5) {
+            if ($scopeFrac < $giantThreshold) {
                 // Walk up to find the nearest giant (or root) ancestor to redirect to.
                 $redirectScopeId = $leg->jurisdiction_id;  // fallback: root
                 $parentId = $scope->parent_id;
@@ -67,7 +238,7 @@ class LegislatureController extends Controller
                         ->first();
                     if (!$parentRow) break;
                     $parentFrac = (int) $parentRow->population * (int) $leg->type_a_seats / $rootPop;
-                    if ($parentFrac >= 9.5) {
+                    if ($parentFrac >= $giantThreshold) {
                         $redirectScopeId = $parentId;
                         break;
                     }
@@ -84,8 +255,9 @@ class LegislatureController extends Controller
         // At root scope: just the legislature's own type_a_seats (e.g. 1999).
         // At non-root scope: use SUM(direct_children.population) as denominator — the same
         // population base that runAutoCompositeForScope() uses for $scopeBudget.  This
-        // eliminates the "28 vs 29" class of mismatches that arise when stored ADM0 population
-        // ≠ sum of ADM1 child populations (geoBoundaries ADM-level data quality variation).
+        // eliminates the "28 vs 29" class of mismatches that arise when a parent's stored
+        // population ≠ sum of its direct children (data-quality variation between
+        // geoBoundaries boundary levels).
         if ($scopeId === $leg->jurisdiction_id) {
             $scopeSeats   = (int) $leg->type_a_seats;
             $effectivePop = (int) $scope->population;
@@ -97,32 +269,66 @@ class LegislatureController extends Controller
             if ($effectivePop <= 0) {
                 $effectivePop = (int) $scope->population;   // fallback for empty scopes
             }
-            // Priority for scopeSeats at non-root scopes:
-            // 1. type_a_apportioned — authoritative Webster result from ETL Phase 1.
-            //    This is the correct budget regardless of how many districts exist in the
-            //    current map (important for multi-map support: a draft map with partial
-            //    districts must still show the full budget, not distSum).
-            // 2. Proportional approximation — last resort before any seeding has occurred.
-            if ($scope->type_a_apportioned !== null) {
-                $scopeSeats = (int) $scope->type_a_apportioned;
-            } else {
-                $scopeSeats = max(5, (int) round($effectivePop * (int) $leg->type_a_seats / $rootPop));
-            }
+            // Seat budget at non-root scopes via the gated cascade. Path 2
+            // (district lookup) covers composite members; Path 3 (cascade)
+            // walks the parent chain for giants. Returns NULL only if the
+            // legislature row can't be loaded — fall back to the old
+            // proportional approximation in that degenerate case.
+            $scopeSeats = $this->computeSeatBudget($scopeId, $legislature_id)
+                ?? max($floor, (int) round($effectivePop * (int) $leg->type_a_seats / $rootPop));
         }
 
         // Display quota: effectivePop / scope_entitlement.
         // Uses the same population base as $scopeSeats so the displayed quota matches
         // what the ETL used when seeding districts (e.g. Philippines: SUM(ADM1 pops)/29).
         $quota = max($effectivePop, 1) / max($scopeSeats, 1);
+        $isRootScope = ($scopeId === $leg->jurisdiction_id);
+
+        // ── Ancestor chain (cheap, needed by both the render call AND the
+        // heavy block's district-name labeling) ────────────────────────────────
+        $ancestors = DB::select("
+            WITH RECURSIVE anc AS (
+                SELECT id, name, parent_id, iso_code, adm_level
+                FROM jurisdictions WHERE id = :start_id
+                UNION ALL
+                SELECT j.id, j.name, j.parent_id, j.iso_code, j.adm_level
+                FROM jurisdictions j
+                JOIN anc ON j.id = anc.parent_id
+                WHERE j.deleted_at IS NULL
+            )
+            SELECT id, name, iso_code, adm_level FROM anc
+        ", ['start_id' => $scopeId]);
+        // Reverse so we get root → current scope
+        $ancestors = array_reverse($ancestors);
+
+        // ── Heavy data block — wrapped in a memoized closure ───────────────────
+        // The 788 ms recursive CTE for children + assemble-districts + flags +
+        // stats computation collectively pushed initial page render north of
+        // 1 s, leaving the operator staring at a blank screen after every code
+        // change → restart cycle. Wrap the whole block in a closure and defer
+        // its execution via Inertia::defer (v2): the initial render returns the
+        // cheap header/scope/maps data immediately, the page mounts, and Vue
+        // auto-issues a partial reload to populate the heavy props in the
+        // background. The 5 defer closures share this memoized loader so the
+        // backend does the work exactly once per partial reload.
+        $heavyCache = null;
+        $loadHeavy = function () use (
+            &$heavyCache,
+            $legislature_id, $scopeId, $mapId, $leg,
+            $scope, $scopeSeats, $rootPop, $effectivePop, $isRootScope,
+            $giantThreshold, $floor, $quota, $ancestors,
+        ) {
+            if ($heavyCache !== null) return $heavyCache;
 
         // Children of scope with their fractional seats and current district assignment
         $mapFilter  = $mapId !== null ? 'AND ld.map_id = :map_id' : '';
         $mapBindings = $mapId !== null ? ['map_id' => $mapId] : [];
 
         // child_assigned_seats: seats committed inside each child's subtree at any depth.
-        // A correlated one-level subquery misses grandchildren (e.g. Earth→India→ADM3).
-        // A WITH RECURSIVE CTE walks all descendants (depth-limited to 5 levels) so that
-        // Earth scope correctly sums UP/Maharashtra's sub-districts that contain ADM3 members.
+        // A correlated one-level subquery misses grandchildren (e.g. Earth → India →
+        // states → sub-state districts at adm_level 4+). A WITH RECURSIVE CTE walks
+        // all descendants (depth-limited to 5 levels) so that Earth scope correctly
+        // sums UP/Maharashtra's sub-districts that contain deep-hierarchy members.
         // PDO does not allow reusing named parameters — scope_id_r / leg_id2 / map_id2 are
         // distinct aliases for the same values used in the outer query.
         $childMapFilter2 = $mapId !== null ? 'AND ld2.map_id = :map_id2' : '';
@@ -130,15 +336,16 @@ class LegislatureController extends Controller
 
         $children = DB::select("
             WITH RECURSIVE giant_children AS (
-                -- Only giant children (frac >= 9.5) ever have sub-districts; non-giants are always
-                -- composited at this scope level so their child_assigned_seats is always 0.
-                -- Scoping the seed to giants only reduces CTE rows from millions (all descendants
-                -- of all 192 countries) to just the subtrees of ~3-5 giant countries.
+                -- Only giant children (frac >= giant_threshold) ever have sub-districts;
+                -- non-giants are always composited at this scope level so their
+                -- child_assigned_seats is always 0. Scoping the seed to giants only reduces
+                -- CTE rows from millions (all descendants of all ~232 countries) to just the
+                -- subtrees of the giant countries.
                 SELECT id
                 FROM   jurisdictions
                 WHERE  parent_id  = :scope_id_r
                   AND  deleted_at IS NULL
-                  AND  (CAST(population AS numeric) * :total_seats_c / :root_pop_c) >= 9.5
+                  AND  (CAST(population AS numeric) * :total_seats_c / :root_pop_c) >= :giant_threshold_c
             ),
             desc_tree AS (
                 -- Seed: giant children only (root_child_id tracks which giant each
@@ -146,7 +353,8 @@ class LegislatureController extends Controller
                 SELECT id, id AS root_child_id, 0 AS lvl
                 FROM   giant_children
                 UNION ALL
-                -- Recurse: one level deeper, capped at lvl 4 (covers ADM0→ADM3 hierarchies)
+                -- Recurse: one level deeper, capped at lvl 4 (covers 4 levels of
+                -- descent from a giant country — e.g. country → state → county → local)
                 SELECT j.id, d.root_child_id, d.lvl + 1
                 FROM   jurisdictions j
                 JOIN   desc_tree d ON j.parent_id = d.id
@@ -177,7 +385,11 @@ class LegislatureController extends Controller
                 j.name,
                 j.adm_level,
                 j.population,
-                j.type_a_apportioned,
+                -- type_a_apportioned populated via computeSeatBudget() in PHP
+                -- after this select returns. Cheaper than the prior inline
+                -- subselect, and uses the gated cascade so giants resolve
+                -- correctly (lookup-by-member misses for giants).
+                NULL                                              AS type_a_apportioned,
                 ROUND(CAST(j.population AS numeric) / :quota, 4)  AS fractional_seats,
                 ld.id                                              AS district_id,
                 ld.seats                                           AS district_seats,
@@ -196,34 +408,48 @@ class LegislatureController extends Controller
               AND j.deleted_at IS NULL
             ORDER BY j.id, ld.id NULLS LAST
         ", array_merge([
-            'quota'         => $quota,
-            'leg_id'        => $legislature_id,
-            'leg_id2'       => $legislature_id,
-            'scope_id'      => $scopeId,
-            'scope_id_r'    => $scopeId,
-            'total_seats_c' => (int) $leg->type_a_seats,
-            'root_pop_c'    => $rootPop,
+            'quota'              => $quota,
+            'leg_id'             => $legislature_id,
+            'leg_id2'            => $legislature_id,
+            'scope_id'           => $scopeId,
+            'scope_id_r'         => $scopeId,
+            'total_seats_c'      => (int) $leg->type_a_seats,
+            'root_pop_c'         => $rootPop,
+            'giant_threshold_c'  => $giantThreshold,
         ], $mapBindings, $childMapBindings));
 
         // Re-sort in PHP after DISTINCT ON forces ORDER BY j.id above.
         usort($children, fn($a, $b) => $b->population - $a->population);
 
+        // Populate type_a_apportioned via the gated computeSeatBudget cascade.
+        // For non-giants already members of a composite district at this scope
+        // (the common case), this is a single indexed query per child that
+        // hits the in-memory memo on repeat calls. Giants take Path 3 and walk
+        // the parent chain up to the legislature's root — the only place the
+        // recursion actually fires.
+        foreach ($children as $c) {
+            $c->type_a_apportioned = $this->computeSeatBudget($c->id, $legislature_id);
+        }
+
         // ── Non-giant quota adjustment ────────────────────────────────────────
         // When giants are present, their true fractional seats (non-integer) are rounded
-        // to integer type_a_apportioned values.  Using the full quota for non-giant fracs
+        // to integer locked-seat values. Using the full quota for non-giant fracs
         // causes them to sum to a non-integer value instead of exactly (scopeSeats − giantSeats).
         // Example: Indonesia 70 seats, WJ 12.63→13, EJ 10.57→11; non-giant fracs sum to
-        // 46.83 with full quota instead of 46.  The non-giant quota fixes this exactly.
-        // Giants keep their full-quota frac for Vue GIANT_THRESHOLD identification (>= 9.5).
+        // 46.83 with full quota instead of 46. The non-giant quota fixes this exactly.
+        // Giants keep their full-quota frac for Vue GIANT_THRESHOLD identification
+        // (>= giant_threshold).
         $ngQuota = $this->computeNonGiantQuota(
             $children,
             $quota,         // full quota = effectivePop / scopeSeats
             $scopeSeats,
-            $effectivePop
+            $effectivePop,
+            $giantThreshold,
+            $floor
         );
         if ($ngQuota !== $quota) {
             foreach ($children as &$c) {
-                if ((float) $c->fractional_seats < 9.5) {
+                if ((float) $c->fractional_seats < $giantThreshold) {
                     $c->fractional_seats = round((float) $c->population / max($ngQuota, 1), 4);
                 }
             }
@@ -232,13 +458,14 @@ class LegislatureController extends Controller
 
         // Districts with full member data — one row per district-member pair at this scope.
         // Grouped in PHP so each district gets a `members` array with IDs for map highlighting.
+        // color_index is NOT pulled here — it's computed below from the
+        // adjacency graph of the result set (colorIndicesForDistricts()).
         $dmRows = DB::select("
             SELECT
                 ld.id               AS district_id,
                 ld.seats,
                 ld.floor_override,
                 ld.status,
-                ld.color_index,
                 ld.district_number  AS dnum,
                 ld.actual_population AS district_pop,
                 -- Compute fractional live from actual_population / current-scope quota
@@ -295,13 +522,13 @@ class LegislatureController extends Controller
                     'seats'            => (int) $row->seats,
                     'floor_override'   => (bool) $row->floor_override,
                     'status'           => $row->status,
-                    'color_index'      => (int) $row->color_index,
+                    'color_index'      => 0,   // overlaid below from greedy coloring
                     'district_number'  => (int) $row->dnum,
                     'population'       => (int) $row->district_pop,
                     'fractional_seats' => (float) $row->district_frac,
                     'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
-                    'has_integrity'     => !(($quota > 0 ? (float) $row->district_scope_pop / $quota : 0) >= 9.5 && (int) $row->district_scope_child_count === 0),
+                    'has_integrity'     => !(($quota > 0 ? (float) $row->district_scope_pop / $quota : 0) >= $giantThreshold && (int) $row->district_scope_child_count === 0),
                     'scope_iso'        => $row->district_scope_iso,
                     'scope_adm'        => (int) $row->district_scope_adm,
                     'scope_name'       => $row->district_scope_name,
@@ -324,24 +551,9 @@ class LegislatureController extends Controller
         }
 
         // Breadcrumb: ancestor chain from scope up to the legislature's root jurisdiction.
-        // Moved before district naming so we can use ancestors[1] (first child of root)
-        // as the label prefix — ensures grandchild scopes (e.g. California) label "USA 01"
-        // rather than "CAL 01".
-        $ancestors = DB::select("
-            WITH RECURSIVE anc AS (
-                SELECT id, name, parent_id, iso_code, adm_level
-                FROM jurisdictions WHERE id = :start_id
-                UNION ALL
-                SELECT j.id, j.name, j.parent_id, j.iso_code, j.adm_level
-                FROM jurisdictions j
-                JOIN anc ON j.id = anc.parent_id
-                WHERE j.deleted_at IS NULL
-            )
-            SELECT id, name, iso_code, adm_level FROM anc
-        ", ['start_id' => $scopeId]);
-
-        // Reverse so we get root → current scope
-        $ancestors = array_reverse($ancestors);
+        // $ancestors is now computed BEFORE the heavy closure (cheap query,
+        // needed by both the closure's district-name labeling AND the cheap
+        // Inertia render call). Captured via the closure's use() clause above.
 
         // Compute human-readable name from member codes (scope-aware)
         // Root scope: codes only, no number — "SAU", "AND-LIE-MCO" (every combo is unique)
@@ -417,25 +629,17 @@ class LegislatureController extends Controller
             }
         }
 
-        $districts = array_values($districtMap);
-
-        // Lazy-backfill: if all districts at this scope still have color_index=0 (e.g. after
-        // a reseed or data wipe), run the 4-color assignment once and update in-place.
-        // recomputeColorIndices() wraps geometries in ST_SimplifyPreserveTopology to keep
-        // ST_Intersects fast even on large-polygon scopes (Canada, India, etc.).  For > 50
-        // districts it skips adjacency entirely and uses fast deterministic cycling instead.
-        if (count($districts) > 1
-            && max(array_column($districts, 'color_index')) === 0
-        ) {
-            $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $mapId);
-            $freshColors = DB::table('legislature_districts')
-                ->whereIn('id', array_column($districts, 'id'))
-                ->pluck('color_index', 'id');
-            foreach ($districts as &$d) {
-                $d['color_index'] = (int) ($freshColors[$d['id']] ?? 0);
-            }
-            unset($d);
+        // Overlay adjacency-aware colors from the legislature-wide coloring.
+        // Using legislatureColorMap (not just this scope's districts) lets
+        // sidebar dot colors stay consistent with revealedGeoJson's map fills
+        // for districts at different ADM levels viewed together at one scope.
+        $colorMap = $this->legislatureColorMap($legislature_id, $mapId);
+        foreach ($districtMap as $did => &$d) {
+            $d['color_index'] = $colorMap[$did] ?? 0;
         }
+        unset($d);
+
+        $districts = array_values($districtMap);
 
         // Districts have no stored geometry — centroids are always null.
         // The revealed layer uses jurisdiction polygons (jurisdictions.geom) directly.
@@ -446,6 +650,38 @@ class LegislatureController extends Controller
 
         $flags = $this->computeValidationFlags($legislature_id, $leg, $scopeId, $children, $districts, $mapId);
         $stats = $this->computeConstitutionalStats($legislature_id, $scopeId, $districts, $ngQuota, $mapId);
+
+            // ── End of deferred heavy block ───────────────────────────────────────
+            // Package the heavy results into the shared cache. The 5 defer
+            // closures in Inertia::render() pull individual props from this
+            // structure — all share one backend pass.
+            $heavyCache = [
+                'children'  => array_map(fn($c) => [
+                    'id'               => $c->id,
+                    'name'             => $c->name,
+                    'adm_level'        => $c->adm_level,
+                    'population'       => (int) $c->population,
+                    // At non-root scopes, giant children (frac >= giant_threshold) display
+                    // their integer allocation (round of local-quota frac) so that
+                    // composite_sum + giant_integers = scopeSeats exactly. Root scope keeps
+                    // raw fractionals (e.g. India 357.94).
+                    'fractional_seats' => !$isRootScope && (float) $c->fractional_seats >= $giantThreshold
+                        ? (float) round((float) $c->fractional_seats)
+                        : (float) $c->fractional_seats,
+                    'district_id'      => $c->district_id,
+                    'district_seats'   => $c->district_seats !== null ? (int) $c->district_seats : null,
+                    'floor_override'   => (bool) $c->floor_override,
+                    'child_count'          => (int) $c->child_count,
+                    'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
+                    'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
+                ], $children),
+                'districts' => $districts,
+                'flags'     => $flags,
+                'stats'     => $stats,
+                'quota'     => round($ngQuota),
+            ];
+            return $heavyCache;
+        };
 
         $massToolRunning = (bool) Cache::get("legislature.{$legislature_id}.mass_running", false);
 
@@ -520,28 +756,21 @@ class LegislatureController extends Controller
             })(),
             'scope_seats' => $scopeSeats,   // rounded entitlement at this drill-down level
             'ancestors' => array_map(fn($a) => ['id' => $a->id, 'name' => $a->name], $ancestors),
-            'children'  => array_map(fn($c) => [
-                'id'               => $c->id,
-                'name'             => $c->name,
-                'adm_level'        => $c->adm_level,
-                'population'       => (int) $c->population,
-                // At non-root scopes, giant children (frac >= 9.5) display their integer
-                // allocation (round of local-quota frac) so that composite_sum + giant_integers
-                // = scopeSeats exactly.  Root scope keeps raw fractionals (e.g. India 357.94).
-                'fractional_seats' => !$isRootScope && (float) $c->fractional_seats >= 9.5
-                    ? (float) round((float) $c->fractional_seats)
-                    : (float) $c->fractional_seats,
-                'district_id'      => $c->district_id,
-                'district_seats'   => $c->district_seats !== null ? (int) $c->district_seats : null,
-                'floor_override'   => (bool) $c->floor_override,
-                'child_count'          => (int) $c->child_count,
-                'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
-                'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
-            ], $children),
-            'districts' => $districts,  // [{id, seats, floor_override, status, color_index, district_number, name, members:[...]}]
-            'quota'           => round($quota),
-            'flags'           => $flags,
-            'stats'           => $stats,
+
+            // Heavy props — inline. We previously wrapped these in Inertia::defer()
+            // to speed up cold-restart rendering, but the v2 client's auto-fetch
+            // for deferred props wasn't firing (verified empirically), leaving
+            // the sidebar permanently empty. Cold-restart is now solved at the
+            // container layer (OPcache pre-warm, healthcheck-gated nginx, larger
+            // FPM pool), so the ~1s heavy work is paid up front and the data
+            // always arrives in the initial render. The $loadHeavy closure stays
+            // memoized so reading 5 keys runs the backend pass once.
+            'children'  => $loadHeavy()['children'],
+            'districts' => $loadHeavy()['districts'],
+            'quota'     => $loadHeavy()['quota'],
+            'flags'     => $loadHeavy()['flags'],
+            'stats'     => $loadHeavy()['stats'],
+
             'mass_tool_running' => $massToolRunning,
             'maps'       => $allMaps,
             'active_map' => $activeMapRow ? [
@@ -549,6 +778,23 @@ class LegislatureController extends Controller
                 'name'   => $activeMapRow->name,
                 'status' => $activeMapRow->status,
             ] : null,
+            // Constitutional thresholds — surfaced as Inertia props so the Vue
+            // side (Show.vue) can substitute them for its previously hardcoded
+            // GIANT_THRESHOLD = 9.5 etc. Lets operator-set floor/ceiling values
+            // actually flow through into the district-mapper's giant
+            // identification, composite validation, and floor-override flags.
+            'constitutional' => [
+                'floor'           => $floor,
+                'ceiling'         => $ceiling,
+                'giant_threshold' => $giantThreshold,
+                'floor_boundary'  => $floorBoundary,
+                'floor_override'  => $floorOverride,
+            ],
+            // Wizard integration: when the user arrives from /setup/step/3,
+            // ?setup=1 toggles a sticky banner with a return-to-wizard button.
+            // Whether an active map exists determines whether the banner
+            // surfaces a "Back to Setup →" action or only the reminder text.
+            'setup_mode' => (bool) $request->query('setup'),
         ]);
     }
 
@@ -595,74 +841,80 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'One or more jurisdictions are invalid or do not belong to the scope'], 422);
         }
 
+        // Constitutional thresholds (substituted for the legacy 9.5/5/9 literals).
+        ['giant' => $giantThreshold] = $this->thresholds($leg->jurisdiction_id);
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+
         // Compute local quota: scope children population / scope seat budget.
-        // Uses type_a_apportioned (set by parent autoComposite) when available; falls back to proportional.
+        // Seat budget via the gated computeSeatBudget cascade — Path 2
+        // covers composite-member scopes (cheap indexed lookup), Path 3
+        // covers giants (walks parent chain). Returns NULL only on a
+        // degenerate (no legislature) case; fall back to a proportional
+        // approximation then.
         $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
         $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
         $scopeChildrenPop = (int) DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
             ->whereNull('deleted_at')
             ->sum('population');
-        if ($scopeId === $leg->jurisdiction_id) {
-            $seatBudget = (int) $leg->type_a_seats;
-        } elseif ($scopeRow && $scopeRow->type_a_apportioned !== null) {
-            $seatBudget = (int) $scopeRow->type_a_apportioned;
-        } else {
-            $seatBudget = max(5, (int) round((int) ($scopeRow ? $scopeRow->population : 0) * (int) $leg->type_a_seats / $rootPop));
-        }
+        $seatBudget = $this->computeSeatBudget($scopeId, $legislature_id)
+            ?? max($floor, (int) round((int) ($scopeRow ? $scopeRow->population : 0) * (int) $leg->type_a_seats / $rootPop));
         $localQuota = $scopeChildrenPop / max($seatBudget, 1);
 
-        // Validate: no individual member may be a giant (frac >= 9.5) — giants cannot be composited
+        // Validate: no individual member may be a giant (frac >= giant threshold)
+        // — giants cannot be composited.
         foreach ($jRows as $jRow) {
             $memberFrac = (int) $jRow->population / max($localQuota, 1);
-            if ($memberFrac >= 9.5) {
+            if ($memberFrac >= $giantThreshold) {
                 return response()->json([
                     'error' => sprintf(
-                        '%s has %.2f fractional seats (≥ 9.5). ' .
+                        '%s has %.2f fractional seats (≥ %.1f). ' .
                         'Giant jurisdictions cannot be assigned to a district at this level — drill down instead.',
-                        $jRow->name, $memberFrac
+                        $jRow->name, $memberFrac, $giantThreshold
                     ),
                 ], 422);
             }
         }
 
-        // Validate: composite total fractional must be < 9.5 (rounds to ≤ 9 seats)
+        // Validate: composite total fractional must be < giant threshold
+        // (otherwise it rounds to > ceiling seats).
         $totalFrac = array_sum($jRows->map(fn($r) => (int) $r->population / max($localQuota, 1))->toArray());
-        if ($totalFrac >= 9.5) {
+        if ($totalFrac >= $giantThreshold) {
             return response()->json([
                 'error' => sprintf(
-                    'Composite fractional seats (%.2f) ≥ 9.5 — would round to ≥ 10, ' .
-                    'exceeding the constitutional district maximum of 9. Remove a jurisdiction.',
-                    $totalFrac
+                    'Composite fractional seats (%.2f) ≥ %.1f — would round to > %d, ' .
+                    'exceeding the constitutional district maximum of %d. Remove a jurisdiction.',
+                    $totalFrac, $giantThreshold, $ceiling, $ceiling
                 ),
             ], 422);
         }
 
         // Compute effective floor + non-giant quota — mirrors runAutoCompositeForScope() logic.
         // When giants consume most of the budget, the remaining non-giant budget may be less
-        // than 5, so the floor is capped at that remainder.
+        // than the floor, so the floor is capped at that remainder.
         // Also derive ngLocalQuota (non-giant quota) so the stored fractional correctly
         // represents the district's share of the non-giant seat pool.
         $allScopeChildren = DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
             ->whereNull('deleted_at')
-            ->get(['population', 'type_a_apportioned']);
+            ->get(['id', 'population']);
         $giantSeatsCommitted = 0;
         $giantPopCommitted   = 0;
         foreach ($allScopeChildren as $child) {
             $childFrac = (int) $child->population / max($localQuota, 1);
-            if ($childFrac >= 9.5) {
-                // Use type_a_apportioned (locked integer budget) when available;
-                // otherwise round the fractional seats (same fallback as runAutoCompositeForScope).
-                $childSeats = ($child->type_a_apportioned !== null)
-                    ? (int) $child->type_a_apportioned
-                    : max(5, (int) round($childFrac));
+            if ($childFrac >= $giantThreshold) {
+                // Locked giant seat count via the gated cascade. Falls back
+                // to Webster-rounded local frac if the cascade returns NULL
+                // (degenerate case; same fallback as runAutoCompositeForScope).
+                $childSeats = $this->computeSeatBudget($child->id, $legislature_id)
+                    ?? max($floor, (int) round($childFrac));
                 $giantSeatsCommitted += $childSeats;
                 $giantPopCommitted   += (int) $child->population;
             }
         }
         $nonGiantBudget = max(1, $seatBudget - $giantSeatsCommitted);
-        $effectiveFloor = min(5, $nonGiantBudget);
+        $effectiveFloor = min($floor, $nonGiantBudget);
 
         // Non-giant quota: guarantees SUM(non-giant fracs) = nonGiantBudget exactly.
         $ngLocalQuota = $giantSeatsCommitted > 0
@@ -676,9 +928,9 @@ class LegislatureController extends Controller
         $totalPop   = (int) $jRows->sum('population');
         $fractional = $totalPop / max($ngLocalQuota, 1);
 
-        // Webster (Sainte-Laguë) rounding — clamp to [effectiveFloor, 9]
-        $seats        = max($effectiveFloor, min(9, (int) round($fractional)));
-        $floorOverride = $seats < 5;
+        // Webster (Sainte-Laguë) rounding — clamp to [effectiveFloor, ceiling]
+        $seats         = max($effectiveFloor, min($ceiling, (int) round($fractional)));
+        $floorOverride = $seats < $floor;
 
         DB::beginTransaction();
         try {
@@ -761,9 +1013,6 @@ class LegislatureController extends Controller
 
             DB::commit();
 
-            // Recompute 4-color assignment for all districts at this scope
-            $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $mapId);
-
             $newDistrict = DB::table('legislature_districts')->where('id', $districtId)->first();
             $districtNumber = (int) $newDistrict->district_number;  // refresh after renumber
 
@@ -783,8 +1032,15 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
+            $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
+
+            // Greedy adjacency coloring may shift any sibling's color when a
+            // new district joins the scope (the adjacency graph has new nodes
+            // and edges). Recompute the whole scope, ship every color so the
+            // frontend can merge them into local state without a reload.
+            $scopeColors = $this->scopeColorMap($legislature_id, $scopeId, $mapId);
+
             // Districts that lost members had their seats recomputed via recomputeDistrict() above.
-            // Return their fresh seat counts so the frontend can sync without a full page reload.
             $affectedDistrictsData = [];
             foreach ($existingDistrictIds as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
@@ -793,22 +1049,10 @@ class LegislatureController extends Controller
                         'id'             => $did,
                         'seats'          => (int) $affRow->seats,
                         'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'    => (int) $affRow->color_index,
+                        'color_index'    => $scopeColors[$did] ?? 0,
                     ];
                 }
             }
-
-            $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
-
-            // Return color_index for every district in this legislature+map so the
-            // frontend can sync neighbor colors without a full page refresh.
-            $colorUpdatesQuery = DB::table('legislature_districts')
-                ->where('legislature_id', $legislature_id)
-                ->whereNull('deleted_at');
-            if ($mapId !== null) {
-                $colorUpdatesQuery->where('map_id', $mapId);
-            }
-            $colorUpdates = $colorUpdatesQuery->pluck('color_index', 'id');
 
             return response()->json([
                 'district' => [
@@ -816,7 +1060,7 @@ class LegislatureController extends Controller
                     'seats'            => (int) $newDistrict->seats,
                     'floor_override'   => (bool) $newDistrict->floor_override,
                     'fractional_seats' => round($fractional, 4),
-                    'color_index'      => (int) $newDistrict->color_index,
+                    'color_index'      => $scopeColors[$newDistrict->id] ?? 0,
                     'status'           => $newDistrict->status,
                     'member_count'     => count($jids),
                     'district_number'  => $districtNumber,
@@ -826,7 +1070,7 @@ class LegislatureController extends Controller
                     'has_integrity'     => true,  // always true — composited from existing admin children
                 ],
                 'affected_districts' => $affectedDistrictsData,
-                'color_updates'      => $colorUpdates,
+                'color_indices'      => $scopeColors,
             ], 201);
 
         } catch (\Throwable $e) {
@@ -859,6 +1103,11 @@ class LegislatureController extends Controller
         // label_scope_id: first child of root (used for naming at grandchild scopes).
         $labelScopeId = $request->input('label_scope_id', $reqScopeId);
 
+        // Constitutional thresholds (substituted for the legacy 9.5/5/9 literals).
+        ['giant' => $giantThreshold] = $this->thresholds($leg->jurisdiction_id);
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+
         // Pre-validate composite sum: compute projected membership after add/remove
         if (!empty($add)) {
             // Compute local quota for this district's scope
@@ -870,22 +1119,19 @@ class LegislatureController extends Controller
                 ->where('parent_id', $distScopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
-            if ($distScopeId === $leg->jurisdiction_id) {
-                $distSeatBudget = (int) $leg->type_a_seats;
-            } elseif ($distScopeRow && $distScopeRow->type_a_apportioned !== null) {
-                $distSeatBudget = (int) $distScopeRow->type_a_apportioned;
-            } else {
-                $distSeatBudget = max(5, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $distRootPop));
-            }
+            // Seat budget via the gated cascade. Falls back to proportional
+            // approximation in the degenerate case (no legislature row).
+            $distSeatBudget = $this->computeSeatBudget($distScopeId, $legislature_id)
+                ?? max($floor, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $distRootPop));
             $localQuota = $distScopePop / max($distSeatBudget, 1);
 
             // Validate no added jurisdiction is a giant
             $addRows = DB::table('jurisdictions')->whereIn('id', $add)->get(['id', 'name', 'population']);
             foreach ($addRows as $aRow) {
                 $frac = (int) $aRow->population / max($localQuota, 1);
-                if ($frac >= 9.5) {
+                if ($frac >= $giantThreshold) {
                     return response()->json([
-                        'error' => "{$aRow->name} has " . number_format($frac, 2) . " fractional seats (≥ 9.5). " .
+                        'error' => "{$aRow->name} has " . number_format($frac, 2) . " fractional seats (≥ " . number_format($giantThreshold, 1) . "). " .
                                    "Giant jurisdictions cannot be composited — drill down instead.",
                     ], 422);
                 }
@@ -900,12 +1146,12 @@ class LegislatureController extends Controller
             $addPop      = (int) $addRows->sum('population');
             $projectedFrac = ($existingPop + $addPop) / max($localQuota, 1);
 
-            if ($projectedFrac >= 9.5) {
+            if ($projectedFrac >= $giantThreshold) {
                 return response()->json([
                     'error' => sprintf(
-                        'Projected composite fractional seats (%.2f) ≥ 9.5 — would round to ≥ 10, ' .
-                        'exceeding the constitutional district maximum of 9.',
-                        $projectedFrac
+                        'Projected composite fractional seats (%.2f) ≥ %.1f — would round to > %d, ' .
+                        'exceeding the constitutional district maximum of %d.',
+                        $projectedFrac, $giantThreshold, $ceiling, $ceiling
                     ),
                 ], 422);
             }
@@ -963,9 +1209,6 @@ class LegislatureController extends Controller
 
             DB::commit();
 
-            // Recompute 4-color assignment for all districts at this scope
-            $this->recomputeColorIndices($legislature_id, $district->jurisdiction_id, $leg->jurisdiction_id, $district->map_id);
-
             $updated = DB::table('legislature_districts')->where('id', $district_id)->first();
             $memberCount = DB::table('legislature_district_jurisdictions')
                 ->where('district_id', $district_id)->count();
@@ -989,8 +1232,13 @@ class LegislatureController extends Controller
                 $districtName  = $scopeCode . ' ' . $numPadded;
             }
 
-            // Districts that lost members had their seats recomputed via recomputeDistrict() above.
-            // Return their fresh seat counts so the frontend can sync without a full page reload.
+            $resolvedMapId = $this->getMapId($legislature_id, $district->map_id);
+            $this->flushRevealedCache($legislature_id, $resolvedMapId, $district->jurisdiction_id);
+
+            // Members moved between districts → adjacency graph changes → any
+            // sibling's color may shift. Recompute the whole scope.
+            $scopeColors = $this->scopeColorMap($legislature_id, $district->jurisdiction_id, $resolvedMapId);
+
             $affectedDistrictsData = [];
             foreach (array_unique($affectedDistrictIds) as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
@@ -999,13 +1247,10 @@ class LegislatureController extends Controller
                         'id'             => $did,
                         'seats'          => (int) $affRow->seats,
                         'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'    => (int) $affRow->color_index,
+                        'color_index'    => $scopeColors[$did] ?? 0,
                     ];
                 }
             }
-
-            $resolvedMapId = $this->getMapId($legislature_id, $district->map_id);
-            $this->flushRevealedCache($legislature_id, $resolvedMapId, $district->jurisdiction_id);
 
             return response()->json([
                 'district' => [
@@ -1013,7 +1258,7 @@ class LegislatureController extends Controller
                     'seats'            => (int) $updated->seats,
                     'floor_override'   => (bool) $updated->floor_override,
                     'fractional_seats' => round((float) $updated->fractional_seats, 4),
-                    'color_index'      => (int) $updated->color_index,
+                    'color_index'      => $scopeColors[$updated->id] ?? 0,
                     'status'           => $updated->status,
                     'member_count'     => $memberCount,
                     'district_number'  => (int) $updated->district_number,
@@ -1023,6 +1268,7 @@ class LegislatureController extends Controller
                     'has_integrity'     => true,  // always true — composited from existing admin children
                 ],
                 'affected_districts' => $affectedDistrictsData,
+                'color_indices'      => $scopeColors,
             ]);
 
         } catch (\Throwable $e) {
@@ -1064,24 +1310,31 @@ class LegislatureController extends Controller
             $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
         }
 
-        // Recompute 4-color assignment for remaining districts at this scope
-        if ($scopeId && $leg) {
-            $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $distMapId);
-        }
-
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
 
-        // Return updated district_numbers so frontend can sync numbering immediately.
-        // Sibling seat counts are unchanged — each district's seats were computed from its
-        // own population (Webster per-district) and do not shift when a sibling is deleted.
-        $remainingNumbers = DB::table('legislature_districts')
+        // Return updated district_numbers AND new color_indices so frontend
+        // can sync both without a full page reload. Removing a district
+        // changes the scope's adjacency graph and may shift any sibling's
+        // color (greedy 7-coloring re-runs over the surviving set).
+        $remaining = DB::table('legislature_districts')
             ->where('legislature_id', $legislature_id)
             ->where('jurisdiction_id', $scopeId)
             ->whereNull('deleted_at')
             ->when($distMapId, fn($q) => $q->where('map_id', $distMapId))
-            ->pluck('district_number', 'id');
+            ->select('id', 'district_number')
+            ->get();
 
-        return response()->json(['success' => true, 'district_numbers' => $remainingNumbers]);
+        $colorIndices    = $this->scopeColorMap($legislature_id, $scopeId, $distMapId);
+        $districtNumbers = [];
+        foreach ($remaining as $r) {
+            $districtNumbers[$r->id] = (int) $r->district_number;
+        }
+
+        return response()->json([
+            'success'          => true,
+            'district_numbers' => $districtNumbers,
+            'color_indices'    => $colorIndices,
+        ]);
     }
 
     /**
@@ -1103,8 +1356,14 @@ class LegislatureController extends Controller
         $revMapFil2 = $revMapId !== null ? 'AND ld.map_id = :map_id2' : '';
         $revMapBind = $revMapId !== null ? ['map_id' => $revMapId, 'map_id2' => $revMapId] : [];
 
-        // Root pop + total seats — used to enforce the giant threshold (>= 9.5 frac seats)
-        // on both depth branches so non-giant scope districts never appear in the revealed layer.
+        // Root pop + total seats — used to enforce the giant threshold
+        // (>= constitutional giant_threshold frac seats) on both depth branches
+        // so non-giant scope districts never appear in the revealed layer.
+        $legJid = (string) DB::table('legislatures')
+            ->where('id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->value('jurisdiction_id');
+        $giantThreshold = ConstitutionalDefaults::giantThreshold($legJid);
         $revRootPop = max((int) DB::table('jurisdictions')
             ->join('legislatures', 'legislatures.jurisdiction_id', '=', 'jurisdictions.id')
             ->where('legislatures.id', $legislature_id)
@@ -1124,8 +1383,8 @@ class LegislatureController extends Controller
         // legislature with a single Cache::tags(["revealed.{$id}"])->flush() call,
         // without needing to know the mapKey or scopeId at write time.
         $payload = Cache::tags([$cacheTag, "revealed.{$legislature_id}"])->remember($cacheKey, 86400, function () use (
-            $legislature_id, $scopeId, $revMapFilt, $revMapFil2, $revMapBind,
-            $revRootPop, $revTotalSeats, $tol
+            $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapBind,
+            $revRootPop, $revTotalSeats, $giantThreshold, $tol
         ) {
 
         // Revealed layer returns one GeoJSON feature per constituent jurisdiction per district,
@@ -1146,12 +1405,13 @@ class LegislatureController extends Controller
         //
         // UNION ALL is used because PDO named params cannot be reused across branches;
         // :leg_id2 / :scope_id2 / :total_seats2 / :root_pop2 are aliases for the same values.
+        // color_index is filled in below via colorIndicesForDistricts() — the
+        // adjacency graph is built from the resulting district set.
         $rows = DB::select("
             -- Branch 1: ADM2-level members whose direct parent is a giant Earth-child
             SELECT
                 ld.id            AS district_id,
                 ld.seats,
-                ld.color_index,
                 ld.floor_override,
                 j_giant.id       AS parent_jurisdiction_id,
                 j_giant.name     AS parent_name,
@@ -1182,7 +1442,7 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_member.parent_id
                 AND j_giant.parent_id = :scope_id
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats / :root_pop) >= 9.5
+                AND (CAST(j_giant.population AS numeric) * :total_seats / :root_pop) >= :giant_threshold
             LEFT JOIN jurisdictions j_gp ON j_gp.id = j_giant.parent_id
             WHERE ld.legislature_id = :leg_id
               AND ld.deleted_at IS NULL
@@ -1197,7 +1457,6 @@ class LegislatureController extends Controller
             SELECT
                 ld.id,
                 ld.seats,
-                ld.color_index,
                 ld.floor_override,
                 j_state.id,
                 j_state.name,
@@ -1230,20 +1489,31 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_state.parent_id
                 AND j_giant.parent_id = :scope_id2
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats2 / :root_pop2) >= 9.5
+                AND (CAST(j_giant.population AS numeric) * :total_seats2 / :root_pop2) >= :giant_threshold2
             WHERE ld.legislature_id = :leg_id2
               AND ld.deleted_at IS NULL
               {$revMapFil2}
         ", array_merge([
-            'leg_id'       => $legislature_id,
-            'scope_id'     => $scopeId,
-            'total_seats'  => $revTotalSeats,
-            'root_pop'     => $revRootPop,
-            'leg_id2'      => $legislature_id,
-            'scope_id2'    => $scopeId,
-            'total_seats2' => $revTotalSeats,
-            'root_pop2'    => $revRootPop,
+            'leg_id'           => $legislature_id,
+            'scope_id'         => $scopeId,
+            'total_seats'      => $revTotalSeats,
+            'root_pop'         => $revRootPop,
+            'giant_threshold'  => $giantThreshold,
+            'leg_id2'          => $legislature_id,
+            'scope_id2'        => $scopeId,
+            'total_seats2'     => $revTotalSeats,
+            'root_pop2'        => $revRootPop,
+            'giant_threshold2' => $giantThreshold,
         ], $revMapBind));
+
+        // Adjacency-aware greedy 7-coloring over the WHOLE legislature/map.
+        // Using the legislature-wide map (not just this response's districts)
+        // matters because non-giant country districts (rendered via
+        // /api/jurisdictions/{id}/children.geojson + show()'s districts prop)
+        // are NOT in this response's set — but they ARE visually adjacent to
+        // the Phase-4 sub-districts of their giant neighbors. Sharing the
+        // coloring eliminates the cross-set collisions.
+        $colorMap = $this->legislatureColorMap($legislature_id, $revMapId);
 
         $features = [];
         foreach ($rows as $row) {
@@ -1258,7 +1528,7 @@ class LegislatureController extends Controller
                     'parent_jurisdiction_id' => $row->parent_jurisdiction_id,
                     'parent_name'            => $row->parent_name,
                     'seats'                  => (int) $row->seats,
-                    'color_index'            => (int) $row->color_index,
+                    'color_index'            => $colorMap[$row->district_id] ?? 0,
                     'floor_override'         => (bool) $row->floor_override,
                     'district_number'           => (int) $row->district_number,
                     'parent_iso_code'           => $row->parent_iso_code,
@@ -1272,7 +1542,7 @@ class LegislatureController extends Controller
                     'district_fractional_seats' => (float) $row->district_fractional_seats,
                     'convex_hull_ratio'         => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'             => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
-                    'has_integrity'             => !(($revTotalSeats > 0 && $revRootPop > 0 ? ((float) ($row->scope_pop ?? 0)) * $revTotalSeats / $revRootPop : 0) >= 9.5 && (int) ($row->scope_child_count ?? 0) === 0),
+                    'has_integrity'             => !(($revTotalSeats > 0 && $revRootPop > 0 ? ((float) ($row->scope_pop ?? 0)) * $revTotalSeats / $revRootPop : 0) >= $giantThreshold && (int) ($row->scope_child_count ?? 0) === 0),
                     'member_name'               => $row->member_name,
                     'member_iso_code'           => $row->member_iso_code,
                     'member_adm_level'          => $row->member_adm_level !== null ? (int) $row->member_adm_level : null,
@@ -1305,7 +1575,7 @@ class LegislatureController extends Controller
                 AND j_giant.parent_id = :scope_id_o
                 AND j_giant.deleted_at IS NULL
                 AND j_giant.geom IS NOT NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o / :root_pop_o) >= 9.5
+                AND (CAST(j_giant.population AS numeric) * :total_seats_o / :root_pop_o) >= :giant_threshold_o
             WHERE ld.legislature_id = :leg_id_o
               AND ld.deleted_at IS NULL
 
@@ -1327,7 +1597,7 @@ class LegislatureController extends Controller
                 AND j_giant.parent_id = :scope_id_o2
                 AND j_giant.deleted_at IS NULL
                 AND j_giant.geom IS NOT NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o2 / :root_pop_o2) >= 9.5
+                AND (CAST(j_giant.population AS numeric) * :total_seats_o2 / :root_pop_o2) >= :giant_threshold_o2
             WHERE ld.legislature_id = :leg_id_o2
               AND ld.deleted_at IS NULL
 
@@ -1349,22 +1619,25 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_state.parent_id
                 AND j_giant.parent_id = :scope_id_o3
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o3 / :root_pop_o3) >= 9.5
+                AND (CAST(j_giant.population AS numeric) * :total_seats_o3 / :root_pop_o3) >= :giant_threshold_o3
             WHERE ld.legislature_id = :leg_id_o3
               AND ld.deleted_at IS NULL
         ", [
-            'leg_id_o'       => $legislature_id,
-            'scope_id_o'     => $scopeId,
-            'total_seats_o'  => $revTotalSeats,
-            'root_pop_o'     => $revRootPop,
-            'leg_id_o2'      => $legislature_id,
-            'scope_id_o2'    => $scopeId,
-            'total_seats_o2' => $revTotalSeats,
-            'root_pop_o2'    => $revRootPop,
-            'leg_id_o3'      => $legislature_id,
-            'scope_id_o3'    => $scopeId,
-            'total_seats_o3' => $revTotalSeats,
-            'root_pop_o3'    => $revRootPop,
+            'leg_id_o'           => $legislature_id,
+            'scope_id_o'         => $scopeId,
+            'total_seats_o'      => $revTotalSeats,
+            'root_pop_o'         => $revRootPop,
+            'giant_threshold_o'  => $giantThreshold,
+            'leg_id_o2'          => $legislature_id,
+            'scope_id_o2'        => $scopeId,
+            'total_seats_o2'     => $revTotalSeats,
+            'root_pop_o2'        => $revRootPop,
+            'giant_threshold_o2' => $giantThreshold,
+            'leg_id_o3'          => $legislature_id,
+            'scope_id_o3'        => $scopeId,
+            'total_seats_o3'     => $revTotalSeats,
+            'root_pop_o3'        => $revRootPop,
+            'giant_threshold_o3' => $giantThreshold,
         ]);
 
         $outlineFeatures = [];
@@ -1412,14 +1685,38 @@ class LegislatureController extends Controller
 
         $scopeId       = $request->input('scope_id');
         $clearExisting = (bool) $request->input('clear_existing', false);
-        $mapId         = $this->getMapId($legislature_id, $request->input('map_id'));
+        // ensureMapId auto-creates a "Draft N" map if none exists so the
+        // districts inserted here belong to a versioned plan instead of
+        // floating with map_id = NULL.
+        $mapId         = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         if (!$scopeId) {
             return response()->json(['error' => 'scope_id is required'], 422);
         }
 
+        // Publish a single-scope progress marker so the wizard's stepper-driven
+        // autoseed (which calls this endpoint one scope at a time) gets the
+        // same fine-grained phase visibility as massReseed's sweep.
+        $scopeName = DB::table('jurisdictions')
+            ->where('id', $scopeId)
+            ->value('name') ?? $scopeId;
+        Cache::put("legislature.{$legislature_id}.mass_running", true, 1800);
+        $this->publishMassProgress($legislature_id, [
+            'current_scope'    => $scopeName,
+            'current_scope_id' => $scopeId,
+            'completed'        => 0,
+            'total'            => 1,
+            'started_at'       => time(),
+            'scope_started_at' => time(),
+            'phase'            => 'starting',
+            'phase_label'      => "Starting autoseed for {$scopeName}",
+            'phase_current'    => 0,
+            'phase_total'      => 0,
+        ], reset: true);
+
         // At root scope: auto-update type_a_seats from cube root of sum(children populations).
-        // At non-root scope: read type_a_apportioned set by parent scope's autoComposite.
+        // At non-root scope: derive seat budget via the gated computeSeatBudget
+        // cascade (Path 2 lookup for composites, Path 3 recursion for giants).
         $isAutoRoot = ($scopeId === $leg->jurisdiction_id);
         DB::beginTransaction();
         try {
@@ -1428,7 +1725,7 @@ class LegislatureController extends Controller
                     ->where('parent_id', $scopeId)
                     ->whereNull('deleted_at')
                     ->sum('population');
-                $newSeats = max(5, (int) round(pow(max($sumChildPop, 1), 1/3)));
+                $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
                 if ((int) $leg->type_a_seats !== $newSeats) {
                     DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
                     $leg->type_a_seats = $newSeats;
@@ -1437,9 +1734,11 @@ class LegislatureController extends Controller
             } else {
                 $autoScope   = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
                 $autoRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
-                $seatBudget  = $autoScope && $autoScope->type_a_apportioned !== null
-                    ? (int) $autoScope->type_a_apportioned
-                    : max(5, (int) round((int) ($autoScope ? $autoScope->population : 0) * (int) $leg->type_a_seats / $autoRootPop));
+                // Gated cascade — Path 2 for composite scopes, Path 3 for
+                // giants. Falls back to proportional approx only in
+                // degenerate cases.
+                $seatBudget = $this->computeSeatBudget($scopeId, $legislature_id)
+                    ?? max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round((int) ($autoScope ? $autoScope->population : 0) * (int) $leg->type_a_seats / $autoRootPop));
             }
 
             $result = $this->runAutoCompositeForScope(
@@ -1447,18 +1746,31 @@ class LegislatureController extends Controller
             );
             if ($result['error'] !== null) {
                 DB::rollBack();
+                Cache::forget("legislature.{$legislature_id}.mass_running");
+                Cache::forget("legislature.{$legislature_id}.mass_progress");
                 return response()->json(['error' => $result['error']], 422);
             }
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Cache::forget("legislature.{$legislature_id}.mass_running");
+            Cache::forget("legislature.{$legislature_id}.mass_progress");
             return response()->json(['error' => 'Auto-composite failed: ' . $e->getMessage()], 500);
         }
 
-        $this->recomputeColorIndices($legislature_id, $scopeId, $leg->jurisdiction_id, $mapId);
+        $this->publishMassProgress($legislature_id, [
+            'completed'    => 1,
+            'phase'        => 'done',
+            'phase_label'  => "Autoseed complete: {$result['districts_created']} districts created",
+        ]);
 
         // Invalidate revealed.geojson cache — autoComposite creates/replaces districts.
+        // Colors are computed on the fly from district_number + scope via the
+        // SQL expression in revealedGeoJson; nothing to recompute.
         $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
+
+        Cache::forget("legislature.{$legislature_id}.mass_running");
+        Cache::forget("legislature.{$legislature_id}.mass_progress");
 
         return response()->json([
             'success'          => true,
@@ -1497,18 +1809,108 @@ class LegislatureController extends Controller
 
         $operationScope = $request->input('operation_scope');
         $scopeId        = $request->input('scope_id');
-        $mapId          = $this->getMapId($legislature_id, $request->input('map_id'));
 
         if (!$operationScope || !$scopeId) {
             return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
         }
 
-        // Mark this legislature as having an active mass operation (for UI progress indicator)
+        // Refuse to start a new sweep if one is already in flight. The Halt
+        // button must be used to stop the existing run before launching another.
+        if (Cache::get("legislature.{$legislature_id}.mass_running")) {
+            return response()->json([
+                'error' => 'A mass operation is already running. Wait for it to finish or click Halt to stop it.',
+            ], 409);
+        }
+
+        // Auto-create a "Draft N" map if none exists so districts belong to a
+        // versioned plan instead of floating with map_id = NULL.
+        $mapId = $this->ensureMapId($legislature_id, $request->input('map_id'));
+
+        // Clear any stale halt flag from a previous run before dispatching.
+        Cache::forget("legislature.{$legislature_id}.mass_halt");
+
+        // Mark this legislature as having an active mass operation. The job's
+        // handle() and failed() callbacks clear this when it terminates so
+        // the UI can re-enable controls.
         Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
 
-        // Derive clear_existing from the scope name: _all → true, _unassigned → false
-        $clearExisting = str_ends_with($operationScope, '_all');
+        // Seed initial progress so the polling UI has something to show
+        // before the job's worker picks it up. `reset=true` wipes stale
+        // fields (current_scope, phase_total, scope_started_at) from any
+        // previous run so the banner doesn't display "Queued — waiting
+        // for worker" paired with "5m on scope" leftover from earlier.
+        $this->publishMassProgress($legislature_id, [
+            'completed'        => 0,
+            'total'            => 0,
+            'started_at'       => time(),
+            'current_scope'    => null,
+            'current_scope_id' => null,
+            'scope_started_at' => null,
+            'phase_current'    => 0,
+            'phase_total'      => 0,
+            'phase'            => 'queued',
+            'phase_label'      => 'Queued — waiting for worker',
+        ], reset: true);
 
+        // Dispatch to Horizon. The job's timeout is 7200 s (2 h) which
+        // covers a whole-Earth recursive sweep; per-scope commits inside
+        // the job mean partial progress survives any worker death.
+        \App\Jobs\MassReseedJob::dispatch(
+            $legislature_id,
+            $operationScope,
+            $scopeId,
+            $mapId,
+        );
+
+        return response()->json([
+            'success'   => true,
+            'dispatched'=> true,
+            'map_id'    => $mapId,
+        ], 202);
+    }
+
+    /**
+     * Core mass-reseed sweep. Extracted from the massReseed endpoint so that
+     * MassReseedJob (running in Horizon) can call it without a Request and
+     * without holding a php-fpm worker for the duration.
+     *
+     * Each scope commits in its own transaction so partial progress survives
+     * any error or timeout. Between scopes the job polls a halt flag in
+     * cache (`legislature.{id}.mass_halt`) — if set, the sweep aborts
+     * cleanly with `halted => true`.
+     *
+     * @return array{districts_created:int, scopes_processed:int, errors:array<int,string>, halted:bool, scope_ids:array<int,string>}
+     */
+    public function executeMassReseedSweep(
+        string $legislature_id,
+        string $operationScope,
+        string $scopeId,
+        string $mapId,
+    ): array {
+        // Record this worker's Postgres backend PID so massHalt() can cancel
+        // / terminate its in-flight queries directly (instead of just setting
+        // a flag the worker checks between scopes). Without this, halts of
+        // single-scope ops or halts that land mid-PostGIS-query are useless —
+        // the worker is stuck inside a C function that doesn't check the
+        // PHP-level flag for tens of minutes.
+        try {
+            $pid = (int) (DB::selectOne("SELECT pg_backend_pid() AS pid")->pid ?? 0);
+            if ($pid > 0) {
+                Cache::put("legislature.{$legislature_id}.mass_db_pid", $pid, 7200);
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal — halts will just fall back to between-scope polling.
+        }
+
+        $leg = DB::table('legislatures')
+            ->where('id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->first();
+        if (!$leg) {
+            throw new \RuntimeException("Legislature {$legislature_id} not found");
+        }
+
+        $clearExisting = str_ends_with($operationScope, '_all');
         $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
 
         // At root scope: auto-update type_a_seats from cube root of children sum.
@@ -1517,7 +1919,7 @@ class LegislatureController extends Controller
                 ->where('parent_id', $scopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
-            $newSeats = max(5, (int) round(pow(max($sumChildPop, 1), 1/3)));
+            $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
             if ((int) $leg->type_a_seats !== $newSeats) {
                 DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
                 $leg->type_a_seats = $newSeats;
@@ -1530,79 +1932,194 @@ class LegislatureController extends Controller
             $legislature_id, $leg, $scopeId, $operationScope, $rootQuota, $mapId
         );
 
-        $totalCreated   = 0;
+        $totalCreated    = 0;
         $scopesProcessed = 0;
         $errors          = [];
+        $halted          = false;
 
-        // Pre-fetch scope names for real-time progress display (polled by frontend)
+        // Pre-fetch scope names for real-time progress display
         $scopeNames  = DB::table('jurisdictions')
             ->whereIn('id', $scopeIds)
             ->pluck('name', 'id')
             ->toArray();
         $totalScopes = count($scopeIds);
+        $runStartedAt = time();
 
-        DB::beginTransaction();
-        try {
-            foreach ($scopeIds as $scopeIdx => $sid) {
-                // Publish progress so the frontend progress banner can show current scope
-                Cache::put("legislature.{$legislature_id}.mass_progress", [
-                    'current_scope' => $scopeNames[$sid] ?? $sid,
-                    'completed'     => $scopeIdx,
-                    'total'         => $totalScopes,
-                ], 7200);
+        $this->publishMassProgress($legislature_id, [
+            'completed'     => 0,
+            'total'         => $totalScopes,
+            'started_at'    => $runStartedAt,
+            'current_scope' => $scopeNames[$scopeIds[0] ?? null] ?? null,
+            'phase'         => 'starting',
+            'phase_label'   => 'Starting mass-reseed sweep',
+        ]);
 
-                // Compute per-scope seat budget
-                if ($sid === $leg->jurisdiction_id) {
-                    $seatBudget = (int) $leg->type_a_seats;
-                } else {
-                    $sidScope    = DB::table('jurisdictions')->where('id', $sid)->whereNull('deleted_at')->first();
-                    // Use SUM(direct_children.population) for the proportional fallback — matches show()
-                    // level-by-level apportionment fix (2026-03-10). Stored population can differ from
-                    // the children sum due to ADM-level data-source inconsistencies in GeoBoundaries.
-                    $sidChildPop = (int) DB::table('jurisdictions')
-                        ->where('parent_id', $sid)
-                        ->whereNull('deleted_at')
-                        ->sum('population');
-                    $seatBudget  = $sidScope && $sidScope->type_a_apportioned !== null
-                        ? (int) $sidScope->type_a_apportioned
-                        : max(5, (int) round($sidChildPop * (int) $leg->type_a_seats / $rootPop));
-                }
+        // Per-scope transactions: each scope commits independently so partial
+        // progress survives any error in subsequent scopes.
+        foreach ($scopeIds as $scopeIdx => $sid) {
+            // Halt poll — checked between scopes so a halt request takes effect
+            // on the next scope boundary instead of mid-tx.
+            if (Cache::get("legislature.{$legislature_id}.mass_halt")) {
+                $halted = true;
+                $this->publishMassProgress($legislature_id, [
+                    'phase'       => 'halted',
+                    'phase_label' => "Halted by operator after {$scopesProcessed}/{$totalScopes} scopes",
+                    'completed'   => $scopeIdx,
+                ]);
+                break;
+            }
+
+            $scopeStart = time();
+            $this->publishMassProgress($legislature_id, [
+                'current_scope'    => $scopeNames[$sid] ?? $sid,
+                'current_scope_id' => $sid,
+                'completed'        => $scopeIdx,
+                'total'            => $totalScopes,
+                'phase'            => 'scope_start',
+                'phase_label'      => "Starting scope: " . ($scopeNames[$sid] ?? $sid),
+                'phase_current'    => 0,
+                'phase_total'      => 0,
+                'scope_started_at' => $scopeStart,
+            ]);
+
+            // Compute per-scope seat budget
+            if ($sid === $leg->jurisdiction_id) {
+                $seatBudget = (int) $leg->type_a_seats;
+            } else {
+                $sidScope    = DB::table('jurisdictions')->where('id', $sid)->whereNull('deleted_at')->first();
+                $sidChildPop = (int) DB::table('jurisdictions')
+                    ->where('parent_id', $sid)
+                    ->whereNull('deleted_at')
+                    ->sum('population');
+                // Gated cascade — replaces the flat root-quota fallback
+                // (which was the source of the +13 overcount: it used
+                // sum-of-children pop × root quota for giants, producing
+                // 32 instead of 29 for Guangzhou).
+                $seatBudget = $this->computeSeatBudget($sid, $legislature_id)
+                    ?? max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round(($sidScope ? (int) $sidScope->population : $sidChildPop) * (int) $leg->type_a_seats / $rootPop));
+            }
+
+            DB::beginTransaction();
+            try {
                 $result = $this->runAutoCompositeForScope(
                     $legislature_id, $leg, $sid, $clearExisting, $seatBudget, $mapId
                 );
                 if ($result['error'] !== null) {
-                    // Non-fatal (e.g. no compositable children) — record and continue
-                    $errors[] = $result['error'];
+                    DB::commit();
+                    $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $result['error'];
                 } else {
+                    DB::commit();
                     $totalCreated    += $result['districts_created'];
                     $scopesProcessed++;
                 }
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
+                $this->publishMassProgress($legislature_id, [
+                    'phase'       => 'scope_failed',
+                    'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
+                ]);
             }
-            DB::commit();
-            Cache::forget("legislature.{$legislature_id}.mass_progress");
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Cache::forget("legislature.{$legislature_id}.mass_running");
-            return response()->json(['error' => 'Mass reseed failed: ' . $e->getMessage()], 500);
         }
 
-        // Recompute 4-color indices outside the transaction (read-heavy, non-critical to atomicity)
-        foreach ($scopeIds as $sid) {
-            $this->recomputeColorIndices($legislature_id, $sid, $leg->jurisdiction_id, $mapId);
+        $this->publishMassProgress($legislature_id, [
+            'completed'   => $halted ? $scopesProcessed : $totalScopes,
+            'phase'       => $halted ? 'halted' : 'sweep_done',
+            'phase_label' => $halted
+                ? "Halted by operator: {$scopesProcessed}/{$totalScopes} scopes complete, {$totalCreated} districts"
+                : "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts",
+        ]);
+
+        // Clean up the recorded backend PID — we're done, no further halts apply.
+        Cache::forget("legislature.{$legislature_id}.mass_db_pid");
+
+        return [
+            'districts_created' => $totalCreated,
+            'scopes_processed'  => $scopesProcessed,
+            'errors'            => $errors,
+            'halted'            => $halted,
+            'scope_ids'         => $scopeIds,
+        ];
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/mass-halt
+     *
+     * Three-stage halt:
+     *   1. Set the cache flag (worker polls it between scopes & between heavy
+     *      ops — graceful exit if check lands during PHP-level code).
+     *   2. pg_cancel_backend on the worker's recorded Postgres PID — fires
+     *      a SIGINT-equivalent that most queries respect (the in-flight query
+     *      throws QueryException, worker catches & exits).
+     *   3. pg_terminate_backend if the query was inside a non-interruptible
+     *      PostGIS C function (ST_Union, ST_Intersection on huge multipart
+     *      polygons). This force-closes the connection — the worker's next
+     *      DB call throws, even if the C function is still running in the
+     *      Postgres backend it can no longer write a result anywhere.
+     *
+     * Stage 2/3 are skipped if we never recorded a PID (e.g. ran via a path
+     * that bypasses executeMassReseedSweep) — graceful flag still works.
+     */
+    public function massHalt(string $legislature_id): JsonResponse
+    {
+        $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
+        if (!$leg) {
+            return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        Cache::forget("legislature.{$legislature_id}.mass_running");
-        $this->flushRevealedCache($legislature_id, $mapId, $scopeId);
+        // Stage 1: cache flag for graceful PHP-side exit.
+        Cache::put("legislature.{$legislature_id}.mass_halt", true, 3600);
 
-        // Auto-queue adjacency recolor after any bulk seed so colors are always correct
-        // without requiring a manual Recolor click.
-        \App\Jobs\RecolorDistrictsJob::dispatch($legislature_id, $mapId);
+        // Stage 2: graceful Postgres cancel of the worker's in-flight query.
+        // pg_cancel_backend works for most queries; the few that don't respond
+        // (PostGIS C functions that don't check for interrupts) get force-
+        // killed via pg_terminate_backend below.
+        $pid = (int) Cache::get("legislature.{$legislature_id}.mass_db_pid");
+        $cancelled = false;
+        $terminated = false;
+        if ($pid > 0) {
+            try {
+                DB::statement('SELECT pg_cancel_backend(?)', [$pid]);
+                $cancelled = true;
+                // Stage 3: if still active after 1.5 s, terminate the connection.
+                // The worker's next DB call throws, which the job's try/catch
+                // turns into a clean failed-state exit.
+                $waited = 0;
+                while ($waited < 1500) {
+                    usleep(300000); $waited += 300;
+                    $stillActive = (int) DB::scalar(
+                        "SELECT COUNT(*) FROM pg_stat_activity WHERE pid = ? AND state = 'active'",
+                        [$pid]
+                    );
+                    if ($stillActive === 0) break;
+                }
+                if ($stillActive ?? 0) {
+                    DB::statement('SELECT pg_terminate_backend(?)', [$pid]);
+                    $terminated = true;
+                }
+            } catch (\Throwable $e) {
+                // Non-fatal — the cache flag at least signals halt requested.
+                \Illuminate\Support\Facades\Log::warning(
+                    'massHalt: failed to cancel/terminate backend',
+                    ['legislature_id' => $legislature_id, 'pid' => $pid, 'err' => $e->getMessage()]
+                );
+            }
+            Cache::forget("legislature.{$legislature_id}.mass_db_pid");
+        }
+
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => $terminated ? 'halted' : 'halting',
+            'phase_label' => $terminated
+                ? 'Halted by operator (terminated stuck query)'
+                : ($cancelled
+                    ? 'Halt requested — cancelling in-flight query'
+                    : 'Halt requested — will stop after current scope'),
+        ]);
 
         return response()->json([
-            'success'          => true,
-            'districts_created'=> $totalCreated,
-            'scopes_processed' => $scopesProcessed,
-            'errors'           => $errors,
+            'ok'         => true,
+            'cancelled'  => $cancelled,
+            'terminated' => $terminated,
         ]);
     }
 
@@ -1653,7 +2170,7 @@ class LegislatureController extends Controller
             ->whereNull('j.deleted_at')
             ->where('ld.legislature_id', $legislature_id)
             ->whereNull('ld.deleted_at')
-            ->whereRaw('(CAST(j.population AS numeric) / ?) < 9.5', [$rootQuota]);
+            ->whereRaw('(CAST(j.population AS numeric) / ?) < ?', [$rootQuota, ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id)]);
         if ($mapId !== null) {
             $nonGiantQuery->where('ld.map_id', $mapId);
         }
@@ -1780,40 +2297,6 @@ class LegislatureController extends Controller
     }
 
     /**
-     * POST /api/legislatures/{legislature_id}/recolor
-     *
-     * Runs cross-scope greedy 7-coloring across ALL districts in the map and
-     * persists the result back to legislature_districts.color_index.
-     *
-     * Each scope's districts are normally colored independently by the ETL, so
-     * adjacent districts belonging to different giant countries can share the same
-     * color_index.  This endpoint treats the entire map as a single adjacency graph
-     * (using ST_Intersects on member jurisdiction geometries) and assigns the
-     * globally-optimal coloring in one pass.  Run once after the map is complete.
-     *
-     * Body: { map_id?: uuid }
-     */
-    public function recolor(Request $request, string $legislature_id): JsonResponse
-    {
-        $leg = DB::table('legislatures')
-            ->where('id', $legislature_id)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$leg) {
-            return response()->json(['error' => 'Legislature not found'], 404);
-        }
-
-        $mapId = $this->getMapId($legislature_id, $request->input('map_id'));
-
-        // Mark as running so mass-status polling works, then dispatch to queue.
-        Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
-        RecolorDistrictsJob::dispatch($legislature_id, $mapId);
-
-        return response()->json(['queued' => true], 202);
-    }
-
-    /**
      * GET /api/legislatures/{legislature_id}/mass-status
      *
      * Returns whether a mass reseed/disband operation is currently running.
@@ -1822,9 +2305,8 @@ class LegislatureController extends Controller
     public function massStatus(string $legislature_id): JsonResponse
     {
         return response()->json([
-            'running'          => (bool) Cache::get("legislature.{$legislature_id}.mass_running", false),
-            'recolor_progress' => Cache::get("legislature.{$legislature_id}.recolor_progress"),
-            'mass_progress'    => Cache::get("legislature.{$legislature_id}.mass_progress"),
+            'running'       => (bool) Cache::get("legislature.{$legislature_id}.mass_running", false),
+            'mass_progress' => Cache::get("legislature.{$legislature_id}.mass_progress"),
         ]);
     }
 
@@ -2030,7 +2512,6 @@ class LegislatureController extends Controller
                     'actual_population' => $d->actual_population,
                     'status'            => $d->status,
                     'floor_override'    => $d->floor_override,
-                    'color_index'       => $d->color_index,
                     'fractional_seats'  => $d->fractional_seats,
                     'created_at'        => $now,
                     'updated_at'        => $now,
@@ -2121,12 +2602,12 @@ class LegislatureController extends Controller
 
     /**
      * BFS walk that returns every giant-scope descendant ID at any depth below $rootId.
-     * A jurisdiction is "giant" when its population / rootQuota >= 9.5 — meaning it
-     * needs its own sub-districting scope rather than being aggregated with siblings.
-     * The walk recurses into each giant so multi-level hierarchies (e.g. India → UP)
-     * are fully captured.
+     * A jurisdiction is "giant" when its population / rootQuota >= giant_threshold
+     * (constitutional ceiling + 0.5) — meaning it needs its own sub-districting
+     * scope rather than being aggregated with siblings. The walk recurses into
+     * each giant so multi-level hierarchies (e.g. India → UP) are fully captured.
      */
-    private function collectGiantDescendants(string $rootId, float $rootQuota): array
+    private function collectGiantDescendants(string $rootId, float $rootQuota, float $giantThreshold): array
     {
         $result = [];
         $queue  = [$rootId];
@@ -2143,7 +2624,7 @@ class LegislatureController extends Controller
             foreach ($children as $child) {
                 if (isset($seen[$child->id])) continue;
                 $seen[$child->id] = true;
-                if (((int) $child->population / max($rootQuota, 1)) >= 9.5) {
+                if (((int) $child->population / max($rootQuota, 1)) >= $giantThreshold) {
                     $result[] = $child->id;
                     $queue[]  = $child->id;   // recurse into this giant's children too
                 }
@@ -2169,7 +2650,11 @@ class LegislatureController extends Controller
             // Full BFS — every giant-scope descendant at every depth.
             // This fixes the bug where India's sub-states were skipped when clearing
             // at Earth scope (only direct giant children were previously included).
-            $allGiantIds = $this->collectGiantDescendants($scopeId, $rootQuota);
+            $allGiantIds = $this->collectGiantDescendants(
+                $scopeId,
+                $rootQuota,
+                ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id)
+            );
             return array_merge([$scopeId], $allGiantIds);
         }
 
@@ -2178,10 +2663,17 @@ class LegislatureController extends Controller
         //
         //   1. Active district scopes   — scopes that already have live districts
         //                                 (handles incremental / partial reseeds)
-        //   2. Apportioned sub-scopes   — jurisdictions with type_a_apportioned set
-        //                                 by the ETL (giant countries, provinces, etc.)
-        //                                 These must be re-seeded even when the table
-        //                                 is empty, e.g. immediately after a full disband.
+        //   2. Apportioned sub-scopes   — jurisdictions that are members of any
+        //                                 live district in this legislature
+        //                                 (giant countries, provinces, etc.).
+        //                                 These must be re-seeded even when the
+        //                                 district table at THIS scope is empty,
+        //                                 e.g. immediately after a full disband.
+        //                                 Replaces the legacy
+        //                                 `whereNotNull('type_a_apportioned')`
+        //                                 lookup now that the column is dropped
+        //                                 (migration
+        //                                 2026_05_22_000002_apportionment_cleanup.php).
         //   3. $scopeId itself          — always include the current view scope so the
         //                                 root level is never silently skipped.
         //
@@ -2197,10 +2689,14 @@ class LegislatureController extends Controller
         }
         $existingScopes = $existingScopesQuery->distinct()->pluck('jurisdiction_id')->toArray();
 
-        $apportionedScopes = DB::table('jurisdictions')
-            ->whereNotNull('type_a_apportioned')
-            ->whereNull('deleted_at')
-            ->pluck('id')
+        // Sub-scopes that are members of any live district in this legislature
+        // (and therefore have a locked seat budget worth re-seeding into).
+        $apportionedScopes = DB::table('legislature_district_jurisdictions as ldj')
+            ->join('legislature_districts as ld', 'ld.id', '=', 'ldj.district_id')
+            ->where('ld.legislature_id', $legislature_id)
+            ->whereNull('ld.deleted_at')
+            ->distinct()
+            ->pluck('ldj.jurisdiction_id')
             ->toArray();
 
         return array_values(array_unique(
@@ -2211,7 +2707,9 @@ class LegislatureController extends Controller
     /**
      * Core auto-composite algorithm for a single scope.
      *
-     * Caller is responsible for the DB transaction boundary and recomputeColorIndices().
+     * Caller is responsible for the DB transaction boundary. Colors are
+     * computed at read time by colorIndicesForDistricts() (scope-local greedy
+     * adjacency 7-coloring), so no recompute step is needed here.
      * Returns ['districts_created' => int, 'error' => string|null].
      * 'error' is non-null for recoverable no-op cases (e.g. no compositable children).
      * Throws on genuine exceptions — caller should catch and roll back.
@@ -2227,7 +2725,17 @@ class LegislatureController extends Controller
         int     $seatBudget,
         ?string $mapId = null
     ): array {
+        // Constitutional thresholds — substituted throughout the algorithm
+        // for the legacy 9.5 / 5.0 / 4.5 / 9 / 5 literals.
+        ['giant' => $giantThreshold, 'floor' => $floorBoundary] = $this->thresholds($leg->jurisdiction_id);
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+
         // ── Step 1: Fetch ALL direct children with geometry ──────────────────
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'loading',
+            'phase_label' => 'Loading children + centroids',
+        ]);
         $allChildrenRows = DB::select("
             SELECT
                 j.id, j.name, j.population,
@@ -2256,19 +2764,33 @@ class LegislatureController extends Controller
         $giantRows    = [];
         $nonGiantRows = [];
         foreach ($allChildrenRows as $c) {
-            if ($c->fractional_seats >= 9.5) {
+            if ($c->fractional_seats >= $giantThreshold) {
                 $giantRows[] = $c;
             } else {
                 $nonGiantRows[] = $c;
             }
         }
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'classified',
+            'phase_label'   => sprintf(
+                'Classified %d children: %d giant + %d compositable, budget %d seats',
+                count($allChildrenRows), count($giantRows), count($nonGiantRows), $seatBudget,
+            ),
+            'phase_current' => 0,
+            'phase_total'   => count($nonGiantRows),
+        ]);
 
-        // ── Step 4: Lock giant seat allocations — write type_a_apportioned ────
+        // ── Step 4: Lock giant seat allocations ───────────────────────────────
+        // Each giant's locked seat count is the round-up of its fractional
+        // seats. The value isn't persisted to a column — downstream readers
+        // (computeSeatBudget Path 3) recompute it on demand by walking the
+        // parent cascade. Step 12 below only inserts non-giant bin
+        // districts; giants have no row at this scope and their budget is
+        // derived through the cascade when sub-scopes need it.
         $giantSeats = [];
         foreach ($giantRows as $g) {
-            $seats = max(5, (int) round($g->fractional_seats));
+            $seats = max($floor, (int) round($g->fractional_seats));
             $giantSeats[$g->id] = $seats;
-            DB::table('jurisdictions')->where('id', $g->id)->update(['type_a_apportioned' => $seats]);
         }
 
         // ── Step 5: Non-giant seat budget ─────────────────────────────────────
@@ -2307,18 +2829,43 @@ class LegislatureController extends Controller
         $childIds = array_column($nonGiantRows, 'id');
 
         // ── Step 7: Adjacency + BFS connected components ──────────────────────
+        // Two-tier conditional simplify on huge geoms. ST_Intersection on raw
+        // multipart polygons (Quebec, Russian oblasts, Nunavut) takes 30-180s
+        // per pair and is uninterruptible; on simplified geoms it's seconds.
+        //
+        // Tier 1 (>1M vertices, e.g. Nunavut at 5.4M): 0.01° ≈ 1.1km. Even
+        // with single-tier 0.001° simplification, Nunavut still emerges at
+        // 434k vertices, and the simplify call alone takes ~55s. The 0.01°
+        // tier brings Nunavut to ~40k, completing in <10s for all of Canada.
+        // Tier 2 (>50k vertices): 0.001° ≈ 110m, finer than geoBoundaries'
+        // real border precision.
+        //
+        // ST_MakeValid wraps each simplify because simplifying complex
+        // coastlines can introduce self-intersections (e.g. James Bay coast)
+        // that crash ST_Intersection with a GEOS topology exception.
         $idsStr = '{' . implode(',', $childIds) . '}';
         $edges  = DB::select("
+            WITH g AS (
+                SELECT id,
+                       CASE
+                           WHEN ST_NPoints(geom) > 1000000
+                                THEN ST_MakeValid(ST_Simplify(geom, 0.01))
+                           WHEN ST_NPoints(geom) > 50000
+                                THEN ST_MakeValid(ST_Simplify(geom, 0.001))
+                           ELSE geom
+                       END AS geom
+                FROM jurisdictions
+                WHERE id = ANY(:ids::uuid[])
+                  AND deleted_at IS NULL
+                  AND geom IS NOT NULL
+            )
             SELECT a.id AS j1, b.id AS j2
-            FROM jurisdictions a
-            JOIN jurisdictions b ON a.id < b.id
+            FROM g a
+            JOIN g b ON a.id < b.id
+                AND a.geom && b.geom
                 AND ST_Intersects(a.geom, b.geom)
                 AND ST_Dimension(ST_Intersection(a.geom, b.geom)) >= 1
-            WHERE a.id = ANY(:ids1::uuid[])
-              AND b.id = ANY(:ids2::uuid[])
-              AND a.deleted_at IS NULL
-              AND b.deleted_at IS NULL
-        ", ['ids1' => $idsStr, 'ids2' => $idsStr]);
+        ", ['ids' => $idsStr]);
 
         $adj = [];
         foreach ($childIds as $id) $adj[$id] = [];
@@ -2366,14 +2913,14 @@ class LegislatureController extends Controller
             $compFrac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $component));
 
             // Single-district components need no splitting — skip multi-attempt overhead
-            if ($compFrac < 9.5) {
+            if ($compFrac < $giantThreshold) {
                 $allBins[] = $component;
                 continue;
             }
 
-            // k range: constitutional ceiling (9 seats max) → constitutional floor (5 seats min)
-            $kMin = max(2, (int) ceil($compFrac / 9.0));
-            $kMax = max($kMin, (int) floor($compFrac / 5.0));
+            // k range: constitutional ceiling (max seats) → constitutional floor (min seats)
+            $kMin = max(2, (int) ceil($compFrac / (float) $ceiling));
+            $kMax = max($kMin, (int) floor($compFrac / (float) $floor));
 
             // Exhaustive integer range [kMin, min(kMax, kMin+7)].
             // Cap at kMin+7 so runtime stays bounded for very large budgets (≤8 k values × 3 strategies = ≤24 BFS runs).
@@ -2400,7 +2947,7 @@ class LegislatureController extends Controller
                 $bfsCandidates = [];
                 foreach ($component as $firstSeed) {
                     $seeds    = $this->farPointSeeds($firstSeed, $k, $component, $centroids);
-                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, true);
+                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, $giantThreshold, $floorBoundary, true);
                     $devProxy = 0.0;
                     foreach ($bfsBins as $bin) {
                         $pop       = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin));
@@ -2416,11 +2963,11 @@ class LegislatureController extends Controller
                 // will converge to better final results.
                 $topN = min(count($component), 20);
                 foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
-                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds']);
+                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary);
 
                     $effectiveBudget = max(count($bins), $compBudget);
 
-                    $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget);
+                    $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
 
                     // Lexicographic priority:
                     //   1. Fewest non-contiguous bins (hard constraint)
@@ -2455,8 +3002,16 @@ class LegislatureController extends Controller
             $allBins = array_merge($allBins, $bestBins ?? [$component]);
         }
 
-        // Cross-component post-repair: merge undersized bins (< 5.0 fractional) into nearest
-        // absorbable bin (merged total < 9.5). Handles isolated island jurisdictions.
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'binning_done',
+            'phase_label'   => sprintf('Bin partitioning complete: %d bins formed', count($allBins)),
+            'phase_current' => count($allBins),
+            'phase_total'   => count($allBins),
+        ]);
+
+        // Cross-component post-repair: merge undersized bins (< floor fractional) into
+        // nearest absorbable bin (merged total < giant_threshold). Handles isolated
+        // island jurisdictions.
         $globalBinFracs = array_map(fn($bin) =>
             array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $bin)),
             $allBins
@@ -2466,13 +3021,13 @@ class LegislatureController extends Controller
         while ($changed) {
             $changed = false;
             foreach ($globalBinFracs as $i => $t) {
-                if ($t >= 5.0 || empty($allBins[$i])) continue;
+                if ($t >= $floorBoundary || empty($allBins[$i])) continue;
                 $iCenter  = $this->binCentroid($allBins[$i], $centroids);
                 $bestJ    = -1;
                 $bestDist = PHP_FLOAT_MAX;
                 foreach ($globalBinFracs as $j => $tj) {
                     if ($j === $i || empty($allBins[$j])) continue;
-                    if ($tj + $t >= 9.5) continue;
+                    if ($tj + $t >= $giantThreshold) continue;
                     $jCenter = $this->binCentroid($allBins[$j], $centroids);
                     $dx = $iCenter['x'] - $jCenter['x'];
                     $dy = $iCenter['y'] - $jCenter['y'];
@@ -2493,6 +3048,10 @@ class LegislatureController extends Controller
 
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
+            $this->publishMassProgress($legislature_id, [
+                'phase'       => 'clearing',
+                'phase_label' => 'Clearing existing districts at this scope',
+            ]);
             // Clear null-jurisdiction composites whose members are direct children of this scope
             $nullClearQuery = DB::table('legislature_districts AS ld')
                 ->join('legislature_district_jurisdictions AS ldj', 'ldj.district_id', '=', 'ld.id')
@@ -2540,18 +3099,18 @@ class LegislatureController extends Controller
 
         // ── Step 11: Webster (Sainte-Laguë) distribution across bins ────────
         // effectiveBudget = nonGiantBudget (true remaining budget after locking giants).
-        // Constitutional floor (≥5 per bin) applies only when the budget can support it.
-        // When nonGiantBudget < 5×bins, distribute exactly what's available (floor_override=true).
+        // Constitutional floor (≥ floor per bin) applies only when the budget can support it.
+        // When nonGiantBudget < floor × bins, distribute exactly what's available (floor_override=true).
         $totalBinPop     = array_sum(array_column($binData, 'pop'));
         $effectiveBudget = $nonGiantBudget;
         $binCount        = count($binData);
-        $floorFeasible   = ($effectiveBudget >= $binCount * 5);
-        $startSeats      = $floorFeasible ? 5 : 1;
+        $floorFeasible   = ($effectiveBudget >= $binCount * $floor);
+        $startSeats      = $floorFeasible ? $floor : 1;
         $binQuota        = $totalBinPop / max($effectiveBudget, 1);
 
         foreach ($binData as &$b) {
             $b['fractional']     = $b['pop'] / max($binQuota, 1);
-            $b['floor_override'] = $b['fractional'] < 5.0;
+            $b['floor_override'] = $b['fractional'] < $floorBoundary;
             $b['seats']          = $startSeats;
         }
         unset($b);
@@ -2562,7 +3121,7 @@ class LegislatureController extends Controller
         for ($r = 0; $r < $remaining; $r++) {
             $bestIdx = -1; $bestPriority = -1.0;
             foreach ($binData as $i => $b) {
-                if ($b['seats'] >= 9) continue;
+                if ($b['seats'] >= $ceiling) continue;
                 if ($floorFeasible && $b['floor_override']) continue;
                 $priority = $b['pop'] / (2 * $b['seats'] + 1);
                 if ($priority > $bestPriority) { $bestPriority = $priority; $bestIdx = $i; }
@@ -2571,27 +3130,53 @@ class LegislatureController extends Controller
         }
 
         // ── Safety: exhaust any budget not placed by the main Webster loop ────────
-        // Occurs when floor_override bins were skipped AND all other bins hit the 9-seat cap,
-        // leaving bestIdx=-1 for one or more rounds.  Distribute leftover seats by Webster
-        // priority without the floor_override gate — the constitutional ceiling (9) is the
-        // only hard limit.  floor_override stays recorded on the district for audit purposes.
+        // Occurs when floor_override bins were skipped AND all other bins hit the ceiling,
+        // leaving bestIdx=-1 for one or more rounds. Distribute leftover seats by Webster
+        // priority without the floor_override gate — the constitutional ceiling is the
+        // only hard limit. floor_override stays recorded on the district for audit purposes.
         $safeAssigned = array_sum(array_column($binData, 'seats'));
         $safeRemain   = $effectiveBudget - $safeAssigned;
         for ($r = 0; $r < $safeRemain; $r++) {
             $bestIdx = -1; $bestPri = -1.0;
             foreach ($binData as $i => $b) {
-                if ($b['seats'] >= 9) continue;          // constitutional max is still hard
+                if ($b['seats'] >= $ceiling) continue;   // constitutional max is still hard
                 $priority = $b['pop'] / (2 * $b['seats'] + 1);
                 if ($priority > $bestPri) { $bestPri = $priority; $bestIdx = $i; }
             }
             if ($bestIdx >= 0) $binData[$bestIdx]['seats']++;
             // If bestIdx is -1 here, ALL bins are at the constitutional ceiling and the
-            // budget genuinely cannot be placed (only possible if budget > 9 × binCount).
+            // budget genuinely cannot be placed (only possible if budget > ceiling × binCount).
         }
 
-        // ── Step 12: Insert districts + update type_a_apportioned on members ──
+        // ── Step 12: Insert districts ──────────────────────────────────────────
+        // The district's `seats` value is the canonical seat budget for any
+        // composite member at this scope. When a downstream caller needs a
+        // member's locked seat budget, computeSeatBudget()'s Path 2 lookup
+        // returns this district's `seats`. Giants (skipped here — Step 12
+        // only inserts non-giant bins) take Path 3 and recompute their
+        // budget via the parent cascade.
         $districtsCreated = 0;
-        foreach ($binData as $bin) {
+        $totalDistricts   = count($binData);
+        $this->publishMassProgress($legislature_id, [
+            'phase'         => 'inserting',
+            'phase_label'   => "Inserting {$totalDistricts} districts (computing geometry per district)",
+            'phase_current' => 0,
+            'phase_total'   => $totalDistricts,
+        ]);
+        foreach ($binData as $binIdx => $bin) {
+            // Per-district progress so the operator can tell whether a slow
+            // scope is stuck on geometry computation (Step 12, dominant cost)
+            // versus stuck in the bin-balancing inner loops (earlier steps).
+            $this->publishMassProgress($legislature_id, [
+                'phase'         => 'geometry',
+                'phase_label'   => sprintf(
+                    'District %d of %d — %d members, %d seats — running ST_Union…',
+                    $binIdx + 1, $totalDistricts, count($bin['jids']), $bin['seats'],
+                ),
+                'phase_current' => $binIdx + 1,
+                'phase_total'   => $totalDistricts,
+            ]);
+
             $distNumQ = DB::table('legislature_districts')
                 ->where('legislature_id', $legislature_id)
                 ->where('jurisdiction_id', $scopeId)
@@ -2625,16 +3210,6 @@ class LegislatureController extends Controller
                 'jurisdiction_id' => $jid,
             ], $bin['jids']);
             DB::table('legislature_district_jurisdictions')->insert($memberships);
-
-            // Write type_a_apportioned on each member: their proportional share of district seats.
-            // Enables accurate sub-scope seat budgets if these jurisdictions are ever drilled into.
-            if ($bin['pop'] > 0) {
-                foreach ($bin['jids'] as $jid) {
-                    $memberPop   = (int) $childById[$jid]->population;
-                    $memberShare = (int) round($memberPop * $bin['seats'] / $bin['pop']);
-                    DB::table('jurisdictions')->where('id', $jid)->update(['type_a_apportioned' => max(1, $memberShare)]);
-                }
-            }
 
             // Compute and cache spatial stats (convex_hull_ratio, num_geom_parts, is_contiguous)
             // so reseeded districts have stats immediately — same as manual create/update.
@@ -2680,32 +3255,36 @@ class LegislatureController extends Controller
     /**
      * Compute the non-giant quota for a scope.
      *
-     * When giants lock in integer seats (via type_a_apportioned or round(frac)), the
+     * When giants lock in integer seats (via computeSeatBudget() or round(frac)), the
      * remaining non-giant pool is apportioned over exactly (seatBudget − giantSeats) seats.
      * ngQuota = nonGiantPop / (seatBudget − giantSeats) guarantees SUM(non-giant fracs) is
      * exactly (seatBudget − giantSeats).  This mirrors what runAutoCompositeForScope() does
      * via $binQuota.  Returns $fullQuota unchanged when no giants are present.
      *
-     * @param array $allChildren  stdClass rows with ->population, ->fractional_seats (full-quota),
-     *                            and optionally ->type_a_apportioned.
-     * @param float $fullQuota    effectivePop / seatBudget
-     * @param int   $seatBudget   Total seat budget at this scope
-     * @param int   $effectivePop SUM(all direct children pops)
+     * @param array  $allChildren     stdClass rows with ->population, ->fractional_seats
+     *                                (full-quota), and optionally ->type_a_apportioned.
+     * @param float  $fullQuota       effectivePop / seatBudget
+     * @param int    $seatBudget      Total seat budget at this scope
+     * @param int    $effectivePop    SUM(all direct children pops)
+     * @param float  $giantThreshold  fractional ≥ this is a giant (ceiling + 0.5)
+     * @param int    $floor           seat floor (composite minimum, e.g. 5)
      */
     private function computeNonGiantQuota(
         array $allChildren,
         float $fullQuota,
         int   $seatBudget,
-        int   $effectivePop
+        int   $effectivePop,
+        float $giantThreshold,
+        int   $floor
     ): float {
         $giantSeatsTotal = 0;
         $giantPopTotal   = 0;
         foreach ($allChildren as $c) {
             $frac = (float) ($c->fractional_seats ?? ((float) $c->population / max($fullQuota, 1)));
-            if ($frac >= 9.5) {
+            if ($frac >= $giantThreshold) {
                 $lockedSeats = isset($c->type_a_apportioned) && $c->type_a_apportioned !== null
                     ? (int) $c->type_a_apportioned
-                    : max(5, (int) round($frac));
+                    : max($floor, (int) round($frac));
                 $giantSeatsTotal += $lockedSeats;
                 $giantPopTotal   += (int) $c->population;
             }
@@ -2727,6 +3306,10 @@ class LegislatureController extends Controller
         bool   $skipSeatsUpdate = false  // true when called from auto-composite: preserve Webster seats
     ): void
     {
+        ['giant' => $giantThreshold, 'floor' => $floorBoundary] = $this->thresholds($leg->jurisdiction_id);
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+
         $jids = DB::table('legislature_district_jurisdictions as ldj')
             ->where('ldj.district_id', $districtId)
             ->pluck('ldj.jurisdiction_id')
@@ -2751,48 +3334,48 @@ class LegislatureController extends Controller
                 ->sum('population');
             $distScopeRow = DB::table('jurisdictions')->where('id', $distScopeId)->whereNull('deleted_at')->first();
             $reRootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
-            if ($distScopeId === $leg->jurisdiction_id) {
-                $distSeatBudget = (int) $leg->type_a_seats;
-            } elseif ($distScopeRow && $distScopeRow->type_a_apportioned !== null) {
-                $distSeatBudget = (int) $distScopeRow->type_a_apportioned;
-            } else {
-                $distSeatBudget = max(5, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $reRootPop));
-            }
+            // Seat budget via the gated cascade. Falls back to proportional
+            // approximation only in degenerate cases.
+            $distSeatBudget = $this->computeSeatBudget($distScopeId, $legislatureId)
+                ?? max($floor, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $reRootPop));
             $fullQuota = $scopeChildrenPop / max($distSeatBudget, 1);
-            // Adjust to non-giant quota so stored fractional is comparable to sibling fracs.
+            // Adjust to non-giant quota so stored fractional is comparable to
+            // sibling fracs. `type_a_apportioned` here is the legacy property
+            // name carried into computeNonGiantQuota() — populated via the
+            // gated cascade.
             $distChildren = DB::table('jurisdictions')
                 ->where('parent_id', $distScopeId)
                 ->whereNull('deleted_at')
-                ->get(['population', 'type_a_apportioned']);
-            $distChildStd = $distChildren->map(function ($c) use ($fullQuota) {
+                ->get(['id', 'population']);
+            $distChildStd = $distChildren->map(function ($c) use ($fullQuota, $legislatureId) {
                 $obj = new \stdClass();
                 $obj->population         = $c->population;
                 $obj->fractional_seats   = (float) $c->population / max($fullQuota, 1);
-                $obj->type_a_apportioned = $c->type_a_apportioned;
+                $obj->type_a_apportioned = $this->computeSeatBudget($c->id, $legislatureId);
                 return $obj;
             })->all();
-            $quota = $this->computeNonGiantQuota($distChildStd, $fullQuota, $distSeatBudget, $scopeChildrenPop);
+            $quota = $this->computeNonGiantQuota($distChildStd, $fullQuota, $distSeatBudget, $scopeChildrenPop, $giantThreshold, $floor);
 
             // Quota cap: when giants consume most of the seat budget, the remaining
-            // non-giant pool may be < 5. effectiveFloor = min(5, nonGiantBudget) so
+            // non-giant pool may be < floor. effectiveFloor = min(floor, nonGiantBudget) so
             // that the constitutional floor yields to the quota cap (not the reverse).
             $giantSeatsForFloor = 0;
             foreach ($distChildStd as $c) {
-                if ((float) $c->fractional_seats >= 9.5) {
+                if ((float) $c->fractional_seats >= $giantThreshold) {
                     $giantSeatsForFloor += $c->type_a_apportioned !== null
                         ? (int) $c->type_a_apportioned
-                        : max(5, (int) round((float) $c->fractional_seats));
+                        : max($floor, (int) round((float) $c->fractional_seats));
                 }
             }
-            $effectiveFloor = min(5, max(1, $distSeatBudget - $giantSeatsForFloor));
+            $effectiveFloor = min($floor, max(1, $distSeatBudget - $giantSeatsForFloor));
         } else {
             $reRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
             $quota = $reRootPop / max((int) $leg->type_a_seats, 1);
-            $effectiveFloor = 5;   // no scope context — cannot determine quota cap
+            $effectiveFloor = $floor;   // no scope context — cannot determine quota cap
         }
         $fractional = $totalPop / max($quota, 1);
-        $seats      = max($effectiveFloor, min(9, (int) round($fractional)));
-        $floorOverride = $seats < 5;
+        $seats      = max($effectiveFloor, min($ceiling, (int) round($fractional)));
+        $floorOverride = $seats < $floor;
 
         // Pre-compute spatial stats from member jurisdiction geometries.
         // Running per-district at write time (create/update) is fast — typically
@@ -2804,13 +3387,29 @@ class LegislatureController extends Controller
         //
         // convex_hull_ratio = ST_Area(union) / ST_Area(ST_ConvexHull(union))  [0–1, higher=better]
         // Union first so shared borders cancel cleanly before deriving metrics.
+        // Two-tier conditional simplify on huge geoms — same pattern as the
+        // adjacency queries. ST_Union over multiple multipart polygons is
+        // super-linear in total vertex count, so a Canadian district holding
+        // Nunavut (5.4M verts) + Ontario (3.7M) + Quebec (2.2M) at raw
+        // resolution can spend 5-10 min in this one call. Simplified inputs
+        // make Union seconds. Compactness (area-ratio) and component count
+        // are insensitive to ~110m boundary precision; the metric is robust.
         $jidPlaceholders = implode(',', array_fill(0, count($jids), '?'));
         $spatialRow = DB::selectOne("
-            WITH union_cte AS (
-                SELECT ST_MakeValid(ST_Union(ST_MakeValid(j.geom))) AS geom
-                FROM jurisdictions j
-                WHERE j.id IN ({$jidPlaceholders})
-                  AND j.geom IS NOT NULL AND j.deleted_at IS NULL
+            WITH g AS (
+                SELECT CASE
+                           WHEN ST_NPoints(geom) > 1000000
+                                THEN ST_MakeValid(ST_Simplify(geom, 0.01))
+                           WHEN ST_NPoints(geom) > 50000
+                                THEN ST_MakeValid(ST_Simplify(geom, 0.001))
+                           ELSE ST_MakeValid(geom)
+                       END AS geom
+                FROM jurisdictions
+                WHERE id IN ({$jidPlaceholders})
+                  AND geom IS NOT NULL AND deleted_at IS NULL
+            ),
+            union_cte AS (
+                SELECT ST_MakeValid(ST_Union(g.geom)) AS geom FROM g
             )
             SELECT
                 ST_Area(geom) / NULLIF(ST_Area(ST_ConvexHull(geom)), 0) AS convex_hull_ratio,
@@ -2834,19 +3433,33 @@ class LegislatureController extends Controller
         if (count($jids) <= 1) {
             $isContiguous = true;
         } else {
-            $jidPh1   = implode(',', array_fill(0, count($jids), '?'));
-            $jidPh2   = implode(',', array_fill(0, count($jids), '?'));
+            // Two-tier conditional simplify — same pattern as Step 7. Tier 1
+            // (>1M verts) at 0.01° (~1.1km) for Nunavut-class outliers; Tier 2
+            // (>50k verts) at 0.001° (~110m) for normal large geoms.
+            // ST_MakeValid handles self-intersections that simplification can
+            // introduce on complex coastlines.
+            $jidPh = implode(',', array_fill(0, count($jids), '?'));
             $adjPairs = DB::select("
+                WITH g AS (
+                    SELECT id,
+                           CASE
+                               WHEN ST_NPoints(geom) > 1000000
+                                    THEN ST_MakeValid(ST_Simplify(geom, 0.01))
+                               WHEN ST_NPoints(geom) > 50000
+                                    THEN ST_MakeValid(ST_Simplify(geom, 0.001))
+                               ELSE geom
+                           END AS geom
+                    FROM jurisdictions
+                    WHERE id IN ({$jidPh})
+                      AND geom IS NOT NULL
+                      AND deleted_at IS NULL
+                )
                 SELECT a.id AS a_id, b.id AS b_id
-                FROM jurisdictions a
-                JOIN jurisdictions b ON b.id > a.id
-                    AND b.id IN ({$jidPh2})
-                    AND b.geom IS NOT NULL AND b.deleted_at IS NULL
+                FROM g a
+                JOIN g b ON b.id > a.id
                     AND a.geom && b.geom
                     AND ST_Intersects(a.geom, b.geom)
-                WHERE a.id IN ({$jidPh1})
-                  AND a.geom IS NOT NULL AND a.deleted_at IS NULL
-            ", array_merge($jids, $jids));
+            ", $jids);
 
             $adj       = [];
             $adjCounts = [];
@@ -2937,9 +3550,11 @@ class LegislatureController extends Controller
         // the correct seats at INSERT time — do NOT overwrite with per-district rounding, which
         // can diverge from the guaranteed-total Webster result (e.g. frac 7.49 rounds to 7 but
         // Webster gave 8 to balance the scope total).  Only spatial stats are refreshed.
+        // NOTE: polsby_popper column was dropped by migration
+        // 2026_04_23_000003_drop_unused_district_and_jurisdiction_columns —
+        // superseded by convex_hull_ratio. Do NOT add it back here.
         $distUpdate = [
             'actual_population' => $totalPop,
-            'polsby_popper'     => null,
             'num_geom_parts'    => $spatialRow?->num_geom_parts !== null ? (int) $spatialRow->num_geom_parts : null,
             'convex_hull_ratio' => $spatialRow?->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
             'is_contiguous'     => $isContiguous,
@@ -2958,100 +3573,6 @@ class LegislatureController extends Controller
         // The broad tag "revealed.{$legislatureId}" was added to every revealedGeoJson()
         // cache entry, so one flush here invalidates every scope × map × zoom combination.
         Cache::tags(["revealed.{$legislatureId}"])->flush();
-    }
-
-    /**
-     * Greedy 4-color graph coloring for all districts at a given scope.
-     * Sorts districts by adjacency degree (most connected first) for better results.
-     * Adjacent districts (ST_Intersects) are guaranteed different color_index values.
-     *
-     * @param string      $legislatureId
-     * @param string|null $scopeId           The scope jurisdiction ID.
-     * @param string|null $rootJurisdictionId When provided, also includes ETL districts
-     *                                        (jurisdiction_id IS NULL) if scopeId === root.
-     */
-    private function recomputeColorIndices(
-        string  $legislatureId,
-        ?string $scopeId,
-        ?string $rootJurisdictionId = null,
-        ?string $mapId = null
-    ): void {
-        if (!$scopeId) {
-            // Null scopeId = ETL root districts; use the rootJurisdictionId as sentinel
-            if (!$rootJurisdictionId) return;
-        }
-
-        $includeNull = ($rootJurisdictionId !== null && $scopeId === $rootJurisdictionId);
-
-        $q = DB::table('legislature_districts')
-            ->where('legislature_id', $legislatureId)
-            ->where(function ($q) use ($scopeId, $includeNull) {
-                $q->where('jurisdiction_id', $scopeId);
-                if ($includeNull) {
-                    $q->orWhereNull('jurisdiction_id');
-                }
-            })
-            ->whereNull('deleted_at');
-
-        if ($mapId !== null) {
-            $q->where('map_id', $mapId);
-        }
-
-        $districtIds = $q->pluck('id')->toArray();
-
-        if (empty($districtIds)) return;
-
-        // Assign deterministic cycling colors (0→1→2→3→0…) sorted by UUID.
-        // No geometry computation — ST_Intersects on large province polygons (Canada,
-        // India, etc.) hangs regardless of simplification tolerance.  The ETL phase5
-        // script is the authoritative source of proper 7-coloring; the PHP path just
-        // needs to assign visually distinct non-monotone colors quickly.
-
-        // Cross-scope collision avoidance: for non-root scopes (e.g. England inside UK),
-        // find the color_indices already used by the PARENT scope's districts and start
-        // the cycling offset from the first color not in that set.  This prevents the
-        // common case where GBR 01 (UK scope, color 0) and GBR ENG 02 (England scope,
-        // also color 0) both render as amber at UK map view, making them visually identical.
-        $colorOffset = 0;
-        if ($scopeId && $rootJurisdictionId && $scopeId !== $rootJurisdictionId) {
-            $parentId = DB::table('jurisdictions')
-                ->where('id', $scopeId)
-                ->whereNull('deleted_at')
-                ->value('parent_id');
-
-            if ($parentId) {
-                $pq = DB::table('legislature_districts')
-                    ->where('legislature_id', $legislatureId)
-                    ->where('jurisdiction_id', $parentId)
-                    ->whereNull('deleted_at');
-                if ($mapId !== null) {
-                    $pq->where('map_id', $mapId);
-                }
-                $parentColors = $pq->pluck('color_index')->unique()->toArray();
-
-                // Advance offset past any color already occupied in parent scope
-                while ($colorOffset < 7 && in_array($colorOffset, $parentColors)) {
-                    $colorOffset++;
-                }
-                if ($colorOffset >= 7) {
-                    $colorOffset = 0;  // all 7 colors exhausted — wrap around
-                }
-            }
-        }
-
-        $sorted = array_values($districtIds);
-        sort($sorted);
-        $buckets = [[], [], [], [], [], [], []];
-        foreach ($sorted as $i => $id) {
-            $buckets[($i + $colorOffset) % 7][] = $id;
-        }
-        foreach ($buckets as $c => $ids) {
-            if (!empty($ids)) {
-                DB::table('legislature_districts')
-                    ->whereIn('id', $ids)
-                    ->update(['color_index' => $c]);
-            }
-        }
     }
 
     /**
@@ -3243,8 +3764,13 @@ class LegislatureController extends Controller
         array $adj,
         array $centroids,
         array $seeds,
+        float $giantThreshold,
+        float $floorBoundary,
         bool  $bfsOnly = false  // when true: return after BFS expansion, skip balance/compact passes
     ): array {
+        // Pre-compute the "BFS full" threshold (slightly below giant) used to gate
+        // expansion. With default 5/9 this is 9.49 (giant=9.5 minus epsilon).
+        $bfsFullThreshold = $giantThreshold - 0.01;
         if (empty($jids)) return [];
 
         // Degenerate: caller provided no seeds — return everything as one bin
@@ -3311,12 +3837,12 @@ class LegislatureController extends Controller
 
             for ($i = 0; $i < $k; $i++) {
                 $popFull  = $binPops[$i]  >= $targetPop  * 1.1;
-                $fracFull = $binFracs[$i] >= 9.49;
+                $fracFull = $binFracs[$i] >= $bfsFullThreshold;
                 $binFull  = $popFull || $fracFull;
 
                 $activeBins = 0;
                 for ($j = 0; $j < $k; $j++) {
-                    if ($binPops[$j] < $targetPop * 1.1 && $binFracs[$j] < 9.49) $activeBins++;
+                    if ($binPops[$j] < $targetPop * 1.1 && $binFracs[$j] < $bfsFullThreshold) $activeBins++;
                 }
 
                 if ($binFull && $activeBins > 0) continue;
@@ -3327,11 +3853,11 @@ class LegislatureController extends Controller
 
                     $nextFrac = (float) $childById[$next]->fractional_seats;
 
-                    if ($binFracs[$i] + $nextFrac >= 9.5) {
+                    if ($binFracs[$i] + $nextFrac >= $giantThreshold) {
                         foreach ($adj[$next] ?? [] as $nbOfNext) {
                             if (!isset($assigned[$nbOfNext])) continue;
                             $adjJ = $assigned[$nbOfNext];
-                            if ($adjJ !== $i && $binFracs[$adjJ] + $nextFrac < 9.5) {
+                            if ($adjJ !== $i && $binFracs[$adjJ] + $nextFrac < $giantThreshold) {
                                 $queues[$adjJ][] = $next;
                             }
                         }
@@ -3381,7 +3907,7 @@ class LegislatureController extends Controller
             if (!empty($adjacentBins)) {
                 foreach (array_keys($adjacentBins) as $i) {
                     if (!isset($binFracs[$i])) continue;
-                    if ($binFracs[$i] + $jFrac >= 9.5) continue;
+                    if ($binFracs[$i] + $jFrac >= $giantThreshold) continue;
                     $iCenter = $this->binCentroid($bins[$i], $centroids);
                     $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
                     $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
@@ -3392,7 +3918,7 @@ class LegislatureController extends Controller
                 // No real adjacency or all filtered — nearest centroid fallback
                 foreach (range(0, $k - 1) as $i) {
                     if (!isset($binFracs[$i])) continue;
-                    if ($binFracs[$i] + $jFrac >= 9.5) continue;
+                    if ($binFracs[$i] + $jFrac >= $giantThreshold) continue;
                     $iCenter = $this->binCentroid($bins[$i], $centroids);
                     $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
                     $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
@@ -3490,7 +4016,7 @@ class LegislatureController extends Controller
                 if (empty($bins[$i])) continue;
                 foreach ($bins[$i] as $jid) {
                     $jFrac = (float) $childById[$jid]->fractional_seats;
-                    if ($binFracs[$i] - $jFrac < 5.0) continue; // donor floor
+                    if ($binFracs[$i] - $jFrac < $floorBoundary) continue; // donor floor
 
                     $adjBins = [];
                     foreach ($adj[$jid] ?? [] as $nb) {
@@ -3502,7 +4028,7 @@ class LegislatureController extends Controller
 
                     $jPop = (float) $childById[$jid]->population;
                     foreach (array_keys($adjBins) as $j) {
-                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+                        if ($binFracs[$j] + $jFrac >= $giantThreshold) continue;
 
                         // Fast skip: if neither bin i nor bin j holds the current max deviation,
                         // no swap between them can reduce the maximum.
@@ -3603,7 +4129,7 @@ class LegislatureController extends Controller
 
                 foreach ($bins[$i] as $jid) {
                     $jFrac = (float) $childById[$jid]->fractional_seats;
-                    if ($binFracs[$i] - $jFrac < 5.0) continue;
+                    if ($binFracs[$i] - $jFrac < $floorBoundary) continue;
 
                     $jPop = (float) $childById[$jid]->population;
                     $jx   = $centroids[$jid]['x'] ?? 0.0;
@@ -3634,7 +4160,7 @@ class LegislatureController extends Controller
                     if (empty($adjBins)) continue;
 
                     foreach (array_keys($adjBins) as $j) {
-                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+                        if ($binFracs[$j] + $jFrac >= $giantThreshold) continue;
 
                         $jM  = $binPops[$j];
                         $jRg = $jM > 0
@@ -3733,7 +4259,7 @@ class LegislatureController extends Controller
                 if (empty($bins[$i])) continue;
                 foreach ($bins[$i] as $jid) {
                     $jFrac = (float) $childById[$jid]->fractional_seats;
-                    if ($binFracs[$i] - $jFrac < 5.0) continue;
+                    if ($binFracs[$i] - $jFrac < $floorBoundary) continue;
 
                     $adjBins = [];
                     foreach ($adj[$jid] ?? [] as $nb) {
@@ -3745,7 +4271,7 @@ class LegislatureController extends Controller
 
                     $jPop = (float) $childById[$jid]->population;
                     foreach (array_keys($adjBins) as $j) {
-                        if ($binFracs[$j] + $jFrac >= 9.5) continue;
+                        if ($binFracs[$j] + $jFrac >= $giantThreshold) continue;
 
                         // Fast skip: neither bin involved = cannot reduce the max
                         $devI2 = abs($binPops[$i] - $targetPop);
@@ -3863,7 +4389,7 @@ class LegislatureController extends Controller
         while ($changed) {
             $changed = false;
             foreach ($binFracs as $i => $t) {
-                if ($t >= 5.0 || empty($bins[$i])) continue;
+                if ($t >= $floorBoundary || empty($bins[$i])) continue;
 
                 // Collect bins that share at least one adjacency edge with bin i
                 $adjBorderBins = [];
@@ -3884,7 +4410,7 @@ class LegislatureController extends Controller
 
                 // Phase 1: adjacent absorbers only (contiguity-safe merge)
                 foreach (array_keys($adjBorderBins) as $j) {
-                    if ($binFracs[$j] + $t >= 9.5) continue;
+                    if ($binFracs[$j] + $t >= $giantThreshold) continue;
                     $jCenter = $this->binCentroid($bins[$j], $centroids);
                     $dx = $iCenter['x'] - $jCenter['x'];
                     $dy = $iCenter['y'] - $jCenter['y'];
@@ -3896,7 +4422,7 @@ class LegislatureController extends Controller
                 if ($bestJ < 0) {
                     foreach ($binFracs as $j => $tj) {
                         if ($j === $i || empty($bins[$j])) continue;
-                        if ($tj + $t >= 9.5) continue;
+                        if ($tj + $t >= $giantThreshold) continue;
                         $jCenter = $this->binCentroid($bins[$j], $centroids);
                         $dx = $iCenter['x'] - $jCenter['x'];
                         $dy = $iCenter['y'] - $jCenter['y'];
@@ -3950,12 +4476,15 @@ class LegislatureController extends Controller
         array $childById,
         array $adj,
         float $totalBinPop,
-        int   $nonGiantBudget
+        int   $nonGiantBudget,
+        int   $floor,
+        int   $ceiling,
+        float $floorBoundary
     ): array {
         $binCount      = count($bins);
         $binQuota      = $totalBinPop / max($nonGiantBudget, 1);
-        $floorFeasible = ($nonGiantBudget >= $binCount * 5);
-        $startSeats    = $floorFeasible ? 5 : 1;
+        $floorFeasible = ($nonGiantBudget >= $binCount * $floor);
+        $startSeats    = $floorFeasible ? $floor : 1;
 
         // Simulate Webster (Sainte-Laguë) apportionment in-memory
         $binPops        = array_map(
@@ -3963,14 +4492,14 @@ class LegislatureController extends Controller
             $bins
         );
         $binSeats       = array_fill(0, $binCount, $startSeats);
-        $floorOverrides = array_map(fn($p) => $binQuota > 0 && ($p / $binQuota) < 5.0, $binPops);
+        $floorOverrides = array_map(fn($p) => $binQuota > 0 && ($p / $binQuota) < $floorBoundary, $binPops);
 
         $remaining = $nonGiantBudget - $startSeats * $binCount;
         for ($r = 0; $r < $remaining; $r++) {
             $bestIdx = -1;
             $bestPri = -1.0;
             foreach ($binSeats as $i => $s) {
-                if ($s >= 9) continue;
+                if ($s >= $ceiling) continue;
                 if ($floorFeasible && $floorOverrides[$i]) continue;
                 $pri = $binPops[$i] / (2 * $s + 1);
                 if ($pri > $bestPri) { $bestPri = $pri; $bestIdx = $i; }
@@ -4115,6 +4644,9 @@ class LegislatureController extends Controller
         $totalSeats = (int) $leg->type_a_seats;
         $rootQuota  = $rootPop / $totalSeats;
 
+        // Constitutional thresholds (substituted for legacy 9.5 literal).
+        $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
+
         $scope = DB::table('jurisdictions')->where('id', $scopeId)->first();
         if (!$scope) {
             return response()->json(['error' => 'Scope not found'], 404);
@@ -4174,7 +4706,7 @@ class LegislatureController extends Controller
             })
             ->select(
                 'ld.id', 'ld.seats', 'ld.district_number', 'ld.actual_population',
-                'ld.fractional_seats', 'ld.color_index', 'ld.floor_override',
+                'ld.fractional_seats', 'ld.floor_override',
                 'ld.convex_hull_ratio', 'ld.is_contiguous',
                 'j.id AS jid', 'j.name AS jname', 'j.iso_code AS jiso', 'j.adm_level AS jadm',
                 'j.population AS jpop',
@@ -4195,11 +4727,11 @@ class LegislatureController extends Controller
                     'district_number'  => (int) $row->district_number,
                     'population'       => (int) $row->actual_population,
                     'fractional_seats' => (float) $row->fractional_seats,
-                    'color_index'      => (int) $row->color_index,
+                    'color_index'      => 0,   // overlaid below from greedy coloring
                     'floor_override'   => (bool) $row->floor_override,
                     'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
                     'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
-                    'has_integrity'     => !(($scopeFrac >= 9.5) && ((int) ($row->scope_child_count ?? 0) === 0)),
+                    'has_integrity'     => !(($scopeFrac >= $giantThreshold) && ((int) ($row->scope_child_count ?? 0) === 0)),
                     '_member_codes'    => [],
                     'members'          => [],
                 ];
@@ -4212,6 +4744,14 @@ class LegislatureController extends Controller
                 'child_count' => (int) $row->jchild_count,
             ];
         }
+
+        // Greedy adjacency-aware coloring — sourced from the legislature-wide
+        // map so colors stay consistent with show() and revealedGeoJson.
+        $colorMap = $this->legislatureColorMap($legislature_id, $atMapId);
+        foreach ($dmap as $did => &$d) {
+            $d['color_index'] = $colorMap[$did] ?? 0;
+        }
+        unset($d);
 
         $districts = [];
         foreach ($dmap as &$d) {
@@ -4262,7 +4802,10 @@ class LegislatureController extends Controller
         $childRows = DB::select("
             SELECT
                 j.id, j.name, j.iso_code, j.adm_level, j.population,
-                j.type_a_apportioned,
+                -- type_a_apportioned populated via computeSeatBudget() in PHP
+                -- after this select returns. See the show() handler for
+                -- rationale — the gated cascade handles giants correctly.
+                NULL                                              AS type_a_apportioned,
                 (CAST(j.population AS numeric) * :total_seats / :root_pop) AS fractional_seats,
                 (SELECT COUNT(*) FROM jurisdictions c
                  WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
@@ -4303,19 +4846,21 @@ class LegislatureController extends Controller
             FROM jurisdictions j
             WHERE j.parent_id = :scope_id
               AND j.deleted_at IS NULL
-              AND (CAST(j.population AS numeric) * :total_seats2 / :root_pop2) >= 9.5
+              AND (CAST(j.population AS numeric) * :total_seats2 / :root_pop2) >= :giant_threshold
         ", [
-            'total_seats'  => $totalSeats,
-            'root_pop'     => $rootPop,
-            'leg_id'       => $legislature_id,
-            'leg_id2'      => $legislature_id,
-            'scope_id'     => $scopeId,
-            'total_seats2' => $totalSeats,
-            'root_pop2'    => $rootPop,
+            'total_seats'     => $totalSeats,
+            'root_pop'        => $rootPop,
+            'leg_id'          => $legislature_id,
+            'leg_id2'         => $legislature_id,
+            'scope_id'        => $scopeId,
+            'total_seats2'    => $totalSeats,
+            'root_pop2'       => $rootPop,
+            'giant_threshold' => $giantThreshold,
         ]);
 
         $giants = [];
         foreach ($childRows as $c) {
+            $apportioned = $this->computeSeatBudget($c->id, $legislature_id);
             $giants[] = [
                 'id'                   => $c->id,
                 'name'                 => $c->name,
@@ -4323,7 +4868,7 @@ class LegislatureController extends Controller
                 'fractional_seats'     => round((float) $c->fractional_seats, 2),
                 'child_count'          => (int) $c->child_count,
                 'has_districts'        => (bool) $c->has_districts,
-                'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
+                'type_a_apportioned'   => $apportioned,
                 'child_assigned_seats' => (int) $c->child_assigned_seats,
             ];
         }
@@ -4361,6 +4906,27 @@ class LegislatureController extends Controller
             'incomplete_scopes' => [],   // scopes with unassigned compositable children
         ];
 
+        // Constitutional thresholds (substituted for the legacy 9.5 / 4.5 literals).
+        ['giant' => $giantThreshold, 'override' => $floorOverride] = $this->thresholds($leg->jurisdiction_id);
+
+        // Short-circuit when no districts exist in this legislature yet.
+        // The deep-scan + incomplete-scopes queries below LEFT JOIN against
+        // the entire 951 k-row jurisdictions table; with zero districts they
+        // also produce no useful flags. The postgres container's 64 MB
+        // /dev/shm can't materialize the empty-district join plan on the
+        // full jurisdictions tree without exhausting shared memory. This
+        // guard skips the work for empty legislatures (the natural "just
+        // sized, no districts drawn yet" state immediately after
+        // apportionment:seed) and returns an empty flag set.
+        $hasAnyDistrict = DB::table('legislature_districts')
+            ->where('legislature_id', $legId)
+            ->whereNull('deleted_at')
+            ->when($mapId !== null, fn ($q) => $q->where('map_id', $mapId))
+            ->exists();
+        if (! $hasAnyDistrict) {
+            return $flags;
+        }
+
         // ── Flag 1: Seat cap / undercount — both root and sub-scopes ────────────
         // Root scope: SUM(all legislature districts) vs. total seat budget.
         // Sub-scope:  SUM(districts created at this scope) vs. type_a_apportioned
@@ -4376,14 +4942,17 @@ class LegislatureController extends Controller
             $total  = (int) $capQuery->sum('seats');
             $budget = (int) $leg->type_a_seats;
         } else {
-            $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-            $budget   = $scopeRow ? (int) $scopeRow->type_a_apportioned : 0;
+            // Gated cascade. Returns NULL only in degenerate cases — same
+            // semantics as the old lookup, with the recursion handling
+            // giants correctly.
+            $budget = $this->computeSeatBudget($scopeId, $legId) ?? 0;
 
             // Mirror the Vue's currentConfigLabel: direct districts + giant-children subtrees.
-            // Giant children (frac >= 9.5) hold their seats at sub-scope levels; we must include
-            // their child_assigned_seats (already CTE-computed in $children) so the cap reflects
-            // all seats committed within India's full subtree, not just India-scope districts.
-            $GIANT_THRESHOLD = 9.5;
+            // Giant children (frac >= giant_threshold) hold their seats at sub-scope levels;
+            // we must include their child_assigned_seats (already CTE-computed in $children)
+            // so the cap reflects all seats committed within India's full subtree, not just
+            // India-scope districts.
+            $GIANT_THRESHOLD = $giantThreshold;
             $directSeats = 0;
             foreach ($districts as $d) {
                 $directSeats += (int) $d['seats'];
@@ -4407,10 +4976,10 @@ class LegislatureController extends Controller
 
         // ── Flag 4: Floor exceptions — only genuine cases ─────────────────────
         // A floor exception is meaningful only when the district's fractional seats
-        // would round BELOW the floor (5) via Webster rounding: fractional < 4.5.
-        // Values like 4.85 round naturally to 5 and do NOT need a flag.
+        // would round BELOW the floor via Webster rounding: fractional < floor - 0.5.
+        // A district with fractional = floor - 0.1 still rounds to floor and does NOT need a flag.
         foreach ($districts as $d) {
-            if ((float)($d['fractional_seats'] ?? 5.0) < 4.5) {
+            if ((float)($d['fractional_seats'] ?? $floorOverride + 1) < $floorOverride) {
                 $flags['floor_exceptions'][] = [
                     'district_id'   => $d['id'],
                     'district_name' => $d['name'],
@@ -4422,40 +4991,90 @@ class LegislatureController extends Controller
 
         // ── Flag 5: Scoped deep scan — current scope and all descendants ─────────
         // Shows overage/unevenness for every jurisdiction-scope that has districts and
-        // a known seat budget (type_a_apportioned), provided it is the current scope or
-        // a descendant of it at any depth.  This is a fixed-depth ancestor-walk (up to
-        // p3 = great-grandparent) rather than a recursive CTE: the district table is
-        // small and LEFT JOIN on indexed parent_id is fast.  Depth-4 covers the maximum
-        // real hierarchy: Earth → Country → State → County.
+        // a known seat budget (derived from membership in a parent-scope district),
+        // provided it is the current scope or a descendant of it within 4 levels.
+        //
+        // The query walks DOWN from $scopeId via a recursive CTE (`scope_subtree`)
+        // rather than starting from `jurisdictions` and filtering by an OR-chain of
+        // p1/p2/p3 ancestors. The recursive walk is bounded by both the subtree
+        // membership (small: scope + descendants) AND by `scopes_with_districts`
+        // (also small: only the handful of scopes that actually have districts on
+        // this map). Both sides of the final JOIN are O(districts), not O(all
+        // jurisdictions). This avoids the parallel-hash buffer overflow that the
+        // table-wide LEFT-JOIN variant produced on the 951 k-row jurisdictions table.
+        //
+        // Budget is derived from the `scope_budget` CTE: jurisdictions that appear
+        // as members of any live district inherit that district's seat count.
+        // Replaces the dropped `j.type_a_apportioned` lookup.
+        //
         // Examples:
-        //   Earth scope   → sees Earth + all countries + all states + all counties with districts
-        //   USA scope     → sees USA + all US states + US county-level scopes
-        //   California    → sees California + California county-level scopes
+        //   Earth scope   → sees Earth + countries + states + counties THAT HAVE districts
+        //   USA scope     → sees USA + US states + US county-level scopes (that have districts)
+        //   California    → sees California + California county-level scopes (that have districts)
         $deepMapClause  = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $deepMapBinding = $mapId !== null ? [$mapId] : [];
 
         $deepScopeRows = DB::select("
+            -- Walk UP from each scope that has districts. interesting_scopes are
+            -- those whose ancestor chain (up to 4 levels) contains \$scopeId — i.e.,
+            -- they're inside \$scopeId's subtree. The intermediate state is bounded
+            -- by O(scopes_with_districts × 4), independent of how big the
+            -- jurisdictions table is.
+            WITH RECURSIVE scopes_with_districts AS (
+                SELECT DISTINCT ld.jurisdiction_id AS scope_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$deepMapClause}
+            ),
+            ancestor_walk(orig_scope_id, current_id, depth) AS (
+                SELECT swd.scope_id, swd.scope_id, 0
+                  FROM scopes_with_districts swd
+                UNION ALL
+                SELECT aw.orig_scope_id, j.parent_id, aw.depth + 1
+                  FROM ancestor_walk aw
+                  JOIN jurisdictions j ON j.id = aw.current_id AND j.deleted_at IS NULL
+                 WHERE aw.depth < 3
+                   AND j.parent_id IS NOT NULL
+            ),
+            interesting_scopes AS (
+                SELECT DISTINCT orig_scope_id AS scope_id
+                  FROM ancestor_walk
+                 WHERE current_id = ?
+            ),
+            scope_budget AS (
+                SELECT ldj.jurisdiction_id, MAX(ld2.seats) AS seats
+                  FROM legislature_districts ld2
+                  JOIN legislature_district_jurisdictions ldj
+                    ON ldj.district_id = ld2.id
+                 WHERE ld2.legislature_id = ?
+                   AND ld2.deleted_at IS NULL
+                 GROUP BY ldj.jurisdiction_id
+            )
             SELECT
-                j.id         AS scope_id,
-                j.name       AS scope_name,
-                j.type_a_apportioned AS budget,
-                COUNT(ld.id) AS num_districts,
-                SUM(ld.seats)::int AS seat_sum,
-                MAX(ld.seats)::int AS max_seats,
-                MIN(ld.seats)::int AS min_seats,
+                j.id                AS scope_id,
+                j.name              AS scope_name,
+                sb.seats            AS budget,
+                COUNT(ld.id)        AS num_districts,
+                SUM(ld.seats)::int  AS seat_sum,
+                MAX(ld.seats)::int  AS max_seats,
+                MIN(ld.seats)::int  AS min_seats,
                 BOOL_OR(ld.floor_override) AS has_floor
-            FROM legislature_districts ld
-            JOIN jurisdictions j  ON j.id  = ld.jurisdiction_id AND j.deleted_at  IS NULL
-            LEFT JOIN jurisdictions p1 ON p1.id = j.parent_id  AND p1.deleted_at IS NULL
-            LEFT JOIN jurisdictions p2 ON p2.id = p1.parent_id AND p2.deleted_at IS NULL
-            LEFT JOIN jurisdictions p3 ON p3.id = p2.parent_id AND p3.deleted_at IS NULL
-            WHERE ld.legislature_id = ?
-              AND ld.deleted_at IS NULL
-              AND j.type_a_apportioned IS NOT NULL
-              AND (j.id = ? OR p1.id = ? OR p2.id = ? OR p3.id = ?)
-              {$deepMapClause}
-            GROUP BY j.id, j.name, j.type_a_apportioned
-        ", array_merge([$legId, $scopeId, $scopeId, $scopeId, $scopeId], $deepMapBinding));
+            FROM interesting_scopes is_
+            JOIN jurisdictions j ON j.id = is_.scope_id AND j.deleted_at IS NULL
+            JOIN legislature_districts ld
+                  ON ld.jurisdiction_id = j.id
+                 AND ld.legislature_id  = ?
+                 AND ld.deleted_at      IS NULL
+                 {$deepMapClause}
+            JOIN scope_budget sb ON sb.jurisdiction_id = j.id
+            GROUP BY j.id, j.name, sb.seats
+        ", array_merge(
+            [$legId], $deepMapBinding,   // scopes_with_districts
+            [$scopeId],                  // interesting_scopes WHERE current_id = ?
+            [$legId],                    // scope_budget
+            [$legId], $deepMapBinding    // outer JOIN to legislature_districts
+        ));
 
         foreach ($deepScopeRows as $row) {
             $budget   = (int) $row->budget;
@@ -4480,80 +5099,99 @@ class LegislatureController extends Controller
         // ── Flag 6: Incomplete scopes — unassigned compositable children ─────
         // A scope is flagged only when:
         //   (a) it is the root scope, OR it has ≥1 district on THIS legislature+map
-        //       (map-aware: avoids false positives from type_a_apportioned set by other maps)
+        //       (map-aware: avoids false positives from districts set by other maps)
         //   (b) it is NOT itself a district member (so non-giant composites like Puerto Rico
         //       are excluded — their sub-geography doesn't need separate assignment)
         //   (c) it has direct children with geometry not yet in any district on this map,
         //       where those children are NOT themselves giant drill-down scopes (identified
         //       by having their own districts on this map or being a district member).
-        $incompMapClause  = $mapId !== null ? 'AND ld.map_id = ?'   : '';
-        $incompMapClause2 = $mapId !== null ? 'AND ld2.map_id = ?'  : '';
-        $incompMapClause3 = $mapId !== null ? 'AND ld3.map_id = ?'  : '';
-        $incompMapClause4 = $mapId !== null ? 'AND ld4.map_id = ?'  : '';
+        //
+        // The query walks DOWN from $scopeId via a recursive CTE (`scope_subtree`)
+        // and pre-computes the small `scopes_with_districts` and `district_members`
+        // sets, then joins forward. Both sides of every JOIN are O(districts), not
+        // O(all jurisdictions). Avoids the parallel-hash buffer overflow that the
+        // table-wide LEFT-JOIN variant produced when run against a populated
+        // legislature on the 951 k-row jurisdictions table.
+        $incompMapClause = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $incompMapBinding = $mapId !== null ? [$mapId] : [];
+        $rootScopeId     = (string) $leg->jurisdiction_id;
 
+        // Build the "interesting scopes" set by walking UP from each scope that
+        // has districts (and from the root scope, in case the operator is sitting
+        // on a freshly-apportioned legislature with zero districts). A scope is
+        // interesting iff its ancestor chain within 4 levels contains \$scopeId.
+        // Joins to children are bounded by O(|interesting_scopes| × avg children).
         $incompleteRows = DB::select("
+            WITH RECURSIVE candidate_scopes AS (
+                SELECT DISTINCT ld.jurisdiction_id AS scope_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$incompMapClause}
+                UNION
+                SELECT ? AS scope_id   -- always consider the legislature's root scope
+            ),
+            ancestor_walk(orig_scope_id, current_id, depth) AS (
+                SELECT cs.scope_id, cs.scope_id, 0
+                  FROM candidate_scopes cs
+                UNION ALL
+                SELECT aw.orig_scope_id, j.parent_id, aw.depth + 1
+                  FROM ancestor_walk aw
+                  JOIN jurisdictions j ON j.id = aw.current_id AND j.deleted_at IS NULL
+                 WHERE aw.depth < 3
+                   AND j.parent_id IS NOT NULL
+            ),
+            interesting_scopes AS (
+                SELECT DISTINCT orig_scope_id AS scope_id
+                  FROM ancestor_walk
+                 WHERE current_id = ?
+            ),
+            district_members AS (
+                SELECT DISTINCT ldj.jurisdiction_id
+                  FROM legislature_district_jurisdictions ldj
+                  JOIN legislature_districts ld
+                    ON ld.id              = ldj.district_id
+                   AND ld.legislature_id  = ?
+                   AND ld.deleted_at      IS NULL
+                   {$incompMapClause}
+            ),
+            scopes_with_districts_only AS (
+                SELECT DISTINCT ld.jurisdiction_id
+                  FROM legislature_districts ld
+                 WHERE ld.legislature_id = ?
+                   AND ld.deleted_at     IS NULL
+                   {$incompMapClause}
+            )
             SELECT
-                j.id         AS scope_id,
-                j.name       AS scope_name,
-                COUNT(child.id)::int AS unassigned_count
-            FROM jurisdictions j
-            LEFT JOIN jurisdictions p1 ON p1.id = j.parent_id  AND p1.deleted_at IS NULL
-            LEFT JOIN jurisdictions p2 ON p2.id = p1.parent_id AND p2.deleted_at IS NULL
-            LEFT JOIN jurisdictions p3 ON p3.id = p2.parent_id AND p3.deleted_at IS NULL
-            -- (a) scope has ≥1 district on this legislature+map
-            LEFT JOIN (
-                SELECT DISTINCT jurisdiction_id
-                FROM legislature_districts ld3
-                WHERE ld3.legislature_id = ?
-                  AND ld3.deleted_at IS NULL
-                  {$incompMapClause3}
-            ) scope_has_districts ON scope_has_districts.jurisdiction_id = j.id
-            -- (b) scope is NOT itself a district member on this legislature+map
-            LEFT JOIN (
-                SELECT ldj2.jurisdiction_id
-                FROM legislature_district_jurisdictions ldj2
-                JOIN legislature_districts ld2 ON ld2.id = ldj2.district_id
-                    AND ld2.legislature_id = ?
-                    AND ld2.deleted_at IS NULL
-                    {$incompMapClause2}
-            ) self_assigned ON self_assigned.jurisdiction_id = j.id
-            -- children to check
-            JOIN jurisdictions child ON child.parent_id = j.id
-                AND child.deleted_at IS NULL
-                AND child.geom IS NOT NULL
-            -- (c) child is not in any district on this map
-            LEFT JOIN (
-                SELECT ldj.jurisdiction_id
-                FROM legislature_district_jurisdictions ldj
-                JOIN legislature_districts ld ON ld.id = ldj.district_id
-                    AND ld.legislature_id = ?
-                    AND ld.deleted_at IS NULL
-                    {$incompMapClause}
-            ) assigned ON assigned.jurisdiction_id = child.id
-            -- (c) child is not itself a giant drill-down scope (has its own districts on this map)
-            LEFT JOIN (
-                SELECT DISTINCT jurisdiction_id
-                FROM legislature_districts ld4
-                WHERE ld4.legislature_id = ?
-                  AND ld4.deleted_at IS NULL
-                  {$incompMapClause4}
-            ) child_has_districts ON child_has_districts.jurisdiction_id = child.id
-            WHERE j.deleted_at IS NULL
-              AND (j.id = ? OR scope_has_districts.jurisdiction_id IS NOT NULL)
-              AND self_assigned.jurisdiction_id IS NULL
-              AND (j.id = ? OR p1.id = ? OR p2.id = ? OR p3.id = ?)
-              AND assigned.jurisdiction_id IS NULL
-              AND child_has_districts.jurisdiction_id IS NULL
+                j.id                  AS scope_id,
+                j.name                AS scope_name,
+                COUNT(child.id)::int  AS unassigned_count
+            FROM interesting_scopes is_
+            JOIN jurisdictions j     ON j.id = is_.scope_id AND j.deleted_at IS NULL
+            JOIN jurisdictions child
+                  ON child.parent_id  = j.id
+                 AND child.deleted_at IS NULL
+                 AND child.geom       IS NOT NULL
+            WHERE
+                -- (a) scope is the root OR has its own districts (already filtered
+                -- by interesting_scopes, but enforced again so a root-without-districts
+                -- doesn't show up unless it equals \$scopeId)
+                (j.id = ? OR j.id IN (SELECT jurisdiction_id FROM scopes_with_districts_only))
+                -- (b) scope is NOT itself a district member
+                AND j.id NOT IN (SELECT jurisdiction_id FROM district_members)
+                -- (c1) child is not in any district on this map
+                AND child.id NOT IN (SELECT jurisdiction_id FROM district_members)
+                -- (c2) child is not itself a giant drill-down scope
+                AND child.id NOT IN (SELECT jurisdiction_id FROM scopes_with_districts_only)
             GROUP BY j.id, j.name
             HAVING COUNT(child.id) > 0
         ", array_merge(
-            [$legId], $incompMapBinding,   // scope_has_districts subquery
-            [$legId], $incompMapBinding,   // self_assigned subquery
-            [$legId], $incompMapBinding,   // assigned subquery
-            [$legId], $incompMapBinding,   // child_has_districts subquery
-            [$leg->jurisdiction_id,        // root scope OR check
-             $scopeId, $scopeId, $scopeId, $scopeId]  // depth filter
+            [$legId], $incompMapBinding,   // candidate_scopes
+            [$rootScopeId],                // candidate_scopes UNION root
+            [$scopeId],                    // interesting_scopes WHERE current_id = ?
+            [$legId], $incompMapBinding,   // district_members
+            [$legId], $incompMapBinding,   // scopes_with_districts_only
+            [$rootScopeId]                 // outer (a) root-or-self check
         ));
 
         foreach ($incompleteRows as $row) {
@@ -4592,6 +5230,13 @@ class LegislatureController extends Controller
         // Allow stats computation even when no districts exist directly at this scope:
         // sub-scope districts (giant children's sub-districts) still show quality data.
         if ($quota <= 0) return $stats;
+
+        // Constitutional giant threshold for the community-integrity check below.
+        $legJid = (string) DB::table('legislatures')
+            ->where('id', $legislatureId)
+            ->whereNull('deleted_at')
+            ->value('jurisdiction_id');
+        $giantThreshold = ConstitutionalDefaults::giantThreshold($legJid);
 
         $mapClauseLeaf  = $mapId !== null ? 'AND ld.map_id = ?' : '';
         $mapBindingLeaf = $mapId !== null ? [$mapId] : [];
@@ -4731,15 +5376,16 @@ class LegislatureController extends Controller
 
         // ── Community Integrity ───────────────────────────────────────────────
         // A district loses community integrity ONLY if its scope jurisdiction is
-        // a "leaf giant": fractional_seats >= 9.5 AND has no child jurisdictions.
-        // These are the only cases that would require artificial line-drawing tools.
-        // Giants WITH children can always be sub-districted along natural borders.
+        // a "leaf giant": fractional_seats >= giant_threshold AND has no child
+        // jurisdictions. These are the only cases that would require artificial
+        // line-drawing tools. Giants WITH children can always be sub-districted
+        // along natural borders.
         $integrityCount = 0;
         $integrityPop   = 0;
         $totalPop       = 0;
         foreach ($districtData as $d) {
             $scopeFrac   = $quota > 0 ? $d['scope_pop'] / $quota : 0;
-            $isLeafGiant = ($scopeFrac >= 9.5) && ($d['scope_child_count'] === 0);
+            $isLeafGiant = ($scopeFrac >= $giantThreshold) && ($d['scope_child_count'] === 0);
             $totalPop   += $d['pop'];
             if (!$isLeafGiant) {
                 $integrityCount++;
@@ -4873,6 +5519,164 @@ class LegislatureController extends Controller
      * Stripping "Province" from Chinese province names fixes the HP collision:
      *   "Hubei Province" → "HUB", "Heilongjiang Province" → "HEI" (was both "HP").
      */
+
+    /**
+     * Scope-local adjacency-aware greedy 7-coloring.
+     *
+     * Builds a graph where two districts are adjacent if any of their member
+     * jurisdictions share a boundary (ST_Touches). Then runs a greedy color
+     * assignment, sorted by degree DESC (DSATUR-flavored heuristic — color
+     * the most-constrained nodes first to avoid painting yourself into a
+     * corner). Returns [districtId => colorIndex].
+     *
+     * 4-color theorem guarantees planar maps need only 4 colors; we have 7
+     * available in the palette, so greedy effectively never falls back. Cost
+     * is dominated by the adjacency query: for typical scopes (≤10 districts)
+     * the query returns <50 pairs and runs in microseconds; at Earth scope
+     * (~270 country-level districts) ST_Touches on country geometries with
+     * GIST runs in well under a second. Cached implicitly via the calling
+     * endpoints' own response caches.
+     *
+     * Replaces the previous deterministic formula approach (which produced
+     * visible adjacent-color collisions at scopes with >7 districts because
+     * district_number ordering didn't track spatial adjacency).
+     *
+     * @param  list<string>  $districtIds  Districts to color together (one scope).
+     * @return array<string,int>           Map from district_id to color_index 0..6.
+     */
+    private function colorIndicesForDistricts(array $districtIds): array
+    {
+        if (empty($districtIds)) return [];
+        if (count($districtIds) === 1) return [$districtIds[0] => 0];
+
+        // Build the district-pair adjacency graph in two SQL steps:
+        //   Step 1: jurisdiction → district mapping (non-spatial, indexed).
+        //   Step 2: bbox-overlap pairs among those jurisdictions (GIST-direct).
+        //   Step 3 (PHP): translate jurisdiction pairs into district pairs.
+        $placeholders = implode(',', array_fill(0, count($districtIds), '?'));
+        $memberships = DB::select(
+            "SELECT jurisdiction_id, district_id
+             FROM legislature_district_jurisdictions
+             WHERE district_id IN ($placeholders)",
+            $districtIds
+        );
+
+        // jurisdiction_id → district_id (each member is in exactly one district per scope+map)
+        $jurToDistrict = [];
+        foreach ($memberships as $m) {
+            $jurToDistrict[$m->jurisdiction_id] = $m->district_id;
+        }
+        $jurIds = array_keys($jurToDistrict);
+
+        // Step 2: which member jurisdictions are visually neighbors? We use
+        // bbox overlap (`&&`) instead of full ST_Intersects/ST_Touches:
+        //   - GIST index on geom makes `&&` cheap (microseconds per pair).
+        //   - Full ST_Intersects on country geometries (Russia: 50k+ verts)
+        //     takes ~20ms per pair → 32s+ at Earth scope.
+        //   - Bbox overlap has false positives (countries on opposite sides
+        //     of a sea with bboxes touching mid-water), but the consequence
+        //     of a false positive is: we conservatively color them differently.
+        //     That's strictly an improvement over the alternative (slow query
+        //     or false negative leaving real neighbors the same color).
+        $touchingPairs = [];
+        if (count($jurIds) >= 2) {
+            $jurPlaceholders = implode(',', array_fill(0, count($jurIds), '?'));
+            $touchingPairs = DB::select(
+                "SELECT j_a.id AS j_a, j_b.id AS j_b
+                 FROM jurisdictions j_a
+                 JOIN jurisdictions j_b ON j_a.id < j_b.id
+                   AND j_a.geom && j_b.geom
+                 WHERE j_a.id IN ($jurPlaceholders)
+                   AND j_b.id IN ($jurPlaceholders)
+                   AND j_a.deleted_at IS NULL
+                   AND j_b.deleted_at IS NULL
+                   AND j_a.geom IS NOT NULL
+                   AND j_b.geom IS NOT NULL",
+                array_merge($jurIds, $jurIds)
+            );
+        }
+
+        // Step 3: translate jurisdiction adjacency → district adjacency.
+        $adj = array_fill_keys($districtIds, []);
+        foreach ($touchingPairs as $p) {
+            $dA = $jurToDistrict[$p->j_a] ?? null;
+            $dB = $jurToDistrict[$p->j_b] ?? null;
+            if ($dA && $dB && $dA !== $dB) {
+                $adj[$dA][] = $dB;
+                $adj[$dB][] = $dA;
+            }
+        }
+
+        // Order: highest-degree first (greedy gets better results when the
+        // hardest nodes are assigned early).
+        $order = $districtIds;
+        usort($order, fn($a, $b) => count($adj[$b]) - count($adj[$a]));
+
+        // Greedy color: each district takes the smallest color (0..6) not
+        // used by any already-colored neighbor.
+        $colors = [];
+        foreach ($order as $id) {
+            $taken = [];
+            foreach ($adj[$id] as $nid) {
+                if (isset($colors[$nid])) {
+                    $taken[$colors[$nid]] = true;
+                }
+            }
+            for ($c = 0; $c < 7; $c++) {
+                if (!isset($taken[$c])) {
+                    $colors[$id] = $c;
+                    break;
+                }
+            }
+            // Theoretical fallback: 7-clique (8+ mutually adjacent districts).
+            // Planar maps can't have a K8, so this is unreachable in practice.
+            if (!isset($colors[$id])) $colors[$id] = 0;
+        }
+
+        return $colors;
+    }
+
+    /**
+     * Compute color_index for every district at a (legislature, scope, map).
+     * Used by mutation endpoints to broadcast the post-mutation coloring so
+     * the frontend's optimistic-update state stays in sync without a reload.
+     *
+     * @return array<string,int>  district_id => color_index
+     */
+    private function scopeColorMap(string $legislatureId, ?string $scopeId, ?string $mapId): array
+    {
+        // Defer to the legislature-wide coloring. We need scope-wide
+        // consistency anyway (Belgium and an adjacent German Phase-4
+        // sub-district must not collide even though they're at different
+        // ADM levels), so we always color the whole legislature/map together.
+        return $this->legislatureColorMap($legislatureId, $mapId);
+    }
+
+    /**
+     * Compute color_index for ALL districts in a (legislature, map). Single
+     * coloring used by BOTH show()'s sidebar and revealedGeoJson's map fills
+     * so cross-ADM-level adjacencies (Belgium ↔ a German sub-district at
+     * Earth scope, etc.) get distinct colors.
+     *
+     * Cached by legislature+map. Invalidated by flushRevealedCache().
+     *
+     * @return array<string,int>  district_id => color_index
+     */
+    private function legislatureColorMap(string $legislatureId, ?string $mapId): array
+    {
+        $cacheKey = "colors.{$legislatureId}." . ($mapId ?? 'null');
+        return Cache::tags(["revealed.{$legislatureId}"])
+            ->remember($cacheKey, 86400, function () use ($legislatureId, $mapId) {
+                $ids = DB::table('legislature_districts')
+                    ->where('legislature_id', $legislatureId)
+                    ->whereNull('deleted_at')
+                    ->when($mapId, fn($q) => $q->where('map_id', $mapId))
+                    ->pluck('id')
+                    ->all();
+                return $this->colorIndicesForDistricts($ids);
+            });
+    }
+
     private function makeShortCode(string $name, ?string $isoCode, int $admLevel): string
     {
         if ($isoCode) {
@@ -4917,7 +5721,7 @@ class LegislatureController extends Controller
      * of S (up to the root) must be invalidated — each ancestor scope may display S's
      * sub-districts via the Branch 1 / Branch 2 SQL in revealedGeoJson().
      */
-    private function flushRevealedCache(string $legislature_id, ?string $mapId, ?string $districtScopeId): void
+    public function flushRevealedCache(string $legislature_id, ?string $mapId, ?string $districtScopeId): void
     {
         if (!$districtScopeId) return;
         $mapKey = $mapId ?? 'null';
@@ -4934,6 +5738,74 @@ class LegislatureController extends Controller
         foreach ($ancestorRows as $row) {
             Cache::tags(["revealed.{$legislature_id}.{$mapKey}.{$row->id}"])->flush();
         }
+    }
+
+    /**
+     * Same as getMapId() but never returns null — auto-creates a "Draft 1"
+     * map row if none exists for this legislature. Called from autoseed
+     * paths so districts inserted by runAutoCompositeForScope always belong
+     * to a versioned map container instead of floating with map_id = NULL.
+     *
+     * Naming: "Draft N" where N is one more than the highest existing
+     * Draft-numbered map (resilient to manual map creation by the operator).
+     */
+    private function ensureMapId(string $legislature_id, ?string $requestedMapId): string
+    {
+        $existing = $this->getMapId($legislature_id, $requestedMapId);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        // Find the highest existing "Draft N" so we don't collide.
+        $existingNames = DB::table('legislature_district_maps')
+            ->where('legislature_id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->pluck('name')
+            ->toArray();
+        $maxDraftN = 0;
+        foreach ($existingNames as $n) {
+            if (preg_match('/^Draft\s+(\d+)\s*$/i', (string) $n, $m)) {
+                $maxDraftN = max($maxDraftN, (int) $m[1]);
+            }
+        }
+        $name = 'Draft ' . ($maxDraftN + 1);
+
+        $newId = (string) Str::uuid();
+        DB::table('legislature_district_maps')->insert([
+            'id'             => $newId,
+            'legislature_id' => $legislature_id,
+            'name'           => $name,
+            'description'    => 'Auto-created on first autoseed run.',
+            'status'         => 'draft',
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+        return $newId;
+    }
+
+    /**
+     * Publish granular phase progress for an in-flight mass operation.
+     * The Vue side polls /mass-status every 2.5 s and displays the latest
+     * snapshot. Cache::put is independent of any open DB transaction, so
+     * progress is visible to other backends even mid-tx.
+     *
+     * Pass a partial array — keys are merged into the existing snapshot so
+     * a phase change doesn't clobber unrelated fields like `completed`.
+     *
+     * Pass `$reset = true` when starting a fresh operation so stale fields
+     * from a previous run (e.g., scope_started_at, current_scope, phase_total)
+     * don't leak through the merge. Without this flag the UI shows a confusing
+     * "Queued — waiting for worker" paired with "5m 12s on scope" leftover
+     * from a previous Sudan run.
+     */
+    public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false): void
+    {
+        $key = "legislature.{$legislature_id}.mass_progress";
+        $existing = $reset ? [] : (Cache::get($key, []) ?: []);
+        if (! is_array($existing)) $existing = [];
+        Cache::put($key, array_merge($existing, $patch, [
+            'last_update_at' => time(),
+        ]), 7200);
     }
 
     private function getMapId(string $legislature_id, ?string $requestedMapId): ?string
@@ -5016,9 +5888,10 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        $rootId     = $leg->jurisdiction_id;
-        $totalSeats = (int) $leg->type_a_seats;
-        $rootPop    = (int) DB::scalar('SELECT population FROM jurisdictions WHERE id = ?', [$rootId]);
+        $rootId         = $leg->jurisdiction_id;
+        $totalSeats     = (int) $leg->type_a_seats;
+        $rootPop        = (int) DB::scalar('SELECT population FROM jurisdictions WHERE id = ?', [$rootId]);
+        $giantThreshold = ConstitutionalDefaults::giantThreshold($rootId);
 
         if ($rootPop <= 0) {
             return response()->json(['steps' => [['scope_id' => $rootId, 'scope_name' => '']], 'current_index' => 0]);
@@ -5032,14 +5905,14 @@ class LegislatureController extends Controller
                 FROM jurisdictions j
                 WHERE j.parent_id = :root
                   AND j.deleted_at IS NULL
-                  AND CAST(j.population AS numeric) * :ts2 / :rp2 >= 9.5
+                  AND CAST(j.population AS numeric) * :ts2 / :rp2 >= :gt1
                 UNION ALL
                 SELECT j.id, j.name, j.parent_id,
                        ROUND(CAST(j.population AS numeric) * :ts3 / :rp3, 4) AS fractional_seats
                 FROM jurisdictions j
                 JOIN giant_tree gt ON j.parent_id = gt.id
                 WHERE j.deleted_at IS NULL
-                  AND CAST(j.population AS numeric) * :ts4 / :rp4 >= 9.5
+                  AND CAST(j.population AS numeric) * :ts4 / :rp4 >= :gt2
             )
             SELECT id, name, parent_id, fractional_seats FROM giant_tree
         ", [
@@ -5047,6 +5920,7 @@ class LegislatureController extends Controller
             'ts2' => $totalSeats, 'rp2' => $rootPop,
             'ts3' => $totalSeats, 'rp3' => $rootPop,
             'ts4' => $totalSeats, 'rp4' => $rootPop,
+            'gt1' => $giantThreshold, 'gt2' => $giantThreshold,
         ]);
 
         // Build adjacency list: parent_id → children sorted by fractional_seats DESC

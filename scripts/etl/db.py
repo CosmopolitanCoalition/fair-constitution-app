@@ -66,6 +66,7 @@ _JURISDICTION_INSERT_SQL = """
         iso_code,
         adm_level,
         parent_id,
+        parent_assigned_via,
         source,
         geoboundaries_id,
         official_languages,
@@ -80,24 +81,35 @@ _JURISDICTION_INSERT_SQL = """
     RETURNING id, slug
 """
 
-# geom_ewkb is a hex-encoded EWKB string produced by shapely's .wkb_hex.
-# Binary transfer is ~3× smaller than WKT text, which matters for huge
-# geometries like Canada/Russia province-level boundaries (50–200 MB as WKT).
-# ST_Multi()     → promotes POLYGON → MULTIPOLYGON
-# ST_MakeValid() → repairs broken ring closures / self-intersections
-# ST_Centroid()  → computed server-side from the repaired geometry
+# geom_geojson is a JSON text string — the raw GeoJSON `geometry` member from
+# the source feature, passed through to PostgreSQL untouched. ST_GeomFromGeoJSON
+# decodes it server-side; ST_MakeValid repairs topology; ST_Multi promotes
+# POLYGON → MULTIPOLYGON for schema consistency. ST_SetSRID(..., 4326) is the
+# explicit SRID since GeoJSON doesn't carry one (geoBoundaries publishes WGS84).
+#
+# Phase L (Native ingest): we no longer simplify or convert in Python. Every
+# vertex from the source file is preserved. ST_MakeValid handles any topology
+# defects server-side, replacing the role shapely played in the previous
+# hex-WKB path. The byte-aware batching in import_geoboundaries.py keeps the
+# total INSERT statement size below libpq's protocol max for the rare batches
+# that contain multiple very large features (Canadian Arctic, Russia regions).
+#
+# Phase J: parent_assigned_via tracks which strategy resolved each row's
+# parent. NULL for orphans + pre-J rows; 'direct'/'skip_ancestor'/'buffered'/
+# 'synthetic_country' for resolved rows. See migration 2026_04_28_000003.
 _JURISDICTION_TEMPLATE = """(
     %(name)s,
     %(slug)s,
     %(iso_code)s,
     %(adm_level)s,
     %(parent_id)s,
+    %(parent_assigned_via)s,
     %(source)s,
     %(geoboundaries_id)s,
     %(official_languages)s::jsonb,
     %(timezone)s,
-    ST_Multi(ST_MakeValid(ST_SetSRID(decode(%(geom_ewkb)s, 'hex')::geometry, 4326))),
-    ST_Centroid(ST_Multi(ST_MakeValid(ST_SetSRID(decode(%(geom_ewkb)s, 'hex')::geometry, 4326)))),
+    ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%(geom_geojson)s), 4326))),
+    ST_Centroid(ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%(geom_geojson)s), 4326)))),
     NOW(),
     NOW()
 )"""
@@ -116,20 +128,34 @@ def bulk_insert_jurisdictions(
         iso_code        str | None
         adm_level       int  (0=Earth, 1=National, 2=State…)
         parent_id       str | None  (UUID of parent jurisdiction)
+        parent_assigned_via str | None (Phase J — strategy that resolved parent;
+                              one of 'direct', 'skip_ancestor', 'buffered',
+                              'synthetic_country', or None for orphans)
         source          str  (e.g. 'geoboundaries')
         geoboundaries_id str | None
         official_languages str  (JSON array string, e.g. '["en"]')
         timezone        str  (default 'UTC')
-        geom_ewkb       str  (hex-encoded WKB from shapely .wkb_hex; binary is
-                              ~3× smaller than WKT — critical for large geometries)
+        geom_geojson    str  (raw GeoJSON `geometry` member as JSON text — passed
+                              straight to PostgreSQL via ST_GeomFromGeoJSON; no
+                              Python-side simplification or conversion. Phase L.)
 
     Returns:
         List of UUID strings for rows that were actually inserted
         (ON CONFLICT DO NOTHING means conflicts are silently skipped and
         their UUIDs are NOT returned — this is intentional for idempotency).
+
+    Note: page_size is set very high so each call to this function produces
+    one SQL statement, with the byte-aware batching in the caller setting the
+    actual statement-size boundary. See import_geoboundaries.py.
     """
     if not rows:
         return []
+
+    # Defensive: allow callers that haven't been Phase-J-updated to omit
+    # parent_assigned_via — default to None and let the operator's review
+    # surface flag the un-tracked rows.
+    for row in rows:
+        row.setdefault("parent_assigned_via", None)
 
     with get_cursor(conn) as cur:
         result = psycopg2.extras.execute_values(
@@ -138,7 +164,7 @@ def bulk_insert_jurisdictions(
             rows,
             template=_JURISDICTION_TEMPLATE,
             fetch=True,
-            page_size=50,
+            page_size=len(rows),  # one statement per call; caller controls byte-size
         )
 
     inserted_ids = [row["id"] for row in result]

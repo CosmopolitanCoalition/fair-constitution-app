@@ -21,6 +21,10 @@ The CGA implements [A Fair Constitution (Cosmopolitan Template)](https://cosmopo
 
 ## Quick Start
 
+The goal: clone the repo, run two commands, walk through the wizard, and end up
+with a fully populated instance. No manual schema migrations, no `php artisan`
+ceremony — the wizard handles all of it.
+
 ### 1. Clone the repository
 
 ```bash
@@ -28,12 +32,16 @@ git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git
 cd fair-constitution-app
 ```
 
-### 2. Configure environment
+### 2. Copy the environment file
 
 ```bash
 cp .env.example .env
-# Edit .env — set APP_KEY and any local overrides
 ```
+
+`.env.example` ships with a working dev `APP_KEY` baked in. The default
+`ARCHIVE_PATH=./data/archive` is repo-relative and works on Windows, macOS,
+and Linux without edits. Override `ARCHIVE_PATH` only if your geospatial
+archive lives somewhere else.
 
 ### 3. Start the stack
 
@@ -42,22 +50,33 @@ docker compose up -d
 ```
 
 Services:
-- **App** (Laravel): `http://localhost:8080`
-- **Vite** (hot reload): `http://localhost:5173`
-- **PostgreSQL**: `localhost:5432`
+- **App** (Laravel + Inertia + Vue 3): `http://localhost:8081`
+- **Vite** (hot reload during dev): `http://localhost:5174`
+- **PostgreSQL + PostGIS**: `localhost:5433`
+- **Redis** (cache + queues)
+- **ETL** (Python 3.12 supervisor — picks up wizard-issued runs)
 
-### 4. Run database migrations
+### 4. Open the wizard
 
-```bash
-docker compose exec app php artisan migrate
-```
+Visit `http://localhost:8081/setup` in your browser. The wizard's bootstrap
+page detects the empty schema, runs the migrations on a button click, and
+walks you through:
 
-### 5. (Optional) Load geospatial data
+1. **Database setup** — apply schema migrations from the UI.
+2. **Cosmic address** — what jurisdiction are you running?
+3. **Constitutional defaults** — author the constitutional values.
+4. **Map data** — kick off the ETL (loads geoBoundaries + WorldPop into the DB).
+5. **Districts** — auto-apportion + build districts.
+6. **Confirm + seat institutions** — finalize and register the founder account.
 
-The jurisdictions table is populated by a separate ETL pipeline. This step requires
-downloading ~14 GB of external datasets and takes 6–12 hours to run.
+### 5. Geospatial data
 
-See **[docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md)** for full instructions.
+The ETL needs ~14 GB of external geospatial datasets (geoBoundaries + WorldPop).
+The wizard lets you scope to specific countries/ADM levels for faster initial
+runs. Full-world ETL takes 6–12 hours depending on host hardware; chunk sizes
+auto-tune to your container's memory budget (see [`scripts/etl/memory_budget.py`](scripts/etl/memory_budget.py)).
+
+For data acquisition see **[docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md)**.
 
 ---
 

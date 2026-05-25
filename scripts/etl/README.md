@@ -10,7 +10,6 @@ and WorldPop raster tiles into PostgreSQL/PostGIS.
 | `seed_database.py` | Master orchestrator — runs the full pipeline in order |
 | `import_geoboundaries.py` | Phase 1: boundary polygons + hierarchy from geoBoundaries |
 | `import_worldpop.py` | Phase 2: WorldPop 100m raster → `jurisdictions.population` + optional tile loading |
-| `run_skater.py` | Phase 3 stub: SKATER district drawing (Phase 2 app roadmap) |
 | `db.py` | Shared DB connection and bulk insert/update helpers |
 
 ## Quickstart
@@ -96,16 +95,49 @@ a fresh container and removes it on exit.
 
 ### Why Phase 2 runs in a subprocess
 
-`import_geoboundaries.py` uses geopandas/fiona (one GDAL instance). `import_worldpop.py`
-uses rasterio (another GDAL instance). Two GDAL instances in the same process cause
-a segfault. `seed_database.py` runs Phase 2 in a subprocess via `sys.executable -c "..."`
-to isolate the GDAL instances.
+Historical: `import_geoboundaries.py` used geopandas/fiona (one GDAL instance) and
+`import_worldpop.py` uses rasterio (another GDAL instance). Two GDAL instances in
+the same process caused a segfault. Phase L removed geopandas/fiona — `import_geoboundaries.py`
+is now pure Python `json.load` and passes raw GeoJSON straight to PostgreSQL via
+`ST_GeomFromGeoJSON`, so the segfault risk is gone. The subprocess split is kept
+for crash isolation between phases.
 
 ### Memory management
 
-- IND ADM6: 649,710 polygons — fetched in chunks of 2,000 to avoid OOM
-- Large polygons (AUS outback): tiled raster reads (5,000×5,000 px windows)
-- Raster tile loading: 50 tiles per INSERT batch (~15–25 MB peak)
+Chunk sizes are **selected automatically** at ETL startup based on the etl
+container's cgroup memory limit (or host RAM in non-containerised setups). See
+[`memory_budget.py`](memory_budget.py) for the detection logic and tier table.
+
+| Profile | Cgroup tier | `BATCH_BYTE_LIMIT` | `BATCH_ROW_LIMIT` | `DB_FETCH_CHUNK_SIZE` | `RASTER_BATCH_SIZE` |
+|---|---|---|---|---|---|
+| `extreme` | < 1 GB | 4 MB | 500 | 250 | 10 |
+| `pi-1gb` | 1–2 GB | 8 MB | 1 000 | 500 | 20 |
+| `pi-2gb` | 2–4 GB | 16 MB | 2 500 | 1 000 | 30 |
+| `pi-4gb` | 4–8 GB | 32 MB | 5 000 | 1 500 | 40 |
+| `desktop` | 8–16 GB | 64 MB | 5 000 | 2 000 | 50 |
+| `workstation` | 16+ GB | 128 MB | 10 000 | 4 000 | 100 |
+
+The `desktop` tier matches the pre–Phase-N hardcoded values exactly, so dev
+rigs with 8–16 GB available to the etl container see identical behavior.
+
+`seed_database.py` logs the chosen profile at startup so the wizard's log-tail
+panel surfaces it:
+
+```
+Memory budget: 2.0 GB → profile 'pi-2gb' (BATCH_BYTE_LIMIT=16 MB, ...)
+```
+
+Override with the `ETL_MEMORY_BUDGET_BYTES` env var when you need to force a
+specific tier (testing, dev parity, or when auto-detection picks the wrong
+value):
+
+```bash
+ETL_MEMORY_BUDGET_BYTES=$((4 * 1024**3)) python seed_database.py …
+```
+
+Other notes:
+- IND ADM6 (~650 k polygons) fetched in `DB_FETCH_CHUNK_SIZE` chunks to avoid OOM
+- Large polygons (AUS outback): tiled raster reads (5 000×5 000 px windows)
 
 ### Idempotency
 

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\ConstitutionalDefaults;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,10 +18,13 @@ use Illuminate\Support\Str;
  *   2. Computes total_seats from cube root of that sum
  *   3. Upserts a legislature record for the parent (type_a_seats only)
  *
- * It does NOT create districts and does NOT write type_a_apportioned.
- * Both are the exclusive responsibility of the district viewer's auto-composite
- * tools (LegislatureController::runAutoCompositeForScope), which compute the
- * exact level-local Webster result and write it atomically with district creation.
+ * It does NOT create districts. District drawing is the exclusive
+ * responsibility of the district viewer's auto-composite tools
+ * (LegislatureController::runAutoCompositeForScope), which compute the
+ * exact level-local Webster result and persist seat allocations on
+ * `legislature_districts.seats`. Per-jurisdiction apportionment columns
+ * were removed in migration 2026_05_22_000002_apportionment_cleanup.php
+ * — apportionment lives at the district level now.
  *
  * Usage:
  *   php artisan apportionment:seed
@@ -56,24 +60,53 @@ class ApportionmentSeedCommand extends Command
         }
 
         if ($targetSlug !== '') {
-            return $this->seedSingleJurisdiction($targetSlug, $dryRun);
+            $exitCode = $this->seedSingleJurisdiction($targetSlug, $dryRun);
+        } else {
+            for ($parentAdmLevel = 0; $parentAdmLevel <= $admMax; $parentAdmLevel++) {
+                $this->processLevel($parentAdmLevel, $dryRun);
+            }
+
+            if (! $dryRun) {
+                $this->newLine();
+                $this->info(sprintf(
+                    'Done. Legislatures: %d  Jurisdictions updated: %d',
+                    $this->legislaturesCreated,
+                    $this->jurisdictionsProcessed,
+                ));
+                $this->line('Use the district viewer auto-seed tools to create districts.');
+            }
+
+            $exitCode = self::SUCCESS;
         }
 
-        for ($parentAdmLevel = 0; $parentAdmLevel <= $admMax; $parentAdmLevel++) {
-            $this->processLevel($parentAdmLevel, $dryRun);
-        }
-
-        if (! $dryRun) {
-            $this->newLine();
-            $this->info(sprintf(
-                'Done. Legislatures: %d  Jurisdictions updated: %d',
+        // Stamp the canonical completion record on the singleton
+        // instance_settings row so both invocation paths agree on when
+        // apportionment finished:
+        //   - queued (button) from JurisdictionController::acceptMaps
+        //   - synchronous (wizard) from SetupController, if ever re-added
+        //
+        // The UI at /jurisdictions/earth-0-earth and the wizard's
+        // Step-4 confirm page both watch apportionment_completed_at
+        // to flip from "running…" → "completed".
+        if (! $dryRun && $exitCode === self::SUCCESS) {
+            $logSummary = sprintf(
+                'Apportionment %s — legislatures created/updated: %d, jurisdictions touched: %d. Scope: %s.',
+                now()->toIso8601String(),
                 $this->legislaturesCreated,
                 $this->jurisdictionsProcessed,
-            ));
-            $this->line('Use the district viewer auto-seed tools to create districts.');
+                $targetSlug !== '' ? "single jurisdiction '{$targetSlug}'" : "all parents up to ADM{$admMax}",
+            );
+
+            DB::table('instance_settings')
+                ->whereNull('deleted_at')
+                ->update([
+                    'apportionment_completed_at' => now(),
+                    'apportionment_log'          => $logSummary,
+                    'updated_at'                 => now(),
+                ]);
         }
 
-        return self::SUCCESS;
+        return $exitCode;
     }
 
     // -------------------------------------------------------------------------
@@ -167,8 +200,11 @@ class ApportionmentSeedCommand extends Command
             ->get(['id', 'name', 'population']);
 
         if ($children->isEmpty()) {
-            // Leaf jurisdiction: size a legislature of 5–9 seats, no districts.
-            $leafSeats = max(5, min(9, (int) round(pow(max((float) $parent->population, 1), 1.0 / 3.0))));
+            // Leaf jurisdiction: size a legislature within [floor, ceiling], no districts.
+            $leafSeats = min(
+                ConstitutionalDefaults::ceiling($parent->id),
+                ConstitutionalDefaults::sizeFromPopulation((float) $parent->population, $parent->id)
+            );
 
             if ($dryRun) {
                 $this->line("  {$parent->name}: leaf, seats={$leafSeats}");
@@ -180,9 +216,9 @@ class ApportionmentSeedCommand extends Command
             return;
         }
 
-        // Cube-root law using SUM(children pops) as denominator — level-local.
+        // Level-local sizing: sum(children pops) → ConstitutionalDefaults (cube_root law in v1).
         $sumChildrenPop = (float) $children->sum('population');
-        $totalSeats     = max(5, (int) round(pow(max($sumChildrenPop, 1), 1.0 / 3.0)));
+        $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sumChildrenPop, $parent->id);
         $quota          = $sumChildrenPop > 0 ? $sumChildrenPop / $totalSeats : 1.0;
 
         // Equal-house seats per child (type_b) from constitutional settings
@@ -196,7 +232,7 @@ class ApportionmentSeedCommand extends Command
                 $entitlement = $quota > 0 ? ((float) $child->population / $quota) : 5.0;
                 $this->line(sprintf(
                     '  %s: pop=%d ent=%.2f (%s)',
-                    $child->name, $child->population, $entitlement, $this->classify($entitlement)
+                    $child->name, $child->population, $entitlement, $this->classify($entitlement, $parent->id)
                 ));
             }
             return;
@@ -204,9 +240,11 @@ class ApportionmentSeedCommand extends Command
 
         $this->upsertLegislature($parent->id, $totalSeats, $totalTypeB);
 
-        // type_a_apportioned is written exclusively by the viewer's auto-composite tools
-        // (runAutoCompositeForScope), which compute the exact Webster result at each scope.
-        // This command only sizes legislatures — it never writes apportionment columns.
+        // Seat allocations to individual districts (and the per-district members
+        // they contain) are written exclusively by the viewer's auto-composite
+        // tools (runAutoCompositeForScope), which compute the exact Webster
+        // result at each scope and persist it on `legislature_districts.seats`.
+        // This command only sizes the legislature as a whole.
         $this->jurisdictionsProcessed += $children->count();
     }
 
@@ -214,10 +252,12 @@ class ApportionmentSeedCommand extends Command
     // Classification helper
     // -------------------------------------------------------------------------
 
-    private function classify(float $entitlement): string
+    private function classify(float $entitlement, ?string $jurisdictionId = null): string
     {
-        if ($entitlement < 5.0) return 'below_floor';
-        if ($entitlement <= 9.0) return 'mid';
+        $floor   = ConstitutionalDefaults::floor($jurisdictionId);
+        $ceiling = ConstitutionalDefaults::ceiling($jurisdictionId);
+        if ($entitlement < (float) $floor) return 'below_floor';
+        if ($entitlement <= (float) $ceiling) return 'mid';
         return 'giant';
     }
 
@@ -273,6 +313,6 @@ class ApportionmentSeedCommand extends Command
     {
         $this->warn('Resetting legislatures…');
         DB::table('legislatures')->delete();
-        $this->info('Reset complete. type_a_apportioned is managed by the viewer tools — use "Clear — entire legislature" in the district browser to wipe apportionment data.');
+        $this->info('Reset complete. District-level seat allocations live on legislature_districts.seats — use "Clear — entire legislature" in the district browser to wipe districts.');
     }
 }

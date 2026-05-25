@@ -3,14 +3,12 @@ seed_database.py — Master ETL orchestrator for the Fair Constitution App.
 
 Runs the full geospatial data pipeline in order:
   Phase 1: import_geoboundaries  — boundary polygons + hierarchy
-  Phase 2: import_worldpop       — population raster → zonal stats
+  Phase 2: import_worldpop       — load raster tiles into DB, then derive
+                                    jurisdictions.population via PostGIS
 
 Usage:
-    # Full global run (boundaries + population aggregates)
+    # Full global run (boundaries + raster tiles + populations)
     python seed_database.py
-
-    # Full run including raster tiles for PostGIS district drawing
-    python seed_database.py --load-rasters
 
     # Smoke test (NZL only, no population)
     python seed_database.py --countries NZL --adm-levels 0 1 --skip-population --fresh
@@ -18,25 +16,24 @@ Usage:
     # Resume after a crash
     python seed_database.py --resume
 
-    # Specific countries with all ADM levels + population
+    # Specific countries
     python seed_database.py --countries USA GBR DEU FRA
 
-    # Specific countries with population AND raster tiles
-    python seed_database.py --countries USA --load-rasters
-
-    # Boundaries only (no WorldPop)
+    # Boundaries only (no raster / no population)
     python seed_database.py --skip-population
 
 Options:
     --countries ISO3 [ISO3 ...]   Only process these ISO3 codes (default: all)
     --adm-levels N [N ...]        Only process these ADM levels 0-5 (default: all)
-    --skip-population             Skip Phase 2 WorldPop import
-    --load-rasters                Also load each country's TIF into worldpop_rasters
-                                  table after population aggregation. One-time cost;
-                                  after this the TIF files are not needed at runtime.
+    --skip-population             Skip Phase 2 entirely (no raster load, no pops)
     --fresh                       Ignore progress.json, reprocess everything
     --resume                      Explicitly resume from progress.json (default)
     --log-file PATH               Log file path (default: /etl/etl.log)
+
+Raster tiles are loaded unconditionally in Phase 2. They drive both the
+population_within() SQL path (used here to fill jurisdictions.population) and
+the PostGIS-backed district mapper used after setup completes. The on-disk
+WorldPop .tif files are not read again once tiles are in the DB.
 """
 
 import argparse
@@ -48,6 +45,8 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+import heartbeat
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
 
@@ -196,7 +195,7 @@ def print_summary(progress: dict, elapsed: float, log: logging.Logger):
     if wr_entries:
         lines += [
             "╠══════════════════════════════════════════════╣",
-            f"║  Phase 2 — WorldPop rasters (--load-rasters) ║",
+            f"║  Phase 2 — WorldPop raster tiles in DB       ║",
             f"║    Countries loaded:         {wr_done:<6}          ║",
             f"║    Total raster tiles:       {wr_tiles:<7}         ║",
         ]
@@ -215,29 +214,99 @@ def print_summary(progress: dict, elapsed: float, log: logging.Logger):
 
 def purge_geoboundaries_data(log: logging.Logger):
     """
-    DELETE all geoboundaries-sourced jurisdictions and their constitutional_settings.
+    Clean-slate purge for --fresh runs:
+      1. DELETE all geoboundaries-sourced jurisdictions + their constitutional_settings.
+      2. TRUNCATE geoboundary_metadata so the meta CSV gets re-loaded fresh
+         (Phase R — the CSV is now persisted into a DB table at run start).
+      3. TRUNCATE worldpop_rasters so a previous run's tiles don't leak
+         into the new run's preview/UI (Phase P.1.1 — was surfacing stale
+         rasters in the boundaries-phase preview because per-country DELETE
+         in load_raster_to_db only fires when that country's WorldPop pass
+         actually runs).
+      4. Reset population/population_year on PRESERVED rows (Earth, etc.) so a
+         prior run's rollup value (~342M for USA-only, ~7.99B for world-wide)
+         doesn't leak into the new run's Planet card.
 
-    Earth (source='computed_skater', adm_level=0) is preserved.
-    Called automatically when --fresh is passed, so re-runs start clean.
+    Earth (source='computed_skater', adm_level=0) survives the DELETE because
+    it isn't sourced from geoBoundaries — but we still reset its population
+    so the cards correctly show 0% w/pop until Phase 2 re-rolls it up.
     """
     import psycopg2
     from db import get_connection, get_cursor
+
+    # Sources that get fully purged on --fresh. 'geoboundaries' is the bulk
+    # of imported data; 'synthetic' is rows synthesised by Phase J1.5 (PRI
+    # etc.); 'synthetic_country' is the LEGACY value used before that source
+    # name changed — included here so a leftover row from an old iteration
+    # doesn't survive a --fresh and block synthesis (which uses ON CONFLICT
+    # (slug) DO NOTHING and would silently skip if a stale slug is present).
+    purgeable_sources = ('geoboundaries', 'synthetic', 'synthetic_country',
+                          'synthetic_intermediary')
 
     conn = get_connection()
     with get_cursor(conn) as cur:
         cur.execute("""
             DELETE FROM constitutional_settings
             WHERE jurisdiction_id IN (
-                SELECT id FROM jurisdictions WHERE source = 'geoboundaries'
+                SELECT id FROM jurisdictions WHERE source = ANY(%s)
             )
-        """)
+        """, (list(purgeable_sources),))
         settings_deleted = cur.rowcount
-        cur.execute("DELETE FROM jurisdictions WHERE source = 'geoboundaries'")
+        cur.execute(
+            "DELETE FROM jurisdictions WHERE source = ANY(%s)",
+            (list(purgeable_sources),),
+        )
         jur_deleted = cur.rowcount
+
+        # Phase R: truncate geoboundary_metadata so the next run re-imports
+        # the CSV cleanly. The table is small (~700 rows) so TRUNCATE is
+        # cheap and avoids leaving stale entries from a previous archive
+        # version. Wrapped in EXCEPTION-handler so older DBs without the
+        # table (pre-Phase-R) don't fail the whole purge.
+        try:
+            cur.execute("TRUNCATE TABLE geoboundary_metadata")
+            meta_purged = True
+        except psycopg2.errors.UndefinedTable:
+            conn.rollback()
+            # Re-acquire cursor on the same connection after rollback.
+            meta_purged = False
+
+        # Phase P.1.1: truncate worldpop_rasters so the boundaries-phase
+        # preview doesn't surface tiles from a previous run. (Per-country
+        # DELETE inside load_raster_to_db keeps the table clean during
+        # Phase 2, but only fires when the country's WorldPop pass runs;
+        # we want a clean slate at --fresh-time so the wizard's preview
+        # honestly reflects what THIS run has produced.) Worldpop_rasters
+        # is ~7 GB at world scale; TRUNCATE is a metadata operation and
+        # completes in milliseconds regardless.
+        try:
+            cur.execute("TRUNCATE TABLE worldpop_rasters")
+            rasters_purged = True
+        except psycopg2.errors.UndefinedTable:
+            conn.rollback()
+            rasters_purged = False
+
+        # Reset population on the preserved Earth row (and any other rows
+        # not in the purgeable sources list). The next run's
+        # rollup_planet_population will repopulate Earth once Phase 2 finishes.
+        cur.execute("""
+            UPDATE jurisdictions
+            SET    population = NULL,
+                   population_year = NULL,
+                   updated_at = NOW()
+            WHERE  source <> ALL(%s)
+              AND  population IS NOT NULL
+        """, (list(purgeable_sources),))
+        pop_reset = cur.rowcount
+    conn.commit()
     conn.close()
     log.info(
-        "--fresh: purged %d jurisdictions and %d constitutional_settings rows from DB",
-        jur_deleted, settings_deleted
+        "--fresh: purged %d jurisdictions, %d constitutional_settings rows, "
+        "%s, %s, and reset population on %d preserved row(s)",
+        jur_deleted, settings_deleted,
+        "truncated geoboundary_metadata" if meta_purged else "geoboundary_metadata not present (pre-Phase-R DB)",
+        "truncated worldpop_rasters"     if rasters_purged else "worldpop_rasters not present",
+        pop_reset
     )
 
 
@@ -245,12 +314,49 @@ def purge_geoboundaries_data(log: logging.Logger):
 
 _progress_ref: dict = {}
 _progress_file_ref: Path = PROGRESS_FILE
+# When the Phase 2 worldpop SUBPROCESS is running, IT owns progress.json —
+# it writes per-raster entries via its own _save_progress callback. The
+# parent's _progress_ref is a stale snapshot from "after Phase 1" and does
+# NOT contain those subprocess writes. If the SIGTERM handler called
+# save_progress(_progress_ref, ...) during Phase 2, it would atomically
+# clobber every raster-done entry the subprocess just wrote — turning
+# halt-and-resume into halt-and-redo-everything-from-AFG. So we flip this
+# flag around the subprocess.run call to suppress that overwrite.
+_phase2_subprocess_running: bool = False
+_phase2_subprocess: object = None   # the Popen, when running
 
 def _handle_sigint(signum, frame):
-    logging.getLogger("seed_database").warning(
-        "Interrupted — saving progress before exit…"
-    )
-    save_progress(_progress_ref, _progress_file_ref)
+    log = logging.getLogger("seed_database")
+    if _phase2_subprocess_running:
+        # During Phase 2 the worldpop subprocess owns progress.json. Forward
+        # SIGTERM to it so it can finish its current atomic write and exit
+        # cleanly, then let its naturally-saved state survive on disk.
+        log.warning(
+            "Interrupted during Phase 2 — forwarding SIGTERM to worldpop "
+            "subprocess and preserving its progress writes."
+        )
+        if _phase2_subprocess is not None and _phase2_subprocess.poll() is None:
+            try:
+                _phase2_subprocess.terminate()
+                # Give it up to 30 s to flush — atomic write is microseconds,
+                # but a mid-batch INSERT may take a second or two to commit.
+                _phase2_subprocess.wait(timeout=30)
+            except Exception as exc:
+                log.warning("subprocess teardown raised %s — proceeding", exc)
+    else:
+        # Phase 1 (or pre/post-phase) — parent owns progress.json. Save before
+        # exit so per-country boundary work isn't lost.
+        log.warning("Interrupted — saving progress before exit…")
+        save_progress(_progress_ref, _progress_file_ref)
+    # Phase T.8: freeze running bar timers in place rather than letting
+    # them keep ticking or marking them complete-at-100% on halt. The
+    # next run's bar_start calls overwrite started_at fresh.
+    try:
+        from supervisor import freeze_bar_timers, now_iso
+        freeze_bar_timers(now_iso())
+    except Exception as exc:
+        log.warning("could not freeze bar timers on halt: %s", exc)
+    heartbeat.clear_current()
     sys.exit(130)
 
 
@@ -272,19 +378,13 @@ def main():
     )
     parser.add_argument(
         "--skip-population", action="store_true",
-        help="Skip Phase 2 WorldPop population import"
-    )
-    parser.add_argument(
-        "--load-rasters", action="store_true",
-        help=(
-            "Load each country's WorldPop TIF into the worldpop_rasters table "
-            "after population aggregation. One-time cost; after this the TIF files "
-            "are not needed at runtime. Implies Phase 2 runs (ignores --skip-population)."
-        )
+        help="Skip Phase 2 entirely (no raster tile load, no population fill)"
     )
     parser.add_argument(
         "--fresh", action="store_true",
-        help="Ignore progress.json and reprocess everything"
+        help="Ignore progress.json and reprocess everything (purge "
+             "geoboundary-sourced jurisdictions + reimport boundaries "
+             "+ redo population)."
     )
     parser.add_argument(
         "--resume", action="store_true", default=True,
@@ -294,24 +394,96 @@ def main():
         "--log-file", default=str(DEFAULT_LOG),
         help=f"Log file path (default: {DEFAULT_LOG})"
     )
+    parser.add_argument(
+        "--pause-on-exception", action="store_true",
+        help=(
+            "On the first unhandled per-country error, pause and wait for the "
+            "operator to choose skip / retry / abort via the wizard UI (control "
+            "files /etl/control/paused_on_error.json + error_resolution.json). "
+            "Replaces the legacy hard-halt behavior."
+        )
+    )
+    # Legacy flag — silently promoted to --pause-on-exception so old
+    # invocations from the wizard or scripts keep working.
+    parser.add_argument(
+        "--stop-on-exception", action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    # Phase P.8 — operator-supplied data root. Overrides the DATA_ROOT env
+    # default (/archive in container, /docs in legacy bare-metal). Wizard
+    # plumbs this from a Step 2 source-folder input through supervisor.py.
+    # MUST be set BEFORE importing import_geoboundaries / import_worldpop
+    # because those modules read DATA_ROOT at module-load time.
+    parser.add_argument(
+        "--data-root", default=None,
+        help=(
+            "Override DATA_ROOT (the directory containing geoBoundaries_repo/ "
+            "and worldpop_100m_latest/). Useful when the wizard points at a "
+            "non-default folder; defaults to env DATA_ROOT or /docs."
+        ),
+    )
 
     args = parser.parse_args()
+
+    # Apply --data-root before any subsequent module imports pick up DATA_ROOT.
+    if args.data_root:
+        os.environ["DATA_ROOT"] = args.data_root
+
     log  = setup_logging(Path(args.log_file))
 
     log.info("╔══════════════════════════════════════════════╗")
     log.info("║     Fair Constitution — ETL Pipeline          ║")
     log.info("╚══════════════════════════════════════════════╝")
     log.info("Started at %s", datetime.now(timezone.utc).isoformat())
+
+    # Phase N: log the detected memory budget + chosen chunk profile so the
+    # operator (and the wizard's log-tail panel) sees what sizing decisions
+    # were made before any heavy work starts. Override with
+    # ETL_MEMORY_BUDGET_BYTES env var.
+    try:
+        from memory_budget import chunk_profile, detect_memory_budget_bytes
+        _budget = detect_memory_budget_bytes()
+        _profile_name, _profile = chunk_profile(_budget)
+        log.info(
+            "Memory budget: %.1f GB → profile '%s' "
+            "(BATCH_BYTE_LIMIT=%d MB, BATCH_ROW_LIMIT=%d, "
+            "DB_FETCH_CHUNK_SIZE=%d, RASTER_BATCH_SIZE=%d)",
+            _budget / (1024 ** 3),
+            _profile_name,
+            _profile["BATCH_BYTE_LIMIT"] // (1024 * 1024),
+            _profile["BATCH_ROW_LIMIT"],
+            _profile["DB_FETCH_CHUNK_SIZE"],
+            _profile["RASTER_BATCH_SIZE"],
+        )
+    except Exception as _exc:   # pragma: no cover — best-effort logging
+        log.warning("Could not log memory budget: %s", _exc)
+
     if args.countries:
         log.info("Filtering to countries: %s", ", ".join(args.countries))
+
+    # NOTE: dependent territories (USA's PR/GU/VIR/ASM/MNP, FRA's overseas
+    # départements, etc.) loaded with iso_code = sovereign get population
+    # from the sovereign's raster (e.g. PR's pixels are inside USA's TIF
+    # already). Phase Q's _topological_raster_fallback handles the dual-
+    # footprint cases where a polygon has iso_code = sovereign but the
+    # sovereign's raster doesn't cover it (e.g. CHN's "Taiwan Province"
+    # picks up TWN's raster via ST_Intersects). No curated lookup table
+    # — Phase R deleted SOVEREIGN_TERRITORIES, RASTER_FALLBACKS, and
+    # NO_WORLDPOP. The Setup wizard's Phase 4 review surface still
+    # surfaces any rows the topology can't help with, but the ETL no
+    # longer needs a hand-curated mapping to bridge them.
     if args.adm_levels:
         log.info("Filtering to ADM levels: %s", args.adm_levels)
     if args.skip_population:
         log.info("--skip-population: WorldPop phase will be skipped")
-    if args.load_rasters:
-        log.info("--load-rasters: TIF tiles will be loaded into worldpop_rasters table")
+
     if args.fresh:
-        log.info("--fresh: ignoring any existing progress.json")
+        log.info("--fresh: will purge geoboundary data + reprocess everything")
+
+    # Promote legacy --stop-on-exception → --pause-on-exception
+    args.pause_on_exception = args.pause_on_exception or args.stop_on_exception
+    if args.pause_on_exception:
+        log.info("--pause-on-exception: pipeline will pause on first per-country error and await operator decision")
 
     # ── Verify DB ──
     if not verify_database_connection(log):
@@ -319,12 +491,13 @@ def main():
         log.error("Try: docker compose up -d postgres && docker compose exec etl python seed_database.py")
         sys.exit(1)
 
-    # ── Load progress ──
+    # ── Load progress + optional fresh purge ──
     progress = load_progress(PROGRESS_FILE, fresh=args.fresh)
-
-    # ── Purge DB if --fresh ──
     if args.fresh:
         purge_geoboundaries_data(log)
+        save_progress(progress, PROGRESS_FILE)
+        log.info("--fresh: wrote empty progress.json to clear stale per-country state")
+        heartbeat.clear_all()
 
     # Register signal handler so Ctrl-C saves progress
     global _progress_ref, _progress_file_ref
@@ -338,36 +511,65 @@ def main():
     # ── Phase 1: Boundaries ──
     log.info("")
     log.info("═══ Phase 1: import_geoboundaries ═══════════════")
+    heartbeat.set_phase("geoboundaries")
     try:
         from import_geoboundaries import import_geoboundaries
+
+        # Save callback fires after each country's geojson finishes. Mirrors
+        # the Phase 2 pattern; lets the wizard's "countries done" tile track
+        # progress in near-real-time instead of waiting for Phase 1 to fully
+        # complete before the on-disk progress.json is updated.
+        def _save_progress_phase1(p):
+            save_progress(p, PROGRESS_FILE)
+
         import_geoboundaries(
-            countries  = args.countries,
-            adm_levels = args.adm_levels,
-            progress   = progress,
-            log        = log.getChild("geoboundaries"),
+            countries          = args.countries,
+            adm_levels         = args.adm_levels,
+            progress           = progress,
+            log                = log.getChild("geoboundaries"),
+            pause_on_exception = args.pause_on_exception,
+            save_progress_fn   = _save_progress_phase1,
         )
+    except SystemExit:
+        # Operator chose "Abort" from an error-pause card → propagate cleanly.
+        save_progress(progress, PROGRESS_FILE)
+        heartbeat.clear_current()
+        raise
     except Exception as exc:
         log.error("Phase 1 failed with unhandled exception: %s", exc, exc_info=True)
         save_progress(progress, PROGRESS_FILE)
-        sys.exit(1)
+        heartbeat.clear_current()
+        sys.exit(2 if args.pause_on_exception else 1)
 
     save_progress(progress, PROGRESS_FILE)
     log.info("Phase 1 complete. Progress saved.")
 
-    # ── Phase 2: Population ──
+    # ── Phase 2: Raster load + population fill ──
     # IMPORTANT: import_worldpop is run in a SUBPROCESS, not imported directly.
-    # Reason: import_geoboundaries loads geopandas/fiona which initialises one
-    # GDAL/GEOS shared-library instance. import_worldpop loads rasterio which
-    # initialises a second GDAL instance. Two GDAL instances in the same process
-    # cause a segfault (exit 139 / SIGKILL) when rasterstats opens the raster.
-    # Running worldpop in a fresh subprocess avoids this entirely.
+    # Historical reason: import_geoboundaries loaded geopandas/fiona (one GDAL
+    # instance) and import_worldpop loaded rasterio (second GDAL instance);
+    # two GDAL instances in the same process caused a segfault (exit 139).
     #
-    # --load-rasters implies Phase 2 must run (raster loading happens inside
-    # import_worldpop after population aggregation, per-country).
-    run_phase2 = not args.skip_population or args.load_rasters
+    # Phase L removed geopandas/fiona from import_geoboundaries, so the segfault
+    # risk is gone. We keep the subprocess split because it provides crash
+    # isolation between phases and lets Phase 1 + Phase 2 fail independently.
+    run_phase2 = not args.skip_population
     if run_phase2:
         log.info("")
         log.info("═══ Phase 2: import_worldpop ════════════════════")
+        heartbeat.set_phase("worldpop")
+
+        # Heartbeat transition: keep the UI's "currently processing" card from
+        # pointing at the last Phase 1 jurisdiction while we spawn the subprocess.
+        heartbeat.write_current(
+            id=None,
+            name="transition",
+            iso_code=None,
+            adm_level=None,
+            phase="transition",
+            sub_phase="spawning worldpop subprocess",
+            queue_preview=[],
+        )
 
         # Build the subprocess argv
         wp_cmd = [sys.executable, "-c", f"""
@@ -403,7 +605,7 @@ import_worldpop(
     progress=progress,
     log=log,
     save_progress_fn=_save_progress,
-    load_rasters={args.load_rasters!r},
+    pause_on_exception={args.pause_on_exception!r},
 )
 
 _save_progress(progress)
@@ -411,16 +613,28 @@ log.info("Phase 2 progress saved.")
 """]
 
         import subprocess
+        global _phase2_subprocess_running, _phase2_subprocess
+        # Popen instead of subprocess.run so the SIGTERM handler can forward
+        # the signal to the child (instead of letting subprocess.run's
+        # SystemExit teardown SIGTERM-kill it before it can save).
+        proc = subprocess.Popen(wp_cmd, cwd="/etl")
+        _phase2_subprocess = proc
+        _phase2_subprocess_running = True
         try:
-            result = subprocess.run(
-                wp_cmd,
-                cwd="/etl",
-                check=True,
-            )
-        except subprocess.CalledProcessError as exc:
-            log.error("Phase 2 subprocess failed with exit code %d", exc.returncode)
-            save_progress(progress, PROGRESS_FILE)
-            sys.exit(1)
+            exit_code = proc.wait()
+        finally:
+            _phase2_subprocess_running = False
+            _phase2_subprocess = None
+
+        if exit_code != 0:
+            log.error("Phase 2 subprocess failed with exit code %d", exit_code)
+            # IMPORTANT: do NOT call save_progress(progress, ...) here. The
+            # parent's `progress` dict is the stale Phase-1 snapshot — writing
+            # it would clobber the subprocess's per-raster saves. The
+            # subprocess's own _save_progress has already persisted the
+            # latest state atomically. Just propagate the failure.
+            heartbeat.clear_current()
+            sys.exit(2 if args.pause_on_exception else 1)
 
         # Reload progress that the subprocess wrote
         progress = load_progress(PROGRESS_FILE, fresh=False)
@@ -430,6 +644,14 @@ log.info("Phase 2 progress saved.")
 
     # ── Summary ──
     print_summary(progress, time.time() - start_time, log)
+
+    # Clean up the heartbeat so the UI knows no jurisdiction is being processed
+    # anymore. (supervisor.py also clears this on job end as a backstop.)
+    # Mark worldpop summary 100 % done if it ran, then flip phase to "complete".
+    if run_phase2:
+        heartbeat.worldpop_mark_complete()
+    heartbeat.set_phase("complete")
+    heartbeat.clear_current()
 
 
 if __name__ == "__main__":

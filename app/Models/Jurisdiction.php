@@ -84,8 +84,8 @@ class Jurisdiction extends Model
     // -------------------------------------------------------------------------
 
     /**
-     * Returns ordered ancestor chain from ADM0 down to (but not including) self.
-     * Used for breadcrumb navigation.
+     * Returns ordered ancestor chain from the planet root (adm_level = 0) down
+     * to (but not including) self. Used for breadcrumb navigation.
      */
     public function getAncestorsAttribute(): array
     {

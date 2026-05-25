@@ -44,6 +44,12 @@ docs/geoBoundaries_repo/
 scripts/etl/progress.json
 scripts/etl/*.log
 scripts/etl/__pycache__/
+# Supervisor + heartbeat control files (bars.json, current.json, running.json,
+# failed.json, halt.json, paused_on_error.json, error_resolution.json,
+# caches_warmed.json, raster_prewarm_dispatched.json, t7_dryrun*) — all
+# runtime state written by the live ETL, not source. The directory itself
+# is created by error_pause.py / heartbeat.py at first write.
+scripts/etl/control/
 
 # ─── Python ───────────────────────────────────────────────────────────────────
 **/__pycache__/
@@ -56,3 +62,8 @@ scripts/etl/__pycache__/
 desktop.ini
 Thumbs.db
 *.ini
+
+# ─── Protomaps PMTiles bundle (P.7) ───────────────────────────────────────────
+# ~150 MB self-hostable base map; fetched via scripts/setup/fetch_protomaps.sh
+# at install time, never committed.
+public/maps/*.pmtiles
