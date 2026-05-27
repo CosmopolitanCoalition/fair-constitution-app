@@ -4,6 +4,14 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 
+// Host-side ports propagated by docker-compose (.env-driven). Defaults match
+// the parent checkout (vite on 5173, app on 8080); worktrees override via
+// .env to avoid port collisions when multiple stacks run simultaneously.
+// Read from process.env at config-load time so we don't have to edit this
+// file per checkout.
+const VITE_HOST_PORT  = parseInt(process.env.VITE_HOST_PORT  || '5173', 10);
+const NGINX_HOST_PORT = parseInt(process.env.NGINX_HOST_PORT || '8080', 10);
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -36,13 +44,16 @@ export default defineConfig({
     },
     server: {
         host: '0.0.0.0',
-        port: 5173,
-        // strictPort: fail loudly if 5173 is taken instead of silently jumping
-        // to 5174 and breaking the host port mapping.
+        port: 5173,   // internal container port — always 5173 regardless of host mapping
+        // strictPort: fail loudly if 5173 is taken inside the container instead
+        // of silently jumping and breaking the host port mapping.
         strictPort: true,
-        origin: 'http://localhost:5174',
+        origin: `http://localhost:${VITE_HOST_PORT}`,
         cors: {
-            origin: ['http://localhost:8081', 'http://localhost:5174'],
+            origin: [
+                `http://localhost:${NGINX_HOST_PORT}`,
+                `http://localhost:${VITE_HOST_PORT}`,
+            ],
             credentials: true,
         },
         watch: {
@@ -67,12 +78,14 @@ export default defineConfig({
             ],
         },
         hmr: {
-            // The browser hits us on host port 5174 (mapped from container 5173).
-            // Without clientPort, Vite's HMR client tries to connect WebSocket
-            // to localhost:5173 — which is unreachable from the host browser —
-            // leaving the HMR socket pending forever and contributing to the
-            // half-closed-connection pileup on the dev server.
-            clientPort: 5174,
+            // The browser hits us on host port VITE_HOST_PORT (mapped from the
+            // container's internal 5173). Without clientPort, Vite's HMR
+            // client would try to connect WebSocket to localhost:5173 — which
+            // is unreachable from the host browser when the host-side port
+            // differs (e.g. 5174 in a worktree) — leaving the HMR socket
+            // pending forever and contributing to half-closed-connection
+            // pileups on the dev server.
+            clientPort: VITE_HOST_PORT,
             // Disable the in-browser error overlay. Referenced as a workaround
             // for the "pending requests / stuck server" class of issues in
             // vitejs/vite#5310 (the WSL2 + Node TCP half-close problem). It
