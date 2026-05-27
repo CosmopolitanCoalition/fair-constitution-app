@@ -39,7 +39,15 @@ class ExportMapDataJob implements ShouldQueue
     public function __construct(
         public readonly string $exportId,
         public readonly bool   $skipRasters = false,
-    ) {}
+    ) {
+        // Route to the long-running Horizon supervisor (timeout=0, memory=512).
+        // The default supervisor-1 has timeout=60s which SIGKILLs the worker
+        // mid-pg_dump on anything but a tiny dataset — worldpop_rasters at
+        // world scale takes 20-30 minutes alone. Without this, the job dies
+        // after 60s and Laravel marks it MaxAttemptsExceeded (since tries=1).
+        // Mirrors the routing in MassReseedJob.
+        $this->onQueue('long-running');
+    }
 
     public function handle(MapDataExportService $svc): void
     {
