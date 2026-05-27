@@ -19,6 +19,11 @@ services:
       # Bind mount the dev ini so edits on host survive container recreation
       # (image still has a COPY of it baked in, but this overrides on start).
       - ./docker/php/php-local.ini:/usr/local/etc/php/conf.d/99-local.ini:ro
+      # Same trick for the entrypoint script: the Dockerfile bakes it in at
+      # /usr/local/bin/fc-entrypoint.sh, but bind-mounting the live copy on
+      # top means edits to docker/php/entrypoint.sh take effect on the next
+      # container recreate without a `docker compose build`.
+      - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
       # Protomaps PMTiles directory — Laravel's /api/maps/latest-pmtiles
       # scans this folder to pick the most recent YYYYMMDD.pmtiles file.
       # Matches the nginx mount so the same files are reachable via both
@@ -240,6 +245,9 @@ services:
       - .:/var/www/html
       - vendor:/var/www/html/vendor
       - composer_cache:/root/.composer
+      # Same live-entrypoint override as the app service — see the comment
+      # there for the rationale.
+      - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
     command: php artisan horizon
     depends_on:
       postgres:
