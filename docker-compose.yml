@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fcw_app
+    container_name: ${CONTAINER_PREFIX:-fc}_app
     restart: unless-stopped
     working_dir: /var/www/html
     # -R lets php-fpm run its pool as root in dev. Windows bind mounts show
@@ -39,10 +39,10 @@ services:
   # ─── Nginx ───────────────────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
-    container_name: fcw_nginx
+    container_name: ${CONTAINER_PREFIX:-fc}_nginx
     restart: unless-stopped
     ports:
-      - "8081:80"                          # worktree nginx on host 8081 (main uses 8080)
+      - "${NGINX_HOST_PORT:-8080}:80"      # set NGINX_HOST_PORT in .env per checkout (parent=8080, worktrees pick different ports)
     volumes:
       - .:/var/www/html
       - vendor:/var/www/html/vendor
@@ -72,7 +72,7 @@ services:
   # ─── PostgreSQL 17 + PostGIS 3.5 ─────────────────────────────
   postgres:
     image: postgis/postgis:17-3.5
-    container_name: fcw_postgres
+    container_name: ${CONTAINER_PREFIX:-fc}_postgres
     restart: unless-stopped
     # P.1.2: bump stop grace period from Docker's 10 s default to 120 s.
     # Mid-ETL postgres has GBs of dirty buffers + open transactions to
@@ -83,7 +83,7 @@ services:
     # up to this long; clean shutdowns of an idle DB still take <1 s.
     stop_grace_period: 120s
     ports:
-      - "5433:5432"                        # worktree postgres on host 5433 (main uses 5432)
+      - "${POSTGRES_HOST_PORT:-5432}:5432" # set POSTGRES_HOST_PORT in .env to avoid clashing with another stack on 5432
     # Phase L (memory-tuned): pair with the etl container's 2 GB cap so the
     # two of them together fit inside the host (~7.5 GB RAM) with margin.
     # 5 GB covers shared_buffers=4GB + a few concurrent ST_Intersects work
@@ -160,7 +160,7 @@ services:
   # ─── Redis 7 ─────────────────────────────────────────────────
   redis:
     image: redis:7.4-alpine
-    container_name: fcw_redis
+    container_name: ${CONTAINER_PREFIX:-fc}_redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -173,7 +173,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fcw_vite
+    container_name: ${CONTAINER_PREFIX:-fc}_vite
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -186,8 +186,16 @@ services:
       # without rebuilding the image.
       - ./docker/vite/entrypoint.sh:/usr/local/bin/vite-entrypoint.sh:ro
     entrypoint: ["/usr/local/bin/vite-entrypoint.sh"]
+    # Propagate the host-side port mappings into the container so vite.config.js
+    # can construct the right URLs for cors / origin / hmr.clientPort. Without
+    # these, vite hardcoded its origin and HMR ports to whatever was last in
+    # the source file — i.e. whichever checkout edited vite.config.js most
+    # recently. With them, every checkout self-configures from .env.
+    environment:
+      - VITE_HOST_PORT=${VITE_HOST_PORT:-5173}
+      - NGINX_HOST_PORT=${NGINX_HOST_PORT:-8080}
     ports:
-      - "5174:5173"                        # worktree Vite HMR on host 5174 (main uses 5173)
+      - "${VITE_HOST_PORT:-5173}:5173"     # set VITE_HOST_PORT in .env per checkout
     # Dev mode (`vite`) with two cold-start mitigations configured in
     # vite.config.js:
     #   • optimizeDeps.include  — pre-bundles big libs (Inertia, Vue, axios,
@@ -225,7 +233,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: fcw_horizon
+    container_name: ${CONTAINER_PREFIX:-fc}_horizon
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -246,7 +254,7 @@ services:
     build:
       context: .
       dockerfile: docker/etl/Dockerfile
-    container_name: fcw_etl
+    container_name: ${CONTAINER_PREFIX:-fc}_etl
     working_dir: /etl
     # P.1.2: give the ETL supervisor up to 60 s to forward SIGTERM to its
     # active subprocess and let Python's finally blocks close DB
@@ -263,7 +271,7 @@ services:
     #
     # IMPORTANT: docker compose only applies these limits when the container
     # is RECREATED (`docker compose down etl && docker compose up -d etl`),
-    # not on a plain restart. `docker inspect fcw_etl --format '{{.HostConfig.Memory}}'`
+    # not on a plain restart. `docker inspect ${CONTAINER_PREFIX:-fc}_etl --format '{{.HostConfig.Memory}}'`
     # should report 2147483648; if it reports 0, the limit isn't actually
     # bound and a recreate is needed.
     mem_limit: 2g
