@@ -178,6 +178,14 @@ services:
     volumes:
       - .:/var/www/html
       - node_modules:/var/www/html/node_modules
+      # Bind-mount the vite entrypoint script. It auto-runs `npm install`
+      # when package.json/package-lock.json drift from the stamp in the
+      # node_modules named volume — eliminates the "blank page after git
+      # pull adds new deps" failure mode. The file is checked into git
+      # under docker/vite/ so any checkout (parent + worktrees) gets it
+      # without rebuilding the image.
+      - ./docker/vite/entrypoint.sh:/usr/local/bin/vite-entrypoint.sh:ro
+    entrypoint: ["/usr/local/bin/vite-entrypoint.sh"]
     ports:
       - "5174:5173"                        # worktree Vite HMR on host 5174 (main uses 5173)
     # Dev mode (`vite`) with two cold-start mitigations configured in

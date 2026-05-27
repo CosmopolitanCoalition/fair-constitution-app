@@ -290,6 +290,80 @@ async function deleteExport(exportId) {
     } catch (e) { /* ignore */ }
 }
 
+// ── Restore-from-backup ────────────────────────────────────────────────────
+// Mirrors the export panel's pattern but inverted: pick a local .tar.gz,
+// upload it to /api/import/jurisdictions (multipart), then reload the page
+// lifecycle so the wizard reflects the now-populated DB. The backend's
+// MapDataImportService validates the manifest schema_version against the
+// local migration registry and refuses older snapshots — we surface that
+// rejection clearly so the operator knows to migrate first.
+const importFile     = ref(null)        // File | null
+const importing      = ref(false)
+const importProgress = ref(0)           // 0–100 (upload phase only)
+const importPhase    = ref('idle')      // idle | uploading | restoring | done | failed
+const importError    = ref('')
+
+function onImportFile(event) {
+    const f = event.target?.files?.[0] ?? null
+    importFile.value  = f
+    importError.value = ''
+    importPhase.value = 'idle'
+    importProgress.value = 0
+}
+
+function startImport() {
+    if (!importFile.value || importing.value) return
+    importing.value      = true
+    importError.value    = ''
+    importPhase.value    = 'uploading'
+    importProgress.value = 0
+
+    // XMLHttpRequest because fetch() doesn't expose upload progress in
+    // browsers yet. The backend processes synchronously after the upload
+    // completes, so the request stays open until pg_restore finishes —
+    // can be several minutes on a full-rasters bundle. No way to show
+    // restore-side progress through HTTP (server doesn't stream); we
+    // just flip to a "Restoring database…" indeterminate state.
+    const xhr = new XMLHttpRequest()
+    const form = new FormData()
+    form.append('archive', importFile.value)
+
+    xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+            importProgress.value = Math.round((e.loaded / e.total) * 100)
+            if (importProgress.value >= 100) importPhase.value = 'restoring'
+        }
+    })
+    xhr.addEventListener('load', () => {
+        importing.value = false
+        let data = {}
+        try { data = JSON.parse(xhr.responseText) } catch (e) { /* leave empty */ }
+        if (xhr.status >= 200 && xhr.status < 300 && data.ok !== false) {
+            importPhase.value = 'done'
+            // Refresh lifecycle so the wizard recognises the DB is populated
+            // and the "Continue to apportionment" path activates.
+            router.reload({ only: ['lifecycle', 'instance', 'review'] })
+        } else {
+            importPhase.value = 'failed'
+            importError.value = data.error || `Restore failed (HTTP ${xhr.status})`
+        }
+    })
+    xhr.addEventListener('error', () => {
+        importing.value = false
+        importPhase.value = 'failed'
+        importError.value = 'Network error during upload'
+    })
+    xhr.open('POST', '/api/import/jurisdictions')
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrf())
+    xhr.setRequestHeader('Accept', 'application/json')
+    xhr.send(form)
+}
+
+function formatFile(f) {
+    if (!f) return ''
+    return `${f.name} (${formatBytes(f.size)})`
+}
+
 function formatBytes(n) {
     if (!n || n < 0) return ''
     if (n < 1024)             return `${n} B`
@@ -509,6 +583,69 @@ onBeforeUnmount(stopPolling)
                         {{ submitting ? 'Submitting…' : (isRunning ? 'Run in progress…' : 'Start ETL Run') }}
                     </button>
                     <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
+                </div>
+            </section>
+
+            <!-- Restore from backup (alternative to running the ETL above).
+                 Unnumbered because the canonical numbered flow is 1 (source)
+                 → 2 (options) → 3 (live progress, LiveProgress.vue) → 4
+                 (review). This panel is the "or" branch that lets the
+                 operator bypass the ETL entirely by uploading a previous
+                 .tar.gz export. -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-white font-semibold mb-2">Alternative — Restore from a backup</h2>
+                <p class="text-gray-400 text-xs mb-4">
+                    Already have a <code class="text-gray-300">.tar.gz</code> exported
+                    from another instance (Step 2 → "Full" or "Without rasters")?
+                    Upload it here to skip the ETL entirely. The backend validates
+                    the manifest's schema version against the current migrations
+                    before restoring — older snapshots are refused with a clear
+                    message.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <input type="file"
+                           accept=".tar.gz,.tgz,application/gzip,application/x-gzip"
+                           @change="onImportFile"
+                           :disabled="runOptionsDisabled || importing"
+                           class="text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded
+                                  file:border file:border-gray-700 file:bg-gray-800 file:text-gray-200
+                                  file:hover:bg-gray-700 file:cursor-pointer
+                                  disabled:opacity-50 disabled:cursor-not-allowed" />
+                    <button type="button"
+                            @click="startImport"
+                            :disabled="!importFile || runOptionsDisabled || importing"
+                            class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
+                                   text-white px-4 py-1.5 rounded text-sm font-semibold">
+                        {{ importing ? (importPhase === 'uploading' ? 'Uploading…' : 'Restoring…') : 'Upload & restore' }}
+                    </button>
+                    <span v-if="importFile && !importing" class="text-xs text-gray-500">
+                        {{ formatFile(importFile) }}
+                    </span>
+                </div>
+
+                <!-- Progress bar — only during upload phase (server-side restore is opaque). -->
+                <div v-if="importing" class="mt-3">
+                    <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                        <div class="h-2 bg-emerald-600 transition-all duration-200"
+                             :style="{ width: importPhase === 'uploading' ? (importProgress + '%') : '100%' }"></div>
+                    </div>
+                    <div class="text-[11px] text-gray-400 mt-1">
+                        <template v-if="importPhase === 'uploading'">
+                            Uploading… {{ importProgress }}%
+                        </template>
+                        <template v-else-if="importPhase === 'restoring'">
+                            Upload complete — restoring database (pg_restore). May take several
+                            minutes on a full-rasters bundle.
+                        </template>
+                    </div>
+                </div>
+
+                <div v-if="importPhase === 'done' && !importing" class="mt-3 text-xs text-emerald-300">
+                    Restore complete. Continuing to next step…
+                </div>
+                <div v-if="importError" class="mt-3 text-xs text-red-400">
+                    {{ importError }}
                 </div>
             </section>
 
