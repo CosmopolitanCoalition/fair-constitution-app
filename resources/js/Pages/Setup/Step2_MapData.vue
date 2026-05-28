@@ -242,6 +242,12 @@ const exportStarting = ref(false)
 const exportsList    = ref([])
 const exportError    = ref('')
 let exportsPollTimer = null
+// Wall-clock timestamp until which we keep polling even if no running entry
+// is visible yet. Set on dispatch so a brand-new job that hasn't written its
+// status.json yet (still queued in Redis waiting for Horizon to pick up)
+// still appears within a couple of polls without the operator needing to
+// manually refresh.
+const exportsPollUntil = ref(0)
 
 async function refreshExports() {
     try {
@@ -271,7 +277,14 @@ async function startExport(skipRasters) {
             exportError.value = data.error || `export start failed (HTTP ${res.status})`
             return
         }
+        // Keep polling for ~30s even if the listing comes back empty —
+        // Horizon may take a moment to dequeue the dispatched job and write
+        // the first .status.json. Without this the timer wouldn't start
+        // (ensureExportPolling sees anyRunning=false) and the operator would
+        // have to manually refresh to see the new entry.
+        exportsPollUntil.value = Date.now() + 30_000
         await refreshExports()
+        ensureExportPolling()
     } catch (e) {
         exportError.value = String(e?.message || e)
     } finally {
@@ -288,6 +301,44 @@ async function deleteExport(exportId) {
         })
         await refreshExports()
     } catch (e) { /* ignore */ }
+}
+
+// Request halt of a running export. The backend sets a cache flag the job
+// polls every ~0.5s; pg_dump receives SIGTERM, the partial dump is removed,
+// and the entry flips to status=halted on the next poll cycle.
+async function haltExport(exportId) {
+    try {
+        await fetch(`/api/export/jurisdictions/${exportId}/halt`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf() },
+        })
+        await refreshExports()
+    } catch (e) { /* ignore — operator will see the row stay "running" if it failed */ }
+}
+
+// ── Progress / ETA formatters for the running-export row ──────────────────
+function formatEta(seconds) {
+    if (seconds == null || seconds < 0) return '—'
+    if (seconds < 60)        return `${seconds}s`
+    if (seconds < 3600)      return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    return `${h}h ${m}m`
+}
+function formatThroughput(bps) {
+    if (!bps || bps <= 0) return ''
+    if (bps < 1024)             return `${bps} B/s`
+    if (bps < 1024 * 1024)      return `${(bps / 1024).toFixed(0)} KB/s`
+    if (bps < 1024 ** 3)        return `${(bps / 1024 / 1024).toFixed(1)} MB/s`
+    return `${(bps / 1024 ** 3).toFixed(2)} GB/s`
+}
+function exportPercent(e) {
+    const p = e.progress
+    if (!p) return null
+    if (p.phase === 'compressing') return 100
+    if (!p.bytes_written || !p.estimated_total_bytes) return null
+    return Math.min(100, Math.max(0, (p.bytes_written / p.estimated_total_bytes) * 100))
 }
 
 // ── Restore-from-backup ────────────────────────────────────────────────────
@@ -387,10 +438,16 @@ function formatRelative(iso) {
 // Poll the export listing while any export is "running". Stops when nothing
 // is running to avoid hammering the listing endpoint.
 function ensureExportPolling() {
-    const anyRunning = exportsList.value.some(e => e.status === 'running')
-    if (anyRunning && !exportsPollTimer) {
-        exportsPollTimer = setInterval(refreshExports, 5000)
-    } else if (!anyRunning && exportsPollTimer) {
+    const anyRunning   = exportsList.value.some(e => e.status === 'running')
+    const stillCooking = Date.now() < exportsPollUntil.value
+    if ((anyRunning || stillCooking) && !exportsPollTimer) {
+        // 2s while running — matches the cadence the job's onProgress
+        // callback emits at, so the bar/ETA stay close to real time.
+        // The same cadence applies during the post-dispatch "stillCooking"
+        // window so a brand-new entry surfaces within ~2s of horizon
+        // picking up the job.
+        exportsPollTimer = setInterval(refreshExports, 2000)
+    } else if (!anyRunning && !stillCooking && exportsPollTimer) {
         clearInterval(exportsPollTimer)
         exportsPollTimer = null
     }
@@ -725,49 +782,89 @@ onBeforeUnmount(stopPolling)
                         </div>
                         <div class="divide-y divide-gray-800">
                             <div v-for="e in exportsList" :key="e.export_id"
-                                 class="px-3 py-2 text-xs flex items-center justify-between gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-mono text-gray-300 truncate">{{ e.export_id }}</div>
-                                    <div class="text-[10px] text-gray-500">
-                                        {{ e.skip_rasters ? 'no rasters · ' : 'full · ' }}
-                                        started {{ formatRelative(e.started_at) }}
-                                        <template v-if="e.completed_at">
-                                            · finished {{ formatRelative(e.completed_at) }}
-                                        </template>
-                                        <template v-if="e.size_bytes">
-                                            · {{ formatBytes(e.size_bytes) }}
-                                        </template>
+                                 class="px-3 py-2 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-mono text-gray-300 truncate">{{ e.export_id }}</div>
+                                        <div class="text-[10px] text-gray-500">
+                                            {{ e.skip_rasters ? 'no rasters · ' : 'full · ' }}
+                                            started {{ formatRelative(e.started_at) }}
+                                            <template v-if="e.completed_at">
+                                                · finished {{ formatRelative(e.completed_at) }}
+                                            </template>
+                                            <template v-if="e.size_bytes">
+                                                · {{ formatBytes(e.size_bytes) }}
+                                            </template>
+                                        </div>
+                                        <div v-if="e.error" class="text-[10px] text-red-400 mt-0.5">{{ e.error }}</div>
                                     </div>
-                                    <div v-if="e.error" class="text-[10px] text-red-400 mt-0.5">{{ e.error }}</div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <span v-if="e.status === 'running'"
+                                              class="text-[10px] px-2 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">
+                                            running
+                                        </span>
+                                        <span v-else-if="e.status === 'done'"
+                                              class="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 border border-emerald-700">
+                                            done
+                                        </span>
+                                        <span v-else-if="e.status === 'failed'"
+                                              class="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-200 border border-red-700">
+                                            failed
+                                        </span>
+                                        <span v-else-if="e.status === 'halted'"
+                                              class="text-[10px] px-2 py-0.5 rounded bg-amber-900 text-amber-200 border border-amber-700">
+                                            halted
+                                        </span>
+                                        <span v-else
+                                              class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
+                                            {{ e.status }}
+                                        </span>
+                                        <a v-if="e.archive_filename"
+                                           :href="`/api/export/jurisdictions/download/${e.archive_filename}`"
+                                           class="text-[11px] text-blue-400 hover:text-blue-300">
+                                            ⬇ download
+                                        </a>
+                                        <button v-if="e.status === 'running'"
+                                                type="button"
+                                                @click="haltExport(e.export_id)"
+                                                class="text-[11px] px-2 py-0.5 rounded bg-amber-900/50 border border-amber-700 text-amber-200 hover:bg-amber-900">
+                                            ⏹ halt
+                                        </button>
+                                        <button v-if="e.status !== 'running'"
+                                                type="button"
+                                                @click="deleteExport(e.export_id)"
+                                                class="text-[11px] text-gray-500 hover:text-red-400">
+                                            delete
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span v-if="e.status === 'running'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">
-                                        running
-                                    </span>
-                                    <span v-else-if="e.status === 'done'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 border border-emerald-700">
-                                        done
-                                    </span>
-                                    <span v-else-if="e.status === 'failed'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-200 border border-red-700">
-                                        failed
-                                    </span>
-                                    <span v-else
-                                          class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
-                                        {{ e.status }}
-                                    </span>
-                                    <a v-if="e.archive_filename"
-                                       :href="`/api/export/jurisdictions/download/${e.archive_filename}`"
-                                       class="text-[11px] text-blue-400 hover:text-blue-300">
-                                        ⬇ download
-                                    </a>
-                                    <button v-if="e.status !== 'running'"
-                                            type="button"
-                                            @click="deleteExport(e.export_id)"
-                                            class="text-[11px] text-gray-500 hover:text-red-400">
-                                        delete
-                                    </button>
+
+                                <!-- Live progress bar — only for running entries with a
+                                     progress snapshot. Bytes-based percent + ETA come
+                                     from the job's onProgress callback writing to the
+                                     status.json file the listing endpoint surfaces. -->
+                                <div v-if="e.status === 'running' && e.progress" class="mt-2">
+                                    <div class="h-1.5 bg-gray-800 rounded overflow-hidden">
+                                        <div class="h-1.5 bg-blue-600 transition-all duration-300"
+                                             :style="{ width: (exportPercent(e) ?? 5) + '%' }"></div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-x-3">
+                                        <span v-if="exportPercent(e) != null">
+                                            {{ exportPercent(e).toFixed(1) }}%
+                                        </span>
+                                        <span v-if="e.progress.bytes_written">
+                                            {{ formatBytes(e.progress.bytes_written) }}<template v-if="e.progress.estimated_total_bytes"> / ~{{ formatBytes(e.progress.estimated_total_bytes) }}</template>
+                                        </span>
+                                        <span v-if="e.progress.throughput_bps">
+                                            {{ formatThroughput(e.progress.throughput_bps) }}
+                                        </span>
+                                        <span v-if="e.progress.eta_seconds != null && e.progress.eta_seconds > 0">
+                                            ETA: {{ formatEta(e.progress.eta_seconds) }}
+                                        </span>
+                                        <span v-if="e.progress.phase === 'compressing'" class="text-amber-300">
+                                            compressing archive…
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -122,11 +122,17 @@ Route::post('/api/jurisdictions/accept-maps', [JurisdictionController::class, 'a
 //     of in-progress + completed exports for the wizard's status panel.
 //   - `GET  /api/export/jurisdictions/download/{f}`  — fetch a built tarball.
 //   - `DEL  /api/export/jurisdictions/{exportId}`    — delete a past export.
+//   - `POST /api/export/jurisdictions/{exportId}/halt` — request halt of a
+//     running export. Sets a cache flag the job polls; pg_dump receives
+//     SIGTERM, the partial dump is unlinked, status flips to "halted".
 Route::get('/api/export/jurisdictions',                    [JurisdictionController::class, 'exportMaps'])->name('jurisdictions.export');
 Route::get('/api/export/jurisdictions/list',               [JurisdictionController::class, 'exportMapsList'])->name('jurisdictions.export.list');
 Route::get('/api/export/jurisdictions/download/{filename}',[JurisdictionController::class, 'exportMapsDownload'])
     ->where('filename', '[A-Za-z0-9._-]+\.tar\.gz')
     ->name('jurisdictions.export.download');
+Route::post('/api/export/jurisdictions/{exportId}/halt',   [JurisdictionController::class, 'exportMapsHalt'])
+    ->where('exportId', '[A-Za-z0-9._-]+')
+    ->name('jurisdictions.export.halt');
 Route::delete('/api/export/jurisdictions/{exportId}',      [JurisdictionController::class, 'exportMapsDelete'])
     ->where('exportId', '[A-Za-z0-9._-]+')
     ->name('jurisdictions.export.delete');

@@ -235,6 +235,9 @@ class JurisdictionController extends Controller
                 'error'            => $decoded['error']            ?? null,
                 'archive_filename' => $archiveOk ? $archiveName    : null,
                 'size_bytes'       => $decoded['size_bytes']       ?? null,
+                // Live progress snapshot from ExportMapDataJob's onProgress
+                // callback (null until pg_dump has emitted its first tick).
+                'progress'         => $decoded['progress']         ?? null,
             ];
         }
         // Newest first
@@ -259,6 +262,28 @@ class JurisdictionController extends Controller
             return response()->json(['error' => 'not found'], 404);
         }
         return response()->download($path);
+    }
+
+    /**
+     * Phase P.9 — request that a running export job halt.
+     *
+     * Sets a cache flag the ExportMapDataJob's polling loop checks every
+     * ~0.5s inside MapDataExportService::runPgDump(). On detection, pg_dump
+     * is SIGTERM'd, the partial dump file is unlinked, and the job records
+     * `status: halted` (vs `failed`). Idempotent — calling on an already-
+     * halted or finished export is a no-op success.
+     */
+    public function exportMapsHalt(Request $request, string $exportId): JsonResponse
+    {
+        if (! preg_match('/^[A-Za-z0-9._-]+$/', $exportId)) {
+            return response()->json(['error' => 'invalid export_id'], 400);
+        }
+        \Illuminate\Support\Facades\Cache::put(
+            "export.{$exportId}.halt",
+            true,
+            3600,
+        );
+        return response()->json(['ok' => true]);
     }
 
     /**
