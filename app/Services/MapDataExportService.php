@@ -33,23 +33,66 @@ use Symfony\Component\Process\Process;
 class MapDataExportService
 {
     /**
-     * Tables included in the export. Order matters for restore: parents
-     * before children. The import service reverses this list for the
-     * truncation pass so children clear before parents.
+     * Tables included in the export — the full FK-downstream graph of
+     * jurisdictions plus the two settings tables and the raster store.
+     * Order is parent → child so pg_restore can replay the rows without
+     * deferred-constraint gymnastics; the import service reverses this
+     * list for the truncation pass so child rows clear before parents.
      *
-     * cosmic_addresses comes first because instance_settings has a FK
-     * referencing it; without cosmic_addresses present, pg_restore skips
-     * every instance_settings row with `errors ignored on restore` and
-     * the receiving instance ends up with empty setup state.
+     * The set was derived from `pg_constraint` rather than written by
+     * hand: TRUNCATE jurisdictions CASCADE wipes every table that has a
+     * foreign key targeting jurisdictions (directly or via a chain), and
+     * those are exactly the tables that have to round-trip with it so
+     * the restored instance isn't left with phantom-empty children.
+     *
+     * Skipped on purpose:
+     *   - users        — operator-account credentials; not portable across
+     *                     instances. legislature_members and
+     *                     residency_confirmations FK to users, so those
+     *                     tables are included but rows referencing user
+     *                     ids the receiver doesn't have will fail
+     *                     pg_restore (an intentional clean fault rather
+     *                     than a silent FK-deferred mismatch).
+     *   - location_pings — privacy-sensitive GPS history; doesn't FK to
+     *                     anything in the jurisdictions graph anyway, so
+     *                     omitting it doesn't corrupt CASCADE invariants.
+     *   - cache / jobs / sessions / migrations — runtime / infra tables.
+     *   - postgis system tables (layer / topology) — managed by the
+     *                     PostGIS extension; we don't own their lifecycle.
      *
      * @var list<string>
      */
     public const TABLES = [
+        // Settings + cosmic hierarchy
         'cosmic_addresses',
         'instance_settings',
+        // Spatial core (the hub — every other app table cascades from here)
+        'jurisdictions',
+        // Organizations / civil structure
+        'organizations',
+        // Legislature tree
+        'legislatures',
+        'legislature_district_maps',
+        'legislature_districts',
+        'legislature_district_jurisdictions',
+        'legislature_members',
+        // Executive tree
+        'executives',
+        'executive_members',
+        // Judiciary tree
+        'judiciaries',
+        'judicial_seats',
+        // Elections
+        'elections',
+        'endorsements',
+        // Residency / civic state
+        'residency_confirmations',
+        // ETL artifacts + amendments
+        'data_review_decisions',
         'constitutional_settings',
         'geoboundary_metadata',
-        'jurisdictions',
+        // Heavy raster data (kept last — biggest payload, easiest to
+        // identify in the picker by the "heavy" badge, slowest to dump)
         'worldpop_rasters',
     ];
 
@@ -64,27 +107,24 @@ class MapDataExportService
     public const RASTER_TABLES = ['worldpop_rasters'];
 
     /**
-     * @param  ?string    $tmpDir            Override storage_path('app/exports')
-     * @param  bool       $skipRasters       Drop worldpop_rasters from the dump
-     *                                       (~7 GB saved, useful for migrating
-     *                                        jurisdictions+meta+settings only)
-     * @param  ?string    $stagingId         Override the auto-generated staging id
+     * @param  ?string         $tmpDir       Override storage_path('app/exports')
+     * @param  bool            $skipRasters  Drop worldpop_rasters from the dump
+     *                                       (kept for backward compatibility with
+     *                                        the original "Full / Without rasters"
+     *                                        button pair; equivalent to passing
+     *                                        $tables = TABLES minus RASTER_TABLES)
+     * @param  ?string         $stagingId    Override the auto-generated staging id
      *                                       (used by ExportMapDataJob to align
      *                                        status-file ID with archive filename)
-     * @param  ?\Closure  $onProgress        Optional callback fired ~every 2s while
-     *                                       pg_dump runs. Receives an associative
-     *                                       array: {phase, bytes_written,
-     *                                       estimated_total_bytes, throughput_bps,
-     *                                       eta_seconds, elapsed_seconds}. The job
-     *                                       layer writes these into .status.json so
-     *                                       the UI can render a progress bar + ETA.
-     * @param  ?\Closure  $haltCheck         Optional closure that returns true when
-     *                                       the operator has requested a halt.
-     *                                       When it returns true the pg_dump
-     *                                       subprocess is terminated and an
-     *                                       \App\Exceptions\ExportHaltedException
-     *                                       is thrown so the job can record
-     *                                       status=halted.
+     * @param  ?\Closure       $onProgress   See runPgDump() docblock
+     * @param  ?\Closure       $haltCheck    See runPgDump() docblock
+     * @param  ?list<string>   $tables       Explicit table selection. When non-null
+     *                                       takes precedence over $skipRasters.
+     *                                       Values outside TABLES are silently
+     *                                       dropped — callers can't dump arbitrary
+     *                                       tables. Order is rewritten to match
+     *                                       TABLES so the restore-side parent-
+     *                                       before-child FK order is preserved.
      */
     public function export(
         ?string $tmpDir = null,
@@ -92,6 +132,7 @@ class MapDataExportService
         ?string $stagingId = null,
         ?\Closure $onProgress = null,
         ?\Closure $haltCheck = null,
+        ?array $tables = null,
     ): string {
         $tmpDir ??= storage_path('app/exports');
         if (! is_dir($tmpDir) && ! @mkdir($tmpDir, 0775, true)) {
@@ -104,9 +145,14 @@ class MapDataExportService
             throw new \RuntimeException("Could not create staging directory: {$stageDir}");
         }
 
-        $tables = $skipRasters
-            ? array_values(array_diff(self::TABLES, self::RASTER_TABLES))
-            : self::TABLES;
+        // Resolve effective table list. Explicit $tables wins; otherwise fall
+        // back to the legacy skip_rasters boolean. Result is always a subset
+        // of TABLES in TABLES order (parent → child) so the receiving
+        // pg_restore can replay them without FK violations.
+        $tables = $this->resolveTables($tables, $skipRasters);
+        if (empty($tables)) {
+            throw new \RuntimeException('No valid tables selected for export.');
+        }
 
         // ── Manifest ───────────────────────────────────────────────────────
         $manifest = [
@@ -167,6 +213,36 @@ class MapDataExportService
             }
         }
         return $out;
+    }
+
+    /**
+     * Resolve the effective table selection for an export run.
+     *
+     * Precedence:
+     *   1. If $explicit is non-null, intersect it with self::TABLES and
+     *      preserve TABLES order (so parents stay before children for the
+     *      restore-side replay).
+     *   2. Otherwise, fall back to the legacy skip_rasters flag — full
+     *      TABLES minus RASTER_TABLES, or the full TABLES list.
+     *
+     * Filtering values outside TABLES prevents callers from dumping
+     * arbitrary tables via the API; only the curated bundle members
+     * are ever shipped.
+     *
+     * @param  ?list<string>  $explicit
+     * @return list<string>
+     */
+    public function resolveTables(?array $explicit, bool $skipRasters): array
+    {
+        if ($explicit !== null) {
+            return array_values(array_filter(
+                self::TABLES,
+                fn ($t) => in_array($t, $explicit, true),
+            ));
+        }
+        return $skipRasters
+            ? array_values(array_diff(self::TABLES, self::RASTER_TABLES))
+            : self::TABLES;
     }
 
     private function currentSchemaVersion(): string

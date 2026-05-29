@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import CosmicAddressPicker from '@/Components/CosmicAddressPicker.vue'
+import ImportBackupPanel from '@/Components/Setup/ImportBackupPanel.vue'
 
 const props = defineProps({
     step: { type: Number, required: true },
@@ -82,42 +83,6 @@ async function onSubmit() {
 const canSubmit = computed(() =>
     !!instanceName.value.trim() && !!cosmicAddressId.value
 )
-
-// P.9 — restore-from-backup state
-const restoring    = ref(false)
-const restoreError = ref('')
-const restoreOk    = ref(null)
-
-async function handleRestoreUpload(ev) {
-    const file = ev.target.files?.[0]
-    if (!file) return
-    restoring.value    = true
-    restoreError.value = ''
-    restoreOk.value    = null
-    try {
-        const fd = new FormData()
-        fd.append('archive', file)
-        const res = await fetch('/api/import/jurisdictions', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body: fd,
-        })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok || !data.ok) {
-            restoreError.value = data.error || `import failed (HTTP ${res.status})`
-            return
-        }
-        restoreOk.value = data
-    } catch (e) {
-        restoreError.value = String(e?.message || e)
-    } finally {
-        restoring.value = false
-    }
-}
 </script>
 
 <template>
@@ -141,33 +106,12 @@ async function handleRestoreUpload(ev) {
                 </p>
             </header>
 
-            <!-- P.9 — Restore from a previous instance's exported tarball.
-                 Skips Steps 1-2 (constitutional defaults + ETL); the import
-                 brings in the donor's jurisdictions + populations + settings. -->
-            <details class="mb-4 rounded border border-gray-800 bg-gray-900/40">
-                <summary class="cursor-pointer select-none px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/40">
-                    Or, restore from a backup (skip ETL)
-                </summary>
-                <div class="px-4 py-3 border-t border-gray-800">
-                    <p class="text-xs text-gray-400 mb-2">
-                        Upload a <code>.tar.gz</code> produced by another instance's
-                        Step 2 "Export current data" button. Replaces this
-                        instance's jurisdictions, populations, geoBoundaries
-                        metadata, and constitutional settings with the donor's.
-                    </p>
-                    <input type="file" accept=".tar.gz,application/gzip,application/octet-stream"
-                           @change="handleRestoreUpload" :disabled="restoring"
-                           class="text-xs text-gray-300" />
-                    <div v-if="restoring" class="mt-2 text-xs text-blue-300">
-                        Restoring… this may take several minutes for a world-scale dataset.
-                    </div>
-                    <div v-if="restoreError" class="mt-2 text-xs text-red-400">{{ restoreError }}</div>
-                    <div v-if="restoreOk" class="mt-2 text-xs text-emerald-300">
-                        Restored {{ restoreOk.tables_restored?.length || 0 }} tables.
-                        Reload the page to see the new state.
-                    </div>
-                </div>
-            </details>
+            <!-- Single restore entry point for the whole setup flow.
+                 Step 0 is the only place this panel lives — uploading a
+                 bundle here lands the operator on whatever step the
+                 bundle's setup_step_completed dictates, so there's no
+                 reason to expose it again later in the wizard. -->
+            <ImportBackupPanel title="Or restore from a backup" :disabled="submitting" />
 
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-6">
                 <div>

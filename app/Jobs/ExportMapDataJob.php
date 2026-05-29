@@ -38,9 +38,16 @@ class ExportMapDataJob implements ShouldQueue
     public int $timeout = 7200;   // 2 h ceiling — worldpop_rasters at world scale takes ~20–30 min
     public int $tries   = 1;       // re-running a half-finished pg_dump is wasteful
 
+    /**
+     * @param  ?list<string>  $tables  Optional explicit selection (subset of
+     *                                 MapDataExportService::TABLES). When null
+     *                                 the legacy $skipRasters bool drives the
+     *                                 selection; when non-null it wins.
+     */
     public function __construct(
-        public readonly string $exportId,
-        public readonly bool   $skipRasters = false,
+        public readonly string  $exportId,
+        public readonly bool    $skipRasters = false,
+        public readonly ?array  $tables      = null,
     ) {
         // Route to the long-running Horizon supervisor (timeout=0, memory=512).
         // The default supervisor-1 has timeout=60s which SIGKILLs the worker
@@ -96,6 +103,7 @@ class ExportMapDataJob implements ShouldQueue
                 stagingId: $this->exportId,
                 onProgress: $onProgress,
                 haltCheck:  $haltCheck,
+                tables:     $this->tables,
             );
 
             $this->writeStatus($statusPath, array_merge(
