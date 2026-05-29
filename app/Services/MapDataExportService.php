@@ -12,11 +12,15 @@ use Symfony\Component\Process\Process;
  * instance. Skips re-running the ETL.
  *
  * Tables included (the full chain that makes a hierarchy queryable):
+ *   - cosmic_addresses          (universe→galaxy→planet hierarchy; FK target
+ *                                of instance_settings.cosmic_address_id)
  *   - jurisdictions             (geometry + parent links)
  *   - worldpop_rasters          (population tiles)
  *   - geoboundary_metadata      (display names, region info)
  *   - constitutional_settings   (per-jurisdiction amendments)
- *   - instance_settings         (operator-recorded acceptance + setup state)
+ *   - instance_settings         (operator-recorded acceptance + setup state;
+ *                                FK → cosmic_addresses, so cosmic_addresses
+ *                                must restore first — see TABLES order)
  *
  * pg_dump's `--data-only --table=` flags pull just the rows; schema is
  * applied on the receiving end via `php artisan migrate:fresh` before
@@ -29,16 +33,66 @@ use Symfony\Component\Process\Process;
 class MapDataExportService
 {
     /**
-     * Tables included in the export. Order matters for restore: parents
-     * before children.
+     * Tables included in the export — the full FK-downstream graph of
+     * jurisdictions plus the two settings tables and the raster store.
+     * Order is parent → child so pg_restore can replay the rows without
+     * deferred-constraint gymnastics; the import service reverses this
+     * list for the truncation pass so child rows clear before parents.
+     *
+     * The set was derived from `pg_constraint` rather than written by
+     * hand: TRUNCATE jurisdictions CASCADE wipes every table that has a
+     * foreign key targeting jurisdictions (directly or via a chain), and
+     * those are exactly the tables that have to round-trip with it so
+     * the restored instance isn't left with phantom-empty children.
+     *
+     * Skipped on purpose:
+     *   - users        — operator-account credentials; not portable across
+     *                     instances. legislature_members and
+     *                     residency_confirmations FK to users, so those
+     *                     tables are included but rows referencing user
+     *                     ids the receiver doesn't have will fail
+     *                     pg_restore (an intentional clean fault rather
+     *                     than a silent FK-deferred mismatch).
+     *   - location_pings — privacy-sensitive GPS history; doesn't FK to
+     *                     anything in the jurisdictions graph anyway, so
+     *                     omitting it doesn't corrupt CASCADE invariants.
+     *   - cache / jobs / sessions / migrations — runtime / infra tables.
+     *   - postgis system tables (layer / topology) — managed by the
+     *                     PostGIS extension; we don't own their lifecycle.
      *
      * @var list<string>
      */
     public const TABLES = [
+        // Settings + cosmic hierarchy
+        'cosmic_addresses',
         'instance_settings',
+        // Spatial core (the hub — every other app table cascades from here)
+        'jurisdictions',
+        // Organizations / civil structure
+        'organizations',
+        // Legislature tree
+        'legislatures',
+        'legislature_district_maps',
+        'legislature_districts',
+        'legislature_district_jurisdictions',
+        'legislature_members',
+        // Executive tree
+        'executives',
+        'executive_members',
+        // Judiciary tree
+        'judiciaries',
+        'judicial_seats',
+        // Elections
+        'elections',
+        'endorsements',
+        // Residency / civic state
+        'residency_confirmations',
+        // ETL artifacts + amendments
+        'data_review_decisions',
         'constitutional_settings',
         'geoboundary_metadata',
-        'jurisdictions',
+        // Heavy raster data (kept last — biggest payload, easiest to
+        // identify in the picker by the "heavy" badge, slowest to dump)
         'worldpop_rasters',
     ];
 
@@ -53,16 +107,33 @@ class MapDataExportService
     public const RASTER_TABLES = ['worldpop_rasters'];
 
     /**
-     * @param  ?string  $tmpDir       Override storage_path('app/exports')
-     * @param  bool     $skipRasters  Drop worldpop_rasters from the dump
-     *                                (~7 GB saved, useful for migrating
-     *                                 jurisdictions+meta+settings only)
-     * @param  ?string  $stagingId    Override the auto-generated staging id
-     *                                (used by ExportMapDataJob to align
-     *                                 status-file ID with archive filename)
+     * @param  ?string         $tmpDir       Override storage_path('app/exports')
+     * @param  bool            $skipRasters  Drop worldpop_rasters from the dump
+     *                                       (kept for backward compatibility with
+     *                                        the original "Full / Without rasters"
+     *                                        button pair; equivalent to passing
+     *                                        $tables = TABLES minus RASTER_TABLES)
+     * @param  ?string         $stagingId    Override the auto-generated staging id
+     *                                       (used by ExportMapDataJob to align
+     *                                        status-file ID with archive filename)
+     * @param  ?\Closure       $onProgress   See runPgDump() docblock
+     * @param  ?\Closure       $haltCheck    See runPgDump() docblock
+     * @param  ?list<string>   $tables       Explicit table selection. When non-null
+     *                                       takes precedence over $skipRasters.
+     *                                       Values outside TABLES are silently
+     *                                       dropped — callers can't dump arbitrary
+     *                                       tables. Order is rewritten to match
+     *                                       TABLES so the restore-side parent-
+     *                                       before-child FK order is preserved.
      */
-    public function export(?string $tmpDir = null, bool $skipRasters = false, ?string $stagingId = null): string
-    {
+    public function export(
+        ?string $tmpDir = null,
+        bool $skipRasters = false,
+        ?string $stagingId = null,
+        ?\Closure $onProgress = null,
+        ?\Closure $haltCheck = null,
+        ?array $tables = null,
+    ): string {
         $tmpDir ??= storage_path('app/exports');
         if (! is_dir($tmpDir) && ! @mkdir($tmpDir, 0775, true)) {
             throw new \RuntimeException("Could not create export directory: {$tmpDir}");
@@ -74,9 +145,14 @@ class MapDataExportService
             throw new \RuntimeException("Could not create staging directory: {$stageDir}");
         }
 
-        $tables = $skipRasters
-            ? array_values(array_diff(self::TABLES, self::RASTER_TABLES))
-            : self::TABLES;
+        // Resolve effective table list. Explicit $tables wins; otherwise fall
+        // back to the legacy skip_rasters boolean. Result is always a subset
+        // of TABLES in TABLES order (parent → child) so the receiving
+        // pg_restore can replay them without FK violations.
+        $tables = $this->resolveTables($tables, $skipRasters);
+        if (empty($tables)) {
+            throw new \RuntimeException('No valid tables selected for export.');
+        }
 
         // ── Manifest ───────────────────────────────────────────────────────
         $manifest = [
@@ -91,9 +167,22 @@ class MapDataExportService
 
         // ── pg_dump (data-only) ─────────────────────────────────────────────
         $dumpPath = "{$stageDir}/data.dump";
-        $this->runPgDump($dumpPath, $tables);
+        $this->runPgDump($dumpPath, $tables, $onProgress, $haltCheck);
 
         // ── tar.gz ─────────────────────────────────────────────────────────
+        // Compressing the staging dir into the final archive. tar -c on a
+        // dump file + manifest is usually fast (the dump is already
+        // compressed inside pg_dump --format=custom), but emit one progress
+        // update so the UI doesn't look stalled while tar runs.
+        if ($onProgress) {
+            $onProgress([
+                'phase'                 => 'compressing',
+                'bytes_written'         => is_file($dumpPath) ? (int) filesize($dumpPath) : 0,
+                'estimated_total_bytes' => null,
+                'throughput_bps'        => null,
+                'eta_seconds'           => null,
+            ]);
+        }
         $archivePath = "{$tmpDir}/{$stagingId}.tar.gz";
         $proc = new Process([
             'tar', '-czf', $archivePath,
@@ -126,6 +215,36 @@ class MapDataExportService
         return $out;
     }
 
+    /**
+     * Resolve the effective table selection for an export run.
+     *
+     * Precedence:
+     *   1. If $explicit is non-null, intersect it with self::TABLES and
+     *      preserve TABLES order (so parents stay before children for the
+     *      restore-side replay).
+     *   2. Otherwise, fall back to the legacy skip_rasters flag — full
+     *      TABLES minus RASTER_TABLES, or the full TABLES list.
+     *
+     * Filtering values outside TABLES prevents callers from dumping
+     * arbitrary tables via the API; only the curated bundle members
+     * are ever shipped.
+     *
+     * @param  ?list<string>  $explicit
+     * @return list<string>
+     */
+    public function resolveTables(?array $explicit, bool $skipRasters): array
+    {
+        if ($explicit !== null) {
+            return array_values(array_filter(
+                self::TABLES,
+                fn ($t) => in_array($t, $explicit, true),
+            ));
+        }
+        return $skipRasters
+            ? array_values(array_diff(self::TABLES, self::RASTER_TABLES))
+            : self::TABLES;
+    }
+
     private function currentSchemaVersion(): string
     {
         // Use the latest applied migration name as the schema fingerprint.
@@ -134,12 +253,28 @@ class MapDataExportService
     }
 
     /**
-     * @param  list<string>  $tables  Tables to include (caller filters
-     *                                self::TABLES vs RASTER_TABLES based
-     *                                on the skip_rasters flag).
+     * Run pg_dump in the background while:
+     *   - polling the output file size every ~2s and firing $onProgress so
+     *     the UI can show a live ETA + bytes-written counter
+     *   - polling $haltCheck so the operator can cancel a long-running
+     *     dump (worldpop_rasters at world scale takes 20-30 minutes)
+     *
+     * Uses Symfony\Process::start() instead of mustRun() so we can interleave
+     * polling with the running subprocess. On any failure (non-zero exit
+     * code, halt, or thrown exception), the partial dump file is unlinked.
+     *
+     * @param  list<string>  $tables    Tables to include (caller filters
+     *                                  self::TABLES vs RASTER_TABLES based
+     *                                  on the skip_rasters flag).
+     * @param  ?\Closure     $onProgress See export() docblock.
+     * @param  ?\Closure     $haltCheck  See export() docblock.
      */
-    private function runPgDump(string $outPath, array $tables): void
-    {
+    private function runPgDump(
+        string $outPath,
+        array $tables,
+        ?\Closure $onProgress = null,
+        ?\Closure $haltCheck = null,
+    ): void {
         $cfg = config('database.connections.'.config('database.default'));
         $argv = ['pg_dump',
             '--host=' . $cfg['host'],
@@ -156,10 +291,132 @@ class MapDataExportService
             $argv[] = '--table=' . $t;
         }
 
+        // Pre-estimate the compressed-dump size from postgres' raw table
+        // sizes. pg_dump --format=custom applies its own gzip-equivalent
+        // compression, so the on-disk output is meaningfully smaller than
+        // the raw relation size. The 0.42 factor is a rough empirical
+        // average for the worktree's data (~7GB raw rasters compress to
+        // ~3GB in the dump). The progress UI clamps to [0, 100] so a slight
+        // overshoot or undershoot near the end is invisible to the operator.
+        $estimatedTotal = $this->estimateDumpSize($tables);
+
         $proc = new Process($argv);
         $proc->setTimeout(0);
         $proc->setEnv(['PGPASSWORD' => $cfg['password']]);
-        $proc->mustRun();
+        $proc->start();
+
+        $startedAt    = microtime(true);
+        $lastEmitAt   = 0.0;
+        $emitInterval = 2.0;   // seconds — matches the UI's polling cadence
+
+        try {
+            while ($proc->isRunning()) {
+                // Halt check first — if the operator requested halt, stop
+                // pg_dump promptly and surface a structured exception so
+                // the calling job can record status=halted (vs failed).
+                if ($haltCheck && $haltCheck()) {
+                    $proc->stop(5, SIGTERM);  // 5s grace, then SIGKILL
+                    @unlink($outPath);
+                    throw new \App\Exceptions\ExportHaltedException(
+                        'Export halted by operator request.'
+                    );
+                }
+
+                $now = microtime(true);
+                if ($onProgress && ($now - $lastEmitAt) >= $emitInterval) {
+                    $lastEmitAt    = $now;
+                    $bytesWritten  = is_file($outPath) ? (int) filesize($outPath) : 0;
+                    $elapsed       = $now - $startedAt;
+                    $throughput    = $elapsed > 0 ? $bytesWritten / $elapsed : 0.0;
+                    // Dynamic recalibration: if the initial estimate undershoots
+                    // (pg_table_size × compression factor was too optimistic),
+                    // bump it so the progress bar doesn't stick at 100% while
+                    // bytes keep rolling in. Assume there's still ~20% to go
+                    // when we've already crossed the original estimate.
+                    if ($estimatedTotal !== null && $bytesWritten > $estimatedTotal) {
+                        $estimatedTotal = (int) round($bytesWritten * 1.20);
+                    }
+                    $eta = ($estimatedTotal !== null && $throughput > 0)
+                        ? max(0, (int) round(($estimatedTotal - $bytesWritten) / max($throughput, 1)))
+                        : null;
+                    $onProgress([
+                        'phase'                 => 'dumping',
+                        'bytes_written'         => $bytesWritten,
+                        'estimated_total_bytes' => $estimatedTotal,
+                        'throughput_bps'        => (int) round($throughput),
+                        'eta_seconds'           => $eta,
+                        'elapsed_seconds'       => (int) round($elapsed),
+                    ]);
+                }
+
+                usleep(500_000);  // 0.5s — keeps the halt check responsive
+            }
+
+            // Process completed — surface any error from pg_dump
+            if ($proc->getExitCode() !== 0) {
+                @unlink($outPath);
+                throw new \RuntimeException(
+                    "pg_dump failed (exit {$proc->getExitCode()}): " . $proc->getErrorOutput()
+                );
+            }
+
+            // Final progress emit so the UI bar hits 100% before tar.gz step
+            if ($onProgress) {
+                $bytesWritten = is_file($outPath) ? (int) filesize($outPath) : 0;
+                $elapsed      = microtime(true) - $startedAt;
+                $onProgress([
+                    'phase'                 => 'dumping',
+                    'bytes_written'         => $bytesWritten,
+                    'estimated_total_bytes' => $bytesWritten,   // collapse to actual now
+                    'throughput_bps'        => $elapsed > 0 ? (int) round($bytesWritten / $elapsed) : 0,
+                    'eta_seconds'           => 0,
+                    'elapsed_seconds'       => (int) round($elapsed),
+                ]);
+            }
+        } catch (\App\Exceptions\ExportHaltedException $e) {
+            // Re-throw for the calling layer to handle without converting
+            // to a generic RuntimeException.
+            throw $e;
+        } catch (\Throwable $e) {
+            // Any other failure: ensure pg_dump is dead, then bubble up.
+            if ($proc->isRunning()) $proc->stop(2, SIGKILL);
+            @unlink($outPath);
+            throw $e;
+        }
+    }
+
+    /**
+     * Estimate the on-disk size of a pg_dump --format=custom file for the
+     * given tables. Used to drive the progress bar's percentage + ETA.
+     *
+     * Uses `pg_table_size` (main fork + TOAST + FSM/VM) rather than
+     * `pg_relation_size` (main only). The worldpop_rasters table stores
+     * its raster pixel data as bytea, which postgres puts in the TOAST
+     * relation; without TOAST in the estimate, the bar underestimates by
+     * ~50% on raster-heavy dumps. pg_table_size excludes indexes, which
+     * matches pg_dump --data-only's behavior.
+     *
+     * Compression factor 0.85: pg_dump custom-format applies gzip-level
+     * compression, but already-compressed bytea + integer-heavy raster
+     * data don't shrink much. Empirically a full worldpop_rasters dump
+     * lands around 70-90% of the on-disk table size. The dynamic
+     * recalibration in runPgDump() corrects any remaining drift by
+     * bumping the estimate if bytes_written exceeds it.
+     *
+     * @param  list<string>  $tables
+     */
+    private function estimateDumpSize(array $tables): ?int
+    {
+        try {
+            $totalRaw = 0;
+            foreach ($tables as $t) {
+                $bytes = (int) DB::scalar("SELECT pg_table_size(?)", [$t]);
+                $totalRaw += $bytes;
+            }
+            return $totalRaw > 0 ? (int) round($totalRaw * 0.85) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     private function rmTree(string $path): void

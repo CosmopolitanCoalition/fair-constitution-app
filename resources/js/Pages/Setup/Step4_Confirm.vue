@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
+import ExportBackupPanel from '@/Components/Setup/ExportBackupPanel.vue'
 
 const props = defineProps({
     step:     { type: Number, required: true },
@@ -148,6 +149,15 @@ function goHome() {
             <div v-if="error" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">
                 {{ error }}
             </div>
+
+            <!-- Step 4 is the canonical place to build a portable snapshot of
+                 this instance: by the time the operator arrives here the
+                 FK-downstream graph (cosmic_addresses → jurisdictions →
+                 legislatures → districts → constitutional_settings …) is
+                 fully populated, so an export captures the entire setup
+                 state in one tarball. The same panel will reappear in
+                 future admin sections once those ship. -->
+            <ExportBackupPanel title="Export this instance (backup / sync)" />
 
             <div class="flex justify-between pt-4 border-t border-gray-800 mt-4">
                 <a

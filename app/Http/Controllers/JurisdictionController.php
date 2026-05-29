@@ -174,21 +174,36 @@ class JurisdictionController extends Controller
         $skipRasters = $request->boolean('skip_rasters');
         $async       = $request->boolean('async');
 
+        // Selective tables[]: optional explicit subset of
+        // MapDataExportService::TABLES. Accepts the array natively or as a
+        // JSON-encoded string (the new Vue export panel sends JSON-string
+        // inside multipart/form-data because FormData can't carry an array
+        // value directly).
+        $tables = $request->input('tables');
+        if (is_string($tables)) {
+            $decoded = json_decode($tables, true);
+            $tables = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $tables)));
+        }
+        if ($tables !== null && ! is_array($tables)) {
+            return response()->json(['ok' => false, 'error' => 'tables must be an array'], 422);
+        }
+
         if ($async) {
             $exportId = 'map-data-' . now()->format('Ymd-His') . '-' . substr(bin2hex(random_bytes(4)), 0, 8);
-            \App\Jobs\ExportMapDataJob::dispatch($exportId, $skipRasters);
+            \App\Jobs\ExportMapDataJob::dispatch($exportId, $skipRasters, $tables);
             return response()->json([
                 'ok'          => true,
                 'mode'        => 'async',
                 'export_id'   => $exportId,
                 'skip_rasters'=> $skipRasters,
+                'tables'      => $tables,
                 'status_url'  => '/api/export/jurisdictions/list',
             ]);
         }
 
         try {
             $path = app(\App\Services\MapDataExportService::class)
-                ->export(skipRasters: $skipRasters);
+                ->export(skipRasters: $skipRasters, tables: $tables);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('export failed: '.$e->getMessage());
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
@@ -196,6 +211,19 @@ class JurisdictionController extends Controller
         // deleteFileAfterSend: cleans up the tmp tarball after the browser
         // finishes downloading. Operators can re-export anytime.
         return response()->download($path)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Phase P.9 — return the curated list of bundle tables so the UI knows
+     * which checkboxes to render. Lightweight (no DB query) — the values
+     * live on MapDataExportService::TABLES.
+     */
+    public function exportMapsTables(Request $request): JsonResponse
+    {
+        return response()->json([
+            'tables' => \App\Services\MapDataExportService::TABLES,
+            'raster_tables' => \App\Services\MapDataExportService::RASTER_TABLES,
+        ]);
     }
 
     /**
@@ -235,6 +263,9 @@ class JurisdictionController extends Controller
                 'error'            => $decoded['error']            ?? null,
                 'archive_filename' => $archiveOk ? $archiveName    : null,
                 'size_bytes'       => $decoded['size_bytes']       ?? null,
+                // Live progress snapshot from ExportMapDataJob's onProgress
+                // callback (null until pg_dump has emitted its first tick).
+                'progress'         => $decoded['progress']         ?? null,
             ];
         }
         // Newest first
@@ -259,6 +290,28 @@ class JurisdictionController extends Controller
             return response()->json(['error' => 'not found'], 404);
         }
         return response()->download($path);
+    }
+
+    /**
+     * Phase P.9 — request that a running export job halt.
+     *
+     * Sets a cache flag the ExportMapDataJob's polling loop checks every
+     * ~0.5s inside MapDataExportService::runPgDump(). On detection, pg_dump
+     * is SIGTERM'd, the partial dump file is unlinked, and the job records
+     * `status: halted` (vs `failed`). Idempotent — calling on an already-
+     * halted or finished export is a no-op success.
+     */
+    public function exportMapsHalt(Request $request, string $exportId): JsonResponse
+    {
+        if (! preg_match('/^[A-Za-z0-9._-]+$/', $exportId)) {
+            return response()->json(['error' => 'invalid export_id'], 400);
+        }
+        \Illuminate\Support\Facades\Cache::put(
+            "export.{$exportId}.halt",
+            true,
+            3600,
+        );
+        return response()->json(['ok' => true]);
     }
 
     /**
@@ -297,9 +350,22 @@ class JurisdictionController extends Controller
             ], 409);
         }
 
+        // Selective tables[]: optional. The form's checkboxes encode either a
+        // JSON array under "tables" or comma-separated names under "tables".
+        // Both are normalised to an array here; null = restore everything in
+        // the bundle (matching the legacy behaviour).
+        $tables = $request->input('tables');
+        if (is_string($tables)) {
+            $decoded = json_decode($tables, true);
+            $tables = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $tables)));
+        }
+        if ($tables !== null && ! is_array($tables)) {
+            return response()->json(['ok' => false, 'error' => 'tables must be an array'], 422);
+        }
+
         try {
             $result = app(\App\Services\MapDataImportService::class)
-                ->importFromUpload($request->file('archive'));
+                ->importFromUpload($request->file('archive'), $tables);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('import failed: '.$e->getMessage());
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);

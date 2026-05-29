@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
@@ -237,171 +237,16 @@ async function sendControl(action) {
     }
 }
 
-// ── P.9 — async export panel ──────────────────────────────────────────────
-const exportStarting = ref(false)
-const exportsList    = ref([])
-const exportError    = ref('')
-let exportsPollTimer = null
-
-async function refreshExports() {
-    try {
-        const res = await fetch('/api/export/jurisdictions/list', {
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' },
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        exportsList.value = Array.isArray(data.exports) ? data.exports : []
-    } catch (e) {
-        // silent — poll retries
-    }
-}
-
-async function startExport(skipRasters) {
-    exportStarting.value = true
-    exportError.value    = ''
-    try {
-        const url = `/api/export/jurisdictions?async=1${skipRasters ? '&skip_rasters=1' : ''}`
-        const res = await fetch(url, {
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' },
-        })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok || !data.ok) {
-            exportError.value = data.error || `export start failed (HTTP ${res.status})`
-            return
-        }
-        await refreshExports()
-    } catch (e) {
-        exportError.value = String(e?.message || e)
-    } finally {
-        exportStarting.value = false
-    }
-}
-
-async function deleteExport(exportId) {
-    try {
-        await fetch(`/api/export/jurisdictions/${exportId}`, {
-            method: 'DELETE',
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf() },
-        })
-        await refreshExports()
-    } catch (e) { /* ignore */ }
-}
-
-// ── Restore-from-backup ────────────────────────────────────────────────────
-// Mirrors the export panel's pattern but inverted: pick a local .tar.gz,
-// upload it to /api/import/jurisdictions (multipart), then reload the page
-// lifecycle so the wizard reflects the now-populated DB. The backend's
-// MapDataImportService validates the manifest schema_version against the
-// local migration registry and refuses older snapshots — we surface that
-// rejection clearly so the operator knows to migrate first.
-const importFile     = ref(null)        // File | null
-const importing      = ref(false)
-const importProgress = ref(0)           // 0–100 (upload phase only)
-const importPhase    = ref('idle')      // idle | uploading | restoring | done | failed
-const importError    = ref('')
-
-function onImportFile(event) {
-    const f = event.target?.files?.[0] ?? null
-    importFile.value  = f
-    importError.value = ''
-    importPhase.value = 'idle'
-    importProgress.value = 0
-}
-
-function startImport() {
-    if (!importFile.value || importing.value) return
-    importing.value      = true
-    importError.value    = ''
-    importPhase.value    = 'uploading'
-    importProgress.value = 0
-
-    // XMLHttpRequest because fetch() doesn't expose upload progress in
-    // browsers yet. The backend processes synchronously after the upload
-    // completes, so the request stays open until pg_restore finishes —
-    // can be several minutes on a full-rasters bundle. No way to show
-    // restore-side progress through HTTP (server doesn't stream); we
-    // just flip to a "Restoring database…" indeterminate state.
-    const xhr = new XMLHttpRequest()
-    const form = new FormData()
-    form.append('archive', importFile.value)
-
-    xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-            importProgress.value = Math.round((e.loaded / e.total) * 100)
-            if (importProgress.value >= 100) importPhase.value = 'restoring'
-        }
-    })
-    xhr.addEventListener('load', () => {
-        importing.value = false
-        let data = {}
-        try { data = JSON.parse(xhr.responseText) } catch (e) { /* leave empty */ }
-        if (xhr.status >= 200 && xhr.status < 300 && data.ok !== false) {
-            importPhase.value = 'done'
-            // Refresh lifecycle so the wizard recognises the DB is populated
-            // and the "Continue to apportionment" path activates.
-            router.reload({ only: ['lifecycle', 'instance', 'review'] })
-        } else {
-            importPhase.value = 'failed'
-            importError.value = data.error || `Restore failed (HTTP ${xhr.status})`
-        }
-    })
-    xhr.addEventListener('error', () => {
-        importing.value = false
-        importPhase.value = 'failed'
-        importError.value = 'Network error during upload'
-    })
-    xhr.open('POST', '/api/import/jurisdictions')
-    xhr.setRequestHeader('X-CSRF-TOKEN', csrf())
-    xhr.setRequestHeader('Accept', 'application/json')
-    xhr.send(form)
-}
-
-function formatFile(f) {
-    if (!f) return ''
-    return `${f.name} (${formatBytes(f.size)})`
-}
-
-function formatBytes(n) {
-    if (!n || n < 0) return ''
-    if (n < 1024)             return `${n} B`
-    if (n < 1024 * 1024)      return `${(n / 1024).toFixed(1)} KB`
-    if (n < 1024 ** 3)        return `${(n / 1024 / 1024).toFixed(1)} MB`
-    return `${(n / 1024 ** 3).toFixed(2)} GB`
-}
-
-function formatRelative(iso) {
-    if (!iso) return ''
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return iso
-    const sec = Math.round((Date.now() - d.getTime()) / 1000)
-    if (sec < 0)        return d.toLocaleTimeString()
-    if (sec < 60)       return `${sec}s ago`
-    if (sec < 3600)     return `${Math.floor(sec / 60)}m ago`
-    if (sec < 86400)    return `${Math.floor(sec / 3600)}h ago`
-    return d.toLocaleString()
-}
-
-// Poll the export listing while any export is "running". Stops when nothing
-// is running to avoid hammering the listing endpoint.
-function ensureExportPolling() {
-    const anyRunning = exportsList.value.some(e => e.status === 'running')
-    if (anyRunning && !exportsPollTimer) {
-        exportsPollTimer = setInterval(refreshExports, 5000)
-    } else if (!anyRunning && exportsPollTimer) {
-        clearInterval(exportsPollTimer)
-        exportsPollTimer = null
-    }
-}
-watch(exportsList, ensureExportPolling, { deep: true })
-onMounted(() => {
-    refreshExports()
-})
-onBeforeUnmount(() => {
-    if (exportsPollTimer) { clearInterval(exportsPollTimer); exportsPollTimer = null }
-})
+// Export + restore-from-backup panels both moved out of Step 2:
+//   - Export now lives on Step 4 (Confirm) — by the time the operator is
+//     there the full state graph is populated, so an export captures
+//     everything in one shot. Future admin sections will mount the same
+//     ExportBackupPanel component.
+//   - Restore-from-backup is a setup-process entry point and now lives
+//     only on Step 0 — operator-initiated restore that lands them at the
+//     step matching the bundle's setup_step_completed.
+// Step 2 keeps its ETL controls and the Continue → apportionment button,
+// nothing more.
 
 async function advance() {
     advancing.value = true
@@ -586,69 +431,6 @@ onBeforeUnmount(stopPolling)
                 </div>
             </section>
 
-            <!-- Restore from backup (alternative to running the ETL above).
-                 Unnumbered because the canonical numbered flow is 1 (source)
-                 → 2 (options) → 3 (live progress, LiveProgress.vue) → 4
-                 (review). This panel is the "or" branch that lets the
-                 operator bypass the ETL entirely by uploading a previous
-                 .tar.gz export. -->
-            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                <h2 class="text-white font-semibold mb-2">Alternative — Restore from a backup</h2>
-                <p class="text-gray-400 text-xs mb-4">
-                    Already have a <code class="text-gray-300">.tar.gz</code> exported
-                    from another instance (Step 2 → "Full" or "Without rasters")?
-                    Upload it here to skip the ETL entirely. The backend validates
-                    the manifest's schema version against the current migrations
-                    before restoring — older snapshots are refused with a clear
-                    message.
-                </p>
-
-                <div class="flex flex-wrap items-center gap-3">
-                    <input type="file"
-                           accept=".tar.gz,.tgz,application/gzip,application/x-gzip"
-                           @change="onImportFile"
-                           :disabled="runOptionsDisabled || importing"
-                           class="text-xs text-gray-300 file:mr-3 file:px-3 file:py-1.5 file:rounded
-                                  file:border file:border-gray-700 file:bg-gray-800 file:text-gray-200
-                                  file:hover:bg-gray-700 file:cursor-pointer
-                                  disabled:opacity-50 disabled:cursor-not-allowed" />
-                    <button type="button"
-                            @click="startImport"
-                            :disabled="!importFile || runOptionsDisabled || importing"
-                            class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700
-                                   text-white px-4 py-1.5 rounded text-sm font-semibold">
-                        {{ importing ? (importPhase === 'uploading' ? 'Uploading…' : 'Restoring…') : 'Upload & restore' }}
-                    </button>
-                    <span v-if="importFile && !importing" class="text-xs text-gray-500">
-                        {{ formatFile(importFile) }}
-                    </span>
-                </div>
-
-                <!-- Progress bar — only during upload phase (server-side restore is opaque). -->
-                <div v-if="importing" class="mt-3">
-                    <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                        <div class="h-2 bg-emerald-600 transition-all duration-200"
-                             :style="{ width: importPhase === 'uploading' ? (importProgress + '%') : '100%' }"></div>
-                    </div>
-                    <div class="text-[11px] text-gray-400 mt-1">
-                        <template v-if="importPhase === 'uploading'">
-                            Uploading… {{ importProgress }}%
-                        </template>
-                        <template v-else-if="importPhase === 'restoring'">
-                            Upload complete — restoring database (pg_restore). May take several
-                            minutes on a full-rasters bundle.
-                        </template>
-                    </div>
-                </div>
-
-                <div v-if="importPhase === 'done' && !importing" class="mt-3 text-xs text-emerald-300">
-                    Restore complete. Continuing to next step…
-                </div>
-                <div v-if="importError" class="mt-3 text-xs text-red-400">
-                    {{ importError }}
-                </div>
-            </section>
-
             <!-- Live Progress -->
             <LiveProgress
                 :lifecycle="lifecycle"
@@ -687,94 +469,6 @@ onBeforeUnmount(stopPolling)
                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
                     Open Jurisdiction Viewer →
                 </a>
-
-                <!-- P.9 — Export current data as a portable tarball after the
-                     ETL has succeeded. Two modes:
-                       Full   → jurisdictions + populations + worldpop_rasters
-                                + meta + settings (~7 GB at world scale).
-                       No rasters → everything except worldpop_rasters
-                                (~tens of MB; receiving instance re-runs
-                                WorldPop).
-                     Both run async via Horizon (large pg_dump would time out
-                     a sync HTTP request). Status panel below polls and shows
-                     in-progress + completed builds with download links. -->
-                <div v-if="lifecycle === 'done'" class="mt-4 pt-4 border-t border-gray-800 space-y-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs text-gray-400">Export current data:</span>
-                        <button type="button"
-                                @click="startExport(false)"
-                                :disabled="exportStarting"
-                                class="text-xs px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 disabled:opacity-50">
-                            Full (with rasters)
-                        </button>
-                        <button type="button"
-                                @click="startExport(true)"
-                                :disabled="exportStarting"
-                                class="text-xs px-3 py-1.5 rounded border bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700 disabled:opacity-50">
-                            Without rasters
-                        </button>
-                        <span class="text-[11px] text-gray-500">
-                            jurisdictions + populations + meta + settings; restore at Step 0
-                        </span>
-                    </div>
-
-                    <!-- In-progress + completed list -->
-                    <div v-if="exportsList.length" class="rounded border border-gray-800 bg-gray-950/40">
-                        <div class="px-3 py-2 text-xs text-gray-400 border-b border-gray-800">
-                            Recent exports
-                        </div>
-                        <div class="divide-y divide-gray-800">
-                            <div v-for="e in exportsList" :key="e.export_id"
-                                 class="px-3 py-2 text-xs flex items-center justify-between gap-2">
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-mono text-gray-300 truncate">{{ e.export_id }}</div>
-                                    <div class="text-[10px] text-gray-500">
-                                        {{ e.skip_rasters ? 'no rasters · ' : 'full · ' }}
-                                        started {{ formatRelative(e.started_at) }}
-                                        <template v-if="e.completed_at">
-                                            · finished {{ formatRelative(e.completed_at) }}
-                                        </template>
-                                        <template v-if="e.size_bytes">
-                                            · {{ formatBytes(e.size_bytes) }}
-                                        </template>
-                                    </div>
-                                    <div v-if="e.error" class="text-[10px] text-red-400 mt-0.5">{{ e.error }}</div>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span v-if="e.status === 'running'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">
-                                        running
-                                    </span>
-                                    <span v-else-if="e.status === 'done'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200 border border-emerald-700">
-                                        done
-                                    </span>
-                                    <span v-else-if="e.status === 'failed'"
-                                          class="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-200 border border-red-700">
-                                        failed
-                                    </span>
-                                    <span v-else
-                                          class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
-                                        {{ e.status }}
-                                    </span>
-                                    <a v-if="e.archive_filename"
-                                       :href="`/api/export/jurisdictions/download/${e.archive_filename}`"
-                                       class="text-[11px] text-blue-400 hover:text-blue-300">
-                                        ⬇ download
-                                    </a>
-                                    <button v-if="e.status !== 'running'"
-                                            type="button"
-                                            @click="deleteExport(e.export_id)"
-                                            class="text-[11px] text-gray-500 hover:text-red-400">
-                                        delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="exportError" class="text-xs text-red-400">{{ exportError }}</div>
-                </div>
             </section>
 
             <div class="flex justify-between pt-4 border-t border-gray-800 mt-4">

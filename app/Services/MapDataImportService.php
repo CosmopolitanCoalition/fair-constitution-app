@@ -23,7 +23,31 @@ use Symfony\Component\Process\Process;
  */
 class MapDataImportService
 {
-    public function importFromUpload(UploadedFile $upload): array
+    /**
+     * @param  UploadedFile     $upload  The .tar.gz produced by the export service.
+     * @param  ?list<string>    $tables  Optional subset of tables to restore. Null
+     *                                   means "everything in the bundle"; otherwise
+     *                                   the effective set is the intersection of
+     *                                   $tables, MapDataExportService::TABLES, and
+     *                                   the manifest's included_tables.
+     *
+     *                                   The intersection rule prevents partial-
+     *                                   bundle errors: if the operator picks
+     *                                   worldpop_rasters but their bundle was
+     *                                   exported with skip_rasters, that one is
+     *                                   silently dropped instead of crashing
+     *                                   pg_restore on a missing table.
+     *
+     *                                   Truncation only touches the selected
+     *                                   tables — non-selected tables on the
+     *                                   receiving instance are left intact. This
+     *                                   makes partial sync workflows safe (e.g.
+     *                                   restore just instance_settings +
+     *                                   cosmic_addresses from a colleague's
+     *                                   working setup without overwriting your
+     *                                   own already-loaded jurisdictions).
+     */
+    public function importFromUpload(UploadedFile $upload, ?array $tables = null): array
     {
         $tmpRoot = storage_path('app/imports');
         if (! is_dir($tmpRoot) && ! @mkdir($tmpRoot, 0775, true)) {
@@ -84,18 +108,41 @@ class MapDataImportService
             throw new \RuntimeException('data.dump missing from tarball.');
         }
 
-        // ── Truncate target tables (FK-aware order, all in one transaction). ─
-        DB::transaction(function () {
+        // ── Resolve effective table set ────────────────────────────────────
+        // Intersect (a) the curated export bundle list, (b) what's actually
+        // in this archive's manifest, and (c) the operator's selection if
+        // they passed one. The result is preserved in TABLES order so the
+        // FK-aware truncate-children-first / restore-parents-first replay
+        // still works on the partial set.
+        $included = is_array($manifest['included_tables'] ?? null)
+            ? $manifest['included_tables']
+            : MapDataExportService::TABLES;
+        $effective = array_values(array_filter(MapDataExportService::TABLES, function ($t) use ($tables, $included) {
+            if (! in_array($t, $included, true)) return false;
+            if ($tables !== null && ! in_array($t, $tables, true)) return false;
+            return true;
+        }));
+        if (empty($effective)) {
+            $this->rmTree($stageDir);
+            throw new \RuntimeException('No tables selected for restore (selection has no overlap with bundle).');
+        }
+
+        // ── Truncate the selected tables (FK-aware order, all in one tx). ─
+        DB::transaction(function () use ($effective) {
             DB::statement('SET CONSTRAINTS ALL DEFERRED');
-            // Reverse the export TABLES order so children truncate before parents.
-            foreach (array_reverse(MapDataExportService::TABLES) as $t) {
+            foreach (array_reverse($effective) as $t) {
                 DB::statement("TRUNCATE TABLE {$t} CASCADE");
             }
         });
 
         // ── pg_restore --data-only ─────────────────────────────────────────
+        // --table=X flags filter the restore to just the selected tables,
+        // matching the truncation set above. Without these, pg_restore tries
+        // to load every table in the dump, which would replay rows into
+        // tables we intentionally didn't truncate — clobbering non-selected
+        // local state.
         $cfg = config('database.connections.'.config('database.default'));
-        $proc = new Process([
+        $argv = [
             'pg_restore',
             '--host='     . $cfg['host'],
             '--port='     . $cfg['port'],
@@ -104,8 +151,12 @@ class MapDataImportService
             '--data-only',
             '--no-owner',
             '--no-privileges',
-            $dumpPath,
-        ]);
+        ];
+        foreach ($effective as $t) {
+            $argv[] = '--table=' . $t;
+        }
+        $argv[] = $dumpPath;
+        $proc = new Process($argv);
         $proc->setTimeout(0);
         $proc->setEnv(['PGPASSWORD' => $cfg['password']]);
         $proc->mustRun();
@@ -121,7 +172,7 @@ class MapDataImportService
         return [
             'imported_at'     => now()->toIso8601String(),
             'manifest'        => $manifest,
-            'tables_restored' => MapDataExportService::TABLES,
+            'tables_restored' => $effective,
         ];
     }
 
