@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Case docket — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Judiciary · case docket</span>
+        <h1>Case docket — Mecklenburg County &amp; Charlotte courts</h1>
+        <p class="page-intro">Every case filed in your jurisdictions, from local civil disputes to full-court
+          constitutional questions. Anyone jurisdictionally associated can file; panels are assigned by the
+          court with conflict screening.</p>
+        <p class="citation">Panels of at least 3, odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16</p>
+      </header>
+
+      <div class="filter-bar" role="group" aria-label="Filter cases">
+        <span class="eyebrow">Kind</span>
+        <button type="button" class="chip-toggle" data-kind="Constitutional challenge" aria-pressed="false">Constitutional challenge</button>
+        <button type="button" class="chip-toggle" data-kind="Civil" aria-pressed="false">Civil</button>
+        <button type="button" class="chip-toggle" data-kind="Criminal" aria-pressed="false">Criminal</button>
+        <button type="button" class="chip-toggle" data-kind="Administrative" aria-pressed="false">Administrative</button>
+        <label class="demo-control" style="color:var(--gov-fg-muted)">
+          <span class="visually-hidden">Search cases</span>
+          <input class="field-input" style="inline-size:11rem;padding-block:var(--space-1)" type="search" id="f-search" placeholder="Search cases" />
+        </label>
+        <button type="button" class="btn btn--ghost btn--sm" id="f-clear">Clear filters</button>
+      </div>
+
+      <section class="card" style="padding:0" aria-labelledby="docket-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="docket-h">Open cases <span class="citation" id="docket-count"></span></h2>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Open cases with kind, court, panel, severity, and state</caption>
+            <thead><tr><th>Case</th><th>Kind</th><th>Court</th><th>Panel</th><th>Severity</th><th>State</th></tr></thead>
+            <tbody id="docket-body" aria-live="polite"></tbody>
+          </table>
+        </div>
+        <noscript><p style="padding:var(--space-4)" class="gloss">The docket table renders with JavaScript enabled. Live fixture cases include State v. Whitfield (criminal, 3 judges + jury, jury selection) and the Novák finding on Curfew Ordinance §3 (constitutional challenge, full court).</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="file-h">
+        <h2 id="file-h">File a case</h2>
+        <p>Filing states a <strong>claimed scale</strong> (which jurisdiction's law is at issue, so the right
+          court level hears it) and a <strong>claimed severity</strong> (which the court reclassifies on
+          acceptance). You can file yourself or through a registered advocate.</p>
+        <form id="filing-form" class="stack" style="gap:0">
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="ff-kind">Case kind</label>
+              <select class="select" id="ff-kind">
+                <option value="Civil">Civil</option>
+                <option value="Criminal">Criminal complaint</option>
+                <option value="Administrative">Administrative</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ff-scale">Claimed scale</label>
+              <select class="select" id="ff-scale"></select>
+              <span class="field-hint">The jurisdiction whose law the case arises under.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ff-severity">Claimed severity</label>
+              <select class="select" id="ff-severity">
+                <option value="Minor">Minor</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Serious">Serious</option>
+              </select>
+              <span class="field-hint">The court reclassifies severity at acceptance — panel size follows the court's classification, not yours.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ff-title">Case title</label>
+              <input class="field-input" id="ff-title" type="text" placeholder="e.g. Okafor v. Crown Ridge LLC" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="ff-statement">Statement of claim</label>
+            <textarea class="field-input" id="ff-statement" rows="3" placeholder="What happened, and what remedy you seek"></textarea>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Submit filing</button>
+            <span class="citation">Civil/criminal case filing · F-IND-017 · available to R-03 (or via advocate R-21) · Art. I (Right to Fair Trial)</span>
+          </div>
+        </form>
+        <div id="filing-result" role="status" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="entry-h">
+          <h2 id="entry-h">Other ways cases arrive</h2>
+          <div id="entry-forms" class="stack" style="gap:var(--space-3)"></div>
+          <noscript><p class="gloss">Entry-point form cards render with JavaScript enabled: Constitutional Challenge Filing (F-IND-016, R-03 · Art. IV §5) and Case Filing on behalf of client (F-ADV-001, R-21 · Art. I).</p></noscript>
+        </section>
+
+        <section class="card" aria-labelledby="accept-h">
+          <h2 id="accept-h">What the court does next</h2>
+          <div id="fc-jdg-001"></div>
+          <p style="margin-block-start:var(--space-3)"><strong>Conflict screening:</strong> before a panel is fixed, every candidate judge is screened for
+            personal, financial, or prior-involvement conflicts; conflicted judges are excluded and the draw
+            re-runs. Screening results attach to the case record.</p>
+          <p class="citation">Panel assignment with conflict screening · Art. IV §4 — full court for major constitutional questions · CLK-16 · hardened</p>
+          <p style="margin-block-start:var(--space-3)"><a href="case-detail.html">Walk a case through the full lifecycle
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-03.html">WF-JUD-03 — case lifecycle</a>;
+            constitutional challenges branch into <a href="../flows/WF-JUD-05.html">WF-JUD-05</a>;
+            jury paneling runs as <a href="../flows/WF-JUD-04.html">WF-JUD-04</a>.</p>
+          <p><strong>Entity state machine:</strong> Case —</p>
+          <div class="state-strip" id="case-strip"></div>
+          <p class="citation" style="margin-block-start:var(--space-3)">Art. IV §4 · Art. IV §5 · Art. I · CLK-16</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'judiciary/case-docket',
+      title: 'Case docket',
+      module: 'judiciary',
+      nav: 'case-docket',
+      roles: ['R-19', 'R-20', 'R-21', 'R-03'],
+      workflows: ['WF-JUD-03'],
+      forms: ['F-IND-016', 'F-IND-017', 'F-ADV-001', 'F-JDG-001'],
+      citation: 'Panel ≥3 and odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16',
+      flow: 'WF-JUD-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var filters = { kinds: {}, q: '' };
+      var localFilings = []; /* simulated filings appended to the docket */
+      var seq = 109;
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          alias + (extra || '') + '</div>';
+      }
+
+      var STATE_BADGE = {
+        'Remedy recommended': ['warning', 'scale'],
+        'Evidence docket': ['info', 'file-text'],
+        'Jury selection': ['info', 'users'],
+        'Deliberation': ['neutral', 'lock'],
+        'Filed': ['neutral', 'file-text']
+      };
+
+      function caseLink(c) {
+        if (c.id === 'case-2031-097') return '<a href="case-detail.html">' + esc(c.title) + '</a>';
+        if (c.id === 'case-2031-088') return '<a href="constitutional-challenge.html">' + esc(c.title) + '</a>';
+        return '<span style="color:var(--gov-fg)">' + esc(c.title) + '</span>';
+      }
+
+      function rowHtml(c) {
+        var sb = STATE_BADGE[c.state] || ['neutral', 'info'];
+        var sev = c.severity || 'Major constitutional question';
+        return '<tr>' +
+          '<td>' + caseLink(c) + '<span class="citation" style="display:block">' + esc(c.id) + (c.filedVia ? ' · filed via ' + esc(c.filedVia) : '') + '</span>' +
+          (c.doubleJeopardy ? '<span class="citation" style="display:block">' + esc(c.doubleJeopardy) + '</span>' : '') +
+          (c.note ? '<span class="gloss" style="display:block">' + esc(c.note) + '</span>' : '') + '</td>' +
+          '<td>' + esc(c.kind) + '</td>' +
+          '<td>' + esc(c.court) + '</td>' +
+          '<td>' + esc(c.panel) + (c.panelGloss ? '<span class="citation" style="display:block">' + esc(c.panelGloss) + '</span>' : '') + '</td>' +
+          '<td>' + esc(sev) + '</td>' +
+          '<td>' + S.badge(sb[0], c.state, sb[1]) + '</td>' +
+          '</tr>';
+      }
+
+      function matches(c) {
+        var active = Object.keys(filters.kinds).filter(function (k) { return filters.kinds[k]; });
+        if (active.length && active.indexOf(c.kind) < 0) return false;
+        if (filters.q && (c.title + ' ' + c.id).toLowerCase().indexOf(filters.q.toLowerCase()) < 0) return false;
+        return true;
+      }
+
+      function render() {
+        var all = W.cases.concat(localFilings);
+        var shown = all.filter(matches);
+        document.getElementById('docket-body').innerHTML = shown.length
+          ? shown.map(rowHtml).join('')
+          : '<tr><td colspan="6">No cases match the current filters.</td></tr>';
+        document.getElementById('docket-count').textContent = shown.length + ' of ' + all.length + ' cases shown';
+
+        document.getElementById('entry-forms').innerHTML = formCard('F-IND-016') + formCard('F-ADV-001');
+        document.getElementById('fc-jdg-001').innerHTML = formCard('F-JDG-001');
+
+        document.getElementById('case-strip').innerHTML = BY.entities['Case'].states.map(function (st, i) {
+          return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node">' + esc(st) + '</span>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      /* claimed-scale options from the viewer's jurisdiction chain */
+      var scaleSel = document.getElementById('ff-scale');
+      W.defaultChain.forEach(function (slug) {
+        var j = BY.jurisdictions[slug];
+        var opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = j.name + ' (adm ' + j.admLevel + ')';
+        if (slug === 'usa-3-mecklenburg-county') opt.selected = true;
+        scaleSel.appendChild(opt);
+      });
+
+      document.getElementById('filing-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var title = document.getElementById('ff-title').value.trim() || 'Untitled filing';
+        var kind = document.getElementById('ff-kind').value;
+        var sev = document.getElementById('ff-severity').value;
+        var scale = BY.jurisdictions[scaleSel.value];
+        seq++;
+        var id = 'case-2031-' + seq;
+        localFilings.push({
+          id: id, title: title, kind: kind === 'Criminal' ? 'Criminal' : kind,
+          court: scale.admLevel >= 4 ? 'Charlotte municipal court' : 'Mecklenburg County court',
+          panel: 'Pending acceptance (F-JDG-001)', state: 'Filed', severity: sev + ' (claimed)', filedVia: 'F-IND-017'
+        });
+        document.getElementById('filing-result').innerHTML =
+          '<div class="banner banner--info">' + S.icon('check') +
+          '<div><span class="banner-title">Filing accepted for review (simulation — nothing leaves this page)</span>' +
+          'Docket number <span class="citation" data-no-i18n>' + esc(id) + '</span> assigned. The court will classify justiciability and severity, then assign a panel with conflict screening. ' +
+          '<span class="citation">F-IND-017 → F-JDG-001 · Art. IV §4</span></div></div>';
+        render();
+      });
+
+      document.getElementById('main').addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-kind],#f-clear') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-kind')) {
+          var k = t.getAttribute('data-kind');
+          filters.kinds[k] = !filters.kinds[k];
+          t.setAttribute('aria-pressed', filters.kinds[k] ? 'true' : 'false');
+          render();
+        } else if (t.id === 'f-clear') {
+          filters = { kinds: {}, q: '' };
+          document.getElementById('f-search').value = '';
+          document.querySelectorAll('[data-kind]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+          render();
+        }
+      });
+      document.getElementById('f-search').addEventListener('input', function (ev) { filters.q = ev.target.value; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Case detail — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Case docket · <span class="citation" data-no-i18n>case-2031-097</span></span>
+        <h1>State v. Whitfield</h1>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-scale"></use></svg> Criminal</span>
+          <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> Serious severity</span>
+          <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> 3 judges + jury</span>
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-landmark"></use></svg> Mecklenburg County court</span>
+        </div>
+        <p class="page-intro">The accusation: falsifying GPS residency pings to manufacture jurisdictional
+          association ahead of the 2031 general election. The live case is at <strong>jury selection</strong>;
+          this page lets you replay earlier stages and preview later ones.</p>
+        <p class="citation">Panel of 3 — odd, severity-scaled · Art. IV §4 · CLK-16 — criminal outcome will carry the double-jeopardy flag · Art. II §8</p>
+      </header>
+
+      <div class="banner banner--demo" role="note">
+        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div><span class="banner-title">Playable walkthrough</span>
+          Stage changes below are simulation only — the real case record is append-only and advances when the
+          court acts.</div>
+      </div>
+
+      <section class="card card--inset" aria-label="Case state machine">
+        <span class="eyebrow">Case state machine</span>
+        <div class="state-strip" id="entity-strip" style="margin-block-start:var(--space-2)"></div>
+        <noscript><p class="gloss">The state strip renders with JavaScript enabled. Case states: Filed → Validated → Panel-Assigned → [Jury-Empaneled] → Scheduled → Hearing → Deliberation → Decided → Opinion-Published → [Appealed] → Closed.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="stages-h">
+        <h2 id="stages-h">Lifecycle — stage <span id="stage-pos" data-no-i18n>6</span> of 10</h2>
+        <ol class="lifecycle" id="stage-track">
+          <li class="lifecycle-stage" data-stage="1">1 · Filing</li>
+          <li class="lifecycle-stage" data-stage="2">2 · Classification</li>
+          <li class="lifecycle-stage" data-stage="3">3 · Panel assignment</li>
+          <li class="lifecycle-stage" data-stage="4">4 · Initial hearing</li>
+          <li class="lifecycle-stage" data-stage="5">5 · Evidence docket</li>
+          <li class="lifecycle-stage" data-stage="6">6 · Jury selection</li>
+          <li class="lifecycle-stage" data-stage="7">7 · Arguments</li>
+          <li class="lifecycle-stage" data-stage="8">8 · Deliberation</li>
+          <li class="lifecycle-stage" data-stage="9">9 · Judgement</li>
+          <li class="lifecycle-stage" data-stage="10">10 · Opinion</li>
+        </ol>
+        <div class="cluster" style="margin-block-start:var(--space-4)">
+          <button type="button" class="btn btn--secondary" id="stage-back">
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-left"></use></svg> Back</button>
+          <button type="button" class="btn btn--primary" id="stage-next">Advance
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+          <span class="gloss">All stage content is keyboard operable — Back and Advance move through the sequence.</span>
+        </div>
+        <div id="stage-panel" style="margin-block-start:var(--space-5)" aria-live="polite"></div>
+        <noscript><p class="gloss">Stage detail panels render with JavaScript enabled.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-03.html">WF-JUD-03 — case lifecycle</a>;
+            jury paneling is <a href="../flows/WF-JUD-04.html">WF-JUD-04</a>;
+            a constitutional finding would branch into <a href="../flows/WF-JUD-05.html">WF-JUD-05</a>.</p>
+          <p><strong>Entity state machine:</strong> Case — rendered live above; major constitutional questions
+            take the full court instead of a severity-scaled panel (CLK-16, hardened).</p>
+          <p class="citation">Art. IV §4 · Art. II §8 · Art. I (Right to Fair Trial) · CLK-16</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'judiciary/case-detail',
+      title: 'Case detail — State v. Whitfield',
+      module: 'judiciary',
+      nav: 'case-docket',
+      roles: ['R-19', 'R-20', 'R-21', 'R-22'],
+      workflows: ['WF-JUD-03', 'WF-JUD-04'],
+      forms: ['F-IND-017', 'F-JDG-001', 'F-ADV-002', 'F-ADV-003', 'F-JDG-002', 'F-JDG-003', 'F-JDG-009', 'F-JDG-010'],
+      citation: 'Case lifecycle · panel ≥3 odd · Art. IV §4 · CLK-16 — double jeopardy barred · Art. II §8',
+      flow: 'WF-JUD-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var TZ = 'shown in your timezone (UTC−5 · America/New_York) · stored as UTC';
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          alias + (extra || '') + '</div>';
+      }
+
+      function fact(label, value) {
+        return '<p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">' + esc(label) + ':</strong> ' + value + '</p>';
+      }
+
+      /* Stage n → Case entity state (bracketed states are optional passes). */
+      var STAGE_STATE = ['Filed', 'Validated', 'Panel-Assigned (≥3, odd, severity-scaled)', 'Scheduled', 'Scheduled',
+        '[Jury-Empaneled]', 'Hearing', 'Deliberation', 'Decided', 'Opinion-Published'];
+
+      var stages = [
+        { title: 'Filing — claimed scale & severity', html: function () {
+          return fact('Filed', '<span class="citation">2031-04-18 · ' + TZ + '</span>') +
+            fact('Filed by', 'Justice Administration (prosecuting authority) through advocate Devon Marsh') +
+            fact('Claimed scale', 'Mecklenburg County — the residency-integrity law at issue is county law, so the county court hears it') +
+            fact('Claimed severity', 'Serious') +
+            fact('Accusation', 'Falsifying GPS residency pings to manufacture jurisdictional association') +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-IND-017') + '</div>' +
+            '<p class="gloss" style="margin-block-start:var(--space-2)">A constitutional challenge would instead arrive via F-IND-016, and an advocate can file for any client via F-ADV-001 — see the <a href="case-docket.html">docket entry points</a>.</p>';
+        } },
+        { title: 'Justiciability & severity classification', html: function () {
+          return '<p>The court confirms the case is justiciable (a real dispute under a real law, brought by a party with standing), fixes the scale, and classifies severity — the claimed values are inputs, not outcomes.</p>' +
+            fact('Justiciability', S.badge('success', 'Justiciable', 'check')) +
+            fact('Severity (court classification)', 'Serious — confirmed') +
+            fact('Jury entitlement', 'Entitled — criminal accusation; the accused has not waived') +
+            '<p class="citation">Severity drives panel size; entitlement to a jury of peers attaches to criminal accusations · Art. IV §4</p>';
+        } },
+        { title: 'Panel assignment — conflict screening', html: function () {
+          return '<div class="cluster" style="margin-block-end:var(--space-3)">' +
+            '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened · protected by the constitutional test suite</span>' +
+            '<span class="badge badge--info">' + S.icon('users', { size: 'sm' }) + ' Panel of 3 — odd, severity-scaled</span></div>' +
+            '<div class="table-wrap"><table class="table">' +
+            '<caption class="visually-hidden">Panel assignment and conflict screening results</caption>' +
+            '<thead><tr><th>Judge</th><th>Screening</th><th>Result</th></tr></thead><tbody>' +
+            '<tr><td>Kofi Asante (presiding)</td><td>No conflicts declared or found</td><td>' + S.badge('success', 'Seated', 'check') + '</td></tr>' +
+            '<tr><td>Mira Haugen</td><td>No conflicts declared or found</td><td>' + S.badge('success', 'Seated', 'check') + '</td></tr>' +
+            '<tr><td>Janek Kowalski</td><td>No conflicts declared or found</td><td>' + S.badge('success', 'Seated', 'check') + '</td></tr>' +
+            '<tr><td>Dr. Lena Novák</td><td>Recused — authored the residency-integrity advisory opinion the prosecution cites</td><td>' + S.badge('neutral', 'Recused', 'x') + '</td></tr>' +
+            '</tbody></table></div>' +
+            '<p class="gloss" style="margin-block-start:var(--space-2)">A major constitutional question would instead take the full court — all 5 judges (CLK-16, hardened). Conflicted judges are excluded and the draw re-runs.</p>' +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-JDG-001') + '</div>';
+        } },
+        { title: 'Initial hearing — scheduling, appearances, pre-trial motions', html: function () {
+          return fact('Held', '<span class="citation">2031-05-09 10:00 · ' + TZ + '</span>') +
+            fact('Appearances', 'Prosecution — advocate Devon Marsh · Defense — advocate Calvin Reyes (the accused exercised the right to representation · Art. I)') +
+            '<h3 style="margin-block-start:var(--space-4)">Pre-trial motions</h3>' +
+            '<div class="table-wrap"><table class="table">' +
+            '<caption class="visually-hidden">Pre-trial motions and rulings</caption>' +
+            '<thead><tr><th>Motion</th><th>Filed by</th><th>Ruling</th></tr></thead><tbody>' +
+            '<tr><td>Suppress the ping-log extract (chain-of-custody objection)</td><td>Defense</td><td>' + S.badge('danger', 'Denied', 'x') + ' <span class="citation">written reasons on the public record</span></td></tr>' +
+            '<tr><td>Continuance of 14 days to review forensics</td><td>Defense</td><td>' + S.badge('success', 'Granted', 'check') + '</td></tr>' +
+            '</tbody></table></div>' +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-ADV-002') + '</div>';
+        } },
+        { title: 'Evidence docket — exhibits, witnesses, admissibility', html: function () {
+          return '<div class="table-wrap"><table class="table">' +
+            '<caption class="visually-hidden">Exhibits with admissibility rulings</caption>' +
+            '<thead><tr><th class="mono">Exhibit</th><th>Description</th><th>Submitted by</th><th>Admissibility</th></tr></thead><tbody>' +
+            '<tr><td class="mono">P-1</td><td>Ping-log extract, 2030-11 → 2031-02 (encrypted at rest; decrypted under warrant)</td><td>Prosecution</td><td>' + S.badge('success', 'Admitted', 'check') + '</td></tr>' +
+            '<tr><td class="mono">P-2</td><td>Device forensic image — location-spoofing tooling</td><td>Prosecution</td><td>' + S.badge('success', 'Admitted', 'check') + '</td></tr>' +
+            '<tr><td class="mono">P-3</td><td>Unsourced social media post</td><td>Prosecution</td><td>' + S.badge('danger', 'Excluded', 'x') + ' <span class="citation">authenticity not established</span></td></tr>' +
+            '<tr><td class="mono">D-1</td><td>Affidavit — residence shared with the declared address</td><td>Defense</td><td>' + S.badge('success', 'Admitted', 'check') + '</td></tr>' +
+            '</tbody></table></div>' +
+            fact('Witness lists', 'Prosecution 4 (forensic analyst, registry officer, two neighbors) · Defense 2 (the accused, household member)') +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-ADV-003') + '</div>';
+        } },
+        { title: 'Jury selection — random draw & voir dire (current stage)', html: function () {
+          return '<div class="banner banner--info" role="status">' + S.icon('users') +
+            '<div><span class="banner-title">Random draw complete — voir dire under way</span>' +
+            '12 jurors + 2 alternates drawn at random from 743,201 eligible jurisdictionally associated residents of Mecklenburg County. The selection seed is published to the <a href="../system/audit-chain.html">audit chain</a>. <span class="citation">Art. IV §4 (jury of peers) · WF-JUD-04</span></div></div>' +
+            '<p style="margin-block-start:var(--space-3)"><strong style="color:var(--gov-fg)">Voir dire filters:</strong> conflict questionnaire (relationship to parties, ' +
+            'financial interest, prior involvement) and hardship review. Filters remove conflicts — never opinions, demographics, or politics.</p>' +
+            '<p><strong style="color:var(--gov-fg)">Civic-obligation protection:</strong> jury service is a protected civic obligation — no employer interference, and no fee or payment can ever be required of a juror.</p>' +
+            '<p class="citation">Art. II §8 · Non-Interference with Civic Obligations — Art. II §8 · Prohibition of Compulsory Payments for Civic Rights</p>' +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-JDG-002') + '</div>' +
+            '<p style="margin-block-start:var(--space-3)"><a href="juror-view.html">See this stage as a summoned juror ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>';
+        } },
+        { title: 'Arguments — everything to the public record', html: function () {
+          return '<ol>' +
+            '<li>Opening statements — prosecution, then defense</li>' +
+            '<li>Prosecution case — direct examination and cross-examination of each witness</li>' +
+            '<li>Defense case — direct examination and cross-examination</li>' +
+            '<li>Closing arguments</li></ol>' +
+            '<p>Every argument, examination, and ruling is transcribed to the <a href="../system/public-records.html">public record</a> as it happens. Nothing argued in open court is ever sealed retroactively.</p>' +
+            '<p class="citation">Open proceedings · Art. IV §4 · Art. I (Right to Fair Trial)</p>';
+        } },
+        { title: 'Chambers & deliberation — access-controlled', html: function () {
+          return '<div class="grid-2">' +
+            '<div class="card card--inset"><h3>' + S.icon('lock', { size: 'sm' }) + ' Judges’ chambers</h3>' +
+            '<p style="font-size:var(--text-sm)">Access-controlled room for the three panel judges only. Parties and advocates cannot enter or message it.</p></div>' +
+            '<div class="card card--inset"><h3>' + S.icon('lock', { size: 'sm' }) + ' Jury room</h3>' +
+            '<p style="font-size:var(--text-sm)">The jury deliberates separately — no judges, no parties, no contact. Deliberation is the only unrecorded space; the verdict itself is recorded.</p></div>' +
+            '</div>' +
+            '<p class="citation" style="margin-block-start:var(--space-3)">Separate deliberation preserves the independence of the jury of peers · Art. IV §4</p>';
+        } },
+        { title: 'Judgement — the double-jeopardy flag', html: function () {
+          return '<div class="banner banner--warning" role="note">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Criminal outcome — double-jeopardy flag attaches</span>' +
+            'Whichever way the verdict falls, the outcome record carries the double-jeopardy flag: the accused can never be prosecuted again for this same accusation. The flag is machine-enforced at filing time. <span class="citation">Art. II §8</span></div></div>' +
+            '<p style="margin-block-start:var(--space-3)">On a guilty verdict the panel issues a sentencing order; any arrest, search, or seizure connected to enforcement needs a warrant with a stated reason and duration.</p>' +
+            '<div class="stack" style="gap:var(--space-3);margin-block-start:var(--space-3)">' + formCard('F-JDG-009') + formCard('F-JDG-010') + '</div>';
+        } },
+        { title: 'Opinion publication — commentary on the law', html: function () {
+          return '<p>The panel publishes its opinion to the public record, linked to the case and to every law it ' +
+            'interprets. Opinions are <strong>commentary on the law as written or edited</strong> — they explain and ' +
+            'persuade, but only the Art. IV §5 process can change the law’s text.</p>' +
+            '<div style="margin-block-start:var(--space-3)">' + formCard('F-JDG-003') + '</div>' +
+            '<p style="margin-block-start:var(--space-3)">An appeal, where available, re-enters the lifecycle at a wider panel ([Appealed]); otherwise the case closes.</p>' +
+            '<p class="citation">Opinion linked as commentary · Art. IV §4–§5 — see the <a href="constitutional-challenge.html">Art. IV §5 tracker</a> for how findings change law</p>';
+        } }
+      ];
+
+      var current = 6; /* the live fixture state: jury selection */
+
+      function render() {
+        var stage = stages[current - 1];
+
+        document.getElementById('entity-strip').innerHTML = BY.entities['Case'].states.map(function (st, i) {
+          var cur = STAGE_STATE[current - 1] === st;
+          return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+        }).join('');
+
+        document.querySelectorAll('#stage-track .lifecycle-stage').forEach(function (li) {
+          var n = parseInt(li.getAttribute('data-stage'), 10);
+          li.className = 'lifecycle-stage' + (n < current ? ' lifecycle-stage--done' : n === current ? ' lifecycle-stage--current' : '');
+          if (n === current) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+        });
+
+        document.getElementById('stage-pos').textContent = current;
+        document.getElementById('stage-back').disabled = current <= 1;
+        document.getElementById('stage-next').disabled = current >= stages.length;
+
+        document.getElementById('stage-panel').innerHTML =
+          '<h3>' + esc(current + '. ' + stage.title) + '</h3>' + stage.html();
+
+        S.refresh();
+      }
+
+      document.getElementById('stage-back').addEventListener('click', function () {
+        if (current > 1) { current--; render(); }
+      });
+      document.getElementById('stage-next').addEventListener('click', function () {
+        if (current < stages.length) { current++; render(); }
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

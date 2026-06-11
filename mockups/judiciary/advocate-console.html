@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advocate console — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Judiciary · advocate</span>
+        <h1>Advocate console</h1>
+        <p class="page-intro">Your filings, motions, evidence, and briefs — everything you submit lands on the
+          public docket of the case it belongs to. Representation is a constitutional right of your clients;
+          registration keeps the bar of advocates zealous and competent.</p>
+        <p class="citation">Zealous &amp; competent advocates · Art. IV §4 — Right to Legal Representation · Art. I</p>
+      </header>
+
+      <section class="card" aria-labelledby="reg-h">
+        <h2 id="reg-h">Registration status</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Registered advocate</span>
+          <span class="citation">granted 2029-03-14 · Mecklenburg County judiciary · qualifications per county law</span>
+        </div>
+        <p>Registered for <strong data-bind="persona.name">Sofia Petrova</strong> — practice rights cover every
+          court of Mecklenburg County and its constituent jurisdictions.</p>
+        <div id="fc-ind-015"></div>
+        <noscript><p class="gloss">The registration form card renders with JavaScript enabled — Advocate Registration (F-IND-015), available to R-03 · Art. IV §4; Art. I.</p></noscript>
+        <p style="margin-block-start:var(--space-3)"><a href="../flows/WF-CIV-07.html">How registration works — WF-CIV-07
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+      </section>
+
+      <section class="card" aria-labelledby="cases-h">
+        <h2 id="cases-h">Your active cases</h2>
+        <p class="gloss">Cases you filed on behalf of clients (via F-ADV-001).</p>
+        <div id="case-list" class="stack" style="gap:var(--space-3)"></div>
+        <noscript><p class="gloss">The case list renders with JavaScript enabled. Fixture cases filed via F-ADV-001: Tenant association v. Crown Ridge LLC (evidence docket) and Pham v. Charlotte election board (deliberation).</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="composer-h">
+        <h2 id="composer-h">New filing</h2>
+        <form id="composer" class="stack" style="gap:0">
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="cp-type">Filing type</label>
+              <select class="select" id="cp-type">
+                <option value="F-ADV-001">Case filing — on behalf of client (F-ADV-001)</option>
+                <option value="F-ADV-002">Motion filing (F-ADV-002)</option>
+                <option value="F-ADV-003">Evidence submission (F-ADV-003)</option>
+                <option value="F-ADV-004">Brief / argument filing (F-ADV-004)</option>
+              </select>
+            </div>
+            <div class="field" id="cp-case-field">
+              <label class="field-label" for="cp-case">Case</label>
+              <select class="select" id="cp-case"></select>
+              <span class="field-hint" id="cp-case-hint"></span>
+            </div>
+          </div>
+          <div class="field" id="cp-client-field">
+            <label class="field-label" for="cp-client">Client</label>
+            <input class="field-input" id="cp-client" type="text" placeholder="Who you are filing for" />
+            <span class="field-hint">Your client retains you; the retainer is recorded with the filing.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="cp-summary">Summary</label>
+            <textarea class="field-input" id="cp-summary" rows="3" placeholder="What this filing asks the court to do"></textarea>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Submit to the docket</button>
+            <span class="gloss">Simulation — the filing is appended to the log below; nothing leaves this page.</span>
+          </div>
+        </form>
+        <div id="composer-result" role="status" style="margin-block-start:var(--space-3)"></div>
+        <h3 style="margin-block-start:var(--space-5)">Recent filings</h3>
+        <div id="filing-log"></div>
+      </section>
+
+      <section class="card" aria-labelledby="forms-h">
+        <h2 id="forms-h">Your four instruments</h2>
+        <div id="adv-forms" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--space-3)"></div>
+        <noscript><p class="gloss">Form cards render with JavaScript enabled: F-ADV-001 case filing, F-ADV-002 motion, F-ADV-003 evidence, F-ADV-004 brief — all available to R-21 Advocate.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> registration is <a href="../flows/WF-CIV-07.html">WF-CIV-07</a>;
+            every filing feeds the <a href="../flows/WF-JUD-03.html">WF-JUD-03 case lifecycle</a>.</p>
+          <p><strong>Entity state machine:</strong> Case — filings attach at specific states (motions before and
+            during Hearing, evidence on the open docket, briefs until Deliberation); the
+            <a href="case-detail.html">case detail page</a> plays the full sequence.</p>
+          <p class="citation">Art. IV §4 · Art. I (Right to Legal Representation; Right to Fair Trial)</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'judiciary/advocate-console',
+      title: 'Advocate console',
+      module: 'judiciary',
+      nav: 'advocate-console',
+      roles: ['R-21'],
+      workflows: ['WF-CIV-07', 'WF-JUD-03'],
+      forms: ['F-IND-015', 'F-ADV-001', 'F-ADV-002', 'F-ADV-003', 'F-ADV-004'],
+      citation: 'Zealous & competent advocates · Art. IV §4 — right to legal representation · Art. I',
+      flow: 'WF-CIV-07',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var filings = [
+        { seq: 'flg-0312', form: 'F-ADV-003', caseId: 'case-2031-104', text: 'Exhibit T-4 — maintenance request log, 2030-06 → 2031-03', when: '2031-06-05' },
+        { seq: 'flg-0309', form: 'F-ADV-004', caseId: 'case-2031-101', text: 'Closing brief — validation criteria misapplied', when: '2031-05-29' }
+      ];
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          alias + (extra || '') + '</div>';
+      }
+
+      var NEXT_ACTION = {
+        'Evidence docket': 'Evidence docket open — submissions accepted (F-ADV-003)',
+        'Deliberation': 'In deliberation — no filings accepted; await judgement',
+        'Jury selection': 'Voir dire under way — challenge motions only (F-ADV-002)'
+      };
+      var STATE_TONE = { 'Evidence docket': 'info', 'Deliberation': 'neutral', 'Jury selection': 'info' };
+
+      function myCases() {
+        return W.cases.filter(function (c) { return c.filedVia === 'F-ADV-001'; });
+      }
+
+      function render() {
+        document.getElementById('fc-ind-015').innerHTML = formCard('F-IND-015');
+
+        document.getElementById('case-list').innerHTML = myCases().map(function (c) {
+          return '<div class="card card--inset">' +
+            '<div class="cluster" style="justify-content:space-between">' +
+            '<div><strong style="color:var(--gov-fg)">' + esc(c.title) + '</strong>' +
+            '<span class="citation" style="display:block">' + esc(c.id) + ' · ' + esc(c.kind) + ' · ' + esc(c.court) + ' · panel: ' + esc(c.panel) + '</span>' +
+            (c.note ? '<span class="gloss" style="display:block">' + esc(c.note) + '</span>' : '') + '</div>' +
+            S.badge(STATE_TONE[c.state] || 'neutral', c.state, 'file-text') + '</div>' +
+            '<p style="font-size:var(--text-sm);margin-block-start:var(--space-2)">' + esc(NEXT_ACTION[c.state] || 'Awaiting court action') + '</p>' +
+            '</div>';
+        }).join('');
+
+        document.getElementById('filing-log').innerHTML = filings.map(function (g) {
+          var c = null;
+          W.cases.forEach(function (x) { if (x.id === g.caseId) c = x; });
+          return '<div class="log-row">' +
+            '<span class="log-seq" data-no-i18n>' + esc(g.seq) + '</span>' +
+            '<span class="form-chip"><span class="form-id">' + esc(g.form) + '</span></span>' +
+            '<span style="flex:1 1 12rem">' + esc(g.text) + (c ? ' <span class="citation">' + esc(c.title) + '</span>' : '') + '</span>' +
+            '<span class="citation">' + esc(g.when) + '</span>' +
+            S.badge('success', 'Accepted · docketed', 'check') +
+            '</div>';
+        }).join('');
+
+        document.getElementById('adv-forms').innerHTML =
+          formCard('F-ADV-001') + formCard('F-ADV-002') + formCard('F-ADV-003') + formCard('F-ADV-004');
+
+        S.refresh();
+      }
+
+      /* composer field wiring */
+      var typeSel = document.getElementById('cp-type');
+      var caseSel = document.getElementById('cp-case');
+      function syncComposer() {
+        var isNewCase = typeSel.value === 'F-ADV-001';
+        document.getElementById('cp-case-field').style.display = isNewCase ? 'none' : '';
+        document.getElementById('cp-client-field').style.display = isNewCase ? '' : 'none';
+        caseSel.innerHTML = myCases().map(function (c) {
+          return '<option value="' + esc(c.id) + '">' + esc(c.title) + ' (' + esc(c.id) + ')</option>';
+        }).join('');
+        document.getElementById('cp-case-hint').textContent =
+          typeSel.value === 'F-ADV-003' ? 'Evidence attaches to the case’s open docket.' :
+          typeSel.value === 'F-ADV-002' ? 'Motions are ruled on with written reasons, on the public record.' :
+          typeSel.value === 'F-ADV-004' ? 'Briefs are accepted until deliberation begins.' : '';
+      }
+      typeSel.addEventListener('change', syncComposer);
+      syncComposer();
+
+      document.getElementById('composer').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var fid = typeSel.value;
+        var f = BY.forms[fid];
+        var text = document.getElementById('cp-summary').value.trim() || '(no summary)';
+        var isNewCase = fid === 'F-ADV-001';
+        filings.unshift({
+          seq: 'flg-0' + (313 + filings.length),
+          form: fid,
+          caseId: isNewCase ? null : caseSel.value,
+          text: isNewCase ? 'New case for ' + (document.getElementById('cp-client').value.trim() || 'client') + ' — ' + text : text,
+          when: '2031-06-11'
+        });
+        document.getElementById('composer-result').innerHTML =
+          '<div class="banner banner--info">' + S.icon('check') +
+          '<div><span class="banner-title">' + esc(f.name) + ' accepted (simulation)</span>' +
+          (isNewCase
+            ? 'A case record is created and queued for acceptance and panel assignment (F-JDG-001) with conflict screening.'
+            : 'Docketed to the case and visible to all parties and the panel.') +
+          ' <span class="citation">' + esc(fid) + ' · ' + esc(f.basis) + '</span></div></div>';
+        document.getElementById('cp-summary').value = '';
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>
