@@ -456,7 +456,11 @@
     for (var i = 0; i < anchors.length; i++) {
       var a = anchors[i];
       var orig = a.getAttribute('data-orig-href') || a.getAttribute('href');
-      if (/^(https?:|mailto:|#|javascript:)/i.test(orig)) continue;
+      /* Skip anything with a scheme (http:, https:, FILE:, mailto:, …) or a
+         fragment — only bare relative paths get the demo-state rewrite. Links
+         already built absolute via CGA.shell.href() carry their state and must
+         never be re-prefixed (file:// double-path bug). */
+      if (/^([a-z][a-z0-9+.-]*:|#)/i.test(orig)) continue;
       a.setAttribute('data-orig-href', orig);
       var rel = orig.replace(/^(\.\.\/)+/, '');
       a.setAttribute('href', href(rel));
