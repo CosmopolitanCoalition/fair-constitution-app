@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Board elections — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Organizations · board elections</span>
+        <h1>Board elections — Bluefin Logistics</h1>
+        <p class="page-intro">Three counts seat one board: shareholders elect the owner track by STV, workers elect the
+          worker track by STV, and then the <strong>entire board jointly elects its chair</strong> by ranked choice. At
+          740 workers, Bluefin's co-determination ratio is 9 owner seats and 3 worker seats.</p>
+        <p class="citation">Owner + worker tracks · chair elected jointly by the entire Board · Art. III §4, §6 · CLK-13 / CLK-14</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number">9</span><span class="stat-label">owner-elected seats (R-26)</span></div>
+        <div class="stat stat--accent"><span class="stat-number">3</span><span class="stat-label">worker-elected seats (R-27)</span></div>
+        <div class="stat"><span class="stat-number">1</span><span class="stat-label">joint chair (R-28)</span></div>
+      </div>
+      <p class="citation">Ballots closed 2031-06-20 18:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+
+      <section class="card" aria-labelledby="owner-h">
+        <h2 id="owner-h">Owner track — 9 seats by STV</h2>
+        <p style="font-size:var(--text-sm)">1,204 shareholder ballots · 12 candidates · Droop quota
+          <span data-no-i18n>floor(1,204 ÷ (9 + 1)) + 1 = 121</span>.</p>
+        <p class="gloss">STV — single transferable vote: surplus votes above the quota transfer fractionally (Gregory)
+          to next preferences, so every ballot keeps working. Droop quota — the smallest total that mathematically
+          guarantees no more than nine winners.</p>
+        <div id="owner-results"></div>
+        <noscript><p>JavaScript renders the count. Elected: H. Brandt, C. Tehrani, M. Osei, V. Lindgren, A. Fournier,
+          R. Patel, Y. Demir, C. Boucher, M. Vega.</p></noscript>
+        <div id="owner-formcard" style="margin-block-start:var(--space-4)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="worker-h">
+        <h2 id="worker-h">Worker track — 3 seats by STV</h2>
+        <p style="font-size:var(--text-sm)">692 of 740 workers voted · 5 candidates · Droop quota
+          <span data-no-i18n>floor(692 ÷ (3 + 1)) + 1 = 174</span>. The worker track exists because Bluefin crossed the
+          100-worker threshold (CLK-13); its 3 seats come from the uniform scale toward parity at 2,000 (CLK-14) —
+          <a href="co-determination.html">see the scaling meter</a>.</p>
+        <div id="worker-results"></div>
+        <noscript><p>JavaScript renders the count. Elected: T. Ferreira, L. Márquez, D. Banks.</p></noscript>
+        <div id="worker-formcard" style="margin-block-start:var(--space-4)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="chair-h">
+        <h2 id="chair-h">Joint chair — single winner by RCV, entire board votes</h2>
+        <p style="font-size:var(--text-sm)">All 12 seated board members — owner-elected and worker-elected alike — rank
+          the nominees. Majority of the full board required: <strong>7 of 12</strong>. Three board members were nominated.</p>
+        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="citation">Chair elected jointly by the entire Board · Art. III §6</span></p>
+        <div id="chair-rounds" class="stack" style="gap:var(--space-4)" aria-live="polite"></div>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <button type="button" class="btn btn--primary btn--sm" id="chair-advance">Run round 2</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="chair-reset">Reset count</button>
+        </div>
+        <noscript><p>JavaScript animates the two RCV rounds: round 1 — Tehrani 5, Brandt 4, Ferreira 3 (no majority);
+          round 2 — Ferreira eliminated, transfers split 2/1, Tehrani 7 of 12 → elected chair.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="seated-h">
+        <h2 id="seated-h">The seated board</h2>
+        <div id="seated-board" class="cluster" style="gap:var(--space-4)"></div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Any composition change — a seat added by the
+          co-determination scale, a vacancy, a transfer — re-triggers the joint chair election · Art. III §6 · WF-ORG-04</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-05.html">WF-ORG-05 (board elections — owner &amp; worker tracks)</a>;
+            triggered cyclically by term expiry or by <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling)</a>
+            when composition changes.</p>
+          <p><strong>Entity state machine:</strong> Organization — <em>[Co-determination tiers]</em>: the board is valid only
+            while its composition matches the current scale.</p>
+          <p><strong>Vote machinery:</strong> the same PR-STV engine that runs public elections runs these tracks;
+            single-winner RCV is used only where one seat is filled (the chair) — mirroring the individual-executive rule.</p>
+          <p class="citation">Art. III §4, §6 · CLK-13 · CLK-14</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'organizations/board-elections',
+      title: 'Board elections',
+      module: 'organizations',
+      nav: 'org-registry',
+      roles: ['R-23', 'R-24', 'R-25', 'R-26', 'R-27', 'R-28'],
+      workflows: ['WF-ORG-05', 'WF-ORG-04'],
+      forms: ['F-ORG-003', 'F-ORG-004'],
+      citation: 'Owner STV + worker STV + joint chair RCV · Art. III §4, §6',
+      flow: 'WF-ORG-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Fictional board candidates; Brandt / Ferreira / Tehrani come from the persona set. */
+      var ownerTrack = {
+        quota: 121, ballots: 1204, seats: 9,
+        cands: [
+          { name: 'Helena Brandt', votes: 168, elected: true },
+          { name: 'Cyrus Tehrani', votes: 154, elected: true },
+          { name: 'Margaret Osei', votes: 149, elected: true },
+          { name: 'Viktor Lindgren', votes: 138, elected: true },
+          { name: 'Anaïs Fournier', votes: 131, elected: true },
+          { name: 'Raj Patel', votes: 127, elected: true },
+          { name: 'Yusuf Demir', votes: 125, elected: true },
+          { name: 'Claire Boucher', votes: 123, elected: true },
+          { name: 'Marisol Vega', votes: 122, elected: true },
+          { name: 'Edwin Crowe', votes: 97, elected: false },
+          { name: 'Bram Janssens', votes: 71, elected: false },
+          { name: 'Tilda Storm', votes: 49, elected: false }
+        ]
+      };
+      var workerTrack = {
+        quota: 174, ballots: 692, seats: 3,
+        cands: [
+          { name: 'Tomás Ferreira', votes: 201, elected: true },
+          { name: 'Lucía Márquez', votes: 188, elected: true },
+          { name: 'Devon Banks', votes: 176, elected: true },
+          { name: 'Ana Sousa', votes: 84, elected: false },
+          { name: 'Pieter De Vries', votes: 43, elected: false }
+        ]
+      };
+      var chairRound = 1; /* page-local stepper state */
+
+      function stvList(track, label) {
+        var max = track.cands[0].votes;
+        return '<div class="stv-round"><p class="citation" style="margin-block-end:var(--space-2)">' + esc(label) +
+          ' · final-round totals after fractional (Gregory) transfers · quota ' + track.quota + '</p>' +
+          track.cands.map(function (c) {
+            var pct = Math.round(c.votes / max * 100);
+            var qpct = Math.round(track.quota / max * 100);
+            return '<div class="stv-cand' + (c.elected ? ' stv-cand--elected' : ' stv-cand--eliminated') + '">' +
+              '<span class="stv-cand-name">' + esc(c.name) + '</span>' +
+              '<span class="stv-track"><span class="stv-fill' + (c.elected ? ' stv-fill--elected' : '') + '" style="inline-size:' + pct + '%"></span>' +
+              '<span class="stv-quota-mark" style="inset-inline-start:' + qpct + '%"></span></span>' +
+              '<span class="stv-votes">' + c.votes + (c.elected ? ' · elected' : '') + '</span></div>';
+          }).join('') + '</div>';
+      }
+
+      function chairRoundsHtml() {
+        var r1 = '<div><h3 style="font-size:var(--text-base)">Round 1 — 12 ballots, majority is 7</h3>' +
+          '<div class="stv-round">' +
+          [['Cyrus Tehrani', 5, false], ['Helena Brandt', 4, false], ['Tomás Ferreira', 3, false]].map(function (c) {
+            var pct = Math.round(c[1] / 12 * 100);
+            return '<div class="stv-cand"><span class="stv-cand-name">' + esc(c[0]) + '</span>' +
+              '<span class="stv-track"><span class="stv-fill" style="inline-size:' + pct + '%"></span>' +
+              '<span class="stv-quota-mark" style="inset-inline-start:58.3%"></span></span>' +
+              '<span class="stv-votes">' + c[1] + '</span></div>';
+          }).join('') + '</div>' +
+          '<p class="citation">No nominee reaches 7 — Ferreira (fewest) is eliminated; his 3 ballots transfer to their next preference.</p></div>';
+        var r2 = '<div><h3 style="font-size:var(--text-base)">Round 2 — transfers applied</h3>' +
+          '<div class="stv-round">' +
+          [['Cyrus Tehrani', 7, true], ['Helena Brandt', 5, false]].map(function (c) {
+            var pct = Math.round(c[1] / 12 * 100);
+            return '<div class="stv-cand' + (c[2] ? ' stv-cand--elected' : '') + '"><span class="stv-cand-name">' + esc(c[0]) + '</span>' +
+              '<span class="stv-track"><span class="stv-fill' + (c[2] ? ' stv-fill--elected' : ' stv-fill--transfer') + '" style="inline-size:' + pct + '%"></span>' +
+              '<span class="stv-quota-mark" style="inset-inline-start:58.3%"></span></span>' +
+              '<span class="stv-votes">' + c[1] + (c[2] ? ' · elected' : '') + '</span></div>';
+          }).join('') + '</div>' +
+          '<p>' + S.badge('success', 'Cyrus Tehrani elected chair — 7 of 12, the full-board majority', 'check') +
+          ' <span class="citation">R-28 Board Chair · Art. III §6</span></p></div>';
+        return chairRound === 1 ? r1 : r1 + r2;
+      }
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(f.availableToRaw) + ' · ' + esc(f.creates) + '</p>' +
+          '<p class="citation">' + esc(f.basis) + '</p></div>';
+      }
+
+      function persona(id, label) {
+        var p = BY.personas[id];
+        return p ? '<span class="persona-chip"><span class="avatar" aria-hidden="true">' + esc(p.initials) + '</span> ' +
+          esc(p.name) + ' <span class="persona-roles">' + esc(label) + '</span></span>' : '';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        document.getElementById('owner-results').innerHTML = stvList(ownerTrack, 'Shareholder ballots · 9 seats');
+        document.getElementById('worker-results').innerHTML = stvList(workerTrack, 'Worker ballots · 3 seats');
+        document.getElementById('owner-formcard').innerHTML = formCard('F-ORG-003');
+        document.getElementById('worker-formcard').innerHTML = formCard('F-ORG-004');
+        document.getElementById('chair-rounds').innerHTML = chairRoundsHtml();
+        document.getElementById('chair-advance').disabled = chairRound > 1;
+        document.getElementById('chair-advance').textContent = chairRound > 1 ? 'Count complete' : 'Run round 2';
+
+        document.getElementById('seated-board').innerHTML =
+          persona('helena-brandt', 'R-26 owner-elected') +
+          persona('tomas-ferreira', 'R-27 worker-elected') +
+          persona('cyrus-tehrani', 'R-28 joint chair (also R-26)') +
+          '<span class="tag-chip">+ 9 further seated members</span>';
+
+        S.refresh();
+      }
+
+      document.getElementById('chair-advance').addEventListener('click', function () {
+        chairRound = 2; render();
+      });
+      document.getElementById('chair-reset').addEventListener('click', function () {
+        chairRound = 1; render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

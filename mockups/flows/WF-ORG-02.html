@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Candidate Endorsement — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · ORG</span>
+        <h1>Candidate Endorsement <span class="citation">WF-ORG-02</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-ORG-02", "title": "Candidate Endorsement", "module": "flows", "nav": null, "roles": ["R-06"], "workflows": ["WF-ORG-02"], "forms": [], "citation": "Art. II §2 (factions) · WF-ORG-02", "flow": "WF-ORG-02", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-ORG-02",
+ "name": "Candidate Endorsement",
+ "timeScale": "Short (registration window)",
+ "trigger": "Candidate requests / org offers endorsement",
+ "actors": [
+  "R-06"
+ ],
+ "institutions": [
+  "I-ORG",
+  "I-ELE"
+ ],
+ "terminal": "Endorsement recorded; candidate gains R-07; faction linkage used for proportionality math",
+ "basis": "Art. II §2 (factions)",
+ "entity": "Organization",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-06 / I-ORG",
+   "action": "Endorsement requested or offered during open registration window",
+   "outcome": "Per org's internal decision rules  [also: F-ORG-002]",
+   "form": "F-CAN-002",
+   "screen": {
+    "href": "electoral/candidate-profile.html",
+    "params": {
+     "role": "R-06"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "System",
+   "action": "Record endorsement; grant R-07; bind faction linkage",
+   "outcome": "Faction data feeds proportionality + committee math",
+   "engine": "Elections module",
+   "screen": {
+    "href": "organizations/org-registry.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

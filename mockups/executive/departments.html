@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Departments — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Executive · departments</span>
+        <h1>Department registry — Charlotte</h1>
+        <p class="page-intro">Departments are created by legislative act, chartered for a specific function, and run
+          by an appointed Board of Governors under executive oversight. Co-determination applies to departments
+          exactly as it does to private organizations: the first worker-elected board seat arrives at 100 workers.</p>
+        <p class="citation">Department creation · Art. II §9 — boards · Art. III §4 — co-determination applies identically · Art. III §6</p>
+      </header>
+
+      <section class="card" style="padding:0" aria-labelledby="registry-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="registry-h">Departments</h2>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Department</th><th scope="col">Type</th><th scope="col">Board</th>
+                <th scope="col">Workers</th><th scope="col">Co-determination</th><th scope="col">Oversight</th></tr>
+            </thead>
+            <tbody id="dep-rows">
+              <tr><td colspan="6">Loading from fixtures…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">First worker seat at 100 workers · CLK-13 — uniform scaling to board parity at 2,000 · CLK-14 — Art. III §6 ·
+          mechanics: <a href="../organizations/co-determination.html">co-determination</a></p>
+        <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The registry table is
+          rendered from fixtures and requires JavaScript. Five departments exist: Chief Executive Office, Treasury
+          (152 workers → 1 worker seat), Public Works &amp; Utilities (1,240 workers → 4 worker seats), Justice
+          Administration, Emergency Management.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="create-h">
+        <h2 id="create-h">Create a department</h2>
+        <div id="form-leg-016"></div>
+        <form id="create-form" style="margin-block-start:var(--space-4)">
+          <div class="field">
+            <label class="field-label" for="dep-name">Department name</label>
+            <input class="field-input" id="dep-name" type="text" placeholder="e.g. Parks &amp; Recreation" />
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="dep-type">Type</label>
+              <select class="select" id="dep-type">
+                <option value="chief_executive">Chief Executive</option>
+                <option value="treasury">Treasury</option>
+                <option value="defense">Defense</option>
+                <option value="state">State</option>
+                <option value="justice">Justice</option>
+                <option value="other" selected>Custom</option>
+              </select>
+              <span class="field-hint">The constitutional type list plus custom functions · Art. II §9</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="dep-oversight">Oversight assignment</label>
+              <select class="select" id="dep-oversight">
+                <option selected>Charlotte executive committee (delegated)</option>
+                <option>Mecklenburg County executive (elected individual)</option>
+              </select>
+              <span class="field-hint">Which executive oversees — full and equal investigative power · Art. III §4</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="dep-charter">Charter</label>
+            <textarea class="field-input" id="dep-charter" rows="3" placeholder="Function, powers, reporting interval…"></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary">Draft creation act</button>
+          <p id="create-confirm" role="status" style="margin-block-start:var(--space-3)"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="bog-h">
+        <h2 id="bog-h">Board of Governors pipeline</h2>
+        <p>Governors are appointed experts — politically neutral, serving the civil-officer term. The executive
+          nominates; the legislature consents; the governor is seated.</p>
+        <ol class="stepper" style="margin-block-end:var(--space-4)">
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Nomination dossier · F-EXE-001</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-landmark"></use></svg> Consent vote · F-LEG-020</li>
+          <li class="stepper-step stepper-step--active" aria-current="step"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Seated · R-18</li>
+        </ol>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th scope="col">Nominee</th><th scope="col">Department</th><th scope="col">Stage</th><th scope="col">Term</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Dr. Samuel Adeyemi</td>
+                <td>Public Works &amp; Utilities</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Seated · consent 6 of 8 serving</span></td>
+                <td class="mono">2030-07-01 → 2040-07-01</td>
+              </tr>
+              <tr>
+                <td>Dr. Renu Patel</td>
+                <td>Emergency Management</td>
+                <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Consent vote scheduled 2031-06-23</span></td>
+                <td class="mono">— pending consent</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Consent = peg-quorum majority of all serving members (5 of 8 serving) · Art. III §4 —
+          politically neutral · 10-yr civil-officer term · CLK-09 — dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+        <div class="grid-2" style="margin-block-start:var(--space-4)">
+          <div>
+            <div id="form-exe-001"></div>
+            <button type="button" class="btn btn--secondary btn--sm" id="nominate-btn" style="margin-block-start:var(--space-2)">Simulate a nomination</button>
+            <p id="nominate-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          </div>
+          <div id="form-leg-020"></div>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="removal-h">
+          <h2 id="removal-h">Governor removal</h2>
+          <div id="form-exe-003"></div>
+          <button type="button" class="btn btn--danger btn--sm" id="removal-btn" style="margin-block-start:var(--space-3)">Simulate a removal request</button>
+          <p id="removal-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          <p class="citation" style="margin-block-start:var(--space-2)">Good-faith finding by the executive → legislative vote decides ·
+            Art. III §4 — flow: <a href="../flows/WF-EXE-06.html">WF-EXE-06</a></p>
+        </section>
+
+        <section class="card" aria-labelledby="civil-h">
+          <h2 id="civil-h">Civil officers</h2>
+          <p>Appointed officials across departments serve fixed civil-officer terms — insulation from electoral
+            cycles is the point.</p>
+          <p><strong>Grace Mwangi</strong> · disbursement officer, Treasury<br />
+            <span class="citation">R-30 civil officer · appointed 2029-10-01 · term ends 2039-10-01 · CLK-09</span></p>
+          <p class="amendable"><span class="amendable-value">10 years</span> civil appointment term
+            <span class="amendable-meta">civil_appointment_years · default 10 · must stay in lockstep with judicial_appointment_years · set at founding (no amending act yet) · Art. II §9</span></p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-04.html">WF-EXE-04 department creation</a> ·
+            <a href="../flows/WF-EXE-05.html">WF-EXE-05 Board of Governors appointment</a> ·
+            <a href="../flows/WF-EXE-06.html">WF-EXE-06 governor removal</a>. Consent votes happen in the
+            <a href="../legislature/session-console.html">session console</a>.</p>
+          <p><strong>Entity state machine:</strong> Department / Board — Chartered → Oversight-Assigned →
+            Governors-Nominated → Consented → Operating → [Member Removal Requested → Voted] → Reporting →
+            Re-chartered | Dissolved. Governors are politically neutral with default 10-yr civil-officer terms.</p>
+          <p class="citation">Art. II §9 · Art. III §4 · Art. III §6 · CLK-09 · CLK-13 · CLK-14</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'executive/departments',
+      title: 'Department registry',
+      module: 'executive',
+      nav: 'departments',
+      roles: ['R-14', 'R-15', 'R-16', 'R-30'],
+      workflows: ['WF-EXE-04', 'WF-EXE-05', 'WF-EXE-06'],
+      forms: ['F-LEG-016', 'F-EXE-001', 'F-LEG-020', 'F-EXE-003'],
+      citation: 'Departments · Art. II §9 — boards & oversight · Art. III §4 — co-determination · Art. III §6',
+      flow: 'WF-EXE-04',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      /* page-local simulated states */
+      var sim = { created: false, nominated: false, removal: false };
+
+      var KIND_LABEL = { chief_executive: 'Chief Executive', treasury: 'Treasury', justice: 'Justice', other: 'Custom' };
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
+        return '<div class="card card--inset"><h3>' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+      }
+
+      function coDetCell(d) {
+        if (d.workers >= 100) {
+          return S.badge('success', d.workerSeats + ' worker seat' + (d.workerSeats > 1 ? 's' : ''), 'users') +
+            '<span class="citation" style="display:block">' + d.workers.toLocaleString('en-US') + ' workers ≥ 100 · CLK-13</span>';
+        }
+        return S.badge('neutral', 'below threshold', 'minus') +
+          '<span class="citation" style="display:block">' + d.workers + ' workers &lt; 100 · CLK-13</span>';
+      }
+
+      function render() {
+        document.getElementById('dep-rows').innerHTML = W.departments.map(function (d) {
+          var name = d.id === 'dep-works'
+            ? '<a href="department-detail.html">' + esc(d.name) + '</a> <span class="gloss">deep-dive</span>'
+            : esc(d.name);
+          return '<tr><td>' + name +
+            '<span class="citation" style="display:block">' + esc(d.charter) + '</span></td>' +
+            '<td class="mono">' + esc(KIND_LABEL[d.kind] || d.kind) + '</td>' +
+            '<td>' + d.governors + ' governors' + (d.workerSeats ? ' + ' + d.workerSeats + ' worker-elected' : '') + '</td>' +
+            '<td>' + d.workers.toLocaleString('en-US') + '</td>' +
+            '<td>' + coDetCell(d) + '</td>' +
+            '<td>Charlotte executive committee<span class="citation" style="display:block">assigned by creation act · Art. III §4</span></td></tr>';
+        }).join('');
+
+        document.getElementById('form-leg-016').innerHTML = formCard('F-LEG-016');
+        document.getElementById('form-exe-001').innerHTML = formCard('F-EXE-001');
+        document.getElementById('form-leg-020').innerHTML = formCard('F-LEG-020');
+        document.getElementById('form-exe-003').innerHTML = formCard('F-EXE-003');
+
+        document.getElementById('create-confirm').innerHTML = sim.created
+          ? S.badge('info', 'Drafted', 'file-text') + ' <span class="cc-small">Department Creation Act queued for a floor vote — ' +
+            'peg-quorum majority of all serving members. Nothing was sent; this is a simulation.</span>' : '';
+        document.getElementById('nominate-confirm').innerHTML = sim.nominated
+          ? S.badge('info', 'Dossier created', 'file-text') + ' <span class="cc-small">F-LEG-020 consent vote triggered in the chamber — simulated.</span>' : '';
+        document.getElementById('removal-confirm').innerHTML = sim.removal
+          ? S.badge('warning', 'Removal proceeding opened', 'alert-triangle') + ' <span class="cc-small">Referred to the legislature for a vote — simulated.</span>' : '';
+
+        S.refresh();
+      }
+
+      document.getElementById('create-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        sim.created = true;
+        render();
+      });
+      document.getElementById('nominate-btn').addEventListener('click', function () { sim.nominated = true; render(); });
+      document.getElementById('removal-btn').addEventListener('click', function () { sim.removal = true; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

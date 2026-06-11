@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organization registry — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Organizations</span>
+        <h1>Organization registry</h1>
+        <p class="page-intro">Every registered organization in your jurisdiction chain — political parties, businesses,
+          nonprofits, and Common Good Corporations share one public registry. Any jurisdictionally associated resident
+          can register an organization; any organization or individual can endorse any candidate.</p>
+        <p class="citation">One registry, no faction layer · Art. I (Economic Freedom; Freedom of Assembly) · Art. II §2 · as implemented
+          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number" id="stat-total">9</span><span class="stat-label">registered organizations</span></div>
+        <div class="stat"><span class="stat-number" id="stat-endorsing">5</span><span class="stat-label">endorsing organizations</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-codet">3</span><span class="stat-label">in co-determination scaling</span></div>
+        <div class="stat"><span class="stat-number" id="stat-cgc">1</span><span class="stat-label">Common Good Corporation</span></div>
+      </div>
+
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div><span class="banner-title">There is no faction registration anywhere in the product.</span>
+          Parties are ordinary organizations. Endorsements are polymorphic — any organization or individual may endorse
+          any candidate — and that endorsement linkage is what feeds proportionality math.
+          <span class="citation">Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</span></div>
+      </div>
+
+      <div class="filter-bar" role="group" aria-label="Filter the registry">
+        <label class="demo-control" style="color:var(--gov-fg-muted)">Type
+          <select class="select" style="inline-size:auto" id="f-type">
+            <option value="">Any</option>
+            <option value="political_party">Political party</option>
+            <option value="business">Business</option>
+            <option value="nonprofit">Nonprofit</option>
+            <option value="common_good_corp">Common Good Corporation</option>
+            <option value="informal">Informal association</option>
+          </select>
+        </label>
+        <button type="button" class="chip-toggle" id="f-endorsing" aria-pressed="false">Endorsing only</button>
+        <label class="demo-control" style="color:var(--gov-fg-muted)">
+          <span class="visually-hidden">Search organizations</span>
+          <input class="field-input" style="inline-size:11rem;padding-block:var(--space-1)" type="search" id="f-search" placeholder="Search organizations" />
+        </label>
+        <button type="button" class="btn btn--ghost btn--sm" id="f-clear">Clear filters</button>
+      </div>
+
+      <section class="card" style="padding:0" aria-labelledby="registry-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="registry-h">Public registry <span class="citation">all records public · Art. II §2 (Publish Public Records)</span></h2>
+        </div>
+        <div class="table-wrap" style="padding-block-end:var(--space-2)">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Organization</th><th scope="col">Type</th><th scope="col">Structure</th>
+                <th scope="col">Registered in</th><th scope="col">Workers</th><th scope="col">Endorsements granted</th>
+                <th scope="col">Co-determination</th></tr>
+            </thead>
+            <tbody id="registry-body"></tbody>
+          </table>
+        </div>
+        <noscript><p style="padding:var(--space-4)">The registry table is rendered by JavaScript from the fixture world.
+          Registered organizations include The Commons Party, Bluefin Logistics (740 workers), Northstar Equal Partners,
+          Mecklenburg Water &amp; Power (CGC), and Cobalt Grid Co.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="register-h">
+          <h2 id="register-h">Register an organization</h2>
+          <p style="font-size:var(--text-sm)">Organization registration
+            <span class="form-chip">Organization Registration <span class="form-id">F-IND-012</span></span> —
+            available to R-03 Jurisdictionally Associated · creates the organization record (I-ORG) and grants you
+            R-23 Organization Registrant/Agent.</p>
+          <form id="reg-form" novalidate>
+            <div class="field">
+              <label class="field-label" for="reg-name">Organization name</label>
+              <input class="field-input" id="reg-name" name="reg-name" type="text" autocomplete="organization" />
+              <span class="field-hint">Fictional names only in this demo — real people and companies never appear.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="reg-structure">Organization type</label>
+              <select class="select" id="reg-structure" name="reg-structure">
+                <option value="stock">Stock-owned company</option>
+                <option value="partnership">Partnership</option>
+                <option value="equal_partnership">Equal partnership</option>
+                <option value="member_owned">Member-owned</option>
+                <option value="worker_owned">Worker-owned</option>
+                <option value="nonprofit">Nonprofit</option>
+              </select>
+              <span class="field-hint">Common Good Corporations are not self-registered — a legislature creates them by act (F-LEG-019).</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="reg-jur">Jurisdiction of registration</label>
+              <select class="select" id="reg-jur" name="reg-jur"></select>
+              <span class="field-hint">Records sync to every peer instance with full faith &amp; credit · Art. V §2.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="reg-purpose">Purpose / charter summary</label>
+              <textarea class="field-input" id="reg-purpose" name="reg-purpose" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn--primary">Register organization</button>
+            <p class="citation" style="margin-block-start:var(--space-2)">Art. I (Economic Freedom) · creates I-ORG · grants R-23</p>
+          </form>
+          <div id="reg-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+        </section>
+
+        <section class="card" aria-labelledby="manage-h">
+          <h2 id="manage-h">Manage an existing organization</h2>
+          <div id="profile-formcard"></div>
+          <p style="margin-block-start:var(--space-3)"><a href="org-detail.html">Open an organization profile
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+          <p style="margin-block-start:var(--space-2)"><a href="co-determination.html">Co-determination scaling
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="lifecycle-h">
+        <h2 id="lifecycle-h">Organization lifecycle</h2>
+        <div id="org-state-strip"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Worker headcount drives board composition recalculation
+          on the 100 → 2,000 scale (CLK-13 / CLK-14); transfers, conversions, and dissolution each have their own workflow.</p>
+        <p class="citation">Art. III §5–6 · CLK-13 · CLK-14</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-01.html">WF-ORG-01 (organization registration)</a> begins here;
+            the registry links onward to <a href="../flows/WF-ORG-02.html">WF-ORG-02 (endorsement)</a>,
+            <a href="../flows/WF-ORG-03.html">WF-ORG-03 (membership / worker joining)</a>, and
+            <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling)</a>.</p>
+          <p><strong>Entity state machine:</strong> Organization — Registered → Active → [Endorsing] → [Co-determination tiers]
+            → [Transfer-Pending → Transferred] → [Converted Public↔Private] → Dissolved.</p>
+          <p class="citation">Art. I · Art. III §5–6 · Art. V §2</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'organizations/org-registry',
+      title: 'Organization registry',
+      module: 'organizations',
+      nav: 'org-registry',
+      roles: ['R-03', 'R-23'],
+      workflows: ['WF-ORG-01'],
+      forms: ['F-IND-012', 'F-ORG-001'],
+      citation: 'One registry, no faction layer · Art. I · Art. III §5–6',
+      flow: 'WF-ORG-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var filters = { type: '', endorsing: false, q: '' };
+      var registeredIn = {
+        'commons-party': 'usa-4-charlotte', 'green-horizon': 'usa-4-charlotte',
+        'queen-city-chamber': 'usa-4-charlotte', 'piedmont-mutual-aid': 'usa-3-mecklenburg-county',
+        'plaza-midwood-neighbors': 'usa-5-plaza-midwood', 'bluefin-logistics': 'usa-4-charlotte',
+        'northstar-equal-partners': 'usa-4-charlotte', 'mecklenburg-water-power': 'usa-3-mecklenburg-county',
+        'cobalt-grid': 'usa-3-mecklenburg-county'
+      };
+      var typeLabel = { political_party: 'Political party', business: 'Business', nonprofit: 'Nonprofit',
+        common_good_corp: 'Common Good Corp.', informal: 'Informal association' };
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(f.availableToRaw) + ' · ' + esc(f.creates) + '</p>' +
+          '<p class="citation">' + esc(f.basis) + '</p>' +
+          (f.aliases && f.aliases.length ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '') +
+          '</div>';
+      }
+
+      function coDetCell(o) {
+        if (o.type === 'common_good_corp' || (o.workers && o.workers >= 100)) {
+          if (o.workers >= 2000) return S.badge('success', 'parity reached', 'users');
+          return S.badge('info', 'scaling · ' + o.workers.toLocaleString('en-US') + ' workers', 'users');
+        }
+        if (o.workers) return '<span class="tag-chip">below first-seat threshold (' + o.workers + ')</span>';
+        return '<span class="tag-chip">no registered workers</span>';
+      }
+
+      function rowHtml(o) {
+        var href = o.id === 'mecklenburg-water-power' ? 'cgc-detail.html' : 'org-detail.html';
+        var j = BY.jurisdictions[registeredIn[o.id]];
+        var flags = (o.flags || []).indexOf('monopoly_target') >= 0
+          ? ' ' + S.badge('warning', 'monopoly finding pending', 'alert-triangle') : '';
+        return '<tr><td><a href="' + href + '">' + esc(o.name) + '</a>' + flags + '</td>' +
+          '<td>' + esc(typeLabel[o.type] || o.type) + '</td>' +
+          '<td class="mono">' + esc(o.ownership ? o.ownership.replace(/_/g, ' ') : (o.type === 'common_good_corp' ? 'public charter' : '—')) + '</td>' +
+          '<td>' + esc(j ? j.name : '—') + '</td>' +
+          '<td>' + (o.workers ? o.workers.toLocaleString('en-US') : '—') + '</td>' +
+          '<td>' + (o.endorsementCount !== undefined ? o.endorsementCount.toLocaleString('en-US') : '—') + '</td>' +
+          '<td>' + coDetCell(o) + '</td></tr>';
+      }
+
+      function matches(o) {
+        if (filters.type && o.type !== filters.type) return false;
+        if (filters.endorsing && o.endorsementCount === undefined) return false;
+        if (filters.q && o.name.toLowerCase().indexOf(filters.q.toLowerCase()) < 0) return false;
+        return true;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        var shown = W.organizations.filter(matches);
+        document.getElementById('registry-body').innerHTML = shown.length
+          ? shown.map(rowHtml).join('')
+          : '<tr><td colspan="7">No organizations match the current filters.</td></tr>';
+
+        document.getElementById('stat-total').textContent = W.organizations.length;
+        document.getElementById('stat-endorsing').textContent =
+          W.organizations.filter(function (o) { return o.endorsementCount !== undefined; }).length;
+        document.getElementById('stat-codet').textContent =
+          W.organizations.filter(function (o) { return o.workers >= 100; }).length;
+        document.getElementById('stat-cgc').textContent =
+          W.organizations.filter(function (o) { return o.type === 'common_good_corp'; }).length;
+
+        document.getElementById('profile-formcard').innerHTML = formCard('F-ORG-001');
+
+        var ent = BY.entities['Organization'];
+        document.getElementById('org-state-strip').innerHTML = '<div class="state-strip">' +
+          ent.states.map(function (s, i) {
+            return '<span class="state-node' + (i === 1 ? ' state-node--current' : '') + '">' + esc(s) + '</span>';
+          }).join('<span class="state-arrow">→</span>') + '</div>';
+
+        S.refresh();
+      }
+
+      /* jurisdiction options for the registration form */
+      var jurSel = document.getElementById('reg-jur');
+      W.jurisdictions.filter(function (j) { return j.isCivicActive; }).forEach(function (j) {
+        var opt = document.createElement('option');
+        opt.value = j.slug; opt.textContent = j.name + ' (adm ' + j.admLevel + ')';
+        if (j.slug === 'usa-4-charlotte') opt.selected = true;
+        jurSel.appendChild(opt);
+      });
+
+      document.getElementById('reg-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var name = document.getElementById('reg-name').value.trim();
+        var box = document.getElementById('reg-confirm');
+        if (!name) {
+          box.innerHTML = '<p class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Enter an organization name to register.</p>';
+          return;
+        }
+        var jName = (BY.jurisdictions[jurSel.value] || {}).name || jurSel.value;
+        box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
+          '<div><span class="banner-title">Simulated: ' + esc(name) + ' registered in ' + esc(jName) + '.</span> ' +
+          S.badge('success', 'Registered', 'check') +
+          ' The organization record (I-ORG) was created and you now hold R-23 Organization Registrant/Agent for it. ' +
+          'Nothing left this page — the demo simulates submission. <span class="citation">F-IND-012 · Art. I (Economic Freedom)</span></div></div>';
+        S.refresh();
+      });
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#f-endorsing,#f-clear') : null;
+        if (!t) return;
+        if (t.id === 'f-endorsing') {
+          filters.endorsing = !filters.endorsing;
+          t.setAttribute('aria-pressed', filters.endorsing ? 'true' : 'false');
+          render();
+        } else if (t.id === 'f-clear') {
+          filters = { type: '', endorsing: false, q: '' };
+          document.getElementById('f-type').value = '';
+          document.getElementById('f-search').value = '';
+          document.getElementById('f-endorsing').setAttribute('aria-pressed', 'false');
+          render();
+        }
+      });
+      document.getElementById('f-type').addEventListener('change', function (ev) { filters.type = ev.target.value; render(); });
+      document.getElementById('f-search').addEventListener('input', function (ev) { filters.q = ev.target.value; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

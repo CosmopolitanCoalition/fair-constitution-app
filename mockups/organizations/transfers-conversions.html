@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transfers &amp; conversions — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Organizations · ownership</span>
+        <h1>Transfers and conversions</h1>
+        <p class="page-intro">Ownership moves four ways: by mutual agreement between private parties, by legislative
+          acquisition of a monopoly, by conversion between public and private forms, or by dissolution. Only the
+          monopoly path ever overrides owner consent — and it carries a hardened compensation floor.</p>
+        <p class="citation">Mutual consent is the rule; legislative monopoly acquisition the sole exception · Art. I (Freedom to Contract) · Art. III §5</p>
+      </header>
+
+      <section class="card" aria-labelledby="mutual-h">
+        <h2 id="mutual-h">Mutual transfer
+          <span class="form-chip">Ownership Transfer Initiation <span class="form-id">F-ORG-005</span></span></h2>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-23 Org Agent · Creates: Transfer agreement
+          record (requires mutual consent) · <span class="citation">Art. I (Freedom to Contract)</span></p>
+        <div class="banner banner--info">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><span class="banner-title">Mutual consent is mandatory for standard transfers.</span>
+            No private acquisition proceeds unless both parties agree — there is no hostile path through this form.
+            The completed record syncs across jurisdictions with full faith &amp; credit.
+            <span class="citation">Art. I · Art. III §5 · Art. V §2</span></div>
+        </div>
+        <form id="transfer-form" novalidate style="margin-block-start:var(--space-4)">
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="tr-from">Transferring organization</label>
+              <select class="select" id="tr-from" name="tr-from"></select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="tr-to">Receiving entity</label>
+              <input class="field-input" id="tr-to" name="tr-to" type="text" placeholder="Registered organization or individual" />
+            </div>
+          </div>
+          <div class="radio-group" role="group" aria-label="Consent record">
+            <label class="checkbox"><input type="checkbox" id="tr-consent-from" /> Transferring board / owners consent on record</label>
+            <label class="checkbox"><input type="checkbox" id="tr-consent-to" /> Receiving entity consents on record</label>
+          </div>
+          <button type="submit" class="btn btn--primary" style="margin-block-start:var(--space-3)">Draft transfer instrument</button>
+        </form>
+        <div id="transfer-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="monopoly-h">
+        <h2 id="monopoly-h">Monopoly acquisition — Cobalt Grid Co., live case
+          <span class="form-chip">Monopoly Acquisition Vote <span class="form-id">F-LEG-026</span></span></h2>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-09 Legislative Representative ·
+          Modifies: Organization → converts to I-CGC; fair market compensation · <span class="citation">Art. III §5</span></p>
+        <ol class="lifecycle" style="margin-block:var(--space-3)">
+          <li class="lifecycle-stage lifecycle-stage--done">Legislative finding of monopolistic control</li>
+          <li class="lifecycle-stage lifecycle-stage--current" aria-current="step">Acquisition vote (F-LEG-026)</li>
+          <li class="lifecycle-stage">Compensation ≥ fair market</li>
+          <li class="lifecycle-stage">Conversion to CGC</li>
+          <li class="lifecycle-stage">Founding governor seats offered to prior board</li>
+        </ol>
+        <p style="font-size:var(--text-sm)"><strong>Finding (adopted 2031-04-02):</strong> Cobalt Grid Co. controls 94%
+          of regional grid interconnects in Mecklenburg County — the Mecklenburg legislature found monopolistic control
+          and opened the acquisition path. This is the only path that overrides owner consent.
+          <span class="citation">finding adopted 2031-04-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
+        <div class="grid-2">
+          <div class="card card--inset">
+            <h3 style="font-size:var(--text-base)">Acquisition vote — Mecklenburg legislature</h3>
+            <div class="meter-block">
+              <div class="meter">
+                <span class="meter-fill meter-fill--met" style="inline-size:78%"></span>
+                <span class="meter-threshold" style="inset-inline-start:55.6%"></span>
+              </div>
+              <div class="meter-caption"><span>7 of 9 serving members in favor</span><span>threshold: majority of ALL serving (5 of 9)</span></div>
+            </div>
+            <p class="gloss">Peg quorum — thresholds count all serving members, never just those present.</p>
+            <p class="citation">Majority of all serving members · Art. II §2 · Art. III §5</p>
+          </div>
+          <div class="card card--inset">
+            <h3 style="font-size:var(--text-base)">Compensation</h3>
+            <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened floor · protected by the constitutional test suite</span></p>
+            <p style="font-size:var(--text-sm)">Shareholders must be compensated at <strong>no less than fair market
+              price</strong>. The tendered offer stands at 1.08× the independent appraisal — above the floor, so the
+              engine permits the conversion to proceed.</p>
+            <p class="citation">Compensation ≥ fair market price · Art. III §5 · hardened</p>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);margin-block-start:var(--space-3)"><strong>After conversion:</strong> Cobalt
+          Grid becomes a Common Good Corporation; its five sitting directors are each offered founding seats on the new
+          Board of Governors. Its 510 workers keep their co-determination position —
+          <a href="co-determination.html">2 worker seats on today's scale</a>.
+          <span class="citation">prior board offered founding governor seats · Art. III §5 · WF-ORG-07</span></p>
+      </section>
+
+      <section class="card" aria-labelledby="convert-h">
+        <h2 id="convert-h">Public ↔ private conversion</h2>
+        <div class="grid-2">
+          <div class="card card--inset">
+            <h3 style="font-size:var(--text-base)">Public-Private Conversion Request
+              <span class="form-chip"><span class="form-id">F-ORG-006</span></span></h3>
+            <p style="font-size:var(--text-sm)">Request to convert from private to public (CGC) or vice versa.</p>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-23 Org Agent / Legislature ·
+              Modifies: Organization type</p>
+            <p class="citation">Art. III §5 (conversion provisions)</p>
+          </div>
+          <div class="card card--inset">
+            <h3 style="font-size:var(--text-base)">CGC Reorganization/Sale Vote
+              <span class="form-chip"><span class="form-id">F-LEG-027</span></span></h3>
+            <p style="font-size:var(--text-sm)">Vote to reorganize, dissolve, or sell a Common Good Corporation —
+              the public→private direction runs through the legislature, on the open market.</p>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-09 Legislative Representative ·
+              Modifies: CGC record → reorganized/dissolved/privatized</p>
+            <p class="citation">Art. III §5 · WF-ORG-09</p>
+          </div>
+        </div>
+        <div class="banner banner--warning" style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+          <div><span class="banner-title">Irreversibility: public-domain IP stays public.</span>
+            Everything a CGC produced while public entered the public domain — and remains there forever. A buyer
+            acquires the enterprise, never the right to re-enclose IP that was already public.
+            <span class="citation">CGC intellectual property is perpetually public domain · Art. III §5 · hardened</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="dissolve-h">
+        <h2 id="dissolve-h">Dissolution
+          <span class="form-chip">Organization Dissolution <span class="form-id">F-ORG-007</span></span></h2>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-23 Org Agent · Modifies: Organization
+          status → dissolved · <span class="citation">Art. I (Economic Freedom)</span></p>
+        <p style="font-size:var(--text-sm)">Winding down settles obligations, archives the public record, and ends the
+          entity. Courts can also order dissolution (WF-ORG-10).</p>
+        <form id="dissolve-form" novalidate>
+          <label class="checkbox"><input type="checkbox" id="dis-settled" /> Obligations settled and records ready for archive</label>
+          <div style="margin-block-start:var(--space-3)">
+            <button type="submit" class="btn btn--danger btn--sm">File dissolution</button>
+          </div>
+        </form>
+        <div id="dissolve-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-06.html">WF-ORG-06 (mutual ownership transfer)</a> ·
+            <a href="../flows/WF-ORG-07.html">WF-ORG-07 (monopoly / open-market acquisition)</a> ·
+            <a href="../flows/WF-ORG-09.html">WF-ORG-09 (CGC reorganization / sale / dissolution)</a> ·
+            <a href="../flows/WF-ORG-10.html">WF-ORG-10 (private organization dissolution)</a>.</p>
+          <p><strong>Entity state machine:</strong> Organization — this surface drives the
+            <em>[Transfer-Pending → Transferred]</em>, <em>[Converted Public↔Private]</em>, and <em>Dissolved</em> states.</p>
+          <p><strong>Hardened rules here:</strong> compensation ≥ fair market on monopoly acquisition; CGC IP perpetually
+            public domain. Both are enforced by the constitutional test suite, not by policy.</p>
+          <p class="citation">Art. I · Art. III §5 · Art. V §2</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'organizations/transfers-conversions',
+      title: 'Transfers and conversions',
+      module: 'organizations',
+      nav: 'org-registry',
+      roles: ['R-23', 'R-24', 'R-09'],
+      workflows: ['WF-ORG-06', 'WF-ORG-07', 'WF-ORG-09', 'WF-ORG-10'],
+      forms: ['F-ORG-005', 'F-LEG-026', 'F-ORG-006', 'F-LEG-027', 'F-ORG-007'],
+      citation: 'Mutual consent mandatory; monopoly path compensates ≥ fair market (hardened) · Art. III §5',
+      flow: 'WF-ORG-07',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* private orgs only — CGCs transfer through the legislature (F-LEG-027) */
+      var fromSel = document.getElementById('tr-from');
+      W.organizations.filter(function (o) { return o.type !== 'common_good_corp'; }).forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o.id; opt.textContent = o.name + ' (' + o.type.replace(/_/g, ' ') + ')';
+        if (o.id === 'northstar-equal-partners') opt.selected = true;
+        fromSel.appendChild(opt);
+      });
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+        S.refresh();
+      }
+
+      document.getElementById('transfer-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var both = document.getElementById('tr-consent-from').checked && document.getElementById('tr-consent-to').checked;
+        var to = document.getElementById('tr-to').value.trim();
+        var box = document.getElementById('transfer-confirm');
+        if (!both) {
+          box.innerHTML = '<div class="banner banner--warning">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Blocked: mutual consent is mandatory.</span> Both parties must consent ' +
+            'on the record before a transfer instrument can be drafted — the engine rejects anything less. ' +
+            '<span class="citation">Art. I (Freedom to Contract) · Art. III §5</span></div></div>';
+          return;
+        }
+        if (!to) {
+          box.innerHTML = '<p class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Name the receiving entity to draft the instrument.</p>';
+          return;
+        }
+        var from = BY.organizations[fromSel.value];
+        box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
+          '<div><span class="banner-title">Simulated: transfer instrument drafted.</span> ' +
+          S.badge('info', 'Transfer-Pending', 'clock') + ' ' + esc(from.name) + ' → ' + esc(to) +
+          ' — awaiting counterparty signature; on completion the record syncs across jurisdictions with full faith &amp; credit. ' +
+          '<span class="citation">F-ORG-005 · Art. V §2 · WF-ORG-06</span></div></div>';
+        S.refresh();
+      });
+
+      document.getElementById('dissolve-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var box = document.getElementById('dissolve-confirm');
+        if (!document.getElementById('dis-settled').checked) {
+          box.innerHTML = '<p class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) +
+            ' Confirm that obligations are settled before filing.</p>';
+          return;
+        }
+        box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
+          '<div><span class="banner-title">Simulated: dissolution filed.</span> ' +
+          S.badge('neutral', 'Dissolved — winding down', 'clock') +
+          ' Obligations settle, the public record is archived, and the entity ends. <span class="citation">F-ORG-007 · WF-ORG-10 · Art. I</span></div></div>';
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>
