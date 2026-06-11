@@ -1,0 +1,167 @@
+# CGA Mockups — MANIFEST
+
+Human-readable handoff map. The machine-readable version is [`manifest.json`](manifest.json)
+(one record per screen/flow page, §16 schema); [`manifest.js`](manifest.js) is its byte-equivalent
+mirror loaded via `<script src>` so the coverage matrix and launchpad work on `file://` with zero
+fetch. **This file is the bridge the production implementation work reads first.**
+
+Build stage status: **Stage 0 — Foundation** complete. Stages 1–7 pending (build order §14).
+
+---
+
+## 1. §2 discrepancy resolutions — as applied
+
+Canonical source: `CGA_Constitutional_Roles_Forms_Chart.xlsx`. The workflows catalog drifts from it;
+every drift is resolved once in `assets/js/fixtures.js` (`registry.forms[].aliases`) and surfaced
+in the coverage matrix. On screens, the rule is **form name first, ID second** so drift can never
+mislead a reader.
+
+| Canonical | Catalog alias | Where the catalog uses it |
+|---|---|---|
+| R-21 Advocate / R-22 Juror | swapped (R-22 Advocate, R-21 Juror) | WF-CIV-07 (Sheet 1 row 10; Sheet 2 row 153), WF-JUD-03/04 (Sheet 1 rows 56–57) |
+| F-CHR-001…004 (committee chair) | F-COM-001…004 | WF-LEG-06/08 inventory rows |
+| F-BOG-001/002 (board of governors) | F-GOV-001/002 | WF-EXE-09 inventory row |
+| F-IND-004 Identity Verification Submission | F-IND-005 | WF-CIV-01 |
+| F-IND-005 GPS Residency Ping | F-IND-004 | WF-CIV-02 |
+| F-IND-016 Constitutional Challenge Filing | F-IND-013 | WF-JUD-05 (new find — not in §2; F-IND-013 is canonically Organization Membership Application) |
+| F-LEG-022 Removal/Impeachment/Censure/Expulsion | F-LEG-034 | impeachment flows |
+| F-LEG-023 Referendum Delegation | F-LEG-022 | WF-LEG-10 |
+| F-LEG-024 Emergency Powers Declaration | F-LEG-023 | WF-LEG-11 |
+| F-LEG-025 Emergency Powers Renewal | F-LEG-024 | WF-LEG-11 |
+| F-LEG-036 Vacancy Declaration | F-LEG-030 | WF-ELE-03, WF-LEG-12 |
+
+Other §2 resolutions applied:
+
+- **80 workflows** (CIV 8 · ELE 10 · LEG 20 · EXE 9 · JUD 9 · ORG 10 · JUR 9 · SYS 5) — counted from
+  the Sheet 1 inventory; the catalog Read Me still claims "63". Inventory is authoritative.
+- **Factions → organizations.** No faction layer anywhere. The constitution's faction touchpoints
+  (verified verbatim): Art. II §2 *Establish Proportional Voting Systems*, Art. II §2 *Ensure
+  Election Security and Integrity*, Art. II §4 *Committees* (three clauses), Art. III §2 *Executive
+  Committee composition*. All four are ledgered ([constitutional-questions #q1](shared/constitutional-questions.html#q1)).
+  The word "faction" appears only inside verbatim constitutional citations.
+- **Committee tie-break** uses the repo wording — largest vote share after normalizing quotas —
+  cited `Art. II §4 · as implemented`, linking to [#q2](shared/constitutional-questions.html#q2).
+- **Geography is real, pre-united.** adm 0 Earth → 1 national → 2 state/province → 3 county →
+  4 local → 5+ sub-local; slugs `{iso3}-{adm_level}-{name}`; cosmic chain
+  Multiverse → … → Solar System → Earth; **no supranational tier**.
+
+**Citation-dictionary correction (verified against `Fair_Constitution_Labeled.docx`):**
+Art. II §8 is titled *Legislatures: Forbidden Actions*. Its subsections carry the citations the
+build instructions gloss as "Art. II §8": juror/civic-service protections cite
+`Art. II §8 · Non-Interference with Civic Obligations` and
+`Art. II §8 · Prohibition of Compulsory Payments for Civic Rights`; the mandatory >9 split cites
+`Art. II §8 · Subdivision of Legislatures`. The "drawn equally, contiguously, and fairly" boundary
+language lives in `Art. II §2 · Establish Independent Election Boards`.
+
+**Definitive registry counts** (from fresh sheet dumps, not summaries): 30 roles · 17 institutions ·
+**103 forms** (the instructions' "~110" was an estimate) · 80 workflows · 21 clocks ·
+20 entity state machines · 33 special vote types · 30 bootstrap steps.
+
+## 2. `--adm-N` aliases + ramp-rename recommendation
+
+`mockup.css` defines `--adm-0…5` (with paired `--adm-N-fg`) as the only tier tokens components may
+use, mapped **altitude-true** onto the existing six-color ramp:
+
+| Alias | Ramp token | Level |
+|---|---|---|
+| `--adm-0` | `--tier-planetary` (brand purple) | Earth |
+| `--adm-1` | `--tier-supranational` | National |
+| `--adm-2` | `--tier-national` | State / Province |
+| `--adm-3` | `--tier-regional` | County / Region |
+| `--adm-4` | `--tier-municipal` | Local |
+| `--adm-5` | `--tier-neighborhood` (teal) | Sub-local |
+
+Because Earth has no supranational tier, the hues named `national`/`supranational` are recycled one
+slot down. **Design-system recommendation: rename the ramp tokens altitude-neutral
+(`--tier-1…6` or `--adm-0…5`)** so token names stop encoding a tier model the product doesn't have.
+Chips always pair color with a text label (WCAG 1.4.1).
+
+## 3. Architecture decisions
+
+- **No ES modules, no fetch on the critical path.** Plain IIFEs on `window.CGA`; data travels via
+  `<script src>` globals and URL query params, so `file://` behaves identically to http(s).
+- **Load order** (every page): `demo-state.js` in `<head>` (sets `lang`/`dir` pre-paint), then at
+  the end of `<body>`: `fixtures.js` → `manifest.js` → `icons.js` → `i18n.js` → `shell.js`
+  (→ page script). `shell.js` hard-fails with a visible banner if the order is wrong.
+- **Page contract:** each page ships only `<main id="main">` + a `window.CGA_PAGE` config
+  (`id, title, module, nav, roles, workflows, forms, citation, flow, register`). The shell renders
+  header / role-aware sidebar / footer / demo bar from one NAV object and warns in the console if
+  the page has no manifest record (QA §15 hook).
+- **Demo state** `{role, persona, jurisdiction, locale, dir, scenario}` — defaults ← localStorage
+  (best-effort) ← URL params (**URL wins**); every internal link is rewritten through
+  `CGA.state.link()` so state survives navigation even where storage is blocked. Scenario-flag
+  vocabulary (frozen): `election: approval|ranked|certifying`, `emergency`, `challenge`,
+  `quorumFails`, `bicameral`, `countbackFailed`, `restoration`, `unionDrill`.
+- **flowData contract** (frozen; stress-tested on the style guide against WF-CIV-02, WF-ELE-03,
+  WF-JUD-05): header card · steps `{n, actor, action, form|engine, outcome, screen{href, params},
+  branches[{label, goto: stepN | {wf, step} | "terminal:STATE"}], entityState?}` · entity
+  state-strip · deep links via `CGA.state.link`. Flow pages (Stages 1–6) are pure data + this
+  renderer.
+- **Icons:** Lucide-style local SVG sprite (`assets/js/icons.js`, stroke-width 2) injected once and
+  referenced same-document — the design README's flagged substitution, with the offline-fallback
+  set promoted to primary so no runtime CDN exists (`file://`-proof). Standalone copies in
+  `assets/img/icons/`. Production may swap to the `lucide` package.
+- **Fonts:** `colors_and_type.css` @imports Google Fonts; offline/`file://` falls back to the
+  system stack by design. No woff2 files were supplied (design README FONTS note).
+- **i18n:** full `en` chrome strings; `es/ar/zh-Hans/hi` stubs falling back to `en`; `en-XA`
+  pseudo-locale (accents + ~35 % expansion + ⟦brackets⟧, skipping citations/code/IDs) and an RTL
+  override live in the demo bar. RTL correctness is carried entirely by logical-properties CSS +
+  directional-icon flips — there are no `[dir="rtl"]` layout overrides to maintain.
+
+### Regenerating the manifest mirror (every stage commit)
+
+```powershell
+python -c "import json; d=json.load(open('mockups/manifest.json',encoding='utf-8')); open('mockups/manifest.js','w',encoding='utf-8').write('/* GENERATED from manifest.json - regenerate with the snippet in MANIFEST.md. */\nwindow.CGA_MANIFEST = '+json.dumps(d,ensure_ascii=False,indent=1)+';\n')"
+```
+
+The coverage page deep-compares the two over http(s) and shows a drift banner.
+
+## 4. Component inventory (Stage 0 — live on [the style guide](shared/styleguide.html))
+
+Candidates for shared Vue components in the production build:
+
+| Component | Classes | Suggested Vue component |
+|---|---|---|
+| App shell (header/sidebar/footer) | `.app-shell .app-header .sidebar .app-footer` | `Layouts/AppLayout.vue` (exists — reconcile) |
+| Jurisdiction switcher + cosmic prefix | `.jur-switcher .cosmic-prefix .adm-chip--N .adm-sep` | `Components/JurisdictionSwitcher.vue` |
+| ADM chip / tier dot | `.adm-chip .tier-dot` | `Components/AdmChip.vue` |
+| Status badge | `.badge--success/warning/danger/info/neutral` | `Components/StatusBadge.vue` |
+| Citation / as-implemented marker | `.citation .citation--implemented` | `Components/Citation.vue` |
+| Hardened chip / amendable block | `.hardened .amendable` | `Components/HardenedRule.vue` / `AmendableSetting.vue` |
+| Form chip / engine chip | `.form-chip .engine-chip` | `Components/FormChip.vue` |
+| Org chip / persona chip / avatar | `.org-chip .persona-chip .avatar` | `Components/OrgChip.vue` etc. |
+| Card / inset card / about-surface | `.card .card--inset .about-surface` | `Components/Card.vue` |
+| Buttons | `.btn--primary/secondary/ghost/gold/danger/sm` | `Components/Button.vue` (ui-kit parity) |
+| Fields | `.field .field-input .field-hint .field-error .select .radio-group .checkbox` | `Components/Field.vue` |
+| Stat | `.stat .stat--accent` | `Components/Stat.vue` |
+| Registry table | `.table .table-wrap` | `Components/RegistryTable.vue` |
+| Horizontal stepper | `.stepper .stepper-step--done/--active` | `Components/SetupStepper.vue` (exists) |
+| Flow walkthrough stepper | `.flow-steps .flow-step .flow-actor .flow-branches .branch-btn` | `Components/FlowStepper.vue` |
+| Entity state strip | `.state-strip .state-node--current` | `Components/StateStrip.vue` |
+| Lifecycle tracker | `.lifecycle .lifecycle-stage--current` | `Components/LifecycleTracker.vue` |
+| Banners | `.banner--info/warning/emergency/demo` | `Components/Banner.vue` |
+| Threshold meter | `.meter .meter-fill .meter-threshold .meter-caption` | `Components/ThresholdMeter.vue` |
+| Achievement toast (proposed) | `.toast--achievement .proposed-flag` | gamification layer — flagged proposed |
+| Coverage matrix | `.coverage-table .coverage-cell--*` | QA tooling only |
+| Demo bar | `.demo-bar .demo-control` | mockup-only — not product UI |
+
+## 5. A11y posture & how to run the checks
+
+Every page: semantic landmarks, one `h1`, skip link, gold `:focus-visible` ring, keyboard-operable
+controls (steppers, branch buttons, popovers are native `<details>`), status never color-only,
+`prefers-reduced-motion` honored, touch targets ≥ 24 px, logical properties only.
+
+Scripted scans (run from repo root; results recorded per stage):
+
+```powershell
+# zero hex literals outside colors_and_type.css; zero physical left/right properties; no emoji
+python mockups/tools/qa_scan.py
+```
+
+Manual per stage: keyboard-only walkthrough; RTL flip + pseudo-locale on the style guide;
+380 px-wide pass on civic/electoral screens. axe-core/Pa11y was not available in this environment
+at Stage 0 — the §13 scripted+manual subset ran instead; revisit in Stage 7.
+
+### Stage 0 QA results
+
+Recorded after the Stage 0 scans — see the commit message and `tools/qa_scan.py` output.

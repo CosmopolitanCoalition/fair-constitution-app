@@ -1,0 +1,65 @@
+/* GENERATED from manifest.json — regenerate with the snippet in MANIFEST.md. */
+window.CGA_MANIFEST = [
+ {
+  "file": "index.html",
+  "title": "Launchpad — role picker & workflow directory",
+  "module": "shared",
+  "roles": [],
+  "workflows": [],
+  "forms": [],
+  "entities": [],
+  "clocks": [],
+  "suggestedVuePage": null,
+  "notes": "Mockup-only surface (not a product screen). Brand register hero; role picker for all 30 roles in 7 tiers; 80-workflow directory; unbuilt targets render as Planned cards so dead links are structurally impossible.",
+  "stage": 0
+ },
+ {
+  "file": "shared/styleguide.html",
+  "title": "Style guide — live component sheet",
+  "module": "shared",
+  "roles": [],
+  "workflows": [
+   "WF-CIV-02",
+   "WF-ELE-03",
+   "WF-JUD-05"
+  ],
+  "forms": [],
+  "entities": [
+   "Residency Claim",
+   "Vacancy",
+   "Constitutional Challenge"
+  ],
+  "clocks": [],
+  "suggestedVuePage": null,
+  "notes": "Every mockup.css component rendered inside the real shell; flow-stepper contract stress-tested live against the three sample workflows; RTL/pseudo-locale canary block. Component inventory source for MANIFEST.md.",
+  "stage": 0
+ },
+ {
+  "file": "shared/coverage.html",
+  "title": "Coverage matrix — roles × workflows × forms",
+  "module": "shared",
+  "roles": [],
+  "workflows": [],
+  "forms": [],
+  "entities": [],
+  "clocks": [],
+  "suggestedVuePage": null,
+  "notes": "Generated at load by coverage.js from fixtures.registry × manifest.js. Includes manifest.json drift check and dead-link scan (http only). QA §15 instrument.",
+  "stage": 0
+ },
+ {
+  "file": "shared/constitutional-questions.html",
+  "title": "Constitutional questions — the implementation ledger",
+  "module": "shared",
+  "roles": [],
+  "workflows": [
+   "WF-SYS-05"
+  ],
+  "forms": [],
+  "entities": [],
+  "clocks": [],
+  "suggestedVuePage": "resources/js/Pages/System/ConstitutionalQuestions.vue",
+  "notes": "Stage-0 stub: the five seed ledger entries with stable anchors (#q1–#q5) so every '· as implemented' citation marker has a live target from Stage 1. Full prose lands in Stage 6.",
+  "stage": 0
+ }
+];

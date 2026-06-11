@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CGA mockups — launchpad</title>
+  <link rel="icon" href="assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="assets/css/mockup.css" />
+  <script src="assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="launchpad-hero" style="margin-inline:calc(-1 * var(--space-6)); margin-block-start:calc(-1 * var(--space-8));">
+      <img class="emblem" src="assets/img/social-square-purple.svg" alt="Cosmopolitan Coalition of United Earth emblem — azimuthal world map wreathed in olive branches" />
+      <p class="kosmopolites">Kosmopolitês</p>
+      <h1>Cosmopolitan Governance App — design mockups</h1>
+      <p class="tagline">Representation for Every One, Every Where, All the Time.</p>
+      <p style="max-inline-size:44rem;margin-inline:auto">A navigable design contract for the operational app: every role, every workflow,
+        every form — over real Earth geography with fictional people. Built from
+        <em>A Fair Constitution (the Cosmopolitan Template)</em>.</p>
+    </div>
+
+    <div class="stack" style="margin-block-start:var(--space-8)">
+      <div class="banner banner--demo">
+        <div>
+          <span class="banner-title">This is a mockup site, not the product.</span>
+          Interactions are simulated; no data leaves the page. Use the controls in the bar below to assume any of the
+          30 constitutional roles, switch jurisdictions, flip scenarios, and test locales.
+          Sections still to be built are marked with their build stage.
+        </div>
+      </div>
+
+      <section aria-labelledby="roles-h">
+        <h2 id="roles-h">Enter as a role</h2>
+        <p class="page-intro">All 30 constitutional roles in their 7 tiers (roles chart Sheet 1). Each card opens that
+          role’s entry surface with the demo persona preset. <span class="citation">Voting and candidacy require nothing beyond
+          jurisdictional residency · Art. I</span></p>
+        <div id="role-picker" class="stack"><noscript>Role picker requires JavaScript. The static entry point is
+          <a href="shared/styleguide.html">the style guide</a>.</noscript></div>
+      </section>
+
+      <section aria-labelledby="wf-h">
+        <h2 id="wf-h">Workflow directory</h2>
+        <p class="page-intro">All 80 workflows from the catalog inventory (CIV 8 · ELE 10 · LEG 20 · EXE 9 · JUD 9 · ORG 10 · JUR 9 · SYS 5).
+          Each gets a step-by-step walkthrough page with every BRANCH and failure path.</p>
+        <div id="wf-directory" class="stack"></div>
+      </section>
+
+      <section aria-labelledby="world-h">
+        <h2 id="world-h">The demo world</h2>
+        <div class="grid-2">
+          <div class="card">
+            <span class="eyebrow">Geography — real, pre-united</span>
+            <p style="margin-block-start:var(--space-2)">The app preloads actual Earth geography (geoBoundaries + WorldPop + OSM).
+              Nations parent directly to Earth — there is no supranational tier.</p>
+            <div id="jurisdiction-stack" class="stack" style="gap:var(--space-2)"></div>
+          </div>
+          <div class="card">
+            <span class="eyebrow">People & organizations — fictional</span>
+            <p style="margin-block-start:var(--space-2)">Twelve named personas (plus stand-ins so every role is assumable) and
+              endorsing organizations of every <code class="cc-code">organization_type</code>. There is no faction layer —
+              any organization or individual can endorse any candidate.</p>
+            <div id="persona-roster" class="cluster"></div>
+            <hr />
+            <div id="org-roster" class="cluster"></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="handoff-h">
+        <h2 id="handoff-h">Coverage & handoff</h2>
+        <div class="grid-2" id="handoff-links"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'index',
+      title: 'Launchpad',
+      module: 'shared',
+      nav: 'launchpad',
+      roles: [], workflows: [], forms: [],
+      citation: 'CGA mockups · design contract for the production build',
+      flow: null,
+      register: 'brand'
+    };
+  </script>
+  <script src="assets/js/fixtures.js"></script>
+  <script src="manifest.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, R = F.registry, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* ------------------------------------------------- role picker */
+      var tiers = [];
+      R.roles.forEach(function (r) { if (tiers.indexOf(r.tier) < 0) tiers.push(r.tier); });
+      var html = '';
+      tiers.forEach(function (tier) {
+        html += '<div><span class="eyebrow">' + esc(tier.toLowerCase()) + ' tier</span><div class="role-grid" style="margin-block-start:var(--space-2)">';
+        R.roles.filter(function (r) { return r.tier === tier; }).forEach(function (r) {
+          var persona = BY.personas[r.defaultPersona];
+          var built = S.isBuilt(r.entryScreen);
+          var inner = '<span class="role-id">' + r.id + '</span>' +
+            '<span class="role-name">' + esc(r.name) + '</span>' +
+            '<span>' + esc(r.shortName) + '</span>';
+          if (built) {
+            html += '<a class="role-card" href="' + S.href(r.entryScreen, { role: r.id, persona: r.defaultPersona }) + '">' +
+              inner + '<span class="enter-as">Enter as ' + esc(persona ? persona.name : r.defaultPersona) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+          } else {
+            html += '<div class="role-card role-card--planned">' + inner + S.plannedFlag(r.entryScreen) + '</div>';
+          }
+        });
+        html += '</div></div>';
+      });
+      document.getElementById('role-picker').innerHTML = html;
+
+      /* --------------------------------------------- workflow directory */
+      var fams = { CIV: 'Civic', ELE: 'Electoral', LEG: 'Legislative', EXE: 'Executive', JUD: 'Judicial', ORG: 'Organizational', JUR: 'Jurisdictional & federation', SYS: 'System' };
+      var wfHtml = '';
+      Object.keys(fams).forEach(function (fam) {
+        var rows = R.workflows.filter(function (w) { return w.family === fam; });
+        wfHtml += '<details class="about-surface"><summary>' + S.icon('chevron-right', { size: 'sm' }) + esc(fams[fam]) +
+          ' <span class="citation">' + rows.length + ' workflows</span></summary><div class="about-surface-body">';
+        rows.forEach(function (w) {
+          var built = S.isBuilt(w.flowPage);
+          wfHtml += '<div class="wf-row"><span class="wf-id">' + w.id + '</span>' +
+            (built ? '<a href="' + S.href(w.flowPage) + '">' + esc(w.name) + '</a>' : '<span>' + esc(w.name) + '</span> ' + S.plannedFlag(w.flowPage)) +
+            '<span class="citation">' + esc(w.basis || '') + '</span></div>';
+        });
+        wfHtml += '</div></details>';
+      });
+      document.getElementById('wf-directory').innerHTML = wfHtml;
+
+      /* ----------------------------------------------- world cards */
+      var jur = '';
+      W.defaultChain.forEach(function (slug) {
+        var j = BY.jurisdictions[slug];
+        var lvl = Math.min(j.admLevel, 5);
+        jur += '<div class="cluster"><span class="adm-chip adm-chip--' + lvl + '">' + esc(j.name) + '</span>' +
+          '<span class="citation">adm ' + j.admLevel + ' · ' + esc(S.admLabel(j.admLevel)) + ' · pop ' + S.formatPop(j.population) +
+          ' (' + j.populationYear + ') · ' + esc(j.source) + '</span></div>';
+      });
+      var smr = BY.jurisdictions['smr-1-san-marino'];
+      jur += '<div class="cluster"><span class="adm-chip adm-chip--1">' + esc(smr.name) + '</span>' +
+        '<span class="citation">honest gap — chain stops at adm 2 (' + esc(smr.dataGap) + ')</span></div>';
+      document.getElementById('jurisdiction-stack').innerHTML = jur;
+
+      document.getElementById('persona-roster').innerHTML = W.personas.filter(function (p) { return !p.standIn; }).map(function (p) {
+        return '<span class="persona-chip"><span class="avatar" aria-hidden="true">' + esc(p.initials) + '</span>' + esc(p.name) +
+          ' <span class="persona-roles">' + p.roles.join(' ') + '</span></span>';
+      }).join('');
+
+      document.getElementById('org-roster').innerHTML = W.organizations.map(function (o) {
+        return '<span class="org-chip">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+      }).join('');
+
+      /* ----------------------------------------------- handoff links */
+      var links = [
+        { rel: 'shared/coverage.html', title: 'Coverage matrix', note: 'Live proof that all 30 roles, 80 workflows, and 103 forms are covered — regenerated from the manifest on every load.' },
+        { rel: 'shared/styleguide.html', title: 'Style guide', note: 'Every component in the mockup design layer, rendered live inside the real shell. The component inventory for the Vue build.' },
+        { rel: 'shared/constitutional-questions.html', title: 'Constitutional questions', note: 'The ledger of implementation-discovered questions — the seed list for the post-game redraft of A Fair Constitution.' },
+        { rel: 'MANIFEST.md', title: 'MANIFEST.md', note: 'Human-readable handoff map: §2 ID-drift resolutions as applied, component inventory, suggested Vue page paths.' }
+      ];
+      document.getElementById('handoff-links').innerHTML = links.map(function (l) {
+        var isDoc = /\.md$/.test(l.rel);
+        var target = isDoc ? l.rel : S.href(l.rel);
+        return '<a class="role-card" href="' + target + '"><span class="role-name">' + esc(l.title) + '</span><span>' + esc(l.note) + '</span></a>';
+      }).join('');
+
+      document.addEventListener('cga:statechange', function () {
+        /* chrome re-renders itself; launchpad content is locale-static (en) apart from pseudo transform handled by shell */
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Constitutional questions — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">The ledger</span>
+        <h1>Constitutional questions</h1>
+        <p class="page-intro">The running record of constitutional questions discovered by building the simulation —
+          written as the seed list for the post-game redraft of <em>A Fair Constitution</em> and the workbooks.
+          Every <span class="citation">· as implemented</span> citation marker across these mockups links here.
+          Transparency about evolution is the brand voice.</p>
+        <p class="citation">Cross-links: WF-SYS-05 · system/amendments.html · Art. VII</p>
+        <div class="banner banner--info" style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><span class="banner-title">Stage-0 stub</span> The five seed entries are anchored and summarized below so
+            citation markers have a live target from Stage 1; the full prose treatment lands with Stage 6.</div>
+        </div>
+      </header>
+
+      <section class="card" id="q1" aria-labelledby="q1-h">
+        <h2 id="q1-h">1 · Factions → polymorphic endorsements</h2>
+        <p class="citation">Touches: Art. II §2 · Establish Proportional Voting Systems — Art. II §2 · Ensure Election Security and Integrity — Art. II §4 · Committees (three clauses) — Art. III §2 · Composition and Selection of Executive Committees</p>
+        <p><strong>What the build surfaced:</strong> the running experiment removed the faction layer entirely.
+          STV satisfies factional-makeup matching at the individual-preference level with no party layer;
+          observer/audit standing transfers to endorsing organizations and candidates.</p>
+        <p><strong>Implemented answer:</strong> a universal organizations model
+          (<code class="cc-code">political_party | business | nonprofit | common_good_corp | informal</code>) plus
+          polymorphic endorsements — any organization <em>or individual</em> can endorse any candidate; members with no
+          endorsing organization are first-class.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" id="q2" aria-labelledby="q2-h">
+        <h2 id="q2-h">2 · Committee tie-break — normalized-quota vote share</h2>
+        <p class="citation">Touches: Art. II §4 · Committee Seat Assignment Process</p>
+        <p><strong>What the build surfaced:</strong> the constitutional tie-break ("each members own 1st choice vote
+          performance in the prior election") assumes raw 1st-choice counts are comparable — but STV quota transfers make
+          them incommensurable across winners.</p>
+        <p><strong>Implemented answer:</strong> ties go to the seat holder with the largest share of votes after
+          normalizing quotas — preserving the proportionality the STV election produced and one-person-one-vote, with no
+          faction layer.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" id="q3" aria-labelledby="q3-h">
+        <h2 id="q3-h">3 · Legislature sizing — the cube-root law</h2>
+        <p class="citation">Touches: Art. II §2 · Establish Independent Election Boards (min 5 / max 9 + subdivision)</p>
+        <p><strong>What the build surfaced:</strong> the constitution bounds a chamber (5–9) but is silent on how many
+          population-apportioned seats a parent legislature should have in total.</p>
+        <p><strong>Implemented answer:</strong> <code class="cc-code">legislature_sizing_law</code> (v1:
+          <code class="cc-code">cube_root</code> only) — total seats = max(5, round(∛ Σ direct-children population)).
+          Future alternative laws reserved.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" id="q4" aria-labelledby="q4-h">
+        <h2 id="q4-h">4 · Districting — composites of child jurisdictions</h2>
+        <p class="citation">Touches: Art. II §2 · Establish Independent Election Boards ("drawn equally, contiguously, and fairly") — Art. II §8 · Subdivision of Legislatures</p>
+        <p><strong>What the build surfaced:</strong> free-form line-drawing fights community integrity and auditability.</p>
+        <p><strong>Implemented answer:</strong> districts are Webster-apportioned composites of direct child
+          jurisdictions, each within the constitutional 5–9 seat range; oversized ("giant") children recurse into their
+          own sub-district budgets. Leaf giants — above the ceiling with no subdivisions — still require manual
+          line-drawing: the open frontier.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" id="q5" aria-labelledby="q5-h">
+        <h2 id="q5-h">5 · Open-ballot two-phase elections</h2>
+        <p class="citation">Touches: Art. II §2 · Ensure the Right to Vote and Stand for Election — Art. I · Right to Vote / Right to Stand for Office</p>
+        <p><strong>What the build surfaced:</strong> a continuous, filterable approval phase (opening the moment the
+          prior election certifies) with a finalist line (top X per race, X = f(seats) · CLK-21) makes the
+          right-to-stand guarantee operational at planetary candidate counts — while write-in of any validated candidate
+          preserves the right absolutely.</p>
+        <p><strong>Implemented answer:</strong> two-phase elections: continuous approval → finalist cutoff → time-boxed
+          ranked window → one-count PR-STV (Droop quota, Gregory fractional transfers) filling all seats per district.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'shared/constitutional-questions',
+      title: 'Constitutional questions',
+      module: 'shared',
+      nav: 'ledger',
+      roles: [], workflows: ['WF-SYS-05'], forms: [],
+      citation: 'Art. VII · the seed list for the post-game redraft',
+      flow: 'WF-SYS-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+</body>
+</html>

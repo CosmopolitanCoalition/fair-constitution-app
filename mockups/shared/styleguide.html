@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Style guide — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Design contract</span>
+        <h1>Style guide</h1>
+        <p class="page-intro">Every component in <code class="cc-code">mockup.css</code>, rendered live inside the real shell.
+          Built exclusively from <code class="cc-code">colors_and_type.css</code> tokens — zero hex literals, CSS logical
+          properties only. Flip RTL and the pseudo-locale in the mockup bar below: nothing on this page may break.</p>
+        <p class="citation">Register: governance · flat dark neutrals · citations everywhere · no emoji</p>
+      </header>
+
+      <section class="card" aria-labelledby="sg-adm">
+        <h2 id="sg-adm">Jurisdiction tier aliases — <code class="cc-code">--adm-0…5</code></h2>
+        <p>Altitude-true mapping over the six-color ramp: Earth gets brand purple at the top, sub-local gets teal at the
+          bottom. The chip always carries a text label — color is never the sole signal.</p>
+        <div class="cluster">
+          <span class="adm-chip adm-chip--0">Earth</span>
+          <span class="adm-chip adm-chip--1">United States</span>
+          <span class="adm-chip adm-chip--2">North Carolina</span>
+          <span class="adm-chip adm-chip--3">Mecklenburg County</span>
+          <span class="adm-chip adm-chip--4">Charlotte</span>
+          <span class="adm-chip adm-chip--5">Plaza Midwood</span>
+        </div>
+        <p class="cc-small" style="margin-block-start:var(--space-3)">Breadcrumb form (as in the header switcher):</p>
+        <div class="cluster">
+          <span class="adm-chip adm-chip--0">Earth</span><span class="adm-sep">›</span>
+          <span class="adm-chip adm-chip--1">United States</span><span class="adm-sep">›</span>
+          <span class="adm-chip adm-chip--2">North Carolina</span><span class="adm-sep">›</span>
+          <span class="adm-chip adm-chip--3">Mecklenburg County</span><span class="adm-sep">›</span>
+          <span class="adm-chip adm-chip--4">Charlotte</span><span class="adm-sep">›</span>
+          <span class="adm-chip adm-chip--5">Plaza Midwood</span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Recommendation logged in MANIFEST.md: rename the ramp tokens altitude-neutral (--adm-0…5)</p>
+      </section>
+
+      <section class="card" aria-labelledby="sg-type">
+        <h2 id="sg-type">Type roles</h2>
+        <p class="cc-display" data-no-i18n>Kosmopolitês</p>
+        <p class="gloss">.cc-display — Instrument Serif, launchpad flourish only</p>
+        <p class="cc-h1" style="color:var(--gov-fg)">Heading one — sentence case always</p>
+        <p class="cc-h2" style="color:var(--gov-fg)">Heading two for section titles</p>
+        <p class="cc-h3" style="color:var(--gov-fg)">Heading three for card titles</p>
+        <p class="cc-body">Body copy at 1rem/1.55 — generous line-height so German, Finnish, CJK, and Devanagari survive.
+          Address the citizen as you; keep governance copy declarative and plain.</p>
+        <p class="cc-small">Small text for secondary copy.</p>
+        <p class="cc-eyebrow">Eyebrow / overline label</p>
+        <p class="citation">Mono is reserved for citations, IDs, hashes, numbers · Art. II §2</p>
+      </section>
+
+      <section class="card" aria-labelledby="sg-buttons">
+        <h2 id="sg-buttons">Buttons</h2>
+        <div class="cluster">
+          <button type="button" class="btn btn--primary">Continue</button>
+          <button type="button" class="btn btn--secondary">Save draft</button>
+          <button type="button" class="btn btn--ghost">Cancel</button>
+          <button type="button" class="btn btn--gold">Commit ballot</button>
+          <button type="button" class="btn btn--danger">Withdraw candidacy</button>
+          <button type="button" class="btn btn--primary" disabled>Disabled</button>
+          <button type="button" class="btn btn--secondary" aria-pressed="true">Pressed toggle</button>
+          <button type="button" class="btn btn--secondary btn--sm">Small</button>
+        </div>
+        <p class="gloss">Focus is the gold ring — press Tab to verify; never a default blue outline.</p>
+      </section>
+
+      <section class="card" aria-labelledby="sg-fields">
+        <h2 id="sg-fields">Form fields</h2>
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label class="field-label" for="sg-in1">Minimum seats per legislature</label>
+              <input class="field-input" id="sg-in1" type="number" value="5" />
+              <span class="field-hint citation">Default of defaults: 5 · Art. II §2</span>
+            </div>
+            <div class="field field--invalid">
+              <label class="field-label" for="sg-in2">Maximum seats per legislature</label>
+              <input class="field-input" id="sg-in2" type="number" value="12" aria-describedby="sg-in2-err" aria-invalid="true" />
+              <span class="field-error" id="sg-in2-err"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
+                Cannot exceed 9 — mandatory subdivision above · Art. II §2</span>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label class="field-label" for="sg-sel">Voting method</label>
+              <select class="select" id="sg-sel">
+                <option>STV with Droop quota</option>
+              </select>
+              <span class="field-hint">Can only be replaced by a more proportional method. <span class="citation">Art. VII</span></span>
+            </div>
+            <fieldset class="field" style="border:0;padding:0;margin:0">
+              <legend class="field-label">Time mode</legend>
+              <div class="radio-group">
+                <label class="radio"><input type="radio" name="sg-r" checked /> Real-time</label>
+                <label class="radio"><input type="radio" name="sg-r" /> Accelerated</label>
+              </div>
+            </fieldset>
+            <label class="checkbox"><input type="checkbox" checked /> Notify me when the finalist line moves</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-citations">
+        <h2 id="sg-citations">Citations · hardened vs amendable</h2>
+        <p>The signature voice move — nearly every rule carries its constitutional source in mono:</p>
+        <p class="citation">Peg quorum: 5 of 9 serving · Art. II §2</p>
+        <p class="citation">Supermajority: ceil(serving × 2/3) = 6 of 9 · Art. VII</p>
+        <p>Where the implementation intentionally supersedes the constitutional mechanism, the citation says so honestly
+          and links to the ledger:</p>
+        <p class="citation">Ties go to the largest vote share after normalizing quotas · Art. II §4 ·
+          <a href="constitutional-questions.html#q2">as implemented</a></p>
+        <hr />
+        <div class="grid-2">
+          <div>
+            <span class="hardened"><svg class="icon icon--sm lock-glyph" aria-hidden="true"><use href="#i-lock"></use></svg>
+              Hardened · protected by the constitutional test suite</span>
+            <p class="cc-small" style="margin-block-start:var(--space-2)">STV algorithm, peg quorum, supermajority formula,
+              bicameral dual agreement, rights enforcement.</p>
+          </div>
+          <div class="amendable">
+            <span class="amendable-value">Election interval: 60 months</span>
+            <span class="amendable-meta">Set by Act 2031-14 · effective 2031-03-01 · range 12–120 months · Art. II §2</span>
+            <p class="cc-small" style="margin-block-start:var(--space-2)">Amendable settings show current value, allowed
+              range, and the enacting act.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-badges">
+        <h2 id="sg-badges">Badges & chips — never color-only</h2>
+        <div class="cluster">
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Certified</span>
+          <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Draft</span>
+          <span class="badge badge--danger"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> Quorum not met</span>
+          <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-info"></use></svg> Judicial review pending</span>
+          <span class="badge badge--neutral">Archived</span>
+        </div>
+        <hr />
+        <div class="cluster">
+          <span class="org-chip">The Commons Party <span class="org-type">political_party</span></span>
+          <span class="org-chip">Bluefin Logistics <span class="org-type">business · 740 workers</span></span>
+          <span class="org-chip">Mecklenburg Water &amp; Power <span class="org-type">common_good_corp</span></span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">DR</span> Diego Ramos <span class="persona-roles">R-06 R-07</span></span>
+        </div>
+        <hr />
+        <div class="cluster">
+          <span class="form-chip">Vacancy declaration <span class="form-id">F-LEG-036</span></span>
+          <span class="form-chip">Ballot submission (ranked choice) <span class="form-id">F-IND-007</span></span>
+          <span class="engine-chip">Countback engine (hardened)</span>
+        </div>
+        <p class="gloss">Form name first, ID second, everywhere — the workbook ID drift can never mislead a reader.</p>
+      </section>
+
+      <section class="card" aria-labelledby="sg-stats">
+        <h2 id="sg-stats">Stats, tables, meters</h2>
+        <div class="cluster" style="gap:var(--space-8)">
+          <div class="stat"><span class="stat-number" data-bind="jurisdiction.population">874,579</span><span class="stat-label">population (2020) — bound to the demo jurisdiction</span></div>
+          <div class="stat stat--accent"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
+          <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalists · X = f(seats) · CLK-21</span></div>
+        </div>
+        <hr />
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Example registry table</caption>
+            <thead><tr><th>District</th><th>Seats</th><th>Population</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Piedmont</td><td class="mono">9</td><td class="mono">4,270,650</td><td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Active</span></td></tr>
+              <tr><td>Coastal Plain</td><td class="mono">8</td><td class="mono">3,796,140</td><td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Active</span></td></tr>
+              <tr><td>Mountains &amp; Foothills</td><td class="mono">5</td><td class="mono">2,372,598</td><td><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Draft</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <hr />
+        <div class="meter-block" style="max-inline-size:28rem">
+          <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="9" aria-valuenow="5" aria-label="Supermajority progress">
+            <span class="meter-fill" style="inline-size:56%"></span>
+            <span class="meter-threshold" style="inset-inline-start:66.7%"></span>
+          </div>
+          <div class="meter-caption"><span>5 of 9 serving members in favor</span><span>needs 6 (2/3 of ALL serving) · Art. VII</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-steppers">
+        <h2 id="sg-steppers">Steppers & lifecycles</h2>
+        <ol class="stepper">
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Cosmic address</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Constants</li>
+          <li class="stepper-step stepper-step--active" aria-current="step">Map data</li>
+          <li class="stepper-step">Districts</li>
+          <li class="stepper-step">Confirm</li>
+        </ol>
+        <hr />
+        <ol class="lifecycle">
+          <li class="lifecycle-stage lifecycle-stage--done">Introduced</li>
+          <li class="lifecycle-stage lifecycle-stage--done">Referred</li>
+          <li class="lifecycle-stage lifecycle-stage--current" aria-current="step">In committee</li>
+          <li class="lifecycle-stage">Floor</li>
+          <li class="lifecycle-stage">Passed</li>
+          <li class="lifecycle-stage">Enacted</li>
+          <li class="lifecycle-stage">Published</li>
+        </ol>
+        <hr />
+        <div class="state-strip">
+          <span class="state-node">Declared</span><span class="state-arrow">→</span>
+          <span class="state-node">Ping-monitoring</span><span class="state-arrow">→</span>
+          <span class="state-node state-node--current">Threshold-met</span><span class="state-arrow">→</span>
+          <span class="state-node">Verified</span><span class="state-arrow">→</span>
+          <span class="state-node">Active</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-flow">
+        <h2 id="sg-flow">Flow walkthrough stepper — live contract test</h2>
+        <p>The shared component all 80 <code class="cc-code">flows/</code> pages will feed with a
+          <code class="cc-code">flowData</code> object. The three Stage-0 samples stress the contract:
+          linear (WF-CIV-02), failure branch + sub-workflow handoff (WF-ELE-03), three parallel constitutional
+          paths (WF-JUD-05). Branch buttons are keyboard-operable.</p>
+        <div class="cluster" role="group" aria-label="Choose sample flow">
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-CIV-02" aria-pressed="false">WF-CIV-02</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-ELE-03" aria-pressed="false">WF-ELE-03</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-JUD-05" aria-pressed="true">WF-JUD-05</button>
+        </div>
+        <div id="flow-mount" style="margin-block-start:var(--space-4)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-banners">
+        <h2 id="sg-banners">Banners</h2>
+        <div class="stack">
+          <div class="banner banner--info"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <div><span class="banner-title">Session due in 12 days</span> Legislatures meet at least once every 90 days.
+              <span class="citation">Art. II §2</span></div></div>
+          <div class="banner banner--warning"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+            <div><span class="banner-title">Temporary — replacement queued</span> Bootstrap election board serves until the
+              legislature appoints a proper one. <span class="citation">Art. II §2</span></div></div>
+          <div class="banner banner--emergency"><svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
+            <div><span class="banner-title">Emergency power active — day 41 of 90</span> Elections, sessions, and courts cannot
+              be disrupted — enforced in code. <span class="citation">Art. II §7</span></div></div>
+          <div class="banner banner--demo"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <div><span class="banner-title">Edge-case walkthrough — no live case: Earth starts united</span>
+              Hypothetical two-instance data only. <span class="citation">Art. V §7</span></div></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-toast">
+        <h2 id="sg-toast">Achievement toast <span class="proposed-flag">Proposed — gamification layer</span></h2>
+        <div class="toast toast--achievement" role="status">
+          <svg class="icon" aria-hidden="true"><use href="#i-award"></use></svg>
+          <div>
+            <span class="toast-title">First ballot committed</span>
+            <p class="toast-body">Your ranked ballot is in. Receipt hash
+              <code class="cc-code" data-no-i18n>9f31…c2a8</code> — verify it anytime in the public count record.</p>
+            <span class="proposed-flag">Proposed — gamification layer</span>
+          </div>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-3)">The civic action is the reward; gamification only surfaces it.
+          Brief and earned — no confetti, no streaks, no loot boxes.</p>
+      </section>
+
+      <section class="card" aria-labelledby="sg-icons">
+        <h2 id="sg-icons">Icon inventory</h2>
+        <p class="cc-small">Lucide-style local sprite at stroke-width 2 (the design README’s flagged substitution) —
+          same-document <code class="cc-code">&lt;use&gt;</code>, no runtime CDN, so <code class="cc-code">file://</code> and
+          offline always render. Directional icons flip under RTL.</p>
+        <div id="icon-inventory" class="cluster" style="gap:var(--space-4)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="sg-i18n">
+        <h2 id="sg-i18n">RTL & pseudo-locale canary</h2>
+        <p>Use the mockup bar: <strong>RTL flip</strong> must mirror this whole page (logical properties only — no
+          layout overrides exist); <strong>Pseudo-locale</strong> must expand every body string with
+          <span data-no-i18n>⟦brackets⟧</span> while citations, IDs, and code stay untouched.</p>
+        <div class="grid-2">
+          <div class="card--inset card">
+            <span class="eyebrow">Must transform under en-XA</span>
+            <p>Your approvals are secret; standings are aggregate.</p>
+            <p>Acts pass when both chambers independently agree.</p>
+          </div>
+          <div class="card--inset card">
+            <span class="eyebrow">Must NOT transform</span>
+            <p class="citation">Art. II §4 · Committee Seat Assignment Process</p>
+            <p><code class="cc-code">WF-ELE-03 · F-LEG-036 · CLK-21</code></p>
+            <p><span class="kbd">Tab</span> <span class="kbd">Enter</span></p>
+          </div>
+        </div>
+        <p class="cc-small" style="margin-block-start:var(--space-3)">Dates carry their zone:
+          2031-05-30 19:59 <span class="citation">shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'shared/styleguide',
+      title: 'Style guide',
+      module: 'shared',
+      nav: 'styleguide',
+      roles: [], workflows: ['WF-CIV-02', 'WF-ELE-03', 'WF-JUD-05'], forms: [],
+      citation: 'Design contract · cosmopolitan-coalition-design · tokens only',
+      flow: null,
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures;
+
+      /* Icon inventory */
+      document.getElementById('icon-inventory').innerHTML = window.CGA.icons.names.map(function (n) {
+        return '<span class="swatch">' + S.icon(n) + ' ' + n + '</span>';
+      }).join('');
+
+      /* Live flow-stepper contract test */
+      var mount = document.getElementById('flow-mount');
+      function show(id) {
+        S.renderFlowStepper(F.flowSamples[id], mount);
+        var btns = document.querySelectorAll('[data-flow-sample]');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-flow-sample') === id ? 'true' : 'false');
+        }
+      }
+      document.body.addEventListener('click', function (ev) {
+        var b = ev.target.closest ? ev.target.closest('[data-flow-sample]') : null;
+        if (b) show(b.getAttribute('data-flow-sample'));
+      });
+      show('WF-JUD-05');
+    })();
+  </script>
+</body>
+</html>
