@@ -58,3 +58,27 @@ through with their resolution, so the log is also a record.)
     subdivisions). Built honestly: the scenario shows **Fujian (China)** as an Earth-scope example,
     labeled as such, rather than inventing a fake US one. Tell me if a hypothetical US example is
     preferred over a real out-of-scope one.
+
+— Added during Stages 1–7 (module-build resolutions worth a decision) —
+
+12. **Co-determination interpolation lacks a ledger anchor.** §9.6 prescribes "uniform
+    interpolation" between CLK-13 (100) and CLK-14 (2,000) — an evolution of Art. III §6's bare
+    "scales uniformly". The screens cite `Art. III §6 · as implemented (CGA spec)` but the ledger
+    only has entries #1–#5. Candidate for ledger entry #6 (worker seats =
+    max(1, round((W−100) ÷ 1,900 × owner seats)), which reproduces the department fixtures exactly).
+13. **Monopoly-acquisition vote threshold.** Art. III §5 and the vote-types sheet don't state one.
+    Rendered as the default act threshold (majority of ALL serving, peg-quorum basis); flag if it
+    should be a supermajority.
+14. **Governor-removal threshold (F-EXE-003 → legislative vote).** Unspecified in the sources; the
+    screens cite Art. III §4 and deliberately avoid asserting a supermajority.
+15. **CLK-06 critical-population default** is "setting per jurisdiction tier" with no number
+    anywhere; `jurisdictions/bootstrap.html` shows an illustrative amendable value (500, local
+    tier) so the pattern renders concretely.
+16. **Hardened bounds for several amendable settings** (election interval, residency days,
+    petition threshold %) have no numeric ranges in any source — the settings register shows
+    rule-text bounds (e.g. "cannot make terms outlast lockstep") instead of invented numbers.
+17. **Election sub-states vs the frozen scenario enum.** The Election machine has more states
+    (tabulating → certified → recount) than the frozen `election: approval|ranked|certifying`
+    scenario vocabulary; `electoral/election-detail.html` reaches the extra states via page-local
+    controls layered on `certifying`. Extend the enum only if flow deep-links need to pin those
+    sub-states.
