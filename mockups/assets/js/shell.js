@@ -462,8 +462,11 @@
          never be re-prefixed (file:// double-path bug). */
       if (/^([a-z][a-z0-9+.-]*:|#)/i.test(orig)) continue;
       a.setAttribute('data-orig-href', orig);
-      var rel = orig.replace(/^(\.\.\/)+/, '');
-      a.setAttribute('href', href(rel));
+      /* Resolve against the PAGE's own URL (not the site root) so same-folder
+         links like "results.html" inside electoral/ keep their directory. */
+      var abs;
+      try { abs = new URL(orig, document.baseURI).href; } catch (e) { continue; }
+      a.setAttribute('href', CGA.state.link(abs));
     }
   }
 
