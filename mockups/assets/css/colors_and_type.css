@@ -6,10 +6,12 @@
      • GOVERNANCE (the operational app)  — grave, dark, trustworthy
      • BRAND / CIVIC (identity + marketing) — purple + gold, classical, warm
    Use the raw palette tokens to theme; use the semantic tokens to build.
-   Font: Instrument Sans (loaded from Google Fonts — see FONTS note in README).
+   Font: Instrument Sans + Instrument Serif, SELF-HOSTED (assets/fonts/, OFL-1.1)
+   so the system runs fully offline on LAN-only deployments — no external
+   requests anywhere.
    ============================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('fonts.css');
 
 :root {
   /* ---------------------------------------------------------------- FONTS */
@@ -79,7 +81,11 @@
   --gov-fg:            var(--cc-white);       /* headings                      */
   --gov-fg-strong:     var(--cc-gray-200);    /* labels                        */
   --gov-fg-muted:      var(--cc-gray-400);    /* body copy                     */
-  --gov-fg-subtle:     var(--cc-gray-500);    /* hints / citations             */
+  /* Hints / citations. Raw gray-500 measures 3.67:1 on the gray-900 card
+     surface — below the 4.5:1 AA floor for the 12px text this tier carries.
+     This mix measures 4.91:1 on cards and 5.57:1 on the page, while staying
+     visibly quieter than --gov-fg-muted (6.82:1 / 7.74:1). */
+  --gov-fg-subtle:     color-mix(in oklch, var(--cc-gray-400) 45%, var(--cc-gray-500));
   /* Brand-aligned primary action. The shipping code uses --cc-blue-600;
      the canonical brand theme promotes purple. Swap per instance. */
   --gov-primary:       var(--cc-purple-600);

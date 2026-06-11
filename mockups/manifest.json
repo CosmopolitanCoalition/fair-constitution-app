@@ -1564,6 +1564,19 @@
   "stage": 6
  },
  {
+  "file": "shared/accessibility.html",
+  "title": "Accessibility statement",
+  "module": "shared",
+  "roles": [],
+  "workflows": [],
+  "forms": [],
+  "entities": [],
+  "clocks": [],
+  "suggestedVuePage": "resources/js/Pages/Shared/Accessibility.vue",
+  "notes": "Accessibility statement (WCAG 2.2 AA + selected AAA target, EN 301 549) linked from every footer — what is built in, known limitations, feedback path. The production build inherits this contract and republishes the statement per supported locale.",
+  "stage": 7
+ },
+ {
   "file": "system/amendments.html",
   "title": "Amendments",
   "module": "system",

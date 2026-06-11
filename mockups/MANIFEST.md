@@ -162,7 +162,15 @@ python mockups/tools/qa_scan.py
 
 Manual per stage: keyboard-only walkthrough; RTL flip + pseudo-locale on the style guide;
 380 px-wide pass on civic/electoral screens. axe-core/Pa11y was not available in this environment
-at Stage 0 — the §13 scripted+manual subset ran instead; revisit in Stage 7.
+at Stage 0 — the §13 scripted+manual subset ran instead; superseded by the §9 harness below.
+
+```text
+# full responsive + a11y sweep over every manifest page (serve mockups/, open in a browser):
+tools/audit_harness.html   — 7 widths (320–1920) overflow + pseudo-locale & RTL passes +
+                             per-page checks (title, lang, h1, heading order, duplicate ids,
+                             img alt, control labels, accessible names, 24px targets,
+                             unnamed SVGs, positive tabindex)
+```
 
 ### Stage 0 QA results
 
@@ -260,3 +268,63 @@ JD's review answers (recorded against `OPEN_QUESTIONS.md` 1–17; only #12 remai
   derivation noted); the role stays assumable via the demo bar.
 - **Activation model recorded** on bootstrap + term-sync: institutions activate where player
   population pegs against real population; lockstep harmonization is the end-state.
+
+## 9. Responsive + accessibility hardening pass (2026-06-11)
+
+Run before website publication, per `App Docs/accessibility_internationalization.md`.
+Verification instrument: `tools/audit_harness.html` — every manifest page loaded at
+320 / 360 / 412 / 768 / 1024 / 1440 / 1920 px plus a pseudo-locale (en-XA, +35% text)
+pass and an RTL pass at 360 px, plus the per-page a11y battery. **Final result:
+144 / 144 pages, zero findings.** `qa_scan.py` clean. Coverage 30/80/103 green, 144 records.
+
+**Self-hosted fonts (LAN requirement).** Instrument Sans (400/500/600/700 + italic 400) and
+Instrument Serif (regular + italic) mirrored to `assets/fonts/` (14 woff2 files, ~256 KB,
+OFL-1.1 — license in `assets/fonts/OFL.txt`). `colors_and_type.css` now `@import`s the local
+`fonts.css` (unicode-range subsetting kept, `font-display: swap`). Verified zero external
+requests site-wide — the site runs fully offline / LAN-only.
+
+**Responsive.**
+- Demo bar is a collapsible `<details>`: open by default on large viewports, collapsed on
+  phones and short (landscape) viewports; the user's toggle survives re-renders.
+- ≤48rem: header un-sticks (full canvas back), jurisdiction switcher shows only the current
+  chip (full chain stays in the panel); ≤30rem: header popovers become viewport-pinned sheets.
+- `max-height: 30rem` (landscape phones): all sticky chrome becomes static.
+- `.stack > *, .grid-2 > * { min-inline-size: 0 }` — kills the min-width:auto flex trap that
+  let wide tables veto narrow viewports.
+- `shell.js wrapTables()`: every bare `table.table` is wrapped in a scrolling `.table-wrap`
+  at render time (semantics preserved); `.table-wrap` is `position: relative` so
+  visually-hidden absolute descendants cannot escape the scroll clip (the settings-register
+  phantom-overflow bug).
+- STV rows collapse to two lines under 40rem; chips (`org/tag/form`) wrap instead of
+  overflowing; selects clamp to their container; `main--wide` modifier gives map/wizard
+  surfaces the full canvas on large monitors (96rem).
+- Pseudo-locale pad is now word-chunked so en-XA tests truncation, not fake overflow.
+
+**Accessibility.**
+- Focus ring: `outline: 3px solid transparent` + gold box-shadow — visible under Windows
+  forced-colors where box-shadow is stripped (SC 2.4.7/2.4.13). `scroll-padding-block`
+  reserves room so sticky chrome never obscures focus (SC 2.4.11).
+- `@media (forced-colors: active)`: data-carrying fills (meters, STV bars, tier dots, seats,
+  swatches) keep author colors; chips/badges get CanvasText borders.
+- `@media (prefers-contrast: more)`: quiet text/border tiers step up.
+- Measured contrast (canvas-resolved oklch/color-mix, WCAG 2.x ratios) across the
+  component-dense pages. Two real failures fixed at source:
+  `--gov-fg-subtle` raised from gray-500 (3.67:1 on cards) to a 45% gray-400 mix
+  (4.91:1 cards / 5.57:1 page — documented in `colors_and_type.css`), and
+  `.proposed-flag` text gold-700→gold-500 (3.53:1→7.38:1). Also fixed:
+  `button.card` inherited near-black UA ButtonText on dark cards (invisible text on the
+  wizard's time-mode tiles).
+- Targets ≥24px extended to chip controls and to links that sit as flex/grid items
+  (footer, demo bar, wf rows, log rows, steppers, persona chips, `a.citation`) — flex items
+  lose the WCAG 2.5.8 inline exception.
+- Persistent polite live region (`CGA.shell.announce`) exists before any content insertion
+  (SC 4.1.3); the flow stepper announces step changes and terminal states.
+- Header popovers: Escape closes and restores focus to the trigger; outside click closes.
+- Setup-wizard `field()` helper now emits associated `for`/`id` labels; autocomplete tokens
+  added where HTML autofill tokens exist (`url`, `nickname`).
+- NEW `shared/accessibility.html` — the accessibility statement (WCAG 2.2 AA + selected AAA,
+  EN 301 549), linked from every footer per the doc's Phase 13. Manifest: 144 records.
+
+Known instrument caveat: the contrast walker reads CSS `color`, not SVG `fill` — the stylized
+map labels it flags are actually white-on-dark backplates (pass). Assistive-technology
+walkthroughs with human testers remain scheduled against the production build.

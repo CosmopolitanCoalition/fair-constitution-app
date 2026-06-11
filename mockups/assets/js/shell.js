@@ -201,7 +201,8 @@
       { id: 'launchpad', labelKey: 'nav.launchpad', icon: 'globe', rel: 'index.html' },
       { id: 'styleguide', labelKey: 'nav.styleguide', icon: 'sliders', rel: 'shared/styleguide.html' },
       { id: 'coverage', labelKey: 'nav.coverage', icon: 'check', rel: 'shared/coverage.html' },
-      { id: 'ledger', labelKey: 'nav.ledger', icon: 'scale', rel: 'shared/constitutional-questions.html' }
+      { id: 'ledger', labelKey: 'nav.ledger', icon: 'scale', rel: 'shared/constitutional-questions.html' },
+      { id: 'accessibility', labelKey: 'nav.accessibility', icon: 'shield', rel: 'shared/accessibility.html' }
     ] }
   ];
 
@@ -331,6 +332,7 @@
       (authJur ? authJur.name : W.instance.authoritativeFor) + ' (' + W.instance.authoritativeFor + ')';
     return '<span class="footer-citation">' + esc(PAGE.citation || '') + '</span>' +
       '<span class="header-spacer"></span>' +
+      '<a href="' + href('shared/accessibility.html') + '">' + esc(t('footer.accessibility')) + '</a>' +
       '<span class="footer-instance">' + esc(instanceLine) + '</span>' +
       '<span class="audit-chip">' + esc(t('footer.audit', { n: W.instance.auditSeq.toLocaleString('en-US') })) + ' ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
   }
@@ -370,7 +372,16 @@
       }
     }
 
-    return '<span class="demo-bar-label">' + esc(t('demo.label')) + '</span>' +
+    /* Collapsible: open by default on large viewports, collapsed on phones and
+       short (landscape) viewports so the sticky bar never dominates the screen.
+       A user's explicit toggle survives re-renders. */
+    var prior = demoBarEl && demoBarEl.querySelector('.demo-details');
+    var open = prior ? prior.open
+      : (window.matchMedia ? window.matchMedia('(min-width: 64rem) and (min-height: 34rem)').matches : true);
+
+    return '<details class="demo-details"' + (open ? ' open' : '') + '>' +
+      '<summary><span class="demo-bar-label">' + icon('sliders', { size: 'sm' }) + ' ' + esc(t('demo.label')) + '</span>' + icon('chevron-down', { size: 'sm', cls: 'demo-caret' }) + '</summary>' +
+      '<div class="demo-controls">' +
       '<label class="demo-control">' + esc(t('demo.persona')) + ' <select data-set-persona>' + personaOpts + '</select></label>' +
       '<label class="demo-control">' + esc(t('demo.role')) + ' <select data-set-role>' + roleOpts + '</select></label>' +
       '<label class="demo-control">' + esc(t('demo.jurisdiction')) + ' <select data-set-jur-select>' + jurOpts + '</select></label>' +
@@ -385,7 +396,8 @@
       '<label class="demo-control"><input type="checkbox" data-rtl-flip' + (s.dir === 'rtl' ? ' checked' : '') + ' /> ' + esc(t('demo.rtl')) + '</label>' +
       '<label class="demo-control"><input type="checkbox" data-pseudo-toggle' + (s.locale === 'en-XA' ? ' checked' : '') + ' /> ' + esc(t('demo.pseudo')) + '</label>' +
       flowLink +
-      '<button type="button" class="btn btn--ghost btn--sm" data-demo-reset style="color:var(--cc-purple-200)">' + esc(t('demo.reset')) + '</button>';
+      '<button type="button" class="btn btn--ghost btn--sm" data-demo-reset style="color:var(--cc-purple-200)">' + esc(t('demo.reset')) + '</button>' +
+      '</div></details>';
   }
 
   /* -------------------------------------------------- data-bind + pseudo */
@@ -447,6 +459,21 @@
   function applyI18nAttrs(rootEl) {
     var nodes = (rootEl || document).querySelectorAll('[data-i18n]');
     for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t(nodes[i].getAttribute('data-i18n'));
+  }
+
+  /* Every data table gets a horizontal scroll container so wide tables never
+     force page-level horizontal scrolling on narrow viewports (WCAG 1.4.10
+     Reflow). Wrapping at runtime keeps native table semantics intact. */
+  function wrapTables() {
+    var tables = document.querySelectorAll('#main table.table');
+    for (var i = 0; i < tables.length; i++) {
+      var tb = tables[i];
+      if (tb.parentElement && tb.parentElement.classList.contains('table-wrap')) continue;
+      var wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      tb.parentNode.insertBefore(wrap, tb);
+      wrap.appendChild(tb);
+    }
   }
 
   /* Rewrite internal links inside <main> so demo state travels on file://. */
@@ -575,8 +602,10 @@
       if (el.hasAttribute('data-goto-step')) {
         current = parseInt(el.getAttribute('data-goto-step'), 10) || 1;
         terminalNote = null;
+        announce('Step ' + current + ' of ' + flow.steps.length);
       } else {
         terminalNote = el.getAttribute('data-goto-terminal');
+        announce('Terminal state reached: ' + terminalNote);
       }
       render();
       var target = document.getElementById('step-' + current);
@@ -588,7 +617,14 @@
   }
 
   /* ------------------------------------------------------------- render */
-  var headerEl, sidebarEl, footerEl, demoBarEl;
+  var headerEl, sidebarEl, footerEl, demoBarEl, liveEl;
+
+  function announce(text) {
+    if (!liveEl) return;
+    liveEl.textContent = '';
+    /* swap on the next tick so identical messages re-announce */
+    setTimeout(function () { liveEl.textContent = text; }, 30);
+  }
 
   function buildShell() {
     document.body.classList.add('app-shell');
@@ -604,6 +640,16 @@
     skip.href = '#main';
     skip.textContent = t('app.skip');
     document.body.insertBefore(skip, document.body.firstChild);
+
+    /* Persistent polite live region — exists in the DOM before any content is
+       inserted (WCAG 4.1.3 Status Messages). Pages announce via
+       CGA.shell.announce(text). */
+    liveEl = document.createElement('div');
+    liveEl.id = 'cga-live';
+    liveEl.className = 'visually-hidden';
+    liveEl.setAttribute('role', 'status');
+    liveEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(liveEl);
 
     headerEl = document.createElement('header');
     headerEl.className = 'app-header';
@@ -633,6 +679,7 @@
     applyBindings();
     applyI18nAttrs(document);
     rewriteMainLinks();
+    wrapTables();
     pseudoTransformMain();
     crossCheckManifest();
   }
@@ -677,11 +724,32 @@
       if (ev.target.matches && ev.target.matches('[data-search-stub]')) ev.preventDefault();
     });
 
+    /* Header popovers: Escape closes and restores focus to the trigger;
+       clicking outside closes (APG disclosure behavior on top of native
+       <details> keyboard support). */
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Escape') return;
+      var open = document.querySelectorAll('details.popover[open]');
+      for (var i = 0; i < open.length; i++) {
+        open[i].removeAttribute('open');
+        var sum = open[i].querySelector('summary');
+        if (sum && open[i].contains(document.activeElement)) sum.focus();
+        else if (sum && document.activeElement === document.body) sum.focus();
+      }
+    });
+    document.addEventListener('click', function (ev) {
+      var open = document.querySelectorAll('details.popover[open]');
+      for (var i = 0; i < open.length; i++) {
+        if (!open[i].contains(ev.target)) open[i].removeAttribute('open');
+      }
+    });
+
     CGA.state.subscribe(function () {
       renderChrome();
       applyBindings();
       applyI18nAttrs(document);
       rewriteMainLinks();
+      wrapTables();
       pseudoTransformMain();
     });
   }
@@ -712,8 +780,9 @@
     plannedFlag: plannedFlag,
     jurisdictionChain: jurisdictionChain,
     activePersona: activePersona,
+    announce: announce,
     renderFlowStepper: renderFlowStepper,
-    refresh: function () { renderChrome(); applyBindings(); applyI18nAttrs(document); rewriteMainLinks(); pseudoTransformMain(); }
+    refresh: function () { renderChrome(); applyBindings(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain(); }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildShell);

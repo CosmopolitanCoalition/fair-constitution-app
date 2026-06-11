@@ -85,12 +85,14 @@
       'nav.styleguide': 'Style guide',
       'nav.coverage': 'Coverage matrix',
       'nav.ledger': 'Constitutional questions',
+      'nav.accessibility': 'Accessibility',
 
       'nav.requires': 'Requires',
       'nav.planned': 'Planned',
       'nav.stage': 'Stage',
 
       'footer.audit': 'Audit #{n} · chained',
+      'footer.accessibility': 'Accessibility',
 
       'demo.label': 'Mockup controls — demo only, not part of the application',
       'demo.persona': 'Persona',
@@ -192,8 +194,11 @@
     }).join('');
     var padLen = Math.ceil(out.replace(/\s/g, '').length * 0.35);
     var pad = '';
-    while (pad.length < padLen) pad += '·~';
-    return '⟦' + out + ' ' + pad.slice(0, padLen) + '⟧';
+    /* pad in word-sized chunks (space-separated) so the expansion wraps the
+       way real translations do — an unbreakable pad run would manufacture
+       fake overflow instead of testing real truncation */
+    while (pad.replace(/\s/g, '').length < padLen) pad += '·~·~ ';
+    return '⟦' + out + ' ' + pad.trim() + '⟧';
   }
 
   function t(key, vars) {

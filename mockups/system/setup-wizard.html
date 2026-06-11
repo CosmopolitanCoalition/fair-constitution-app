@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-  <main id="main">
+  <main id="main" class="main--wide">
     <div class="stack">
       <header>
         <span class="eyebrow">System · founding loop</span>
@@ -89,12 +89,14 @@
       var step = 0;
       var STEPS = ['Cosmic address', 'Constitutional defaults', 'Map data', 'Build districts', 'Confirm & seat'];
 
+      var fieldSeq = 0;
       function field(label, value, hint, opts) {
         opts = opts || {};
-        return '<div class="field"><label class="field-label">' + esc(label) + '</label>' +
+        var id = 'wiz-f' + (++fieldSeq);
+        return '<div class="field"><label class="field-label" for="' + id + '">' + esc(label) + '</label>' +
           (opts.select
-            ? '<select class="select">' + opts.select.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>'
-            : '<input class="field-input" type="' + (opts.type || 'text') + '" value="' + esc(value) + '" />') +
+            ? '<select class="select" id="' + id + '">' + opts.select.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>'
+            : '<input class="field-input" id="' + id + '" type="' + (opts.type || 'text') + '" value="' + esc(value) + '" />') +
           (hint ? '<span class="field-hint citation">' + esc(hint) + '</span>' : '') + '</div>';
       }
 
