@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>District mapper — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Jurisdictions · district mapper</span>
+        <h1>District mapper — United States legislature, scoped to North Carolina</h1>
+        <p class="page-intro">Districts are composites of direct child jurisdictions — whole counties grouped
+          together, never split lines on a map. Seats are Webster-rounded inside the constitutional 5–9 range;
+          oversized "giant" children expand into their own sub-district budgets, recursing down the chain.</p>
+        <p class="citation">Scope: Earth › United States › North Carolina · Art. II §2, §8 — Subdivision of Legislatures</p>
+      </header>
+
+      <section class="card" aria-labelledby="budget-h">
+        <h2 id="budget-h">Seat budget</h2>
+        <div class="cluster" style="gap:var(--space-6)">
+          <div class="stat"><span class="stat-number">692</span><span class="stat-label">US seats · cube-root sizing law</span></div>
+          <div class="stat stat--accent"><span class="stat-number">22</span><span class="stat-label">North Carolina budget</span></div>
+          <div class="stat"><span class="stat-number">474,517</span><span class="stat-label">quota · population per seat</span></div>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing: total seats = max(5, round(∛ population)) —
+          the chamber grows with population but never without bound. Webster rounding then splits a parent's
+          budget across its districts so every seat represents the same number of people.</p>
+        <p class="citation">Legislature sizing law: cube_root · Art. II §2 · as implemented
+          (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="citation">every district holds 5–9 seats · subdivision is mandatory above 9 · CLK-07; CLK-08 · Art. II §2, §8</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="maps-h">
+        <h2 id="maps-h">District maps — versioned</h2>
+        <p class="cc-small">Boundary plans are versioned: one active plan, any number of drafts, and an archive
+          that preserves history. Activating a draft archives the current plan — nothing is destroyed.</p>
+        <div id="activate-note"></div>
+        <div id="map-cards" class="stack" style="gap:var(--space-4)"></div>
+        <noscript><p class="gloss">The versioned-map cards need JavaScript. NC Plan 2030 (active): Piedmont 9 seats,
+          Coastal Plain 8, Mountains &amp; Foothills 5. NC Plan 2031 (draft): Charlotte Metro 6, Triangle 6, East 5, West 5.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="map-h">
+        <h2 id="map-h">Plan map <span class="citation" id="map-which"></span></h2>
+        <div id="plan-svg"></div>
+        <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS; one feature per member
+          jurisdiction, so integrity reads "drawn along admin boundaries" directly off the geometry.</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="giants-h">
+          <h2 id="giants-h">Giants — children above the 9-seat ceiling</h2>
+          <details>
+            <summary style="cursor:pointer;color:var(--gov-fg-strong)">
+              <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              North Carolina — fractional seats <span class="citation">21.79</span>
+              <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> Expandable giant</span>
+            </summary>
+            <p style="margin-block-start:var(--space-2)">At United States scope North Carolina cannot be one
+              district (21.79 fractional seats &gt; 9), so it expands into its own budget of 22 seats and its
+              counties become the composite pieces — the plans on this page. Giants recurse down the chain.</p>
+            <p class="citation">district_id = null at parent scope is expected for giants — their children are the members</p>
+          </details>
+          <hr />
+          <h3>Leaf giant — no child subdivisions to compose</h3>
+          <p><strong>Fujian (China)</strong> · Earth-scope dataset · fractional seats <span class="citation">9.42</span>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> Requires manual line-drawing</span></p>
+          <p class="cc-small">Leaf-giant example from the Earth-scope data — fractional seats above the
+            constitutional ceiling with no child subdivisions. No US-scope instance exists; shown for the UI
+            state. The manual district-drawing tool (WorldPop rasters + population_within) is the open frontier.</p>
+          <p class="citation">Art. II §8 · as implemented (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>)</p>
+        </section>
+
+        <section class="card" aria-labelledby="grouping-h">
+          <h2 id="grouping-h">Grouping quality</h2>
+          <p class="cc-small">The auto-composite search scores every way of grouping the 100 counties into
+            in-range districts. The current plan is one grouping among many.</p>
+          <div class="cluster" style="gap:var(--space-6)">
+            <div class="stat"><span class="stat-number">218</span><span class="stat-label">optimal groupings</span></div>
+            <div class="stat"><span class="stat-number">41</span><span class="stat-label">suboptimal groupings</span></div>
+            <div class="stat stat--accent"><span class="stat-number">15</span><span class="stat-label">rank of current grouping</span></div>
+          </div>
+          <p class="gloss" style="margin-block-start:var(--space-2)">Optimal = lowest population deviation with
+            contiguity intact; the current grouping sits inside the optimal band. A floor override (a district
+            held at 5 seats despite fractional under-run) is flagged when N=2 bins make it mathematically
+            unavoidable — none in this plan.</p>
+          <p class="citation">contiguity · compactness (CHR) · integrity: drawn along admin boundaries · Art. II §8</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="accept-h">
+        <h2 id="accept-h">Accept maps — under election-board observation</h2>
+        <div id="accept-form-card"></div>
+        <form id="accept-form" style="margin-block-start:var(--space-4)">
+          <div class="field">
+            <label class="field-label" for="accept-plan">Plan to accept</label>
+            <select class="select" id="accept-plan">
+              <option value="nc-2031-draft">NC Plan 2031 (draft)</option>
+              <option value="nc-2030">NC Plan 2030 (active — re-certify)</option>
+            </select>
+            <span class="field-hint">Draft maps are published for public observation before acceptance.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="accept-note">Observation statement (public record)</label>
+            <textarea class="field-input" id="accept-note" rows="2" placeholder="Equal, contiguous, drawn along admin boundaries — reviewed against the quota."></textarea>
+          </div>
+          <label class="checkbox" style="margin-block-end:var(--space-4)">
+            <input type="checkbox" id="accept-published" checked /> Published for public observation since 2031-05-02 —
+            shown in your timezone (UTC−5 · America/New_York) · stored as UTC
+          </label>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Accept maps</button>
+            <span id="accept-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-06.html">WF-ELE-06 — subdivision &amp; boundary drawing</a>
+            (fires when apportionment exceeds the 9-seat ceiling · CLK-07) and
+            <a href="../flows/WF-JUR-09.html">WF-JUR-09 — population records &amp; apportionment</a>
+            (the census engine that feeds the quota). The election board observes from
+            <a href="../electoral/election-board-console.html">its console</a>.</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — the [Subdivided] state; district maps cycle
+            draft → active → archived without destroying history.</p>
+          <p class="citation">Art. II §2, §8 · CLK-07; CLK-08 · ledger #3, #4</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/district-mapper',
+      title: 'District mapper',
+      module: 'jurisdictions',
+      nav: 'district-mapper',
+      roles: ['R-03', 'R-08'],
+      workflows: ['WF-ELE-06', 'WF-JUR-09'],
+      forms: ['F-ELB-003'],
+      citation: 'Cube-root sizing · Webster composites · 5–9 seats per district · Art. II §2, §8',
+      flow: 'WF-ELE-06',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var DS = W.districtScenario;
+      var WONG = ['--wong-orange', '--wong-skyblue', '--wong-green', '--wong-yellow', '--wong-blue', '--wong-vermil', '--wong-purple'];
+
+      /* Page-local interaction state: which map is active / shown; nothing leaves the page. */
+      var status = {}; /* mapId -> 'active' | 'draft' | 'archived' */
+      DS.maps.forEach(function (m) { status[m.id] = m.status; });
+      var shownMap = DS.maps[0].id;
+      var activateNote = '';
+      var acceptDone = false;
+
+      function statusBadge(st) {
+        if (st === 'active') return S.badge('success', 'Active', 'check');
+        if (st === 'draft') return S.badge('info', 'Draft', 'file-text');
+        return S.badge('neutral', 'Archived', 'clock');
+      }
+
+      function districtRows(m) {
+        return m.districts.map(function (d) {
+          var inRange = d.seats >= 5 && d.seats <= 9;
+          return '<tr>' +
+            '<td>' + esc(d.name) + '</td>' +
+            '<td class="mono">' + d.seats + ' ' + (inRange
+              ? S.icon('check', { size: 'sm', label: 'inside the 5–9 range' })
+              : S.icon('alert-triangle', { size: 'sm', label: 'outside the 5–9 range' })) + '</td>' +
+            '<td class="mono">' + d.population.toLocaleString('en-US') + '</td>' +
+            '<td class="mono">' + (d.deviationPct > 0 ? '+' : '') + d.deviationPct.toFixed(1) + '%</td>' +
+            '<td>' + (d.contiguous
+              ? S.badge('success', 'Contiguous', 'check')
+              : S.badge('danger', 'Not contiguous', 'alert-triangle')) + '</td>' +
+            '<td>' + (d.integrity === 'intact'
+              ? S.badge('success', 'Intact', 'check')
+              : S.badge('warning', 'Segmented', 'alert-triangle')) + '</td>' +
+            '<td class="mono">' + d.chr.toFixed(2) + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      function mapCard(m) {
+        var st = status[m.id];
+        var totalSeats = m.districts.reduce(function (a, d) { return a + d.seats; }, 0);
+        var activate = st === 'draft'
+          ? '<button type="button" class="btn btn--gold btn--sm" data-activate="' + esc(m.id) + '">Activate</button>'
+          : '';
+        var show = m.id === shownMap
+          ? '<span class="badge badge--neutral">' + S.icon('map', { size: 'sm' }) + ' Shown on map</span>'
+          : '<button type="button" class="btn btn--ghost btn--sm" data-show="' + esc(m.id) + '">Show on map</button>';
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between">' +
+          '<h3 style="margin-block-end:0">' + esc(m.name) + ' ' + statusBadge(st) + '</h3>' +
+          '<div class="cluster">' + show + activate + '</div></div>' +
+          '<p class="citation" style="margin-block:var(--space-2)">' + m.districts.length + ' districts · ' +
+          totalSeats + ' of ' + DS.scopeBudget + ' budgeted seats · Webster allocation · deviation vs quota ' +
+          DS.quota.toLocaleString('en-US') + ' pop/seat</p>' +
+          '<div class="table-wrap"><table class="table">' +
+          '<caption class="visually-hidden">Districts in ' + esc(m.name) + '</caption>' +
+          '<thead><tr><th scope="col">District</th><th scope="col">Seats</th><th scope="col">Population</th>' +
+          '<th scope="col">Deviation</th><th scope="col">Contiguity</th><th scope="col">Integrity</th>' +
+          '<th scope="col">CHR</th></tr></thead>' +
+          '<tbody>' + districtRows(m) + '</tbody></table></div>' +
+          '<p class="gloss">Integrity "intact" = drawn along admin boundaries (whole counties only); ' +
+          'CHR is the convex-hull compactness ratio (1.00 = perfectly compact).</p>' +
+          '</div>';
+      }
+
+      function planSvg(m) {
+        var W_ = 640, H = 190, pad = 10;
+        var n = m.districts.length;
+        var w = Math.floor((W_ - pad * (n + 1)) / n);
+        var shapes = m.districts.map(function (d, i) {
+          var x = pad + i * (w + pad);
+          return '<rect x="' + x + '" y="' + pad + '" width="' + w + '" height="' + (H - 70) + '" rx="16" ' +
+            'fill="var(' + WONG[i % WONG.length] + ')" fill-opacity="0.45" stroke="var(--gov-border-strong)" />' +
+            '<text x="' + (x + w / 2) + '" y="' + (H - 42) + '" text-anchor="middle" fill="var(--gov-fg)" ' +
+            'font-size="13" font-family="var(--font-sans)">' + esc(d.name) + '</text>' +
+            '<text x="' + (x + w / 2) + '" y="' + (H - 22) + '" text-anchor="middle" fill="var(--gov-fg-muted)" ' +
+            'font-size="11" font-family="var(--font-mono)">' + d.seats + ' seats</text>';
+        }).join('');
+        return '<svg viewBox="0 0 ' + W_ + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" ' +
+          'aria-label="Stylized district map of ' + esc(m.name) + '">' + shapes + '</svg>';
+      }
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join('; ')) + '</p>' : '';
+        return '<div class="card card--inset">' +
+          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + ' <span class="citation">' + fid + '</span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">Available to: ' + esc(f.availableToRaw) + ' · prereq: ' + esc(f.prereq) + ' · ' + esc(f.basis) + '</p>' +
+          aliases + '</div>';
+      }
+
+      function render() {
+        document.getElementById('activate-note').innerHTML = activateNote;
+        document.getElementById('map-cards').innerHTML = DS.maps.map(mapCard).join('');
+        var m = DS.maps.filter(function (x) { return x.id === shownMap; })[0];
+        document.getElementById('map-which').textContent = m.name + ' · ' + status[m.id];
+        document.getElementById('plan-svg').innerHTML = planSvg(m);
+        document.getElementById('accept-form-card').innerHTML = formCard('F-ELB-003');
+        document.getElementById('accept-status').innerHTML = acceptDone
+          ? S.badge('success', 'Submitted for certification — under election-board observation', 'check')
+          : S.badge('neutral', 'Not yet submitted', 'clock');
+        S.refresh();
+      }
+
+      document.getElementById('main').addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-activate],[data-show]') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-activate')) {
+          var id = t.getAttribute('data-activate');
+          Object.keys(status).forEach(function (k) { if (status[k] === 'active') status[k] = 'archived'; });
+          status[id] = 'active';
+          shownMap = id;
+          activateNote = '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">Plan activated.</span> The previous active plan moved to the ' +
+            'archive — versioned maps preserve history; elections after this point run on the new districts. ' +
+            '<span class="citation">draft → active → archived · Art. II §8</span></div></div>';
+        } else {
+          shownMap = t.getAttribute('data-show');
+        }
+        render();
+      });
+
+      document.getElementById('accept-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        acceptDone = true;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

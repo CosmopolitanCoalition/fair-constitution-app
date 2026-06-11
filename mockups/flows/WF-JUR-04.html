@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disintermediation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Disintermediation <span class="citation">WF-JUR-04</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-04", "title": "Disintermediation", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-JUR-04"], "forms": [], "citation": "Art. V §8 · WF-JUR-04", "flow": "WF-JUR-04", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-04",
+ "name": "Disintermediation",
+ "timeScale": "Rare",
+ "trigger": "All constituents + encompassing jurisdiction agree",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-JUR"
+ ],
+ "terminal": "Intermediary dissolves; its acts incorporated into former constituents; federation topology updated",
+ "basis": "Art. V §8",
+ "entity": "Jurisdiction",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "Constituent legislatures",
+   "action": "All constituents of the intermediary agree",
+   "outcome": "Unanimity among constituents required",
+   "engine": "Disintermediation acts",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Encompassing legislature",
+   "action": "Encompassing jurisdiction agrees",
+   "outcome": "BRANCH: any dissent → no dissolution",
+   "engine": "Act",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "any dissent → no dissolution",
+     "goto": "terminal:any dissent → no dissolution"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "Dissolve intermediary; incorporate its acts into each former constituent's law",
+   "outcome": "Versioned merges; conflicts surfaced for legislative cleanup; nesting + federation topology updated",
+   "engine": "Law-merge engine",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

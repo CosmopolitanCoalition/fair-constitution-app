@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Public records — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">System of record</span>
+        <h1>Public records</h1>
+        <p class="page-intro">Every statement, bill, vote, and explanation made in your jurisdictions — published the
+          moment it is recorded, readable by anyone, and never edited in place. This is the surface the constitution
+          calls "public and readily available records".</p>
+        <p class="citation">Publish Public Records · Art. II §2 — publication pipeline · WF-SYS-03</p>
+      </header>
+
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        <div><span class="banner-title">This record is append-only.</span>
+          Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is sealed into the
+          <a href="audit-chain.html">cryptographically chained audit log</a> at commit time, and replicates to peer
+          instances on the federation heartbeat.
+          <span class="citation">Art. II §2 · WF-SYS-04 · CLK-20</span></div>
+      </div>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number" id="stat-total">12</span><span class="stat-label">entries shown (page-local sample)</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-translated">—</span><span class="stat-label">fully translated (5/5 languages)</span></div>
+        <div class="stat"><span class="stat-number" id="stat-pending">—</span><span class="stat-label">translations pending</span></div>
+      </div>
+
+      <div class="filter-bar" role="group" aria-label="Filter the public record">
+        <label class="demo-control" style="color:var(--gov-fg-muted)">
+          <span class="visually-hidden">Search the record</span>
+          <input class="field-input" style="inline-size:13rem;padding-block:var(--space-1)" type="search" id="f-search" placeholder="Search title or author" />
+        </label>
+        <span class="eyebrow">Kind</span>
+        <span id="f-kinds" class="cluster" style="gap:var(--space-1)"></span>
+        <button type="button" class="btn btn--ghost btn--sm" id="f-clear">Clear filters</button>
+      </div>
+
+      <section class="card" style="padding-block-end:var(--space-3)" aria-labelledby="records-h">
+        <h2 id="records-h">The record</h2>
+        <p class="citation">Dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+        <div id="record-list" aria-live="polite">
+          <noscript><p>The record list renders from fixture data and requires JavaScript. The record itself is static
+            and append-only in the product; see the audit chain for the sealed sequence.</p></noscript>
+        </div>
+        <p class="gloss">Translation status counts the five demo locales (en · es · ar · zh-Hans · hi). Machine
+          translation publishes immediately; human review upgrades the badge per language.</p>
+      </section>
+
+      <section class="card" aria-labelledby="statement-h">
+        <h2 id="statement-h">Submit a statement for the record</h2>
+        <div class="card card--inset" style="margin-block-end:var(--space-4)">
+          <h3 style="margin-block-end:var(--space-1)">Public record statement <span class="citation">F-LEG-006</span></h3>
+          <p class="cc-small" style="margin-block-end:var(--space-2)">Submit a public statement, explanation, or
+            position for the official record. Appends a public record entry.</p>
+          <p class="citation">Available to R-09 Legislative Representative · Art. II §2 (Publish Public Records)</p>
+        </div>
+        <form id="statement-form">
+          <div class="field">
+            <label class="field-label" for="st-attach">Attach to</label>
+            <select class="select" id="st-attach">
+              <option>Charlotte Clean Air Act (bill-2031-07)</option>
+              <option>Session of 2031-05-19 — minutes</option>
+              <option>Floor vote — motion 2031-44</option>
+              <option>General record (no attachment)</option>
+            </select>
+            <span class="field-hint">Statements attach to the bill, session, or vote they explain — readers see them in context.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="st-text">Statement</label>
+            <textarea class="field-input" id="st-text" rows="4" placeholder="Your statement, explanation, or position — published verbatim and permanently."></textarea>
+            <span class="field-hint">Once submitted, a statement can be superseded but never edited or withdrawn.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Submit to the public record</button>
+            <span class="citation">Submitting appends an audit-chain entry · WF-SYS-04</span>
+          </div>
+        </form>
+        <div id="statement-confirm" role="status" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-SYS-03.html">WF-SYS-03 (public records publication)</a> —
+            fed by every recording workflow: bills (<a href="../flows/WF-LEG-06.html">WF-LEG-06</a>), sessions
+            (<a href="../flows/WF-LEG-05.html">WF-LEG-05</a>), opinions (<a href="../flows/WF-JUD-03.html">WF-JUD-03</a>),
+            certifications (<a href="../flows/WF-ELE-01.html">WF-ELE-01</a>). Sealing happens in
+            <a href="../flows/WF-SYS-04.html">WF-SYS-04 (audit chain)</a>.</p>
+          <p><strong>Entity state machines:</strong> this surface mirrors transitions from Bill
+            (Introduced → … → Published), Case (Opinion-Published), and Election (Certified) — each published
+            transition becomes one immutable record entry.</p>
+          <p class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04 · CLK-20</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'system/public-records',
+      title: 'Public records',
+      module: 'system',
+      nav: 'public-records',
+      roles: ['R-03', 'R-09'],
+      workflows: ['WF-SYS-03'],
+      forms: ['F-LEG-006'],
+      citation: 'Public, readily available, immutable record · Art. II §2 · WF-SYS-03',
+      flow: 'WF-SYS-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var KINDS = [
+        { id: 'statement', label: 'Statements' },
+        { id: 'vote', label: 'Votes' },
+        { id: 'act', label: 'Acts' },
+        { id: 'opinion', label: 'Opinions' },
+        { id: 'certification', label: 'Certifications' },
+        { id: 'other', label: 'Other' }
+      ];
+
+      /* Page-local sample of the immutable record — newest first. */
+      var records = [
+        { seq: 84113, kind: 'other', title: 'Session-due notice scheduled — Charlotte legislature', actor: 'Constitutional Engine', via: 'CLK-02', date: '2031-06-10', tr: { done: 5, total: 5 } },
+        { seq: 84111, kind: 'other', title: 'Translation bundle published — Act 2031-09 (5/5 languages)', actor: 'Publication pipeline', via: 'WF-SYS-03', date: '2031-06-08', tr: { done: 5, total: 5 } },
+        { seq: 84108, kind: 'opinion', title: 'Novák finding on Curfew Ordinance §3 — finding and recommended remedy', actor: 'Dr. Lena Novák · Mecklenburg County court', via: 'F-JDG-004', date: '2031-06-05', tr: { done: 5, total: 5 } },
+        { seq: 84106, kind: 'statement', title: 'Sponsor statement — Charlotte Clean Air Act', actor: 'Marcus Chen · seat 2', via: 'F-LEG-006', date: '2031-06-02', tr: { done: 5, total: 5 } },
+        { seq: 84102, kind: 'statement', title: 'Explanation of abstention — motion 2031-44', actor: 'Lev Aronov · seat 9', via: 'F-LEG-006', date: '2031-05-30', tr: { done: 3, total: 5 } },
+        { seq: 84097, kind: 'vote', title: 'Floor vote — motion to refer bill-2031-07 to Environment & Infrastructure (adopted 7–1)', actor: 'Charlotte legislature', via: 'F-LEG-004', date: '2031-05-27', tr: { done: 5, total: 5 } },
+        { seq: 84093, kind: 'other', title: 'Committee hearing minutes — Clean Air Act, day 1 testimony', actor: 'Environment & Infrastructure committee', via: 'F-CHR-002', date: '2031-05-24', tr: { done: 4, total: 5 } },
+        { seq: 84089, kind: 'statement', title: 'Session minutes — sitting of 2031-05-19', actor: 'Yuki Tanaka · Speaker', via: 'F-SPK-009', date: '2031-05-19', tr: { done: 5, total: 5 } },
+        { seq: 84081, kind: 'certification', title: 'Mecklenburg County general election — tabulation entering certification', actor: 'Election board', via: 'F-ELB-004', date: '2031-05-12', tr: { done: 5, total: 5 } },
+        { seq: 84072, kind: 'other', title: 'Signature audit result — Mecklenburg watershed protection act (58,112 valid of 58,409)', actor: 'Election board', via: 'F-ELB-005', date: '2031-05-06', tr: { done: 5, total: 5 } },
+        { seq: 84055, kind: 'act', title: 'Act 2031-09 — participatory budget pilot feasibility study (enacted)', actor: 'Charlotte legislature', via: 'WF-LEG-06', date: '2031-04-29', tr: { done: 4, total: 5 } },
+        { seq: 84031, kind: 'vote', title: 'Emergency powers invocation — Hurricane Dorinda (supermajority 7 of 9 serving)', actor: 'Mecklenburg County legislature', via: 'F-LEG-024', date: '2031-04-30', tr: { done: 5, total: 5 } }
+      ];
+
+      var filters = { q: '', kinds: {} };
+
+      document.getElementById('f-kinds').innerHTML = KINDS.map(function (k) {
+        return '<button type="button" class="chip-toggle" data-kind="' + k.id + '" aria-pressed="false">' + esc(k.label) + '</button>';
+      }).join('');
+
+      function trBadge(tr) {
+        if (tr.done >= tr.total) {
+          return '<span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + 'Translated ' + tr.done + '/' + tr.total + ' languages</span>';
+        }
+        return '<span class="badge badge--warning">' + S.icon('clock', { size: 'sm' }) + 'Translation pending · ' + tr.done + '/' + tr.total + '</span>';
+      }
+
+      function kindBadge(kind) {
+        var labels = { statement: 'Statement', vote: 'Vote', act: 'Act', opinion: 'Opinion', certification: 'Certification', other: 'Record' };
+        return '<span class="badge badge--neutral">' + S.icon('file-text', { size: 'sm' }) + esc(labels[kind] || kind) + '</span>';
+      }
+
+      function matches(r) {
+        var active = Object.keys(filters.kinds).filter(function (k) { return filters.kinds[k]; });
+        if (active.length && active.indexOf(r.kind) < 0) return false;
+        if (filters.q) {
+          var hay = (r.title + ' ' + r.actor).toLowerCase();
+          if (hay.indexOf(filters.q.toLowerCase()) < 0) return false;
+        }
+        return true;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Every emergency action is published here as it is taken — record-keeping cannot be suspended. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        var shown = records.filter(matches);
+        document.getElementById('record-list').innerHTML = shown.length ? shown.map(function (r) {
+          return '<div class="log-row">' +
+            '<span class="log-seq" data-no-i18n>#' + r.seq.toLocaleString('en-US') + '</span>' +
+            kindBadge(r.kind) +
+            '<div style="flex:1 1 18rem;min-inline-size:0"><strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' +
+            '<span class="citation" style="display:block">' + esc(r.actor) + ' · via ' + esc(r.via) + ' · ' + esc(r.date) + '</span></div>' +
+            trBadge(r.tr) +
+            '<a class="citation" href="audit-chain.html">sealed in chain ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+            '</div>';
+        }).join('') : '<p style="padding-block:var(--space-4)">No records match the current filters.</p>';
+
+        document.getElementById('stat-total').textContent = shown.length;
+        document.getElementById('stat-translated').textContent = records.filter(function (r) { return r.tr.done >= r.tr.total; }).length;
+        document.getElementById('stat-pending').textContent = records.filter(function (r) { return r.tr.done < r.tr.total; }).length;
+
+        S.refresh();
+      }
+
+      document.getElementById('f-kinds').addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-kind]') : null;
+        if (!t) return;
+        var k = t.getAttribute('data-kind');
+        filters.kinds[k] = !filters.kinds[k];
+        t.setAttribute('aria-pressed', filters.kinds[k] ? 'true' : 'false');
+        render();
+      });
+      document.getElementById('f-search').addEventListener('input', function (ev) { filters.q = ev.target.value; render(); });
+      document.getElementById('f-clear').addEventListener('click', function () {
+        filters = { q: '', kinds: {} };
+        document.getElementById('f-search').value = '';
+        document.querySelectorAll('[data-kind]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        render();
+      });
+
+      document.getElementById('statement-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var text = document.getElementById('st-text').value.trim();
+        if (!text) {
+          document.getElementById('statement-confirm').innerHTML =
+            '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + 'Enter a statement before submitting.</span>';
+          return;
+        }
+        records.unshift({
+          seq: 84114, kind: 'statement',
+          title: text.length > 80 ? text.slice(0, 77) + '…' : text,
+          actor: S.activePersona().name + ' (simulated)', via: 'F-LEG-006', date: '2031-06-11',
+          tr: { done: 0, total: 5 }
+        });
+        document.getElementById('statement-confirm').innerHTML =
+          '<div class="banner banner--info" role="status">' + S.icon('check') +
+          '<div><span class="banner-title">Statement appended to the public record (simulated).</span> ' +
+          'Sealed as audit entry <span data-no-i18n>#84,114</span>; translation pipeline queued for 5 languages. ' +
+          '<span class="citation">F-LEG-006 · Art. II §2 · WF-SYS-04</span></div></div>';
+        document.getElementById('st-text').value = '';
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

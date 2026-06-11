@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jurisdiction browser — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Jurisdictions · browser</span>
+        <h1>Jurisdiction browser</h1>
+        <p class="page-intro">Drill from Earth down to Plaza Midwood. Every boundary is real, preloaded
+          geography (geoBoundaries + WorldPop + OSM); the live census from residency verifications is
+          layered on top. Jurisdictions are co-equal self-governing containers — nesting changes scope,
+          never rank.</p>
+        <p class="citation">Cosmic address: … · Solar System · Earth · Art. V §1–2</p>
+      </header>
+
+      <nav aria-label="Ancestor chain">
+        <div class="cluster" id="crumbs" style="gap:var(--space-1)"></div>
+        <noscript><p class="gloss">The interactive drill-down needs JavaScript; the default chain is
+          Earth › United States › North Carolina › Mecklenburg County › Charlotte › Plaza Midwood.</p></noscript>
+      </nav>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="children-h">
+          <h2 id="children-h">Children</h2>
+          <div id="children-map"></div>
+          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS.</p>
+          <div id="children-list" class="stack" style="gap:var(--space-2)"></div>
+        </section>
+
+        <section class="card" aria-labelledby="profile-h">
+          <h2 id="profile-h">Profile</h2>
+          <div id="profile" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="powers-h">
+        <h2 id="powers-h">Powers</h2>
+        <p>Joint powers belong to <strong>all</strong> jurisdictions at every level; reserved powers belong to
+          the <strong>most encompassing</strong> jurisdiction only. A more local act on a joint power binds only
+          its own scope.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Examples of joint and reserved powers</caption>
+            <thead><tr><th scope="col">Power</th><th scope="col">Kind</th><th scope="col">Who may exercise it</th></tr></thead>
+            <tbody>
+              <tr><td>Uniform structures of government</td><td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> Joint</span></td><td>All jurisdictions, each within its own scope</td></tr>
+              <tr><td>Taxes</td><td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> Joint</span></td><td>All jurisdictions, each within its own scope</td></tr>
+              <tr><td>Laws and their enforcement</td><td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> Joint</span></td><td>All jurisdictions, each within its own scope</td></tr>
+              <tr><td>Currency</td><td><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Reserved</span></td><td>Most encompassing jurisdiction only</td></tr>
+              <tr><td>Declarations of war</td><td><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Reserved</span></td><td>Most encompassing jurisdiction only</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Joint powers: all jurisdictions · Reserved powers: most encompassing only · Art. V §4–5</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-09.html">WF-JUR-09 — population records &amp; apportionment</a>
+            (residency verifications keep the live census current; pre-election apportionment reads it).
+            Dormant boundaries activate via <a href="bootstrap.html">the bootstrap sequence</a> (WF-JUR-01).</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — Boundary-Loaded (dormant) → Critical-Population →
+            Bootstrapping → Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] →
+            [Restoration-Mode (Art. VI)]. Every profile below renders the Self-Governing state.</p>
+          <p class="citation">Art. V §1–5 · Art. II §1 · CLK-06</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/jurisdiction-browser',
+      title: 'Jurisdiction browser',
+      module: 'jurisdictions',
+      nav: 'jurisdiction-browser',
+      roles: ['R-01', 'R-03'],
+      workflows: ['WF-JUR-09'],
+      forms: [],
+      citation: 'Joint powers: all jurisdictions · Reserved powers: most encompassing only · Art. V §4–5',
+      flow: 'WF-JUR-09',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var WONG = ['--wong-orange', '--wong-skyblue', '--wong-green', '--wong-yellow', '--wong-blue', '--wong-vermil', '--wong-purple'];
+
+      /* Page-local drill state; follows the demo-bar jurisdiction when it changes. */
+      var sel = window.CGA.state.getAll().jurisdiction || 'earth-0-earth';
+      var lastStateJur = sel;
+
+      function childrenOf(slug) {
+        return W.jurisdictions.filter(function (j) { return j.parent === slug; });
+      }
+      function chainOf(slug) {
+        var chain = [], j = BY.jurisdictions[slug];
+        while (j) { chain.unshift(j); j = j.parent ? BY.jurisdictions[j.parent] : null; }
+        return chain;
+      }
+      function sourceLine(j) {
+        var bits = ['source: ' + j.source];
+        if (j.geoboundariesId) bits.push('geoBoundaries ' + j.geoboundariesId);
+        if (j.osmRelationId) bits.push('OSM relation ' + j.osmRelationId);
+        bits.push('population year ' + j.populationYear);
+        return bits.join(' · ');
+      }
+
+      function childMapSvg(children) {
+        if (!children.length) return '';
+        var W_ = 640, H = 200, pad = 10;
+        var w = Math.max(80, Math.floor((W_ - pad * (children.length + 1)) / children.length));
+        var shapes = children.map(function (c, i) {
+          var x = pad + i * (w + pad);
+          var fill = 'var(' + WONG[i % WONG.length] + ')';
+          var label = c.name.length > 18 ? c.name.slice(0, 17) + '…' : c.name;
+          return '<rect x="' + x + '" y="' + pad + '" width="' + w + '" height="' + (H - 60) + '" rx="14" ' +
+            'fill="' + fill + '" fill-opacity="0.45" stroke="var(--gov-border-strong)" />' +
+            '<text x="' + (x + w / 2) + '" y="' + (H - 28) + '" text-anchor="middle" ' +
+            'fill="var(--gov-fg)" font-size="13" font-family="var(--font-sans)">' + esc(label) + '</text>';
+        }).join('');
+        return '<svg viewBox="0 0 ' + W_ + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" ' +
+          'aria-label="Stylized map of child jurisdictions">' + shapes + '</svg>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        if (st.jurisdiction !== lastStateJur) { lastStateJur = st.jurisdiction; sel = st.jurisdiction; }
+        var j = BY.jurisdictions[sel] || BY.jurisdictions['earth-0-earth'];
+        var chain = chainOf(j.slug);
+        var kids = childrenOf(j.slug);
+
+        /* Ancestor breadcrumb — each chip is a button back up the chain. */
+        document.getElementById('crumbs').innerHTML = chain.map(function (c, i) {
+          var lvl = Math.min(c.admLevel, 5);
+          var sep = i > 0 ? '<span class="adm-sep" aria-hidden="true">›</span>' : '';
+          var cur = c.slug === j.slug;
+          return sep + '<button type="button" class="adm-chip adm-chip--' + lvl + '" data-drill="' + esc(c.slug) + '"' +
+            (cur ? ' aria-current="location"' : '') + ' style="cursor:pointer;font-family:inherit">' +
+            esc(c.name) + ' <span class="citation">adm ' + c.admLevel + '</span></button>';
+        }).join('');
+
+        /* Children map + list */
+        document.getElementById('children-map').innerHTML = childMapSvg(kids);
+        document.getElementById('children-list').innerHTML = kids.length
+          ? kids.map(function (c) {
+              return '<button type="button" class="btn btn--secondary btn--sm" data-drill="' + esc(c.slug) + '" style="justify-content:space-between">' +
+                '<span>' + esc(c.name) + ' <span class="citation">adm ' + c.admLevel + ' · ' + esc(S.admLabel(c.admLevel)) + ' · pop ' + S.formatPop(c.population) + '</span></span>' +
+                S.icon('chevron-right', { size: 'sm' }) + '</button>' +
+                (c.dataGap ? '<p class="gloss" style="margin-block:0">' + S.icon('info', { size: 'sm' }) + ' ' + esc(c.dataGap) + '</p>' : '');
+            }).join('')
+          : '<p class="gloss">No loaded child boundaries below this level' +
+            (j.dataGap ? ' — ' + esc(j.dataGap) : '') + '.</p>';
+
+        /* Profile */
+        var lvl = Math.min(j.admLevel, 5);
+        var html =
+          '<div class="cluster" style="gap:var(--space-2)">' +
+          '<span class="adm-chip adm-chip--' + lvl + '">' + esc(j.name) + '</span>' +
+          '<span class="citation">adm ' + j.admLevel + ' · ' + esc(S.admLabel(j.admLevel)) + (j.isoCode ? ' · ' + esc(j.isoCode) : '') + '</span>' +
+          (j.isCivicActive
+            ? S.badge('success', 'Civic active', 'check')
+            : S.badge('neutral', 'Dormant boundary', 'clock')) +
+          '</div>' +
+          '<p class="citation" style="margin-block-start:var(--space-1)">civic active = critical population reached, government bootstrapped · CLK-06 · <a href="bootstrap.html">bootstrap sequence</a></p>' +
+          '<div class="cluster" style="gap:var(--space-6);margin-block-start:var(--space-3)">' +
+          '<div class="stat"><span class="stat-number">' + S.formatPop(j.population) + '</span>' +
+          '<span class="stat-label">population · WorldPop ' + j.populationYear + '</span></div>' +
+          '</div>' +
+          '<p class="gloss">WorldPop estimate is the baseline; the live census from residency verifications is layered on top (WF-JUR-09).</p>' +
+          '<p class="citation">' + esc(sourceLine(j)) + '</p>' +
+          (j.dataGap
+            ? '<div class="banner banner--warning" role="status" style="margin-block:var(--space-3)">' + S.icon('alert-triangle') +
+              '<div><span class="banner-title">Honest data gap</span> ' + esc(j.dataGap) +
+              ' <span class="citation">geoBoundaries ships ADM0–2; deeper levels come from OSM and are sparse in places</span></div></div>'
+            : '') +
+          '<hr />' +
+          '<p><strong>Official languages:</strong> ' + esc((j.officialLanguages || []).join(', ')) +
+          ' · <strong>Timezone:</strong> <span class="citation">' + esc(j.timezone) + '</span></p>' +
+          '<p class="citation">authoritative_server: ' + (j.authoritativeServer ? esc(j.authoritativeServer) : 'NULL — this instance (' + esc(W.instance.host) + ') is authoritative') + ' · <a href="federation.html">federation</a></p>' +
+          '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+          '<a class="btn btn--secondary btn--sm" href="../legislature/settings.html">Amendable settings ' + S.icon('sliders', { size: 'sm' }) + '</a>' +
+          '<a class="btn btn--secondary btn--sm" href="district-mapper.html">District maps ' + S.icon('map', { size: 'sm' }) + '</a>' +
+          '</div>';
+        document.getElementById('profile').innerHTML = html;
+
+        S.refresh();
+      }
+
+      document.getElementById('main').addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-drill]') : null;
+        if (!t) return;
+        sel = t.getAttribute('data-drill');
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

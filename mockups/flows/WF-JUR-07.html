@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Constitutional Restoration (Art. VI) — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Constitutional Restoration (Art. VI) <span class="citation">WF-JUR-07</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-07", "title": "Constitutional Restoration (Art. VI)", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-JUR-07"], "forms": [], "citation": "Art. VI §2–3 · WF-JUR-07", "flow": "WF-JUR-07", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-07",
+ "name": "Constitutional Restoration (Art. VI)",
+ "timeScale": "Rare",
+ "trigger": "Government countermanded, captured/disabled, or destroyed",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-JUR",
+  "I-ELB"
+ ],
+ "terminal": "Tier 1: constituents elect new legislature; Tier 2: encompassing jurisdiction calls elections; Tier 3: individuals self-organize new jurisdictions per the Template; defensive forces protect most legitimate government",
+ "basis": "Art. VI §2–3",
+ "entity": "Jurisdiction",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "System / individuals",
+   "action": "Detect activation condition: countermanding, capture/disablement for extended period, or destruction",
+   "outcome": "Restoration mode declared",
+   "engine": "Art. VI §2 monitors",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "restoration": true
+     }
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Constituent jurisdictions",
+   "action": "TIER 1: hold elections to form new legislature ASAP; new legislature musters forces to restore order",
+   "outcome": "BRANCH: succeeds → order restored",
+   "engine": "WF-ELE-01 emergency variant",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "restoration": true
+     }
+    }
+   },
+   "branches": [
+    {
+     "label": "succeeds → order restored",
+     "goto": "terminal:succeeds → order restored"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "Encompassing jurisdiction",
+   "action": "TIER 2: if no/insufficient constituents can send members → encompassing jurisdiction calls replacement elections",
+   "outcome": "BRANCH: succeeds → restored",
+   "engine": "WF-ELE-04 analog",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "restoration": true
+     }
+    }
+   },
+   "branches": [
+    {
+     "label": "succeeds → restored",
+     "goto": "terminal:succeeds → restored"
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor": "Individuals",
+   "action": "TIER 3: individuals gather however they can and organize new jurisdictions per the Template's prescriptions",
+   "outcome": "New legitimate government formed",
+   "engine": "WF-JUR-01 from scratch",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "restoration": true
+     }
+    }
+   }
+  },
+  {
+   "n": 5,
+   "actor": "Defensive forces",
+   "action": "Protect individuals, rights, and the most legitimate government (identified by fidelity to the Template)",
+   "outcome": "Order restored; mode exits; full audit published",
+   "engine": "Legitimacy scoring + records",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "restoration": true
+     }
+    }
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

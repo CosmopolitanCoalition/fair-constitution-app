@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Union Formation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Union Formation <span class="citation">WF-JUR-02</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-02", "title": "Union Formation", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-JUR-02"], "forms": [], "citation": "Art. V §7 · WF-JUR-02", "flow": "WF-JUR-02", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-02",
+ "name": "Union Formation",
+ "timeScale": "Rare (months–years)",
+ "trigger": "2+ independent jurisdictions initiate",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-JUR"
+ ],
+ "terminal": "New encompassing jurisdiction with codified amendable variables and any added articles; instances federate",
+ "basis": "Art. V §7",
+ "entity": "Jurisdiction",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "Member jurisdictions",
+   "action": "Initiate union; exchange constitutional configurations",
+   "outcome": "Diff of amendable variables + institutional alignment requirements",
+   "engine": "Compatibility analyzer",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "unionDrill": true
+     }
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Member governments",
+   "action": "Align internal institutions to A Fair Constitution and each other",
+   "outcome": "BRANCH: alignment fails → process suspended",
+   "engine": "Institutional reform tracking",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "unionDrill": true
+     }
+    }
+   },
+   "branches": [
+    {
+     "label": "alignment fails → process suspended",
+     "goto": "terminal:alignment fails → process suspended"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "Members",
+   "action": "Codify amendable variables + any additional articles for the union constitution",
+   "outcome": "Ratification package",
+   "engine": "Drafting workspace",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "unionDrill": true
+     }
+    }
+   }
+  },
+  {
+   "n": 4,
+   "actor": "Populations / legislatures",
+   "action": "Ratification votes per Art. VII requirements",
+   "outcome": "BRANCH: ratified → new encompassing jurisdiction instantiated, bicameral seats apportioned (Art. V §3), instances federate; else archived",
+   "engine": "Cross-jurisdiction engine",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "sc": {
+      "unionDrill": true
+     }
+    }
+   },
+   "branches": [
+    {
+     "label": "ratified → new encompassing jurisdiction instantiated, bicameral seats apportioned (Art. V §3), instances federate",
+     "goto": "terminal:ratified → new encompassing jurisdiction instantiated, bicameral seats apportioned (Art. V §3), instances federate"
+    },
+    {
+     "label": "else archived",
+     "goto": "terminal:else archived"
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

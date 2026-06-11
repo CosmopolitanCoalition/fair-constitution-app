@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amendments — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">System of record</span>
+        <h1>Amendments</h1>
+        <p class="page-intro">The constitution changes through exactly two doors. Amendable variables move by ordinary
+          legislative acts inside hardened bounds. The hardened layer itself moves only by a code release that passes
+          the full constitutional test suite. Nothing changes silently, and nothing changes any other way.</p>
+        <p class="citation">Amendment of the Constitution · Art. VII · WF-SYS-05</p>
+      </header>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="path-a-h">
+          <h2 id="path-a-h">Door one — amendable variables</h2>
+          <p class="cc-small">Settings the constitution leaves to each jurisdiction, changed by a valid legislative act
+            (Amendable Setting Change · F-LEG-031) through the ordinary bill flow. The engine blocks out-of-range
+            values before the vote is even scheduled.</p>
+          <div class="stack" style="gap:var(--space-3)">
+            <div class="amendable">
+              <span class="amendable-value">election_interval_months = 60</span>
+              <span class="amendable-meta">Template default at founding · CLK-01 · changes apply from the next cycle · Art. II §2</span>
+            </div>
+            <div class="amendable">
+              <span class="amendable-value">legislature_max_seats = 9</span>
+              <span class="amendable-meta">Range 5–9 · the ceiling of 9 is itself hardened · Art. II §2</span>
+            </div>
+            <div class="amendable">
+              <span class="amendable-value">supermajority = 2/3</span>
+              <span class="amendable-meta">Set by Act 2031-14 · effective 2031-03-01 · floor: may never produce a result below majority + 1 · Art. VII</span>
+            </div>
+            <div class="amendable">
+              <span class="amendable-value">emergency_powers_max_days = 90</span>
+              <span class="amendable-meta">CLK-03 · constitutional ceiling 90 days · Art. II §7</span>
+            </div>
+          </div>
+          <p style="margin-block-start:var(--space-4)"><a href="../legislature/settings.html">The full amendable-settings register
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+
+        <section class="card" aria-labelledby="path-b-h">
+          <h2 id="path-b-h">Door two — the hardened layer</h2>
+          <p class="cc-small">Mechanics no act, admin panel, or office can touch. A change here is a code release that
+            must pass the full constitutional test suite before deployment — <strong>softening exists only through this
+            door</strong>, in the open, with the diff and the test run on the public record.</p>
+          <div class="stack" style="gap:var(--space-2)">
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> STV with Droop quota — never FPTP or plurality · Art. II §2</span>
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Quorum &amp; supermajority counted against all serving members · Art. II §2; Art. VII</span>
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> 5–9 seats with mandatory subdivision above 9 · Art. II §2, §8</span>
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Ballot secrecy — identity cryptographically separated · Art. II §2</span>
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Voting &amp; candidacy: residency only, no other requirements · Art. I</span>
+            <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> CGC intellectual property perpetually public domain · Art. III §5</span>
+          </div>
+          <p class="citation" style="margin-block-start:var(--space-4)">Protected files + constitutional test suite · CGA §6.3–6.4 · <a href="audit-chain.html">releases sealed in the audit chain</a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="floor-h">
+        <h2 id="floor-h">The supermajority floor</h2>
+        <p>The supermajority fraction is amendable, but its definition has a hardened floor: no redefinition may
+          produce a threshold below <strong>majority + 1</strong> of all serving members. The default is two thirds,
+          computed as <code data-no-i18n>ceil(serving_members × 2/3)</code> — against members <em>serving</em>, never
+          members present.</p>
+        <div class="meter-block" style="max-inline-size:32rem">
+          <div class="meter">
+            <span class="meter-fill meter-fill--met" style="inline-size:67%"></span>
+            <span class="meter-threshold" style="inset-inline-start:56%"></span>
+          </div>
+          <div class="meter-caption">
+            <span>Charlotte chamber: 9 serving → majority 5 · floor (majority + 1) = 6 · supermajority ceil(9 × 2/3) = 6</span>
+            <span>Art. VII</span>
+          </div>
+        </div>
+        <p class="gloss">Supermajority, glossed: the share of every seated member — vacant seats still count in the
+          denominator until refilled — so absence can never lower the bar.</p>
+      </section>
+
+      <section class="card" aria-labelledby="prop-h">
+        <h2 id="prop-h">The proportionality ratchet</h2>
+        <p>The voting method (<code data-no-i18n>voting_method = stv_droop</code>) is listed as amendable — but only in
+          one direction: it may be replaced exclusively by a <strong>more proportional</strong> method. The engine
+          rejects any act that would adopt plurality, FPTP, or any method scoring lower on the proportionality tests.</p>
+        <p class="citation">Establish Proportional Voting Systems · Art. II §2 — STV satisfies factional-makeup
+          matching with no party layer · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+      </section>
+
+      <section class="card" aria-labelledby="try-h">
+        <h2 id="try-h">Try a proposed value</h2>
+        <p class="cc-small">The same pre-vote validation the bill flow runs. Out-of-range proposals never reach the
+          floor — the rejection is recorded with its citation.</p>
+        <form id="try-form" class="cluster" style="align-items:flex-end">
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="try-setting">Setting</label>
+            <select class="select" id="try-setting" style="inline-size:auto">
+              <option value="max_seats">legislature_max_seats (range 5–9)</option>
+              <option value="interval">election_interval_months (range 12–120)</option>
+              <option value="emergency">emergency_powers_max_days (ceiling 90)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="try-value">Proposed value</label>
+            <input class="field-input" id="try-value" type="number" value="12" style="inline-size:8rem" />
+          </div>
+          <button type="submit" class="btn btn--secondary">Check against hardened bounds</button>
+        </form>
+        <div id="try-result" role="status" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="ratify-h">
+        <h2 id="ratify-h">Ratification thresholds</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th scope="col">Change</th><th scope="col">Threshold</th><th scope="col" class="mono">Basis</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Amendable setting within bounds</td>
+                <td>Valid legislative act (majority or supermajority per the setting)</td>
+                <td class="mono">Art. VII · F-LEG-031</td>
+              </tr>
+              <tr>
+                <td>Amend additional constitutional articles</td>
+                <td>Supermajority of constituent jurisdictions — or supermajority of the legislature where no constituents exist</td>
+                <td class="mono">Art. VII</td>
+              </tr>
+              <tr>
+                <td>Hardened-layer change</td>
+                <td>Code release passing the full constitutional test suite, publicly recorded</td>
+                <td class="mono">Art. VII · CGA §6.3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Questions the build surfaced about these mechanics
+          live in the <a href="../shared/constitutional-questions.html">constitutional-questions ledger</a> — the seed
+          list for the next draft.</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-SYS-05.html">WF-SYS-05 (constitutional amendment)</a> —
+            the settings door runs through <a href="../flows/WF-LEG-14.html">WF-LEG-14 (amendable setting change)</a>
+            and the ordinary bill flow <a href="../flows/WF-LEG-06.html">WF-LEG-06</a>; every change is sealed via
+            <a href="../flows/WF-SYS-04.html">WF-SYS-04 (audit chain)</a>.</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — amendable settings are scoped per jurisdiction;
+            ratification climbs the nesting chain through constituent supermajorities.</p>
+          <p class="citation">Art. VII · CGA §6.3–6.4</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'system/amendments',
+      title: 'Amendments',
+      module: 'system',
+      nav: 'amendments',
+      roles: ['R-09'],
+      workflows: ['WF-SYS-05'],
+      forms: [],
+      citation: 'Two doors: settings within hardened bounds, or a code release passing the constitutional test suite · Art. VII',
+      flow: 'WF-SYS-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell;
+
+      var BOUNDS = {
+        max_seats: { min: 5, max: 9, label: 'legislature_max_seats', cite: 'hardened ceiling 9 · Art. II §2' },
+        interval: { min: 12, max: 120, label: 'election_interval_months', cite: 'bounds per Art. II §2 election-interval guarantees' },
+        emergency: { min: 1, max: 90, label: 'emergency_powers_max_days', cite: 'constitutional ceiling 90 days · Art. II §7' }
+      };
+
+      document.getElementById('try-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var b = BOUNDS[document.getElementById('try-setting').value];
+        var v = parseInt(document.getElementById('try-value').value, 10);
+        var out = document.getElementById('try-result');
+        if (isNaN(v)) {
+          out.innerHTML = '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + 'Enter a number to check.</span>';
+        } else if (v < b.min || v > b.max) {
+          out.innerHTML = '<div class="banner banner--warning" role="status">' + S.icon('x') +
+            '<div><span class="banner-title">Blocked pre-vote.</span> ' + b.label + ' = ' + v +
+            ' is outside the hardened range ' + b.min + '–' + b.max + ' and cannot reach the floor. ' +
+            'The attempt would be appended to the <a href="audit-chain.html">audit chain</a> as a rejected transition. ' +
+            '<span class="citation">' + S.esc(b.cite) + ' · WF-SYS-04</span></div></div>';
+        } else {
+          out.innerHTML = '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">Within bounds.</span> ' + b.label + ' = ' + v +
+            ' may proceed as an Amendable Setting Change act (F-LEG-031) through the bill flow. ' +
+            '<span class="citation">Art. VII · WF-LEG-14</span></div></div>';
+        }
+        S.refresh();
+      });
+
+      function render() { S.refresh(); }
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

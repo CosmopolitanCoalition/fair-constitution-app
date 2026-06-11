@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disintermediation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div class="banner banner--demo" role="note">
+        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div><span class="banner-title">Walkthrough example — no live disintermediation case.</span>
+          The scenario below imagines dissolving Mecklenburg County so its municipalities parent directly to
+          North Carolina. The places are real; the case is illustrative. <span class="citation">Art. V §8</span></div>
+      </div>
+
+      <header>
+        <span class="eyebrow">Jurisdictions · disintermediation</span>
+        <h1>Disintermediation — dissolving an intermediary jurisdiction</h1>
+        <p class="page-intro">An intermediary layer dissolves only when <strong>every</strong> constituent
+          jurisdiction agrees and the encompassing jurisdiction consents. Its acts do not vanish — they are
+          incorporated into each former constituent's law, with conflicts surfaced and resolved before the
+          dissolution takes effect.</p>
+        <p class="citation">All constituents agree + encompassing agrees → acts incorporated into constituents · Art. V §8</p>
+      </header>
+
+      <section class="card" aria-labelledby="consent-h">
+        <h2 id="consent-h">Consent meters</h2>
+        <p>Unanimity of constituents — not a supermajority. One holdout stops the dissolution.</p>
+        <div id="consent-meters" class="stack" style="gap:var(--space-4)"></div>
+        <div class="table-wrap" style="margin-block-start:var(--space-4)">
+          <table class="table">
+            <caption class="visually-hidden">Constituent consent status</caption>
+            <thead><tr><th scope="col">Constituent municipality</th><th scope="col">Legislature act</th><th scope="col">Status</th></tr></thead>
+            <tbody id="consent-rows"></tbody>
+          </table>
+        </div>
+        <noscript><p class="gloss">The consent tracker needs JavaScript. In the example: 5 of 7 constituent
+          municipalities have passed disintermediation acts; Matthews and Pineville are pending; the
+          encompassing North Carolina act is scheduled.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="merge-h">
+        <h2 id="merge-h">Law merge — surfaced conflicts</h2>
+        <p class="cc-small">Of Mecklenburg County's 219 acts, 214 incorporate cleanly into all seven
+          constituents. Five conflict with existing constituent law and need a resolution choice recorded in
+          the dissolution plan.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Conflicting acts and resolution choices</caption>
+            <thead><tr><th scope="col">Intermediary act</th><th scope="col">Conflicts with</th><th scope="col">Resolution</th></tr></thead>
+            <tbody id="merge-rows"></tbody>
+          </table>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Open Art. IV §5 challenges travel with the
+          merged law — the Novák finding on Curfew Ordinance §3 would follow that ordinance into Charlotte law.</p>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <button type="button" class="btn btn--primary" id="merge-apply">Record merge plan</button>
+          <span id="merge-status"></span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Acts incorporated into former constituents · Art. V §8 · publication via WF-SYS-03</p>
+      </section>
+
+      <section class="card" aria-labelledby="topo-h">
+        <h2 id="topo-h">Topology after dissolution</h2>
+        <p class="cc-small">Each municipality's parent becomes North Carolina; every resident's nesting chain
+          re-resolves automatically — association exists at every remaining level simultaneously.</p>
+        <div class="cluster" style="gap:var(--space-1)">
+          <span class="adm-chip adm-chip--2">North Carolina</span>
+          <span class="adm-sep" aria-hidden="true">›</span>
+          <span class="adm-chip adm-chip--3" style="text-decoration:line-through">Mecklenburg County</span>
+          <span class="adm-sep" aria-hidden="true">›</span>
+          <span class="adm-chip adm-chip--4">Charlotte</span>
+          <span class="adm-sep" aria-hidden="true">›</span>
+          <span class="adm-chip adm-chip--5">Plaza Midwood</span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">federation topology updated on dissolution · WF-JUR-04 · Art. I; Art. V §1</p>
+      </section>
+
+      <section class="card" aria-labelledby="form-h">
+        <h2 id="form-h">The dissolution vote</h2>
+        <div id="form-card"></div>
+        <div class="banner banner--info" role="note" style="margin-block-start:var(--space-3)">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><span class="banner-title">ID drift note.</span>
+            The workflows catalog reused the ID F-LEG-030 for <em>Vacancy declaration</em>; the canonical
+            F-LEG-030 is this <em>Disintermediation vote</em>. Canonical vacancy declaration is
+            <span id="vacancy-alias" class="citation">F-LEG-036 (catalog alias: F-LEG-030 · workflows catalog)</span>.
+            Form name first, ID second — so the drift cannot mislead.</div>
+        </div>
+        <form id="dis-form" style="margin-block-start:var(--space-4)">
+          <div class="field">
+            <label class="field-label" for="dis-target">Intermediary jurisdiction to dissolve</label>
+            <select class="select" id="dis-target"><option>Mecklenburg County (usa-3-mecklenburg-county) — example</option></select>
+            <span class="field-hint">The vote is held in each constituent legislature and in the encompassing legislature.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Cast this chamber's vote</button>
+            <span id="dis-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-04.html">WF-JUR-04 — disintermediation</a>
+            (disintermediation acts ×N → dissolution → law merge → topology update). The mirror-image
+            growth path is <a href="union-formation.html">union formation</a> (WF-JUR-02/03).</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — the [Disintermediated] terminal branch; its
+            former constituents remain Self-Governing throughout.</p>
+          <p class="citation">Art. V §8 · WF-JUR-04 · WF-SYS-03</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/disintermediation',
+      title: 'Disintermediation',
+      module: 'jurisdictions',
+      nav: 'jurisdiction-browser',
+      roles: ['R-09'],
+      workflows: ['WF-JUR-04'],
+      forms: ['F-LEG-030'],
+      citation: 'All constituents + encompassing agree · acts incorporated into constituents · Art. V §8',
+      flow: 'WF-JUR-04',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+
+      /* Real Mecklenburg municipalities; fictional act numbers. */
+      var CONSTITUENTS = [
+        { name: 'Charlotte', act: 'Act 2031-22', state: 'passed' },
+        { name: 'Huntersville', act: 'Act 2031-09', state: 'passed' },
+        { name: 'Cornelius', act: 'Act 2031-05', state: 'passed' },
+        { name: 'Davidson', act: 'Act 2031-07', state: 'passed' },
+        { name: 'Mint Hill', act: 'Act 2031-04', state: 'passed' },
+        { name: 'Matthews', act: '—', state: 'pending' },
+        { name: 'Pineville', act: '—', state: 'pending' }
+      ];
+      var CONFLICTS = [
+        { act: 'Mecklenburg watershed protection act (2030-11)', vs: 'Charlotte stormwater ordinance §4' },
+        { act: 'County transit levy (Act 2029-03)', vs: 'Huntersville transport budget act (2030-01)' },
+        { act: 'Curfew Ordinance §3 — under Art. IV §5 challenge', vs: 'Charlotte public-spaces ordinance §2' },
+        { act: 'Unified parks maintenance standard (Act 2028-14)', vs: 'Davidson greenway charter §1' },
+        { act: 'County records retention rule (Act 2027-19)', vs: 'Matthews municipal records act §3' }
+      ];
+      var resolutions = {};
+      var mergeDone = false, chamberVoted = false;
+
+      function render() {
+        var passed = CONSTITUENTS.filter(function (c) { return c.state === 'passed'; }).length;
+        var total = CONSTITUENTS.length;
+        var pct = Math.round(passed / total * 100);
+
+        document.getElementById('consent-meters').innerHTML =
+          '<div class="meter-block">' +
+          '<div class="meter" role="img" aria-label="Constituent unanimity progress">' +
+          '<span class="meter-fill' + (passed === total ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
+          '<div class="meter-caption"><span>Constituent unanimity — ' + passed + ' of ' + total + ' municipalities (all ' + total + ' required)</span>' +
+          '<span>unanimity, not supermajority · Art. V §8</span></div></div>' +
+          '<div class="meter-block">' +
+          '<div class="meter" role="img" aria-label="Encompassing consent progress">' +
+          '<span class="meter-fill" style="inline-size:0%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
+          '<div class="meter-caption"><span>Encompassing consent — North Carolina legislature act scheduled 2031-07-08 · ' +
+          'shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>' +
+          '<span>encompassing jurisdiction must agree · Art. V §8</span></div></div>';
+
+        document.getElementById('consent-rows').innerHTML = CONSTITUENTS.map(function (c) {
+          var badge = c.state === 'passed'
+            ? S.badge('success', 'Disintermediation act passed', 'check')
+            : S.badge('warning', 'Pending — on next session agenda', 'clock');
+          return '<tr><td>' + esc(c.name) + '</td><td class="mono">' + esc(c.act) + '</td><td>' + badge + '</td></tr>';
+        }).join('');
+
+        document.getElementById('merge-rows').innerHTML = CONFLICTS.map(function (cf, i) {
+          var sel = resolutions[i] || '';
+          return '<tr><td>' + esc(cf.act) + '</td><td>' + esc(cf.vs) + '</td><td>' +
+            '<label><span class="visually-hidden">Resolution for ' + esc(cf.act) + '</span>' +
+            '<select class="select" data-resolve="' + i + '" style="inline-size:auto">' +
+            '<option value=""' + (sel === '' ? ' selected' : '') + '>Choose…</option>' +
+            '<option value="incorporate"' + (sel === 'incorporate' ? ' selected' : '') + '>Incorporate — intermediary text supersedes</option>' +
+            '<option value="defer"' + (sel === 'defer' ? ' selected' : '') + '>Defer — constituent act prevails</option>' +
+            '<option value="lapse"' + (sel === 'lapse' ? ' selected' : '') + '>Lapse on dissolution</option>' +
+            '</select></label></td></tr>';
+        }).join('') +
+        '<tr><td>214 further acts</td><td>no conflicts found</td><td>' +
+        S.badge('success', 'Incorporate verbatim into all 7 constituents', 'check') + '</td></tr>';
+
+        var chosen = Object.keys(resolutions).filter(function (k) { return resolutions[k]; }).length;
+        document.getElementById('merge-status').innerHTML = mergeDone
+          ? S.badge('success', 'Merge plan recorded — takes effect only when all consents are in', 'check')
+          : S.badge('neutral', chosen + ' of ' + CONFLICTS.length + ' conflicts resolved', 'clock');
+
+        /* F-LEG-030 form card — canonical, with the alias note rendered from fixtures. */
+        var f = BY.forms['F-LEG-030'];
+        var vac = BY.forms['F-LEG-036'];
+        document.getElementById('form-card').innerHTML = '<div class="card card--inset">' +
+          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + ' <span class="citation">F-LEG-030</span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">Available to: ' + esc(f.availableToRaw) + ' · prereq: ' + esc(f.prereq) + ' · ' + esc(f.basis) + '</p></div>';
+        document.getElementById('vacancy-alias').textContent =
+          'F-LEG-036 ' + esc(vac.name) + (vac.aliases.length ? ' (catalog alias: ' + vac.aliases.join('; ') + ')' : '');
+
+        document.getElementById('dis-status').innerHTML = chamberVoted
+          ? S.badge('success', 'This chamber voted to dissolve — recorded to the consent tracker', 'check')
+          : '';
+
+        S.refresh();
+      }
+
+      document.getElementById('main').addEventListener('change', function (ev) {
+        var t = ev.target;
+        if (t.hasAttribute && t.hasAttribute('data-resolve')) {
+          resolutions[t.getAttribute('data-resolve')] = t.value;
+          mergeDone = false;
+          render();
+        }
+      });
+      document.getElementById('merge-apply').addEventListener('click', function () {
+        CONFLICTS.forEach(function (cf, i) { if (!resolutions[i]) resolutions[i] = 'defer'; });
+        mergeDone = true;
+        render();
+      });
+      document.getElementById('dis-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        chamberVoted = true;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

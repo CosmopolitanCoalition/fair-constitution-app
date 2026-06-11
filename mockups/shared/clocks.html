@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clocks &amp; triggers — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">System of record</span>
+        <h1>Clocks &amp; triggers</h1>
+        <p class="page-intro">The complete registry of constitutional clocks, CLK-01 through CLK-21 — every interval,
+          deadline, window, and threshold that fires a workflow without anyone asking. Time and population do the
+          triggering; officials never do.</p>
+        <p class="citation">Workflows catalog · Sheet 4 (CLK clocks &amp; triggers)</p>
+      </header>
+
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div><span class="banner-title">This page doubles as the scheduler spec.</span>
+          The production scheduler implements exactly these clock records — one row, one trigger source. Amendable
+          defaults read from <code data-no-i18n>constitutional_settings</code>; hardened and structural clocks are
+          fixed in code behind the constitutional test suite.</div>
+      </div>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number">21</span><span class="stat-label">clocks in the registry</span></div>
+        <div class="stat"><span class="stat-number" id="stat-amendable">—</span><span class="stat-label">amendable via settings</span></div>
+        <div class="stat"><span class="stat-number" id="stat-fixed">—</span><span class="stat-label">hardened or structural</span></div>
+      </div>
+
+      <div id="clock-groups" class="stack">
+        <noscript><p>The registry table renders from the fixtures (registry.clocks) and requires JavaScript. The
+          authoritative source is catalog Sheet 4; the production scheduler reads the same 21 records.</p></noscript>
+      </div>
+
+      <section class="card" aria-labelledby="read-h">
+        <h2 id="read-h">Reading the registry</h2>
+        <ul style="margin-block-end:var(--space-2)">
+          <li><strong>Type</strong> is the scheduler contract: recurring intervals re-arm on fire; countdowns expire once; bounded windows open and close; thresholds watch a quantity and fire on crossing.</li>
+          <li><strong>Amendable</strong> means a valid legislative act can change the default within hardened bounds — see <a href="../system/amendments.html">amendments</a> and the <a href="../legislature/settings.html">settings register</a>.</li>
+          <li><strong>Fires</strong> names the workflow the scheduler invokes; each link opens the step-by-step walkthrough.</li>
+          <li>Every fire event is appended to the <a href="../system/audit-chain.html">audit chain</a>. <span class="citation">WF-SYS-04</span></li>
+        </ul>
+        <p class="gloss">Glossary: a "peg quorum" counts all serving members, not those present; the Droop quota is the
+          smallest vote count that mathematically guarantees a seat; the finalist count X is a function of seats in the
+          race (CLK-21).</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> the scheduler itself is the engine behind
+            <a href="../flows/WF-SYS-01.html">WF-SYS-01 (term synchronization)</a> and
+            <a href="../flows/WF-SYS-02.html">WF-SYS-02 (90-day meeting enforcement)</a>; the Fires column links every
+            other consumer.</p>
+          <p><strong>Entity state machine:</strong> clocks are stateless trigger records — they move other entities
+            (Election, Emergency Powers, Vacancy, Residency Claim) through their lifecycles.</p>
+          <p class="citation">Catalog Sheet 4 · Art. II §2 · Art. II §7 · Art. III §6 · Art. IV §4</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'shared/clocks',
+      title: 'Clocks & triggers',
+      module: 'shared',
+      nav: 'clocks',
+      roles: [],
+      workflows: ['WF-SYS-01', 'WF-SYS-02'],
+      forms: [],
+      citation: 'CLK-01…CLK-21 · catalog Sheet 4 · the scheduler spec',
+      flow: 'WF-SYS-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, R = F.registry;
+      var esc = S.esc;
+
+      /* Group the registry's scheduler types into four families (raw type kept per row). */
+      var FAMILIES = [
+        { name: 'Intervals & schedules', desc: 'Recurring and derived schedules — the clocks that re-arm themselves.',
+          types: ['Recurring interval', 'Derived schedule', 'Term length'] },
+        { name: 'Deadlines & windows', desc: 'Countdowns, rolling deadlines, and bounded or continuous windows.',
+          types: ['Rolling deadline', 'Countdown', 'Bounded window', 'Continuous window'] },
+        { name: 'Thresholds & floors', desc: 'Quantity watchers — population, headcount, signatures, seats.',
+          types: ['Accumulating threshold', 'Population threshold', 'Structural threshold', 'Structural floor', 'Headcount threshold', 'Population % threshold'] },
+        { name: 'Formulas & flags', desc: 'Derived values and term-scoped protections.',
+          types: ['Derived formula', 'Term-scoped flag'] }
+      ];
+
+      function amendBadge(a) {
+        if (a === 'Yes') return S.badge('info', 'Amendable', 'sliders');
+        if (/hardened/i.test(a)) return '<span class="badge badge--neutral">' + S.icon('lock', { size: 'sm' }) + 'No — hardened</span>';
+        if (/structural/i.test(a)) return '<span class="badge badge--neutral">' + S.icon('lock', { size: 'sm' }) + esc(a === 'Structural' ? 'Structural' : 'No — structural') + '</span>';
+        if (a === 'Per-case') return S.badge('neutral', 'Per-case', 'clock');
+        if (a === 'Ops setting') return S.badge('neutral', 'Ops setting', 'sliders');
+        return S.badge('neutral', a || '—');
+      }
+
+      function linkFires(text) {
+        return esc(text).replace(/WF-[A-Z]{3}-\d{2}/g, function (wf) {
+          return '<a href="../flows/' + wf + '.html">' + wf + '</a>';
+        });
+      }
+
+      function tableFor(clocks) {
+        return '<div class="table-wrap"><table class="table">' +
+          '<thead><tr><th scope="col" class="mono">ID</th><th scope="col">Name</th><th scope="col">Type</th>' +
+          '<th scope="col">Default</th><th scope="col">Amendable</th><th scope="col">Fires</th>' +
+          '<th scope="col" class="mono">Basis</th></tr></thead><tbody>' +
+          clocks.map(function (c) {
+            return '<tr><td class="mono">' + esc(c.id) + '</td>' +
+              '<td style="color:var(--gov-fg-strong)">' + esc(c.name) + '</td>' +
+              '<td>' + esc(c.type) + '</td>' +
+              '<td>' + (c.default ? esc(c.default) : '<span class="citation">derived — see Fires</span>') + '</td>' +
+              '<td>' + amendBadge(c.amendable) + '</td>' +
+              '<td class="mono">' + linkFires(c.fires) + '</td>' +
+              '<td class="mono">' + esc(c.basis) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+      }
+
+      function render() {
+        var clocks = R.clocks.slice();
+        var seen = {};
+        var html = FAMILIES.map(function (fam) {
+          var rows = clocks.filter(function (c) { return fam.types.indexOf(c.type) >= 0; });
+          rows.forEach(function (c) { seen[c.id] = true; });
+          if (!rows.length) return '';
+          return '<section class="card" style="padding-block-end:var(--space-3)" aria-label="' + esc(fam.name) + '">' +
+            '<h2>' + esc(fam.name) + ' <span class="citation">' + rows.length + ' clocks</span></h2>' +
+            '<p class="cc-small">' + esc(fam.desc) + '</p>' + tableFor(rows) + '</section>';
+        }).join('');
+        var rest = clocks.filter(function (c) { return !seen[c.id]; });
+        if (rest.length) {
+          html += '<section class="card" style="padding-block-end:var(--space-3)" aria-label="Other clock types">' +
+            '<h2>Other types <span class="citation">' + rest.length + ' clocks</span></h2>' + tableFor(rest) + '</section>';
+        }
+        document.getElementById('clock-groups').innerHTML = html;
+
+        var amendable = clocks.filter(function (c) { return c.amendable === 'Yes'; }).length;
+        var fixed = clocks.filter(function (c) { return /hardened|structural/i.test(c.amendable); }).length;
+        document.getElementById('stat-amendable').textContent = amendable;
+        document.getElementById('stat-fixed').textContent = fixed;
+
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

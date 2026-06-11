@@ -22,8 +22,12 @@
         <p class="citation">Cross-links: WF-SYS-05 · system/amendments.html · Art. VII</p>
         <div class="banner banner--info" style="margin-block-start:var(--space-4)">
           <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <div><span class="banner-title">Stage-0 stub</span> The five seed entries are anchored and summarized below so
-            citation markers have a live target from Stage 1; the full prose treatment lands with Stage 6.</div>
+          <div><span class="banner-title">Maintained ledger</span> Entries are appended as the build surfaces new
+            questions; existing entries are only ever extended, never rewritten. Each entry records the constitutional
+            text touched, what the attempt to build it surfaced, the implemented answer, and a status badge tracking it
+            toward the post-game redraft. Amendments to the running system itself go through
+            <a href="../system/amendments.html">the two Art. VII doors</a> — this page is the honest margin note
+            beside them.</div>
         </div>
       </header>
 
@@ -37,6 +41,11 @@
           (<code class="cc-code">political_party | business | nonprofit | common_good_corp | informal</code>) plus
           polymorphic endorsements — any organization <em>or individual</em> can endorse any candidate; members with no
           endorsing organization are first-class.</p>
+        <p><strong>Where to see it:</strong> the <a href="../electoral/open-ballot.html">open ballot</a> filters by
+          endorsing organization or individual endorsements with no party column anywhere; the
+          <a href="../legislature/committees.html">committee surfaces</a> show proportionality staying legible through
+          endorsements alone. Observer and audit standing during counts transfers to endorsing organizations and the
+          candidates themselves.</p>
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
       </section>
 
@@ -49,6 +58,9 @@
         <p><strong>Implemented answer:</strong> ties go to the seat holder with the largest share of votes after
           normalizing quotas — preserving the proportionality the STV election produced and one-person-one-vote, with no
           faction layer.</p>
+        <p><strong>Where to see it:</strong> the assignment run on
+          <a href="../legislature/committees.html">the committees surface</a> — each member's normalized vote share is
+          displayed beside the tie-break so the math is auditable on sight.</p>
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
       </section>
 
@@ -60,6 +72,10 @@
         <p><strong>Implemented answer:</strong> <code class="cc-code">legislature_sizing_law</code> (v1:
           <code class="cc-code">cube_root</code> only) — total seats = max(5, round(∛ Σ direct-children population)).
           Future alternative laws reserved.</p>
+        <p><strong>Where to see it:</strong> the <a href="../jurisdictions/district-mapper.html">district mapper</a>
+          derives every seat budget from the sizing law and displays the quota (population ÷ seats) beside it. At Earth
+          scale the law yields roughly 2,000 population-apportioned seats — a number the constitutional text never had
+          to confront.</p>
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
       </section>
 
@@ -71,6 +87,10 @@
           jurisdictions, each within the constitutional 5–9 seat range; oversized ("giant") children recurse into their
           own sub-district budgets. Leaf giants — above the ceiling with no subdivisions — still require manual
           line-drawing: the open frontier.</p>
+        <p><strong>Where to see it:</strong> the <a href="../jurisdictions/district-mapper.html">district mapper</a>
+          renders draft / active / archived plans with Webster-rounded seats, contiguity and integrity indicators, and
+          the optimal / suboptimal / current grouping stats; election-board observation runs through the
+          <a href="../electoral/election-board-console.html">board console</a>.</p>
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
       </section>
 
@@ -83,7 +103,24 @@
           preserves the right absolutely.</p>
         <p><strong>Implemented answer:</strong> two-phase elections: continuous approval → finalist cutoff → time-boxed
           ranked window → one-count PR-STV (Droop quota, Gregory fractional transfers) filling all seats per district.</p>
+        <p><strong>Where to see it:</strong> the <a href="../electoral/open-ballot.html">open ballot</a> (the finalist
+          line, revocable approvals, jockeying deltas) and the <a href="../electoral/ranked-ballot.html">ranked
+          ballot</a> with its always-available write-in of any validated candidate.</p>
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" aria-labelledby="how-h">
+        <h2 id="how-h">How an entry lands here</h2>
+        <p>A question qualifies when the constitutional text under-determines a mechanism the software must decide —
+          and the build picks an answer. The entry quotes only the citation labels of the text touched, states the
+          implemented answer in one paragraph, and links the surfaces where the answer is visible. Every
+          <span class="citation">· as implemented</span> marker elsewhere in the mockups resolves to its anchor here
+          (<span class="citation" data-no-i18n>#q1–#q5</span>).</p>
+        <p><strong>Status legend:</strong>
+          <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span>
+          — proposed for the post-game redraft of <em>A Fair Constitution</em> and the workbooks. Entries adopted by a
+          redraft will be re-badged rather than removed, preserving the question's history.</p>
+        <p class="citation">Cross-links: <a href="../system/amendments.html">system/amendments.html</a> · WF-SYS-05 · Art. VII</p>
       </section>
     </div>
   </main>

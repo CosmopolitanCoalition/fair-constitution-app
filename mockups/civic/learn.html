@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learn — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="launchpad-hero" style="padding-block:var(--space-8);">
+      <p class="kosmopolites">Kosmopolitês</p>
+      <h1>Learn</h1>
+      <p class="tagline">Understand the system you govern.</p>
+      <p style="max-inline-size:44rem;margin-inline:auto">Free courses from the Cosmopolitan Coalition — the
+        principles, the legitimacy tests, the voting mathematics, and the Template itself. Each course pairs a short
+        video with optional knowledge checks.</p>
+    </div>
+
+    <div class="stack" style="margin-block-start:var(--space-6)">
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div><span class="banner-title">Learning is never a gate.</span>
+          Courses and knowledge checks are entirely optional — your voting and candidacy rights come from residency
+          alone, and no quiz, course, or credential can ever be required of you.
+          <span class="citation">No requirements beyond jurisdictional residency · Art. I</span></div>
+      </div>
+
+      <section aria-labelledby="courses-h">
+        <h2 id="courses-h">Courses</h2>
+        <p class="page-intro">Seeded from the coalition's Topic Knowledge catalog. Links open the source pages on
+          cosmopolitancoalition.org; question counts derive from the videos — one check question per five minutes,
+          minimum three.</p>
+        <div id="course-grid" class="role-grid">
+          <noscript><p>Course cards render from the catalog data and require JavaScript. The catalog lives at
+            <a href="https://cosmopolitancoalition.org/about/programs/learn/">cosmopolitancoalition.org/about/programs/learn/</a>.</p></noscript>
+        </div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="path-h">
+          <h2 id="path-h">Suggested path</h2>
+          <ol class="stepper">
+            <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Summary</li>
+            <li class="stepper-step stepper-step--active" aria-current="step">Cosmopolitan Principles</li>
+            <li class="stepper-step">Legitimacy Tests</li>
+            <li class="stepper-step">Proportional Ranked Choice Voting</li>
+            <li class="stepper-step">Cosmopolitan Template</li>
+          </ol>
+          <p class="gloss" style="margin-block-start:var(--space-2)">Principles first, mechanics second — the Template
+            chapters land better once the legitimacy tests are familiar.</p>
+        </section>
+
+        <section class="card" aria-labelledby="record-h">
+          <h2 id="record-h">Learning &amp; your record <span class="proposed-flag">Proposed — gamification layer</span></h2>
+          <p class="cc-small">Completed courses could surface on your public civic record — visible if you ever stand
+            for office, never required for anything. The civic action is the reward; gamification only surfaces it.</p>
+          <p class="citation">Public record · Art. II §2 — rights unconditional · Art. I</p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> none — Learn is reference material alongside civic life. It is linked from
+            onboarding (<a href="../flows/WF-CIV-01.html">WF-CIV-01</a>) as optional reading, and the brand register
+            (purple field, gold accents) is permitted here and on the launchpad only.</p>
+          <p><strong>Entity state machine:</strong> none. Course content is sourced from the coalition's public
+            Topic Knowledge catalog; the product embeds it read-only.</p>
+          <p class="citation">Topic Knowledge catalog · cosmopolitancoalition.org · Art. I</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/learn',
+      title: 'Learn',
+      module: 'civic',
+      nav: 'learn',
+      roles: ['R-01'],
+      workflows: [],
+      forms: [],
+      citation: 'Topic Knowledge catalog · cosmopolitancoalition.org/about/programs/learn/ · learning is never a gate · Art. I',
+      flow: null,
+      register: 'brand'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell;
+      var esc = S.esc;
+
+      /* Topic Knowledge catalog subjects (question count = max(round(minutes/5), 3)). */
+      var courses = [
+        { title: 'Summary', q: 3, len: '5 min', url: 'https://cosmopolitancoalition.org/',
+          desc: 'The whole movement in five minutes — what the coalition is and why it exists.' },
+        { title: 'Introduction to the Coalition', q: 7, len: '37 min', url: 'https://cosmopolitancoalition.org/about/',
+          desc: 'Who the Cosmopolitan Coalition of United Earth is, and how to take part.' },
+        { title: 'Cosmopolitan Principles', q: 3, len: '11 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-principles/',
+          desc: 'The principles every institution in this app is built to satisfy.' },
+        { title: 'Reciprocity', q: 3, len: '14 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-principles/reciprocity/',
+          desc: 'The universal principle underneath the rest — treat and be treated alike.' },
+        { title: 'Legitimacy Tests', q: 3, len: '7 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-principles/legitimacy-tests/',
+          desc: 'How to evaluate whether any governance system fairly represents its people.' },
+        { title: 'Electoral Systems Compared', q: 7, len: '33 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-principles/legitimacy-tests/balancing-interests-uniformly/comparing-electoral-systems/',
+          desc: 'Autocratic, plurality, ranked, proportional — measured against the same tests.' },
+        { title: 'Proportional Ranked Choice Voting', q: 3, len: '11 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-principles/legitimacy-tests/balancing-interests-uniformly/comparing-electoral-systems/proportional-ranked-choice-voting/',
+          desc: 'The voting method this app hardens: STV with the Droop quota, explained plainly.' },
+        { title: 'Cosmopolitan Template', q: 6, len: '30 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-template/',
+          desc: 'A Fair Constitution end to end — the document these mockups operationalize.' },
+        { title: 'Individuals', q: 4, len: '18 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-template/individuals/',
+          desc: 'Article I: your rights and freedoms, inherent and unconditional.' },
+        { title: 'Legislatures', q: 12, len: '61 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-template/legislatures/',
+          desc: 'Article II: elections, sessions, committees, quorums, and emergency limits.' },
+        { title: 'Jurisdictions', q: 9, len: '45 min', url: 'https://cosmopolitancoalition.org/cosmopolitan-template/jurisdictions/',
+          desc: 'Article V: nested self-government from neighborhood to planet, and how powers divide.' },
+        { title: 'Scaling Co-Determination', q: 4, len: '20 min', url: 'https://cosmopolitancoalition.org/about/reforms/scaling-co-determination/',
+          desc: 'Worker and investor interests on one board — the 100-to-2,000 employee scale.' }
+      ];
+
+      function render() {
+        document.getElementById('course-grid').innerHTML = courses.map(function (c) {
+          return '<a class="role-card" href="' + esc(c.url) + '" rel="noopener">' +
+            '<span class="role-name">' + esc(c.title) + '</span>' +
+            '<span>' + esc(c.desc) + '</span>' +
+            '<span class="citation" data-no-i18n>' + c.q + ' questions · video ' + esc(c.len) + '</span>' +
+            '<span class="enter-as">cosmopolitancoalition.org ' + S.icon('external-link', { size: 'sm' }) + '</span>' +
+            '</a>';
+        }).join('');
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>
