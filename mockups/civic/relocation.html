@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relocation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic · relocation &amp; re-association</span>
+        <h1>It looks like you may have moved</h1>
+        <p class="page-intro">Your residency follows where you actually live. When a sustained presence pattern forms
+          outside your home jurisdiction, the system asks — it never reassigns you silently, and it never penalizes
+          travel.</p>
+        <p class="citation">Association transfers with sustained residence · Art. V §1–2</p>
+      </header>
+
+      <section class="card" aria-labelledby="detect-h">
+        <h2 id="detect-h">Sustained pings detected elsewhere</h2>
+        <div class="banner banner--warning">
+          <svg class="icon" aria-hidden="true"><use href="#i-map-pin"></use></svg>
+          <div><span class="banner-title">9 qualifying days near Durham, North Carolina — outside Plaza Midwood.</span>
+            Home residency: Plaza Midwood, Charlotte (active). Detection uses the same encrypted ping log as
+            verification; only day-counts are visible.
+            <span class="citation">CLK-05 · residency_confirmation_days · Art. V §1</span></div>
+        </div>
+        <div class="grid-2" style="margin-block-start:var(--space-4)">
+          <div>
+            <div id="away-meter" class="meter-block"></div>
+            <noscript><p class="gloss">Meter renders with JavaScript — 9 of 30 qualifying days away in the fixture state.</p></noscript>
+            <p class="gloss" style="margin-block-start:var(--space-2)">A move only completes when the away-pattern reaches the full residency threshold — the same 30-day standard your home verification used.</p>
+          </div>
+          <svg viewBox="0 0 340 150" role="img" aria-label="Map stand-in showing the home boundary in Charlotte and a detected ping cluster near Durham" style="inline-size:100%;block-size:auto">
+            <rect x="0" y="0" width="340" height="150" fill="var(--gov-surface-2)" rx="8"></rect>
+            <path d="M30 100 L46 64 L96 54 L122 86 L102 122 L52 126 Z" fill="var(--wong-orange)" fill-opacity="0.25" stroke="var(--wong-orange)" stroke-width="2"></path>
+            <path d="M212 64 L252 46 L300 60 L304 100 L262 116 L218 102 Z" fill="var(--wong-skyblue)" fill-opacity="0.18" stroke="var(--wong-skyblue)" stroke-width="2"></path>
+            <circle cx="256" cy="80" r="4" fill="var(--wong-skyblue)"></circle>
+            <circle cx="272" cy="92" r="4" fill="var(--wong-skyblue)"></circle>
+            <circle cx="242" cy="94" r="4" fill="var(--wong-skyblue)"></circle>
+            <text x="44" y="44" fill="var(--gov-fg-strong)" font-size="12">Plaza Midwood (home)</text>
+            <text x="212" y="36" fill="var(--gov-fg-muted)" font-size="12">near Durham (detected)</text>
+            <text x="92" y="144" fill="var(--gov-fg-subtle)" font-size="10">stylized stand-in — production uses Leaflet + PostGIS</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="choice-h">
+        <h2 id="choice-h">Travel, or a move?</h2>
+        <p class="cc-small">Tell the system which this is. Either answer is final only when you say so — and a move
+          still requires the full threshold pattern before anything transfers.</p>
+        <div class="cluster" role="group" aria-label="Travel or move">
+          <button type="button" class="btn btn--secondary" id="choose-travel" aria-pressed="false">I&#39;m travelling — keep my residency</button>
+          <button type="button" class="btn btn--secondary" id="choose-move" aria-pressed="false">I&#39;m moving — start re-association</button>
+        </div>
+        <div id="choice-panel" style="margin-block-start:var(--space-4)"></div>
+        <noscript><p class="gloss">Outcome panels render with JavaScript — travel keeps all associations; a move starts WF-CIV-03 re-association with grace-period handling.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="office-h">
+        <h2 id="office-h">Held offices and the grace period <span id="office-context"></span></h2>
+        <p class="cc-small">If you hold an elected or appointed office tied to the jurisdiction you are leaving, it is
+          not dropped the instant you move — a grace period lets the institution prepare while you remain accountable.</p>
+        <div class="card card--inset">
+          <div class="cluster" style="justify-content:space-between">
+            <div><strong>Charlotte legislature · seat 2</strong>
+              <span class="citation" style="display:block">R-09 seated representative · term ends 2035-11-01</span></div>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Grace period running</span>
+          </div>
+          <div class="meter-block" style="margin-block-start:var(--space-3)">
+            <div class="meter"><span class="meter-fill" style="inline-size:30%"></span></div>
+            <div class="meter-caption"><span>day 9 of 30 — grace ends if the move completes</span><span>seat vacates → countback · Art. II §5</span></div>
+          </div>
+          <p class="cc-small" style="margin-block-start:var(--space-3)">If re-association completes, the seat is declared vacant and fills by
+            <a href="../flows/WF-ELE-03.html">countback (WF-ELE-03)</a> — prior ballots re-run with the vacated member removed.
+            If you stay, nothing changes.</p>
+          <p class="citation">Vacancy → countback → special election fallback (90–180 d · CLK-04) · Art. II §5 · Art. V §1–2</p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <div id="ind-strip" class="state-strip"></div>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — a confirmed move enters the [Relocating] state.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Your old residency claim becomes Superseded only when the new one verifies — there is never a gap in your rights.</p>
+        <p class="citation">Art. V §1–2 · CLK-05</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-03.html">WF-CIV-03 relocation &amp; re-association</a> —
+            re-runs <a href="../flows/WF-CIV-02.html">WF-CIV-02</a> in the new jurisdiction; a completed move with a held
+            seat hands off to <a href="../flows/WF-ELE-03.html">WF-ELE-03 vacancy countback</a>; federation peers are notified.</p>
+          <p><strong>Entity state machines:</strong> Individual ([Relocating] → Re-associated) and Residency Claim
+            (Active → Superseded (relocation)).</p>
+          <p><strong>No forms on this surface:</strong> the move path reuses Residency declaration · F-IND-003 on
+            <a href="residency.html">the residency screen</a>.</p>
+          <p class="citation">Art. V §1–2 · Art. II §5 · CLK-05 · CLK-04</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/relocation',
+      title: 'Relocation',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-03'],
+      workflows: ['WF-CIV-03'],
+      forms: [],
+      citation: 'Association transfers with sustained residence · Art. V §1–2',
+      flow: 'WF-CIV-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var choice = null; /* null | 'travel' | 'move' */
+
+      function render() {
+        /* Away-pattern meter */
+        document.getElementById('away-meter').innerHTML =
+          '<div class="meter"><span class="meter-fill" style="inline-size:30%"></span></div>' +
+          '<div class="meter-caption"><span>9 of 30 qualifying days near Durham</span><span>threshold · CLK-05</span></div>';
+
+        /* Is the held-office card "you" or a worked example? */
+        var mine = (S.activePersona().roles || []).indexOf('R-09') >= 0;
+        document.getElementById('office-context').innerHTML = mine
+          ? S.badge('warning', 'You hold this seat', 'alert-triangle')
+          : S.badge('neutral', 'Worked example — your persona holds no office', 'info');
+
+        /* Travel vs move outcome panels */
+        document.getElementById('choose-travel').setAttribute('aria-pressed', choice === 'travel' ? 'true' : 'false');
+        document.getElementById('choose-move').setAttribute('aria-pressed', choice === 'move' ? 'true' : 'false');
+        var panel = '';
+        if (choice === 'travel') {
+          panel = '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">Marked as travel — nothing changes.</span> ' +
+            'Your Plaza Midwood residency and all six associations stay active. The detection resets; the system will ' +
+            'only ask again if a new sustained pattern forms. <span class="citation">Art. V §1 · CLK-05</span></div></div>';
+        } else if (choice === 'move') {
+          panel = '<div class="banner banner--warning" role="status">' + S.icon('arrow-right') +
+            '<div><span class="banner-title">Re-association started — your rights stay intact throughout.</span> ' +
+            'The move completes only when the new pattern reaches the threshold. <span class="citation">WF-CIV-03 · Art. V §1–2</span></div></div>' +
+            '<ol class="flow-steps" style="margin-block-start:var(--space-3)">' +
+            '<li class="flow-step flow-step--current"><div class="flow-step-head"><span class="flow-step-n">1</span><span class="flow-actor">You</span>' +
+            '<span class="flow-action">Declare residency in the new jurisdiction</span></div>' +
+            '<p class="flow-outcome">Residency declaration · F-IND-003 on <a href="residency.html">the residency screen</a>; ping monitoring restarts there.</p></li>' +
+            '<li class="flow-step"><div class="flow-step-head"><span class="flow-step-n">2</span><span class="flow-actor">System</span>' +
+            '<span class="flow-action">Away-pattern accumulates to the threshold (CLK-05)</span></div>' +
+            '<p class="flow-outcome">Old associations remain fully active until then — no gap in voting or candidacy.</p></li>' +
+            '<li class="flow-step"><div class="flow-step-head"><span class="flow-step-n">3</span><span class="flow-actor">System</span>' +
+            '<span class="flow-action">Associations transfer; held offices resolve via the grace period</span></div>' +
+            '<p class="flow-outcome">Old roles and eligibilities gracefully expire; a held seat vacates into countback (WF-ELE-03); federation peers are notified.</p></li></ol>';
+        } else {
+          panel = '<p class="gloss">No answer yet — your residency and all associations remain exactly as they are.</p>';
+        }
+        document.getElementById('choice-panel').innerHTML = panel;
+
+        /* Individual lifecycle strip */
+        var current = choice === 'move' ? '[Relocating]' : 'Jurisdictionally Associated (R-03)';
+        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.map(function (st, i) {
+          var cls = 'state-node' + (st === current ? ' state-node--current' : '');
+          return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
+            '<span class="' + cls + '">' + esc(st) + '</span>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.getElementById('choose-travel').addEventListener('click', function () { choice = 'travel'; render(); });
+      document.getElementById('choose-move').addEventListener('click', function () { choice = 'move'; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

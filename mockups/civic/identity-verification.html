@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Identity verification — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic onboarding · step 2 of 3</span>
+        <h1>Identity verification</h1>
+        <p class="page-intro">Where your jurisdiction supports it, you can bridge an external identity document to your
+          account. Verification strengthens election integrity — it is <strong>never</strong> a requirement for your
+          rights. Voting and candidacy depend only on verified residency.</p>
+        <p class="citation">Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2</p>
+      </header>
+
+      <ol class="stepper">
+        <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> <a href="onboarding.html">1 · Account &amp; profile</a></li>
+        <li class="stepper-step stepper-step--active" aria-current="step">2 · Identity verification</li>
+        <li class="stepper-step"><a href="residency.html">3 · Residency</a></li>
+      </ol>
+
+      <section class="card" aria-labelledby="branch-h">
+        <h2 id="branch-h">Does your jurisdiction support an external ID bridge?</h2>
+        <p class="cc-small">The answer is resolved automatically from your declared jurisdiction in the product —
+          these buttons preview both branch states.</p>
+        <div class="cluster" role="group" aria-label="Branch preview">
+          <button type="button" class="btn btn--secondary" id="branch-supported" aria-pressed="true">Supported jurisdiction — North Carolina</button>
+          <button type="button" class="btn btn--secondary" id="branch-manual" aria-pressed="false">Unsupported jurisdiction — manual path</button>
+        </div>
+      </section>
+
+      <section class="card" id="panel-supported" aria-labelledby="bridge-h">
+        <h2 id="bridge-h">Identity verification submission <span class="form-chip"><span class="form-id">F-IND-004</span></span></h2>
+        <p class="cc-small">Submit external identity verification documents where the jurisdiction supports it.
+          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 + F-IND-003 · Art. I; Art. II §2 (election integrity)</span>
+          <span class="citation" style="display:block">catalog alias: F-IND-005 · workflows catalog (swapped)</span></p>
+        <form id="bridge-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="bridge-system">Identity system</label>
+            <select class="select" id="bridge-system">
+              <option selected>North Carolina state ID bridge</option>
+              <option>United States passport bridge</option>
+            </select>
+            <span class="field-hint">Bridges are configured per jurisdiction by its legislature.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="bridge-doc">Document number</label>
+            <input class="field-input" id="bridge-doc" type="text" inputmode="numeric" placeholder="As printed on the document" />
+            <span class="field-hint">Sent encrypted to the bridge for a yes/no match — the document number is not stored here.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Submit for verification</button>
+            <span id="bridge-status"></span>
+          </div>
+        </form>
+        <div class="banner banner--info" id="bridge-confirm" hidden style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+          <div><span class="banner-title">Submitted — pending verification by the external bridge.</span>
+            Your account works fully while this is pending. Continue to <a href="residency.html">residency</a> —
+            rights never wait on this step.
+            <span class="citation">Modifies: Individual record (verified status) · Art. I; Art. II §2</span></div>
+        </div>
+      </section>
+
+      <section class="card" id="panel-manual" hidden aria-labelledby="manual-h">
+        <h2 id="manual-h">Manual verification path</h2>
+        <div class="banner banner--warning">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><span class="banner-title">No external ID bridge is configured for this jurisdiction.</span>
+            A temporary manual path applies until in-person institutions can supplant the app-based system:
+            an attestation session with a neutral officer of your jurisdiction stands in for the bridge.
+            <span class="citation">Art. II §2 · election integrity</span></div>
+        </div>
+        <ol style="margin-block-start:var(--space-4)">
+          <li>Request an attestation appointment below — the queue is served by the jurisdiction's administrative office.</li>
+          <li>Bring any identifying document recognized under local law.</li>
+          <li>The officer records a verified flag only — no document data enters the system.</li>
+        </ol>
+        <div class="cluster">
+          <button type="button" class="btn btn--secondary" id="manual-request">Request attestation appointment</button>
+          <span id="manual-status"></span>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-3)">Skipping this entirely is always allowed — unverified accounts keep every right that residency grants.</p>
+      </section>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <div id="ind-strip" class="state-strip"></div>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Identity-Verified is the state this surface produces.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">Art. I · Art. II §2</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-01.html">WF-CIV-01 onboarding &amp; identity verification</a> —
+            the BRANCH on this page (bridge vs. manual) is the workflow's only fork.</p>
+          <p><strong>Entity state machine:</strong> Individual — produces <em>Identity-Verified</em>; rights do not depend on it.</p>
+          <p><strong>ID drift note:</strong> the workflows catalog swaps F-IND-004 and F-IND-005; the roles chart is canonical
+            (F-IND-004 = identity verification, F-IND-005 = GPS ping).</p>
+          <p class="citation">Art. I · Art. II §2 (Ensure Election Security and Integrity)</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/identity-verification',
+      title: 'Identity verification',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-01'],
+      workflows: ['WF-CIV-01'],
+      forms: ['F-IND-004'],
+      citation: 'Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2',
+      flow: 'WF-CIV-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var branch = 'supported';
+      var submitted = false;
+
+      function render() {
+        document.getElementById('panel-supported').hidden = branch !== 'supported';
+        document.getElementById('panel-manual').hidden = branch !== 'manual';
+        document.getElementById('branch-supported').setAttribute('aria-pressed', branch === 'supported' ? 'true' : 'false');
+        document.getElementById('branch-manual').setAttribute('aria-pressed', branch === 'manual' ? 'true' : 'false');
+
+        var current = submitted ? 'Identity-Verified' : 'Registered';
+        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.map(function (st, i) {
+          var cls = 'state-node' + (st.indexOf(current) === 0 ? ' state-node--current' : '');
+          return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
+            '<span class="' + cls + '">' + esc(st) + '</span>';
+        }).join('');
+        S.refresh();
+      }
+
+      document.getElementById('branch-supported').addEventListener('click', function () { branch = 'supported'; render(); });
+      document.getElementById('branch-manual').addEventListener('click', function () { branch = 'manual'; render(); });
+
+      document.getElementById('bridge-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        submitted = true;
+        document.getElementById('bridge-confirm').hidden = false;
+        document.getElementById('bridge-status').innerHTML = S.badge('warning', 'Pending verification', 'clock');
+        render();
+      });
+
+      document.getElementById('manual-request').addEventListener('click', function () {
+        document.getElementById('manual-status').innerHTML =
+          S.badge('info', 'Appointment requested — administrative office queue', 'clock');
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advocate registration — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic · advocate registration</span>
+        <h1>Register as an advocate</h1>
+        <p class="page-intro">Advocates represent people in court. Everyone has the right to competent legal
+          representation — registering here makes you eligible to provide it within a jurisdiction, under
+          qualifications that jurisdiction's law defines.</p>
+        <p class="citation">Zealous &amp; competent advocates · Art. IV §4 · Right to Legal Representation · Art. I</p>
+      </header>
+
+      <section class="card" aria-labelledby="prereq-h">
+        <h2 id="prereq-h">Prerequisites</h2>
+        <div class="stack" style="gap:var(--space-3)">
+          <div class="cluster" style="justify-content:space-between">
+            <div><strong>A judiciary exists in the jurisdiction</strong>
+              <span class="citation" style="display:block">I-JUD / I-JDE must be operational before advocates can register</span></div>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — Mecklenburg County judiciary operating (appointed, I-JUD)</span>
+          </div>
+          <div class="cluster" style="justify-content:space-between">
+            <div><strong>You are jurisdictionally associated (R-03)</strong>
+              <span class="citation" style="display:block">association is the only constitutional requirement; the rest is jurisdiction law</span></div>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — <span data-bind="persona.name">Sofia Petrova</span>, Charlotte</span>
+          </div>
+          <div class="cluster" style="justify-content:space-between">
+            <div><strong>Qualifications per jurisdiction law</strong>
+              <span class="citation" style="display:block">set by Mecklenburg County law (Act 2029-08 — fictional example) · Art. IV §4</span></div>
+            <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-info"></use></svg> Declared in the form below</span>
+          </div>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-3)">The constitution requires competent advocates but leaves the qualification bar to each jurisdiction — different jurisdictions may set different bars.</p>
+      </section>
+
+      <section class="card" aria-labelledby="form-h">
+        <h2 id="form-h">Advocate registration <span class="form-chip"><span class="form-id">F-IND-015</span></span></h2>
+        <p class="cc-small">Register as a legal advocate qualified to practice in a jurisdiction.
+          <span class="citation" style="display:block">available to R-03 Jurisdictionally Associated · creates the Advocate record (R-21) · Art. IV §4; Art. I (Right to Legal Rep)</span></p>
+        <form id="adv-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="adv-jur">Jurisdiction of practice</label>
+            <select class="select" id="adv-jur">
+              <option selected>Mecklenburg County court (county scale)</option>
+              <option>Charlotte municipal court (local scale)</option>
+            </select>
+            <span class="field-hint">You can register with any judiciary whose jurisdiction you are associated with.</span>
+          </div>
+          <fieldset class="field" style="border:0;padding:0;margin-inline:0">
+            <legend class="field-label">Qualifications under Mecklenburg County law (example local law)</legend>
+            <div class="radio-group">
+              <label class="checkbox"><input type="checkbox" id="q-attest" /> I attest to the legal-competence qualification defined by county law</label>
+              <label class="checkbox"><input type="checkbox" id="q-ethics" /> I have completed the county ethics module</label>
+              <label class="checkbox"><input type="checkbox" id="q-conflicts" /> I will declare conflicts of interest per case</label>
+            </div>
+          </fieldset>
+          <div class="field">
+            <label class="field-label" for="adv-evidence">Qualification evidence</label>
+            <textarea class="field-input" id="adv-evidence" rows="3" placeholder="Reference to credentials, supervised-practice record, or equivalent the county law accepts"></textarea>
+            <span class="field-hint">Reviewed by the jurisdictional judiciary — not by any political body.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Submit registration</button>
+            <span id="adv-status"></span>
+          </div>
+        </form>
+        <div class="banner banner--info" id="adv-confirm" hidden style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+          <div><span class="banner-title">Submitted — pending review by the jurisdictional judiciary.</span>
+            On approval, your Advocate record (R-21) is created and you become eligible for case representation —
+            filings, motions, evidence, and briefs open in the <a href="../judiciary/advocate-console.html">advocate console</a>.
+            <span class="citation">Creates: Advocate record (R-21) · Art. IV §4</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="after-h">
+        <h2 id="after-h">What registration unlocks</h2>
+        <ul>
+          <li>Filing cases on behalf of clients (Civil/criminal case filing · F-IND-017 via advocate standing).</li>
+          <li>Motions, evidence submission, and briefs in the <a href="../judiciary/advocate-console.html">advocate console</a>.</li>
+          <li>Appearing in any court of the registering jurisdiction, including constitutional challenges.</li>
+        </ul>
+        <p class="cc-small">Representing yourself never requires registration — this role exists so others can be
+          competently represented. <span class="citation">Right to Fair Trial; Right to Legal Representation · Art. I</span></p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-07.html">WF-CIV-07 advocate registration</a> —
+            terminal state: registered advocate eligible for case representation; cases then run through
+            <a href="../flows/WF-JUD-03.html">WF-JUD-03</a>.</p>
+          <p><strong>Entity state machine:</strong> Individual — registration adds the R-21 role to a Jurisdictionally
+            Associated individual; it does not change residency state.</p>
+          <p><strong>ID drift note:</strong> the workflows catalog labels the advocate R-22; the roles chart is canonical —
+            R-21 Advocate, R-22 Juror.</p>
+          <p class="citation">Art. IV §4 · Art. I</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/advocate-registration',
+      title: 'Advocate registration',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-03', 'R-21'],
+      workflows: ['WF-CIV-07'],
+      forms: ['F-IND-015'],
+      citation: 'Zealous & competent advocates · Art. IV §4 · Right to Legal Representation · Art. I',
+      flow: 'WF-CIV-07',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+
+      function render() { S.refresh(); }
+
+      document.getElementById('adv-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var ok = document.getElementById('q-attest').checked &&
+                 document.getElementById('q-ethics').checked &&
+                 document.getElementById('q-conflicts').checked;
+        if (!ok) {
+          document.getElementById('adv-status').innerHTML =
+            S.badge('danger', 'All three county-law qualifications must be confirmed', 'alert-triangle');
+          return;
+        }
+        document.getElementById('adv-confirm').hidden = false;
+        document.getElementById('adv-status').innerHTML = S.badge('warning', 'Pending judiciary review', 'clock');
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

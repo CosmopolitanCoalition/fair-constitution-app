@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Residency — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic onboarding · step 3 of 3</span>
+        <h1>Residency</h1>
+        <p class="page-intro">Declare where you live, and the system verifies it from your long-term presence pattern —
+          nothing else. The moment residency verifies, you are associated with <strong>every</strong> enclosing
+          jurisdiction at once, and voting and candidacy unlock automatically with no other requirements.</p>
+        <p class="citation">Residency verified → all associations → rights unlocked · Art. I; Art. V §1 · CLK-05</p>
+      </header>
+
+      <section class="card" aria-labelledby="claim-h">
+        <h2 id="claim-h">Your residency claim</h2>
+        <div id="claim-strip" class="state-strip"></div>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Declared → Ping-Monitoring → Threshold-Met → Verified → Active.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Threshold days is an amendable setting; pings are encrypted at rest.</p>
+      </section>
+
+      <section class="card" aria-labelledby="decl-h">
+        <h2 id="decl-h">Residency declaration <span class="form-chip"><span class="form-id">F-IND-003</span></span></h2>
+        <p class="cc-small">Declare intent to establish residency in a jurisdiction. Begins GPS ping monitoring.
+          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 · creates the residency tracking record · Art. I (Right to Reside)</span></p>
+        <form id="decl-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="decl-jur">Jurisdiction of residence</label>
+            <select class="select" id="decl-jur">
+              <option value="usa-5-plaza-midwood" selected>Plaza Midwood — Sub-local (Charlotte, North Carolina)</option>
+              <option value="usa-4-charlotte">Charlotte — Local (no sub-local declared)</option>
+              <option value="smr-2-serravalle">Serravalle — San Marino (chain ends at adm 2 — honest data gap)</option>
+            </select>
+            <span class="field-hint">Declare the smallest boundary you live inside; every enclosing level associates automatically.</span>
+          </div>
+          <div class="field">
+            <label class="checkbox"><input type="checkbox" id="decl-consent" checked />
+              Start collecting periodic location pings to establish my residency pattern. Pings are encrypted at rest and never shown to anyone.</label>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Declare residency</button>
+            <span id="decl-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="ping-h">
+          <h2 id="ping-h">GPS residency ping <span class="form-chip"><span class="form-id">F-IND-005</span></span></h2>
+          <p class="cc-small">Periodic automated or manual location check-in for residency pattern establishment.
+            <span class="citation" style="display:block">available to R-01 Individual · appends to the residency ping log · Art. I; Art. V §1</span>
+            <span class="citation" style="display:block">catalog alias: F-IND-004 · workflows catalog (swapped)</span></p>
+          <div id="ping-meter" class="meter-block"></div>
+          <noscript><p class="gloss">Live meter renders with JavaScript — 22 of 30 qualifying days in the fixture state.</p></noscript>
+          <p style="margin-block-start:var(--space-3)" class="amendable">
+            <span class="amendable-value">30 days</span> — residency verification threshold
+            <span class="amendable-meta">residency_confirmation_days · constitutional default · amendable by legislative act · CLK-05 · Art. I; Art. V §1</span>
+          </p>
+          <div class="banner banner--info" style="margin-block-start:var(--space-3)">
+            <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+            <div><span class="banner-title">Pings are encrypted at rest.</span>
+              Only the derived day-count is ever visible — to you or to anyone. Raw locations are never published,
+              never shared, and purge on verification.
+              <span class="citation">location_pings · private · Art. I</span></div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="map-h">
+          <h2 id="map-h">Declared boundary</h2>
+          <svg viewBox="0 0 340 230" role="img" aria-label="Map of the declared Plaza Midwood boundary with qualifying ping days inside it" style="inline-size:100%;block-size:auto">
+            <rect x="0" y="0" width="340" height="230" fill="var(--gov-surface-2)" rx="8"></rect>
+            <path d="M52 168 L44 96 L92 52 L168 38 L236 50 L292 92 L298 150 L252 192 L160 204 L96 196 Z"
+              fill="var(--wong-skyblue)" fill-opacity="0.18" stroke="var(--wong-skyblue)" stroke-width="2"></path>
+            <path d="M120 120 L150 96 L200 92 L232 116 L226 152 L182 168 L138 158 Z"
+              fill="var(--wong-orange)" fill-opacity="0.25" stroke="var(--wong-orange)" stroke-width="2"></path>
+            <circle cx="168" cy="124" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="190" cy="138" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="152" cy="142" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="206" cy="118" r="4" fill="var(--wong-orange)"></circle>
+            <text x="62" y="78" fill="var(--gov-fg-muted)" font-size="12">Charlotte</text>
+            <text x="138" y="116" fill="var(--gov-fg-strong)" font-size="12">Plaza Midwood</text>
+            <text x="120" y="222" fill="var(--gov-fg-subtle)" font-size="10">qualifying ping days cluster inside the boundary</text>
+          </svg>
+          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS (point-in-polygon against the OSM boundary, relation 11324559).</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="verify-h">
+        <h2 id="verify-h">Residency verification confirmation <span class="form-chip"><span class="form-id">F-IND-006</span></span></h2>
+        <p class="cc-small">System auto-generates when the ping threshold is met; you confirm or correct.
+          <span class="citation" style="display:block">available to R-02 Resident (pending) · creates verified residency + all jurisdictional associations (R-03) · Art. I; Art. V §1</span></p>
+        <div id="verify-body"></div>
+        <noscript><p class="gloss">Verification panel renders with JavaScript — it shows locked, pending-confirmation, and fully-associated states as your role advances (R-01 → R-02 → R-03).</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-02.html">WF-CIV-02 residency establishment</a> —
+            steps 1–5 all land here; relocation re-runs it via <a href="../flows/WF-CIV-03.html">WF-CIV-03</a>;
+            population records update via <a href="../flows/WF-JUR-09.html">WF-JUR-09</a>.</p>
+          <p><strong>Entity state machines:</strong> Residency Claim (Declared → Ping-Monitoring → Threshold-Met → Verified → Active)
+            and Individual (Resident R-02 → Jurisdictionally Associated R-03).</p>
+          <p class="citation">Art. I (Right to Reside) · Art. V §1 (Authority by Consent) · CLK-05</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/residency',
+      title: 'Residency',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-01', 'R-02', 'R-03'],
+      workflows: ['WF-CIV-02'],
+      forms: ['F-IND-003', 'F-IND-005', 'F-IND-006'],
+      citation: 'Residency verified → all associations → rights unlocked · Art. I; Art. V §1 · CLK-05',
+      flow: 'WF-CIV-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var THRESHOLD = 30;        /* CLK-05 · residency_confirmation_days default */
+      var confirmedLocally = false;
+
+      /* Stage from demo role: R-01 monitoring · R-02 threshold met · otherwise fully associated. */
+      function stage() {
+        if (confirmedLocally) return 3;
+        var role = window.CGA.state.getAll().role;
+        if (role === 'R-01') return 1;
+        if (role === 'R-02') return 2;
+        return 3;
+      }
+
+      function chipChain() {
+        return W.defaultChain.map(function (slug) {
+          var j = BY.jurisdictions[slug];
+          return '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + ' ' +
+            S.icon('check', { size: 'sm', label: 'associated' }) + '</span>';
+        }).join('');
+      }
+
+      function render() {
+        var st = stage();
+        var days = st === 1 ? 22 : THRESHOLD;
+        var pct = Math.round(days / THRESHOLD * 100);
+
+        /* Residency Claim lifecycle strip */
+        var current = st === 1 ? 'Ping-Monitoring' : st === 2 ? 'Threshold-Met' : 'Active';
+        document.getElementById('claim-strip').innerHTML = BY.entities['Residency Claim'].states.map(function (s2, i) {
+          var cls = 'state-node' + (s2.indexOf(current) === 0 ? ' state-node--current' : '');
+          return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
+            '<span class="' + cls + '">' + esc(s2) + '</span>';
+        }).join('');
+
+        /* Live ping-pattern meter (CLK-05) */
+        document.getElementById('ping-meter').innerHTML =
+          '<div class="meter"><span class="meter-fill' + (days >= THRESHOLD ? ' meter-fill--met' : '') +
+          '" style="inline-size:' + pct + '%"></span><span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
+          '<div class="meter-caption"><span>' + days + ' of ' + THRESHOLD + ' qualifying days</span>' +
+          '<span>' + (days >= THRESHOLD ? 'threshold met · CLK-05' : (THRESHOLD - days) + ' days remaining · CLK-05') + '</span></div>';
+
+        /* Verification panel — three states */
+        var body;
+        if (st === 1) {
+          body = '<p>' + S.badge('neutral', 'Locked — opens when the threshold is met', 'clock') + '</p>' +
+            '<p class="cc-small">Keep living where you live; nothing else is required. The confirmation generates itself on day ' + THRESHOLD + '.</p>';
+        } else if (st === 2) {
+          body = '<p>' + S.badge('warning', 'Threshold met — confirmation pending', 'bell') + '</p>' +
+            '<p class="cc-small">Your pattern qualifies as long-term residence in <strong>Plaza Midwood</strong>. Confirm to verify, or correct the boundary if the system got it wrong.</p>' +
+            '<div class="cluster"><button type="button" class="btn btn--primary" id="confirm-btn">Confirm — this is my residence</button>' +
+            '<button type="button" class="btn btn--ghost" id="correct-btn">Correct the boundary</button></div>';
+        } else {
+          body = '<p>' + S.badge('success', 'Residency verified — you are a verified resident (R-02)', 'check') + '</p>' +
+            '<p style="margin-block-start:var(--space-3)"><strong>Full nesting association (R-03):</strong> point-in-polygon resolved your entire chain — you belong to all six levels simultaneously.</p>' +
+            '<div class="cluster" style="margin-block-start:var(--space-2)">' + chipChain() + '</div>' +
+            '<div class="cluster" style="margin-block-start:var(--space-4);gap:var(--space-4)">' +
+            S.badge('success', 'Voting unlocked', 'check') + S.badge('success', 'Candidacy unlocked', 'check') +
+            '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened · protected by the constitutional test suite</span></div>' +
+            '<p class="citation" style="margin-block-start:var(--space-2)">Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1</p>' +
+            '<p style="margin-block-start:var(--space-3)"><a href="civic-home.html">Go to your civic home ' +
+            S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + '</a></p>';
+        }
+        document.getElementById('verify-body').innerHTML = body;
+
+        var cb = document.getElementById('confirm-btn');
+        if (cb) cb.addEventListener('click', function () { confirmedLocally = true; render(); });
+        var xb = document.getElementById('correct-btn');
+        if (xb) xb.addEventListener('click', function () {
+          xb.outerHTML = '<span class="cc-small">' + S.badge('info', 'Correction opened — redeclare below via F-IND-003', 'info') + '</span>';
+        });
+
+        S.refresh();
+      }
+
+      document.getElementById('decl-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        if (!document.getElementById('decl-consent').checked) {
+          document.getElementById('decl-status').innerHTML = S.badge('danger', 'Ping consent is required to verify', 'alert-triangle');
+          return;
+        }
+        document.getElementById('decl-status').innerHTML = S.badge('success', 'Declaration recorded — monitoring started', 'check');
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', function () { confirmedLocally = false; render(); });
+    })();
+  </script>
+</body>
+</html>

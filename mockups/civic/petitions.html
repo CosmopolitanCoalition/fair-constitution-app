@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Petitions — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic · law by petition</span>
+        <h1>Petitions</h1>
+        <p class="page-intro">Any associated resident can draft a law and put it before the population. Reach the
+          signature threshold, pass an independent audit and a constitutionality review, and your initiative goes on
+          the next jurisdiction-wide ballot.</p>
+        <p class="citation">Creation of Laws by Petition · threshold 5% of population · CLK-17 · Art. II §6</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number" id="stat-open">3</span><span class="stat-label">open petitions in your jurisdictions</span></div>
+        <div class="stat stat--accent"><span class="stat-number">5.00%</span><span class="stat-label">signature threshold · CLK-17</span></div>
+        <div class="stat"><span class="stat-number" id="stat-signed">—</span><span class="stat-label">your signatures (this session)</span></div>
+      </div>
+      <p class="amendable" style="margin-block-start:calc(-1 * var(--space-3))">
+        <span class="amendable-value">5.00%</span> of jurisdiction population
+        <span class="amendable-meta">initiative_petition_threshold_pct · constitutional default · amendable by legislative act · CLK-17 · Art. II §6</span>
+      </p>
+
+      <section class="card" style="padding:0" aria-labelledby="list-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="list-h">Open petitions <span class="citation">scoped to your association chain</span></h2>
+        </div>
+        <div id="petition-list" aria-live="polite"></div>
+        <noscript><p style="padding:var(--space-6)" class="gloss">The petition list renders with JavaScript — fixtures: Plaza Midwood traffic calming, Charlotte participatory budget pilot, Mecklenburg watershed protection act.</p></noscript>
+        <p class="cc-small" style="padding-block:var(--space-3);padding-inline:var(--space-6)">The Sign toggles above use
+          Petition signature <span class="form-chip"><span class="form-id">F-IND-010</span></span> — sign an existing citizen petition.
+          <span class="citation" style="display:block">available to R-03 Jurisdictionally Associated · appends signature to petition · Art. II §6</span></p>
+      </section>
+
+      <section class="card" aria-labelledby="create-h">
+        <h2 id="create-h">Petition creation <span class="form-chip"><span class="form-id">F-IND-009</span></span></h2>
+        <p class="cc-small">Draft and register a citizen petition to place an initiative on the ballot.
+          <span class="citation" style="display:block">available to R-05 Petitioner · prerequisite R-03 · creates the Petition record · Art. II §6 (Creation of Laws by Petition)</span></p>
+        <form id="create-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="pet-title">Title</label>
+            <input class="field-input" id="pet-title" type="text" placeholder="Short, neutral title for the proposed law" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="pet-law">Law text</label>
+            <textarea class="field-input" id="pet-law" rows="4" placeholder="The exact text that becomes law if adopted — this is what voters ratify."></textarea>
+            <span class="field-hint">Write the binding text itself, not a summary. It is reviewed for constitutionality before ballot placement.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="pet-scale">Scale — which jurisdiction adopts it</label>
+            <select class="select" id="pet-scale"></select>
+            <span class="field-hint" id="pet-threshold-hint">Threshold preview updates with your selection.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="pet-scope">Scope — who is bound, which judiciary hears disputes</label>
+            <input class="field-input" id="pet-scope" type="text" placeholder="e.g. Binds the municipal public-works department; local judiciary hears disputes" />
+            <span class="field-hint">Scale and scope travel with the law — the same fields a bill carries.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Register petition</button>
+            <span id="create-status"></span>
+          </div>
+        </form>
+        <div class="banner banner--info" id="create-confirm" hidden style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
+          <div><span class="banner-title">Petition registered — signature gathering opens immediately.</span>
+            It enters the lifecycle at <em>Created</em> and appears in the list above for every associated resident of
+            the chosen scale. <span class="citation">Creates: Petition record · Art. II §6</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="life-h">
+        <h2 id="life-h">Petition lifecycle</h2>
+        <div id="pet-strip" class="state-strip"></div>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Created → Gathering → Threshold-Reached → Signature-Audit → Constitutional-Review → Validated → On-Ballot → Adopted | Rejected | Invalidated.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Two kill-paths: a failed signature audit, or an unconstitutional finding.</p>
+        <p class="citation">Audit by the election board (F-ELB-005) · review by the judiciary (F-JDG-008) · Art. II §6</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-06.html">WF-CIV-06 petition lifecycle</a>; the review
+            stage runs as <a href="../flows/WF-JUD-09.html">WF-JUD-09 petition constitutionality review</a>.</p>
+          <p><strong>Entity state machine:</strong> Petition — the strip above; each list row badges its current state.</p>
+          <p><strong>Signing (F-IND-010)</strong> is available to any R-03 associated resident of the petition's scale —
+            no petitioner role needed to sign.</p>
+          <p class="citation">Art. II §6 · CLK-17</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/petitions',
+      title: 'Petitions',
+      module: 'civic',
+      nav: 'petitions',
+      roles: ['R-03', 'R-05'],
+      workflows: ['WF-CIV-06', 'WF-JUD-09'],
+      forms: ['F-IND-009', 'F-IND-010'],
+      citation: 'Creation of Laws by Petition · threshold 5% of population · CLK-17 · Art. II §6',
+      flow: 'WF-CIV-06',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var mySignatures = {}; /* petitionId -> true (page-local, simulated) */
+
+      /* Scale options = the viewer's association chain (you can petition at any level you belong to). */
+      var scaleSel = document.getElementById('pet-scale');
+      W.defaultChain.forEach(function (slug, i) {
+        var j = BY.jurisdictions[slug];
+        var opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = j.name + ' — ' + S.admLabel(j.admLevel) + ' · pop ' + j.population.toLocaleString('en-US');
+        if (slug === 'usa-5-plaza-midwood') opt.selected = true;
+        scaleSel.appendChild(opt);
+      });
+
+      function thresholdFor(slug) {
+        return Math.round(BY.jurisdictions[slug].population * 0.05);
+      }
+      function updateThresholdHint() {
+        var slug = scaleSel.value;
+        document.getElementById('pet-threshold-hint').textContent =
+          'Threshold at this scale: ' + thresholdFor(slug).toLocaleString('en-US') +
+          ' signatures (5% of ' + BY.jurisdictions[slug].population.toLocaleString('en-US') + ', rounded) · CLK-17';
+      }
+      scaleSel.addEventListener('change', updateThresholdHint);
+
+      var STATE_BADGE = {
+        'Collecting signatures': ['info', 'Collecting signatures', 'file-text'],
+        'Constitutionality review': ['warning', 'Constitutionality review', 'scale']
+      };
+
+      function rowHtml(p) {
+        var j = BY.jurisdictions[p.jurisdiction];
+        var signed = !!mySignatures[p.id];
+        var sigs = p.signatures + (signed ? 1 : 0);
+        var pct = Math.min(100, Math.round(sigs / p.threshold * 100));
+        var sb = STATE_BADGE[p.state] || ['neutral', p.state, 'info'];
+        return '<div style="padding-block:var(--space-4);padding-inline:var(--space-6);border-block-end:1px solid var(--gov-border)">' +
+          '<div class="cluster" style="justify-content:space-between">' +
+          '<div><a href="petition-detail.html"><strong>' + esc(p.title) + '</strong></a> ' +
+          '<span class="citation">' + esc(p.id) + '</span>' +
+          '<div class="cluster" style="margin-block-start:var(--space-1);gap:var(--space-2)">' +
+          '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + '</span>' +
+          S.badge(sb[0], sb[1], sb[2]) + '</div></div>' +
+          '<button type="button" class="switch" data-sign="' + esc(p.id) + '" aria-pressed="' + (signed ? 'true' : 'false') + '">' +
+          (signed ? 'Signed' : 'Sign') + '</button></div>' +
+          '<div class="meter-block" style="margin-block-start:var(--space-3)">' +
+          '<div class="meter"><span class="meter-fill' + (pct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + sigs.toLocaleString('en-US') + ' of ' + p.threshold.toLocaleString('en-US') + ' signatures</span>' +
+          '<span>5% of population · CLK-17</span></div></div>' +
+          '<p class="citation" style="margin-block-start:var(--space-2)">scope: ' + esc(p.scope) + '</p></div>';
+      }
+
+      function render() {
+        document.getElementById('petition-list').innerHTML = W.petitions.map(rowHtml).join('');
+        var n = Object.keys(mySignatures).filter(function (k) { return mySignatures[k]; }).length;
+        document.getElementById('stat-signed').textContent = n;
+        document.getElementById('stat-open').textContent = W.petitions.length;
+
+        document.getElementById('pet-strip').innerHTML = BY.entities['Petition'].states.map(function (st, i) {
+          return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
+            '<span class="state-node">' + esc(st) + '</span>';
+        }).join('');
+
+        updateThresholdHint();
+        S.refresh();
+      }
+
+      document.getElementById('petition-list').addEventListener('click', function (ev) {
+        var btn = ev.target.closest ? ev.target.closest('[data-sign]') : null;
+        if (!btn) return;
+        var id = btn.getAttribute('data-sign');
+        mySignatures[id] = !mySignatures[id];
+        render();
+      });
+
+      document.getElementById('create-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        if (!document.getElementById('pet-title').value.trim() || !document.getElementById('pet-law').value.trim()) {
+          document.getElementById('create-status').innerHTML = S.badge('danger', 'Title and law text are required', 'alert-triangle');
+          return;
+        }
+        document.getElementById('create-confirm').hidden = false;
+        document.getElementById('create-status').innerHTML = S.badge('success', 'Registered — Created state', 'check');
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Civic home</span>
+        <h1>Welcome back, <span data-bind="persona.name">Amara Okafor</span></h1>
+        <p class="page-intro">Your civic dashboard for <strong data-bind="jurisdiction.name">Plaza Midwood</strong> —
+          everything below is scoped to the jurisdictions you are associated with, from your neighborhood up to Earth.</p>
+      </header>
+
+      <section class="card" aria-labelledby="rights-h">
+        <h2 id="rights-h">Your rights</h2>
+        <div class="cluster" style="gap:var(--space-4)">
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Voting unlocked</span>
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Candidacy unlocked</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        </div>
+        <p style="margin-block-start:var(--space-3)">Voting and candidacy unlocked automatically when your residency was
+          verified — there are no other requirements, and your association exists at every nesting level simultaneously.</p>
+        <p class="citation">Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1</p>
+        <div class="cluster" style="margin-block-start:var(--space-3)" id="rights-chain"></div>
+      </section>
+
+      <section class="card" aria-labelledby="elections-h">
+        <h2 id="elections-h">Active elections</h2>
+        <div id="election-cards" class="stack" style="gap:var(--space-3)"></div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Approval phase opens the moment the prior election certifies · CLK-18 · Art. II §2</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="petitions-h">
+          <h2 id="petitions-h">Petitions near you</h2>
+          <div id="petition-list" class="stack" style="gap:var(--space-3)"></div>
+          <p style="margin-block-start:var(--space-3)"><a href="petitions.html">All petitions
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+
+        <section class="card" aria-labelledby="record-h">
+          <h2 id="record-h">My record</h2>
+          <p class="cc-small">Your public civic record — it travels with any future candidacy.</p>
+          <div class="cluster" style="gap:var(--space-6)">
+            <div class="stat"><span class="stat-number">14</span><span class="stat-label">ballots cast</span></div>
+            <div class="stat"><span class="stat-number">2</span><span class="stat-label">petitions signed</span></div>
+            <div class="stat"><span class="stat-number">1</span><span class="stat-label">public statement</span></div>
+          </div>
+          <p style="margin-block-start:var(--space-3)"><a href="my-record.html">Open my record
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="journey-h">
+        <h2 id="journey-h">Civic journey <span class="proposed-flag">Proposed — gamification layer</span></h2>
+        <ol class="stepper">
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-01 Registered</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-02 Residency verified</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-03 Fully associated</li>
+          <li class="stepper-step stepper-step--active" aria-current="step">R-04 First ballot</li>
+        </ol>
+        <p class="gloss" style="margin-block-start:var(--space-2)">The civic action is the reward; gamification only surfaces it.</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> entry point after WF-CIV-02 (residency establishment); launches WF-CIV-04 (ranked ballot),
+            WF-CIV-06 (petitions), WF-CIV-08 (open ballot).</p>
+          <p><strong>Entity state machine:</strong> Individual — this dashboard renders the
+            <em>Fully-Associated</em> state; see the strip on <a href="../flows/WF-CIV-02.html">the residency flow</a>.</p>
+          <p class="citation">Art. I · Art. V §1 · CLK-18</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/civic-home',
+      title: 'Civic home',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-03', 'R-04'],
+      workflows: ['WF-CIV-02', 'WF-CIV-04', 'WF-CIV-06', 'WF-CIV-08'],
+      forms: [],
+      citation: 'Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1',
+      flow: 'WF-CIV-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      function render() {
+        var st = window.CGA.state.getAll();
+
+        /* Emergency banner — scenario-driven (first order of business everywhere) */
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        /* Six tier chips lighting up — association at every nesting level */
+        document.getElementById('rights-chain').innerHTML = W.defaultChain.map(function (slug) {
+          var j = BY.jurisdictions[slug];
+          return '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + ' ' + S.icon('check', { size: 'sm', label: 'associated' }) + '</span>';
+        }).join('');
+
+        /* Elections, phase-aware via the demo scenario */
+        var phaseBadge = { approval: ['info', 'Approval phase'], ranked: ['warning', 'Ranked window open'], certifying: ['neutral', 'Certifying'] };
+        document.getElementById('election-cards').innerHTML = W.elections.map(function (e) {
+          var j = BY.jurisdictions[e.jurisdiction];
+          var phase = (e.jurisdiction === 'usa-4-charlotte') ? st.scenario.election : e.phase;
+          var pb = phaseBadge[phase] || phaseBadge.approval;
+          var action = phase === 'approval'
+            ? '<a class="btn btn--primary btn--sm" href="../electoral/open-ballot.html">Browse the open ballot</a>'
+            : phase === 'ranked'
+              ? '<a class="btn btn--gold btn--sm" href="../electoral/ranked-ballot.html">Rank your ballot</a>'
+              : '<a class="btn btn--secondary btn--sm" href="../electoral/results.html">Watch the count</a>';
+          return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
+            '<div><strong>' + esc(j.name) + '</strong> · general election · ' + e.seats + ' seats' +
+            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race · X = f(seats) · CLK-21</span></div>' +
+            '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + action + '</div></div></div>';
+        }).join('');
+
+        /* Petitions */
+        document.getElementById('petition-list').innerHTML = W.petitions.slice(0, 2).map(function (p) {
+          var pct = Math.min(100, Math.round(p.signatures / p.threshold * 100));
+          return '<div><a href="petition-detail.html">' + esc(p.title) + '</a>' +
+            '<div class="meter-block" style="margin-block-start:var(--space-1)">' +
+            '<div class="meter"><span class="meter-fill' + (pct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span></div>' +
+            '<div class="meter-caption"><span>' + p.signatures.toLocaleString('en-US') + ' of ' + p.threshold.toLocaleString('en-US') + ' signatures</span>' +
+            '<span>threshold: 5% of population · CLK-17</span></div></div></div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>
