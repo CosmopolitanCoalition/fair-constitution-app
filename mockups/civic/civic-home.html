@@ -35,7 +35,9 @@
       </section>
 
       <section class="card" aria-labelledby="elections-h">
-        <h2 id="elections-h">Active elections</h2>
+        <h2 id="elections-h">Active elections — <span data-bind="jurisdiction.name">New York County</span></h2>
+        <p class="cc-small">You see the races of the jurisdiction you are looking at: switch to the United States for the
+          federal race, or to Earth for the global parliament. You vote at every level you are associated with.</p>
         <div id="election-cards" class="stack" style="gap:var(--space-3)"></div>
         <p class="citation" style="margin-block-start:var(--space-2)">Approval phase opens the moment the prior election certifies · CLK-18 · Art. II §2</p>
       </section>
@@ -126,9 +128,12 @@
           return '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + ' ' + S.icon('check', { size: 'sm', label: 'associated' }) + '</span>';
         }).join('');
 
-        /* Elections, phase-aware via the demo scenario */
+        /* Elections scoped to the selected jurisdiction — Earth shows the
+           global parliament, the United States its federal race, and so on. */
         var phaseBadge = { approval: ['info', 'Approval phase'], ranked: ['warning', 'Ranked window open'], certifying: ['neutral', 'Certifying'] };
-        document.getElementById('election-cards').innerHTML = W.elections.map(function (e) {
+        var scoped = W.elections.filter(function (e) { return e.jurisdiction === st.jurisdiction; });
+        if (!scoped.length) scoped = W.elections.filter(function (e) { return e.jurisdiction === 'usa-3-new-york-county'; });
+        document.getElementById('election-cards').innerHTML = scoped.map(function (e) {
           var j = BY.jurisdictions[e.jurisdiction];
           var phase = (e.jurisdiction === 'usa-3-new-york-county') ? st.scenario.election : e.phase;
           var pb = phaseBadge[phase] || phaseBadge.approval;
@@ -138,8 +143,9 @@
               ? '<a class="btn btn--gold btn--sm" href="../electoral/ranked-ballot.html">Rank your ballot</a>'
               : '<a class="btn btn--secondary btn--sm" href="../electoral/results.html">Watch the count</a>';
           return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
-            '<div><strong>' + esc(j.name) + '</strong> · general election · ' + e.seats + ' seats' +
-            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race · X = f(seats) · CLK-21</span></div>' +
+            '<div><strong>' + esc(j.name) + '</strong> · general election · ' + e.seats.toLocaleString('en-US') + ' seats' +
+            (e.note ? ' <span class="tag-chip">' + esc(e.note) + '</span>' : '') +
+            '<span class="citation" style="display:block">' + (e.finalistCount ? 'finalists: top ' + e.finalistCount + ' per race · X = f(seats) · CLK-21' : esc(e.finalistRule || '')) + '</span></div>' +
             '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + action + '</div></div></div>';
         }).join('');
 

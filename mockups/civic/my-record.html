@@ -58,6 +58,125 @@
           — append-only semantics and ballot secrecy are enforced in code; no office or act can rewrite history.</p>
       </section>
 
+      <section class="card" aria-labelledby="links-h">
+        <h2 id="links-h">Links — reach me elsewhere</h2>
+        <p class="cc-small">Your public profile carries the external links you choose to publish — a personal site,
+          fediverse or social handles, and physical-space contact only if you want it listed.</p>
+        <p class="citation">visible to everyone · published on your public profile</p>
+        <div id="profile-links">
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Personal site</span>
+            <span class="log-hash" data-no-i18n>https://amaraokafor.example</span>
+          </div>
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Fediverse</span>
+            <span class="log-hash" data-no-i18n>@amara@hub.example</span>
+          </div>
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Community garden noticeboard <span class="tag-chip">physical space · listed by choice</span></span>
+            <span class="log-hash">W 145th St at Lenox Ave, board 3</span>
+          </div>
+        </div>
+        <form id="link-form" class="cluster" style="align-items:flex-end;margin-block-start:var(--space-3)" novalidate>
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="link-label">Label</label>
+            <input class="field-input" id="link-label" type="text" placeholder="e.g. Portfolio" style="inline-size:11rem" />
+          </div>
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="link-url">Address</label>
+            <input class="field-input" id="link-url" type="text" placeholder="https://… or @handle@host" style="inline-size:16rem" />
+          </div>
+          <button type="submit" class="btn btn--secondary btn--sm">Add link</button>
+        </form>
+        <p id="link-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+        <p class="gloss">Links are optional and entirely self-managed — add or remove them whenever you like; they
+          carry no civic weight.</p>
+        <p class="citation">Self-managed profile · F-IND-002 (Profile Management) · Art. I (Autonomy; Freedom of Expression)</p>
+      </section>
+
+      <section class="card" aria-labelledby="rel-h">
+        <h2 id="rel-h">Relationships — family tree &amp; social web <span class="proposed-flag">Proposed — social layer</span></h2>
+        <p class="cc-small">Declare a relationship and it stays pending until the other person confirms it — both
+          sides must agree before anything appears. Confirmed relationships seed the social layer of the application;
+          they never affect rights, eligibility, or how anything is counted.</p>
+        <div>
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Nia Okafor</span>
+            <span class="tag-chip">parent</span>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed by both</span>
+          </div>
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Jamal Okafor</span>
+            <span class="tag-chip">sibling</span>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed by both</span>
+          </div>
+          <div class="log-row">
+            <span style="flex:1 1 11rem;color:var(--gov-fg-strong)">Dele Adeyemi</span>
+            <span class="tag-chip">household</span>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Pending their confirmation</span>
+          </div>
+        </div>
+        <form id="rel-form" class="cluster" style="align-items:flex-end;margin-block-start:var(--space-3)" novalidate>
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="rel-kind">Relationship</label>
+            <select class="select" id="rel-kind" style="inline-size:auto">
+              <option>Parent</option>
+              <option>Child</option>
+              <option>Sibling</option>
+              <option>Partner</option>
+              <option>Household</option>
+            </select>
+          </div>
+          <div class="field" style="margin-block-end:0">
+            <label class="field-label" for="rel-person">Person</label>
+            <input class="field-input" id="rel-person" type="text" placeholder="Search registered individuals" style="inline-size:14rem" />
+          </div>
+          <button type="submit" class="btn btn--secondary btn--sm">Declare relationship</button>
+        </form>
+        <p id="rel-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+        <p class="gloss">Seeds the social layer only — no relationship ever affects rights. Either side can withdraw a
+          declaration at any time.</p>
+        <p class="citation">Mutual confirmation required · never affects rights · Art. I (Freedom of Assembly &amp; Association)</p>
+      </section>
+
+      <section class="card" aria-labelledby="settings-h">
+        <h2 id="settings-h">Personal settings</h2>
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size:var(--text-base)">Location manager</h3>
+            <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Pings paused — traveling</span></p>
+            <p class="cc-small">Residency pings pause while you travel and resume when you mark yourself home again.
+              Pings stay private; only verification outcomes are ever recorded.
+              <a href="relocation.html">Open the location manager</a></p>
+            <p class="citation">Location pings are private · F-IND-005 · Art. I (Right to Reside)</p>
+          </div>
+          <div>
+            <h3 style="font-size:var(--text-base)">Language</h3>
+            <div class="field">
+              <label class="field-label" for="set-lang">Interface and records language</label>
+              <select class="select" id="set-lang">
+                <option>English</option>
+                <option>Español</option>
+                <option>العربية</option>
+                <option>中文（简体）</option>
+                <option>हिन्दी</option>
+              </select>
+              <span class="field-hint">Records publish in machine translation immediately; human review upgrades them per language.</span>
+            </div>
+          </div>
+        </div>
+        <fieldset style="border:0;padding:0;margin-block:var(--space-2) 0;margin-inline:0">
+          <legend class="field-label">Default endorsement visibility</legend>
+          <div class="radio-group" style="margin-block-start:var(--space-1)">
+            <label class="radio"><input type="radio" name="endorse-vis" checked /> Private by default — endorsements I give stay unpublished until I choose otherwise</label>
+            <label class="radio"><input type="radio" name="endorse-vis" /> Public by default — endorsements I give appear on my public profile immediately</label>
+          </div>
+          <p class="citation" style="margin-block-start:var(--space-2)">Endorsements are public only by choice; approvals are always secret · Art. I (Freedom of Assembly) · Art. II §2 (ballot secrecy)</p>
+        </fieldset>
+        <button type="button" class="btn btn--primary btn--sm" id="settings-save" style="margin-block-start:var(--space-3)">Save settings</button>
+        <p id="settings-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+      </section>
+
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
@@ -66,8 +185,9 @@
             <a href="../flows/WF-CIV-05.html">WF-CIV-05 candidacy lifecycle</a> (candidate profiles read this record).</p>
           <p><strong>Entity state machine:</strong> Individual — the record accumulates across every state from
             Registered onward; it survives relocation and re-association.</p>
-          <p><strong>No forms on this surface:</strong> entries are produced by other surfaces (ballots, petitions,
-            statements); this is the read-only view.</p>
+          <p><strong>Forms on this surface:</strong> the links, relationships, and settings cards are
+            F-IND-002 (Profile Management) stubs. Record entries are produced by other surfaces (ballots, petitions,
+            statements); the log itself is the read-only view.</p>
           <p class="citation">Art. II §2 (public records; ballot secrecy)</p>
         </div>
       </details>
@@ -131,6 +251,46 @@
         }).join('');
         S.refresh();
       }
+
+      /* Links card — add-link stub (simulated; nothing leaves this page). */
+      document.getElementById('link-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var label = document.getElementById('link-label').value.trim() || 'New link';
+        var url = document.getElementById('link-url').value.trim();
+        var box = document.getElementById('link-confirm');
+        if (!url) {
+          box.innerHTML = '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Enter an address to add the link.</span>';
+          return;
+        }
+        var row = document.createElement('div');
+        row.className = 'log-row';
+        row.innerHTML = '<span style="flex:1 1 11rem;color:var(--gov-fg-strong)">' + esc(label) + '</span>' +
+          '<span class="log-hash" data-no-i18n>' + esc(url) + '</span>';
+        document.getElementById('profile-links').appendChild(row);
+        box.innerHTML = S.badge('success', 'Link added', 'check') +
+          ' <span class="cc-small">Simulated: published to your public profile — remove it any time.</span>';
+      });
+
+      /* Relationships card — declaration stub (pending until the other person confirms). */
+      document.getElementById('rel-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var kind = document.getElementById('rel-kind').value;
+        var person = document.getElementById('rel-person').value.trim();
+        var box = document.getElementById('rel-confirm');
+        if (!person) {
+          box.innerHTML = '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Name the person to send the declaration to.</span>';
+          return;
+        }
+        box.innerHTML = S.badge('warning', 'Pending their confirmation', 'clock') +
+          ' <span class="cc-small">Simulated: ' + esc(kind.toLowerCase()) + ' declaration sent to ' + esc(person) +
+          ' — it appears only after they confirm, and never affects rights.</span>';
+      });
+
+      /* Personal settings — save stub. */
+      document.getElementById('settings-save').addEventListener('click', function () {
+        document.getElementById('settings-confirm').innerHTML = S.badge('success', 'Settings saved', 'check') +
+          ' <span class="cc-small">Simulated: preferences recorded — nothing left this page.</span>';
+      });
 
       render();
       document.addEventListener('cga:statechange', render);

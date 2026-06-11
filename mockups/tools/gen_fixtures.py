@@ -185,8 +185,10 @@ def build_registry():
     for r in cat_wb['3. Entity State Machines']:
         c = r['cells']
         if r['row'] > 1 and g(c, 0):
-            states = [s.strip() for s in re.split(r'→|->', g(c, 1)) if s.strip()]
-            entities.append({'id': g(c, 0), 'statesRaw': g(c, 1), 'states': states, 'notes': g(c, 2)})
+            # Owner wording: outcomes display as Elected / Not elected (never "Defeated").
+            raw = g(c, 1).replace('Defeated', 'Not elected')
+            states = [s.strip() for s in re.split(r'→|->', raw) if s.strip()]
+            entities.append({'id': g(c, 0), 'statesRaw': raw, 'states': states, 'notes': g(c, 2)})
 
     cur = None
     voteTypes = []

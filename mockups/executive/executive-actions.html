@@ -107,6 +107,54 @@
         </section>
       </div>
 
+      <section class="card" aria-labelledby="grants-h">
+        <h2 id="grants-h">Grants &amp; appropriations</h2>
+        <p class="cc-small">The legislature appropriates funds by act; the executive administers applications against
+          those appropriations. Every award and disbursement is appended to the audit chain — anyone can trace each
+          unit from act to payee.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Appropriation line</th><th scope="col" class="mono">Act</th><th scope="col">Appropriated</th><th scope="col">Remaining</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Clean air retrofit fund</td><td class="mono" data-no-i18n>Act 2031-09</td><td data-no-i18n>12,000,000</td><td data-no-i18n>7,250,000</td></tr>
+              <tr><td>Civic education micro-grants</td><td class="mono" data-no-i18n>Act 2030-22</td><td data-no-i18n>1,500,000</td><td data-no-i18n>640,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <form id="grant-form" style="margin-block-start:var(--space-4)" novalidate>
+          <h3 style="font-size:var(--text-base)">Apply against an appropriation</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="grant-line">Appropriation line</label>
+              <select class="select" id="grant-line">
+                <option>Clean air retrofit fund · Act 2031-09</option>
+                <option>Civic education micro-grants · Act 2030-22</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="grant-org">Applying organization</label>
+              <select class="select" id="grant-org"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="grant-amount">Amount requested</label>
+              <input class="field-input" id="grant-amount" type="number" value="250000" min="1" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="grant-purpose">Purpose</label>
+              <input class="field-input" id="grant-purpose" type="text" value="Retrofit HVAC filtration in three depot buildings" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary">Submit application</button>
+          <p id="grant-confirm" role="status" style="margin-block-start:var(--space-3)"></p>
+        </form>
+        <p class="citation">Funds appropriated by legislative act · Art. II §2 — applications administered by the
+          executive · Art. III §2 — disbursements audit-chained · WF-SYS-04</p>
+      </section>
+
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
@@ -230,6 +278,31 @@
       });
       document.getElementById('policy-btn').addEventListener('click', function () { sim.policy = true; render(); });
       document.getElementById('invest-btn').addEventListener('click', function () { sim.invest = true; render(); });
+
+      /* Grants & appropriations — organization select from the fixture world. */
+      var grantOrgSel = document.getElementById('grant-org');
+      W.organizations.forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o.id;
+        opt.textContent = o.name + ' (' + o.type.replace(/_/g, ' ') + ')';
+        if (o.id === 'hudson-mutual-aid') opt.selected = true;
+        grantOrgSel.appendChild(opt);
+      });
+      document.getElementById('grant-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var line = document.getElementById('grant-line').value;
+        var org = BY.organizations[grantOrgSel.value];
+        var amount = parseInt(document.getElementById('grant-amount').value, 10);
+        var box = document.getElementById('grant-confirm');
+        if (isNaN(amount) || amount < 1) {
+          box.innerHTML = '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Enter an amount to apply.</span>';
+          return;
+        }
+        box.innerHTML = S.badge('info', 'Received · pending review', 'clock') +
+          ' <span class="cc-small">Simulated: application by ' + esc(org.name) + ' for ' +
+          amount.toLocaleString('en-US') + ' against ' + esc(line) +
+          ' is on the queue — review and any disbursement are appended to the audit chain (WF-SYS-04). Nothing left this page.</span>';
+      });
 
       render();
       document.addEventListener('cga:statechange', render);

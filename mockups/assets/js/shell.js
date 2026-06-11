@@ -276,7 +276,7 @@
     }).join('') + (s.locale === 'en-XA' ? '<option value="en-XA" selected>Pseudo (en-XA)</option>' : '');
 
     return '<a class="wordmark" href="' + href('index.html') + '">' +
-      '<img src="' + ROOT + 'assets/img/logo-gold-white.svg" alt="" /> ' +
+      '<img src="' + ROOT + 'assets/img/social-square-purple.png" alt="" style="border-radius:var(--radius-sm)" /> ' +
       '<span data-i18n="app.name">' + esc(t('app.name')) + '</span></a>' +
       renderJurSwitcher() +
       '<span class="header-spacer"></span>' +

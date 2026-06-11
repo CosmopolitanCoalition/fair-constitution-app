@@ -22,7 +22,7 @@
 
   var STRINGS = {
     en: {
-      'app.name': 'A Fair Constitution',
+      'app.name': 'World of Statecraft',
       'app.skip': 'Skip to main content',
 
       'header.search': 'Search',
@@ -91,7 +91,7 @@
 
       'footer.audit': 'Audit #{n} · chained',
 
-      'demo.label': 'Mockup controls — not part of the product',
+      'demo.label': 'Mockup controls — demo only, not part of the application',
       'demo.persona': 'Persona',
       'demo.role': 'Role',
       'demo.jurisdiction': 'Jurisdiction',
@@ -121,7 +121,7 @@
 
     /* --- Stubs: switcher entries + sampled chrome; everything else falls back to en. --- */
     es: {
-      'app.name': 'Una Constitución Justa',
+      'app.name': 'World of Statecraft',
       'app.skip': 'Saltar al contenido principal',
       'header.search': 'Buscar',
       'header.notifications': 'Notificaciones',
@@ -134,7 +134,7 @@
       'demo.persona': 'Persona', 'demo.role': 'Rol', 'demo.jurisdiction': 'Jurisdicción', 'demo.locale': 'Idioma'
     },
     ar: {
-      'app.name': 'دستور عادل',
+      'app.name': 'World of Statecraft',
       'app.skip': 'تخطّ إلى المحتوى الرئيسي',
       'header.search': 'بحث',
       'header.notifications': 'الإشعارات',
@@ -147,7 +147,7 @@
       'demo.persona': 'الشخصية', 'demo.role': 'الدور', 'demo.jurisdiction': 'الولاية', 'demo.locale': 'اللغة'
     },
     'zh-Hans': {
-      'app.name': '公平宪法',
+      'app.name': 'World of Statecraft',
       'app.skip': '跳转到主要内容',
       'header.search': '搜索',
       'header.notifications': '通知',
@@ -160,7 +160,7 @@
       'demo.persona': '角色扮演', 'demo.role': '角色', 'demo.jurisdiction': '辖区', 'demo.locale': '语言'
     },
     hi: {
-      'app.name': 'एक न्यायसंगत संविधान',
+      'app.name': 'World of Statecraft',
       'app.skip': 'मुख्य सामग्री पर जाएँ',
       'header.search': 'खोजें',
       'header.notifications': 'सूचनाएँ',

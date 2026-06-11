@@ -101,6 +101,63 @@
         </div>
       </section>
 
+      <section class="card" aria-labelledby="docs-h">
+        <h2 id="docs-h">Document packages</h2>
+        <p class="cc-small">The constitutional forms are the floor every organization shares. Above that floor, each
+          organization self-manages its internal document packages — adopted, versioned, and amended by its own rules.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Package</th><th scope="col" class="mono">Version</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Charter</td><td class="mono" data-no-i18n>v1</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Adopted</span></td></tr>
+              <tr><td>HR handbook</td><td class="mono" data-no-i18n>v3</td>
+                <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Current</span></td></tr>
+              <tr><td>Compensation policy</td><td class="mono" data-no-i18n>v2</td>
+                <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Current</span></td></tr>
+              <tr><td>Custom forms</td><td class="mono" data-no-i18n>2</td>
+                <td><span class="badge badge--neutral">Self-managed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <button type="button" class="btn btn--secondary btn--sm" id="pkg-upload">Upload a package</button>
+          <button type="button" class="btn btn--secondary btn--sm" id="pkg-adopt">Adopt a new version</button>
+        </div>
+        <p id="pkg-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+        <p class="gloss">Internal packages never override the constitutional forms — the shared floor applies to every
+          organization regardless of what it adopts internally.</p>
+        <p class="citation">Internal self-governance above the constitutional floor · Art. I (Economic Freedom) · Art. III §6</p>
+      </section>
+
+      <section class="card" aria-labelledby="contracts-h">
+        <h2 id="contracts-h">Contracts</h2>
+        <p class="cc-small">Organizations and individuals engage in contracts: terms are drafted, both parties
+          co-sign, and the executed contract is recorded and audit-chained.</p>
+        <div class="stack" style="gap:var(--space-3)">
+          <div class="card card--inset">
+            <strong>Recurring labor — counts toward the worker headcount</strong>
+            <span class="form-chip"><span class="form-id">F-IND-014</span></span>
+            <p class="cc-small" style="margin-block-start:var(--space-1)">Worker contracts registered against this
+              organization feed the co-determination scale · CLK-13 / CLK-14.</p>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Active · co-signed by both parties</span>
+          </div>
+          <div class="card card--inset">
+            <strong>Storage bay sublease — Pier 36 annex</strong>
+            <p class="cc-small" style="margin-block-start:var(--space-1)">Terms agreed with Northstar Equal Partners;
+              awaiting this organization's co-signature.</p>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Pending co-signature</span>
+            <div style="margin-block-start:var(--space-2)">
+              <button type="button" class="btn btn--primary btn--sm" id="contract-sign">Co-sign contract</button>
+            </div>
+            <p id="contract-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          </div>
+        </div>
+        <p class="citation">Freedom to contract · Art. I — terms → co-signatures → recorded and audit-chained · WF-SYS-04</p>
+      </section>
+
       <section class="card" aria-labelledby="state-h">
         <h2 id="state-h">Where this organization sits in its lifecycle</h2>
         <div id="org-state-strip"></div>
@@ -281,6 +338,23 @@
         document.getElementById('worker-confirm').innerHTML =
           S.badge('success', 'Worker registration recorded', 'check') +
           ' <span style="font-size:var(--text-xs)">Simulated: worker record (R-25) created; headcount updated for the co-determination scale. <span class="citation">F-IND-014 · Art. III §6 · CLK-13</span></span>';
+      });
+
+      /* Document packages — upload / adopt stubs (simulated; internal packages never override constitutional forms). */
+      document.getElementById('pkg-upload').addEventListener('click', function () {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('info', 'Package received', 'file-text') +
+          ' <span class="cc-small">Simulated: draft package staged for internal adoption by the organization’s own rules — it cannot override the constitutional forms.</span>';
+      });
+      document.getElementById('pkg-adopt').addEventListener('click', function () {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('success', 'Version adopted', 'check') +
+          ' <span class="cc-small">Simulated: HR handbook v4 adopted under the organization’s own rules; v3 archived with its history preserved.</span>';
+      });
+
+      /* Contracts — simulated co-sign. */
+      document.getElementById('contract-sign').addEventListener('click', function () {
+        this.setAttribute('disabled', '');
+        document.getElementById('contract-confirm').innerHTML = S.badge('success', 'Co-signed — recorded', 'check') +
+          ' <span class="cc-small">Simulated: both signatures on record; the executed contract was appended to the audit chain (WF-SYS-04).</span>';
       });
 
       render();

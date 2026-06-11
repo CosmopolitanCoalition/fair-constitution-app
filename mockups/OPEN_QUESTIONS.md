@@ -86,6 +86,31 @@ so the log is also a record. Only #12 currently awaits an answer (elaboration pr
     is played for — the data-structure phase after these mockups puts it to the test. Rule-text
     bounds stay as rendered.
 
+— Post-it review (owner, 2026-06-11) — feature inventory and backlog —
+
+A. **Confirmed already covered:** individual + organization containers; petitions (create/sign/
+   lists); jurisdiction assignment; voting; standing for office; office/seat lists; registered
+   candidates; org ownership types (public good / stock / member / partner / equal partnership);
+   candidate lists & endorsements; residency declaration; jurisdiction list; legislative seat
+   filling; constitutional power settings; **bill registration (legislature/bills.html ·
+   F-LEG-003)**; committees; public↔private interchange; executive committees & departments;
+   worker registration; localization; achievements; officer elections inside organizations
+   (organizations/board-elections.html covers owner/worker/joint-chair tracks).
+B. **Built this round as mockup surfaces:** profile links (virtual + optional physical reach);
+   family tree / relationship declarations (social layer, flagged proposed); personal settings
+   incl. location manager + default endorsement visibility; grants & appropriations
+   (executive-administered against legislative acts); organization document packages (internal
+   HR/compensation/custom forms beyond the constitutional floor); contracts (terms → co-sign →
+   audit-chained; recurring labor feeds the worker count); internal ownership restructuring
+   (open up stock, partnership conversions); endorsement webs (public-by-choice with
+   who-else-they-endorse browsing); multi-level elections (county/state/federal/Earth global
+   parliament, scoped to the jurisdiction you're viewing); circular chamber with
+   seniority-alternating seating; per-round STV transfer breakdowns.
+C. **Tabled by the owner:** banking system.
+D. **Noted for the data-structure phase:** legal-code modification register (git-style law
+   versioning — partially visible via Art. IV §5 law-edit diffs and public-records versions);
+   full contracts engine; grant disbursement mechanics.
+
 17. ~~**Election sub-states vs the frozen scenario enum.**~~ **Resolved.** There is no real recount
     mechanism — the count is in-system; certification is part of the regular process and a
     "recount" is an audit review (re-run tabulation, re-verify the chain). Copy adjusted on the

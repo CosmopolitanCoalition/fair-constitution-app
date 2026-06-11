@@ -30,11 +30,16 @@
       </div>
 
       <section class="card" aria-labelledby="seatmap-h">
-        <h2 id="seatmap-h">Seat map</h2>
-        <div id="seat-map" class="seat-map"></div>
-        <noscript><p>Seat map renders with JavaScript — 9 seats, seat 1 holds the Speaker ring, seat 4 is vacant.</p></noscript>
+        <h2 id="seatmap-h">The chamber</h2>
+        <p class="cc-small">A circular chamber, like the emblem — no head of the room, no government benches facing an
+          opposition. Members sit most senior to least senior in alternating seats, so experienced and new members work
+          side by side as natural staggering occurs.</p>
+        <div id="seat-map" style="max-inline-size:22rem;margin-inline:auto"></div>
+        <noscript><p>The chamber renders with JavaScript — 9 seats in a circle, the Speaker marked in gold, seat 4 vacant.</p></noscript>
         <p class="gloss" style="margin-block-start:var(--space-2)">Gold ring = Speaker (politically neutral, votes only to
-          break ties). Dashed = vacant seat in countback.</p>
+          break ties). Dashed = vacant seat in countback — vacancies join at the junior-most position. Seniority is total
+          days as a chamber member; ties (common — a general election seats everyone at once) break by normalized prior
+          election performance. Larger chambers add outer circles, up to 12 seats in the innermost.</p>
         <p class="citation">Peg quorum: 5 of 9 serving · Art. II §2 — supermajority: ceil(serving × 2/3) = 6 of 9 · Art. VII</p>
       </section>
 
@@ -101,7 +106,7 @@
             <a href="../flows/WF-LEG-12.html">WF-LEG-12 (vacancy handling)</a>.</p>
           <p><strong>Entity state machines:</strong> Committee Seat (Allocated → … → Seated) sits behind the roster's
             committee links; Vacancy (Detected → Declared → Countback-Running → Filled) behind seat 4.</p>
-          <p><strong>No faction layer:</strong> the roster shows endorsing organizations because the product replaced
+          <p><strong>No faction layer:</strong> the roster shows endorsing organizations because the system replaced
             faction registration with polymorphic endorsements
             (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
           <p class="citation">Art. II §1–4 · Art. III §3 · Art. IV §3 · CLK-01 · CLK-10</p>
@@ -172,14 +177,54 @@
           aliases + (extra || '') + '</div>';
       }
 
+      /* Circular chamber: rings fan outward (innermost holds up to 12);
+         placement alternates most senior / least senior around each ring.
+         Seniority = days served; ties break by normalized vote share. */
+      function chamberSvg(members) {
+        var occupied = members.filter(function (m) { return !m.vacant; }).slice()
+          .sort(function (a, b) {
+            return (b.daysServed || 0) - (a.daysServed || 0) || (b.voteShareNorm || 0) - (a.voteShareNorm || 0);
+          });
+        var vacants = members.filter(function (m) { return m.vacant; });
+        /* alternate: even positions take seniors in order, odd take juniors from the end */
+        var orderedSeats = occupied.concat(vacants); /* vacants are junior-most */
+        var n = orderedSeats.length;
+        var placed = new Array(n);
+        var lo = 0, hi = n - 1;
+        for (var i = 0; i < n; i++) placed[i] = (i % 2 === 0) ? orderedSeats[lo++] : orderedSeats[hi--];
+        /* ring capacities: 12 innermost, +8 per circle outward */
+        var caps = [], cap = 12, remaining = n;
+        while (remaining > 0) { caps.push(Math.min(cap, remaining)); remaining -= cap; cap += 8; }
+        var size = 280, cx = size / 2, cy = size / 2;
+        var svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="Circular chamber seat map — ' +
+          n + ' seats">';
+        svg += '<circle cx="' + cx + '" cy="' + cy + '" r="22" fill="none" stroke="var(--gov-border)" stroke-dasharray="3 4"/>' +
+          '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-size="9" fill="var(--gov-fg-subtle)">floor</text>';
+        var idx = 0;
+        caps.forEach(function (ringCount, ring) {
+          var r = 78 + ring * 42;
+          for (var k = 0; k < ringCount; k++, idx++) {
+            var m = placed[idx];
+            var ang = -Math.PI / 2 + (2 * Math.PI * k / ringCount);
+            var x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+            var fill = m.vacant ? 'var(--gov-surface-2)' : 'color-mix(in oklch, var(--gov-primary) 45%, var(--gov-bg))';
+            var stroke = m.speaker ? 'var(--cc-gold-400)' : 'var(--gov-border-strong)';
+            var dash = m.vacant ? ' stroke-dasharray="4 3"' : '';
+            var label = m.vacant ? 'Seat ' + m.seat + ' — vacant (countback running); joins at the junior-most position'
+              : 'Seat ' + m.seat + ' — ' + memberName(m) + (m.speaker ? ' (Speaker)' : '') +
+                ' · ' + (m.daysServed || 0) + ' days served · share ' + (m.voteShareNorm || 0).toFixed(2);
+            svg += '<g role="img" aria-label="' + esc(label) + '"><title>' + esc(label) + '</title>' +
+              '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="17" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"' + dash + '/>' +
+              '<text x="' + x.toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="600" fill="' +
+              (m.vacant ? 'var(--gov-fg-subtle)' : 'var(--gov-fg)') + '">' + m.seat + '</text></g>';
+          }
+        });
+        return svg + '</svg>';
+      }
+
       function render() {
-        /* Seat map — seat 4 vacant (dashed), speaker ring on seat 1. */
-        document.getElementById('seat-map').innerHTML = CH.members.map(function (m) {
-          var cls = 'seat-dot' + (m.vacant ? ' seat-dot--vacant' : '') + (m.speaker ? ' seat-dot--speaker' : '');
-          var label = m.vacant ? 'Seat ' + m.seat + ' — vacant (countback running)'
-            : 'Seat ' + m.seat + ' — ' + memberName(m) + (m.speaker ? ' (Speaker)' : '');
-          return '<span class="' + cls + '" role="img" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + m.seat + '</span>';
-        }).join('');
+        /* Circular chamber — alternating seniority placement; seat 4 vacant. */
+        document.getElementById('seat-map').innerHTML = chamberSvg(CH.members);
 
         /* Roster — endorsing-org chips incl. multi-org; endorsement-less first-class; vacancy row. */
         document.getElementById('roster').innerHTML = CH.members.map(function (m) {

@@ -25,6 +25,8 @@
       <div class="banner banner--info">
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
         <div><span class="banner-title">How the count works</span>
+          Walk it step by step: <a href="../flows/WF-CIV-04.html">casting a ranked ballot (WF-CIV-04)</a> ·
+          <a href="../flows/WF-ELE-01.html">the full election cycle (WF-ELE-01)</a>.
           Instant multi-winner PR-STV with the Droop quota: every candidate reaching the quota is elected, surpluses
           transfer at fractional value (Gregory method), and all 5 seats fill in one count.
           <span class="gloss">Droop quota — the smallest vote total that only 5 candidates can all reach: floor(votes ÷ (seats + 1)) + 1.</span>
@@ -83,6 +85,16 @@
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         <p class="citation">Public chain of custody — endorsing organizations and candidates can observe and audit the count · Art. II §2 · as implemented
           (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+      </section>
+
+      <section class="card" aria-labelledby="agg-h">
+        <h2 id="agg-h">Live aggregate — if the window closed now</h2>
+        <p class="cc-small">Standings stay visible through the ranked window: first preferences counted so far, as if the
+          window closed this minute. Seeing the aggregate move is the point — if your side looks under-represented,
+          rally the people who agree with you. Everyone wanting everyone to participate is the system working.</p>
+        <div id="live-agg"></div>
+        <p class="citation">Projection only — surpluses and eliminations transfer at the close · full count on the
+          <a href="results.html">results page</a> · Art. II §2</p>
       </section>
 
       <section class="card" aria-labelledby="ref-h">
@@ -153,11 +165,18 @@
 
       var ranking = [];
 
+      function slugify(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+      function profileHref(n) {
+        return S.href('electoral/candidate-profile.html?candidate=' + slugify(n) +
+          '&name=' + encodeURIComponent(n) + '&race=elec-brooklyn-2031');
+      }
+
       function renderFinalists() {
         document.getElementById('finalist-list').innerHTML = FINALISTS.map(function (n) {
           var ranked = ranking.indexOf(n) >= 0;
           return '<div class="cluster" style="justify-content:space-between;border-block-end:1px solid var(--gov-border);padding-block:var(--space-1)">' +
-            '<span style="color:var(--gov-fg-strong)">' + esc(n) + (ranked ? ' <span class="citation">ranked #' + (ranking.indexOf(n) + 1) + '</span>' : '') + '</span>' +
+            '<span><a style="color:var(--gov-fg-strong)" href="' + profileHref(n) + '" title="' + esc(n) + ' — open public profile">' + esc(n) + '</a>' +
+            (ranked ? ' <span class="citation">ranked #' + (ranking.indexOf(n) + 1) + '</span>' : '') + '</span>' +
             '<button type="button" class="btn btn--secondary btn--sm" data-add="' + esc(n) + '"' + (ranked ? ' disabled' : '') + '>Add</button></div>';
         }).join('');
         var sel = document.getElementById('writein-sel');
@@ -228,6 +247,28 @@
         renderFinalists();
         renderRanking();
       });
+
+      /* Live aggregate — page-local first-preference totals so far. */
+      (function () {
+        var agg = [
+          ['Tessa Brandon', 5121], ['Abeni Adeola', 4876], ['Luis Herrera', 4519], ['Imani Carter', 4230],
+          ['Mo Chen', 3987], ['Rosa Linares', 3744], ['Sam Whitaker', 3490], ['Kofi Boateng', 3211]
+        ];
+        var ballotsSoFar = 41832, seats = 5;
+        var quotaNow = Math.floor(ballotsSoFar / (seats + 1)) + 1;
+        var max = agg[0][1] * 1.3;
+        document.getElementById('live-agg').innerHTML =
+          '<p class="citation">' + ballotsSoFar.toLocaleString('en-US') + ' ballots so far · Droop quota if closed now: ' + quotaNow.toLocaleString('en-US') + '</p>' +
+          agg.map(function (c) {
+            var lead = c[1] >= quotaNow;
+            return '<div class="stv-cand' + (lead ? ' stv-cand--elected' : '') + '">' +
+              '<span class="stv-cand-name" title="' + esc(c[0]) + ' — first preferences so far">' + esc(c[0]) + '</span>' +
+              '<span class="stv-track"><span class="stv-fill' + (lead ? ' stv-fill--elected' : '') + '" style="inline-size:' + Math.min(100, c[1] / max * 100).toFixed(1) + '%"></span>' +
+              '<span class="stv-quota-mark" style="inset-inline-start:' + (quotaNow / max * 100).toFixed(1) + '%" title="Quota if closed now"></span></span>' +
+              '<span class="stv-votes">' + c[1].toLocaleString('en-US') + '</span></div>';
+          }).join('') +
+          '<p class="cc-small" style="margin-block-start:var(--space-2)">+ 7 more finalists below 3,000 first preferences — every ballot can still reorder this.</p>';
+      })();
 
       renderFinalists();
       renderRanking();

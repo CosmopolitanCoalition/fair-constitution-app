@@ -172,16 +172,21 @@
       quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving · Art. II §2',
       supermajority: 6, supermajorityGloss: 'ceil(serving × 2/3) = 6 of 9 · Art. VII',
       termEnds: '2035-11-01', nextSessionDue: '2031-06-23',
+      /* Seating: circular chamber, most senior to least senior every other
+         seat. Seniority = total days as a chamber member; ties (common — one
+         general election seats everyone at once) break by normalized prior
+         election performance (voteShareNorm). Adaeze Nwosu arrived via an
+         earlier countback, so the staggering is visible. */
       members: [
-        { persona: 'yuki-tanaka', seat: 1, endorsedBy: ['commons-party'], speaker: true, voteShareNorm: 1.12 },
-        { persona: 'marcus-chen', seat: 2, endorsedBy: ['green-horizon'], voteShareNorm: 1.08 },
-        { persona: 'kwame-mensah', seat: 3, endorsedBy: ['commons-party'], voteShareNorm: 1.04 },
+        { persona: 'yuki-tanaka', seat: 1, endorsedBy: ['commons-party'], speaker: true, voteShareNorm: 1.12, daysServed: 212 },
+        { persona: 'marcus-chen', seat: 2, endorsedBy: ['green-horizon'], voteShareNorm: 1.08, daysServed: 212 },
+        { persona: 'kwame-mensah', seat: 3, endorsedBy: ['commons-party'], voteShareNorm: 1.04, daysServed: 212 },
         { seat: 4, vacant: true, note: 'Renata Silva resigned — countback running (WF-ELE-03)' },
-        { persona: 'asha-okonkwo', seat: 5, endorsedBy: ['hudson-mutual-aid', 'green-horizon'], voteShareNorm: 0.99 },
-        { name: 'Jonas Petersen', seat: 6, endorsedBy: ['five-boroughs-chamber'], voteShareNorm: 0.97 },
-        { name: 'Maribel Santos', seat: 7, endorsedBy: [], voteShareNorm: 0.95, note: 'No endorsing organization' },
-        { name: 'Adaeze Nwosu', seat: 8, endorsedBy: ['commons-party'], voteShareNorm: 0.93 },
-        { name: 'Lev Aronov', seat: 9, endorsedBy: ['uptown-neighbors'], voteShareNorm: 0.90 }
+        { persona: 'asha-okonkwo', seat: 5, endorsedBy: ['hudson-mutual-aid', 'green-horizon'], voteShareNorm: 0.99, daysServed: 212 },
+        { name: 'Jonas Petersen', seat: 6, endorsedBy: ['five-boroughs-chamber'], voteShareNorm: 0.97, daysServed: 212 },
+        { name: 'Maribel Santos', seat: 7, endorsedBy: [], voteShareNorm: 0.95, note: 'No endorsing organization', daysServed: 212 },
+        { name: 'Adaeze Nwosu', seat: 8, endorsedBy: ['commons-party'], voteShareNorm: 0.93, daysServed: 87, note: 'Seated by countback — 87 days served' },
+        { name: 'Lev Aronov', seat: 9, endorsedBy: ['uptown-neighbors'], voteShareNorm: 0.90, daysServed: 212 }
       ]
     },
 
@@ -225,14 +230,26 @@
       { id: 'dep-emergency', name: 'Emergency Management', kind: 'other', governors: 5, workers: 61, charter: 'Disaster preparation and response; active-power oversight.' }
     ],
 
-    /* One election per phase, pinned to real places. */
+    /* Elections at every level of the chain — you see the races of the
+       jurisdiction you are looking at. One county race per phase, plus the
+       state, federal, and planetary general elections (the global parliament
+       is a real race here, not a metaphor). */
     elections: [
       { id: 'elec-manhattan-2031', jurisdiction: 'usa-3-new-york-county', kind: 'general', phase: 'approval',
         seats: 7, finalistCount: 21, finalistRule: 'X = f(seats) · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
       { id: 'elec-brooklyn-2031', jurisdiction: 'usa-3-kings-county', kind: 'general', phase: 'ranked',
         seats: 5, finalistCount: 15, ranksClose: '2031-05-30T23:59:00Z', clocks: ['CLK-21'] },
       { id: 'elec-queens-2031', jurisdiction: 'usa-3-queens-county', kind: 'general', phase: 'certifying',
-        seats: 9, finalistCount: 27, certifyingSince: '2031-05-12T14:00:00Z', clocks: ['CLK-07'] }
+        seats: 9, finalistCount: 27, certifyingSince: '2031-05-12T14:00:00Z', clocks: ['CLK-07'] },
+      { id: 'elec-new-york-2031', jurisdiction: 'usa-2-new-york', kind: 'general', phase: 'approval',
+        seats: 272, districts: 34, note: 'State legislature — 34 districts of 5–9 seats',
+        finalistRule: 'top X per district · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
+      { id: 'elec-usa-2031', jurisdiction: 'usa-1-united-states', kind: 'general', phase: 'approval',
+        seats: 692, districts: 87, note: 'Federal legislature — 87 districts of 5–9 seats',
+        finalistRule: 'top X per district · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
+      { id: 'elec-earth-2031', jurisdiction: 'earth-0-earth', kind: 'general', phase: 'approval',
+        seats: 1999, districts: 274, note: 'Global parliament — 274 districts of 5–9 seats',
+        finalistRule: 'top X per district · CLK-21', clocks: ['CLK-18', 'CLK-21'] }
     ],
 
     /* District-mapper scenario: the United States legislature scoped to

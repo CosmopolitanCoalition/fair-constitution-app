@@ -18,8 +18,9 @@
         <span class="eyebrow">Organizations · ownership</span>
         <h1>Transfers and conversions</h1>
         <p class="page-intro">Ownership moves four ways: by mutual agreement between private parties, by legislative
-          acquisition of a monopoly, by conversion between public and private forms, or by dissolution. Only the
-          monopoly path ever overrides owner consent — and it carries a hardened compensation floor.</p>
+          acquisition of a monopoly, by conversion between public and private forms, or by dissolution. Structures can
+          also restructure within the private side by owner consent. Only the monopoly path ever overrides owner
+          consent — and it carries a hardened compensation floor.</p>
         <p class="citation">Mutual consent is the rule; legislative monopoly acquisition the sole exception · Art. I (Freedom to Contract) · Art. III §5</p>
       </header>
 
@@ -131,6 +132,57 @@
         </div>
       </section>
 
+      <section class="card" aria-labelledby="restructure-h">
+        <h2 id="restructure-h">Internal restructuring</h2>
+        <p class="cc-small">Ownership-structure conversions <strong>within the private side</strong> — sole proprietor
+          ↔ partnership ↔ equal partnership ↔ member-owned ↔ stock (opening up stock, for example) — proceed by owner
+          consent under the current structure's own rules. Distinct from the public ↔ private interchange above: no
+          legislature is involved, and the organization stays private throughout.</p>
+        <form id="restructure-form" novalidate>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="rs-org">Organization</label>
+              <select class="select" id="rs-org">
+                <option>Northstar Equal Partners (equal partnership)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="rs-target">Target structure</label>
+              <select class="select" id="rs-target">
+                <option>Stock — opening up stock</option>
+                <option>Member-owned</option>
+                <option>Partnership</option>
+                <option>Sole proprietor</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="rs-consent">Demo: owner consent on record</label>
+            <select class="select" id="rs-consent">
+              <option value="met">12 of 12 partners consent — meets the partnership's unanimity rule</option>
+              <option value="short">9 of 12 partners consent — below the partnership's unanimity rule</option>
+            </select>
+            <span class="field-hint">The consent threshold comes from the current structure's own rules — this
+              partnership agreement requires unanimity; a stock structure would count voting shares instead.</span>
+          </div>
+          <div class="meter-block" style="max-inline-size:32rem;margin-block-end:var(--space-3)">
+            <div class="meter">
+              <span class="meter-fill meter-fill--met" id="rs-meter-fill" style="inline-size:100%"></span>
+              <span class="meter-threshold" style="inset-inline-start:99%"></span>
+            </div>
+            <div class="meter-caption">
+              <span id="rs-meter-caption">12 of 12 owners consent on record</span>
+              <span>threshold: unanimity (the structure's own rule)</span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary">Draft conversion instrument</button>
+        </form>
+        <div id="rs-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Owner consent per the structure's own rules ·
+          Art. I (Economic Freedom; Freedom to Contract) — the organization remains private throughout; structure
+          history is preserved on the public record</p>
+      </section>
+
       <section class="card" aria-labelledby="dissolve-h">
         <h2 id="dissolve-h">Dissolution
           <span class="form-chip">Organization Dissolution <span class="form-id">F-ORG-007</span></span></h2>
@@ -230,6 +282,38 @@
           S.badge('info', 'Transfer-Pending', 'clock') + ' ' + esc(from.name) + ' → ' + esc(to) +
           ' — awaiting counterparty signature; on completion the record syncs across jurisdictions with full faith &amp; credit. ' +
           '<span class="citation">F-ORG-005 · Art. V §2 · WF-ORG-06</span></div></div>';
+        S.refresh();
+      });
+
+      /* Internal restructuring — consent meter + simulated convert flow. */
+      var rsConsent = document.getElementById('rs-consent');
+      function rsMeter() {
+        var met = rsConsent.value === 'met';
+        var fill = document.getElementById('rs-meter-fill');
+        fill.style.inlineSize = met ? '100%' : '75%';
+        fill.className = 'meter-fill' + (met ? ' meter-fill--met' : '');
+        document.getElementById('rs-meter-caption').textContent =
+          (met ? '12 of 12' : '9 of 12') + ' owners consent on record';
+      }
+      rsConsent.addEventListener('change', rsMeter);
+      document.getElementById('restructure-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var met = rsConsent.value === 'met';
+        var target = document.getElementById('rs-target').value;
+        var box = document.getElementById('rs-confirm');
+        if (!met) {
+          box.innerHTML = '<div class="banner banner--warning">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Blocked: consent below the structure’s own rule.</span> This equal ' +
+            'partnership requires unanimous owner consent to restructure — 9 of 12 does not meet it, so the engine ' +
+            'rejects the draft. The attempt is recorded. <span class="citation">Art. I (Freedom to Contract) · owner consent per the structure’s own rules</span></div></div>';
+        } else {
+          box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
+            '<div><span class="banner-title">Simulated: conversion instrument drafted.</span> ' +
+            S.badge('info', 'Conversion-Pending', 'clock') + ' Northstar Equal Partners — equal partnership → ' +
+            esc(target.toLowerCase()) + '. All 12 owner consents are on record per the partnership’s own rules; the ' +
+            'organization stays private throughout, and its structure history is preserved on the public record. ' +
+            '<span class="citation">Art. I (Economic Freedom; Freedom to Contract)</span></div></div>';
+        }
         S.refresh();
       });
 
