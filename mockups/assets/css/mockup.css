@@ -403,7 +403,8 @@ button, [role="button"], a.btn, input, select, summary { min-block-size: 1.5rem;
   display: inline-flex; align-items: center; gap: var(--space-1);
   padding-block: 0; padding-inline: var(--space-2);
   border-radius: var(--radius-full); border: 1px solid;
-  font-size: var(--text-xs); line-height: 1.7; white-space: nowrap;
+  font-size: var(--text-xs); line-height: 1.7;
+  max-inline-size: 100%; /* long labels wrap instead of overflowing at 380px */
 }
 .badge--success { background: color-mix(in oklch, var(--status-success) 16%, var(--gov-bg)); border-color: color-mix(in oklch, var(--status-success) 50%, transparent); color: var(--status-success-fg); }
 .badge--warning { background: color-mix(in oklch, var(--status-warning) 16%, var(--gov-bg)); border-color: color-mix(in oklch, var(--status-warning) 50%, transparent); color: var(--status-warning-fg); }
@@ -595,12 +596,164 @@ button, [role="button"], a.btn, input, select, summary { min-block-size: 1.5rem;
 .swatch { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-muted); }
 .swatch-color { inline-size: 1.25rem; block-size: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--gov-border-strong); }
 
+/* Filter bar (registries, the open ballot) */
+.filter-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-3); padding-inline: var(--space-4);
+  background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-lg);
+}
+.chip-toggle {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full);
+  background: var(--gov-surface-2); color: var(--gov-fg-muted);
+  padding-block: 0; padding-inline: var(--space-2);
+  font-family: inherit; font-size: var(--text-xs); line-height: 1.7; cursor: pointer;
+  transition: border-color var(--dur) var(--ease-standard), color var(--dur) var(--ease-standard);
+}
+.chip-toggle[aria-pressed="true"] {
+  border-color: var(--cc-gold-400); color: var(--cc-gold-300);
+  background: color-mix(in oklch, var(--cc-gold-400) 12%, var(--gov-bg));
+}
+.tag-chip {
+  display: inline-block; font-size: var(--text-xs); color: var(--gov-fg-subtle);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-full);
+  padding-block: 0; padding-inline: var(--space-2); white-space: nowrap;
+}
+
+/* Candidate standings row (open ballot) */
+.candidate-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4); align-items: center;
+  padding-block: var(--space-3); padding-inline: var(--space-4);
+  border-block-end: 1px solid var(--gov-border);
+}
+.candidate-row:hover { background: color-mix(in oklch, var(--gov-surface) 60%, var(--gov-bg)); }
+.candidate-main { min-inline-size: 0; }
+.candidate-name { color: var(--gov-fg); font-weight: var(--weight-medium); }
+.candidate-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-block-start: var(--space-1); }
+.standing { text-align: end; font-variant-numeric: tabular-nums; }
+.standing-approvals { display: block; color: var(--gov-fg); font-weight: var(--weight-semibold); }
+.standing-delta { font-size: var(--text-xs); }
+.standing-delta--up { color: var(--status-success); }
+.standing-delta--down { color: var(--status-danger); }
+.standing-delta--flat { color: var(--gov-fg-subtle); }
+
+/* The finalist line — drawn across the standings list (CLK-21) */
+.finalist-line {
+  display: flex; align-items: center; gap: var(--space-3);
+  color: var(--cc-gold-300); font-family: var(--font-mono); font-size: var(--text-xs);
+  padding-block: var(--space-2); padding-inline: var(--space-4);
+}
+.finalist-line::before, .finalist-line::after {
+  content: ""; flex: 1 1 auto; border-block-start: 2px dashed var(--cc-gold-600);
+}
+
+/* Approve toggle — revocable, never color-only (label changes too) */
+.switch {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full);
+  background: var(--gov-surface-2); color: var(--gov-fg-muted);
+  padding-block: var(--space-1); padding-inline: var(--space-3);
+  font-family: inherit; font-size: var(--text-xs); cursor: pointer;
+  transition: border-color var(--dur) var(--ease-standard), background-color var(--dur) var(--ease-standard), color var(--dur) var(--ease-standard);
+}
+.switch::before {
+  content: ""; inline-size: .625rem; block-size: .625rem; border-radius: var(--radius-full);
+  background: var(--gov-border-strong);
+  transition: background-color var(--dur) var(--ease-standard);
+}
+.switch[aria-pressed="true"] {
+  border-color: var(--status-success); color: var(--status-success-fg);
+  background: color-mix(in oklch, var(--status-success) 14%, var(--gov-bg));
+}
+.switch[aria-pressed="true"]::before { background: var(--status-success); }
+
+/* Ranked ballot — click-to-rank, keyboard operable (no drag-only) */
+.rank-list { list-style: none; margin: 0; padding: 0; counter-reset: rank; }
+.rank-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding-block: var(--space-2); padding-inline: var(--space-3);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-md);
+  background: var(--gov-surface); margin-block-end: var(--space-2);
+}
+.rank-item::before {
+  counter-increment: rank; content: counter(rank);
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 1.625rem; block-size: 1.625rem; border-radius: var(--radius-full);
+  background: var(--gov-primary); color: var(--gov-primary-fg);
+  font-size: var(--text-xs); font-weight: var(--weight-semibold); flex-shrink: 0;
+}
+.rank-controls { display: inline-flex; gap: var(--space-1); margin-inline-start: auto; }
+.rank-controls .btn { padding-block: var(--space-1); padding-inline: var(--space-2); min-inline-size: 1.75rem; }
+
+/* STV round visualization (results) */
+.stv-round { margin-block-end: var(--space-4); }
+.stv-cand { display: grid; grid-template-columns: 11rem minmax(0, 1fr) 6rem; gap: var(--space-2); align-items: center; padding-block: 2px; font-size: var(--text-xs); }
+.stv-cand-name { color: var(--gov-fg-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stv-cand--elected .stv-cand-name { color: var(--status-success-fg); }
+.stv-cand--eliminated .stv-cand-name { color: var(--gov-fg-subtle); text-decoration: line-through; }
+.stv-track { position: relative; block-size: .75rem; background: var(--gov-surface-2); border: 1px solid var(--gov-border); border-radius: var(--radius-sm); overflow: visible; }
+.stv-fill { position: absolute; inset-block: 0; inset-inline-start: 0; background: var(--cc-blue-500); border-radius: var(--radius-sm); }
+.stv-fill--elected { background: var(--status-success); }
+.stv-fill--transfer { background: color-mix(in oklch, var(--cc-gold-400) 55%, var(--gov-surface-2)); }
+.stv-quota-mark { position: absolute; inset-block: -3px; inline-size: 2px; background: var(--cc-gold-400); }
+.stv-votes { text-align: end; font-variant-numeric: tabular-nums; color: var(--gov-fg-muted); }
+
+/* Ballot receipt */
+.receipt {
+  font-family: var(--font-mono); font-size: var(--text-sm);
+  background: var(--gov-surface-2); border: 1px dashed var(--gov-border-strong);
+  border-radius: var(--radius-md); padding: var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+/* Append-only log rows (audit chain, sync log, public records) */
+.log-row {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: baseline;
+  padding-block: var(--space-2); border-block-end: 1px solid var(--gov-border);
+  font-size: var(--text-sm);
+}
+.log-seq { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); inline-size: 6rem; }
+.log-hash { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); overflow-wrap: anywhere; }
+.log-row--rejected { background: color-mix(in oklch, var(--status-danger) 8%, transparent); }
+
+/* Law-edit diff (Art. IV §5 PATH C) */
+.law-diff { font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.7; }
+.law-diff del {
+  text-decoration: line-through;
+  background: color-mix(in oklch, var(--status-danger) 18%, var(--gov-bg));
+  color: var(--status-danger-fg); border-radius: var(--radius-sm); padding-inline: 2px;
+}
+.law-diff ins {
+  text-decoration: none;
+  background: color-mix(in oklch, var(--status-success) 18%, var(--gov-bg));
+  color: var(--status-success-fg); border-radius: var(--radius-sm); padding-inline: 2px;
+}
+
+/* Seat map (chamber roster) */
+.seat-map { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.seat-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 2.25rem; block-size: 2.25rem; border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--gov-primary) 35%, var(--gov-bg));
+  border: 1px solid var(--gov-border-strong);
+  color: var(--gov-fg); font-size: var(--text-xs); font-weight: var(--weight-semibold);
+}
+.seat-dot--vacant { background: var(--gov-surface-2); color: var(--gov-fg-subtle); border-style: dashed; }
+.seat-dot--speaker { border-color: var(--cc-gold-400); }
+
 /* ------------------------------------------------- 4. LAUNCHPAD (brand register) */
 .launchpad-hero {
   background: var(--cc-purple-600);
   color: var(--cc-purple-50);
   padding-block: var(--space-12); padding-inline: var(--space-6);
   text-align: center;
+}
+/* Hero used inside the shell's main column bleeds to the column edges —
+   margins live here (not inline) so the 380px padding change tracks. */
+.main-content .launchpad-hero {
+  margin-inline: calc(-1 * var(--space-6));
+  margin-block-start: calc(-1 * var(--space-8));
 }
 .launchpad-hero img.emblem { inline-size: 7rem; block-size: 7rem; }
 .launchpad-hero h1 { color: var(--cc-white); margin-block: var(--space-4) var(--space-2); }
@@ -672,5 +825,10 @@ a, summary { transition: color var(--dur) var(--ease-standard), border-color var
   .global-search input { inline-size: 100%; }
   .app-header { gap: var(--space-2); }
   .launchpad-hero { padding-block: var(--space-8); }
-  .role-grid { grid-template-columns: 1fr 1fr; }
+  .main-content .launchpad-hero {
+    margin-inline: calc(-1 * var(--space-4));
+    margin-block-start: calc(-1 * var(--space-5));
+  }
+  .role-grid { grid-template-columns: 1fr; }
+  .role-card { min-inline-size: 0; overflow-wrap: break-word; }
 }

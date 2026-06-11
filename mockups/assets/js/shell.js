@@ -625,6 +625,7 @@
   }
 
   function renderChrome() {
+    if (!headerEl) return; /* page scripts may call refresh() before buildShell (DOMContentLoaded) — safe no-op */
     headerEl.innerHTML = renderHeader();
     sidebarEl.innerHTML = renderSidebar();
     footerEl.innerHTML = renderFooter();

@@ -4078,14 +4078,109 @@
         flags: ['monopoly_target'], note: 'Monopoly-acquisition scenario target (F-LEG-026).' }
     ],
 
-    /* Candidates in the Charlotte approval phase. Zero-endorsement candidates
-       are first-class throughout. */
+    /* Candidates in the Charlotte approval phase (7 seats → finalist line at
+       X = 21 · CLK-21, so 24 registrants keep the line visible mid-list).
+       Zero-endorsement candidates are first-class throughout. All fictional. */
     candidates: [
-      { id: 'diego-ramos', name: 'Diego Ramos', election: 'elec-charlotte-2031', endorsedBy: ['commons-party'], individualEndorsements: 41, approvals: 4182, deltaDay: 3 },
-      { id: 'keisha-boyd', name: 'Keisha Boyd', election: 'elec-charlotte-2031', endorsedBy: ['green-horizon'], individualEndorsements: 28, approvals: 3974, deltaDay: -1 },
-      { id: 'linh-pham', name: 'Linh Pham', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 12, approvals: 3551, deltaDay: 5 },
-      { id: 'robert-hale', name: 'Robert Hale', election: 'elec-charlotte-2031', endorsedBy: ['queen-city-chamber', 'plaza-midwood-neighbors'], individualEndorsements: 19, approvals: 2870, deltaDay: 0 },
-      { id: 'fatou-ndiaye', name: 'Fatou Ndiaye', election: 'elec-charlotte-2031', endorsedBy: ['piedmont-mutual-aid'], individualEndorsements: 33, approvals: 2641, deltaDay: -2 }
+      { id: 'diego-ramos', name: 'Diego Ramos', election: 'elec-charlotte-2031', endorsedBy: ['commons-party'], individualEndorsements: 41, approvals: 4182, deltaDay: 3, tags: ['housing', 'transit'], statement: 'Frequent buses, fewer evictions, open books.' },
+      { id: 'keisha-boyd', name: 'Keisha Boyd', election: 'elec-charlotte-2031', endorsedBy: ['green-horizon'], individualEndorsements: 28, approvals: 3974, deltaDay: -1, tags: ['climate', 'parks'], incumbent: true, statement: 'Tree canopy and clean air are infrastructure.' },
+      { id: 'linh-pham', name: 'Linh Pham', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 12, approvals: 3551, deltaDay: 5, tags: ['small-business'], statement: 'No machine behind me — just the public record.' },
+      { id: 'robert-hale', name: 'Robert Hale', election: 'elec-charlotte-2031', endorsedBy: ['queen-city-chamber', 'plaza-midwood-neighbors'], individualEndorsements: 19, approvals: 2870, deltaDay: 0, tags: ['small-business', 'budget'], incumbent: true },
+      { id: 'fatou-ndiaye', name: 'Fatou Ndiaye', election: 'elec-charlotte-2031', endorsedBy: ['piedmont-mutual-aid'], individualEndorsements: 33, approvals: 2641, deltaDay: -2, tags: ['housing', 'mutual-aid'] },
+      { id: 'omar-castillo', name: 'Omar Castillo', election: 'elec-charlotte-2031', endorsedBy: ['commons-party'], individualEndorsements: 22, approvals: 2563, deltaDay: 1, tags: ['transit'] },
+      { id: 'wren-ashby', name: 'Wren Ashby', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 51, approvals: 2497, deltaDay: 4, tags: ['education'], statement: 'Endorsed by neighbors, not organizations.' },
+      { id: 'dmitri-volkov', name: 'Dmitri Volkov', election: 'elec-charlotte-2031', endorsedBy: ['green-horizon'], individualEndorsements: 9, approvals: 2310, deltaDay: -3, tags: ['climate', 'water'] },
+      { id: 'june-okada', name: 'June Okada', election: 'elec-charlotte-2031', endorsedBy: ['plaza-midwood-neighbors'], individualEndorsements: 17, approvals: 2204, deltaDay: 2, tags: ['parks', 'zoning'], incumbent: true },
+      { id: 'caleb-wright', name: 'Caleb Wright', election: 'elec-charlotte-2031', endorsedBy: ['queen-city-chamber'], individualEndorsements: 8, approvals: 2107, deltaDay: 0, tags: ['budget'] },
+      { id: 'nadia-haq', name: 'Nadia Haq', election: 'elec-charlotte-2031', endorsedBy: ['piedmont-mutual-aid', 'green-horizon'], individualEndorsements: 26, approvals: 2031, deltaDay: 6, tags: ['health', 'housing'] },
+      { id: 'sergio-mendes', name: 'Sérgio Mendes', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 4, approvals: 1968, deltaDay: -1, tags: ['transit'] },
+      { id: 'priscilla-ortega', name: 'Priscilla Ortega', election: 'elec-charlotte-2031', endorsedBy: ['commons-party'], individualEndorsements: 14, approvals: 1873, deltaDay: 1, tags: ['education', 'budget'] },
+      { id: 'theo-lindqvist', name: 'Theo Lindqvist', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 7, approvals: 1762, deltaDay: 0, tags: ['zoning'] },
+      { id: 'amara-bello', name: 'Amara Bello', election: 'elec-charlotte-2031', endorsedBy: ['green-horizon'], individualEndorsements: 11, approvals: 1655, deltaDay: 2, tags: ['climate'] },
+      { id: 'hugo-marchetti', name: 'Hugo Marchetti', election: 'elec-charlotte-2031', endorsedBy: ['queen-city-chamber'], individualEndorsements: 6, approvals: 1541, deltaDay: -2, tags: ['small-business'] },
+      { id: 'dalia-mansour', name: 'Dalia Mansour', election: 'elec-charlotte-2031', endorsedBy: ['piedmont-mutual-aid'], individualEndorsements: 21, approvals: 1490, deltaDay: 3, tags: ['health'] },
+      { id: 'felix-abara', name: 'Felix Abara', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 3, approvals: 1392, deltaDay: 0, tags: ['water'] },
+      { id: 'iris-kovacs', name: 'Iris Kovács', election: 'elec-charlotte-2031', endorsedBy: ['plaza-midwood-neighbors'], individualEndorsements: 9, approvals: 1305, deltaDay: 1, tags: ['parks'] },
+      { id: 'malik-johnson', name: 'Malik Johnson', election: 'elec-charlotte-2031', endorsedBy: ['commons-party'], individualEndorsements: 5, approvals: 1228, deltaDay: -1, tags: ['transit', 'housing'] },
+      { id: 'sun-li-park', name: 'Sun-Li Park', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 13, approvals: 1140, deltaDay: 4, tags: ['education'] },
+      { id: 'gloria-acheampong', name: 'Gloria Acheampong', election: 'elec-charlotte-2031', endorsedBy: ['green-horizon'], individualEndorsements: 2, approvals: 1056, deltaDay: -1, tags: ['climate', 'transit'] },
+      { id: 'bastian-keller', name: 'Bastian Keller', election: 'elec-charlotte-2031', endorsedBy: [], individualEndorsements: 1, approvals: 967, deltaDay: 0, tags: ['budget'] },
+      { id: 'yara-haddad', name: 'Yara Haddad', election: 'elec-charlotte-2031', endorsedBy: ['piedmont-mutual-aid'], individualEndorsements: 16, approvals: 873, deltaDay: 2, tags: ['mutual-aid', 'health'] }
+    ],
+
+    /* Petitions (F-IND-009/010; threshold = 5% of jurisdiction population · CLK-17). */
+    petitions: [
+      { id: 'pet-2031-04', title: 'Plaza Midwood traffic calming', jurisdiction: 'usa-5-plaza-midwood',
+        lawText: 'Install raised crossings and 20 mph zones on residential streets within Plaza Midwood.',
+        scale: 'Plaza Midwood (usa-5-plaza-midwood)', scope: 'Municipal public-works enforcement; local judiciary hears disputes',
+        signatures: 312, threshold: 473, state: 'Collecting signatures', creator: 'amara-okafor' },
+      { id: 'pet-2031-02', title: 'Charlotte participatory budget pilot', jurisdiction: 'usa-4-charlotte',
+        lawText: 'Allocate 2% of the municipal budget through an annual participatory ballot.',
+        scale: 'Charlotte (usa-4-charlotte)', scope: 'Binds the Charlotte treasury department',
+        signatures: 28541, threshold: 43729, state: 'Collecting signatures', creator: 'omar-farouk' },
+      { id: 'pet-2030-11', title: 'Mecklenburg watershed protection act', jurisdiction: 'usa-3-mecklenburg-county',
+        lawText: 'Prohibit industrial discharge into the Catawba watershed beyond the planetary baseline.',
+        scale: 'Mecklenburg County (usa-3-mecklenburg-county)', scope: 'County judiciary hears disputes',
+        signatures: 58112, threshold: 55774, state: 'Constitutionality review',
+        reviewNote: 'Threshold met; referred for constitutional review (F-JDG-008) before ballot placement.' }
+    ],
+
+    /* The Charlotte chamber (9 seats · STV). Endorsing organizations replace any
+       faction layer; members without endorsements are first-class. Seat 4 vacant. */
+    chamber: {
+      jurisdiction: 'usa-4-charlotte', seats: 9, serving: 8,
+      quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving · Art. II §2',
+      supermajority: 6, supermajorityGloss: 'ceil(serving × 2/3) = 6 of 9 · Art. VII',
+      termEnds: '2035-11-01', nextSessionDue: '2031-06-23',
+      members: [
+        { persona: 'yuki-tanaka', seat: 1, endorsedBy: ['commons-party'], speaker: true, voteShareNorm: 1.12 },
+        { persona: 'marcus-chen', seat: 2, endorsedBy: ['green-horizon'], voteShareNorm: 1.08 },
+        { persona: 'kwame-mensah', seat: 3, endorsedBy: ['commons-party'], voteShareNorm: 1.04 },
+        { seat: 4, vacant: true, note: 'Renata Silva resigned — countback running (WF-ELE-03)' },
+        { persona: 'asha-okonkwo', seat: 5, endorsedBy: ['piedmont-mutual-aid', 'green-horizon'], voteShareNorm: 0.99 },
+        { name: 'Jonas Petersen', seat: 6, endorsedBy: ['queen-city-chamber'], voteShareNorm: 0.97 },
+        { name: 'Maribel Santos', seat: 7, endorsedBy: [], voteShareNorm: 0.95, note: 'No endorsing organization' },
+        { name: 'Adaeze Nwosu', seat: 8, endorsedBy: ['commons-party'], voteShareNorm: 0.93 },
+        { name: 'Lev Aronov', seat: 9, endorsedBy: ['plaza-midwood-neighbors'], voteShareNorm: 0.90 }
+      ]
+    },
+
+    /* Committees (Art. II §4 · as implemented — see ledger #q2). 9 placements =
+       3 committees × 3 seats; per-member share = 9 ÷ (3 × 3) = 1. */
+    committees: [
+      { id: 'com-env', name: 'Environment & Infrastructure', seats: 3, chair: 'marcus-chen', alternate: 'asha-okonkwo',
+        members: ['marcus-chen', 'Maribel Santos', 'Lev Aronov'], bills: ['bill-2031-07'] },
+      { id: 'com-budget', name: 'Budget & Revenue', seats: 3, chair: 'Jonas Petersen', alternate: 'Adaeze Nwosu',
+        members: ['Jonas Petersen', 'kwame-mensah', 'Adaeze Nwosu'] },
+      { id: 'com-safety', name: 'Public Safety & Justice', seats: 3, chair: 'asha-okonkwo', alternate: 'Maribel Santos',
+        members: ['asha-okonkwo', 'yuki-tanaka', 'Renata Silva (vacated)'], note: 'Proportionality re-check pending countback (WF-LEG-13)' }
+    ],
+
+    /* Case docket (WF-JUD-03). */
+    cases: [
+      { id: 'case-2031-088', title: 'Novák finding on Curfew Ordinance §3', kind: 'Constitutional challenge',
+        court: 'Mecklenburg County court', panel: 'Full court (5 judges)', panelGloss: 'Major constitutional question — full court · CLK-16, hardened',
+        state: 'Remedy recommended', filedVia: 'F-IND-016', jury: false },
+      { id: 'case-2031-104', title: 'Tenant association v. Crown Ridge LLC', kind: 'Civil',
+        court: 'Charlotte municipal court', panel: '3 judges', state: 'Evidence docket', filedVia: 'F-ADV-001', jury: false,
+        severity: 'Moderate', claimedScale: 'Charlotte' },
+      { id: 'case-2031-097', title: 'State v. Whitfield', kind: 'Criminal',
+        court: 'Mecklenburg County court', panel: '3 judges + jury', state: 'Jury selection', filedVia: 'F-IND-017', jury: true,
+        severity: 'Serious', doubleJeopardy: 'Outcome will carry the double-jeopardy flag · Art. II §8' },
+      { id: 'case-2031-101', title: 'Pham v. Charlotte election board', kind: 'Administrative',
+        court: 'Charlotte municipal court', panel: '3 judges', state: 'Deliberation', filedVia: 'F-ADV-001', jury: false,
+        severity: 'Minor', note: 'Candidacy-validation appeal (WF-CIV-05 rejection path)' }
+    ],
+
+    /* Executive departments (Art. II §9; boards per Art. III §4). */
+    departments: [
+      { id: 'dep-chief', name: 'Chief Executive Office', kind: 'chief_executive', governors: 5, workers: 84, charter: 'Coordinates departments; executes legislative acts.' },
+      { id: 'dep-treasury', name: 'Treasury', kind: 'treasury', governors: 5, workers: 152,
+        coDetermination: true, workerSeats: 1, charter: 'Budget execution, collections, disbursement.' },
+      { id: 'dep-works', name: 'Public Works & Utilities', kind: 'other', governors: 7, workers: 1240,
+        coDetermination: true, workerSeats: 4, charter: 'Streets, water, waste; oversees Mecklenburg Water & Power (CGC).' },
+      { id: 'dep-justice', name: 'Justice Administration', kind: 'justice', governors: 5, workers: 96, charter: 'Court facilities, records, enforcement liaison.' },
+      { id: 'dep-emergency', name: 'Emergency Management', kind: 'other', governors: 5, workers: 61, charter: 'Disaster preparation and response; active-power oversight.' }
     ],
 
     /* One election per phase, pinned to real places (§7). */

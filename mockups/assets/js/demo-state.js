@@ -126,9 +126,14 @@
     return p;
   }
 
+  var STATE_KEYS = ['role', 'persona', 'jur', 'locale', 'dir', 'sc'];
+
   function mirrorUrl() {
     try {
       var p = urlParams(state);
+      /* preserve page-local params (e.g. ?candidate=) alongside demo state */
+      var existing = new URLSearchParams(window.location.search);
+      existing.forEach(function (v, k) { if (STATE_KEYS.indexOf(k) < 0) p.set(k, v); });
       var qs = p.toString();
       var url = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
       window.history.replaceState(null, '', url);
@@ -173,11 +178,21 @@
     },
 
     /* Build an internal link that carries the current demo state (plus
-       overrides) as query params — the cross-page channel on file://. */
+       overrides) as query params — the cross-page channel on file://.
+       Page-local params already on the href (e.g. ?candidate=) pass through. */
     link: function (href, overrides) {
       var parts = String(href).split('#');
-      var base = parts[0].split('?')[0];
-      var qs = urlParams(state, overrides).toString();
+      var baseAndQuery = parts[0].split('?');
+      var base = baseAndQuery[0];
+      var p = urlParams(state, overrides);
+      if (baseAndQuery[1]) {
+        try {
+          new URLSearchParams(baseAndQuery[1]).forEach(function (v, k) {
+            if (STATE_KEYS.indexOf(k) < 0) p.set(k, v);
+          });
+        } catch (e) { /* leave state-only params */ }
+      }
+      var qs = p.toString();
       return base + (qs ? '?' + qs : '') + (parts[1] ? '#' + parts[1] : '');
     }
   };
