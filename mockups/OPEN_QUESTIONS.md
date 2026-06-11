@@ -57,14 +57,14 @@ so the log is also a record. Only #12 currently awaits an answer (elaboration pr
     into ledger [#q4](shared/constitutional-questions.html#q4)). The mapper is informational here;
     the real one is already built in the product.
 
-12. **Co-determination interpolation lacks a ledger anchor — AWAITING ANSWER (elaboration
-    requested).** Art. III §6 says worker representation "scales uniformly" from the first seat
-    at 100 employees to parity at 2,000 — but no formula. The screens implement a concrete one
-    (linear interpolation: worker seats ≈ round((workers − 100) ÷ 1,900 × owner seats), min 1 —
-    Bluefin at 740 workers → 3 of 9-owner board) and honestly cite `Art. III §6 · as implemented`.
-    Every other such citation links to a ledger entry; this one has none. Question: should the
-    interpolation formula become ledger entry #q8 (a candidate for the next draft, like the
-    countback)? One paragraph to add if yes.
+12. ~~**Co-determination interpolation lacks a ledger anchor.**~~ **Resolved.** Not a
+    constitutional question at all — "scales uniformly" is read plainly: worker seats grow
+    proportionally between the two constitutional endpoints (first seat at 100, parity at 2,000),
+    so the proportional formula is the ordinary meaning of the text, not an implementation
+    decision. The `· as implemented` hedge was removed; the screen cites Art. III §6 directly.
+    Mechanism per JD: the worker count is whoever has signed on through the worker form
+    (F-IND-014 — recurring labor counts, organization type irrelevant); the owner side runs on
+    the share system; in a CGC the board of governors stands where shareholders would.
 
 13. ~~**Monopoly-acquisition vote threshold.**~~ **Resolved.** Unstated thresholds are ordinary
     majorities (of all serving, peg-quorum basis); supermajority applies only where stated.

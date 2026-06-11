@@ -48,10 +48,12 @@
         </div>
         <div id="meter-readout" class="cluster" style="gap:var(--space-6);margin-block-start:var(--space-4)" aria-live="polite"></div>
         <div class="receipt" style="margin-block-start:var(--space-4)" data-no-i18n id="formula-block"></div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Uniform interpolation between first seat and parity ·
-          Art. III §6 · as implemented (CGA spec — the constitution fixes both endpoints; the engine interpolates uniformly between them)</p>
-        <p class="gloss">Parity means worker-elected seats equal owner-elected seats. Between the endpoints the engine
-          adds seats in even steps so no headcount jump is ever rewarded or punished.</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Scales uniformly between the first seat (100) and parity (2,000) · Art. III §6</p>
+        <p class="gloss">Parity means worker-elected seats equal owner-elected seats. "Scales uniformly" is read plainly:
+          seats grow proportionally between the two constitutional endpoints, in even steps, so no headcount jump is ever
+          rewarded or punished. The worker count is simply everyone signed on through the worker form
+          (Worker registration · F-IND-014) — recurring labor counts regardless of organization type. The owner side runs
+          on the share system; in a Common Good Corporation the board of governors stands where shareholders would.</p>
         <noscript><p>With JavaScript on, this meter recomputes live. Bluefin at 740 workers:
           max(1, round((740 − 100) ÷ 1,900 × 9)) = 3 worker seats beside 9 owner seats.</p></noscript>
       </section>
