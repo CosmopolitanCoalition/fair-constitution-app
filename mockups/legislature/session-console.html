@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Session console — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <div class="banner banner--info" role="status">
+        <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+        <div><span class="banner-title">Session due in 12 days</span>
+          Next session due 2031-06-23 — the legislature must meet at least every 90 days; the scheduler compels it.
+          <span class="citation">CLK-02 · 90-day meeting deadline · Art. II §2 · WF-SYS-02</span></div>
+      </div>
+
+      <header>
+        <span class="eyebrow">Legislature · live session</span>
+        <h1>Session console — Charlotte legislature</h1>
+        <p class="page-intro">The meeting surface for a regular session: open, take attendance, verify the peg quorum,
+          then work the agenda in constitutional order. All times shown in your timezone
+          (UTC−5 · America/New_York) · stored as UTC.</p>
+        <p class="citation">Regular session in constitutional order · Art. II §2 · WF-LEG-05</p>
+      </header>
+
+      <section class="card" aria-labelledby="open-h">
+        <h2 id="open-h">Call &amp; open <span class="form-chip">Session call / opening <span class="form-id">F-SPK-001</span></span></h2>
+        <p class="cc-small">Call and open a legislative session; initiate the quorum count.
+          <span class="citation">available to R-10 Speaker · Art. II §2 (Hold Regular Meetings)</span></p>
+        <div id="open-state" class="cluster"></div>
+      </section>
+
+      <section class="card" aria-labelledby="att-h">
+        <h2 id="att-h">Attendance &amp; quorum</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="form-chip">Attendance registration <span class="form-id">F-LEG-002</span></span>
+          <span class="citation">available to R-09 · Art. II §2 (Peg Quorum)</span>
+          <span class="form-chip">Quorum count publication <span class="form-id">F-SPK-003</span></span>
+          <span class="citation">available to R-10 · Art. II §2 (Peg Quorum)</span>
+        </div>
+        <div id="attendance" class="stack" style="gap:var(--space-2)"></div>
+        <noscript><p>Attendance toggles render with JavaScript — 8 of 8 serving present by default.</p></noscript>
+        <div id="quorum-block" style="margin-block-start:var(--space-4)"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Peg quorum: majorities are computed against all
+          serving members — never against those present. Seat 4 is vacant, so 8 serve.</p>
+        <div id="compulsion"></div>
+      </section>
+
+      <section class="card" aria-labelledby="agenda-h">
+        <h2 id="agenda-h">Agenda <span class="form-chip">Agenda setting <span class="form-id">F-SPK-002</span></span></h2>
+        <p class="cc-small">The Speaker sets the order of business, but the first two positions are locked by the
+          constitution and cannot be reordered or removed.
+          <span class="citation">available to R-10 Speaker · Art. II §2 (Execute Legislative Priorities)</span></p>
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        <ol id="agenda" class="stack" style="gap:var(--space-2);margin-block-start:var(--space-3);padding-inline-start:0;list-style:none"></ol>
+        <p class="citation">1. Outstanding emergency powers → 2. constitutional matters → 3. general agenda · Art. II §2; Art. II §7</p>
+      </section>
+
+      <section class="card" aria-labelledby="motions-h">
+        <h2 id="motions-h">Motions</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="form-chip">Motion submission <span class="form-id">F-LEG-007</span></span>
+          <span class="citation">available to R-09 · Art. II §2 (Rules of Order)</span>
+          <span class="form-chip">Floor vote <span class="form-id">F-LEG-004</span></span>
+          <span class="citation">available to R-09 · Art. II §2 (Peg Quorum)</span>
+        </div>
+        <div class="state-strip" style="margin-block-end:var(--space-3)">
+          <span class="state-node">Submitted</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Seconded/Recognized</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Debated</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Voted</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Adopted | Failed</span>
+        </div>
+        <div id="motion-list" class="stack" style="gap:var(--space-2)"></div>
+        <form id="motion-form" class="cluster" style="margin-block-start:var(--space-3)">
+          <label class="field-label" for="motion-text">New motion</label>
+          <input class="field-input" style="inline-size:18rem" id="motion-text" type="text" placeholder="e.g. Motion to amend the agenda" />
+          <button type="submit" class="btn btn--primary btn--sm">Submit motion</button>
+        </form>
+        <p class="citation" style="margin-block-start:var(--space-2)">The Speaker votes only to break ties —
+          Tie-breaking vote · F-SPK-004 · available to R-10 · Art. II §3 (Tie-Breaking Vote)</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="stmt-h">
+          <h2 id="stmt-h">Statements <span class="form-chip">Public record statement <span class="form-id">F-LEG-006</span></span></h2>
+          <p class="cc-small">Submit a statement, explanation, or position for the official record.
+            <span class="citation">available to R-09 · Art. II §2 (Publish Public Records)</span></p>
+          <form id="stmt-form">
+            <div class="field">
+              <label class="field-label" for="stmt-text">Statement</label>
+              <textarea class="field-input" id="stmt-text" rows="3" placeholder="Entered verbatim into the immutable public record"></textarea>
+              <span class="field-hint">Published via WF-SYS-03 — immutable, translated, public.</span>
+            </div>
+            <button type="submit" class="btn btn--secondary btn--sm">Record statement</button>
+          </form>
+          <div id="stmt-confirm" style="margin-block-start:var(--space-2)"></div>
+        </section>
+
+        <section class="card" aria-labelledby="adj-h">
+          <h2 id="adj-h">Adjourn &amp; minutes <span class="form-chip">Session minutes publication <span class="form-id">F-SPK-009</span></span></h2>
+          <p class="cc-small">Adjourning publishes the official record of the session automatically.
+            <span class="citation">available to R-10 Speaker / R-29 Admin Staff · Art. II §2 (Publish Public Records)</span></p>
+          <button type="button" class="btn btn--secondary btn--sm" id="adjourn-btn">Adjourn session</button>
+          <div id="adjourn-confirm" style="margin-block-start:var(--space-2)"></div>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-05.html">WF-LEG-05 (regular session)</a> is this
+            surface; motions run <a href="../flows/WF-LEG-09.html">WF-LEG-09 (motion handling)</a>; the quorum-failure
+            branch is <a href="../flows/WF-LEG-20.html">WF-LEG-20 (quorum failure &amp; compulsion)</a>; the session-due
+            banner comes from <a href="../flows/WF-SYS-02.html">WF-SYS-02 (90-day meeting enforcement)</a>.</p>
+          <p><strong>Entity state machines:</strong> Motion (Submitted → Seconded/Recognized → Debated → Voted →
+            Adopted | Failed); Emergency Powers drives agenda item 1 when active.</p>
+          <p class="citation">Art. II §2–3 · Art. II §7 · CLK-02 · CLK-03</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/session-console',
+      title: 'Session console',
+      module: 'legislature',
+      nav: 'session-console',
+      roles: ['R-09', 'R-10'],
+      workflows: ['WF-LEG-05', 'WF-LEG-09', 'WF-LEG-20', 'WF-SYS-02'],
+      forms: ['F-SPK-001', 'F-SPK-002', 'F-SPK-003', 'F-SPK-008', 'F-SPK-009', 'F-LEG-002', 'F-LEG-004', 'F-LEG-006', 'F-LEG-007'],
+      citation: 'Peg quorum: 5 of 9 serving · constitutional order of business · Art. II §2',
+      flow: 'WF-LEG-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var CH = W.chamber;
+      var serving = CH.members.filter(function (m) { return !m.vacant; });
+
+      /* Page-local interaction state — nothing leaves the page. */
+      var sessionOpen = false;
+      var adjourned = false;
+      var absent = {};              /* member name -> true */
+      var compelled = false;
+      var motions = [
+        { text: 'Motion to refer the Short-term rental registration act back to Budget & Revenue', state: 'Adopted', tally: '5–3 of 8 serving' },
+        { text: 'Motion to extend testimony time on the Clean Air Act hearing', state: 'Adopted', tally: '4–4 → Speaker broke the tie (F-SPK-004)' }
+      ];
+
+      function memberName(m) { return m.persona ? BY.personas[m.persona].name : m.name; }
+
+      function presentCount(quorumFails) {
+        if (quorumFails) return 4; /* scenario forces attendance down to 4 */
+        return serving.filter(function (m) { return !absent[memberName(m)]; }).length;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var quorumFails = !!st.scenario.quorumFails;
+        var present = presentCount(quorumFails);
+        var quorumMet = present >= CH.quorum;
+
+        /* Emergency banner — first order of business everywhere (exemplar copy). */
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'First order of business this session. Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        /* F-SPK-001 open state. */
+        document.getElementById('open-state').innerHTML = adjourned
+          ? S.badge('neutral', 'Session adjourned', 'check')
+          : sessionOpen
+            ? S.badge('success', 'Session open · 2031-06-11 14:00', 'check') +
+              '<span class="citation">quorum count initiated · F-SPK-003</span>'
+            : '<button type="button" class="btn btn--primary btn--sm" id="open-btn">Open session</button>' +
+              '<span class="citation">scheduled 2031-06-11 14:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>';
+
+        /* F-LEG-002 attendance toggles (8 of 8 serving, toggleable; scenario overrides). */
+        document.getElementById('attendance').innerHTML = serving.map(function (m, i) {
+          var name = memberName(m);
+          var isPresent = quorumFails ? i < 4 : !absent[name];
+          return '<div class="cluster" style="justify-content:space-between">' +
+            '<span><strong style="color:var(--gov-fg)">' + esc(name) + '</strong>' +
+            (m.speaker ? ' <span class="badge badge--info">' + S.icon('landmark', { size: 'sm' }) + 'Speaker</span>' : '') + '</span>' +
+            '<button type="button" class="switch" data-attend="' + esc(name) + '" aria-pressed="' + (isPresent ? 'true' : 'false') + '"' +
+            (quorumFails ? ' disabled title="Scenario: quorum failure — attendance pinned at 4"' : '') + '>' +
+            (isPresent ? 'Present' : 'Absent') + '</button></div>';
+        }).join('');
+
+        /* F-SPK-003 quorum vs ALL serving — denominators always visible. */
+        var pct = Math.round(present / serving.length * 100);
+        var tick = Math.round(CH.quorum / serving.length * 100);
+        document.getElementById('quorum-block').innerHTML =
+          '<div class="meter-block"><div class="meter">' +
+          '<span class="meter-fill' + (quorumMet ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:' + tick + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + present + ' of ' + serving.length + ' serving present</span>' +
+          '<span>' + esc(CH.quorumGloss) + '</span></div></div>' +
+          (quorumMet
+            ? '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-3)">' + S.icon('check') +
+              '<div><span class="banner-title">Quorum met — business may proceed</span>' +
+              '<span class="citation">Quorum count published · F-SPK-003 · Art. II §2</span></div></div>'
+            : '<div class="banner banner--emergency" role="alert" style="margin-block-start:var(--space-3)">' + S.icon('alert-triangle') +
+              '<div><span class="banner-title">Quorum not met — ' + present + ' of ' + serving.length + ' serving present, ' + CH.quorum + ' required</span>' +
+              'No business can proceed. The Speaker may compel the attendance of absent members. ' +
+              '<span class="citation">Art. II §2 (compel attendance) · WF-LEG-20</span></div></div>');
+
+        /* F-SPK-008 compulsion — appears only on the quorum-failure branch. */
+        var absentNames = quorumFails
+          ? serving.slice(4).map(memberName)
+          : serving.map(memberName).filter(function (n) { return absent[n]; });
+        document.getElementById('compulsion').innerHTML = quorumMet ? '' :
+          '<div class="card card--inset" style="margin-block-start:var(--space-3)">' +
+          '<h3 style="font-size:var(--text-base)">Attendance compulsion order <span class="form-chip"><span class="form-id">F-SPK-008</span></span></h3>' +
+          '<p class="cc-small">Order the compelled attendance of members who are absent when needed. ' +
+          '<span class="citation">available to R-10 Speaker · Art. II §2 (compel attendance)</span></p>' +
+          '<p>Absent: ' + absentNames.map(function (n) { return '<span class="tag-chip">' + esc(n) + '</span>'; }).join(' ') + '</p>' +
+          (compelled
+            ? S.badge('warning', 'Compulsion order issued — members summoned', 'alert-triangle')
+            : '<button type="button" class="btn btn--danger btn--sm" id="compel-btn">Issue compulsion order</button>') +
+          '</div>';
+
+        /* F-SPK-002 agenda — constitutional order is locked. */
+        var item1 = st.scenario.emergency
+          ? '<strong style="color:var(--gov-fg)">Review of active emergency power — ' + esc(W.emergency.label) + '</strong> ' +
+            S.badge('danger', 'Day ' + W.emergency.day + ' of ' + W.emergency.maxDays, 'alert-triangle') +
+            ' <a href="emergency-powers.html">Open dashboard</a>'
+          : '<span>No outstanding emergency powers — item clears automatically.</span>';
+        var item2 = st.scenario.challenge
+          ? '<strong style="color:var(--gov-fg)">' + esc(W.challenge.name) + '</strong> ' +
+            S.badge('warning', 'Veto window closes ' + esc(W.challenge.vetoCloses), 'scale') +
+            ' <span class="citation">legislative response required · Art. IV §5 · CLK-11/CLK-12</span>'
+          : '<span>No constitutional matters pending.</span>';
+        document.getElementById('agenda').innerHTML =
+          '<li class="card card--inset"><span class="eyebrow">1 · Outstanding emergency powers ' + S.icon('lock', { size: 'sm' }) + ' locked first</span><div style="margin-block-start:var(--space-1)">' + item1 + '</div></li>' +
+          '<li class="card card--inset"><span class="eyebrow">2 · Constitutional matters ' + S.icon('lock', { size: 'sm' }) + ' locked second</span><div style="margin-block-start:var(--space-1)">' + item2 + '</div></li>' +
+          '<li class="card card--inset"><span class="eyebrow">3 · General agenda — Speaker-ordered</span><div style="margin-block-start:var(--space-1)">' +
+          'Committee report: Environment &amp; Infrastructure on the <a href="bill-detail.html">Charlotte Clean Air Act</a> · ' +
+          'member priorities (F-SPK-006) · motions &amp; statements</div></li>';
+
+        /* Motions list. */
+        document.getElementById('motion-list').innerHTML = motions.map(function (m) {
+          var tone = m.state === 'Adopted' ? 'success' : m.state === 'Failed' ? 'danger' : 'info';
+          return '<div class="cluster" style="justify-content:space-between"><span>' + esc(m.text) + '</span>' +
+            '<span class="cluster">' + S.badge(tone, m.state, m.state === 'Adopted' ? 'check' : 'clock') +
+            '<span class="citation">' + esc(m.tally) + '</span></span></div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-attend],#open-btn,#compel-btn,#adjourn-btn') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-attend')) {
+          var n = t.getAttribute('data-attend');
+          absent[n] = !absent[n];
+          render();
+        } else if (t.id === 'open-btn') { sessionOpen = true; render(); }
+        else if (t.id === 'compel-btn') { compelled = true; render(); }
+        else if (t.id === 'adjourn-btn') {
+          adjourned = true; sessionOpen = false;
+          document.getElementById('adjourn-confirm').innerHTML =
+            '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">Session adjourned — minutes published</span>' +
+            'Official record entered via Session minutes publication · F-SPK-009 → public records (WF-SYS-03).</div></div>';
+          render();
+        }
+      });
+
+      document.getElementById('motion-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var input = document.getElementById('motion-text');
+        if (!input.value.trim()) return;
+        motions.push({ text: input.value.trim(), state: 'Submitted', tally: 'awaiting recognition · F-LEG-007 → F-LEG-004' });
+        input.value = '';
+        render();
+      });
+
+      document.getElementById('stmt-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var ta = document.getElementById('stmt-text');
+        if (!ta.value.trim()) return;
+        ta.value = '';
+        document.getElementById('stmt-confirm').innerHTML =
+          '<div class="banner banner--info" role="status">' + S.icon('check') +
+          '<div><span class="banner-title">Statement recorded</span>Appended to the immutable public record · F-LEG-006 · WF-SYS-03.</div></div>';
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

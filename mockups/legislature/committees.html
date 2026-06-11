@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Committees — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Legislature · committees</span>
+        <h1>Committees — Charlotte legislature</h1>
+        <p class="page-intro">Committee seats are assigned from each member's own ranked preferences — there is no
+          party or faction layer to allocate through. Proportionality survives because ties break by each member's
+          STV vote share after normalizing quotas.</p>
+        <p class="citation">Committee seat assignment · Art. II §4 · as implemented
+          (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+      </header>
+
+      <section class="card" aria-labelledby="create-h">
+        <h2 id="create-h">Creation acts <span class="form-chip">Committee creation act <span class="form-id">F-LEG-009</span></span></h2>
+        <p class="cc-small">Propose and vote to create a new committee — define scope, seat count, purpose. Requires a
+          supermajority. <span class="citation">available to R-09 Legislative Representative · Art. II §4</span></p>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Committees and their creation acts</caption>
+          <thead><tr><th>Committee</th><th class="mono">Seats</th><th>Creation act</th><th>Status</th></tr></thead>
+          <tbody id="committee-acts"></tbody>
+        </table></div>
+        <noscript><p>Committee list renders with JavaScript — Environment &amp; Infrastructure, Budget &amp; Revenue, Public Safety &amp; Justice (3 seats each).</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="alloc-h">
+        <h2 id="alloc-h">Allocation — placements to fill</h2>
+        <div class="cluster" style="gap:var(--space-6)">
+          <div class="stat"><span class="stat-number">9</span><span class="stat-label">total committee seats = 3 committees × 3 seats</span></div>
+          <div class="stat"><span class="stat-number">9</span><span class="stat-label">placements to fill — one per seat</span></div>
+          <div class="stat stat--accent"><span class="stat-number">1</span><span class="stat-label">per-member share = 9 ÷ (3 × 3) = 1</span></div>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-3)">Per-member share = Total reps ÷ (Committees × seats
+          per committee). Every member receives exactly their share of placements, respecting their own rank order.</p>
+        <p class="citation">Allocation formula · Art. II §4 · as implemented
+          (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+      </section>
+
+      <section class="card" aria-labelledby="prefs-h">
+        <h2 id="prefs-h">Your preference ballot <span class="form-chip">Committee preference ranking <span class="form-id">F-LEG-010</span></span></h2>
+        <p class="cc-small">Rank preferred committee assignments — works identically whether you carry endorsements from
+          several organizations or none. <span class="citation">available to R-09 Legislative Representative · Art. II §4 (modified for multi-faction)</span></p>
+        <ol id="pref-list" class="rank-list" aria-label="Ranked committee preferences"></ol>
+        <noscript><p>The ranking control needs JavaScript; preferences default to the committee order.</p></noscript>
+        <div class="cluster">
+          <button type="button" class="btn btn--primary btn--sm" id="pref-submit">Submit preferences</button>
+          <span id="pref-confirm"></span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="run-h">
+        <h2 id="run-h">Run the assignment <span class="form-chip">Committee assignment administration <span class="form-id">F-SPK-005</span></span></h2>
+        <p class="cc-small">The Speaker administers the assignment — runs the preference algorithm and resolves ties.
+          <span class="citation">available to R-10 Speaker · Art. II §3 (Committee Assignments)</span></p>
+        <div class="card card--inset" style="margin-block-end:var(--space-4)">
+          <h3 style="font-size:var(--text-base)">Tie-break — largest vote share after normalizing quotas</h3>
+          <p class="cc-small">Marcus Chen and Asha Okonkwo both ranked Environment &amp; Infrastructure first with one
+            seat remaining. Raw 1st-choice counts are not comparable across STV quota transfers, so shares are
+            normalized to account for one-person-one-vote deviations:</p>
+          <div class="table-wrap"><table class="table">
+            <caption class="visually-hidden">Normalized vote shares used for tie-breaking</caption>
+            <thead><tr><th>Member</th><th class="mono">Normalized share</th><th>Tie outcome</th></tr></thead>
+            <tbody id="tiebreak-rows"></tbody>
+          </table></div>
+          <p class="citation" style="margin-block-start:var(--space-2)">Ties go to the seat holder with the largest vote share after
+            normalizing quotas — preserves STV proportionality with no faction layer · Art. II §4 · as implemented
+            (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+        </div>
+        <div class="state-strip" style="margin-block-end:var(--space-3)">
+          <span class="state-node">Allocated (formula)</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Preferences-Submitted</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node state-node--current">Assigned | Tie-Broken</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Seated</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Vacated</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Refilled (whole-legislature RCV)</span>
+        </div>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="result-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="result-h">Assignment result</h2>
+          <p class="cc-small">Endorsing organizations are shown per member so proportionality stays legible with no
+            faction layer — members with no endorsements are first-class.</p>
+        </div>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Committee assignment results</caption>
+          <thead><tr><th>Committee</th><th>Member</th><th>Endorsing organizations</th></tr></thead>
+          <tbody id="result-rows"></tbody>
+        </table></div>
+        <p class="citation" style="padding:var(--space-4) var(--space-6)">Public Safety &amp; Justice: proportionality re-check pending the seat-4 countback · WF-LEG-13</p>
+      </section>
+
+      <section class="card" aria-labelledby="chairs-h">
+        <h2 id="chairs-h">Chairs &amp; alternates <span class="form-chip">Committee chair/alternate vote <span class="form-id">F-LEG-011</span></span></h2>
+        <p class="cc-small">Chair and alternate of each committee are elected by the <strong>whole legislature</strong>
+          via ranked-choice vote — the alternate is the top runner-up.
+          <span class="citation">available to R-09 Legislative Representative · Art. II §4 (Election of Committee Chairs and Alternates)</span></p>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Committee chairs and alternates</caption>
+          <thead><tr><th>Committee</th><th>Chair (R-12)</th><th>Alternate (R-13)</th></tr></thead>
+          <tbody id="chair-rows"></tbody>
+        </table></div>
+        <p class="gloss" style="padding-block-start:var(--space-2)">Mid-term vacancies and new committees are also filled
+          by whole-legislature RCV without violating the proportions above · WF-LEG-13.</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-03.html">WF-LEG-03 (establishment &amp; seat
+            assignment)</a> — creation acts, preferences, the Speaker's run;
+            <a href="../flows/WF-LEG-04.html">WF-LEG-04 (chair &amp; alternate election)</a>;
+            <a href="../flows/WF-LEG-13.html">WF-LEG-13 (committee vacancy / new committee fill)</a>.</p>
+          <p><strong>Entity state machine:</strong> Committee Seat — Allocated (formula) → Preferences-Submitted →
+            Assigned | Tie-Broken → Seated → Vacated → Refilled.</p>
+          <p class="citation">Art. II §3–4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/committees',
+      title: 'Committees — assignment & chairs',
+      module: 'legislature',
+      nav: 'committees',
+      roles: ['R-09', 'R-10', 'R-11', 'R-13'],
+      workflows: ['WF-LEG-03', 'WF-LEG-04', 'WF-LEG-13'],
+      forms: ['F-LEG-009', 'F-LEG-010', 'F-SPK-005', 'F-LEG-011'],
+      citation: 'Faction-independent assignment · normalized-quota tie-break · Art. II §4 · as implemented',
+      flow: 'WF-LEG-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var CH = W.chamber;
+
+      var CREATION = { 'com-env': 'Act 2031-01 · supermajority 7–1', 'com-budget': 'Act 2031-02 · supermajority 6–2', 'com-safety': 'Act 2031-03 · supermajority 8–0' };
+      var prefs = W.committees.map(function (c) { return c.id; }); /* page-local rank order */
+      var submitted = false;
+
+      function personaOrName(ref) {
+        return BY.personas[ref] ? BY.personas[ref].name : ref;
+      }
+      function memberByName(name) {
+        for (var i = 0; i < CH.members.length; i++) {
+          var m = CH.members[i];
+          if (m.vacant) continue;
+          if ((m.persona && BY.personas[m.persona].name === name) || m.name === name) return m;
+        }
+        return null;
+      }
+      function orgChips(name) {
+        var m = memberByName(name.replace(' (vacated)', ''));
+        if (!m) return '<span class="tag-chip">seat vacated — countback running</span>';
+        if (!m.endorsedBy || !m.endorsedBy.length) return '<span class="tag-chip">no endorsements</span>';
+        return m.endorsedBy.map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip" style="padding-block:0;font-size:var(--text-xs)">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join(' ');
+      }
+
+      function render() {
+        document.getElementById('committee-acts').innerHTML = W.committees.map(function (c) {
+          return '<tr><td><a href="committee-detail.html">' + esc(c.name) + '</a></td>' +
+            '<td class="mono">' + c.seats + '</td>' +
+            '<td><span class="citation">' + esc(CREATION[c.id]) + '</span></td>' +
+            '<td>' + (c.note ? S.badge('warning', 'Re-check pending', 'refresh-cw') : S.badge('success', 'Seated', 'check')) + '</td></tr>';
+        }).join('');
+
+        /* F-LEG-010 interactive rank list — keyboard-operable, no drag. */
+        document.getElementById('pref-list').innerHTML = prefs.map(function (cid, i) {
+          var c = W.committees.filter(function (x) { return x.id === cid; })[0];
+          return '<li class="rank-item"><span>' + esc(c.name) + '</span>' +
+            '<span class="rank-controls">' +
+            '<button type="button" class="btn btn--secondary" data-move="' + i + ',-1" aria-label="Move ' + esc(c.name) + ' up"' + (i === 0 ? ' disabled' : '') + '>' + S.icon('arrow-up', { size: 'sm' }) + '</button>' +
+            '<button type="button" class="btn btn--secondary" data-move="' + i + ',1" aria-label="Move ' + esc(c.name) + ' down"' + (i === prefs.length - 1 ? ' disabled' : '') + '>' + S.icon('arrow-down', { size: 'sm' }) + '</button>' +
+            '</span></li>';
+        }).join('');
+        document.getElementById('pref-confirm').innerHTML = submitted
+          ? S.badge('success', 'Preferences submitted — input to the assignment algorithm', 'check') : '';
+
+        /* Tie-break illustration from chamber voteShareNorm fixtures. */
+        var chen = memberByName('Marcus Chen'), asha = memberByName('Asha Okonkwo');
+        document.getElementById('tiebreak-rows').innerHTML =
+          '<tr><td>Marcus Chen</td><td class="mono">' + chen.voteShareNorm.toFixed(2) + '</td>' +
+          '<td>' + S.badge('success', 'Wins the tie — seat assigned', 'check') + '</td></tr>' +
+          '<tr><td>Asha Okonkwo</td><td class="mono">' + asha.voteShareNorm.toFixed(2) + '</td>' +
+          '<td>' + S.badge('neutral', 'Next preference honored — Public Safety & Justice', 'arrow-right') + '</td></tr>' +
+          CH.members.filter(function (m) { return !m.vacant && ['Marcus Chen', 'Asha Okonkwo'].indexOf(m.persona ? BY.personas[m.persona].name : m.name) < 0; })
+            .map(function (m) {
+              return '<tr><td>' + esc(m.persona ? BY.personas[m.persona].name : m.name) + '</td>' +
+                '<td class="mono">' + m.voteShareNorm.toFixed(2) + '</td><td><span class="citation">no tie at this seat</span></td></tr>';
+            }).join('');
+
+        /* Result table — orgs or "no endorsements" per member. */
+        document.getElementById('result-rows').innerHTML = W.committees.map(function (c) {
+          return c.members.map(function (mref, i) {
+            var name = personaOrName(mref);
+            return '<tr>' + (i === 0 ? '<td rowspan="' + c.members.length + '"><strong style="color:var(--gov-fg)">' + esc(c.name) + '</strong></td>' : '') +
+              '<td>' + esc(name) + '</td><td>' + orgChips(name) + '</td></tr>';
+          }).join('');
+        }).join('');
+
+        /* Chairs & alternates. */
+        document.getElementById('chair-rows').innerHTML = W.committees.map(function (c) {
+          return '<tr><td>' + esc(c.name) + '</td>' +
+            '<td><strong style="color:var(--gov-fg)">' + esc(personaOrName(c.chair)) + '</strong> <span class="citation">whole-legislature RCV winner</span></td>' +
+            '<td>' + esc(personaOrName(c.alternate)) + ' <span class="citation">top runner-up</span></td></tr>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-move],#pref-submit') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-move')) {
+          var parts = t.getAttribute('data-move').split(',');
+          var i = parseInt(parts[0], 10), d = parseInt(parts[1], 10);
+          var j = i + d;
+          if (j < 0 || j >= prefs.length) return;
+          var tmp = prefs[i]; prefs[i] = prefs[j]; prefs[j] = tmp;
+          submitted = false;
+          render();
+        } else if (t.id === 'pref-submit') {
+          submitted = true;
+          render();
+        }
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

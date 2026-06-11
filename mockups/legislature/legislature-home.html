@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chamber — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Legislature · Charlotte</span>
+        <h1>Charlotte legislature</h1>
+        <p class="page-intro">Nine seats elected in one PR-STV count. There is no faction layer — members carry the
+          endorsing organizations from their candidacies, and members with no endorsements are first-class.
+          Seat 4 is vacant and a countback is running.</p>
+        <p class="citation">Created through consent · STV with Droop quota · Art. II §1–2 · no faction layer
+          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number">9</span><span class="stat-label">seats</span></div>
+        <div class="stat"><span class="stat-number">8</span><span class="stat-label">serving · seat 4 vacant</span></div>
+        <div class="stat"><span class="stat-number">5</span><span class="stat-label">peg quorum — of all serving, never of those present</span></div>
+        <div class="stat stat--accent"><span class="stat-number">6</span><span class="stat-label">supermajority = ceil(serving × 2/3)</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="seatmap-h">
+        <h2 id="seatmap-h">Seat map</h2>
+        <div id="seat-map" class="seat-map"></div>
+        <noscript><p>Seat map renders with JavaScript — 9 seats, seat 1 holds the Speaker ring, seat 4 is vacant.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Gold ring = Speaker (politically neutral, votes only to
+          break ties). Dashed = vacant seat in countback.</p>
+        <p class="citation">Peg quorum: 5 of 9 serving · Art. II §2 — supermajority: ceil(serving × 2/3) = 6 of 9 · Art. VII</p>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="roster-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="roster-h">Chamber roster</h2>
+        </div>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Members of the Charlotte legislature</caption>
+          <thead><tr><th>Seat</th><th>Member</th><th>Endorsing organizations</th><th class="mono">Vote share (normalized)</th><th>Status</th></tr></thead>
+          <tbody id="roster"></tbody>
+        </table></div>
+        <p class="citation" style="padding:var(--space-4) var(--space-6)">Normalized vote share preserves STV proportionality for committee tie-breaks ·
+          Art. II §4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="term-h">
+          <h2 id="term-h">Term lockstep</h2>
+          <div class="cluster" style="gap:var(--space-6)">
+            <div class="stat stat--accent"><span class="stat-number" id="term-days">—</span><span class="stat-label">days until the term ends</span></div>
+            <div class="stat"><span class="stat-number">2035-11-01</span><span class="stat-label">term end · all branches together</span></div>
+          </div>
+          <p style="margin-block-start:var(--space-3)">Legislative, elected-executive, and elected-judicial terms expire
+            together; the next general election derives from one clock and cannot be skipped or delayed by officials.</p>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <p class="citation" style="margin-block-start:var(--space-2)">Term lockstep · Art. III §3; Art. IV §3 · CLK-01 · CLK-10 —
+            dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+        </section>
+
+        <section class="card" aria-labelledby="vacancy-h">
+          <h2 id="vacancy-h">Seat 4 vacancy</h2>
+          <p><strong>Renata Silva</strong> resigned. The countback engine is re-running the prior election's ballots with
+            the vacated member removed as a candidate.</p>
+          <div class="cluster">
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh-cw"></use></svg> Countback running</span>
+            <span class="form-chip">Vacancy declaration <span class="form-id">F-LEG-036</span></span>
+          </div>
+          <p class="citation" style="margin-block-start:var(--space-2)">Prior ballots re-run with the vacated member removed · Art. II §5</p>
+          <p style="margin-block-start:var(--space-3)"><a href="oversight.html">Vacancy handling in oversight
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
+            · <a href="../electoral/vacancy-countback.html">Countback engine
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="first-h">
+        <h2 id="first-h">First sessions checklist <span class="citation">WF-LEG-01 · Legislature constitution</span></h2>
+        <p class="cc-small">The constituting sequence this legislature completed after certification. Each step is a form;
+          all seven are done — bills can be introduced and laws enacted.</p>
+        <div id="first-sessions" class="stack" style="gap:var(--space-3)"></div>
+        <noscript><p>Checklist renders with JavaScript: oath F-LEG-001 → Speaker F-LEG-008 → rules F-LEG-032 → ethics
+          F-LEG-033 → admin office F-LEG-013 → election board F-LEG-012 → committees F-LEG-009.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-3)">Fully organized legislature: seated, Speaker, rules and ethics, admin office, election board, committees · Art. II §1–4</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-01.html">WF-LEG-01 (legislature constitution)</a> —
+            the checklist above; <a href="../flows/WF-LEG-02.html">WF-LEG-02 (Speaker election / replacement)</a> —
+            supermajority RCV at the first session; seat 4 hands off to
+            <a href="../flows/WF-LEG-12.html">WF-LEG-12 (vacancy handling)</a>.</p>
+          <p><strong>Entity state machines:</strong> Committee Seat (Allocated → … → Seated) sits behind the roster's
+            committee links; Vacancy (Detected → Declared → Countback-Running → Filled) behind seat 4.</p>
+          <p><strong>No faction layer:</strong> the roster shows endorsing organizations because the product replaced
+            faction registration with polymorphic endorsements
+            (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
+          <p class="citation">Art. II §1–4 · Art. III §3 · Art. IV §3 · CLK-01 · CLK-10</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/legislature-home',
+      title: 'Chamber — Charlotte legislature',
+      module: 'legislature',
+      nav: 'legislature-home',
+      roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'],
+      workflows: ['WF-LEG-01', 'WF-LEG-02'],
+      forms: ['F-LEG-001', 'F-LEG-008', 'F-LEG-032', 'F-LEG-033', 'F-LEG-013', 'F-LEG-012', 'F-LEG-009'],
+      citation: 'Legislature constituted by certified election · Art. II §1–4',
+      flow: 'WF-LEG-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var CH = W.chamber;
+      var DEMO_NOW = Date.UTC(2031, 5, 11); /* fixture "today": 2031-06-11 */
+
+      function memberName(m) { return m.persona ? BY.personas[m.persona].name : m.name; }
+
+      function orgChips(ids) {
+        if (!ids || !ids.length) return '<span class="tag-chip">no endorsements</span>';
+        return ids.map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip" style="padding-block:0;font-size:var(--text-xs)">' + esc(o.name) +
+            ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join(' ');
+      }
+
+      /* WF-LEG-01 checklist — every step a form-card: name first, ID second, role, citation. */
+      var FIRST_SESSIONS = [
+        { fid: 'F-LEG-001', done: '2030-12-02', note: 'All 9 winners accepted their seats.' },
+        { fid: 'F-LEG-008', done: '2030-12-02', note: 'Yuki Tanaka elected Speaker — supermajority RCV (7 of 9).' },
+        { fid: 'F-LEG-032', done: '2030-12-09', note: 'Rules of order adopted · Act 2030-01.' },
+        { fid: 'F-LEG-033', done: '2030-12-09', note: 'Ethics code adopted · Act 2030-02 — binds all elected officials and civil officers.' },
+        { fid: 'F-LEG-013', done: '2030-12-16', note: 'Administrative office created · Act 2030-03 — Halima Diallo appointed (R-29).' },
+        { fid: 'F-LEG-012', done: '2031-01-06', note: 'Proper election board created · Act 2030-04 — bootstrap board retired.' },
+        { fid: 'F-LEG-009', done: '2031-01-13', note: 'Three committees created by supermajority · Acts 2031-01…03.' }
+      ];
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block">catalog alias: ' + esc(f.aliases.join('; ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
+          '<span class="citation" style="display:block">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          aliases + (extra || '') + '</div>';
+      }
+
+      function render() {
+        /* Seat map — seat 4 vacant (dashed), speaker ring on seat 1. */
+        document.getElementById('seat-map').innerHTML = CH.members.map(function (m) {
+          var cls = 'seat-dot' + (m.vacant ? ' seat-dot--vacant' : '') + (m.speaker ? ' seat-dot--speaker' : '');
+          var label = m.vacant ? 'Seat ' + m.seat + ' — vacant (countback running)'
+            : 'Seat ' + m.seat + ' — ' + memberName(m) + (m.speaker ? ' (Speaker)' : '');
+          return '<span class="' + cls + '" role="img" aria-label="' + esc(label) + '" title="' + esc(label) + '">' + m.seat + '</span>';
+        }).join('');
+
+        /* Roster — endorsing-org chips incl. multi-org; endorsement-less first-class; vacancy row. */
+        document.getElementById('roster').innerHTML = CH.members.map(function (m) {
+          if (m.vacant) {
+            return '<tr><td class="mono">4</td><td><em>Vacant</em></td>' +
+              '<td><span class="citation">' + esc(m.note) + '</span></td><td class="mono">—</td>' +
+              '<td>' + S.badge('warning', 'Countback running', 'refresh-cw') + '</td></tr>';
+          }
+          var status = m.speaker
+            ? S.badge('info', 'Speaker · neutral', 'landmark')
+            : S.badge('success', 'Serving', 'check');
+          return '<tr><td class="mono">' + m.seat + '</td>' +
+            '<td><strong style="color:var(--gov-fg)">' + esc(memberName(m)) + '</strong></td>' +
+            '<td>' + orgChips(m.endorsedBy) + '</td>' +
+            '<td class="mono">' + m.voteShareNorm.toFixed(2) + '</td>' +
+            '<td>' + status + '</td></tr>';
+        }).join('');
+
+        /* Term lockstep countdown against the fixture "today". */
+        var days = Math.round((Date.parse(CH.termEnds + 'T00:00:00Z') - DEMO_NOW) / 86400000);
+        document.getElementById('term-days').textContent = days.toLocaleString('en-US');
+
+        /* First-sessions checklist — each step a full form-card with a done badge. */
+        document.getElementById('first-sessions').innerHTML = FIRST_SESSIONS.map(function (step, i) {
+          var extra = '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+            S.badge('success', 'Completed · ' + step.done, 'check') +
+            '<span class="cc-small">' + esc(step.note) + '</span></div>';
+          return '<div class="cluster" style="align-items:stretch;flex-wrap:nowrap">' +
+            '<span class="flow-step-n" style="padding-block-start:var(--space-2)">' + (i + 1) + '</span>' +
+            '<div style="flex:1 1 auto;min-inline-size:0">' + formCard(step.fid, extra) + '</div></div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Motion Handling — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Motion Handling <span class="citation">WF-LEG-09</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-09", "title": "Motion Handling", "module": "flows", "nav": null, "roles": ["R-09", "R-10"], "workflows": ["WF-LEG-09"], "forms": [], "citation": "Art. II §2–3 · WF-LEG-09", "flow": "WF-LEG-09", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-09",
+ "name": "Motion Handling",
+ "timeScale": "Short (minutes)",
+ "trigger": "F-LEG-007 Motion Submission in session",
+ "actors": [
+  "R-09",
+  "R-10"
+ ],
+ "institutions": [
+  "I-LEG"
+ ],
+ "terminal": "Motion resolved per Rules of Order (table/amend/refer/adjourn); Speaker breaks ties only",
+ "basis": "Art. II §2–3",
+ "entity": "Motion",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Submit motion (table, amend, refer, adjourn, …)",
+   "outcome": "Speaker recognizes per Rules of Order",
+   "form": "F-LEG-007",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-09",
+   "action": "Debate (if debatable) and vote",
+   "outcome": "BRANCH: tie → Speaker casts tie-breaking vote (only case Speaker votes); adopted | failed",
+   "form": "F-LEG-004",
+   "screen": {
+    "href": "legislature/bill-detail.html",
+    "params": {
+     "role": "R-09"
+    }
+   },
+   "branches": [
+    {
+     "label": "tie → Speaker casts tie-breaking vote (only case Speaker votes); adopted",
+     "goto": "terminal:tie → Speaker casts tie-breaking vote (only case Speaker votes); adopted"
+    },
+    {
+     "label": "failed",
+     "goto": "terminal:failed"
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>
