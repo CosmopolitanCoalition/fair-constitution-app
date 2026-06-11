@@ -223,13 +223,15 @@
     return chain;
   }
 
-  var ADM_LABELS = ['Earth', 'National', 'State / Province', 'County / Region', 'Local', 'Sub-local'];
-  function admLabel(level) { return ADM_LABELS[Math.min(level, 5)]; }
+  /* Natural level labels (the ETL repo's vocabulary). Numeric adm levels are
+     development terminology and never display in product UI. */
+  var ADM_LABELS = ['Planet', 'Country', 'State / Province', 'County', 'Municipality', 'Township', 'Neighborhood'];
+  function admLabel(level) { return ADM_LABELS[Math.min(level, 6)]; }
 
   function renderChainChips(chain) {
     return chain.map(function (j) {
       var lvl = Math.min(j.admLevel, 5);
-      return '<span class="adm-chip adm-chip--' + lvl + '" title="' + esc(admLabel(j.admLevel)) + ' · adm ' + j.admLevel + '">' + esc(j.name) + '</span>';
+      return '<span class="adm-chip adm-chip--' + lvl + '" title="' + esc(admLabel(j.admLevel)) + '">' + esc(j.name) + '</span>';
     }).join('<span class="adm-sep" aria-hidden="true">›</span>');
   }
 
@@ -245,10 +247,10 @@
         var lvl = Math.min(j.admLevel, 5);
         return '<li><button type="button" class="btn btn--ghost btn--sm" data-set-jur="' + esc(j.slug) + '" style="inline-size:100%;justify-content:flex-start">' +
           '<span class="tier-dot tier-dot--' + lvl + '" aria-hidden="true"></span> ' + esc(j.name) +
-          ' <span class="citation">adm ' + j.admLevel + ' · ' + esc(admLabel(j.admLevel)) + (j.dataGap ? ' · data gap' : '') + '</span></button></li>';
+          ' <span class="citation">' + esc(admLabel(j.admLevel)) + (j.note ? ' · ' + esc(j.note) : '') + (j.dataGap ? ' · data gap' : '') + '</span></button></li>';
       }).join('') +
       '</ul>' +
-      '<p class="gloss">geoBoundaries ships ADM0–2; deeper levels come from OSM and are sparse in places — San Marino’s chain honestly stops at adm 2.</p>' +
+      '<p class="gloss">The full dataset spans planet to neighborhood (~1M jurisdictions); depth varies honestly by country — for the United States the chain ends at the county level.</p>' +
       '</div>';
     return '<details class="popover jur-switcher">' +
       '<summary aria-label="' + esc(t('header.jurisdiction')) + '">' +
@@ -323,9 +325,12 @@
 
   /* ------------------------------------------------------------- footer */
   function renderFooter() {
+    var authJur = BY.jurisdictions[W.instance.authoritativeFor];
+    var instanceLine = 'Instance: ' + W.instance.host + ' · authoritative for ' +
+      (authJur ? authJur.name : W.instance.authoritativeFor) + ' (' + W.instance.authoritativeFor + ')';
     return '<span class="footer-citation">' + esc(PAGE.citation || '') + '</span>' +
       '<span class="header-spacer"></span>' +
-      '<span class="footer-instance">' + esc(t('footer.instance')) + '</span>' +
+      '<span class="footer-instance">' + esc(instanceLine) + '</span>' +
       '<span class="audit-chip">' + esc(t('footer.audit', { n: W.instance.auditSeq.toLocaleString('en-US') })) + ' ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
   }
 
@@ -342,7 +347,7 @@
     }).join('');
 
     var jurOpts = W.jurisdictions.map(function (j) {
-      return '<option value="' + j.slug + '"' + (s.jurisdiction === j.slug ? ' selected' : '') + '>' + esc(j.name) + ' (adm ' + j.admLevel + ')</option>';
+      return '<option value="' + j.slug + '"' + (s.jurisdiction === j.slug ? ' selected' : '') + '>' + esc(j.name) + ' (' + esc(admLabel(j.admLevel)) + ')</option>';
     }).join('');
 
     var phases = [['approval', t('demo.electionApproval')], ['ranked', t('demo.electionRanked')], ['certifying', t('demo.electionCertifying')]];

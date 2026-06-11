@@ -218,3 +218,28 @@ ballot), `.stv-*` (round-by-round count bars + quota mark), `.receipt` (ballot h
 **Module agent resolutions.** 52 conservative resolutions were logged while authoring (full list
 preserved in the build session record); the ones that read as open product questions were promoted
 to `OPEN_QUESTIONS.md` (#12–#17).
+
+## 7. Owner review round (2026-06-11) — applied decisions
+
+JD's review answers (recorded against `OPEN_QUESTIONS.md` 1–17; only #12 remains open):
+
+- **Demo world re-centered on New York.** The dataset is ADM 0–6 (~1M jurisdictions) and the US
+  chain honestly ends at the **county** level, so the default chain is Earth → United States →
+  New York → **New York County (Manhattan)** with Kings/Queens/Bronx/Richmond siblings; instance
+  `manhattan.cga.example`. All fixtures, screens, and copy re-pinned (orgs renamed: Five Boroughs
+  Chamber of Commerce, Hudson Mutual Aid, Uptown Neighbors, Manhattan Water & Power; mapper
+  scenario now US→New York: 42 seats, quota 480,982).
+- **Numeric adm levels never display** — natural labels only (Planet / Country / State / Province /
+  County / Municipality / Township / Neighborhood, the ETL repo's vocabulary).
+- **"Giant"/"leaf" removed from user-facing copy** (developer jargon) — replaced with
+  "exceeds the seat ceiling — subdivides further" / "no child subdivisions — manual line-drawing".
+- **Ledger grew to seven entries:** #q6 universal countback (faction-dependent procedure made
+  meaningless by polymorphic endorsements — next-draft candidate), #q7 bicameral per-kind
+  threshold (each kind needs its own quorum + majority; text resolution pending).
+- **Unstated vote thresholds are ordinary majorities** (peg-quorum basis); supermajority only
+  where stated. Governor removal = hiring-and-firing majority.
+- **No real recount** — the count is in-system; "recount" copy reframed as audit review.
+- **R-17 is not a pickable path** — launchpad card is informational (sequential-exclusion
+  derivation noted); the role stays assumable via the demo bar.
+- **Activation model recorded** on bootstrap + term-sync: institutions activate where player
+  population pegs against real population; lockstep harmonization is the end-state.

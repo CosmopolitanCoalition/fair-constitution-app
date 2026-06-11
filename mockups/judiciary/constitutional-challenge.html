@@ -23,7 +23,7 @@
       </header>
 
       <div id="tracker" class="stack" style="gap:var(--space-5)"></div>
-      <noscript><p class="gloss">The live tracker renders with JavaScript enabled. Fixture case: Novák finding on Curfew Ordinance §3 (Charlotte) — finding issued 2031-05-21, remedy due within 60 days (CLK-12), override window closes 2031-06-20 (CLK-11); all three Art. IV §5 paths open.</p></noscript>
+      <noscript><p class="gloss">The live tracker renders with JavaScript enabled. Fixture case: Novák finding on Curfew Ordinance §3 (New York County) — finding issued 2031-05-21, remedy due within 60 days (CLK-12), override window closes 2031-06-20 (CLK-11); all three Art. IV §5 paths open.</p></noscript>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
@@ -95,7 +95,7 @@
 
       function lawDiff(applied) {
         return '<div class="law-diff card card--inset" data-no-i18n>' +
-          '<p style="margin-block-end:var(--space-1)"><strong>Curfew Ordinance (Charlotte) — §3' + (applied ? ' · as edited by the judiciary' : ' · remedy preview') + '</strong></p>' +
+          '<p style="margin-block-end:var(--space-1)"><strong>Curfew Ordinance (New York County) — §3' + (applied ? ' · as edited by the judiciary' : ' · remedy preview') + '</strong></p>' +
           '<p>No person shall remain in any public street, park, or greenway ' +
           '<del>between 22:00 and 05:00.</del> ' +
           '<ins>during a declared emergency under Art. II §7, within that emergency’s stated area and duration.</ins></p>' +
@@ -127,8 +127,8 @@
           '<span class="eyebrow">Active challenge</span>' +
           '<h2 style="margin-block:var(--space-1) var(--space-2)">' + esc(CH.name) + '</h2>' +
           '<p><strong style="color:var(--gov-fg)">Law challenged:</strong> ' + esc(CH.law) + '</p>' +
-          '<p><strong style="color:var(--gov-fg)">Filed:</strong> 2031-04-14 by a Plaza Midwood resident — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.</p>' +
-          '<p><strong style="color:var(--gov-fg)">Heard by:</strong> the full court — all 5 judges of the Mecklenburg County judiciary, ' + esc(judge ? judge.name : 'Dr. Lena Novák') + ' writing. ' +
+          '<p><strong style="color:var(--gov-fg)">Filed:</strong> 2031-04-14 by a New York County resident — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.</p>' +
+          '<p><strong style="color:var(--gov-fg)">Heard by:</strong> the full court — all 5 judges of the New York County court, ' + esc(judge ? judge.name : 'Dr. Lena Novák') + ' writing. ' +
           '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened · protected by the constitutional test suite</span></p>' +
           '<p class="citation">Major constitutional question → full court · CLK-16 — right to challenge · Art. IV §5</p>' +
           '<div class="stack" style="gap:var(--space-3);margin-block-start:var(--space-3)">' +

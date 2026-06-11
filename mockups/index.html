@@ -52,8 +52,9 @@
         <div class="grid-2">
           <div class="card">
             <span class="eyebrow">Geography — real, pre-united</span>
-            <p style="margin-block-start:var(--space-2)">The app preloads actual Earth geography (geoBoundaries + WorldPop + OSM).
-              Nations parent directly to Earth — there is no supranational tier.</p>
+            <p style="margin-block-start:var(--space-2)">The app preloads actual Earth geography — planet to neighborhood,
+              nearly a million jurisdictions, with depth varying honestly by country (the United States chain ends at the
+              county level). Nations parent directly to Earth — there is no supranational tier.</p>
             <div id="jurisdiction-stack" class="stack" style="gap:var(--space-2)"></div>
           </div>
           <div class="card">
@@ -110,7 +111,13 @@
           var inner = '<span class="role-id">' + r.id + '</span>' +
             '<span class="role-name">' + esc(r.name) + '</span>' +
             '<span>' + esc(r.shortName) + '</span>';
-          if (built) {
+          if (r.id === 'R-17') {
+            /* Not a pickable path — conferred automatically on the top-4
+               runners-up by sequential exclusion (Art. III §3). */
+            html += '<div class="role-card role-card--planned">' + inner +
+              '<span class="citation">Conferred automatically — top-4 runners-up become advisors · Art. III §3</span>' +
+              '<span class="planned-flag">Assume via the mockup controls</span></div>';
+          } else if (built) {
             html += '<a class="role-card" href="' + S.href(r.entryScreen, { role: r.id, persona: r.defaultPersona }) + '">' +
               inner + '<span class="enter-as">Enter as ' + esc(persona ? persona.name : r.defaultPersona) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
           } else {
@@ -144,12 +151,11 @@
         var j = BY.jurisdictions[slug];
         var lvl = Math.min(j.admLevel, 5);
         jur += '<div class="cluster"><span class="adm-chip adm-chip--' + lvl + '">' + esc(j.name) + '</span>' +
-          '<span class="citation">adm ' + j.admLevel + ' · ' + esc(S.admLabel(j.admLevel)) + ' · pop ' + S.formatPop(j.population) +
+          '<span class="citation">' + esc(S.admLabel(j.admLevel)) + ' · pop ' + S.formatPop(j.population) +
           ' (' + j.populationYear + ') · ' + esc(j.source) + '</span></div>';
       });
-      var smr = BY.jurisdictions['smr-1-san-marino'];
-      jur += '<div class="cluster"><span class="adm-chip adm-chip--1">' + esc(smr.name) + '</span>' +
-        '<span class="citation">honest gap — chain stops at adm 2 (' + esc(smr.dataGap) + ')</span></div>';
+      jur += '<div class="cluster"><span class="adm-chip adm-chip--1">San Marino</span>' +
+        '<span class="citation">Country · depth varies honestly by country — deepest here: Serravalle (State / Province)</span></div>';
       document.getElementById('jurisdiction-stack').innerHTML = jur;
 
       document.getElementById('persona-roster').innerHTML = W.personas.filter(function (p) { return !p.standIn; }).map(function (p) {

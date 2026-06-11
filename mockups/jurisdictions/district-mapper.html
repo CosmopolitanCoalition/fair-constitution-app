@@ -14,19 +14,20 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Jurisdictions · district mapper</span>
-        <h1>District mapper — United States legislature, scoped to North Carolina</h1>
+        <h1>District mapper — United States legislature, scoped to New York</h1>
         <p class="page-intro">Districts are composites of direct child jurisdictions — whole counties grouped
           together, never split lines on a map. Seats are Webster-rounded inside the constitutional 5–9 range;
-          oversized "giant" children expand into their own sub-district budgets, recursing down the chain.</p>
-        <p class="citation">Scope: Earth › United States › North Carolina · Art. II §2, §8 — Subdivision of Legislatures</p>
+          a child that exceeds the 9-seat ceiling subdivides further, carrying its own sub-district budget down
+          the chain.</p>
+        <p class="citation">Scope: Earth › United States › New York · Art. II §2, §8 — Subdivision of Legislatures</p>
       </header>
 
       <section class="card" aria-labelledby="budget-h">
         <h2 id="budget-h">Seat budget</h2>
         <div class="cluster" style="gap:var(--space-6)">
-          <div class="stat"><span class="stat-number">692</span><span class="stat-label">US seats · cube-root sizing law</span></div>
-          <div class="stat stat--accent"><span class="stat-number">22</span><span class="stat-label">North Carolina budget</span></div>
-          <div class="stat"><span class="stat-number">474,517</span><span class="stat-label">quota · population per seat</span></div>
+          <div class="stat"><span class="stat-number" id="stat-us-seats">692</span><span class="stat-label">US seats · cube-root sizing law</span></div>
+          <div class="stat stat--accent"><span class="stat-number" id="stat-scope-budget">42</span><span class="stat-label">New York budget</span></div>
+          <div class="stat"><span class="stat-number" id="stat-quota">480,982</span><span class="stat-label">quota · population per seat</span></div>
         </div>
         <p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing: total seats = max(5, round(∛ population)) —
           the chamber grows with population but never without bound. Webster rounding then splits a parent's
@@ -45,8 +46,9 @@
           that preserves history. Activating a draft archives the current plan — nothing is destroyed.</p>
         <div id="activate-note"></div>
         <div id="map-cards" class="stack" style="gap:var(--space-4)"></div>
-        <noscript><p class="gloss">The versioned-map cards need JavaScript. NC Plan 2030 (active): Piedmont 9 seats,
-          Coastal Plain 8, Mountains &amp; Foothills 5. NC Plan 2031 (draft): Charlotte Metro 6, Triangle 6, East 5, West 5.</p></noscript>
+        <noscript><p class="gloss">The versioned-map cards need JavaScript. NY Plan 2030 (active): New York City 9 seats,
+          Long Island 8, Hudson Valley &amp; Capital 8, Western New York 9, Central &amp; North Country 8.
+          NY Plan 2031 (draft): six districts of 7 seats each.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="map-h">
@@ -57,32 +59,34 @@
       </section>
 
       <div class="grid-2">
-        <section class="card" aria-labelledby="giants-h">
-          <h2 id="giants-h">Giants — children above the 9-seat ceiling</h2>
+        <section class="card" aria-labelledby="ceiling-h">
+          <h2 id="ceiling-h">Children above the 9-seat ceiling</h2>
           <details>
             <summary style="cursor:pointer;color:var(--gov-fg-strong)">
               <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
-              North Carolina — fractional seats <span class="citation">21.79</span>
-              <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> Expandable giant</span>
+              New York — fractional seats <span class="citation">42.18</span>
+              <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> Subdivides further</span>
             </summary>
-            <p style="margin-block-start:var(--space-2)">At United States scope North Carolina cannot be one
-              district (21.79 fractional seats &gt; 9), so it expands into its own budget of 22 seats and its
-              counties become the composite pieces — the plans on this page. Giants recurse down the chain.</p>
-            <p class="citation">district_id = null at parent scope is expected for giants — their children are the members</p>
+            <p style="margin-block-start:var(--space-2)">New York exceeds the 9-seat ceiling at United States
+              scope (42.18 fractional seats &gt; 9), so it subdivides further — it carries its own sub-district
+              budget of 42 seats (recursing down the chain), and its counties become the composite pieces in
+              the plans on this page.</p>
+            <p class="citation">district_id = null at parent scope is expected for children above the ceiling — their own subdivisions are the members</p>
           </details>
           <hr />
-          <h3>Leaf giant — no child subdivisions to compose</h3>
+          <h3>Above the ceiling with no child subdivisions to compose</h3>
           <p><strong>Fujian (China)</strong> · Earth-scope dataset · fractional seats <span class="citation">9.42</span>
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> Requires manual line-drawing</span></p>
-          <p class="cc-small">Leaf-giant example from the Earth-scope data — fractional seats above the
-            constitutional ceiling with no child subdivisions. No US-scope instance exists; shown for the UI
-            state. The manual district-drawing tool (WorldPop rasters + population_within) is the open frontier.</p>
+          <p class="cc-small">Example from the Earth-scope data — above the seat ceiling with no child
+            subdivisions in the dataset, so district lines must be drawn manually. No US instance exists; shown
+            for the UI state. The manual district-drawing tool (WorldPop rasters + population_within) is the
+            open frontier.</p>
           <p class="citation">Art. II §8 · as implemented (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>)</p>
         </section>
 
         <section class="card" aria-labelledby="grouping-h">
           <h2 id="grouping-h">Grouping quality</h2>
-          <p class="cc-small">The auto-composite search scores every way of grouping the 100 counties into
+          <p class="cc-small">The auto-composite search scores every way of grouping the 62 counties into
             in-range districts. The current plan is one grouping among many.</p>
           <div class="cluster" style="gap:var(--space-6)">
             <div class="stat"><span class="stat-number">218</span><span class="stat-label">optimal groupings</span></div>
@@ -104,8 +108,8 @@
           <div class="field">
             <label class="field-label" for="accept-plan">Plan to accept</label>
             <select class="select" id="accept-plan">
-              <option value="nc-2031-draft">NC Plan 2031 (draft)</option>
-              <option value="nc-2030">NC Plan 2030 (active — re-certify)</option>
+              <option value="ny-2031-draft">NY Plan 2031 (draft)</option>
+              <option value="ny-2030">NY Plan 2030 (active — re-certify)</option>
             </select>
             <span class="field-hint">Draft maps are published for public observation before acceptance.</span>
           </div>
@@ -258,6 +262,11 @@
       }
 
       function render() {
+        /* Seat-budget stats come straight from the fixtures districtScenario. */
+        document.getElementById('stat-us-seats').textContent = DS.totalSeatsUS;
+        document.getElementById('stat-scope-budget').textContent = DS.scopeBudget;
+        document.getElementById('stat-quota').textContent = DS.quota.toLocaleString('en-US');
+
         document.getElementById('activate-note').innerHTML = activateNote;
         document.getElementById('map-cards').innerHTML = DS.maps.map(mapCard).join('');
         var m = DS.maps.filter(function (x) { return x.id === shownMap; })[0];

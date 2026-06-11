@@ -54,10 +54,10 @@
             <div class="field">
               <label class="field-label" for="ep-area">Area</label>
               <select class="select" id="ep-area">
-                <option>Charlotte (usa-4-charlotte) — whole jurisdiction</option>
-                <option>Named constituents of Charlotte only</option>
+                <option>New York County (usa-3-new-york-county) — whole jurisdiction</option>
+                <option>A named area within New York County</option>
               </select>
-              <span class="field-hint">Engine validation: area ≤ this legislature's authority — no reaching outside Charlotte.</span>
+              <span class="field-hint">Engine validation: area ≤ this legislature's authority — no reaching outside New York County.</span>
             </div>
             <div class="field">
               <label class="field-label" for="ep-methods">Methods</label>
@@ -155,7 +155,8 @@
         document.getElementById('active-dashboard').innerHTML = active
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Active emergency power — ' + esc(EP.label) + '</span>' +
-            'Mecklenburg County · cause: ' + esc(EP.cause) + ' · invoked via supermajority (F-LEG-024). ' +
+            'Area of effect: New York (state) — declared by the state legislature; New York County lies inside it · ' +
+            'cause: ' + esc(EP.cause) + ' · invoked via supermajority (F-LEG-024). ' +
             '<span class="citation">Art. II §7 · CLK-03</span></div></div>' +
             '<div class="card" style="margin-block-start:var(--space-4)">' +
             '<div class="cluster" style="gap:var(--space-6)">' +
@@ -168,15 +169,15 @@
             '<div class="meter-caption"><span>day ' + EP.day + ' of ' + EP.maxDays + '</span><span>hard ceiling: 90 days · CLK-03 · Art. II §7</span></div></div>' +
             '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('lock') +
             '<div><span class="banner-title">Civic-process protection</span>Elections, sessions, and courts cannot be disrupted — ' +
-            'enforced in code. The Mecklenburg certifying election continues untouched. <span class="citation">Art. II §7 · hardened</span></div></div>' +
+            'enforced in code. The Queens County certifying election continues untouched. <span class="citation">Art. II §7 · hardened</span></div></div>' +
             '<div class="cluster" style="margin-block-start:var(--space-3)">' +
-            '<span class="citation">defined duration: 90 days · area: Mecklenburg County · methods: evacuation, shelter requisition, debris clearance</span>' +
+            '<span class="citation">defined duration: 90 days · area: New York (state) · methods: evacuation, shelter requisition, debris clearance</span>' +
             '</div></div>'
           : '<div class="card"><div class="cluster">' +
             S.badge('success', 'No active emergency powers', 'check') +
-            '<span class="citation">Charlotte and its enclosing jurisdictions report none in force</span></div>' +
+            '<span class="citation">New York County and its enclosing jurisdictions report none in force</span></div>' +
             '<p class="gloss" style="margin-block-start:var(--space-2)">Flip the "Emergency" toggle in the mockup controls to load the ' +
-            'Hurricane Dorinda scenario (Mecklenburg County, day 41 of 90, judicial review pending).</p></div>';
+            'Hurricane Dorinda scenario (New York state, day 41 of 90, judicial review pending).</p></div>';
 
         /* Renewal panel. */
         document.getElementById('renew-state').innerHTML = active
@@ -187,7 +188,7 @@
 
         /* Judicial review status. */
         document.getElementById('review-state').innerHTML = active
-          ? '<div class="cluster">' + S.badge('warning', 'Review pending — Mecklenburg County court', 'scale') +
+          ? '<div class="cluster">' + S.badge('warning', 'Review pending — New York State court', 'scale') +
             '<span class="citation">' + esc(EP.judicialReview) + ' · full court · WF-JUD-06</span></div>'
           : '<div class="cluster">' + S.badge('neutral', 'No review in progress', 'minus') +
             '<span class="citation">any inhabitant may trigger review of an active power</span></div>';

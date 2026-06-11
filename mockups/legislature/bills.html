@@ -14,7 +14,7 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Legislature · lawmaking</span>
-        <h1>Bills — Charlotte legislature</h1>
+        <h1>Bills — New York County legislature</h1>
         <p class="page-intro">Every bill declares its scale (which jurisdictions are bound) and scope (which judiciary
           level hears disputes) at introduction. Acts pass by majority of all serving members — the peg quorum — and
           some act types require a supermajority.</p>
@@ -36,11 +36,11 @@
           <h2 id="registry-h">Bill registry</h2>
         </div>
         <div class="table-wrap"><table class="table">
-          <caption class="visually-hidden">Bills before the Charlotte legislature</caption>
+          <caption class="visually-hidden">Bills before the New York County legislature</caption>
           <thead><tr><th>Bill</th><th>Sponsor</th><th>State</th><th>Scale · scope</th><th class="mono">Introduced</th></tr></thead>
           <tbody id="bill-rows"></tbody>
         </table></div>
-        <noscript><p style="padding:var(--space-4) var(--space-6)">The registry renders with JavaScript. Flagship fixture: Charlotte Clean Air Act, in committee.</p></noscript>
+        <noscript><p style="padding:var(--space-4) var(--space-6)">The registry renders with JavaScript. Flagship fixture: New York County Clean Air Act, in committee.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="intro-h">
@@ -50,7 +50,7 @@
         <form id="intro-form">
           <div class="field">
             <label class="field-label" for="bill-title">Title</label>
-            <input class="field-input" id="bill-title" type="text" placeholder="e.g. Charlotte sidewalk repair act" />
+            <input class="field-input" id="bill-title" type="text" placeholder="e.g. New York County sidewalk repair act" />
           </div>
           <div class="field">
             <label class="field-label" for="bill-text">Law text</label>
@@ -60,17 +60,17 @@
             <div class="field">
               <label class="field-label" for="bill-scale">Scale — which jurisdictions are bound</label>
               <select class="select" id="bill-scale">
-                <option>Charlotte (usa-4-charlotte) — whole jurisdiction</option>
-                <option>Plaza Midwood (usa-5-plaza-midwood) — constituent only</option>
-                <option>Charlotte + named constituents</option>
+                <option>New York County (usa-3-new-york-county) — whole jurisdiction</option>
               </select>
-              <span class="field-hint">A Charlotte act cannot bind jurisdictions outside Charlotte's authority.</span>
+              <span class="field-hint">A New York County act cannot bind jurisdictions outside New York County's authority. The dataset
+                carries no subdivisions below county, so the whole jurisdiction is the only scale here; a state-level act
+                could instead bind named constituent counties.</span>
             </div>
             <div class="field">
               <label class="field-label" for="bill-scope">Scope — which judiciary level hears disputes</label>
               <select class="select" id="bill-scope">
-                <option>Charlotte municipal court</option>
-                <option>Mecklenburg County court</option>
+                <option>New York County court</option>
+                <option>New York State court</option>
               </select>
               <span class="field-hint">Defined at introduction so enforcement and review are unambiguous · Art. V §4.</span>
             </div>
@@ -152,27 +152,27 @@
       var esc = S.esc;
 
       /* Registry = the world fixture bill + page-local bills in varied states. */
-      var fixture = W.bills[0]; /* bill-2031-07 Charlotte Clean Air Act — In committee */
+      var fixture = W.bills[0]; /* bill-2031-07 New York County Clean Air Act — In committee */
       var bills = [
         { id: fixture.id, title: fixture.title, sponsor: BY.personas[fixture.sponsor].name,
           state: 'In committee', tone: 'info', icon: 'users', detail: true,
           scale: fixture.scale, scope: fixture.scope, introduced: fixture.introduced,
           note: 'Environment & Infrastructure committee' },
-        { id: 'bill-2031-09', title: 'Charlotte transit lane expansion act', sponsor: 'Adaeze Nwosu',
+        { id: 'bill-2031-09', title: 'New York County transit lane expansion act', sponsor: 'Adaeze Nwosu',
           state: 'On floor', tone: 'warning', icon: 'clock',
-          scale: 'Charlotte (usa-4-charlotte)', scope: 'Municipal judiciary hears disputes', introduced: '2031-04-20',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-04-20',
           note: 'Floor vote scheduled — majority of all serving (5 of 9)' },
         { id: 'bill-2031-04', title: 'Short-term rental registration act', sponsor: 'Jonas Petersen',
           state: 'Tabled', tone: 'neutral', icon: 'minus',
-          scale: 'Charlotte (usa-4-charlotte)', scope: 'Municipal judiciary hears disputes', introduced: '2031-02-11',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-02-11',
           note: 'Tabled in Budget & Revenue — may be revived by motion' },
         { id: 'bill-2031-01', title: 'Open data standard act', sponsor: 'Maribel Santos',
           state: 'Enacted · Published', tone: 'success', icon: 'check',
-          scale: 'Charlotte (usa-4-charlotte)', scope: 'Municipal judiciary hears disputes', introduced: '2031-01-15',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-01-15',
           note: 'Passed 7–1 of 8 serving · versioned and published (WF-SYS-03)' },
         { id: 'law-2029-12', title: 'Curfew Ordinance §3', sponsor: '(enacted 2029)',
           state: 'Challenged', tone: 'danger', icon: 'scale',
-          scale: 'Charlotte (usa-4-charlotte)', scope: 'County judiciary hears the challenge', introduced: '2029-08-03',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears the challenge', introduced: '2029-08-03',
           note: 'Novák finding — veto window closes ' + W.challenge.vetoCloses, challengeLink: true }
       ];
 

@@ -25,8 +25,8 @@
         <h2 id="detect-h">Sustained pings detected elsewhere</h2>
         <div class="banner banner--warning">
           <svg class="icon" aria-hidden="true"><use href="#i-map-pin"></use></svg>
-          <div><span class="banner-title">9 qualifying days near Durham, North Carolina — outside Plaza Midwood.</span>
-            Home residency: Plaza Midwood, Charlotte (active). Detection uses the same encrypted ping log as
+          <div><span class="banner-title">9 qualifying days near Albany, New York — outside New York County.</span>
+            Home residency: New York County, New York (active). Detection uses the same encrypted ping log as
             verification; only day-counts are visible.
             <span class="citation">CLK-05 · residency_confirmation_days · Art. V §1</span></div>
         </div>
@@ -36,15 +36,15 @@
             <noscript><p class="gloss">Meter renders with JavaScript — 9 of 30 qualifying days away in the fixture state.</p></noscript>
             <p class="gloss" style="margin-block-start:var(--space-2)">A move only completes when the away-pattern reaches the full residency threshold — the same 30-day standard your home verification used.</p>
           </div>
-          <svg viewBox="0 0 340 150" role="img" aria-label="Map stand-in showing the home boundary in Charlotte and a detected ping cluster near Durham" style="inline-size:100%;block-size:auto">
+          <svg viewBox="0 0 340 150" role="img" aria-label="Map stand-in showing the home boundary in New York County and a detected ping cluster near Albany" style="inline-size:100%;block-size:auto">
             <rect x="0" y="0" width="340" height="150" fill="var(--gov-surface-2)" rx="8"></rect>
             <path d="M30 100 L46 64 L96 54 L122 86 L102 122 L52 126 Z" fill="var(--wong-orange)" fill-opacity="0.25" stroke="var(--wong-orange)" stroke-width="2"></path>
             <path d="M212 64 L252 46 L300 60 L304 100 L262 116 L218 102 Z" fill="var(--wong-skyblue)" fill-opacity="0.18" stroke="var(--wong-skyblue)" stroke-width="2"></path>
             <circle cx="256" cy="80" r="4" fill="var(--wong-skyblue)"></circle>
             <circle cx="272" cy="92" r="4" fill="var(--wong-skyblue)"></circle>
             <circle cx="242" cy="94" r="4" fill="var(--wong-skyblue)"></circle>
-            <text x="44" y="44" fill="var(--gov-fg-strong)" font-size="12">Plaza Midwood (home)</text>
-            <text x="212" y="36" fill="var(--gov-fg-muted)" font-size="12">near Durham (detected)</text>
+            <text x="20" y="44" fill="var(--gov-fg-strong)" font-size="12">New York County (home)</text>
+            <text x="216" y="36" fill="var(--gov-fg-muted)" font-size="12">near Albany (detected)</text>
             <text x="92" y="144" fill="var(--gov-fg-subtle)" font-size="10">stylized stand-in — production uses Leaflet + PostGIS</text>
           </svg>
         </div>
@@ -68,7 +68,7 @@
           not dropped the instant you move — a grace period lets the institution prepare while you remain accountable.</p>
         <div class="card card--inset">
           <div class="cluster" style="justify-content:space-between">
-            <div><strong>Charlotte legislature · seat 2</strong>
+            <div><strong>New York County legislature · seat 2</strong>
               <span class="citation" style="display:block">R-09 seated representative · term ends 2035-11-01</span></div>
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Grace period running</span>
           </div>
@@ -137,7 +137,7 @@
         /* Away-pattern meter */
         document.getElementById('away-meter').innerHTML =
           '<div class="meter"><span class="meter-fill" style="inline-size:30%"></span></div>' +
-          '<div class="meter-caption"><span>9 of 30 qualifying days near Durham</span><span>threshold · CLK-05</span></div>';
+          '<div class="meter-caption"><span>9 of 30 qualifying days near Albany</span><span>threshold · CLK-05</span></div>';
 
         /* Is the held-office card "you" or a worked example? */
         var mine = (S.activePersona().roles || []).indexOf('R-09') >= 0;
@@ -152,7 +152,7 @@
         if (choice === 'travel') {
           panel = '<div class="banner banner--info" role="status">' + S.icon('check') +
             '<div><span class="banner-title">Marked as travel — nothing changes.</span> ' +
-            'Your Plaza Midwood residency and all six associations stay active. The detection resets; the system will ' +
+            'Your New York County residency and every association in your chain stay active. The detection resets; the system will ' +
             'only ask again if a new sustained pattern forms. <span class="citation">Art. V §1 · CLK-05</span></div></div>';
         } else if (choice === 'move') {
           panel = '<div class="banner banner--warning" role="status">' + S.icon('arrow-right') +

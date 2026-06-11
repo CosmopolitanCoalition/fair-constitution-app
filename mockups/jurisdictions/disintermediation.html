@@ -14,9 +14,10 @@
     <div class="stack">
       <div class="banner banner--demo" role="note">
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-        <div><span class="banner-title">Walkthrough example — no live disintermediation case.</span>
-          The scenario below imagines dissolving Mecklenburg County so its municipalities parent directly to
-          North Carolina. The places are real; the case is illustrative. <span class="citation">Art. V §8</span></div>
+        <div><span class="banner-title">Worked example — no live disintermediation case.</span>
+          The scenario below imagines dissolving New York (the state, as an intermediary layer) so its
+          counties parent directly to the United States. The places are real; the case is illustrative.
+          <span class="citation">Art. V §8</span></div>
       </div>
 
       <header>
@@ -36,18 +37,18 @@
         <div class="table-wrap" style="margin-block-start:var(--space-4)">
           <table class="table">
             <caption class="visually-hidden">Constituent consent status</caption>
-            <thead><tr><th scope="col">Constituent municipality</th><th scope="col">Legislature act</th><th scope="col">Status</th></tr></thead>
+            <thead><tr><th scope="col">Constituent county</th><th scope="col">Legislature act</th><th scope="col">Status</th></tr></thead>
             <tbody id="consent-rows"></tbody>
           </table>
         </div>
-        <noscript><p class="gloss">The consent tracker needs JavaScript. In the example: 5 of 7 constituent
-          municipalities have passed disintermediation acts; Matthews and Pineville are pending; the
-          encompassing North Carolina act is scheduled.</p></noscript>
+        <noscript><p class="gloss">The consent tracker needs JavaScript. In the worked example: 44 of 62
+          constituent counties have passed disintermediation acts; Westchester and Erie counties are among
+          those pending; the encompassing United States act is scheduled.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="merge-h">
         <h2 id="merge-h">Law merge — surfaced conflicts</h2>
-        <p class="cc-small">Of Mecklenburg County's 219 acts, 214 incorporate cleanly into all seven
+        <p class="cc-small">Of New York's 219 acts, 214 incorporate cleanly into all 62
           constituents. Five conflict with existing constituent law and need a resolution choice recorded in
           the dissolution plan.</p>
         <div class="table-wrap">
@@ -58,7 +59,9 @@
           </table>
         </div>
         <p class="gloss" style="margin-block-start:var(--space-2)">Open Art. IV §5 challenges travel with the
-          merged law — the Novák finding on Curfew Ordinance §3 would follow that ordinance into Charlotte law.</p>
+          merged law — a pending finding against an intermediary act follows that act into each former
+          constituent's law, the same way the Novák finding stays attached to Curfew Ordinance §3 in
+          New York County.</p>
         <div class="cluster" style="margin-block-start:var(--space-3)">
           <button type="button" class="btn btn--primary" id="merge-apply">Record merge plan</button>
           <span id="merge-status"></span>
@@ -68,16 +71,14 @@
 
       <section class="card" aria-labelledby="topo-h">
         <h2 id="topo-h">Topology after dissolution</h2>
-        <p class="cc-small">Each municipality's parent becomes North Carolina; every resident's nesting chain
+        <p class="cc-small">Each county's parent becomes the United States; every resident's nesting chain
           re-resolves automatically — association exists at every remaining level simultaneously.</p>
         <div class="cluster" style="gap:var(--space-1)">
-          <span class="adm-chip adm-chip--2">North Carolina</span>
+          <span class="adm-chip adm-chip--1">United States</span>
           <span class="adm-sep" aria-hidden="true">›</span>
-          <span class="adm-chip adm-chip--3" style="text-decoration:line-through">Mecklenburg County</span>
+          <span class="adm-chip adm-chip--2" style="text-decoration:line-through">New York</span>
           <span class="adm-sep" aria-hidden="true">›</span>
-          <span class="adm-chip adm-chip--4">Charlotte</span>
-          <span class="adm-sep" aria-hidden="true">›</span>
-          <span class="adm-chip adm-chip--5">Plaza Midwood</span>
+          <span class="adm-chip adm-chip--3">New York County</span>
         </div>
         <p class="citation" style="margin-block-start:var(--space-2)">federation topology updated on dissolution · WF-JUR-04 · Art. I; Art. V §1</p>
       </section>
@@ -96,7 +97,7 @@
         <form id="dis-form" style="margin-block-start:var(--space-4)">
           <div class="field">
             <label class="field-label" for="dis-target">Intermediary jurisdiction to dissolve</label>
-            <select class="select" id="dis-target"><option>Mecklenburg County (usa-3-mecklenburg-county) — example</option></select>
+            <select class="select" id="dis-target"><option>New York (usa-2-new-york) — worked example</option></select>
             <span class="field-hint">The vote is held in each constituent legislature and in the encompassing legislature.</span>
           </div>
           <div class="cluster">
@@ -145,29 +146,32 @@
       var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
       var esc = S.esc;
 
-      /* Real Mecklenburg municipalities; fictional act numbers. */
+      /* Real New York counties (a sample of the 62 constituents); fictional act numbers.
+         The unanimity meter counts all 62 — 44 passed so far, so not yet unanimous. */
+      var TOTAL_CONSTITUENTS = 62;
+      var PASSED_TOTAL = 44; /* 5 shown below + 39 of the 55 not shown */
       var CONSTITUENTS = [
-        { name: 'Charlotte', act: 'Act 2031-22', state: 'passed' },
-        { name: 'Huntersville', act: 'Act 2031-09', state: 'passed' },
-        { name: 'Cornelius', act: 'Act 2031-05', state: 'passed' },
-        { name: 'Davidson', act: 'Act 2031-07', state: 'passed' },
-        { name: 'Mint Hill', act: 'Act 2031-04', state: 'passed' },
-        { name: 'Matthews', act: '—', state: 'pending' },
-        { name: 'Pineville', act: '—', state: 'pending' }
+        { name: 'New York County', act: 'Act 2031-22', state: 'passed' },
+        { name: 'Kings County', act: 'Act 2031-09', state: 'passed' },
+        { name: 'Queens County', act: 'Act 2031-05', state: 'passed' },
+        { name: 'Bronx County', act: 'Act 2031-07', state: 'passed' },
+        { name: 'Richmond County', act: 'Act 2031-04', state: 'passed' },
+        { name: 'Westchester County', act: '—', state: 'pending' },
+        { name: 'Erie County', act: '—', state: 'pending' }
       ];
       var CONFLICTS = [
-        { act: 'Mecklenburg watershed protection act (2030-11)', vs: 'Charlotte stormwater ordinance §4' },
-        { act: 'County transit levy (Act 2029-03)', vs: 'Huntersville transport budget act (2030-01)' },
-        { act: 'Curfew Ordinance §3 — under Art. IV §5 challenge', vs: 'Charlotte public-spaces ordinance §2' },
-        { act: 'Unified parks maintenance standard (Act 2028-14)', vs: 'Davidson greenway charter §1' },
-        { act: 'County records retention rule (Act 2027-19)', vs: 'Matthews municipal records act §3' }
+        { act: 'Hudson watershed protection act (2030-11)', vs: 'New York County stormwater ordinance §4' },
+        { act: 'State transit levy (Act 2029-03)', vs: 'Kings County transport budget act (2030-01)' },
+        { act: 'State public-spaces standard (Act 2028-06)', vs: 'New York County public-spaces ordinance §2' },
+        { act: 'Unified parks maintenance standard (Act 2028-14)', vs: 'Bronx County greenway charter §1' },
+        { act: 'State records retention rule (Act 2027-19)', vs: 'Richmond County records act §3' }
       ];
       var resolutions = {};
       var mergeDone = false, chamberVoted = false;
 
       function render() {
-        var passed = CONSTITUENTS.filter(function (c) { return c.state === 'passed'; }).length;
-        var total = CONSTITUENTS.length;
+        var passed = PASSED_TOTAL;
+        var total = TOTAL_CONSTITUENTS;
         var pct = Math.round(passed / total * 100);
 
         document.getElementById('consent-meters').innerHTML =
@@ -175,13 +179,13 @@
           '<div class="meter" role="img" aria-label="Constituent unanimity progress">' +
           '<span class="meter-fill' + (passed === total ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
-          '<div class="meter-caption"><span>Constituent unanimity — ' + passed + ' of ' + total + ' municipalities (all ' + total + ' required)</span>' +
+          '<div class="meter-caption"><span>Constituent unanimity — ' + passed + ' of ' + total + ' counties (all ' + total + ' required) — not yet unanimous</span>' +
           '<span>unanimity, not supermajority · Art. V §8</span></div></div>' +
           '<div class="meter-block">' +
           '<div class="meter" role="img" aria-label="Encompassing consent progress">' +
           '<span class="meter-fill" style="inline-size:0%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
-          '<div class="meter-caption"><span>Encompassing consent — North Carolina legislature act scheduled 2031-07-08 · ' +
+          '<div class="meter-caption"><span>Encompassing consent — United States legislature act scheduled 2031-07-08 · ' +
           'shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>' +
           '<span>encompassing jurisdiction must agree · Art. V §8</span></div></div>';
 
@@ -190,7 +194,9 @@
             ? S.badge('success', 'Disintermediation act passed', 'check')
             : S.badge('warning', 'Pending — on next session agenda', 'clock');
           return '<tr><td>' + esc(c.name) + '</td><td class="mono">' + esc(c.act) + '</td><td>' + badge + '</td></tr>';
-        }).join('');
+        }).join('') +
+        '<tr><td>+ 55 more counties</td><td class="mono">—</td><td>' +
+        S.badge('neutral', '39 passed · 16 pending', 'clock') + '</td></tr>';
 
         document.getElementById('merge-rows').innerHTML = CONFLICTS.map(function (cf, i) {
           var sel = resolutions[i] || '';
@@ -204,7 +210,7 @@
             '</select></label></td></tr>';
         }).join('') +
         '<tr><td>214 further acts</td><td>no conflicts found</td><td>' +
-        S.badge('success', 'Incorporate verbatim into all 7 constituents', 'check') + '</td></tr>';
+        S.badge('success', 'Incorporate verbatim into all 62 constituents', 'check') + '</td></tr>';
 
         var chosen = Object.keys(resolutions).filter(function (k) { return resolutions[k]; }).length;
         document.getElementById('merge-status').innerHTML = mergeDone

@@ -32,7 +32,7 @@
       <section class="card" aria-labelledby="model-h">
         <h2 id="model-h">Executive models</h2>
         <p class="gloss">One office, three shapes. The toggle below switches the view — the delegated committee is
-          live in Charlotte, the elected individual is live in Mecklenburg County, and the elected committee is an
+          live in New York County, the elected individual is live in New York State, and the elected committee is an
           illustrative walkthrough.</p>
         <div class="cluster" role="group" aria-label="Choose executive model" style="margin-block-end:var(--space-4)">
           <button type="button" class="btn btn--secondary btn--sm" data-model="delegated" aria-pressed="true">Delegated committee</button>
@@ -40,8 +40,8 @@
           <button type="button" class="btn btn--secondary btn--sm" data-model="elected-individual" aria-pressed="false">Elected individual</button>
         </div>
         <div id="model-panel" aria-live="polite"></div>
-        <noscript><p>This model explorer requires JavaScript. Summary: Charlotte runs a delegated executive committee
-          (members remain legislators, Westminster-style); Mecklenburg County converted to an individually elected
+        <noscript><p>This model explorer requires JavaScript. Summary: New York County runs a delegated executive committee
+          (members remain legislators, Westminster-style); New York State converted to an individually elected
           executive — RCV winner Ingrid Solberg plus four ranked advisors; an elected committee is five or more
           officers with equal power chosen by PR-STV.</p></noscript>
       </section>
@@ -52,7 +52,7 @@
           <div id="form-leg-014"></div>
           <div class="card--inset card" style="margin-block-start:var(--space-3)">
             <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Enacted</span>
-            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-02 — Charlotte executive committee delegation</strong><br />
+            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-02 — New York County executive committee delegation</strong><br />
               Enacted 2030-01-12 · members remain seated legislators.</p>
             <div class="meter-block">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:87.5%"></span><span class="meter-threshold" style="inset-inline-start:75%"></span></div>
@@ -67,16 +67,16 @@
           <div id="form-leg-015"></div>
           <div class="card--inset card" style="margin-block-start:var(--space-3)">
             <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Enacted</span>
-            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-21 — Mecklenburg County conversion to elected individual office</strong><br />
+            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-21 — New York State conversion to elected individual office</strong><br />
               Enacted 2030-03-10 · triggered the executive election won by Ingrid Solberg.</p>
             <div class="meter-block" style="margin-block-end:var(--space-3)">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:88.9%"></span><span class="meter-threshold" style="inset-inline-start:66.7%"></span></div>
-              <div class="meter-caption"><span>County legislature: 8 of 9 serving in favor</span><span>threshold 6 = ceil(9 × 2/3) · Art. VII</span></div>
+              <div class="meter-caption"><span>State legislature: 8 of 9 serving in favor</span><span>threshold 6 = ceil(9 × 2/3) · Art. VII</span></div>
             </div>
             <div class="meter-block">
-              <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:85.7%"></span><span class="meter-threshold" style="inset-inline-start:71.4%"></span></div>
-              <div class="meter-caption"><span>Constituent jurisdictions: 6 of 7 in favor (Charlotte, Davidson, Huntersville, Cornelius, Matthews, Pineville)</span>
-                <span>threshold 5 = ceil(7 × 2/3) · Art. III §3</span></div>
+              <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:82.3%"></span><span class="meter-threshold" style="inset-inline-start:67.7%"></span></div>
+              <div class="meter-caption"><span>Constituent jurisdictions: 51 of 62 counties in favor (New York, Kings, Queens, Bronx, Richmond, Westchester, Erie + 55 more)</span>
+                <span>threshold 42 = ceil(62 × 2/3) · Art. III §3</span></div>
             </div>
             <p class="gloss" style="margin-block-start:var(--space-2)">Both meters must clear their threshold — the legislature's own
               supermajority and a supermajority of the constituent jurisdictions, each counted independently.</p>
@@ -179,10 +179,10 @@
         var rows = picks.map(function (pk) {
           var m = bySeat[pk.seat];
           var name = pk.p ? BY.personas[pk.p].name : pk.name;
-          return memberRow(name, 'Remains a seated legislator · Charlotte chamber seat ' + pk.seat, orgChips(m.endorsedBy));
+          return memberRow(name, 'Remains a seated legislator · New York County chamber seat ' + pk.seat, orgChips(m.endorsedBy));
         }).join('');
         return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
-          S.badge('success', 'Live — Charlotte', 'check') +
+          S.badge('success', 'Live — New York County', 'check') +
           '<span class="citation">composed 2030-01-12 via Act 2030-02 (F-LEG-014)</span></div>' +
           '<p>Westminster-style: a committee of the legislature holds executive authority. The five members were ' +
           'selected proportionally from the chamber — the same method as legislative committees — and keep their ' +
@@ -221,7 +221,7 @@
             '<span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-user"></use></svg> rank ' + a.advisorRank + '</span>');
         }).join('');
         return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
-          S.badge('success', 'Live — Mecklenburg County', 'check') +
+          S.badge('success', 'Live — New York State', 'check') +
           '<span class="citation">created 2030-03-10 via Act 2030-21 (F-LEG-015) → executive election 2030-06</span></div>' +
           '<p><strong>' + esc(winner.name) + '</strong> — single-winner RCV victor (R-16). The top four runners-up ' +
           'serve as advisors and alternates: the step-in rule promotes them in rank order if the office vacates, ' +

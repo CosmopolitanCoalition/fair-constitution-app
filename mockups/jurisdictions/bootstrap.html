@@ -17,7 +17,7 @@
         <h1>Jurisdiction bootstrap — dormant boundary to self-governing</h1>
         <p class="page-intro">Every loaded boundary starts dormant. When enough verified residents accumulate,
           the system triggers the first election and the full institutional stack assembles in a fixed
-          30-step sequence. This tracker shows Charlotte mid-bootstrap, at step 19 of 30.</p>
+          30-step sequence. This tracker shows New York County mid-bootstrap, at step 19 of 30.</p>
         <p class="citation">Critical population → first election → full governance stack · Art. II §1; Art. VI · CLK-06</p>
       </header>
 
@@ -30,7 +30,7 @@
       </div>
 
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where Charlotte sits in the Jurisdiction lifecycle</h2>
+        <h2 id="state-h">Where New York County sits in the Jurisdiction lifecycle</h2>
         <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
         <noscript><p class="gloss">Boundary-Loaded (dormant) → Critical-Population → <strong>Bootstrapping</strong> →
           Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode (Art. VI)]</p></noscript>
@@ -39,7 +39,7 @@
       <section class="card" aria-labelledby="clk-h">
         <h2 id="clk-h">Critical population threshold</h2>
         <p>The first election triggers automatically once verified residents pass the threshold for the
-          jurisdiction's tier. Charlotte crossed it on 2030-09-12 — shown in your timezone
+          jurisdiction's tier. New York County crossed it on 2030-09-12 — shown in your timezone
           (UTC−5 · America/New_York) · stored as UTC.</p>
         <div class="meter-block">
           <div class="meter" role="img" aria-label="Verified residents: threshold met">
@@ -54,6 +54,11 @@
         </p>
         <p class="gloss">Gloss: the threshold counts verified residencies (R-02), not raw registrations — the
           live census from residency verifications drives it (WF-JUR-09).</p>
+        <p style="margin-block-start:var(--space-3)">Activation is pegged to real-world population: institutions
+          go live wherever enough people actually play. A county can reach critical population before its state;
+          Earth-wide mechanisms can activate first. The player base grows into the final structure chartered at
+          setup — every boundary is already loaded, waiting for its residents.</p>
+        <p class="citation">Critical population per jurisdiction tier · CLK-06</p>
       </section>
 
       <section class="card" aria-labelledby="seq-h">
@@ -106,7 +111,7 @@
       'use strict';
       var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
       var esc = S.esc;
-      var CURRENT = 19; /* Charlotte's position in the drill */
+      var CURRENT = 19; /* New York County's position in the drill */
       var FID = /F-[A-Z]{3}-\d{3}/g;
 
       function stageLabel(raw) {

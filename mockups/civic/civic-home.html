@@ -17,8 +17,8 @@
       <header>
         <span class="eyebrow">Civic home</span>
         <h1>Welcome back, <span data-bind="persona.name">Amara Okafor</span></h1>
-        <p class="page-intro">Your civic dashboard for <strong data-bind="jurisdiction.name">Plaza Midwood</strong> —
-          everything below is scoped to the jurisdictions you are associated with, from your neighborhood up to Earth.</p>
+        <p class="page-intro">Your civic dashboard for <strong data-bind="jurisdiction.name">New York County</strong> —
+          everything below is scoped to the jurisdictions you are associated with, from the deepest level your country’s data reaches up to Earth.</p>
       </header>
 
       <section class="card" aria-labelledby="rights-h">
@@ -130,7 +130,7 @@
         var phaseBadge = { approval: ['info', 'Approval phase'], ranked: ['warning', 'Ranked window open'], certifying: ['neutral', 'Certifying'] };
         document.getElementById('election-cards').innerHTML = W.elections.map(function (e) {
           var j = BY.jurisdictions[e.jurisdiction];
-          var phase = (e.jurisdiction === 'usa-4-charlotte') ? st.scenario.election : e.phase;
+          var phase = (e.jurisdiction === 'usa-3-new-york-county') ? st.scenario.election : e.phase;
           var pb = phaseBadge[phase] || phaseBadge.approval;
           var action = phase === 'approval'
             ? '<a class="btn btn--primary btn--sm" href="../electoral/open-ballot.html">Browse the open ballot</a>'

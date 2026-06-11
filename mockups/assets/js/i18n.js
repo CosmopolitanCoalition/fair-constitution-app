@@ -89,7 +89,6 @@
       'nav.planned': 'Planned',
       'nav.stage': 'Stage',
 
-      'footer.instance': 'Instance: charlotte.cga.example · authoritative for Charlotte (usa-4-charlotte)',
       'footer.audit': 'Audit #{n} · chained',
 
       'demo.label': 'Mockup controls — not part of the product',

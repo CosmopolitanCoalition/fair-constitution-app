@@ -14,7 +14,7 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Judiciary · case docket</span>
-        <h1>Case docket — Mecklenburg County &amp; Charlotte courts</h1>
+        <h1>Case docket — New York County &amp; New York State courts</h1>
         <p class="page-intro">Every case filed in your jurisdictions, from local civil disputes to full-court
           constitutional questions. Anyone jurisdictionally associated can file; panels are assigned by the
           court with conflict screening.</p>
@@ -225,14 +225,15 @@
         S.refresh();
       }
 
-      /* claimed-scale options from the viewer's jurisdiction chain */
+      /* claimed-scale options from the viewer's jurisdiction chain — natural
+         level labels only (numeric adm levels are development vocabulary) */
       var scaleSel = document.getElementById('ff-scale');
       W.defaultChain.forEach(function (slug) {
         var j = BY.jurisdictions[slug];
         var opt = document.createElement('option');
         opt.value = slug;
-        opt.textContent = j.name + ' (adm ' + j.admLevel + ')';
-        if (slug === 'usa-3-mecklenburg-county') opt.selected = true;
+        opt.textContent = j.name + ' (' + S.admLabel(j.admLevel) + ')';
+        if (slug === 'usa-3-new-york-county') opt.selected = true;
         scaleSel.appendChild(opt);
       });
 
@@ -246,7 +247,7 @@
         var id = 'case-2031-' + seq;
         localFilings.push({
           id: id, title: title, kind: kind === 'Criminal' ? 'Criminal' : kind,
-          court: scale.admLevel >= 4 ? 'Charlotte municipal court' : 'Mecklenburg County court',
+          court: scale.admLevel >= 3 ? 'New York County court' : 'New York State court',
           panel: 'Pending acceptance (F-JDG-001)', state: 'Filed', severity: sev + ' (claimed)', filedVia: 'F-IND-017'
         });
         document.getElementById('filing-result').innerHTML =

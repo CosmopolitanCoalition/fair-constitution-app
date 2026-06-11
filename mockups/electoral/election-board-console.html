@@ -43,14 +43,14 @@
             <div class="field">
               <label class="field-label" for="s-election">Election</label>
               <select class="select" id="s-election">
-                <option>Charlotte general — 7 seats (approval phase live)</option>
-                <option>Plaza Midwood special — seat 2 (countback failed · CLK-04)</option>
+                <option>New York County general — 7 seats (approval phase live)</option>
+                <option>Kings County special — seat 2 (countback failed · CLK-04)</option>
               </select>
             </div>
             <div class="field">
               <label class="field-label" for="s-cutoff">Finalist cutoff</label>
               <input class="field-input" type="datetime-local" id="s-cutoff" value="2031-08-01T17:00" />
-              <span class="field-hint">X per race is pre-published with this order — Charlotte at-large: X = 21 · CLK-21.</span>
+              <span class="field-hint">X per race is pre-published with this order — New York County at-large: X = 21 · CLK-21.</span>
             </div>
           </div>
           <div>
@@ -75,7 +75,7 @@
         <h2 id="queue-h">Validation queue <span class="citation">Candidate validation · F-ELB-002</span></h2>
         <p class="citation">available to R-08 · prereq: F-IND-011 submitted · Art. II §2 (election integrity)</p>
         <p class="cc-small">Residency association is the <strong>only</strong> permissible check. A rejection is appealable
-          in court — precedent: Pham v. Charlotte election board (case-2031-101).</p>
+          in court — precedent: Pham v. New York County election board (case-2031-101).</p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Pending candidacy registrations</caption>
           <thead><tr><th>Registrant</th><th>Office</th><th>Residency record</th><th>Decision</th></tr></thead>
@@ -88,8 +88,8 @@
         <section class="card" aria-labelledby="maps-h">
           <h2 id="maps-h">District-map oversight <span class="citation">Subdivision boundary drawing · F-ELB-003</span></h2>
           <p class="citation">available to R-08 · prereq: legislature seat count &gt; 9 · Art. II §2; Art. II §8 (Subdivision)</p>
-          <p class="cc-small">United States legislature, North Carolina scope — seat budget 22 of 692 (cube-root sizing),
-            Webster allocation, quota 474,517.</p>
+          <p class="cc-small">United States legislature, New York scope — seat budget 42 of 692 (cube-root sizing),
+            Webster allocation, quota 480,982.</p>
           <div class="table-wrap"><table class="table">
             <caption class="visually-hidden">District map plans under oversight</caption>
             <thead><tr><th>Plan</th><th>Districts</th><th>Status</th></tr></thead>
@@ -105,7 +105,7 @@
         <section class="card" aria-labelledby="cert-h">
           <h2 id="cert-h">Certification <span class="citation">Election results certification · F-ELB-004</span></h2>
           <p class="citation">available to R-08 · prereq: voting closed + tabulation complete · Art. II §2 (transparent election process)</p>
-          <p class="cc-small">Mecklenburg County general — tabulation complete (27 rounds, all 9 seats filled in one
+          <p class="cc-small">Queens County general — tabulation complete (27 rounds, all 9 seats filled in one
             count). The count ran under a public chain of custody; observers have attested.</p>
           <div class="cluster" id="cert-area">
             <a class="btn btn--secondary btn--sm" href="results.html">Review the count record</a>
@@ -130,7 +130,7 @@
 
         <section class="card" aria-labelledby="vac-h">
           <h2 id="vac-h">Vacancies</h2>
-          <p class="cc-small"><strong>Charlotte legislature · seat 4</strong> — Renata Silva resigned. The countback
+          <p class="cc-small"><strong>New York County legislature · seat 4</strong> — Renata Silva resigned. The countback
             engine is re-running the prior ballots with the vacated member removed.</p>
           <p class="citation">Vacancy declaration received · F-LEG-036 · countback per Art. II §5</p>
           <a class="btn btn--secondary btn--sm" href="vacancy-countback.html">Open the countback view
@@ -192,10 +192,10 @@
 
       /* Pending registrations (fictional). decision: null | 'validated' | 'rejected'. */
       var QUEUE = [
-        { id: 'q1', name: 'Rufus Calloway', office: 'Charlotte legislature', residency: 'found · usa-4-charlotte', ok: true, decision: null },
-        { id: 'q2', name: 'Bao Pham', office: 'Charlotte legislature', residency: 'not found in jurisdiction', ok: false, decision: null },
-        { id: 'q3', name: 'Edith Okoro', office: 'Plaza Midwood legislature', residency: 'found · usa-5-plaza-midwood', ok: true, decision: null },
-        { id: 'q4', name: 'Sven Larsson', office: 'Charlotte legislature', residency: 'found · duplicate registration flag', ok: true, decision: null }
+        { id: 'q1', name: 'Rufus Calloway', office: 'New York County legislature', residency: 'found · usa-3-new-york-county', ok: true, decision: null },
+        { id: 'q2', name: 'Bao Pham', office: 'New York County legislature', residency: 'not found in jurisdiction', ok: false, decision: null },
+        { id: 'q3', name: 'Edith Okoro', office: 'Kings County legislature', residency: 'found · usa-3-kings-county', ok: true, decision: null },
+        { id: 'q4', name: 'Sven Larsson', office: 'New York County legislature', residency: 'found · duplicate registration flag', ok: true, decision: null }
       ];
 
       function render() {

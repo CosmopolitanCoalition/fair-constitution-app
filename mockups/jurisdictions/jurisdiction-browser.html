@@ -15,7 +15,7 @@
       <header>
         <span class="eyebrow">Jurisdictions · browser</span>
         <h1>Jurisdiction browser</h1>
-        <p class="page-intro">Drill from Earth down to Plaza Midwood. Every boundary is real, preloaded
+        <p class="page-intro">Drill from Earth down to New York County. Every boundary is real, preloaded
           geography (geoBoundaries + WorldPop + OSM); the live census from residency verifications is
           layered on top. Jurisdictions are co-equal self-governing containers — nesting changes scope,
           never rank.</p>
@@ -25,7 +25,7 @@
       <nav aria-label="Ancestor chain">
         <div class="cluster" id="crumbs" style="gap:var(--space-1)"></div>
         <noscript><p class="gloss">The interactive drill-down needs JavaScript; the default chain is
-          Earth › United States › North Carolina › Mecklenburg County › Charlotte › Plaza Midwood.</p></noscript>
+          Earth › United States › New York › New York County.</p></noscript>
       </nav>
 
       <div class="grid-2">
@@ -155,7 +155,7 @@
           var cur = c.slug === j.slug;
           return sep + '<button type="button" class="adm-chip adm-chip--' + lvl + '" data-drill="' + esc(c.slug) + '"' +
             (cur ? ' aria-current="location"' : '') + ' style="cursor:pointer;font-family:inherit">' +
-            esc(c.name) + ' <span class="citation">adm ' + c.admLevel + '</span></button>';
+            esc(c.name) + ' <span class="citation">' + esc(S.admLabel(c.admLevel)) + '</span></button>';
         }).join('');
 
         /* Children map + list */
@@ -163,19 +163,19 @@
         document.getElementById('children-list').innerHTML = kids.length
           ? kids.map(function (c) {
               return '<button type="button" class="btn btn--secondary btn--sm" data-drill="' + esc(c.slug) + '" style="justify-content:space-between">' +
-                '<span>' + esc(c.name) + ' <span class="citation">adm ' + c.admLevel + ' · ' + esc(S.admLabel(c.admLevel)) + ' · pop ' + S.formatPop(c.population) + '</span></span>' +
+                '<span>' + esc(c.name) + ' <span class="citation">' + esc(S.admLabel(c.admLevel)) + ' · pop ' + S.formatPop(c.population) + '</span></span>' +
                 S.icon('chevron-right', { size: 'sm' }) + '</button>' +
                 (c.dataGap ? '<p class="gloss" style="margin-block:0">' + S.icon('info', { size: 'sm' }) + ' ' + esc(c.dataGap) + '</p>' : '');
             }).join('')
           : '<p class="gloss">No loaded child boundaries below this level' +
-            (j.dataGap ? ' — ' + esc(j.dataGap) : '') + '.</p>';
+            (j.dataGap ? ' — ' + esc(j.dataGap) : (j.note ? ' — ' + esc(j.note) : '')) + '.</p>';
 
         /* Profile */
         var lvl = Math.min(j.admLevel, 5);
         var html =
           '<div class="cluster" style="gap:var(--space-2)">' +
           '<span class="adm-chip adm-chip--' + lvl + '">' + esc(j.name) + '</span>' +
-          '<span class="citation">adm ' + j.admLevel + ' · ' + esc(S.admLabel(j.admLevel)) + (j.isoCode ? ' · ' + esc(j.isoCode) : '') + '</span>' +
+          '<span class="citation">' + esc(S.admLabel(j.admLevel)) + (j.isoCode ? ' · ' + esc(j.isoCode) : '') + '</span>' +
           (j.isCivicActive
             ? S.badge('success', 'Civic active', 'check')
             : S.badge('neutral', 'Dormant boundary', 'clock')) +
@@ -190,7 +190,7 @@
           (j.dataGap
             ? '<div class="banner banner--warning" role="status" style="margin-block:var(--space-3)">' + S.icon('alert-triangle') +
               '<div><span class="banner-title">Honest data gap</span> ' + esc(j.dataGap) +
-              ' <span class="citation">geoBoundaries ships ADM0–2; deeper levels come from OSM and are sparse in places</span></div></div>'
+              ' <span class="citation">depth varies honestly by country — the dataset spans planet to neighborhood (~1M boundaries) and goes only as deep as its sources do</span></div></div>'
             : '') +
           '<hr />' +
           '<p><strong>Official languages:</strong> ' + esc((j.officialLanguages || []).join(', ')) +

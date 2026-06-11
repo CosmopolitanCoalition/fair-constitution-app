@@ -14,7 +14,7 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Elections · count record</span>
-        <h1>Results — Mecklenburg County general election</h1>
+        <h1>Results — Queens County general election</h1>
         <p class="page-intro">Round-by-round PR-STV with the Droop quota. Surpluses transfer at fractional value
           (Gregory method); every one of the 9 seats fills in this single count. Write-ins are tabulated identically
           to finalists. The full record below is public and auditable.</p>
@@ -66,6 +66,7 @@
         <div class="cluster" style="margin-block-start:var(--space-3)">
           <span class="form-chip">Election results certification <span class="form-id">F-ELB-004</span></span>
           <span class="form-chip">Recount/audit order <span class="form-id">F-ELB-006</span></span>
+          <span class="gloss">The count runs in-system, so a "recount" is an audit review: tabulation re-runs and the chain of custody is re-verified — there is no hand-count.</span>
           <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Certifying</span>
         </div>
       </section>
@@ -73,7 +74,7 @@
       <section class="card" aria-labelledby="rcv-h">
         <h2 id="rcv-h">Single-winner variant — individual executive (RCV)</h2>
         <p class="cc-small">Single-winner ranked-choice voting applies <strong>only</strong> to the individual executive
-          office model. The top 4 runners-up become the executive's advisors and alternates automatically.</p>
+          office model. The top 4 runners-up become the executive's advisors and alternates automatically — derived by sequential exclusion: re-run the count without the winner, then without the top two, and so on, yielding the ranked top five.</p>
         <p class="citation">Single-winner RCV only for the individual executive · top-4 runners-up as advisors · Art. III §3</p>
         <div id="rcv-final"></div>
       </section>

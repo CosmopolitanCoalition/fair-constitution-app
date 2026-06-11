@@ -16,7 +16,7 @@
 
       <header>
         <span class="eyebrow">Elections · election record</span>
-        <h1>Charlotte general election — 2031 cycle</h1>
+        <h1>New York County general election — 2031 cycle</h1>
         <p class="page-intro">The full lifecycle of one election: a continuous approval phase, a pre-published finalist
           cutoff, a ranked window, an instant PR-STV count, and certification. Use the mockup controls (election phase)
           to walk the state machine below through every stage.</p>
@@ -44,7 +44,7 @@
         <div class="card card--inset" style="margin-block-end:var(--space-4)">
           <p style="margin-block-end:var(--space-1)"><strong>Election scheduling order</strong> <span class="form-chip"><span class="form-id">F-ELB-001</span></span></p>
           <p class="cc-small" style="margin-block-end:var(--space-1)">Schedule an election for any office type, set registration and voting periods.</p>
-          <p class="citation">available to R-08 Election Board Member · Art. II §2 (election intervals) · issued 2030-11-08 by the Charlotte election board</p>
+          <p class="citation">available to R-08 Election Board Member · Art. II §2 (election intervals) · issued 2030-11-08 by the New York County election board</p>
         </div>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Election schedule by stage</caption>
@@ -64,7 +64,7 @@
           <div class="table-wrap"><table class="table">
             <caption class="visually-hidden">Races in this election</caption>
             <thead><tr><th>Race</th><th>Seats</th><th>X</th><th>Candidates</th></tr></thead>
-            <tbody><tr><td>Charlotte at-large</td><td>7</td><td class="mono">21</td><td>24</td></tr></tbody>
+            <tbody><tr><td>New York County at-large</td><td>7</td><td class="mono">21</td><td>24</td></tr></tbody>
           </table></div>
           <p class="gloss">X = f(seats in race) — the current setting is 3 × seats.</p>
           <p class="amendable">Finalist multiplier: <span class="amendable-value">3 × seats</span>
@@ -75,11 +75,11 @@
         <section class="card" aria-labelledby="map-h">
           <h2 id="map-h">Race boundary</h2>
           <svg viewBox="0 0 340 200" role="img" aria-labelledby="map-title" style="inline-size:100%;block-size:auto">
-            <title id="map-title">Map of the Charlotte at-large race within Mecklenburg County</title>
+            <title id="map-title">Map of the New York County at-large race within New York State</title>
             <polygon points="18,30 200,12 322,48 310,150 220,188 60,176 14,120" fill="var(--wong-skyblue)" fill-opacity="0.25" stroke="var(--gov-border-strong)" stroke-width="1.5"></polygon>
-            <text x="40" y="52" font-size="11" fill="var(--gov-fg-muted)">Mecklenburg County</text>
+            <text x="40" y="52" font-size="11" fill="var(--gov-fg-muted)">New York</text>
             <polygon points="110,70 230,58 268,110 232,158 130,162 92,118" fill="var(--wong-orange)" fill-opacity="0.55" stroke="var(--gov-border-strong)" stroke-width="1.5"></polygon>
-            <text x="180" y="116" text-anchor="middle" font-size="12" fill="var(--gov-fg)" font-weight="600">Charlotte at-large</text>
+            <text x="180" y="116" text-anchor="middle" font-size="12" fill="var(--gov-fg)" font-weight="600">New York County at-large</text>
             <text x="180" y="132" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">7 seats · single district</text>
           </svg>
           <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS.</p>
@@ -225,7 +225,7 @@
         var phaseBadge = { approval: ['info', 'Approval phase'], ranked: ['warning', 'Ranked window'], certifying: ['neutral', 'Certifying'] };
         document.getElementById('other-elections').innerHTML = W.elections.map(function (e) {
           var j = BY.jurisdictions[e.jurisdiction];
-          var p = (e.jurisdiction === 'usa-4-charlotte') ? phase : e.phase;
+          var p = (e.jurisdiction === 'usa-3-new-york-county') ? phase : e.phase;
           var pb = phaseBadge[p] || phaseBadge.approval;
           var link = p === 'approval' ? '<a href="open-ballot.html">Open ballot</a>'
             : p === 'ranked' ? '<a href="ranked-ballot.html">Ranked ballot</a>'

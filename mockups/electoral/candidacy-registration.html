@@ -33,9 +33,9 @@
             <div class="field">
               <label class="field-label" for="f-office">Office</label>
               <select class="select" id="f-office">
-                <option value="usa-4-charlotte">Charlotte legislature — general election · 7 seats</option>
-                <option value="usa-5-plaza-midwood">Plaza Midwood legislature — general election · 5 seats</option>
-                <option value="usa-3-mecklenburg-county">Mecklenburg County legislature — general election · 9 seats</option>
+                <option value="usa-3-new-york-county">New York County legislature — general election · 7 seats</option>
+                <option value="usa-3-kings-county">Kings County legislature — general election · 5 seats</option>
+                <option value="usa-3-queens-county">Queens County legislature — general election · 9 seats</option>
               </select>
               <span class="field-hint">Only jurisdictions you are associated with are listed. Your association exists at every nesting level simultaneously.</span>
             </div>
@@ -91,8 +91,8 @@
           <p><strong>Entity state machine:</strong> Candidacy — this surface covers Registered → Validated (or the
             rejection branch, appealable in court). The rest of the lifecycle lives on the
             <a href="candidate-profile.html">candidate profile</a>.</p>
-          <p><strong>Rejection precedent:</strong> Pham v. Charlotte election board (case-2031-101) — a validation
-            rejection appealed to the municipal court, now in deliberation.</p>
+          <p><strong>Rejection precedent:</strong> Pham v. New York County election board (case-2031-101) — a validation
+            rejection appealed to the New York County court, now in deliberation.</p>
           <p class="citation">Art. I · Art. II §2 · F-IND-011 · F-ELB-002 · CLK-18</p>
         </div>
       </details>
@@ -148,8 +148,8 @@
             'Residency is the only permissible ground for rejection. Any other ground is unconstitutional on its face. ' +
             '<span class="citation">F-ELB-002 · Art. I (Right to Stand for Office) · Art. II §2</span></div></div>' +
             '<h3 style="margin-block-start:var(--space-4)">Appeal in court</h3>' +
-            '<p class="cc-small">A rejection can be appealed to the municipal court — the board carries the burden of showing ' +
-            'the residency record is absent. Precedent: <strong>Pham v. Charlotte election board</strong> (case-2031-101), ' +
+            '<p class="cc-small">A rejection can be appealed to the New York County court — the board carries the burden of showing ' +
+            'the residency record is absent. Precedent: <strong>Pham v. New York County election board</strong> (case-2031-101), ' +
             'a candidacy-validation appeal now in deliberation.</p>' +
             '<p><a href="../judiciary/case-docket.html">Open the court docket ' +
             '<svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>' +
@@ -170,10 +170,10 @@
         var phase = st.scenario.election;
         document.getElementById('phase-banner').innerHTML = phase === 'approval'
           ? '<div class="banner banner--info" role="status">' + S.icon('clock') +
-            '<div><span class="banner-title">Registration is open now.</span> The Charlotte approval phase is live — ' +
+            '<div><span class="banner-title">Registration is open now.</span> The New York County approval phase is live — ' +
             'validated candidates appear on the open ballot immediately. <span class="citation">CLK-18 · open since prior certification</span></div></div>'
           : '<div class="banner banner--warning" role="status">' + S.icon('clock') +
-            '<div><span class="banner-title">The finalist cutoff has passed for the current Charlotte race.</span> ' +
+            '<div><span class="banner-title">The finalist cutoff has passed for the current New York County race.</span> ' +
             (phase === 'ranked' ? 'The ranked window is open; ' : 'Tabulation and certification are under way; ') +
             'registration reopens for the next cycle the moment results certify. <span class="citation">CLK-18 · closes at finalist cutoff · reopens at certification</span></div></div>';
 

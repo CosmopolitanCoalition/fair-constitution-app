@@ -36,9 +36,9 @@
           <div class="field">
             <label class="field-label" for="decl-jur">Jurisdiction of residence</label>
             <select class="select" id="decl-jur">
-              <option value="usa-5-plaza-midwood" selected>Plaza Midwood — Sub-local (Charlotte, North Carolina)</option>
-              <option value="usa-4-charlotte">Charlotte — Local (no sub-local declared)</option>
-              <option value="smr-2-serravalle">Serravalle — San Marino (chain ends at adm 2 — honest data gap)</option>
+              <option value="usa-3-new-york-county" selected>New York County (Manhattan) — County (deepest available US level)</option>
+              <option value="usa-3-kings-county">Kings County (Brooklyn) — County (New York, United States)</option>
+              <option value="smr-2-serravalle">Serravalle — San Marino (chain ends here — no deeper subdivisions in the dataset)</option>
             </select>
             <span class="field-hint">Declare the smallest boundary you live inside; every enclosing level associates automatically.</span>
           </div>
@@ -76,21 +76,21 @@
 
         <section class="card" aria-labelledby="map-h">
           <h2 id="map-h">Declared boundary</h2>
-          <svg viewBox="0 0 340 230" role="img" aria-label="Map of the declared Plaza Midwood boundary with qualifying ping days inside it" style="inline-size:100%;block-size:auto">
+          <svg viewBox="0 0 340 230" role="img" aria-label="Map of the declared New York County boundary with qualifying ping days inside it" style="inline-size:100%;block-size:auto">
             <rect x="0" y="0" width="340" height="230" fill="var(--gov-surface-2)" rx="8"></rect>
             <path d="M52 168 L44 96 L92 52 L168 38 L236 50 L292 92 L298 150 L252 192 L160 204 L96 196 Z"
               fill="var(--wong-skyblue)" fill-opacity="0.18" stroke="var(--wong-skyblue)" stroke-width="2"></path>
-            <path d="M120 120 L150 96 L200 92 L232 116 L226 152 L182 168 L138 158 Z"
+            <path d="M148 56 L168 50 L184 78 L202 132 L210 172 L196 186 L178 176 L160 124 L146 84 Z"
               fill="var(--wong-orange)" fill-opacity="0.25" stroke="var(--wong-orange)" stroke-width="2"></path>
-            <circle cx="168" cy="124" r="4" fill="var(--wong-orange)"></circle>
-            <circle cx="190" cy="138" r="4" fill="var(--wong-orange)"></circle>
-            <circle cx="152" cy="142" r="4" fill="var(--wong-orange)"></circle>
-            <circle cx="206" cy="118" r="4" fill="var(--wong-orange)"></circle>
-            <text x="62" y="78" fill="var(--gov-fg-muted)" font-size="12">Charlotte</text>
-            <text x="138" y="116" fill="var(--gov-fg-strong)" font-size="12">Plaza Midwood</text>
+            <circle cx="172" cy="92" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="184" cy="124" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="192" cy="150" r="4" fill="var(--wong-orange)"></circle>
+            <circle cx="198" cy="168" r="4" fill="var(--wong-orange)"></circle>
+            <text x="62" y="78" fill="var(--gov-fg-muted)" font-size="12">New York</text>
+            <text x="216" y="116" fill="var(--gov-fg-strong)" font-size="12">New York County</text>
             <text x="120" y="222" fill="var(--gov-fg-subtle)" font-size="10">qualifying ping days cluster inside the boundary</text>
           </svg>
-          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS (point-in-polygon against the OSM boundary, relation 11324559).</p>
+          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS (point-in-polygon against the county boundary from geoBoundaries).</p>
         </section>
       </div>
 
@@ -187,12 +187,12 @@
             '<p class="cc-small">Keep living where you live; nothing else is required. The confirmation generates itself on day ' + THRESHOLD + '.</p>';
         } else if (st === 2) {
           body = '<p>' + S.badge('warning', 'Threshold met — confirmation pending', 'bell') + '</p>' +
-            '<p class="cc-small">Your pattern qualifies as long-term residence in <strong>Plaza Midwood</strong>. Confirm to verify, or correct the boundary if the system got it wrong.</p>' +
+            '<p class="cc-small">Your pattern qualifies as long-term residence in <strong>New York County</strong>. Confirm to verify, or correct the boundary if the system got it wrong.</p>' +
             '<div class="cluster"><button type="button" class="btn btn--primary" id="confirm-btn">Confirm — this is my residence</button>' +
             '<button type="button" class="btn btn--ghost" id="correct-btn">Correct the boundary</button></div>';
         } else {
           body = '<p>' + S.badge('success', 'Residency verified — you are a verified resident (R-02)', 'check') + '</p>' +
-            '<p style="margin-block-start:var(--space-3)"><strong>Full nesting association (R-03):</strong> point-in-polygon resolved your entire chain — you belong to all six levels simultaneously.</p>' +
+            '<p style="margin-block-start:var(--space-3)"><strong>Full nesting association (R-03):</strong> point-in-polygon resolved your entire chain — a chip for every level of your chain, all associated simultaneously.</p>' +
             '<div class="cluster" style="margin-block-start:var(--space-2)">' + chipChain() + '</div>' +
             '<div class="cluster" style="margin-block-start:var(--space-4);gap:var(--space-4)">' +
             S.badge('success', 'Voting unlocked', 'check') + S.badge('success', 'Candidacy unlocked', 'check') +

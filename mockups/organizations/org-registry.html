@@ -74,7 +74,7 @@
         </div>
         <noscript><p style="padding:var(--space-4)">The registry table is rendered by JavaScript from the fixture world.
           Registered organizations include The Commons Party, Bluefin Logistics (740 workers), Northstar Equal Partners,
-          Mecklenburg Water &amp; Power (CGC), and Cobalt Grid Co.</p></noscript>
+          Manhattan Water &amp; Power (CGC), and Cobalt Grid Co.</p></noscript>
       </section>
 
       <div class="grid-2">
@@ -177,11 +177,11 @@
 
       var filters = { type: '', endorsing: false, q: '' };
       var registeredIn = {
-        'commons-party': 'usa-4-charlotte', 'green-horizon': 'usa-4-charlotte',
-        'queen-city-chamber': 'usa-4-charlotte', 'piedmont-mutual-aid': 'usa-3-mecklenburg-county',
-        'plaza-midwood-neighbors': 'usa-5-plaza-midwood', 'bluefin-logistics': 'usa-4-charlotte',
-        'northstar-equal-partners': 'usa-4-charlotte', 'mecklenburg-water-power': 'usa-3-mecklenburg-county',
-        'cobalt-grid': 'usa-3-mecklenburg-county'
+        'commons-party': 'usa-3-new-york-county', 'green-horizon': 'usa-3-new-york-county',
+        'five-boroughs-chamber': 'usa-3-new-york-county', 'hudson-mutual-aid': 'usa-2-new-york',
+        'uptown-neighbors': 'usa-3-new-york-county', 'bluefin-logistics': 'usa-3-new-york-county',
+        'northstar-equal-partners': 'usa-3-new-york-county', 'manhattan-water-power': 'usa-3-new-york-county',
+        'cobalt-grid': 'usa-3-new-york-county'
       };
       var typeLabel = { political_party: 'Political party', business: 'Business', nonprofit: 'Nonprofit',
         common_good_corp: 'Common Good Corp.', informal: 'Informal association' };
@@ -208,7 +208,7 @@
       }
 
       function rowHtml(o) {
-        var href = o.id === 'mecklenburg-water-power' ? 'cgc-detail.html' : 'org-detail.html';
+        var href = o.id === 'manhattan-water-power' ? 'cgc-detail.html' : 'org-detail.html';
         var j = BY.jurisdictions[registeredIn[o.id]];
         var flags = (o.flags || []).indexOf('monopoly_target') >= 0
           ? ' ' + S.badge('warning', 'monopoly finding pending', 'alert-triangle') : '';
@@ -264,8 +264,8 @@
       var jurSel = document.getElementById('reg-jur');
       W.jurisdictions.filter(function (j) { return j.isCivicActive; }).forEach(function (j) {
         var opt = document.createElement('option');
-        opt.value = j.slug; opt.textContent = j.name + ' (adm ' + j.admLevel + ')';
-        if (j.slug === 'usa-4-charlotte') opt.selected = true;
+        opt.value = j.slug; opt.textContent = j.name + ' (' + S.admLabel(j.admLevel) + ')';
+        if (j.slug === 'usa-3-new-york-county') opt.selected = true;
         jurSel.appendChild(opt);
       });
 

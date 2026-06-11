@@ -84,9 +84,10 @@
         <p class="citation">Touches: Art. II §2 · Establish Independent Election Boards ("drawn equally, contiguously, and fairly") — Art. II §8 · Subdivision of Legislatures</p>
         <p><strong>What the build surfaced:</strong> free-form line-drawing fights community integrity and auditability.</p>
         <p><strong>Implemented answer:</strong> districts are Webster-apportioned composites of direct child
-          jurisdictions, each within the constitutional 5–9 seat range; oversized ("giant") children recurse into their
-          own sub-district budgets. Leaf giants — above the ceiling with no subdivisions — still require manual
-          line-drawing: the open frontier.</p>
+          jurisdictions, each within the constitutional 5–9 seat range — built from real jurisdictional lines wherever
+          possible. Children above the seat ceiling subdivide further, carrying their own sub-district budgets; where a
+          jurisdiction exceeds the ceiling with no child subdivisions in the dataset, district lines must be drawn
+          manually — the open frontier.</p>
         <p><strong>Where to see it:</strong> the <a href="../jurisdictions/district-mapper.html">district mapper</a>
           renders draft / active / archived plans with Webster-rounded seats, contiguity and integrity indicators, and
           the optimal / suboptimal / current grouping stats; election-board observation runs through the
@@ -109,13 +110,42 @@
         <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
       </section>
 
+      <section class="card" id="q6" aria-labelledby="q6-h">
+        <h2 id="q6-h">6 · Countback without factions</h2>
+        <p class="citation">Touches: Art. II §5 · Countback Procedure for Filling Vacancies</p>
+        <p><strong>What the build surfaced:</strong> the countback procedure leaned on the faction layer — and with
+          factions replaced by polymorphic endorsements (entry #1), the faction-scoped parts of the procedure no longer
+          mean anything.</p>
+        <p><strong>Implemented answer:</strong> countback runs universally — the prior election's ballots are re-run
+          with the vacated member removed as a candidate, with no faction filtering anywhere in the procedure. Failure
+          still falls through to a special election within 90–180 days (CLK-04).</p>
+        <p><strong>Where to see it:</strong> the <a href="../electoral/vacancy-countback.html">countback engine view</a>
+          and <a href="../flows/WF-ELE-03.html">flow WF-ELE-03</a>.</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
+      <section class="card" id="q7" aria-labelledby="q7-h">
+        <h2 id="q7-h">7 · Bicameral dual agreement — the per-kind threshold</h2>
+        <p class="citation">Touches: Art. V §3 · Independent Agreement for Legislative Actions — Art. II §2 · Peg Quorum Requirement to Full Membership</p>
+        <p><strong>What the build surfaced:</strong> Art. V §3 requires both kinds of members to agree independently but
+          names no per-kind threshold or quorum. The intent is to preserve the equal-parts and
+          population-proportional parts over the existing boundaries of the nation-state system, with dual agreement
+          required.</p>
+        <p><strong>Implemented answer:</strong> each kind must meet its own peg quorum and pass independently — a
+          majority of ALL serving members of that kind (supermajority where the act type requires it). Needs resolving
+          in the constitutional text.</p>
+        <p><strong>Where to see it:</strong> the dual-agreement meters on
+          <a href="../legislature/bill-detail.html">bill detail</a> (bicameral toggle).</p>
+        <p><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span></p>
+      </section>
+
       <section class="card" aria-labelledby="how-h">
         <h2 id="how-h">How an entry lands here</h2>
         <p>A question qualifies when the constitutional text under-determines a mechanism the software must decide —
           and the build picks an answer. The entry quotes only the citation labels of the text touched, states the
           implemented answer in one paragraph, and links the surfaces where the answer is visible. Every
           <span class="citation">· as implemented</span> marker elsewhere in the mockups resolves to its anchor here
-          (<span class="citation" data-no-i18n>#q1–#q5</span>).</p>
+          (<span class="citation" data-no-i18n>#q1–#q7</span>).</p>
         <p><strong>Status legend:</strong>
           <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Candidate for next draft</span>
           — proposed for the post-game redraft of <em>A Fair Constitution</em> and the workbooks. Entries adopted by a

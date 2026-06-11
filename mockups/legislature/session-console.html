@@ -23,7 +23,7 @@
 
       <header>
         <span class="eyebrow">Legislature · live session</span>
-        <h1>Session console — Charlotte legislature</h1>
+        <h1>Session console — New York County legislature</h1>
         <p class="page-intro">The meeting surface for a regular session: open, take attendance, verify the peg quorum,
           then work the agenda in constitutional order. All times shown in your timezone
           (UTC−5 · America/New_York) · stored as UTC.</p>
@@ -182,7 +182,8 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'First order of business this session. Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Active at the New York (state) level — New York County lies inside the area of effect. First order of business this session. ' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
           : '';
 
         /* F-SPK-001 open state. */
@@ -254,7 +255,7 @@
           '<li class="card card--inset"><span class="eyebrow">1 · Outstanding emergency powers ' + S.icon('lock', { size: 'sm' }) + ' locked first</span><div style="margin-block-start:var(--space-1)">' + item1 + '</div></li>' +
           '<li class="card card--inset"><span class="eyebrow">2 · Constitutional matters ' + S.icon('lock', { size: 'sm' }) + ' locked second</span><div style="margin-block-start:var(--space-1)">' + item2 + '</div></li>' +
           '<li class="card card--inset"><span class="eyebrow">3 · General agenda — Speaker-ordered</span><div style="margin-block-start:var(--space-1)">' +
-          'Committee report: Environment &amp; Infrastructure on the <a href="bill-detail.html">Charlotte Clean Air Act</a> · ' +
+          'Committee report: Environment &amp; Infrastructure on the <a href="bill-detail.html">New York County Clean Air Act</a> · ' +
           'member priorities (F-SPK-006) · motions &amp; statements</div></li>';
 
         /* Motions list. */

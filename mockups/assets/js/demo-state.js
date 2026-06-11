@@ -18,7 +18,7 @@
   var DEFAULTS = {
     role: 'R-04',
     persona: 'amara-okafor',
-    jurisdiction: 'usa-5-plaza-midwood',
+    jurisdiction: 'usa-3-new-york-county',
     locale: 'en',
     dir: 'auto', // 'auto' resolves from locale; 'rtl'/'ltr' force (demo-bar override)
     scenario: {

@@ -1,84 +1,95 @@
 # CGA Mockups — OPEN QUESTIONS
 
-Ambiguities not guessed at. Each entry names its source, the conservative reading the mockups
-build, and what would change if JD answers differently. (Resolved entries stay here, struck
-through with their resolution, so the log is also a record.)
+Ambiguities not guessed at. Resolved entries stay here with their resolution (JD, 2026-06-11),
+so the log is also a record. Only #12 currently awaits an answer (elaboration provided).
 
-1. **Honest-gap country choice.** §7 requires one jurisdiction-picker entry whose chain stops at
-   adm 2. Built: **San Marino** (`smr-1-san-marino → smr-2-serravalle`, "OSM coverage sparse below
-   adm 2"). Swap to any other small country on request — one fixtures entry.
+1. ~~**Honest-gap country choice.**~~ **Resolved.** Depth honestly varies by country and the demo
+   now leads with it: the production dataset is ADM 0–6, ~1M jurisdictions, and the **US chain
+   itself ends at the county level** — so the default demo chain is Earth → United States →
+   New York → New York County (Manhattan), with Kings/Queens/Bronx/Richmond as siblings and San
+   Marino as the second country. Dual-footprint jurisdictions (disputed territories) carry both
+   chains and residents belong to both; all jurisdictions are viewable by all — physical-presence
+   mechanics bind conduct, not visibility.
 
-2. **F-ELB-007 (countback) referenced but not catalogued.** Roles chart Sheet 3, F-LEG-036
-   "Creates/Modifies" says "triggers countback (F-ELB-007)", but the Forms Catalog contains only
-   F-ELB-001…006. Conservative reading: the countback is an **engine, not a form** (WF-ELE-03 calls
-   it "Countback engine (hardened)") — `vacancy-countback.html` will render an engine chip, not a
-   form chip, and the coverage matrix counts 103 forms. If F-ELB-007 should exist as a form, the
-   chart needs a row and the registry regenerates in one step.
+2. ~~**F-ELB-007 (countback) referenced but not catalogued.**~~ **Resolved.** The countback engine
+   was faction-dependent; with polymorphic endorsements the faction part is meaningless, so
+   countback runs **universally** (re-run prior ballots with the vacated member removed, no
+   faction filtering) — and that is a constitutional question for the next draft. Now ledger
+   entry [#q6](shared/constitutional-questions.html#q6). Countback remains an engine, not a form.
 
-3. **Forms catalog count.** Build instructions say "~110 forms"; the actual Sheet 3 contains
-   **103** form rows (counted from a fresh dump; series sums: IND 17 · CAN 3 · ORG 7 · ELB 6 ·
-   LEG 36 · SPK 9 · CHR 4 · EXE 5 · BOG 2 · JDG 10 · ADV 4). Coverage axes use 103. Flagging only
-   because "~110" might reflect planned forms not yet in the chart.
+3. ~~**Forms catalog count.**~~ **Resolved.** The flowchart was made after the forms by different
+   sessions; counts are not material. Built from what the chart contains (103); specific
+   substantive conflicts get raised individually.
 
-4. **Institutions count.** Sheet 2 contains **17** I-xxx rows (I-JUR … I-CGC). The sheet's row
-   count (24) allows for up to ~20; the three category headers account for the difference. Built
-   against 17. If institutions are missing from the chart, the registry regenerates in one step.
+4. ~~**Institutions count.**~~ **Resolved.** Same as #3 — build from what the chart contains (17).
 
-5. **adm-5 display label.** The build instructions' nesting table calls level 5+ "Sub-local"; the
-   repo ETL's natural labels say 5 = "Township", 6 = "Neighborhood" (Plaza Midwood sits at level 5
-   in the demo chain). Built per the instructions: six levels 0–5, level 5 labeled **Sub-local**.
-   Logged because production UI labels will differ unless reconciled.
+5. ~~**adm-5 display label.**~~ **Resolved.** Numeric ADM levels are development vocabulary and
+   never display; the UI uses the ETL repo's natural labels (Planet / Country / State / Province /
+   County / Municipality / Township / Neighborhood). Demo chain re-centered on New York
+   (see #1); Plaza Midwood retired as the example.
 
-6. **`is_civic_active` vs `is_active`.** The instructions' provenance line names `is_civic_active`;
-   the shipped migration column is `is_active`. Mockups display "civic active" per the
-   instructions; the production build should reconcile the naming.
+6. ~~**`is_civic_active` vs `is_active`.**~~ **Resolved.** Database-layer concern for the
+   production phase; mockups stay as built.
 
-7. **en-XA placement.** §13 says to "include a pseudo-locale option" near the language-switcher
-   requirements; §6 lists a pseudo-locale toggle in the demo bar. Built conservatively: **demo bar
-   only** (it is a QA tool, not a product language). Trivial to add to the product switcher if
-   intended.
+7. ~~**en-XA placement.**~~ **Resolved.** The switcher exists to satisfy the localization
+   requirement — the production app will carry stored strings per language to correct
+   machine-translation error. en-XA stays a demo-bar QA tool; not a product language.
 
-8. **Bicameral per-kind threshold.** Art. V §3 requires both kinds of members to "agree
-   independently" but names no per-kind threshold. Conservative reading (peg-quorum logic applied
-   per kind): **majority of ALL serving members of each kind**, supermajority where the act type
-   requires it. Will render that way in Stage 3 with an `· as implemented`-style flag; candidate
-   for the ledger/redraft.
+8. ~~**Bicameral per-kind threshold.**~~ **Resolved as implemented; text resolution still open
+   (by design).** Intent confirmed: dual agreement preserves the equal-parts and
+   population-proportional parts over existing nation-state boundaries — each kind needs its own
+   quorum and its own majority. Rendered as majority of ALL serving members of each kind
+   (supermajority where the act type requires it). Promoted to ledger
+   [#q7](shared/constitutional-questions.html#q7) for the redraft.
 
-9. **Learn question counts.** `Topic_Knowledge.xlsx` has fractional question counts (≈7.35, ≈3.93)
-   and duplicate subject rows ("Legislatures1", …) with blank counts that look like transcript
-   segments. Stage 6's Learn surface will round counts to integers and skip the duplicate rows.
+9. ~~**Learn question counts.**~~ **Resolved.** Reference material from earlier sessions; not
+   material. Built as rendered.
 
-10. **R-17 advisors as a picker entry.** R-17 (Executive Advisor/Alternate) is an election
-    byproduct (top-4 runners-up), not a pickable career path. Built: it appears in the launchpad
-    role picker like every other role (30 of 30 assumable), with four named fictional advisors.
-    Remove from the picker if that reads wrong.
+10. ~~**R-17 advisors in the role picker.**~~ **Resolved.** Not a pickable path. Advisors are the
+    top-4 runners-up derived by sequential exclusion (re-run the count without the winner,
+    repeatedly → the ranked top five). The launchpad card is now informational ("conferred
+    automatically"); the role stays assumable via the mockup controls so coverage holds.
 
-11. **Leaf-giant demo data.** §7 wants a leaf giant flagged "requires manual line-drawing" in the
-    NC district-mapper scenario, but no real US-scope leaf giant exists (states all have county
-    subdivisions). Built honestly: the scenario shows **Fujian (China)** as an Earth-scope example,
-    labeled as such, rather than inventing a fake US one. Tell me if a hypothetical US example is
-    preferred over a real out-of-scope one.
+11. ~~**Leaf-giant demo data.**~~ **Resolved.** "Giant"/"leaf" are programming vocabulary and never
+    display; user-facing copy says "exceeds the seat ceiling — subdivides further" / "no child
+    subdivisions in the dataset — lines must be drawn manually". Districts build from real
+    jurisdictional lines wherever possible — itself a candidate rule for the next draft (folded
+    into ledger [#q4](shared/constitutional-questions.html#q4)). The mapper is informational here;
+    the real one is already built in the product.
 
-— Added during Stages 1–7 (module-build resolutions worth a decision) —
+12. **Co-determination interpolation lacks a ledger anchor — AWAITING ANSWER (elaboration
+    requested).** Art. III §6 says worker representation "scales uniformly" from the first seat
+    at 100 employees to parity at 2,000 — but no formula. The screens implement a concrete one
+    (linear interpolation: worker seats ≈ round((workers − 100) ÷ 1,900 × owner seats), min 1 —
+    Bluefin at 740 workers → 3 of 9-owner board) and honestly cite `Art. III §6 · as implemented`.
+    Every other such citation links to a ledger entry; this one has none. Question: should the
+    interpolation formula become ledger entry #q8 (a candidate for the next draft, like the
+    countback)? One paragraph to add if yes.
 
-12. **Co-determination interpolation lacks a ledger anchor.** §9.6 prescribes "uniform
-    interpolation" between CLK-13 (100) and CLK-14 (2,000) — an evolution of Art. III §6's bare
-    "scales uniformly". The screens cite `Art. III §6 · as implemented (CGA spec)` but the ledger
-    only has entries #1–#5. Candidate for ledger entry #6 (worker seats =
-    max(1, round((W−100) ÷ 1,900 × owner seats)), which reproduces the department fixtures exactly).
-13. **Monopoly-acquisition vote threshold.** Art. III §5 and the vote-types sheet don't state one.
-    Rendered as the default act threshold (majority of ALL serving, peg-quorum basis); flag if it
-    should be a supermajority.
-14. **Governor-removal threshold (F-EXE-003 → legislative vote).** Unspecified in the sources; the
-    screens cite Art. III §4 and deliberately avoid asserting a supermajority.
-15. **CLK-06 critical-population default** is "setting per jurisdiction tier" with no number
-    anywhere; `jurisdictions/bootstrap.html` shows an illustrative amendable value (500, local
-    tier) so the pattern renders concretely.
-16. **Hardened bounds for several amendable settings** (election interval, residency days,
-    petition threshold %) have no numeric ranges in any source — the settings register shows
-    rule-text bounds (e.g. "cannot make terms outlast lockstep") instead of invented numbers.
-17. **Election sub-states vs the frozen scenario enum.** The Election machine has more states
-    (tabulating → certified → recount) than the frozen `election: approval|ranked|certifying`
-    scenario vocabulary; `electoral/election-detail.html` reaches the extra states via page-local
-    controls layered on `certifying`. Extend the enum only if flow deep-links need to pin those
-    sub-states.
+13. ~~**Monopoly-acquisition vote threshold.**~~ **Resolved.** Unstated thresholds are ordinary
+    majorities (of all serving, peg-quorum basis); supermajority applies only where stated.
+    Rendered accordingly.
+
+14. ~~**Governor-removal threshold.**~~ **Resolved.** Hiring-and-firing — ordinary majority.
+    Super/non-super are switches in the constitutional mechanism layer (the code system, later
+    phase). Rendered accordingly.
+
+15. ~~**CLK-06 critical-population default.**~~ **Resolved.** Activation pegs the count of active
+    players against real-world population per jurisdiction; institutions go live wherever enough
+    players actually play (a county can activate before its state; Earth-wide mechanisms can
+    activate first). Setup charters the final structure; play grows into it. Illustrative value
+    stays on the bootstrap page; framing added there.
+
+16. ~~**Hardened bounds for amendable settings.**~~ **Resolved.** Founding values are set on the
+    setup wizard's constitutional-defaults page; afterwards hardening flows through the roles &
+    permissions system (e.g. district mapping sits with election board members) and amendability
+    is played for — the data-structure phase after these mockups puts it to the test. Rule-text
+    bounds stay as rendered.
+
+17. ~~**Election sub-states vs the frozen scenario enum.**~~ **Resolved.** There is no real recount
+    mechanism — the count is in-system; certification is part of the regular process and a
+    "recount" is an audit review (re-run tabulation, re-verify the chain). Copy adjusted on the
+    results/board surfaces; page-local sub-states stay. Clock activation/lockstep context recorded
+    on the term-sync page: jurisdictions activate independently as player thresholds hit, and
+    election-day harmonization is an encompassing-level normalization that arrives with
+    participation.

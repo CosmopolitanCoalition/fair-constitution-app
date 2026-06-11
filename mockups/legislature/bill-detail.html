@@ -14,9 +14,9 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Bill · <span data-no-i18n>bill-2031-07</span></span>
-        <h1>Charlotte Clean Air Act</h1>
+        <h1>New York County Clean Air Act</h1>
         <p class="page-intro">Sponsored by Marcus Chen, in the Environment &amp; Infrastructure committee. The act sets
-          municipal air-quality standards for stationary sources and binds Charlotte only; the municipal judiciary
+          county air-quality standards for stationary sources and binds New York County only; the county judiciary
           hears disputes.</p>
         <div class="cluster">
           <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> In committee</span>
@@ -37,12 +37,13 @@
         <div class="grid-2">
           <div>
             <span class="eyebrow">Scale — jurisdictions bound</span>
-            <p style="margin-block-start:var(--space-1)">Charlotte (usa-4-charlotte) — the whole jurisdiction, including
-              constituents such as Plaza Midwood.</p>
+            <p style="margin-block-start:var(--space-1)">New York County (usa-3-new-york-county) — the whole
+              jurisdiction. The dataset carries no subdivisions below county, so no constituent jurisdictions are
+              named.</p>
           </div>
           <div>
             <span class="eyebrow">Scope — judiciary for disputes</span>
-            <p style="margin-block-start:var(--space-1)">Municipal judiciary hears disputes; binds Charlotte only.</p>
+            <p style="margin-block-start:var(--space-1)">County judiciary hears disputes; binds New York County only.</p>
           </div>
         </div>
         <p class="citation">Scale &amp; scope declared at introduction · F-LEG-003 · Art. V §4</p>
@@ -86,12 +87,15 @@
 
       <section class="card" aria-labelledby="bicam-h">
         <h2 id="bicam-h">Bicameral dual-agreement view</h2>
-        <p class="cc-small">Charlotte's legislature is unicameral. This preview shows how the same act would tally in a
-          legislature with constituent jurisdictions, where population-apportioned (type A) and equal-apportioned
-          (type B) members must <strong>both</strong> agree independently — at committee and on the floor.</p>
+        <p class="cc-small">The New York County legislature is unicameral. This preview shows how the same act would
+          tally in a legislature with constituent jurisdictions — New York (state), say, whose constituents are its
+          counties — where population-apportioned (type A) and equal-apportioned (type B) members must
+          <strong>both</strong> agree independently — at committee and on the floor. Each kind agrees by a majority of
+          all its serving members.</p>
         <div class="cluster" style="margin-block-end:var(--space-3)">
           <button type="button" class="btn btn--secondary btn--sm" id="bicam-toggle" aria-pressed="false">Preview bicameral tally</button>
-          <span class="citation">also driven by the demo-bar "Bicameral" toggle · Art. V §3 (Independent Agreement)</span>
+          <span class="citation">also driven by the demo-bar "Bicameral" toggle · Art. V §3 · as implemented
+            (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>)</span>
         </div>
         <div id="bicam-body"></div>
         <noscript><p>The dual-tally preview renders with JavaScript.</p></noscript>
@@ -115,7 +119,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'legislature/bill-detail',
-      title: 'Bill detail — Charlotte Clean Air Act',
+      title: 'Bill detail — New York County Clean Air Act',
       module: 'legislature',
       nav: 'bills',
       roles: ['R-09', 'R-10', 'R-11', 'R-12'],
@@ -184,7 +188,8 @@
             '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('check') +
             '<div><span class="banner-title">Both kinds agree at committee and on the floor — the act passes</span>' +
             'A failure in either kind, at either stage, fails the act. ' +
-            '<span class="citation">Independent agreement of both seat kinds · Art. V §3 · WF-LEG-07</span></div></div>';
+            '<span class="citation">Independent agreement of both seat kinds — majority of all serving of each kind · ' +
+            'Art. V §3 · as implemented (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>) · WF-LEG-07</span></div></div>';
 
         S.refresh();
       }

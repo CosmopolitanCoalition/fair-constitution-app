@@ -152,7 +152,7 @@
       var wanted = (window.CGA_PAGE_PARAMS && window.CGA_PAGE_PARAMS.get('candidate')) ||
         new URLSearchParams(window.location.hash.replace(/^#/, '?')).get('candidate');
       var cand = byCandId[wanted] || byCandId['diego-ramos'];
-      var election = W.elections[0]; /* elec-charlotte-2031 */
+      var election = W.elections[0]; /* elec-manhattan-2031 */
       var FINALISTS = election.finalistCount;
       var rank = byApprovals.indexOf(cand) + 1;
 
@@ -164,20 +164,20 @@
         'diego-ramos': [
           { org: 'commons-party', date: '2031-02-14', status: 'granted' },
           { org: 'green-horizon', date: '2031-04-30', status: 'pending' },
-          { org: 'piedmont-mutual-aid', date: '2031-03-22', status: 'declined' }
+          { org: 'hudson-mutual-aid', date: '2031-03-22', status: 'declined' }
         ]
       };
 
       var RECORD = {
         votes: [
-          { label: 'Aye — Charlotte Clean Air Act, committee referral', date: '2031-04-09' },
-          { label: 'Aye — FY2031 municipal budget, floor vote', date: '2030-12-15' },
+          { label: 'Aye — New York County Clean Air Act, committee referral', date: '2031-04-09' },
+          { label: 'Aye — FY2031 county budget, floor vote', date: '2030-12-15' },
           { label: 'Nay — Curfew Ordinance §3 amendment, floor vote', date: '2030-09-03' }
         ],
         actions: [
-          { label: 'Signed petition — Plaza Midwood traffic calming (pet-2031-04)', date: '2031-03-18' },
-          { label: 'Ranked ballot cast — Charlotte general election', date: '2030-11-05' },
-          { label: 'Residency verified — Plaza Midwood, Charlotte', date: '2028-07-02' }
+          { label: 'Signed petition — Manhattan traffic calming (pet-2031-04)', date: '2031-03-18' },
+          { label: 'Ranked ballot cast — New York County general election', date: '2030-11-05' },
+          { label: 'Residency verified — New York County, New York', date: '2028-07-02' }
         ],
         statements: [
           { label: 'Testimony to the Environment & Infrastructure committee on transit frequency', date: '2031-04-21' },
@@ -283,7 +283,7 @@
           area.innerHTML = '<button type="button" class="btn btn--secondary btn--sm" disabled>Withdraw candidacy</button>' +
             '<span class="citation">ballot locked at the finalist cutoff — withdrawal closed · CLK-21</span>';
         } else if (confirming) {
-          area.innerHTML = '<span class="cc-small" style="color:var(--gov-fg-strong)">Withdraw from the Charlotte race? This cannot be undone.</span>' +
+          area.innerHTML = '<span class="cc-small" style="color:var(--gov-fg-strong)">Withdraw from the New York County race? This cannot be undone.</span>' +
             '<button type="button" class="btn btn--danger btn--sm" id="withdraw-yes">Yes, withdraw</button>' +
             '<button type="button" class="btn btn--ghost btn--sm" id="withdraw-no">Keep running</button>';
         } else {

@@ -14,7 +14,7 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Executive · departments</span>
-        <h1>Department registry — Charlotte</h1>
+        <h1>Department registry — New York County</h1>
         <p class="page-intro">Departments are created by legislative act, chartered for a specific function, and run
           by an appointed Board of Governors under executive oversight. Co-determination applies to departments
           exactly as it does to private organizations: the first worker-elected board seat arrives at 100 workers.</p>
@@ -68,8 +68,8 @@
             <div class="field">
               <label class="field-label" for="dep-oversight">Oversight assignment</label>
               <select class="select" id="dep-oversight">
-                <option selected>Charlotte executive committee (delegated)</option>
-                <option>Mecklenburg County executive (elected individual)</option>
+                <option selected>New York County executive committee (delegated)</option>
+                <option>New York State executive (elected individual)</option>
               </select>
               <span class="field-hint">Which executive oversees — full and equal investigative power · Art. III §4</span>
             </div>
@@ -129,7 +129,8 @@
           <div id="form-exe-003"></div>
           <button type="button" class="btn btn--danger btn--sm" id="removal-btn" style="margin-block-start:var(--space-3)">Simulate a removal request</button>
           <p id="removal-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
-          <p class="citation" style="margin-block-start:var(--space-2)">Good-faith finding by the executive → legislative vote decides ·
+          <p class="citation" style="margin-block-start:var(--space-2)">Good-faith finding by the executive → removal decided by an ordinary
+            majority of all serving members (hiring and firing — supermajority applies only where the constitution states it) ·
             Art. III §4 — flow: <a href="../flows/WF-EXE-06.html">WF-EXE-06</a></p>
         </section>
 
@@ -220,7 +221,7 @@
             '<td>' + d.governors + ' governors' + (d.workerSeats ? ' + ' + d.workerSeats + ' worker-elected' : '') + '</td>' +
             '<td>' + d.workers.toLocaleString('en-US') + '</td>' +
             '<td>' + coDetCell(d) + '</td>' +
-            '<td>Charlotte executive committee<span class="citation" style="display:block">assigned by creation act · Art. III §4</span></td></tr>';
+            '<td>New York County executive committee<span class="citation" style="display:block">assigned by creation act · Art. III §4</span></td></tr>';
         }).join('');
 
         document.getElementById('form-leg-016').innerHTML = formCard('F-LEG-016');
@@ -234,7 +235,7 @@
         document.getElementById('nominate-confirm').innerHTML = sim.nominated
           ? S.badge('info', 'Dossier created', 'file-text') + ' <span class="cc-small">F-LEG-020 consent vote triggered in the chamber — simulated.</span>' : '';
         document.getElementById('removal-confirm').innerHTML = sim.removal
-          ? S.badge('warning', 'Removal proceeding opened', 'alert-triangle') + ' <span class="cc-small">Referred to the legislature for a vote — simulated.</span>' : '';
+          ? S.badge('warning', 'Removal proceeding opened', 'alert-triangle') + ' <span class="cc-small">Referred to the legislature — an ordinary majority of all serving members decides. Simulated.</span>' : '';
 
         S.refresh();
       }

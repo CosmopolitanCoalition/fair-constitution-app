@@ -49,11 +49,11 @@
             <caption class="visually-hidden">Authority claims and their resolution</caption>
             <thead><tr><th scope="col">Jurisdiction</th><th scope="col">Claimed by</th><th scope="col">Resolution</th></tr></thead>
             <tbody>
-              <tr><td>Charlotte (usa-4-charlotte)</td><td class="mono">charlotte.cga.example</td>
+              <tr><td>New York County (usa-3-new-york-county)</td><td class="mono">manhattan.cga.example</td>
                 <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> This instance · uncontested</span></td></tr>
-              <tr><td>Mecklenburg County (usa-3-mecklenburg-county)</td><td class="mono">meck-commons.example</td>
+              <tr><td>New York (usa-2-new-york)</td><td class="mono">albany-commons.example</td>
                 <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Recognized peer claim</span></td></tr>
-              <tr><td>North Carolina (usa-2-north-carolina)</td><td class="mono">piedmont-fed.example</td>
+              <tr><td>United States (usa-1-united-states)</td><td class="mono">potomac-fed.example</td>
                 <td><span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Handshake in progress</span></td></tr>
               <tr><td>Earth (earth-0-earth)</td><td class="mono">— no peer claim</td>
                 <td><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-globe"></use></svg> Mirrored here until a most-encompassing peer appears</span></td></tr>
@@ -75,8 +75,8 @@
       <section class="card" aria-labelledby="migrate-h">
         <h2 id="migrate-h">Authoritative-instance migration</h2>
         <p class="cc-small">When a jurisdiction stands up its own server it becomes the authoritative copy for
-          its records — for example, Plaza Midwood spinning out of this instance. Three steps, reversible until
-          the flip.</p>
+          its records — for example, Kings County standing up brooklyn.cga.example and spinning out of
+          albany-commons.example. Three steps, reversible until the flip.</p>
         <ol class="stepper" id="migrate-steps"></ol>
         <p id="migrate-desc" style="margin-block-start:var(--space-3)"></p>
         <div class="cluster">
@@ -96,13 +96,13 @@
             <caption class="visually-hidden">Boundary change proposals and ratification status</caption>
             <thead><tr><th scope="col">Boundary change</th><th scope="col">Affected population</th><th scope="col">Supermajority needed</th><th scope="col">Status</th></tr></thead>
             <tbody>
-              <tr><td>Plaza Midwood ↔ Commonwealth Park (Hawthorne Ln corridor)</td>
+              <tr><td>New York County ↔ Bronx County (Marble Hill corridor)</td>
                 <td class="mono">2,140</td><td class="mono">1,427 (2/3)</td>
                 <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Ratified — 1,512 in favor</span></td></tr>
-              <tr><td>Charlotte ↔ Matthews (Sardis Rd annexation)</td>
+              <tr><td>Kings County ↔ Queens County (Ridgewood boundary)</td>
                 <td class="mono">8,890</td><td class="mono">5,927 (2/3)</td>
                 <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Referendum scheduled 2031-08-02</span></td></tr>
-              <tr><td>Mint Hill ↔ Mecklenburg unincorporated (Idlewild Rd S)</td>
+              <tr><td>Bronx County ↔ Westchester County (Pelham boundary)</td>
                 <td class="mono">1,304</td><td class="mono">870 (2/3)</td>
                 <td><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Proposal drafted</span></td></tr>
             </tbody>
@@ -154,17 +154,17 @@
       var esc = S.esc;
 
       var PEERS = [
-        { host: W.instance.host, jur: 'Charlotte (usa-4-charlotte)', state: 'Authoritative', tone: 'success', icon: 'check', beat: '— local instance' },
-        { host: 'meck-commons.example', jur: 'Mecklenburg County (usa-3-mecklenburg-county)', state: 'Syncing', tone: 'info', icon: 'refresh-cw', beat: '2031-06-11 14:02' },
-        { host: 'piedmont-fed.example', jur: 'North Carolina (usa-2-north-carolina)', state: 'Handshake', tone: 'warning', icon: 'clock', beat: '2031-06-11 13:47' }
+        { host: W.instance.host, jur: 'New York County (usa-3-new-york-county)', state: 'Authoritative', tone: 'success', icon: 'check', beat: '— local instance' },
+        { host: 'albany-commons.example', jur: 'New York (usa-2-new-york)', state: 'Syncing', tone: 'info', icon: 'refresh-cw', beat: '2031-06-11 14:02' },
+        { host: 'potomac-fed.example', jur: 'United States (usa-1-united-states)', state: 'Handshake', tone: 'warning', icon: 'clock', beat: '2031-06-11 13:47' }
       ];
 
       var LOG = [
-        { seq: '#84,113', hash: 'a3f29c…b81d', text: 'Residency confirmation (usa-4-charlotte) mirrored to meck-commons.example', tone: null },
-        { seq: '#84,112', hash: '77c0de…41aa', text: 'Endorsement record diverged across copies — conflict resolved: authoritative instance wins (charlotte.cga.example)', tone: 'warning', label: 'Conflict resolved' },
-        { seq: '#84,111', hash: 'f01b3a…9c2e', text: 'Election certification (elec-mecklenburg-2031) received from meck-commons.example — authoritative write accepted', tone: null },
-        { seq: '#84,110', hash: '5d8e17…0f44', text: 'Write rejected: non-authoritative instance attempted to update a Charlotte legislature record', tone: 'danger', label: 'Rejected', rejected: true },
-        { seq: '#84,109', hash: 'c4a651…7e93', text: 'Heartbeat exchange with piedmont-fed.example — trust ladder advanced to Handshake', tone: null }
+        { seq: '#84,113', hash: 'a3f29c…b81d', text: 'Residency confirmation (usa-3-new-york-county) mirrored to albany-commons.example', tone: null },
+        { seq: '#84,112', hash: '77c0de…41aa', text: 'Endorsement record diverged across copies — conflict resolved: authoritative instance wins (manhattan.cga.example)', tone: 'warning', label: 'Conflict resolved' },
+        { seq: '#84,111', hash: 'f01b3a…9c2e', text: 'Election certification (elec-queens-2031) received from albany-commons.example — authoritative write accepted', tone: null },
+        { seq: '#84,110', hash: '5d8e17…0f44', text: 'Write rejected: non-authoritative instance attempted to update a New York County legislature record', tone: 'danger', label: 'Rejected', rejected: true },
+        { seq: '#84,109', hash: 'c4a651…7e93', text: 'Heartbeat exchange with potomac-fed.example — trust ladder advanced to Handshake', tone: null }
       ];
 
       var MIGRATE = [

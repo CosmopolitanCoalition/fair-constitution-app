@@ -16,11 +16,11 @@
 
       <header>
         <span class="eyebrow">Organizations · Common Good Corporation</span>
-        <h1>Mecklenburg Water &amp; Power</h1>
+        <h1>Manhattan Water &amp; Power</h1>
         <p class="page-intro">A Common Good Corporation is a public enterprise chartered by a legislature to provide
           goods or services to its jurisdiction. It competes and is regulated exactly like its private peers — with one
           permanent difference: everything it creates belongs to everyone.</p>
-        <p class="citation">Created by act of the Mecklenburg County legislature · Art. III §5 · WF-ORG-08</p>
+        <p class="citation">Created by act of the New York County legislature · Art. III §5 · WF-ORG-08</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-4)">
@@ -38,9 +38,9 @@
       <section class="card" aria-labelledby="charter-h">
         <h2 id="charter-h">Charter</h2>
         <p style="font-size:var(--text-sm)"><strong>Purpose:</strong> provide water and electric utility service to all
-          residents of Mecklenburg County at cost; maintain the Catawba intake and the county grid; publish all
+          residents of New York County at cost; maintain the Hudson intake and the county grid; publish all
           operational data as public records.</p>
-        <p style="font-size:var(--text-sm)"><strong>Chartered by:</strong> Act 2029-07 of the Mecklenburg County
+        <p style="font-size:var(--text-sm)"><strong>Chartered by:</strong> Act 2029-07 of the New York County
           legislature · effective 2029-09-01 ·
           <span class="citation">shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
         <div id="charter-formcard" style="margin-block-start:var(--space-3)"></div>
@@ -50,7 +50,7 @@
 
       <section class="card" aria-labelledby="oversight-h">
         <h2 id="oversight-h">Executive oversight</h2>
-        <p style="font-size:var(--text-sm)">Oversight is assigned to the
+        <p style="font-size:var(--text-sm)">Oversight is assigned to the New York County
           <a href="../executive/department-detail.html">Public Works &amp; Utilities department</a>, whose Board of
           Governors receives this CGC's periodic reports. Oversight does not exempt the CGC from any regulation a
           private utility would face — same inspectors, same courts, same standards.</p>
@@ -121,7 +121,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'organizations/cgc-detail',
-      title: 'Common Good Corporation — Mecklenburg Water & Power',
+      title: 'Common Good Corporation — Manhattan Water & Power',
       module: 'organizations',
       nav: 'org-registry',
       roles: ['R-09', 'R-18', 'R-25', 'R-27'],
@@ -145,7 +145,7 @@
 
       var ipAssets = [
         { name: 'Grid telemetry firmware v4', kind: 'Software', published: '2030-11-14' },
-        { name: 'Catawba intake water-quality model', kind: 'Model + dataset', published: '2030-06-02' },
+        { name: 'Hudson intake water-quality model', kind: 'Model + dataset', published: '2030-06-02' },
         { name: 'Outage-prediction training set (2029–2031)', kind: 'Dataset', published: '2031-02-20' },
         { name: 'Substation maintenance playbooks', kind: 'Documentation', published: '2029-12-08' }
       ];
@@ -169,7 +169,7 @@
           : '';
 
         /* worker seats from the canonical scale: max(1, round((1450−100)÷1900×7)) = 5 */
-        var mwp = BY.organizations['mecklenburg-water-power'];
+        var mwp = BY.organizations['manhattan-water-power'];
         var seats = Math.max(1, Math.min(7, Math.round((mwp.workers - 100) / 1900 * 7)));
         document.getElementById('stat-worker-seats').textContent = seats;
 
