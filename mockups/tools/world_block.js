@@ -252,46 +252,44 @@
         finalistRule: 'top X per district · CLK-21', clocks: ['CLK-18', 'CLK-21'] }
     ],
 
-    /* District-mapper scenario: the United States legislature scoped to
-       New York State. Vocabulary mirrors the shipped Legislature browser;
-       districts are composites of real county lines wherever possible. */
+    /* District scenario — mirrors the developed Legislature Browser: the
+       Earth legislature (1,999 seats, quota 3,985,245) with the Autoseed
+       Attempt 2 draft. Member jurisdictions above the 9-seat ceiling (India,
+       Mexico, …) subdivide over their own scope inside the parent budget —
+       their election boards draw those districts. */
     districtScenario: {
-      legislature: 'usa-1-united-states',
-      scope: 'usa-2-new-york',
+      legislature: 'earth-0-earth',
+      scope: 'earth-0-earth',
       sizingLaw: 'cube_root',
       sizingGloss: 'total seats = max(5, round(∛ population)) · Art. II §2 · as implemented',
-      totalSeatsUS: 692,
-      scopeBudget: 42,
-      quota: 480982,
+      totalSeats: 1999,
+      quota: 3985245,
       allocation: 'webster',
       maps: [
-        { id: 'ny-2030', name: 'NY Plan 2030', status: 'active', districts: [
-          { name: 'New York City', seats: 9, population: 4328838, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.72 },
-          { name: 'Long Island', seats: 8, population: 3847856, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.64 },
-          { name: 'Hudson Valley & Capital', seats: 8, population: 3847900, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.61 },
-          { name: 'Western New York', seats: 9, population: 4328800, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.66 },
-          { name: 'Central & North Country', seats: 8, population: 3847855, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.58 }
+        { id: 'autoseed-2', name: 'Autoseed Attempt 2', status: 'draft', districts: [
+          { name: 'IND 05', seats: 7, population: 27100000, deviationPct: -3.0, contiguous: true, integrity: 'intact', chr: 0.702 },
+          { name: 'USA NY', seats: 5, population: 20201249, deviationPct: 1.4, contiguous: true, integrity: 'intact', chr: 0.741 },
+          { name: 'MEX 06', seats: 7, population: 26800000, deviationPct: -5.1, contiguous: true, integrity: 'intact', chr: 0.777 },
+          { name: 'EAR 39', seats: 7, population: 27500000, deviationPct: -1.5, contiguous: true, integrity: 'intact', chr: 0.611 },
+          { name: 'EAR 44', seats: 4, population: 16400000, deviationPct: 2.8, contiguous: false, integrity: 'intact', chr: 0.529 }
         ] },
-        { id: 'ny-2031-draft', name: 'NY Plan 2031 (draft)', status: 'draft', districts: [
-          { name: 'Manhattan & Bronx', seats: 7, population: 3366905, deviationPct: 0.0, contiguous: true, integrity: 'intact', chr: 0.70 },
-          { name: 'Brooklyn & Staten Island', seats: 7, population: 3231821, deviationPct: -4.0, contiguous: true, integrity: 'intact', chr: 0.68 },
-          { name: 'Queens & Long Island East', seats: 7, population: 3404000, deviationPct: 1.1, contiguous: true, integrity: 'intact', chr: 0.63 },
-          { name: 'Hudson & Westchester', seats: 7, population: 3380000, deviationPct: 0.4, contiguous: true, integrity: 'intact', chr: 0.60 },
-          { name: 'Capital & North Country', seats: 7, population: 3360000, deviationPct: -0.2, contiguous: true, integrity: 'intact', chr: 0.57 },
-          { name: 'Buffalo & Finger Lakes', seats: 7, population: 3458523, deviationPct: 2.7, contiguous: true, integrity: 'intact', chr: 0.65 }
-        ] }
+        { id: 'autoseed-1', name: 'Autoseed Attempt 1', status: 'archived', districts: [] }
       ],
-      /* Display vocabulary: numeric levels and "giant/leaf" stay in dev land. */
-      giantExpanded: {
-        slug: 'usa-2-new-york', fractionalSeats: 42.18,
-        note: 'New York exceeds the 9-seat ceiling at United States scope, so it subdivides further — it carries its own sub-district budget (recursing down the chain).'
+      quality: {
+        intact: '393 (100.0%)', contiguous: '376 (95.7%)', nonContiguous: '17 (4.3%)',
+        popEqualityAvg: '3.72%', overRep: 'MYS 02 (−44.33%)', underRep: 'SHA 01 (+22.23%)', range: '2.195:1',
+        compactnessMean: 0.623,
+        optimal: '(6 × 6) + (33 × 7) + 1732 = 1999',
+        current: '(6 × 4) + (6 × 5) + (18 × 6) + (15 × 7) + 1732 = 1999'
       },
-      leafGiant: {
-        name: 'Fujian (China)', scope: 'Earth-scope dataset', fractionalSeats: 9.42,
-        flag: 'requires manual line-drawing',
-        note: 'Example from the Earth-scope data — above the seat ceiling with no child subdivisions in the dataset, so district lines must be drawn manually. No US instance exists; shown for the UI state.'
-      },
-      grouping: { optimal: 218, suboptimal: 41, current: 15 }
+      subdividingMembers: [
+        { name: 'India', seats: 358, note: 'subdivides over its own scope' },
+        { name: 'Mexico', seats: 32, quota: 4038567, districts: 6, note: 'its election board draws districts inside the parent budget' }
+      ],
+      manualCase: {
+        name: 'Fujian (China)', fractionalSeats: 9.42, flag: 'requires manual line-drawing',
+        note: 'Above the seat ceiling with no child subdivisions in the dataset, so district lines must be drawn manually.'
+      }
     },
 
     bills: [

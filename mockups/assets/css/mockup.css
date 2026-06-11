@@ -730,6 +730,20 @@ button, [role="button"], a.btn, input, select, summary { min-block-size: 1.5rem;
   color: var(--status-success-fg); border-radius: var(--radius-sm); padding-inline: 2px;
 }
 
+/* Developed-component slot marker — handoff metadata, not product UI.
+   Marks where an already-developed tool (Legislature Browser, Jurisdiction
+   Viewer, Setup wizard) mounts; the developed part adopts THIS design system. */
+.dev-slot {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--cc-gold-300);
+  background: color-mix(in oklch, var(--cc-gold-400) 8%, var(--gov-bg));
+  border: 1px dashed var(--cc-gold-600);
+  border-radius: var(--radius-md);
+  padding-block: var(--space-1); padding-inline: var(--space-3);
+}
+.dev-slot .icon { color: var(--cc-gold-400); }
+
 /* Seat map (chamber roster) */
 .seat-map { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .seat-dot {

@@ -74,6 +74,7 @@
       'nav.advocateConsole': 'Advocate console',
       'nav.jurorView': 'Jury service',
       'nav.system': 'System',
+      'nav.setupWizard': 'Instance setup',
       'nav.publicRecords': 'Public records',
       'nav.auditChain': 'Audit chain',
       'nav.clocks': 'Clocks & triggers',

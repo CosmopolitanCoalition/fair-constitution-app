@@ -1655,6 +1655,27 @@
   "stage": 6
  },
  {
+  "file": "system/setup-wizard.html",
+  "title": "Instance setup — the founding loop",
+  "module": "system",
+  "roles": [],
+  "workflows": [
+   "WF-JUR-01"
+  ],
+  "forms": [],
+  "entities": [
+   "Jurisdiction"
+  ],
+  "clocks": [
+   "CLK-01",
+   "CLK-05",
+   "CLK-06"
+  ],
+  "suggestedVuePage": "resources/js/Pages/Setup/* (SHIPPED — Steps 0–4 exist; they adopt this design system)",
+  "notes": "Placement contract for the developed setup wizard: Step 0 cosmic address + restore-from-backup, Step 1 constitutional defaults (defaults-of-defaults as reference), Step 2 ETL run with live layer progress + jurisdiction-viewer review, Step 3 apportionment + district-mapper handoff, Step 4 confirm/seat + instance export (the federation seed). Marked with a developed-component slot strip.",
+  "stage": 6
+ },
+ {
   "file": "flows/WF-CIV-01.html",
   "title": "Flow — Onboarding & Identity Verification",
   "module": "flows",

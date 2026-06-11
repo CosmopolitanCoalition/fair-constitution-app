@@ -219,7 +219,24 @@ ballot), `.stv-*` (round-by-round count bars + quota mark), `.receipt` (ballot h
 preserved in the build session record); the ones that read as open product questions were promoted
 to `OPEN_QUESTIONS.md` (#12–#17).
 
-## 7. Owner review round (2026-06-11) — applied decisions
+## 7. Developed-component slots — round peg, round hole
+
+Three tools already exist as working software in the product worktree. The mockups carry their
+**placement contracts**: same panes, same position in the global navigation, recreated in the
+mockup design system — because the developed parts ADOPT this design system, not the reverse.
+Each slot is marked on-page with a `.dev-slot` strip.
+
+| Mockup page | Developed component | What the slot fixes |
+|---|---|---|
+| `jurisdictions/jurisdiction-browser.html` | Jurisdiction viewer (`Pages/Jurisdictions/Show.vue`) | Left profile panel (breadcrumb, natural-level badge, Wong-orange population / sky-blue members, Region & dataset provenance, maps-accepted record, View Legislature & Districts) + right Leaflet map with Names/Population/Members/Raster toggles and the geoBoundaries/Protomaps/WorldPop attribution. |
+| `jurisdictions/district-mapper.html` | Legislature Browser (`Pages/Legislature/Show.vue`) | Left browser panel (root seats + quota, Districts/Assigned/Unassigned, plan selector + Activate, MAP QUALITY ledger, Autoseed/Clear, prev/up/next wizard row, member table with Dev·CHR·Contig·Intact strips, inline sub-district expansion, drill into subdividing member scopes — the Mexico case) + right map with Seats/Pop/Names/Jurs/Stats/Raster label layers. |
+| `system/setup-wizard.html` | Setup wizard (`Pages/Setup/Step0…Step4`) | The five-step founding loop: cosmic address + restore-from-backup → constitutional defaults (defaults-of-defaults as reference, never locks) → ETL run with per-layer live progress and jurisdiction-viewer review → apportionment + district-mapper handoff → confirm/seat + instance export (the federation seed for Step 0 restores). |
+
+The maps inside the slots are stylized SVG stand-ins; the running tools render Leaflet +
+protomaps + geoBoundaries + WorldPop. Data shown mirrors a real development run (Earth legislature,
+1,999 seats, quota 3,985,245; Autoseed Attempt 2; ~951k imported jurisdictions).
+
+## 8. Owner review round (2026-06-11) — applied decisions
 
 JD's review answers (recorded against `OPEN_QUESTIONS.md` 1–17; only #12 remains open):
 

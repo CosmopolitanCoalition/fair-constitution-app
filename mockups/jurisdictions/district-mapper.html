@@ -8,137 +8,65 @@
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
   <script src="../assets/js/demo-state.js"></script>
+  <style>
+    /* Two-pane recreation of the developed Legislature Browser (tokens only). */
+    .lb-wrap { display: grid; grid-template-columns: 24rem minmax(0, 1fr); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); overflow: hidden; min-block-size: 42rem; }
+    .lb-panel { background: var(--gov-surface); border-inline-end: 1px solid var(--gov-border); overflow-y: auto; max-block-size: 52rem; }
+    .lb-head { padding: var(--space-3) var(--space-4); border-block-end: 1px solid var(--gov-border); }
+    .lb-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+    .lb-stat { background: var(--gov-surface-2); border-radius: var(--radius-md); padding: var(--space-2); text-align: center; }
+    .lb-stat .n { display: block; font-size: var(--text-xl); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
+    .lb-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-block-end: 1px solid var(--gov-border); font-size: var(--text-sm); }
+    .lb-qstrip { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: 2px var(--space-4) var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); border-block-end: 1px solid var(--gov-border); background: color-mix(in oklch, var(--gov-surface-2) 60%, transparent); }
+    .lb-map { position: relative; background: var(--cc-gray-200); min-block-size: 42rem; }
+    .lb-map svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
+    .map-toggles { position: absolute; inset-block-start: var(--space-3); inset-inline-end: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); z-index: 5; }
+    .map-attrib { position: absolute; inset-block-end: 0; inset-inline-end: 0; background: color-mix(in oklch, var(--cc-white) 80%, transparent); color: var(--cc-gray-700); font-size: var(--text-xs); padding: 2px var(--space-2); z-index: 5; }
+    .q-ok { color: var(--status-success); } .q-warn { color: var(--status-warning); } .q-bad { color: var(--status-danger); }
+    .qline { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--text-xs); padding-block: 1px; }
+    .wizard-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-1); padding: var(--space-2) var(--space-3); background: color-mix(in oklch, var(--cc-purple-600) 18%, var(--gov-bg)); border-block: 1px solid color-mix(in oklch, var(--cc-purple-400) 35%, transparent); }
+    @media (max-width: 64rem) { .lb-wrap { grid-template-columns: 1fr; } .lb-panel { max-block-size: none; border-inline-end: 0; border-block-end: 1px solid var(--gov-border); } .lb-map { min-block-size: 26rem; } }
+  </style>
 </head>
 <body>
-  <main id="main">
+  <main id="main" style="max-inline-size:none;padding-inline:var(--space-4)">
     <div class="stack">
       <header>
-        <span class="eyebrow">Jurisdictions · district mapper</span>
-        <h1>District mapper — United States legislature, scoped to New York</h1>
-        <p class="page-intro">Districts are composites of direct child jurisdictions — whole counties grouped
-          together, never split lines on a map. Seats are Webster-rounded inside the constitutional 5–9 range;
-          a child that exceeds the 9-seat ceiling subdivides further, carrying its own sub-district budget down
-          the chain.</p>
-        <p class="citation">Scope: Earth › United States › New York · Art. II §2, §8 — Subdivision of Legislatures</p>
+        <span class="eyebrow">Jurisdictions · districting</span>
+        <h1>District mapper — the Legislature Browser</h1>
+        <p class="page-intro" style="max-inline-size:56rem">The placement contract for the developed Legislature Browser — same panes, same position in the
+          navigation; the shipped tool adopts this design system (round peg, round hole). One legislature — Earth, 1,999 seats — seen at two scopes: the planetary root, and Mexico,
+          a member jurisdiction whose seat share exceeds the 9-seat ceiling and therefore subdivides further. Mexico's own
+          election board draws those districts over its own scope, inside the parent budget.</p>
+        <p class="citation">Sizing: cube-root law · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)
+          — districts: composites of real jurisdictional lines · Art. II §8 · Subdivision of Legislatures
+          (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>) — board oversight: Subdivision boundary drawing · F-ELB-003 · available to R-08 · Art. II §2</p>
       </header>
 
-      <section class="card" aria-labelledby="budget-h">
-        <h2 id="budget-h">Seat budget</h2>
-        <div class="cluster" style="gap:var(--space-6)">
-          <div class="stat"><span class="stat-number" id="stat-us-seats">692</span><span class="stat-label">US seats · cube-root sizing law</span></div>
-          <div class="stat stat--accent"><span class="stat-number" id="stat-scope-budget">42</span><span class="stat-label">New York budget</span></div>
-          <div class="stat"><span class="stat-number" id="stat-quota">480,982</span><span class="stat-label">quota · population per seat</span></div>
+      <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Legislature Browser (district mapper) mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
+
+      <div class="lb-wrap">
+        <div class="lb-panel" id="lb-panel"></div>
+        <div class="lb-map">
+          <div class="map-toggles" id="map-toggles" role="group" aria-label="Map label layers"></div>
+          <svg id="lb-svg" viewBox="0 0 980 640" role="img" aria-label="Stylized district map — the running application renders Leaflet with protomaps tiles and geoBoundaries geometry"></svg>
+          <span class="map-attrib" data-no-i18n>Leaflet | Boundaries © geoBoundaries, Protomaps © OpenStreetMap, Population © WorldPop — stylized stand-in</span>
         </div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing: total seats = max(5, round(∛ population)) —
-          the chamber grows with population but never without bound. Webster rounding then splits a parent's
-          budget across its districts so every seat represents the same number of people.</p>
-        <p class="citation">Legislature sizing law: cube_root · Art. II §2 · as implemented
-          (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p>
-        <div class="cluster" style="margin-block-start:var(--space-3)">
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-          <span class="citation">every district holds 5–9 seats · subdivision is mandatory above 9 · CLK-07; CLK-08 · Art. II §2, §8</span>
-        </div>
-      </section>
-
-      <section class="card" aria-labelledby="maps-h">
-        <h2 id="maps-h">District maps — versioned</h2>
-        <p class="cc-small">Boundary plans are versioned: one active plan, any number of drafts, and an archive
-          that preserves history. Activating a draft archives the current plan — nothing is destroyed.</p>
-        <div id="activate-note"></div>
-        <div id="map-cards" class="stack" style="gap:var(--space-4)"></div>
-        <noscript><p class="gloss">The versioned-map cards need JavaScript. NY Plan 2030 (active): New York City 9 seats,
-          Long Island 8, Hudson Valley &amp; Capital 8, Western New York 9, Central &amp; North Country 8.
-          NY Plan 2031 (draft): six districts of 7 seats each.</p></noscript>
-      </section>
-
-      <section class="card" aria-labelledby="map-h">
-        <h2 id="map-h">Plan map <span class="citation" id="map-which"></span></h2>
-        <div id="plan-svg"></div>
-        <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS; one feature per member
-          jurisdiction, so integrity reads "drawn along admin boundaries" directly off the geometry.</p>
-      </section>
-
-      <div class="grid-2">
-        <section class="card" aria-labelledby="ceiling-h">
-          <h2 id="ceiling-h">Children above the 9-seat ceiling</h2>
-          <details>
-            <summary style="cursor:pointer;color:var(--gov-fg-strong)">
-              <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
-              New York — fractional seats <span class="citation">42.18</span>
-              <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> Subdivides further</span>
-            </summary>
-            <p style="margin-block-start:var(--space-2)">New York exceeds the 9-seat ceiling at United States
-              scope (42.18 fractional seats &gt; 9), so it subdivides further — it carries its own sub-district
-              budget of 42 seats (recursing down the chain), and its counties become the composite pieces in
-              the plans on this page.</p>
-            <p class="citation">district_id = null at parent scope is expected for children above the ceiling — their own subdivisions are the members</p>
-          </details>
-          <hr />
-          <h3>Above the ceiling with no child subdivisions to compose</h3>
-          <p><strong>Fujian (China)</strong> · Earth-scope dataset · fractional seats <span class="citation">9.42</span>
-            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg> Requires manual line-drawing</span></p>
-          <p class="cc-small">Example from the Earth-scope data — above the seat ceiling with no child
-            subdivisions in the dataset, so district lines must be drawn manually. No US instance exists; shown
-            for the UI state. The manual district-drawing tool (WorldPop rasters + population_within) is the
-            open frontier.</p>
-          <p class="citation">Art. II §8 · as implemented (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>)</p>
-        </section>
-
-        <section class="card" aria-labelledby="grouping-h">
-          <h2 id="grouping-h">Grouping quality</h2>
-          <p class="cc-small">The auto-composite search scores every way of grouping the 62 counties into
-            in-range districts. The current plan is one grouping among many.</p>
-          <div class="cluster" style="gap:var(--space-6)">
-            <div class="stat"><span class="stat-number">218</span><span class="stat-label">optimal groupings</span></div>
-            <div class="stat"><span class="stat-number">41</span><span class="stat-label">suboptimal groupings</span></div>
-            <div class="stat stat--accent"><span class="stat-number">15</span><span class="stat-label">rank of current grouping</span></div>
-          </div>
-          <p class="gloss" style="margin-block-start:var(--space-2)">Optimal = lowest population deviation with
-            contiguity intact; the current grouping sits inside the optimal band. A floor override (a district
-            held at 5 seats despite fractional under-run) is flagged when N=2 bins make it mathematically
-            unavoidable — none in this plan.</p>
-          <p class="citation">contiguity · compactness (CHR) · integrity: drawn along admin boundaries · Art. II §8</p>
-        </section>
       </div>
-
-      <section class="card" aria-labelledby="accept-h">
-        <h2 id="accept-h">Accept maps — under election-board observation</h2>
-        <div id="accept-form-card"></div>
-        <form id="accept-form" style="margin-block-start:var(--space-4)">
-          <div class="field">
-            <label class="field-label" for="accept-plan">Plan to accept</label>
-            <select class="select" id="accept-plan">
-              <option value="ny-2031-draft">NY Plan 2031 (draft)</option>
-              <option value="ny-2030">NY Plan 2030 (active — re-certify)</option>
-            </select>
-            <span class="field-hint">Draft maps are published for public observation before acceptance.</span>
-          </div>
-          <div class="field">
-            <label class="field-label" for="accept-note">Observation statement (public record)</label>
-            <textarea class="field-input" id="accept-note" rows="2" placeholder="Equal, contiguous, drawn along admin boundaries — reviewed against the quota."></textarea>
-          </div>
-          <label class="checkbox" style="margin-block-end:var(--space-4)">
-            <input type="checkbox" id="accept-published" checked /> Published for public observation since 2031-05-02 —
-            shown in your timezone (UTC−5 · America/New_York) · stored as UTC
-          </label>
-          <div class="cluster">
-            <button type="submit" class="btn btn--primary">Accept maps</button>
-            <span id="accept-status"></span>
-          </div>
-        </form>
-      </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-06.html">WF-ELE-06 — subdivision &amp; boundary drawing</a>
-            (fires when apportionment exceeds the 9-seat ceiling · CLK-07) and
-            <a href="../flows/WF-JUR-09.html">WF-JUR-09 — population records &amp; apportionment</a>
-            (the census engine that feeds the quota). The election board observes from
-            <a href="../electoral/election-board-console.html">its console</a>.</p>
-          <p><strong>Entity state machine:</strong> Jurisdiction — the [Subdivided] state; district maps cycle
-            draft → active → archived without destroying history.</p>
-          <p class="citation">Art. II §2, §8 · CLK-07; CLK-08 · ledger #3, #4</p>
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-06.html">WF-ELE-06 (subdivision boundary drawing)</a> ·
+            <a href="../flows/WF-JUR-09.html">WF-JUR-09 (population records &amp; apportionment)</a>.</p>
+          <p><strong>What the views share:</strong> versioned plans (draft → Activate → active, prior plans archived);
+            the map-quality ledger (community integrity, constitutional contiguity, population equality with extremes,
+            shape compactness, uniform political diversity); per-district quality strips (Dev · CHR · Contig · Intact);
+            member jurisdictions above the ceiling carrying their own sub-district budgets — drill to their scope.</p>
+          <p><strong>Vocabulary:</strong> seats budget and quota (population ÷ seats) shown at every scope; "intact" =
+            drawn along real jurisdictional lines; free-drawn lines are needed only where a jurisdiction exceeds the
+            ceiling with no subdivisions in the dataset.</p>
+          <p class="citation">Art. II §2 · Art. II §8 · F-ELB-003 · CLK-07 · CLK-08</p>
         </div>
       </details>
     </div>
@@ -147,13 +75,13 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/district-mapper',
-      title: 'District mapper',
+      title: 'District mapper — Legislature Browser',
       module: 'jurisdictions',
       nav: 'district-mapper',
       roles: ['R-03', 'R-08'],
       workflows: ['WF-ELE-06', 'WF-JUR-09'],
       forms: ['F-ELB-003'],
-      citation: 'Cube-root sizing · Webster composites · 5–9 seats per district · Art. II §2, §8',
+      citation: 'Cube-root seats · Webster composites of real lines · Art. II §2, §8',
       flow: 'WF-ELE-06',
       register: 'governance'
     };
@@ -166,145 +94,237 @@
   <script>
     (function () {
       'use strict';
-      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var S = window.CGA.shell;
       var esc = S.esc;
-      var DS = W.districtScenario;
-      var WONG = ['--wong-orange', '--wong-skyblue', '--wong-green', '--wong-yellow', '--wong-blue', '--wong-vermil', '--wong-purple'];
 
-      /* Page-local interaction state: which map is active / shown; nothing leaves the page. */
-      var status = {}; /* mapId -> 'active' | 'draft' | 'archived' */
-      DS.maps.forEach(function (m) { status[m.id] = m.status; });
-      var shownMap = DS.maps[0].id;
-      var activateNote = '';
-      var acceptDone = false;
-
-      function statusBadge(st) {
-        if (st === 'active') return S.badge('success', 'Active', 'check');
-        if (st === 'draft') return S.badge('info', 'Draft', 'file-text');
-        return S.badge('neutral', 'Archived', 'clock');
-      }
-
-      function districtRows(m) {
-        return m.districts.map(function (d) {
-          var inRange = d.seats >= 5 && d.seats <= 9;
-          return '<tr>' +
-            '<td>' + esc(d.name) + '</td>' +
-            '<td class="mono">' + d.seats + ' ' + (inRange
-              ? S.icon('check', { size: 'sm', label: 'inside the 5–9 range' })
-              : S.icon('alert-triangle', { size: 'sm', label: 'outside the 5–9 range' })) + '</td>' +
-            '<td class="mono">' + d.population.toLocaleString('en-US') + '</td>' +
-            '<td class="mono">' + (d.deviationPct > 0 ? '+' : '') + d.deviationPct.toFixed(1) + '%</td>' +
-            '<td>' + (d.contiguous
-              ? S.badge('success', 'Contiguous', 'check')
-              : S.badge('danger', 'Not contiguous', 'alert-triangle')) + '</td>' +
-            '<td>' + (d.integrity === 'intact'
-              ? S.badge('success', 'Intact', 'check')
-              : S.badge('warning', 'Segmented', 'alert-triangle')) + '</td>' +
-            '<td class="mono">' + d.chr.toFixed(2) + '</td>' +
-            '</tr>';
-        }).join('');
-      }
-
-      function mapCard(m) {
-        var st = status[m.id];
-        var totalSeats = m.districts.reduce(function (a, d) { return a + d.seats; }, 0);
-        var activate = st === 'draft'
-          ? '<button type="button" class="btn btn--gold btn--sm" data-activate="' + esc(m.id) + '">Activate</button>'
-          : '';
-        var show = m.id === shownMap
-          ? '<span class="badge badge--neutral">' + S.icon('map', { size: 'sm' }) + ' Shown on map</span>'
-          : '<button type="button" class="btn btn--ghost btn--sm" data-show="' + esc(m.id) + '">Show on map</button>';
-        return '<div class="card card--inset">' +
-          '<div class="cluster" style="justify-content:space-between">' +
-          '<h3 style="margin-block-end:0">' + esc(m.name) + ' ' + statusBadge(st) + '</h3>' +
-          '<div class="cluster">' + show + activate + '</div></div>' +
-          '<p class="citation" style="margin-block:var(--space-2)">' + m.districts.length + ' districts · ' +
-          totalSeats + ' of ' + DS.scopeBudget + ' budgeted seats · Webster allocation · deviation vs quota ' +
-          DS.quota.toLocaleString('en-US') + ' pop/seat</p>' +
-          '<div class="table-wrap"><table class="table">' +
-          '<caption class="visually-hidden">Districts in ' + esc(m.name) + '</caption>' +
-          '<thead><tr><th scope="col">District</th><th scope="col">Seats</th><th scope="col">Population</th>' +
-          '<th scope="col">Deviation</th><th scope="col">Contiguity</th><th scope="col">Integrity</th>' +
-          '<th scope="col">CHR</th></tr></thead>' +
-          '<tbody>' + districtRows(m) + '</tbody></table></div>' +
-          '<p class="gloss">Integrity "intact" = drawn along admin boundaries (whole counties only); ' +
-          'CHR is the convex-hull compactness ratio (1.00 = perfectly compact).</p>' +
-          '</div>';
-      }
-
-      function planSvg(m) {
-        var W_ = 640, H = 190, pad = 10;
-        var n = m.districts.length;
-        var w = Math.floor((W_ - pad * (n + 1)) / n);
-        var shapes = m.districts.map(function (d, i) {
-          var x = pad + i * (w + pad);
-          return '<rect x="' + x + '" y="' + pad + '" width="' + w + '" height="' + (H - 70) + '" rx="16" ' +
-            'fill="var(' + WONG[i % WONG.length] + ')" fill-opacity="0.45" stroke="var(--gov-border-strong)" />' +
-            '<text x="' + (x + w / 2) + '" y="' + (H - 42) + '" text-anchor="middle" fill="var(--gov-fg)" ' +
-            'font-size="13" font-family="var(--font-sans)">' + esc(d.name) + '</text>' +
-            '<text x="' + (x + w / 2) + '" y="' + (H - 22) + '" text-anchor="middle" fill="var(--gov-fg-muted)" ' +
-            'font-size="11" font-family="var(--font-mono)">' + d.seats + ' seats</text>';
-        }).join('');
-        return '<svg viewBox="0 0 ' + W_ + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" ' +
-          'aria-label="Stylized district map of ' + esc(m.name) + '">' + shapes + '</svg>';
-      }
-
-      function formCard(fid) {
-        var f = BY.forms[fid];
-        if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join('; ')) + '</p>' : '';
-        return '<div class="card card--inset">' +
-          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + ' <span class="citation">' + fid + '</span></h3>' +
-          '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">Available to: ' + esc(f.availableToRaw) + ' · prereq: ' + esc(f.prereq) + ' · ' + esc(f.basis) + '</p>' +
-          aliases + '</div>';
-      }
-
-      function render() {
-        /* Seat-budget stats come straight from the fixtures districtScenario. */
-        document.getElementById('stat-us-seats').textContent = DS.totalSeatsUS;
-        document.getElementById('stat-scope-budget').textContent = DS.scopeBudget;
-        document.getElementById('stat-quota').textContent = DS.quota.toLocaleString('en-US');
-
-        document.getElementById('activate-note').innerHTML = activateNote;
-        document.getElementById('map-cards').innerHTML = DS.maps.map(mapCard).join('');
-        var m = DS.maps.filter(function (x) { return x.id === shownMap; })[0];
-        document.getElementById('map-which').textContent = m.name + ' · ' + status[m.id];
-        document.getElementById('plan-svg').innerHTML = planSvg(m);
-        document.getElementById('accept-form-card').innerHTML = formCard('F-ELB-003');
-        document.getElementById('accept-status').innerHTML = acceptDone
-          ? S.badge('success', 'Submitted for certification — under election-board observation', 'check')
-          : S.badge('neutral', 'Not yet submitted', 'clock');
-        S.refresh();
-      }
-
-      document.getElementById('main').addEventListener('click', function (ev) {
-        var t = ev.target.closest ? ev.target.closest('[data-activate],[data-show]') : null;
-        if (!t) return;
-        if (t.hasAttribute('data-activate')) {
-          var id = t.getAttribute('data-activate');
-          Object.keys(status).forEach(function (k) { if (status[k] === 'active') status[k] = 'archived'; });
-          status[id] = 'active';
-          shownMap = id;
-          activateNote = '<div class="banner banner--info" role="status">' + S.icon('check') +
-            '<div><span class="banner-title">Plan activated.</span> The previous active plan moved to the ' +
-            'archive — versioned maps preserve history; elections after this point run on the new districts. ' +
-            '<span class="citation">draft → active → archived · Art. II §8</span></div></div>';
-        } else {
-          shownMap = t.getAttribute('data-show');
+      /* ---- data mirrored from the developed Legislature Browser ---- */
+      var SCOPES = {
+        earth: {
+          name: 'Earth', crumb: ['Earth'], seats: '1,999', quota: '3,985,245',
+          stats: { districts: 45, assigned: 182, unassigned: 0 },
+          prev: 'Côte d’Ivoire', up: null, next: 'Uttar Pradesh', progress: '101/101',
+          banner: 'All compositable jurisdictions assigned — expand subdivisions in the sidebar to continue.',
+          members: [
+            { name: 'India', done: true, seats: 358, pop: '1.4B', rep: '357.94', drill: 'india',
+              children: [
+                { name: 'IND 01', seats: 7, pop: '28.1M', rep: '7.03', dev: '+0.4%', chr: '0.748', district: true },
+                { name: 'IND 02', seats: 7, pop: '28.3M', rep: '7.08', dev: '+1.1%', chr: '0.614', district: true },
+                { name: 'IND 03', seats: 7, pop: '28.6M', rep: '7.16', dev: '+2.3%', chr: '0.760', district: true },
+                { name: 'IND 04', seats: 7, pop: '26.8M', rep: '6.71', dev: '-4.1%', chr: '0.710', district: true },
+                { name: 'IND 05', seats: 7, pop: '27.1M', rep: '6.79', dev: '-3.0%', chr: '0.702', district: true },
+                { name: 'IND 06', seats: 7, pop: '27.4M', rep: '6.84', dev: '-2.3%', chr: '0.693', district: true },
+                { name: 'IND 07', seats: 7, pop: '27.6M', rep: '6.89', dev: '-1.6%', chr: '0.755', district: true },
+                { name: 'IND 08', seats: 7, pop: '27.9M', rep: '6.99', dev: '-0.1%', chr: '0.700', district: true }
+              ] },
+            { name: 'Punjab', done: true, seats: 8, pop: '31.8M', rep: '7.94' },
+            { name: 'Gujarāt', done: true, seats: 18, pop: '73.2M', rep: '18.32' },
+            { name: 'Kerala', done: true, seats: 9, pop: '36.9M', rep: '9.23' },
+            { name: 'Rājasthān', done: true, seats: 21, pop: '83.4M', rep: '20.87' },
+            { name: 'Haryāna', done: true, seats: 8, pop: '31.1M', rep: '7.78' },
+            { name: 'Tamil Nādu', done: true, seats: 20, pop: '79.6M', rep: '19.90' },
+            { name: 'Telangāna', done: true, seats: 11, pop: '42.9M', rep: '10.74' },
+            { name: 'Madhya Pradesh', done: true, seats: 22, pop: '89.1M', rep: '22.29' },
+            { name: 'Chhattīsgarh', done: true, seats: 8, pop: '31.0M', rep: '7.75' },
+            { name: 'Andhra Pradesh', done: true, seats: 13, pop: '51.6M', rep: '12.90' },
+            { name: 'Odisha', done: true, seats: 12, pop: '47.8M', rep: '11.95' },
+            { name: 'West Bengal', done: true, seats: 26, pop: '102.2M', rep: '25.56' },
+            { name: 'Mexico', done: true, seats: 32, pop: '129.2M', rep: '32.00', drill: 'mexico',
+              note: 'Member jurisdiction above the 9-seat ceiling — subdivides over its own scope' }
+          ],
+          quality: true,
+          labels: {
+            seats: [['USA 09', '5 seats', 150, 120], ['USA 08', '6 seats', 235, 130], ['USA 10', '5 seats', 280, 152],
+                    ['USA NY', '5 seats', 332, 166], ['USA 12', '6 seats', 318, 196], ['USA 11', '6 seats', 244, 206],
+                    ['USA 04', '6 seats', 284, 226], ['USA 07', '7 seats', 332, 236], ['USA 03', '7 seats', 214, 266],
+                    ['USA 06', '7 seats', 298, 272], ['USA 05', '7 seats', 305, 306], ['MEX 03', '4 seats', 148, 322],
+                    ['MEX 01', '4 seats', 186, 346], ['MEX 05', '6 seats', 186, 386], ['MEX 02', '5 seats', 226, 392],
+                    ['EAR 44', '4 seats', 340, 352], ['EAR 39', '7 seats', 380, 386],
+                    ['BRA 02', '8 seats', 392, 470], ['NGA 04', '7 seats', 556, 380], ['IND 05', '7 seats', 744, 322],
+                    ['CHN 12', '7 seats', 790, 252], ['RUS 03', '6 seats', 700, 132], ['AUS 01', '6 seats', 844, 502]],
+            names: [['New York', '', 332, 166], ['United States', '', 240, 232], ['México', '', 186, 362],
+                    ['Brasil', '', 394, 462], ['Россия', '', 700, 122], ['India', '', 744, 332], ['Australia', '', 844, 492],
+                    ['Algérie', '', 520, 302], ['Canada', '', 230, 92], ['中国', '', 800, 240]]
+          }
+        },
+        mexico: {
+          name: 'Mexico', crumb: ['Earth', 'Mexico'], seats: '32', quota: '4,038,567',
+          stats: { districts: 6, assigned: 32, unassigned: 0 },
+          prev: 'Russian Federation', up: 'Earth', next: 'Oromia', progress: '58/101',
+          banner: 'All compositable jurisdictions assigned.',
+          members: [
+            { name: 'MEX 06', seats: 7, pop: '26.8M', rep: '6.64', dev: '-5.1%', chr: '0.777', district: true },
+            { name: 'MEX 05', seats: 6, pop: '24.4M', rep: '6.04', dev: '+0.7%', chr: '0.376', district: true },
+            { name: 'MEX 04', seats: 6, pop: '24.2M', rep: '5.99', dev: '-0.2%', chr: '0.562', district: true },
+            { name: 'MEX 02', seats: 5, pop: '21.6M', rep: '5.36', dev: '+7.1%', chr: '0.438', district: true },
+            { name: 'MEX 01', seats: 4, pop: '16.3M', rep: '4.04', dev: '+1.0%', chr: '0.755', district: true },
+            { name: 'MEX 03', seats: 4, pop: '15.9M', rep: '3.94', dev: '-1.6%', chr: '0.516', district: true }
+          ],
+          quality: false,
+          labels: {
+            seats: [['MEX 01', '4 seats · 16.3M · Rep 4.04', 620, 180], ['MEX 03', '4 seats · 15.9M · Rep 3.94', 300, 170],
+                    ['MEX 05', '6 seats · 24.4M · Rep 6.04', 440, 420], ['MEX 06', '7 seats · 26.8M · Rep 6.64', 540, 480],
+                    ['MEX 02', '5 seats · 21.6M · Rep 5.36', 660, 430], ['MEX 04', '6 seats · 24.2M · Rep 5.99', 700, 510]],
+            names: [['Sonora', '3.0M · 0.75', 320, 130], ['Chihuahua', '3.8M · 0.95', 470, 160],
+                    ['Coahuila de Zaragoza', '3.2M · 0.80', 600, 150], ['Baja California', '3.9M · 0.98', 200, 100],
+                    ['Baja California Sur', '817K · 0.20', 250, 300], ['Sinaloa', '3.1M · 0.77', 390, 300],
+                    ['Durango', '1.9M · 0.47', 500, 290], ['Nuevo Leon', '5.9M · 1.47', 680, 250],
+                    ['Tamaulipas', '3.6M · 0.89', 750, 300], ['Zacatecas', '1.7M · 0.41', 540, 360],
+                    ['San Luis Potosi', '2.9M · 0.72', 630, 370], ['Jalisco', '8.4M · 2.11', 470, 450],
+                    ['Veracruz de Ignacio de la Llave', '8.1M · 2.04', 740, 460], ['Guerrero', '3.6M · 0.90', 580, 545],
+                    ['Chiapas', '5.7M · 1.41', 770, 565], ['Yucatan', '2.4M · 0.59', 880, 440]]
+          }
         }
-        render();
-      });
+      };
 
-      document.getElementById('accept-form').addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        acceptDone = true;
-        render();
+      var state = { scope: 'earth', expanded: {}, layer: 'Seats' };
+      var WONG = ['var(--wong-orange)', 'var(--wong-skyblue)', 'var(--wong-green)', 'var(--wong-yellow)', 'var(--wong-blue)', 'var(--wong-vermil)', 'var(--wong-purple)'];
+
+      function qualityPanel() {
+        return '<details class="about-surface" style="margin:var(--space-2) var(--space-3);border-radius:var(--radius-md)" open>' +
+          '<summary style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:var(--tracking-caps)">' +
+          S.icon('chevron-right', { size: 'sm' }) + ' MAP QUALITY</summary><div class="about-surface-body" style="padding:var(--space-3)">' +
+          '<p class="eyebrow">Community integrity</p>' +
+          '<div class="qline"><span class="q-ok">■ Intact: 393 (100.0%)</span><span>8.0B pop (100.0%)</span></div>' +
+          '<div class="qline"><span class="q-warn">■ Segmented: 0 (0.0%)</span><span>0 pop (0.0%)</span></div>' +
+          '<p class="eyebrow" style="margin-block-start:var(--space-2)">Constitutional contiguity</p>' +
+          '<div class="qline"><span class="q-ok">■ Contiguous: 376 (95.7%)</span><span>7.7B pop (95.5%)</span></div>' +
+          '<div class="qline"><span class="q-bad">■ Non-contiguous: 17 (4.3%)</span><span>357.9M pop (4.5%)</span></div>' +
+          '<p class="eyebrow" style="margin-block-start:var(--space-2)">Population equality <span class="citation">(393 districts) · avg 3.72%</span></p>' +
+          '<div class="qline"><span class="q-ok">■ Good (≤5%): 280 (71.2%)</span><span>5.8B pop (72.2%)</span></div>' +
+          '<div class="qline"><span class="q-warn">■ OK (5–10%): 82 (20.9%)</span><span>1.7B pop (21.6%)</span></div>' +
+          '<div class="qline"><span class="q-bad">■ Bad (>10%): 31 (7.9%)</span><span>498.2M pop (6.2%)</span></div>' +
+          '<div class="qline"><span class="q-ok">▲ Over-rep: MYS 02 (−44.33%)</span><span class="q-bad">▼ Under-rep: SHA 01 (+22.23%)</span></div>' +
+          '<div class="qline"><span>Range</span><span class="q-warn">2.195:1</span></div>' +
+          '<p class="eyebrow" style="margin-block-start:var(--space-2)">Shape compactness <span class="citation">mean 0.623</span></p>' +
+          '<div class="qline"><span class="q-ok">■ Compact (≥0.70): 176 (44.8%)</span><span>3.6B pop (44.3%)</span></div>' +
+          '<div class="qline"><span class="q-warn">■ Moderate (0.50–0.70): 149 (37.9%)</span><span>3.0B pop (37.3%)</span></div>' +
+          '<div class="qline"><span class="q-bad">■ Irregular (&lt;0.50): 68 (17.3%)</span><span>1.5B pop (18.4%)</span></div>' +
+          '<p class="eyebrow" style="margin-block-start:var(--space-2)">Uniform political diversity</p>' +
+          '<div class="qline"><span>Optimal:</span><span class="cc-code" data-no-i18n>(6 × 6) + (33 × 7) + 1732 = 1999</span></div>' +
+          '<div class="qline"><span class="q-warn">Current:</span><span class="cc-code" data-no-i18n>(6 × 4) + (6 × 5) + (18 × 6) + (15 × 7) + 1732 = 1999</span></div>' +
+          '</div></details>';
+      }
+
+      function qstrip(m) {
+        if (!m.dev) return '';
+        var devClass = Math.abs(parseFloat(m.dev)) <= 5 ? (parseFloat(m.dev) > 0 ? 'q-warn' : 'q-ok') : 'q-bad';
+        var chrClass = parseFloat(m.chr) >= 0.7 ? 'q-ok' : parseFloat(m.chr) >= 0.5 ? 'q-warn' : 'q-bad';
+        return '<div class="lb-qstrip"><span class="' + devClass + '" title="Population deviation from ideal quota per seat">Dev ' + m.dev + '</span>' +
+          '<span class="' + chrClass + '" title="Convex hull ratio — shape compactness">CHR ' + m.chr + '</span>' +
+          '<span class="q-ok">' + S.icon('check', { size: 'sm' }) + ' Contig</span><span class="q-ok" title="Drawn along real jurisdictional lines">' + S.icon('check', { size: 'sm' }) + ' Intact</span></div>';
+      }
+
+      function memberRow(m) {
+        var dot = '<span class="tier-dot tier-dot--' + (m.district ? '4' : '2') + '" aria-hidden="true"></span>';
+        var done = m.done ? '<span class="q-ok" title="All seats composed">' + S.icon('check', { size: 'sm' }) + '</span>' : '';
+        var drill = m.drill ? '<button type="button" class="btn btn--ghost btn--sm" data-drill="' + m.drill + '" aria-label="' +
+          (m.drill === 'mexico' ? 'Open Mexico’s own district scope' : 'Expand India’s sub-districts inline') + '">' +
+          S.icon(m.drill === 'mexico' ? 'chevron-right' : (state.expanded.India ? 'chevron-down' : 'chevron-right'), { size: 'sm' }) + '</button>' : '';
+        var html = '<div class="lb-row">' + dot +
+          '<span style="flex:1;color:var(--gov-fg-strong);' + (m.district ? 'font-family:var(--font-mono)' : '') + '">' + esc(m.name) + '</span>' +
+          done + '<span class="mono" style="inline-size:3rem;text-align:end;font-weight:var(--weight-semibold);color:var(--status-success)">' + m.seats + '</span>' +
+          '<span class="mono" style="inline-size:4.5rem;text-align:end;color:var(--gov-fg-subtle)">' + m.pop + '</span>' +
+          '<span class="mono" style="inline-size:3.5rem;text-align:end;color:var(--gov-fg-subtle)">' + m.rep + '</span>' + (drill || '<span style="inline-size:1.75rem"></span>') + '</div>' + qstrip(m);
+        if (m.note) html += '<div class="lb-qstrip"><span class="q-warn">' + esc(m.note) + '</span></div>';
+        if (m.children && state.expanded[m.name]) html += m.children.map(memberRow).join('');
+        return html;
+      }
+
+      function renderPanel() {
+        var sc = SCOPES[state.scope];
+        var crumb = sc.crumb.map(function (c, i) {
+          return i < sc.crumb.length - 1
+            ? '<button type="button" class="btn btn--ghost btn--sm" data-scope="earth" style="padding-block:0">' + esc(c) + '</button> <span class="adm-sep">›</span> '
+            : '<strong style="color:var(--gov-fg)">' + esc(c) + '</strong>';
+        }).join('');
+        document.getElementById('lb-panel').innerHTML =
+          '<div class="lb-head"><div class="cluster" style="justify-content:space-between">' +
+          '<div><span class="eyebrow">Legislature Browser</span><h2 style="margin:0">' + esc(sc.name) + '</h2></div>' +
+          '<div class="stat stat--accent" style="text-align:end"><span class="stat-number" style="font-size:var(--text-2xl)">' + sc.seats + '</span><span class="stat-label">root seats</span></div></div>' +
+          '<p class="citation" style="margin-block-start:var(--space-1)"><span class="q-ok">' + sc.seats + ' seats</span> to assign here · Quota: ' + sc.quota + ' pop/seat</p>' +
+          '<p class="cc-small" style="margin-block:var(--space-1) 0">' + crumb + '</p></div>' +
+          '<div class="lb-stats">' +
+          '<div class="lb-stat"><span class="n">' + sc.stats.districts + '</span><span class="citation">Districts</span></div>' +
+          '<div class="lb-stat"><span class="n q-ok">' + sc.stats.assigned + '</span><span class="citation">Assigned</span></div>' +
+          '<div class="lb-stat"><span class="n' + (sc.stats.unassigned ? ' q-warn' : '') + '">' + sc.stats.unassigned + '</span><span class="citation">Unassigned</span></div></div>' +
+          '<div class="cluster" style="padding:0 var(--space-4) var(--space-2);gap:var(--space-2)">' +
+          '<span class="citation">MAP:</span><span class="form-chip">Autoseed Attempt 2 <span class="badge badge--warning" style="padding-inline:var(--space-1)">draft</span></span>' +
+          '<button type="button" class="btn btn--gold btn--sm" data-activate title="Activate this draft — the current active plan is archived">' + S.icon('check', { size: 'sm' }) + ' Activate</button>' +
+          '<button type="button" class="btn btn--secondary btn--sm" aria-label="New plan">' + S.icon('plus', { size: 'sm' }) + '</button></div>' +
+          (sc.quality ? qualityPanel()
+            : '<details class="about-surface" style="margin:var(--space-2) var(--space-3)"><summary style="font-family:var(--font-mono);font-size:var(--text-xs)">' + S.icon('chevron-right', { size: 'sm' }) + ' MAP QUALITY</summary><div class="about-surface-body"><p class="cc-small">Scope quality rolls up to the Earth ledger — open the Earth scope for the full panel.</p></div></details>') +
+          '<div class="cluster" style="padding:var(--space-2) var(--space-3);gap:var(--space-2)">' +
+          '<button type="button" class="btn btn--primary btn--sm">' + S.icon('refresh-cw', { size: 'sm' }) + ' Autoseed</button>' +
+          '<button type="button" class="btn btn--danger btn--sm">' + S.icon('x', { size: 'sm' }) + ' Clear</button></div>' +
+          '<div class="wizard-row">' +
+          '<button type="button" class="btn btn--ghost btn--sm" style="justify-content:flex-start">' + S.icon('chevron-left', { size: 'sm' }) + ' ' + esc(sc.prev) + '</button>' +
+          (sc.up ? '<button type="button" class="btn btn--ghost btn--sm" data-scope="earth">' + S.icon('arrow-up', { size: 'sm' }) + ' ' + esc(sc.up) + '</button>' : '<span class="citation" style="align-self:center" data-no-i18n>↑ —</span>') +
+          '<button type="button" class="btn btn--ghost btn--sm" style="justify-content:flex-end">' + esc(sc.next) + ' ' + S.icon('chevron-right', { size: 'sm' }) + '</button></div>' +
+          '<div class="cluster" style="padding:var(--space-1) var(--space-3);gap:var(--space-3)">' +
+          '<label class="checkbox" style="font-size:var(--text-xs)"><input type="checkbox" /> Auto-seed</label>' +
+          '<label class="checkbox" style="font-size:var(--text-xs)"><input type="checkbox" /> Skip complete</label>' +
+          '<label class="checkbox" style="font-size:var(--text-xs)"><input type="checkbox" /> Auto step</label>' +
+          '<span class="citation" style="margin-inline-start:auto">' + sc.progress + '</span></div>' +
+          '<div class="banner banner--info" style="margin:var(--space-2) var(--space-3);padding:var(--space-2) var(--space-3)">' + S.icon('check', { size: 'sm' }) + '<div class="cc-small">' + esc(sc.banner) + '</div></div>' +
+          '<div class="lb-row" style="color:var(--gov-fg-subtle);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:var(--tracking-wide)">' +
+          '<span style="flex:1">Name</span><span style="inline-size:3rem;text-align:end">Seats ↓</span><span style="inline-size:4.5rem;text-align:end">Population</span><span style="inline-size:3.5rem;text-align:end">Rep</span><span style="inline-size:1.75rem"></span></div>' +
+          SCOPES[state.scope].members.map(memberRow).join('') +
+          '<p id="activate-note" class="citation" style="padding:var(--space-2) var(--space-4)" hidden>Draft activated (simulated) — the previous active plan is archived; the election board observes the change · F-ELB-003 · R-08</p>';
+      }
+
+      function renderMap() {
+        var sc = SCOPES[state.scope];
+        var useNames = state.layer === 'Names' || state.layer === 'Jurs' || state.layer === 'Pop';
+        var labels = useNames ? sc.labels.names : sc.labels.seats;
+        var svg = '<rect width="980" height="640" fill="var(--cc-gray-200)"/>';
+        var blobs = state.scope === 'earth'
+          ? [[60, 60, 380, 260], [340, 330, 220, 230], [470, 90, 460, 230], [500, 280, 180, 200], [690, 290, 180, 130], [780, 450, 150, 110], [120, 290, 200, 160]]
+          : [[150, 80, 700, 500]];
+        blobs.forEach(function (b) {
+          svg += '<rect x="' + b[0] + '" y="' + b[1] + '" width="' + b[2] + '" height="' + b[3] + '" rx="46" fill="var(--cc-gray-50)" stroke="var(--cc-gray-300)"/>';
+        });
+        sc.labels.seats.forEach(function (l, i) {
+          svg += '<circle cx="' + l[2] + '" cy="' + (l[3] + 16) + '" r="28" fill="' + WONG[i % 7] + '" opacity="0.32"/>';
+        });
+        if (state.layer === 'Raster') {
+          for (var i = 0; i < 720; i++) {
+            var x = (i * 911) % 980, y = ((i * 577) % 540) + 60;
+            svg += '<circle cx="' + x + '" cy="' + y + '" r="0.9" fill="var(--wong-blue)" opacity="0.55"/>';
+          }
+        }
+        labels.forEach(function (l) {
+          var sub = state.layer === 'Jurs' ? '' : l[1];
+          var w = Math.max(l[0].length, sub.length) * 6.6 + 14;
+          svg += '<g><rect x="' + (l[2] - 6) + '" y="' + (l[3] - 14) + '" width="' + w + '" height="' + (sub ? 32 : 19) + '" rx="3" fill="var(--cc-gray-900)" opacity="0.92"/>' +
+            '<text x="' + l[2] + '" y="' + (l[3] - 1) + '" font-size="11" font-weight="700" fill="var(--cc-white)" style="font-family:var(--font-mono)">' + esc(l[0]) + '</text>' +
+            (sub ? '<text x="' + l[2] + '" y="' + (l[3] + 12) + '" font-size="10" fill="var(--cc-gray-300)" style="font-family:var(--font-mono)">' + esc(sub) + '</text>' : '') + '</g>';
+        });
+        document.getElementById('lb-svg').innerHTML = svg;
+        document.getElementById('map-toggles').innerHTML = ['Seats', 'Pop', 'Names', 'Jurs', 'Stats', 'Raster'].map(function (l) {
+          return '<button type="button" class="chip-toggle" data-layer="' + l + '" aria-pressed="' + (state.layer === l ? 'true' : 'false') + '">' + l + '</button>';
+        }).join('');
+      }
+
+      function render() { renderPanel(); renderMap(); S.refresh(); }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-scope],[data-drill],[data-layer],[data-activate]') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-scope')) { state.scope = t.getAttribute('data-scope'); render(); }
+        else if (t.hasAttribute('data-drill')) {
+          if (t.getAttribute('data-drill') === 'mexico') state.scope = 'mexico';
+          else state.expanded.India = !state.expanded.India;
+          render();
+        }
+        else if (t.hasAttribute('data-layer')) { state.layer = t.getAttribute('data-layer'); render(); }
+        else if (t.hasAttribute('data-activate')) {
+          var note = document.getElementById('activate-note');
+          if (note) { note.hidden = false; note.scrollIntoView({ block: 'nearest' }); }
+        }
       });
 
       render();
-      document.addEventListener('cga:statechange', render);
+      document.addEventListener('cga:statechange', function () { S.refresh(); });
     })();
   </script>
 </body>

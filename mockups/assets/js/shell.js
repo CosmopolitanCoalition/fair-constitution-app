@@ -190,6 +190,7 @@
       { id: 'juror-view', labelKey: 'nav.jurorView', icon: 'users', rel: 'judiciary/juror-view.html', enabledRoles: ['R-22'], prereq: 'R-22' }
     ] },
     { key: 'system', titleKey: 'nav.system', visibility: 'all', items: [
+      { id: 'setup-wizard', labelKey: 'nav.setupWizard', icon: 'globe', rel: 'system/setup-wizard.html' },
       { id: 'public-records', labelKey: 'nav.publicRecords', icon: 'file-text', rel: 'system/public-records.html' },
       { id: 'audit-chain', labelKey: 'nav.auditChain', icon: 'lock', rel: 'system/audit-chain.html' },
       { id: 'clocks', labelKey: 'nav.clocks', icon: 'clock', rel: 'shared/clocks.html' },
