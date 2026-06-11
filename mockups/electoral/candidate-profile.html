@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Candidate profile — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script>/* Capture ?candidate= before demo-state.js mirrors the URL (it strips page-local params). */
+    window.CGA_PAGE_PARAMS = new URLSearchParams(window.location.search);</script>
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="phase-banner"></div>
+
+      <header>
+        <span class="eyebrow">Elections · candidate profile</span>
+        <h1 id="cand-name">Diego Ramos</h1>
+        <p class="page-intro" id="cand-statement">Frequent buses, fewer evictions, open books.</p>
+        <p class="citation">Campaign profile setup · F-CAN-001 · available to R-06 Candidate · Art. I (Freedom of Expression)</p>
+        <noscript><p class="gloss">Standings, endorsements, and the public record on this page render from fixture data and need JavaScript.</p></noscript>
+      </header>
+
+      <section class="card" aria-labelledby="standing-h">
+        <h2 id="standing-h">Approval standing</h2>
+        <div class="cluster" style="gap:var(--space-6)">
+          <div class="stat stat--accent"><span class="stat-number" id="stat-rank">—</span><span class="stat-label">rank in the race</span></div>
+          <div class="stat"><span class="stat-number" id="stat-approvals">—</span><span class="stat-label">approvals (aggregate · updated daily)</span></div>
+          <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalist places · top X advance</span></div>
+        </div>
+        <div class="meter-block" style="margin-block-start:var(--space-3)">
+          <div class="meter"><span class="meter-fill" id="standing-fill" style="inline-size:0%"></span><span class="meter-threshold" id="standing-line" style="inset-inline-start:27%"></span></div>
+          <div class="meter-caption"><span id="standing-caption">—</span><span>gold tick = finalist line · top 21 of 24 · CLK-21</span></div>
+        </div>
+        <p class="gloss">Finalists: the top X candidates by approval standing when the phase closes; X = f(seats) — here 3 × 7 seats. Non-finalists stay write-in eligible.</p>
+        <p class="citation" id="standing-cite">Finalist count per race · X = f(seats) · CLK-21 · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+        <div class="state-strip" id="cand-state" style="margin-block-start:var(--space-3)" aria-label="Candidacy state machine"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="endorse-h">
+          <h2 id="endorse-h">Endorsements</h2>
+          <p class="cc-small">Organizations <strong>and</strong> individuals endorse candidates directly — there is no party or faction registration anywhere in the product.</p>
+          <svg viewBox="0 0 340 190" role="img" aria-labelledby="graph-title" style="inline-size:100%;block-size:auto">
+            <title id="graph-title">Endorsement graph — organizations and individuals linked to the candidate</title>
+            <g id="graph-edges" stroke="var(--gov-border-strong)" stroke-width="1.5"></g>
+            <g id="graph-nodes"></g>
+          </svg>
+          <p class="gloss">Stylized stand-in — production renders the live endorsement graph from the polymorphic endorsements table.</p>
+          <div id="endorse-list" class="cluster" style="margin-block-start:var(--space-2)"></div>
+          <p class="citation" style="margin-block-start:var(--space-3)">Any organization or individual can endorse any candidate · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+        </section>
+
+        <section class="card" aria-labelledby="requests-h">
+          <h2 id="requests-h">Endorsement requests</h2>
+          <p class="citation">Endorsement request · F-CAN-002 · available to R-06 Candidate · Art. I (Freedom of Assembly)</p>
+          <div class="table-wrap"><table class="table">
+            <caption class="visually-hidden">Endorsement request status</caption>
+            <thead><tr><th>Organization</th><th>Requested</th><th>Status</th></tr></thead>
+            <tbody id="request-rows"></tbody>
+          </table></div>
+          <p class="gloss" id="request-note">A granted organizational endorsement upgrades the candidacy to R-07 Endorsed Candidate. Candidates with no endorsements are first-class throughout.</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="record-h">
+        <h2 id="record-h">Public record <span class="citation">auto-attached — not editable by the candidate</span></h2>
+        <p class="cc-small">Every candidacy carries the individual's public record with it: legislative votes (for incumbents),
+          civic actions, and public statements. Voters compare records, not advertising.</p>
+        <h3>Legislative votes</h3>
+        <div id="record-votes"></div>
+        <h3 style="margin-block-start:var(--space-4)">Civic actions</h3>
+        <div id="record-actions"></div>
+        <h3 style="margin-block-start:var(--space-4)">Public statements</h3>
+        <div id="record-statements"></div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Profile auto-attaches the public record · WF-CIV-05 · Art. II §2 (transparency)</p>
+      </section>
+
+      <section class="card" aria-labelledby="manage-h">
+        <h2 id="manage-h">Manage this candidacy <span class="citation">visible to the candidate only</span></h2>
+        <form id="profile-form">
+          <div class="field">
+            <label class="field-label" for="f-statement">Platform statement</label>
+            <textarea class="field-input" id="f-statement" rows="2"></textarea>
+            <span class="field-hint">Shown on the open ballot and the ranked ballot. Position tags are edited on the registration record.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary btn--sm">Save profile</button>
+            <span class="citation">Campaign profile setup · F-CAN-001 · modifies the candidate record</span>
+          </div>
+          <p class="citation" id="profile-saved" role="status" hidden>Profile saved — change appended to the public record · simulated</p>
+        </form>
+        <hr />
+        <h3>Withdraw candidacy</h3>
+        <p class="cc-small">Withdrawal is allowed until ballot lock at the finalist cutoff. It is recorded permanently on the public record.</p>
+        <p class="citation">Candidacy withdrawal · F-CAN-003 · available to R-06 Candidate · Art. I (Autonomy)</p>
+        <div id="withdraw-area" class="cluster"></div>
+      </section>
+
+      <p><a href="open-ballot.html">Back to the open ballot
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-05.html">WF-CIV-05 (candidacy lifecycle)</a> — profile,
+            endorsement requests, withdrawal; standings feed <a href="../flows/WF-CIV-08.html">WF-CIV-08 (open ballot)</a>.</p>
+          <p><strong>Entity state machine:</strong> Candidacy — Registered → Validated → In-Approval-Pool → [Endorsed] →
+            Finalist | Non-finalist (write-in eligible) → On-Ranked-Ballot / Written-In → Elected | Defeated | Withdrawn.
+            The strip above highlights this candidate's current state.</p>
+          <p><strong>Deep linking:</strong> this page honors <code data-no-i18n>?candidate=</code> — every name on the open ballot links here.</p>
+          <p class="citation">Art. I · Art. II §2 · F-CAN-001 · F-CAN-002 · F-CAN-003 · CLK-21</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/candidate-profile',
+      title: 'Candidate profile',
+      module: 'electoral',
+      nav: 'open-ballot',
+      roles: ['R-03', 'R-04', 'R-06', 'R-07'],
+      workflows: ['WF-CIV-05', 'WF-CIV-08'],
+      forms: ['F-CAN-001', 'F-CAN-002', 'F-CAN-003'],
+      citation: 'Candidacy lifecycle · F-CAN-001/002/003 · Art. I; Art. II §2',
+      flow: 'WF-CIV-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var byApprovals = W.candidates.slice().sort(function (a, b) { return b.approvals - a.approvals; });
+      var byCandId = {};
+      W.candidates.forEach(function (c) { byCandId[c.id] = c; });
+
+      /* ?candidate= (captured in <head> before demo-state rewrites the URL) with a
+         #candidate= hash fallback — the hash survives the shell's link rewriting. */
+      var wanted = (window.CGA_PAGE_PARAMS && window.CGA_PAGE_PARAMS.get('candidate')) ||
+        new URLSearchParams(window.location.hash.replace(/^#/, '?')).get('candidate');
+      var cand = byCandId[wanted] || byCandId['diego-ramos'];
+      var election = W.elections[0]; /* elec-charlotte-2031 */
+      var FINALISTS = election.finalistCount;
+      var rank = byApprovals.indexOf(cand) + 1;
+
+      /* Page-local simulated state. */
+      var withdrawn = false, confirming = false;
+
+      /* Endorsement-request fixtures keyed by candidate; derived rows otherwise. */
+      var REQUESTS = {
+        'diego-ramos': [
+          { org: 'commons-party', date: '2031-02-14', status: 'granted' },
+          { org: 'green-horizon', date: '2031-04-30', status: 'pending' },
+          { org: 'piedmont-mutual-aid', date: '2031-03-22', status: 'declined' }
+        ]
+      };
+
+      var RECORD = {
+        votes: [
+          { label: 'Aye — Charlotte Clean Air Act, committee referral', date: '2031-04-09' },
+          { label: 'Aye — FY2031 municipal budget, floor vote', date: '2030-12-15' },
+          { label: 'Nay — Curfew Ordinance §3 amendment, floor vote', date: '2030-09-03' }
+        ],
+        actions: [
+          { label: 'Signed petition — Plaza Midwood traffic calming (pet-2031-04)', date: '2031-03-18' },
+          { label: 'Ranked ballot cast — Charlotte general election', date: '2030-11-05' },
+          { label: 'Residency verified — Plaza Midwood, Charlotte', date: '2028-07-02' }
+        ],
+        statements: [
+          { label: 'Testimony to the Environment & Infrastructure committee on transit frequency', date: '2031-04-21' },
+          { label: 'Open letter on participatory budgeting, published to the public record', date: '2031-01-12' }
+        ]
+      };
+
+      function recordRows(items) {
+        return items.map(function (r) {
+          return '<div class="log-row"><span class="log-seq">' + esc(r.date) + '</span><span>' + esc(r.label) + '</span></div>';
+        }).join('');
+      }
+
+      function graph() {
+        var orgs = (cand.endorsedBy || []).map(function (oid) { return BY.organizations[oid]; });
+        var fills = ['var(--wong-orange)', 'var(--wong-skyblue)', 'var(--wong-green)', 'var(--wong-purple)'];
+        var cx = 170, cy = 95, edges = '', nodes = '';
+        var spokes = orgs.map(function (o, i) { return { label: o.name, fill: fills[i % fills.length] }; });
+        spokes.push({ label: cand.individualEndorsements + ' individual endorsers', fill: 'var(--wong-yellow)' });
+        spokes.forEach(function (n, i) {
+          var a = (Math.PI * 2 / spokes.length) * i - Math.PI / 2;
+          var x = cx + Math.cos(a) * 105, y = cy + Math.sin(a) * 62;
+          edges += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(0) + '" y2="' + y.toFixed(0) + '"></line>';
+          nodes += '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="7" fill="' + n.fill + '"></circle>' +
+            '<text x="' + x.toFixed(0) + '" y="' + (y + (y > cy ? 20 : -12)).toFixed(0) + '" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">' + esc(n.label) + '</text>';
+        });
+        nodes += '<circle cx="' + cx + '" cy="' + cy + '" r="11" fill="var(--wong-blue)"></circle>' +
+          '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-size="10" fill="var(--gov-fg)" font-weight="600">' + esc(cand.name.split(' ')[0]) + '</text>';
+        document.getElementById('graph-edges').innerHTML = edges;
+        document.getElementById('graph-nodes').innerHTML = nodes;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var phase = st.scenario.election;
+        var phaseOpen = phase === 'approval';
+        var isFinalist = rank <= FINALISTS;
+
+        document.getElementById('phase-banner').innerHTML = phaseOpen ? '' :
+          '<div class="banner banner--warning" role="status">' + S.icon('clock') +
+          '<div><span class="banner-title">The approval phase has closed — this standing is frozen at the finalist cutoff.</span> ' +
+          (isFinalist ? 'This candidate is a finalist on the ranked ballot.' : 'This candidate did not reach the finalist line and remains write-in eligible.') +
+          ' <span class="citation">CLK-21 · finalist cutoff · Art. II §2</span></div></div>';
+
+        document.getElementById('cand-name').textContent = cand.name + (withdrawn ? ' — withdrawn' : '');
+        document.getElementById('cand-statement').textContent = cand.statement || 'No platform statement published yet.';
+        document.getElementById('f-statement').value = cand.statement || '';
+        document.getElementById('stat-rank').textContent = '#' + rank + ' of ' + W.candidates.length;
+        document.getElementById('stat-approvals').textContent = cand.approvals.toLocaleString('en-US');
+        var topApprovals = byApprovals[0].approvals;
+        var lineApprovals = (byApprovals[FINALISTS - 1] || byApprovals[byApprovals.length - 1]).approvals;
+        document.getElementById('standing-fill').style.inlineSize = Math.round(cand.approvals / topApprovals * 100) + '%';
+        document.getElementById('standing-line').style.insetInlineStart = Math.round(lineApprovals / topApprovals * 100) + '%';
+        document.getElementById('standing-fill').className = 'meter-fill' + (isFinalist ? ' meter-fill--met' : '');
+        document.getElementById('standing-caption').textContent = isFinalist
+          ? 'rank #' + rank + ' — inside the top ' + FINALISTS + ' (finalist track)'
+          : 'rank #' + rank + ' — below the finalist line · write-in eligible';
+
+        /* Candidacy state strip */
+        var states = BY.entities['Candidacy'].states;
+        var current = withdrawn ? 'Elected | Defeated | Withdrawn'
+          : !phaseOpen ? 'Finalist | Non-finalist (write-in eligible)'
+          : (cand.endorsedBy || []).length ? '[Endorsed]' : 'In-Approval-Pool';
+        document.getElementById('cand-state').innerHTML = states.map(function (s, i) {
+          return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+        }).join('');
+
+        /* Endorsements list + graph */
+        graph();
+        var chips = (cand.endorsedBy || []).map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join('');
+        chips += '<span class="tag-chip">' + cand.individualEndorsements + ' individual endorsements</span>';
+        if (!(cand.endorsedBy || []).length) chips += '<span class="tag-chip">no organizational endorsements — first-class</span>';
+        document.getElementById('endorse-list').innerHTML = chips;
+
+        /* Endorsement requests (F-CAN-002) */
+        var reqs = REQUESTS[cand.id] || (cand.endorsedBy || []).map(function (oid) {
+          return { org: oid, date: '2031-03-01', status: 'granted' };
+        });
+        var tone = { granted: ['success', 'check'], pending: ['warning', 'clock'], declined: ['neutral', 'x'] };
+        document.getElementById('request-rows').innerHTML = reqs.length ? reqs.map(function (r) {
+          var o = BY.organizations[r.org];
+          return '<tr><td>' + esc(o.name) + '</td><td class="mono">' + esc(r.date) + '</td>' +
+            '<td>' + S.badge(tone[r.status][0], r.status + (r.status === 'granted' ? ' · grants R-07' : ''), tone[r.status][1]) + '</td></tr>';
+        }).join('') : '<tr><td colspan="3">No requests filed — this candidacy runs on individual endorsements only.</td></tr>';
+
+        /* Public record */
+        document.getElementById('record-votes').innerHTML = cand.incumbent
+          ? recordRows(RECORD.votes)
+          : '<p class="gloss">None — not an incumbent. Legislative votes attach automatically once seated.</p>';
+        document.getElementById('record-actions').innerHTML = recordRows(RECORD.actions);
+        document.getElementById('record-statements').innerHTML = recordRows(RECORD.statements);
+
+        /* Withdraw (F-CAN-003) with confirm state; locked after the finalist cutoff. */
+        var area = document.getElementById('withdraw-area');
+        if (withdrawn) {
+          area.innerHTML = S.badge('danger', 'Withdrawn — recorded on the public record', 'x') +
+            '<span class="citation">F-CAN-003 committed · simulated</span>';
+        } else if (!phaseOpen) {
+          area.innerHTML = '<button type="button" class="btn btn--secondary btn--sm" disabled>Withdraw candidacy</button>' +
+            '<span class="citation">ballot locked at the finalist cutoff — withdrawal closed · CLK-21</span>';
+        } else if (confirming) {
+          area.innerHTML = '<span class="cc-small" style="color:var(--gov-fg-strong)">Withdraw from the Charlotte race? This cannot be undone.</span>' +
+            '<button type="button" class="btn btn--danger btn--sm" id="withdraw-yes">Yes, withdraw</button>' +
+            '<button type="button" class="btn btn--ghost btn--sm" id="withdraw-no">Keep running</button>';
+        } else {
+          area.innerHTML = '<button type="button" class="btn btn--secondary btn--sm" id="withdraw-btn">Withdraw candidacy</button>';
+        }
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#withdraw-btn,#withdraw-yes,#withdraw-no') : null;
+        if (!t) return;
+        if (t.id === 'withdraw-btn') confirming = true;
+        else if (t.id === 'withdraw-yes') { withdrawn = true; confirming = false; }
+        else if (t.id === 'withdraw-no') confirming = false;
+        render();
+      });
+
+      document.getElementById('profile-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        cand.statement = document.getElementById('f-statement').value;
+        document.getElementById('profile-saved').hidden = false;
+        render();
+      });
+
+      /* Register reactivity first, then paint. The initial render waits for
+         DOMContentLoaded because S.refresh() needs the shell chrome to exist. */
+      document.addEventListener('cga:statechange', render);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+      else render();
+    })();
+  </script>
+</body>
+</html>

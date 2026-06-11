@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Election detail — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Elections · election record</span>
+        <h1>Charlotte general election — 2031 cycle</h1>
+        <p class="page-intro">The full lifecycle of one election: a continuous approval phase, a pre-published finalist
+          cutoff, a ranked window, an instant PR-STV count, and certification. Use the mockup controls (election phase)
+          to walk the state machine below through every stage.</p>
+        <p class="citation">General election cycle · WF-ELE-01 · Art. II §2; Art. III §3; Art. IV §3</p>
+      </header>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Election state <span id="phase-badge"></span></h2>
+        <div class="state-strip" id="election-state" aria-label="Election state machine"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">The approval phase spans the entire inter-election
+          period; the finalist cutoff and ranked window are the only time-boxed stages. Tabulation is instant.</p>
+        <div class="cluster" id="state-actions" style="margin-block-start:var(--space-2)"></div>
+        <p class="citation">Entity: Election · catalog Sheet 3 · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+      </section>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
+        <div class="stat stat--accent"><span class="stat-number">21</span><span class="stat-label">finalist places · pre-published X</span></div>
+        <div class="stat"><span class="stat-number">24</span><span class="stat-label">validated candidates</span></div>
+        <div class="stat"><span class="stat-number" id="stat-stage">—</span><span class="stat-label">current stage</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="schedule-h">
+        <h2 id="schedule-h">Schedule</h2>
+        <div class="card card--inset" style="margin-block-end:var(--space-4)">
+          <p style="margin-block-end:var(--space-1)"><strong>Election scheduling order</strong> <span class="form-chip"><span class="form-id">F-ELB-001</span></span></p>
+          <p class="cc-small" style="margin-block-end:var(--space-1)">Schedule an election for any office type, set registration and voting periods.</p>
+          <p class="citation">available to R-08 Election Board Member · Art. II §2 (election intervals) · issued 2030-11-08 by the Charlotte election board</p>
+        </div>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Election schedule by stage</caption>
+          <thead><tr><th>Stage</th><th>When</th><th>Status</th></tr></thead>
+          <tbody id="schedule-rows"></tbody>
+        </table></div>
+        <p class="citation" style="margin-block-start:var(--space-2)">All times shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+        <p class="amendable" style="margin-block-start:var(--space-3)">Election interval: <span class="amendable-value">60 months</span>
+          <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable within constitutional bounds · Art. II §2</span></p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="races-h">
+          <h2 id="races-h">Races &amp; pre-published X</h2>
+          <p class="cc-small">The finalist count X for every race is published <strong>before</strong> the cutoff, so
+            candidates and voters always know where the line will fall.</p>
+          <div class="table-wrap"><table class="table">
+            <caption class="visually-hidden">Races in this election</caption>
+            <thead><tr><th>Race</th><th>Seats</th><th>X</th><th>Candidates</th></tr></thead>
+            <tbody><tr><td>Charlotte at-large</td><td>7</td><td class="mono">21</td><td>24</td></tr></tbody>
+          </table></div>
+          <p class="gloss">X = f(seats in race) — the current setting is 3 × seats.</p>
+          <p class="amendable">Finalist multiplier: <span class="amendable-value">3 × seats</span>
+            <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable setting · CLK-21</span></p>
+          <p class="citation">Finalist count per race · CLK-21 · Art. II §2 (right to stand preserved via write-in)</p>
+        </section>
+
+        <section class="card" aria-labelledby="map-h">
+          <h2 id="map-h">Race boundary</h2>
+          <svg viewBox="0 0 340 200" role="img" aria-labelledby="map-title" style="inline-size:100%;block-size:auto">
+            <title id="map-title">Map of the Charlotte at-large race within Mecklenburg County</title>
+            <polygon points="18,30 200,12 322,48 310,150 220,188 60,176 14,120" fill="var(--wong-skyblue)" fill-opacity="0.25" stroke="var(--gov-border-strong)" stroke-width="1.5"></polygon>
+            <text x="40" y="52" font-size="11" fill="var(--gov-fg-muted)">Mecklenburg County</text>
+            <polygon points="110,70 230,58 268,110 232,158 130,162 92,118" fill="var(--wong-orange)" fill-opacity="0.55" stroke="var(--gov-border-strong)" stroke-width="1.5"></polygon>
+            <text x="180" y="116" text-anchor="middle" font-size="12" fill="var(--gov-fg)" font-weight="600">Charlotte at-large</text>
+            <text x="180" y="132" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">7 seats · single district</text>
+          </svg>
+          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS.</p>
+          <p class="cc-small">This race is a single district: 7 seats sits inside the constitutional 5–9 band, so no
+            subdivision is required. A legislature above 9 seats must subdivide into districts of 5–9 seats each.</p>
+          <p class="citation">Legislature maximum size · 9 members · CLK-07 · Art. II §2, §8</p>
+          <p><a href="../jurisdictions/district-mapper.html">See a subdivided legislature in the district mapper
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="others-h">
+        <h2 id="others-h">Other elections in your jurisdictions</h2>
+        <div id="other-elections" class="stack" style="gap:var(--space-3)"></div>
+        <noscript><p class="gloss">This list renders from fixture data and needs JavaScript.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-01.html">WF-ELE-01 (general election cycle)</a> end to end;
+            the approval phase is <a href="../flows/WF-CIV-08.html">WF-CIV-08</a>, ranked voting is
+            <a href="../flows/WF-CIV-04.html">WF-CIV-04</a>, recounts branch to <a href="../flows/WF-ELE-05.html">WF-ELE-05</a>.</p>
+          <p><strong>Entity state machine:</strong> Election — the strip above is the full lifecycle from catalog Sheet 3;
+            certification hands winners to officeholder conversion and re-opens the next approval phase.</p>
+          <p class="citation">Art. II §2 · F-ELB-001 · F-ELB-004 · F-ELB-006 · CLK-18 · CLK-21 · CLK-07</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/election-detail',
+      title: 'Election detail',
+      module: 'electoral',
+      nav: 'election-detail',
+      roles: ['R-03', 'R-04', 'R-08'],
+      workflows: ['WF-ELE-01'],
+      forms: ['F-ELB-001', 'F-ELB-004', 'F-ELB-006'],
+      citation: 'General election cycle · two-phase open ballot · Art. II §2 · CLK-18 · CLK-21',
+      flow: 'WF-ELE-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Local sub-state inside the "certifying" scenario phase: tabulating → certified → recount. */
+      var certStep = 'tabulating'; /* tabulating | certified | recount */
+
+      var STATES = BY.entities['Election'].states;
+      var SCHEDULE = [
+        { stage: 'Prior cycle certified — approval phase opens', when: '2030-11-08 09:00', key: 'opened' },
+        { stage: 'Finalist cutoff (top 21 lock; standings freeze)', when: '2031-08-01 17:00', key: 'cutoff' },
+        { stage: 'Ranked window — finalists + write-ins', when: '2031-08-02 08:00 → 2031-08-16 19:59', key: 'ranked' },
+        { stage: 'Tabulation — instant PR-STV, Droop quota, Gregory transfers', when: '2031-08-16 20:00', key: 'tabulating' },
+        { stage: 'Certification target', when: '2031-08-18 12:00', key: 'certified' }
+      ];
+
+      function currentState(phase) {
+        if (phase === 'approval') return 'Approval-Phase-Open (registration + endorsements + approvals, continuous)';
+        if (phase === 'ranked') return 'Ranked-Voting-Open (finalists + write-ins)';
+        if (certStep === 'recount') return '[Recount]';
+        if (certStep === 'certified') return 'Certified';
+        return 'Tabulating (instant)';
+      }
+
+      function stageOrder(phase) {
+        /* index into SCHEDULE keys that is "current" */
+        if (phase === 'approval') return 0;
+        if (phase === 'ranked') return 2;
+        return certStep === 'tabulating' ? 3 : 4;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var phase = st.scenario.election;
+        var cur = currentState(phase);
+
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            ' This election proceeds untouched: elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        var doneIdx = STATES.indexOf(cur);
+        document.getElementById('election-state').innerHTML = STATES.map(function (s, i) {
+          var cls = s === cur ? ' state-node--current' : '';
+          return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + cls + '"' + (s === cur ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+        }).join('');
+
+        var badge = phase === 'approval' ? S.badge('info', 'Approval phase', 'clock')
+          : phase === 'ranked' ? S.badge('warning', 'Ranked window open', 'vote')
+          : certStep === 'recount' ? S.badge('danger', 'Recount ordered', 'refresh-cw')
+          : certStep === 'certified' ? S.badge('success', 'Certified', 'check')
+          : S.badge('neutral', 'Tabulating', 'clock');
+        document.getElementById('phase-badge').innerHTML = badge;
+        document.getElementById('stat-stage').textContent = phase === 'approval' ? 'approval'
+          : phase === 'ranked' ? 'ranked' : certStep;
+
+        /* Stage-appropriate actions */
+        var actions = '';
+        if (phase === 'approval') {
+          actions = '<a class="btn btn--primary btn--sm" href="open-ballot.html">Browse the open ballot</a>' +
+            '<a class="btn btn--secondary btn--sm" href="candidacy-registration.html">Register candidacy</a>';
+        } else if (phase === 'ranked') {
+          actions = '<a class="btn btn--gold btn--sm" href="ranked-ballot.html">Rank your ballot</a>';
+        } else {
+          actions = '<a class="btn btn--secondary btn--sm" href="results.html">Open the count record</a>';
+          if (certStep === 'tabulating') {
+            actions += '<button type="button" class="btn btn--primary btn--sm" id="act-certify">Certify results — F-ELB-004 · simulated</button>';
+          } else if (certStep === 'certified') {
+            actions += '<button type="button" class="btn btn--danger btn--sm" id="act-recount">Order recount — F-ELB-006 · simulated</button>' +
+              '<span class="citation">Election results certification · F-ELB-004 · available to R-08 · Art. II §2 — committed</span>';
+          } else {
+            actions += S.badge('danger', 'Recount proceedings open · WF-ELE-05', 'refresh-cw') +
+              '<button type="button" class="btn btn--ghost btn--sm" id="act-reset">Recount resolved — back to certified</button>' +
+              '<span class="citation">Recount/audit order · F-ELB-006 · available to R-08 · prereq F-ELB-004 + cause · Art. II §2 (election integrity)</span>';
+          }
+        }
+        document.getElementById('state-actions').innerHTML = actions;
+
+        /* Schedule rows with done / current / upcoming markers */
+        var curIdx = stageOrder(phase);
+        document.getElementById('schedule-rows').innerHTML = SCHEDULE.map(function (row, i) {
+          var status = i < curIdx ? S.badge('neutral', 'done', 'check')
+            : i === curIdx ? S.badge('info', 'current', 'clock')
+            : S.badge('neutral', 'upcoming');
+          return '<tr><td>' + esc(row.stage) + '</td><td class="mono">' + esc(row.when) + '</td><td>' + status + '</td></tr>';
+        }).join('');
+
+        /* Other elections */
+        var phaseBadge = { approval: ['info', 'Approval phase'], ranked: ['warning', 'Ranked window'], certifying: ['neutral', 'Certifying'] };
+        document.getElementById('other-elections').innerHTML = W.elections.map(function (e) {
+          var j = BY.jurisdictions[e.jurisdiction];
+          var p = (e.jurisdiction === 'usa-4-charlotte') ? phase : e.phase;
+          var pb = phaseBadge[p] || phaseBadge.approval;
+          var link = p === 'approval' ? '<a href="open-ballot.html">Open ballot</a>'
+            : p === 'ranked' ? '<a href="ranked-ballot.html">Ranked ballot</a>'
+            : '<a href="results.html">Count record</a>';
+          return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
+            '<div><strong>' + esc(j.name) + '</strong> · general · ' + e.seats + ' seats' +
+            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race · CLK-21</span></div>' +
+            '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + link + '</div></div></div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#act-certify,#act-recount,#act-reset') : null;
+        if (!t) return;
+        if (t.id === 'act-certify') certStep = 'certified';
+        else if (t.id === 'act-recount') certStep = 'recount';
+        else certStep = 'certified';
+        render();
+      });
+
+      /* Register reactivity first, then paint. The initial render waits for
+         DOMContentLoaded because S.refresh() needs the shell chrome to exist. */
+      document.addEventListener('cga:statechange', render);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+      else render();
+    })();
+  </script>
+</body>
+</html>

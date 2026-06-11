@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vacancy countback — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Elections · vacancy</span>
+        <h1>Vacancy countback — Charlotte legislature, seat 4</h1>
+        <p class="page-intro">Renata Silva resigned. No new election is needed yet: the countback engine re-runs the
+          prior election's ballots with the vacated member removed as a candidate. The voters' original preferences
+          decide the replacement — only if those ballots exhaust does a special election follow.</p>
+        <p class="citation">Vacancies filled by countback of prior ballots · Art. II §5 · countback engine — hardened</p>
+        <noscript><p class="gloss">The countback visualization renders from fixture data and needs JavaScript.</p></noscript>
+      </header>
+
+      <section class="card" aria-labelledby="trigger-h">
+        <h2 id="trigger-h">Trigger</h2>
+        <div class="card card--inset">
+          <p style="margin-block-end:var(--space-1)"><strong>Vacancy declaration</strong> <span class="form-chip"><span class="form-id">F-LEG-036</span></span></p>
+          <p class="cc-small" style="margin-block-end:var(--space-1)">Declare a seat vacant due to death, resignation, removal, or incapacity.</p>
+          <p class="citation">available to R-09 Legislative Representative / R-10 Speaker · creates a vacancy record → triggers countback · Art. II §5</p>
+          <p class="citation">catalog alias: F-LEG-030 · workflows catalog (renumbering drift)</p>
+        </div>
+        <p class="cc-small" style="margin-block-start:var(--space-3)">Declared by the Speaker on 2031-05-28 14:12 —
+          shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
+        <div class="state-strip" id="vac-state" aria-label="Vacancy state machine"></div>
+      </section>
+
+      <section class="card" aria-labelledby="engine-h">
+        <h2 id="engine-h">The re-run <span id="engine-badge"></span></h2>
+        <p class="cc-small">Prior election: Charlotte general 2030 — 287,540 valid ballots, 9 seats, Droop quota
+          <span class="citation" data-no-i18n>floor(287,540 ÷ 10) + 1 = 28,755</span>. The engine strikes the vacated
+          member and continues the count from the voters' next preferences.</p>
+        <div id="engine-bars"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Gold tick = the Droop quota. A continuing candidate
+          who reaches it fills the seat; ballots with no remaining preference become exhausted.</p>
+        <p class="citation">Re-run of prior ballots with the vacated member removed · Art. II §5 · STV with Droop quota — hardened</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" id="branch-found" aria-labelledby="found-h">
+          <h2 id="found-h">Branch: winner found <span id="found-flag"></span></h2>
+          <p class="cc-small">The countback yields a replacement. The election board certifies, the winner is seated by
+            oath (F-LEG-001), and committee proportionality is re-checked.</p>
+          <div class="card card--inset" style="margin-block-end:var(--space-3)">
+            <p style="margin-block-end:var(--space-1)"><strong>Election results certification</strong> <span class="form-chip"><span class="form-id">F-ELB-004</span></span></p>
+            <p class="citation">available to R-08 Election Board Member · Art. II §2 (transparent election process)</p>
+          </div>
+          <div class="cluster" id="certify-area"></div>
+          <p class="citation" style="margin-block-start:var(--space-3)">Committee proportionality re-checked after seating · WF-LEG-13</p>
+        </section>
+
+        <section class="card" id="branch-failed" aria-labelledby="failed-h">
+          <h2 id="failed-h">Branch: ballots exhausted <span id="failed-flag"></span></h2>
+          <p class="cc-small">No continuing candidate can reach the quota — the countback fails and a special election
+            must be held no sooner than 90 and no later than 180 days after the vacancy.</p>
+          <p class="citation">Special election window · 90–180 days · CLK-04 · Art. II §5</p>
+          <form id="se-form">
+            <div class="field">
+              <label class="field-label" for="se-date">Special election date</label>
+              <input class="field-input" type="date" id="se-date" value="2031-09-14" min="2031-08-26" max="2031-11-24" />
+              <span class="field-hint">Window for this vacancy: 2031-08-26 → 2031-11-24 (declared 2031-05-28). The engine
+                rejects dates outside the window.</span>
+            </div>
+            <div class="cluster">
+              <button type="submit" class="btn btn--primary btn--sm" id="se-btn">Schedule special election</button>
+              <span class="form-chip">Election scheduling order <span class="form-id">F-ELB-001</span></span>
+            </div>
+            <p class="citation" id="se-confirm" role="status" hidden></p>
+          </form>
+          <p class="citation" style="margin-block-start:var(--space-3)">Opens WF-ELE-04 · forms F-ELB-001, F-IND-011, F-IND-007, F-ELB-004</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="side-h">
+        <h2 id="side-h">Knock-on effects</h2>
+        <div class="stack" style="gap:var(--space-3)">
+          <div class="card card--inset">
+            <strong>Committee proportionality re-check pending</strong>
+            <span class="citation" style="display:block">Public Safety &amp; Justice committee — Renata Silva's seat vacated · re-check runs when the replacement is seated · WF-LEG-13 · Art. II §4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</span>
+          </div>
+          <div class="card card--inset">
+            <strong>Live example of the failed branch</strong>
+            <span class="citation" style="display:block">Plaza Midwood legislature · seat 2 — countback exhausted · special election scheduled 2031-09-14 (inside the 90–180 day window · CLK-04)</span>
+          </div>
+        </div>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-03.html">WF-ELE-03 (vacancy countback)</a> with its
+            failure branch into <a href="../flows/WF-ELE-04.html">WF-ELE-04 (special election)</a>; seating hands off to
+            WF-LEG-13 (committee proportionality re-check). The declaration arrives from
+            <a href="../legislature/oversight.html">legislature oversight</a>.</p>
+          <p><strong>Entity state machine:</strong> Vacancy — Detected → Declared → Countback-Running →
+            Filled | Countback-Failed → Special-Election-Scheduled (90–180d) → Filled. The strip above tracks the live
+            record; toggle "countback failed" in the mockup controls to walk the failure branch.</p>
+          <p class="citation">Art. II §5 · F-LEG-036 · F-ELB-004 · F-ELB-001 · CLK-04</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/vacancy-countback',
+      title: 'Vacancy countback',
+      module: 'electoral',
+      nav: 'vacancy-countback',
+      roles: ['R-08'],
+      workflows: ['WF-ELE-03', 'WF-ELE-04'],
+      forms: ['F-LEG-036', 'F-ELB-004', 'F-ELB-001'],
+      citation: 'Countback re-runs prior ballots · special election 90–180 d on failure · Art. II §5 · CLK-04',
+      flow: 'WF-ELE-03',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var QUOTA = 28755, SCALE = QUOTA * 1.35;
+      var certified = false, scheduled = false;
+
+      /* Final state of the re-run under each branch (internally consistent demo data). */
+      var RERUN = {
+        found: [
+          { name: 'Renata Silva', votes: 0, removed: true },
+          { name: 'Camille Verhoeven', votes: 29344, elected: true },
+          { name: 'DeShawn Mills', votes: 24011 },
+          { name: 'Greta Olsen', votes: 19876 },
+          { name: 'Exhausted ballots', votes: 12205, exhausted: true }
+        ],
+        failed: [
+          { name: 'Renata Silva', votes: 0, removed: true },
+          { name: 'DeShawn Mills', votes: 24011 },
+          { name: 'Greta Olsen', votes: 19876 },
+          { name: 'Exhausted ballots', votes: 41830, exhausted: true }
+        ]
+      };
+
+      function bar(c) {
+        var pct = Math.min(100, c.votes / SCALE * 100);
+        var cls = 'stv-cand' + (c.elected ? ' stv-cand--elected' : '') + (c.removed ? ' stv-cand--eliminated' : '');
+        var label = esc(c.name) +
+          (c.removed ? ' <span class="tag-chip">removed from the count</span>' : '') +
+          (c.elected ? ' <span class="tag-chip">reaches quota</span>' : '') +
+          (c.exhausted ? ' <span class="tag-chip">no remaining preference</span>' : '');
+        return '<div class="' + cls + '">' +
+          '<span class="stv-cand-name">' + label + '</span>' +
+          '<span class="stv-track"><span class="stv-fill' + (c.elected ? ' stv-fill--elected' : (c.exhausted ? ' stv-fill--transfer' : '')) + '" style="inline-size:' + pct.toFixed(1) + '%"></span>' +
+          '<span class="stv-quota-mark" style="inset-inline-start:' + (QUOTA / SCALE * 100).toFixed(1) + '%" title="Droop quota 28,755"></span></span>' +
+          '<span class="stv-votes">' + (c.removed ? '—' : c.votes.toLocaleString('en-US')) + '</span></div>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var failed = st.scenario.countbackFailed;
+
+        /* Vacancy state strip */
+        var states = BY.entities['Vacancy'].states;
+        var current = failed
+          ? (scheduled ? 'Special-Election-Scheduled (90–180d)' : 'Filled | Countback-Failed')
+          : (certified ? 'Filled | Countback-Failed' : 'Countback-Running');
+        document.getElementById('vac-state').innerHTML = states.map(function (s, i) {
+          return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+        }).join('') + (current === 'Filled | Countback-Failed'
+          ? ' <span class="citation">· resolved as: ' + (failed ? 'countback-failed' : 'filled') + '</span>' : '');
+
+        /* Engine outcome */
+        document.getElementById('engine-badge').innerHTML = failed
+          ? S.badge('danger', 'Countback failed — ballots exhausted', 'alert-triangle')
+          : S.badge('success', 'Winner found — Camille Verhoeven', 'check');
+        document.getElementById('engine-bars').innerHTML = RERUN[failed ? 'failed' : 'found'].map(bar).join('');
+
+        /* Branch highlighting */
+        document.getElementById('found-flag').innerHTML = failed
+          ? S.badge('neutral', 'not taken in this scenario')
+          : S.badge('success', 'active branch', 'check');
+        document.getElementById('failed-flag').innerHTML = failed
+          ? S.badge('danger', 'active branch', 'alert-triangle')
+          : S.badge('neutral', 'not taken in this scenario');
+        document.getElementById('branch-found').style.opacity = failed ? '.65' : '1';
+        document.getElementById('branch-failed').style.opacity = failed ? '1' : '.65';
+
+        /* Certify area */
+        document.getElementById('certify-area').innerHTML = failed
+          ? '<button type="button" class="btn btn--secondary btn--sm" disabled title="No winner in this scenario">Certify countback winner</button>'
+          : certified
+            ? S.badge('success', 'Camille Verhoeven certified · seated via oath F-LEG-001', 'check') +
+              '<span class="citation">F-ELB-004 committed · proportionality re-check queued (WF-LEG-13) · simulated</span>'
+            : '<button type="button" class="btn btn--primary btn--sm" id="certify-btn">Certify countback winner</button>' +
+              '<span class="citation">certifies Camille Verhoeven for seat 4</span>';
+
+        document.getElementById('se-btn').disabled = !failed || scheduled;
+        if (!failed) {
+          document.getElementById('se-confirm').hidden = true;
+          scheduled = false;
+        }
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#certify-btn') : null;
+        if (!t) return;
+        certified = true;
+        render();
+      });
+
+      document.getElementById('se-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var d = document.getElementById('se-date');
+        var c = document.getElementById('se-confirm');
+        c.hidden = false;
+        if (d.value >= '2031-08-26' && d.value <= '2031-11-24') {
+          scheduled = true;
+          c.textContent = 'Special election scheduled for ' + d.value + ' · scheduling order issued (F-ELB-001) · WF-ELE-04 opened · simulated';
+        } else {
+          c.textContent = 'Rejected: ' + d.value + ' is outside the constitutional 90–180 day window (2031-08-26 → 2031-11-24) · CLK-04';
+        }
+        render();
+      });
+
+      /* Register reactivity first, then paint. The initial render waits for
+         DOMContentLoaded because S.refresh() needs the shell chrome to exist. */
+      document.addEventListener('cga:statechange', render);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+      else render();
+    })();
+  </script>
+</body>
+</html>

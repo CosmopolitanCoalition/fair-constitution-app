@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Results — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Elections · count record</span>
+        <h1>Results — Mecklenburg County general election</h1>
+        <p class="page-intro">Round-by-round PR-STV with the Droop quota. Surpluses transfer at fractional value
+          (Gregory method); every one of the 9 seats fills in this single count. Write-ins are tabulated identically
+          to finalists. The full record below is public and auditable.</p>
+        <p class="citation">STV with Droop quota · fractional (Gregory) surplus transfers · hardened · Art. II §2</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number" id="stat-total">—</span><span class="stat-label">valid ballots</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-quota">—</span><span class="stat-label">Droop quota = floor(votes ÷ (seats+1)) + 1</span></div>
+        <div class="stat"><span class="stat-number">9</span><span class="stat-label">seats — all filled in one count</span></div>
+        <div class="stat"><span class="stat-number" id="stat-rounds">—</span><span class="stat-label">counting rounds</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="elected-h">
+        <h2 id="elected-h">Elected — 9 of 9 seats</h2>
+        <div id="elected-list" class="cluster"></div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Certification pending · F-ELB-004 · Election Results Certification · available to R-08 · Art. II §2</p>
+      </section>
+
+      <section class="card" aria-labelledby="rounds-h">
+        <h2 id="rounds-h">The count, round by round</h2>
+        <p class="gloss">Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at
+          fractional value so no vote is wasted.</p>
+        <div id="rounds-full"></div>
+        <details class="about-surface" style="margin-block:var(--space-4)">
+          <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+            <span id="mid-rounds-label">Middle rounds</span></summary>
+          <div class="about-surface-body" id="rounds-mid"></div>
+        </details>
+        <div id="round-final"></div>
+        <p class="cc-small" style="margin-block-start:var(--space-3)">
+          <span class="tag-chip">write-in</span> Quinn Avery entered as a write-in and was tabulated identically —
+          eliminated in round 13 with 16,999 votes, which transferred onward like any other.
+          <span class="citation">Write-in of any validated candidate always allowed · Art. II §2</span></p>
+        <p><a href="#" aria-disabled="true" class="btn btn--secondary btn--sm" onclick="return false">Download full count record (CSV) — stub</a></p>
+      </section>
+
+      <section class="card" aria-labelledby="cert-h">
+        <h2 id="cert-h">Certification &amp; chain of custody</h2>
+        <p>The count ran under a public chain of custody. Observation and audit standing belongs to the endorsing
+          organizations and to the candidates themselves; any voter can verify their own ballot by receipt hash.</p>
+        <p class="citation">All factions can observe and audit · Art. II §2 · as implemented — observer standing transfers to endorsing organizations and candidates
+          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Observers of record</caption>
+          <thead><tr><th>Observer</th><th>Standing</th><th>Attestation</th></tr></thead>
+          <tbody id="observers"></tbody>
+        </table></div>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <span class="form-chip">Election results certification <span class="form-id">F-ELB-004</span></span>
+          <span class="form-chip">Recount/audit order <span class="form-id">F-ELB-006</span></span>
+          <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Certifying</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="rcv-h">
+        <h2 id="rcv-h">Single-winner variant — individual executive (RCV)</h2>
+        <p class="cc-small">Single-winner ranked-choice voting applies <strong>only</strong> to the individual executive
+          office model. The top 4 runners-up become the executive's advisors and alternates automatically.</p>
+        <p class="citation">Single-winner RCV only for the individual executive · top-4 runners-up as advisors · Art. III §3</p>
+        <div id="rcv-final"></div>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> WF-ELE-01 (general cycle — tabulation & certification steps); WF-ELE-05 (recount)
+            branches from here; the countback engine (WF-ELE-03) re-runs these same ballots when a vacancy opens.</p>
+          <p><strong>Entity state machine:</strong> Election — Tabulating → Certified (→ Recount).</p>
+          <p class="citation">Art. II §2 · F-ELB-004 · F-ELB-006</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/results',
+      title: 'Results — round-by-round STV',
+      module: 'electoral',
+      nav: 'results',
+      roles: ['R-03', 'R-04', 'R-08'],
+      workflows: ['WF-ELE-01', 'WF-ELE-05'],
+      forms: ['F-ELB-004', 'F-ELB-006'],
+      citation: 'STV with Droop quota · Gregory transfers · Art. II §2',
+      flow: 'WF-ELE-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    /* Round data from a real Gregory-method STV count over synthetic ballots
+       (tools note in MANIFEST.md) — quota and transfers are internally consistent. */
+    window.STV_DATA = {"total": 412383, "quota": 41239, "seats": 9, "rounds": 27, "elected": ["Rita Alvarez", "Sam Porter", "Nora Whitfield", "Carl Jensen", "Leo Tanaka", "Adwoa Boateng", "Maya Okonjo", "Joe Calhoun", "Aisha Diop"], "display": [{"n": 1, "action": "Tanya Brooks eliminated — 5,224 votes transfer at current value", "tallies": [["Rita Alvarez", 28454], ["Adwoa Boateng", 24331], ["Leo Tanaka", 23323], ["Sade Williams", 20986], ["Aisha Diop", 20894], ["Maya Okonjo", 20436], ["Nora Whitfield", 19519], ["Carl Jensen", 19153], ["Pedro Gomes", 18328], ["Lila Haddad", 18191], ["Sam Porter", 17687], ["Rina Patel", 17183], ["Grace Liu", 15671], ["Dan Foster", 14204]], "electedSoFar": []}, {"n": 2, "action": "Ingrid Bauer eliminated — 6,965 votes transfer at current value", "tallies": [["Rita Alvarez", 28729], ["Adwoa Boateng", 24331], ["Leo Tanaka", 23323], ["Aisha Diop", 21719], ["Sade Williams", 20986], ["Maya Okonjo", 20436], ["Nora Whitfield", 19519], ["Carl Jensen", 19153], ["Pedro Gomes", 18328], ["Lila Haddad", 18191], ["Rina Patel", 17732], ["Sam Porter", 17687], ["Grace Liu", 16495], ["Joe Calhoun", 14754]], "electedSoFar": []}, {"n": 3, "action": "Ivan Petrov eliminated — 7,698 votes transfer at current value", "tallies": [["Rita Alvarez", 28729], ["Adwoa Boateng", 24331], ["Leo Tanaka", 23323], ["Aisha Diop", 21719], ["Sade Williams", 20986], ["Maya Okonjo", 20436], ["Carl Jensen", 20253], ["Nora Whitfield", 20253], ["Sam Porter", 19886], ["Pedro Gomes", 18328], ["Lila Haddad", 18191], ["Rina Patel", 17732], ["Grace Liu", 16495], ["Joe Calhoun", 14754]], "electedSoFar": []}, {"n": 4, "action": "Chris Dunn eliminated — 7,789 votes transfer at current value"}, {"n": 5, "action": "Marco Ricci eliminated — 9,072 votes transfer at current value"}, {"n": 6, "action": "Felipe Ortiz eliminated — 9,347 votes transfer at current value"}, {"n": 7, "action": "Olu Adebayo eliminated — 10,722 votes transfer at current value"}, {"n": 8, "action": "Kenji Sato eliminated — 10,997 votes transfer at current value"}, {"n": 9, "action": "Helen Marsh eliminated — 11,455 votes transfer at current value"}, {"n": 10, "action": "Pavel Novak eliminated — 13,196 votes transfer at current value"}, {"n": 11, "action": "Dan Foster eliminated — 16,037 votes transfer at current value"}, {"n": 12, "action": "Vera Krause eliminated — 16,862 votes transfer at current value"}, {"n": 13, "action": "Quinn Avery (write-in) eliminated — 16,999 votes transfer at current value"}, {"n": 14, "action": "Grace Liu eliminated — 19,245 votes transfer at current value"}, {"n": 15, "action": "Pedro Gomes eliminated — 21,306 votes transfer at current value"}, {"n": 16, "action": "Rita Alvarez elected — surplus 458 transfers at value 0.011 (Gregory)"}, {"n": 17, "action": "Lila Haddad eliminated — 23,169 votes transfer at current value"}, {"n": 18, "action": "Tom Reeves eliminated — 26,125 votes transfer at current value"}, {"n": 19, "action": "Sam Porter elected — surplus 3,940 transfers at value 0.087 (Gregory)"}, {"n": 20, "action": "Nora Whitfield elected — surplus 4,511 transfers at value 0.099 (Gregory)"}, {"n": 21, "action": "Carl Jensen elected — surplus 5,003 transfers at value 0.108 (Gregory)"}, {"n": 22, "action": "Leo Tanaka elected — surplus 977 transfers at value 0.023 (Gregory)"}, {"n": 23, "action": "Rina Patel eliminated — 31,384 votes transfer at current value"}, {"n": 24, "action": "Adwoa Boateng elected — surplus 5,995 transfers at value 0.127 (Gregory)"}, {"n": 25, "action": "Maya Okonjo elected — surplus 8,220 transfers at value 0.166 (Gregory)"}, {"n": 26, "action": "Joe Calhoun elected — surplus 2,578 transfers at value 0.059 (Gregory)"}, {"n": 27, "action": "Aisha Diop elected — surplus 704 transfers at value 0.017 (Gregory)", "tallies": [["Aisha Diop", 41943], ["Sade Williams", 36812], ["Maya Okonjo", 0], ["Carl Jensen", 0], ["Rita Alvarez", 0], ["Sam Porter", 0], ["Adwoa Boateng", 0], ["Leo Tanaka", 0], ["Nora Whitfield", 0], ["Joe Calhoun", 0]], "electedSoFar": ["Rita Alvarez", "Sam Porter", "Nora Whitfield", "Carl Jensen", "Leo Tanaka", "Adwoa Boateng", "Maya Okonjo", "Joe Calhoun", "Aisha Diop"]}]};
+  </script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+      var D = window.STV_DATA;
+
+      var SCALE = D.quota * 1.35; /* bar scale so the quota tick sits at ~74% */
+
+      function bar(name, votes, electedSoFar) {
+        var isElected = electedSoFar.indexOf(name) >= 0 || votes >= D.quota;
+        var pct = Math.min(100, votes / SCALE * 100);
+        return '<div class="stv-cand' + (isElected ? ' stv-cand--elected' : '') + '">' +
+          '<span class="stv-cand-name">' + esc(name) + (name.indexOf('write-in') > 0 ? ' <span class="tag-chip">write-in</span>' : '') + '</span>' +
+          '<span class="stv-track"><span class="stv-fill' + (isElected ? ' stv-fill--elected' : '') + '" style="inline-size:' + pct.toFixed(1) + '%"></span>' +
+          '<span class="stv-quota-mark" style="inset-inline-start:' + (D.quota / SCALE * 100).toFixed(1) + '%" title="Droop quota ' + D.quota.toLocaleString('en-US') + '"></span></span>' +
+          '<span class="stv-votes">' + Math.round(votes).toLocaleString('en-US') + '</span></div>';
+      }
+
+      function roundBlock(r) {
+        var head = '<h3 style="margin-block:var(--space-4) var(--space-2)">Round ' + r.n +
+          ' <span class="citation">' + esc(r.action) + '</span></h3>';
+        if (!r.tallies) return head;
+        return head + '<div class="stv-round">' + r.tallies.map(function (t) {
+          return bar(t[0], t[1], r.electedSoFar || []);
+        }).join('') + '</div>';
+      }
+
+      document.getElementById('stat-total').textContent = D.total.toLocaleString('en-US');
+      document.getElementById('stat-quota').textContent = D.quota.toLocaleString('en-US');
+      document.getElementById('stat-rounds').textContent = D.rounds;
+
+      document.getElementById('elected-list').innerHTML = D.elected.map(function (n, i) {
+        return '<span class="persona-chip"><span class="avatar" aria-hidden="true">' + i18nInitials(n) + '</span>' + esc(n) +
+          ' <span class="persona-roles">seat ' + (i + 1) + '</span></span>';
+      }).join('');
+      function i18nInitials(n) { return n.split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase(); }
+
+      var fullRounds = D.display.filter(function (r) { return r.tallies; });
+      var midRounds = D.display.filter(function (r) { return !r.tallies; });
+      document.getElementById('rounds-full').innerHTML = fullRounds.slice(0, -1).map(roundBlock).join('');
+      document.getElementById('rounds-mid').innerHTML = midRounds.map(function (r) {
+        return '<p class="cc-small"><span class="citation">Round ' + r.n + '</span> ' + esc(r.action) + '</p>';
+      }).join('');
+      document.getElementById('mid-rounds-label').textContent = 'Rounds ' + (midRounds[0] ? midRounds[0].n : 4) + '–' +
+        (midRounds.length ? midRounds[midRounds.length - 1].n : '') + ' (summary)';
+      document.getElementById('round-final').innerHTML = roundBlock(fullRounds[fullRounds.length - 1]);
+
+      /* Observers: endorsing organizations + candidates (no faction layer). */
+      var obs = F.world.organizations.filter(function (o) { return o.endorsementCount; }).map(function (o) {
+        return '<tr><td>' + esc(o.name) + '</td><td class="mono">' + esc(o.type) + '</td>' +
+          '<td><span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' attested</span></td></tr>';
+      }).join('') +
+        '<tr><td>Maya Okonjo (candidate)</td><td class="mono">candidate standing</td><td><span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' attested</span></td></tr>' +
+        '<tr><td>Quinn Avery (write-in candidate)</td><td class="mono">candidate standing</td><td><span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' attested</span></td></tr>';
+      document.getElementById('observers').innerHTML = obs;
+
+      /* RCV individual-executive variant: winner + top-4 advisors. */
+      var rcv = [
+        { name: 'Ingrid Solberg', votes: 221408, win: true, label: 'Elected executive · R-16' },
+        { name: 'Noor Haddad', votes: 190978, label: 'Advisor 1 · R-17' },
+        { name: 'Mateo Rossi', votes: 0, label: 'Advisor 2 · R-17 · eliminated round 6' },
+        { name: 'Aïcha Traoré', votes: 0, label: 'Advisor 3 · R-17 · eliminated round 5' },
+        { name: 'Elias Virtanen', votes: 0, label: 'Advisor 4 · R-17 · eliminated round 4' }
+      ];
+      var rcvTotal = 412386, rcvMaj = Math.floor(rcvTotal / 2) + 1;
+      document.getElementById('rcv-final').innerHTML =
+        '<p class="citation">Final round · majority threshold ' + rcvMaj.toLocaleString('en-US') + ' of ' + rcvTotal.toLocaleString('en-US') + '</p>' +
+        rcv.map(function (c) {
+          var pct = c.votes ? Math.min(100, c.votes / (rcvTotal * 0.62) * 100) : 0;
+          return '<div class="stv-cand' + (c.win ? ' stv-cand--elected' : '') + '">' +
+            '<span class="stv-cand-name">' + esc(c.name) + '</span>' +
+            '<span class="stv-track">' + (c.votes ? '<span class="stv-fill' + (c.win ? ' stv-fill--elected' : '') + '" style="inline-size:' + pct.toFixed(1) + '%"></span>' : '') +
+            '<span class="stv-quota-mark" style="inset-inline-start:' + (rcvMaj / (rcvTotal * 0.62) * 100).toFixed(1) + '%" title="Majority"></span></span>' +
+            '<span class="stv-votes">' + (c.votes ? c.votes.toLocaleString('en-US') : '—') + '</span></div>' +
+            '<p class="citation" style="margin-block:0 var(--space-2)">' + esc(c.label) + '</p>';
+        }).join('');
+
+      S.refresh();
+      document.addEventListener('cga:statechange', function () { S.refresh(); });
+    })();
+  </script>
+</body>
+</html>
