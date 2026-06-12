@@ -257,6 +257,34 @@ services:
     networks:
       - fc_network
 
+  # ─── Laravel Scheduler (constitutional clocks) ───────────────
+  # Runs `php artisan schedule:work` — the WI-6 clock sweep
+  # (routes/console.php schedules EvaluateClocksJob every minute onto the
+  # default Horizon queue, plus horizon:snapshot every five). Mirrors the
+  # horizon service's build/volumes/env so a single image serves both.
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: ${CONTAINER_PREFIX:-fc}_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - composer_cache:/root/.composer
+      # Same live-entrypoint override as the app service — see the comment
+      # there for the rationale.
+      - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
+    command: php artisan schedule:work
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - fc_network
+
   # ─── Python ETL (geoBoundaries + WorldPop + SKATER) ──────────
   etl:
     build:

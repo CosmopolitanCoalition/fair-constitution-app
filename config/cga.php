@@ -25,4 +25,15 @@ return [
     */
     'impersonation' => env('CGA_IMPERSONATION', true),
 
+    /*
+    | CLK-06 critical-population fallback (WI-6). The activation threshold
+    | resolves per jurisdiction at evaluation time:
+    | constitutional_settings.critical_population_threshold (own row →
+    | ancestor walk) → this value. Dev default 1 — a single verified
+    | resident activates a jurisdiction. Production tiers (player
+    | population pegged against real population per jurisdiction, owner
+    | ruling #15) land in a later phase.
+    */
+    'critical_population_default' => env('CGA_CRITICAL_POPULATION', 1),
+
 ];

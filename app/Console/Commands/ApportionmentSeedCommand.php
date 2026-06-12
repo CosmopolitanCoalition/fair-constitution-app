@@ -39,7 +39,8 @@ class ApportionmentSeedCommand extends Command
                             {--fresh : Hard-delete legislatures and re-seed from scratch}
                             {--dry-run : Compute apportionment but do not write to database}
                             {--adm-max=6 : Only process parent jurisdictions with adm_level <= N}
-                            {--jurisdiction= : Seed only the direct children of this jurisdiction (slug or UUID)}';
+                            {--jurisdiction= : Seed only the direct children of this jurisdiction (slug or UUID)}
+                            {--stamp-instance : Stamp instance_settings.apportionment_completed_at (setup-wizard runs only)}';
 
     protected $description = 'Compute cube-root legislature sizes and upsert legislature records (no districts)';
 
@@ -88,7 +89,12 @@ class ApportionmentSeedCommand extends Command
         // The UI at /jurisdictions/earth-0-earth and the wizard's
         // Step-4 confirm page both watch apportionment_completed_at
         // to flip from "running…" → "completed".
-        if (! $dryRun && $exitCode === self::SUCCESS) {
+        //
+        // SETUP-SCOPED (WI-7): only when --stamp-instance is passed. The
+        // activation engine (ActivationService) is now a second caller of
+        // this command; dev activations must never rewrite setup-wizard
+        // state, so the stamp is opt-in and only the setup path passes it.
+        if (! $dryRun && $exitCode === self::SUCCESS && (bool) $this->option('stamp-instance')) {
             $logSummary = sprintf(
                 'Apportionment %s — legislatures created/updated: %d, jurisdictions touched: %d. Scope: %s.',
                 now()->toIso8601String(),

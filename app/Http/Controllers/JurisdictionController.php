@@ -424,7 +424,11 @@ class JurisdictionController extends Controller
             ->value('id');
         try {
             \Illuminate\Support\Facades\Artisan::queue('apportionment:seed', [
-                '--jurisdiction' => $earthId,
+                '--jurisdiction'   => $earthId,
+                // Setup-wizard path: this run IS the canonical apportionment,
+                // so it stamps instance_settings.apportionment_completed_at.
+                // (Activation-engine runs omit the flag — WI-7.)
+                '--stamp-instance' => true,
             ]);
         } catch (\Throwable $e) {
             // Don't fail the acceptance — the operator can re-run the command
