@@ -1,0 +1,30 @@
+{
+    "app": {
+        "name": "World of Statecraft",
+        "skip": "मुख्य सामग्री पर जाएँ"
+    },
+    "header": {
+        "search": "खोजें",
+        "notifications": "सूचनाएँ",
+        "language": "भाषा"
+    },
+    "nav": {
+        "home": "मुखपृष्ठ",
+        "civicHome": "मुखपृष्ठ",
+        "elections": "चुनाव",
+        "openBallot": "खुला मतपत्र",
+        "rankedBallot": "वरीयता मतपत्र",
+        "petitions": "याचिकाएँ",
+        "organizations": "संगठन",
+        "jurisdictions": "क्षेत्राधिकार",
+        "legislature": "विधायिका",
+        "myRecord": "मेरा अभिलेख",
+        "learn": "सीखें"
+    },
+    "demo": {
+        "persona": "पर्सोना",
+        "role": "भूमिका",
+        "jurisdiction": "क्षेत्राधिकार",
+        "locale": "भाषा"
+    }
+}

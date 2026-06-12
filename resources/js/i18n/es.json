@@ -1,0 +1,30 @@
+{
+    "app": {
+        "name": "World of Statecraft",
+        "skip": "Saltar al contenido principal"
+    },
+    "header": {
+        "search": "Buscar",
+        "notifications": "Notificaciones",
+        "language": "Idioma"
+    },
+    "nav": {
+        "home": "Inicio",
+        "civicHome": "Inicio",
+        "elections": "Elecciones",
+        "openBallot": "Boleta abierta",
+        "rankedBallot": "Boleta preferencial",
+        "petitions": "Peticiones",
+        "organizations": "Organizaciones",
+        "jurisdictions": "Jurisdicciones",
+        "legislature": "Legislatura",
+        "myRecord": "Mi registro",
+        "learn": "Aprender"
+    },
+    "demo": {
+        "persona": "Persona",
+        "role": "Rol",
+        "jurisdiction": "Jurisdicción",
+        "locale": "Idioma"
+    }
+}

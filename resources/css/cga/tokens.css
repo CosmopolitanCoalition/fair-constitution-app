@@ -1,0 +1,246 @@
+/* ============================================================================
+   COSMOPOLITAN COALITION OF UNITED EARTH — cga/tokens.css
+   World of Statecraft / Cosmopolitan Governance App (CGA)
+   ----------------------------------------------------------------------------
+   Verbatim port of mockups/assets/css/colors_and_type.css (byte-diffable
+   against the mockups so the QA instruments keep applying), with two edits:
+     1. the fonts @import removed — app.css orchestrates cga/fonts.css;
+     2. the --adm-0..5 jurisdiction ramp (formerly at the top of mockup.css)
+        moved here and made CANONICAL; the legacy --tier-* names survive as
+        deprecated aliases pointing AT --adm-N (MANIFEST §2 rename, inverted
+        from the mockup). Components and the Tailwind mapping use only --adm-N.
+
+   Two registers share one token set:
+     • GOVERNANCE (the operational app)  — grave, dark, trustworthy
+     • BRAND / CIVIC (identity + marketing) — purple + gold, classical, warm
+   Use the raw palette tokens to theme; use the semantic tokens to build.
+   Font: Instrument Sans + Instrument Serif, SELF-HOSTED (resources/fonts/,
+   OFL-1.1) so the system runs fully offline on LAN-only deployments — no
+   external requests anywhere.
+   ============================================================================ */
+
+:root {
+  /* ---------------------------------------------------------------- FONTS */
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system,
+               'Segoe UI', sans-serif, 'Apple Color Emoji', 'Noto Color Emoji';
+  /* Classical display face — used sparingly for "Kosmopolitês" framing only. */
+  --font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas,
+               'Liberation Mono', monospace;
+
+  /* ============================================================ RAW PALETTE */
+
+  /* --- Brand Purple (primary identity — "Social Square Purple" #643264) --- */
+  --cc-purple-50:  #f6eef6;
+  --cc-purple-100: #ead6ea;
+  --cc-purple-200: #d4aed4;
+  --cc-purple-300: #b783b7;
+  --cc-purple-400: #945994;
+  --cc-purple-500: #7a447a;
+  --cc-purple-600: #643264;   /* ★ BRAND PURPLE */
+  --cc-purple-700: #532953;
+  --cc-purple-800: #401f40;
+  --cc-purple-900: #2d162d;
+  --cc-purple-950: #1b0d1b;
+
+  /* --- Brand Gold (emblem + accent — #D69D36) --- */
+  --cc-gold-50:  #fbf6ea;
+  --cc-gold-100: #f6e9c7;
+  --cc-gold-200: #eed28f;
+  --cc-gold-300: #e4ba56;
+  --cc-gold-400: #dcab43;
+  --cc-gold-500: #d69d36;   /* ★ BRAND GOLD */
+  --cc-gold-600: #b9842a;
+  --cc-gold-700: #946622;
+  --cc-gold-800: #785020;
+  --cc-gold-900: #63431f;
+  --cc-gold-950: #3a2710;
+
+  /* --- Cool neutral ramp (matches the app's Tailwind gray; oklch source) --- */
+  --cc-gray-50:  oklch(.985 .002 247.84);
+  --cc-gray-100: oklch(.967 .003 264.54);
+  --cc-gray-200: oklch(.928 .006 264.53);
+  --cc-gray-300: oklch(.872 .010 258.34);
+  --cc-gray-400: oklch(.707 .022 261.33);
+  --cc-gray-500: oklch(.551 .027 264.36);
+  --cc-gray-600: oklch(.446 .030 256.80);
+  --cc-gray-700: oklch(.373 .034 259.73);
+  --cc-gray-800: oklch(.278 .033 256.85);
+  --cc-gray-900: oklch(.210 .034 264.67);
+  --cc-gray-950: oklch(.130 .028 261.69);
+  --cc-white: #ffffff;
+  --cc-black: #000000;
+
+  /* --- Action blue (the live codebase's primary action color) --- */
+  --cc-blue-400: oklch(.707 .165 254.62);
+  --cc-blue-500: oklch(.623 .214 259.82);
+  --cc-blue-600: oklch(.546 .245 262.88);
+  --cc-blue-700: oklch(.488 .243 264.38);
+
+  /* ====================================================== SEMANTIC: GOVERNANCE
+     The operational app. Dark, calm, high-contrast. WCAG AA+ on every pairing. */
+  --gov-bg:            var(--cc-gray-950);   /* page                          */
+  --gov-surface:       var(--cc-gray-900);   /* cards / sections              */
+  --gov-surface-2:     var(--cc-gray-950);   /* inset fields inside surfaces  */
+  --gov-border:        var(--cc-gray-800);   /* hairline dividers / card edge */
+  --gov-border-strong: var(--cc-gray-700);   /* input borders                 */
+  --gov-fg:            var(--cc-white);       /* headings                      */
+  --gov-fg-strong:     var(--cc-gray-200);    /* labels                        */
+  --gov-fg-muted:      var(--cc-gray-400);    /* body copy                     */
+  /* Hints / citations. Raw gray-500 measures 3.67:1 on the gray-900 card
+     surface — below the 4.5:1 AA floor for the 12px text this tier carries.
+     This mix measures 4.91:1 on cards and 5.57:1 on the page, while staying
+     visibly quieter than --gov-fg-muted (6.82:1 / 7.74:1). */
+  --gov-fg-subtle:     color-mix(in oklch, var(--cc-gray-400) 45%, var(--cc-gray-500));
+  /* Brand-aligned primary action. The shipping code uses --cc-blue-600;
+     the canonical brand theme promotes purple. Swap per instance. */
+  --gov-primary:       var(--cc-purple-600);
+  --gov-primary-hover: var(--cc-purple-500);
+  --gov-primary-fg:    var(--cc-white);
+  --gov-focus:         var(--cc-gold-400);    /* gold focus ring on dark       */
+  --gov-link:          var(--cc-gold-300);
+
+  /* ========================================================= SEMANTIC: BRAND
+     Identity + marketing + civic-card surfaces. Warm, light, classical. */
+  --brand-bg:        var(--cc-white);
+  --brand-bg-alt:    var(--cc-purple-50);
+  --brand-fg:        var(--cc-purple-950);
+  --brand-fg-muted:  var(--cc-purple-700);
+  --brand-primary:   var(--cc-purple-600);
+  --brand-accent:    var(--cc-gold-500);
+  --brand-on-purple: var(--cc-gold-400);     /* gold reads on the purple field */
+
+  /* ================================================================ STATUS
+     Tuned for AA on the dark governance surface. Never the sole channel —
+     always pair with an icon or text label. */
+  --status-success: #3fb27f;
+  --status-success-fg: #d7f5e7;
+  --status-warning: #e0a52e;
+  --status-warning-fg: #fbeccb;
+  --status-danger:  #e5675f;   /* matches app red-400 family */
+  --status-danger-fg: #fbe0de;
+  --status-info:    var(--cc-blue-400);
+  --status-info-fg: #d8e8ff;
+
+  /* ===================================================== JURISDICTION RAMP
+     Six nested scales, altitude-true: --adm-0 (Earth) → --adm-5 (sub-local).
+     Ordered brand→cool so "altitude" reads at a glance. ALWAYS accompany with
+     the level label or icon — color is never the sole signal (WCAG 2.2).
+     CANONICAL: components use ONLY --adm-N / --adm-N-fg. */
+  --adm-0: #643264;  /* Earth — brand purple        */
+  --adm-1: #9a3492;  /* Country — magenta           */
+  --adm-2: #6b3fae;  /* State / Province — violet   */
+  --adm-3: #3f5bc4;  /* County / Region — indigo    */
+  --adm-4: #2d7dba;  /* Local — sky                 */
+  --adm-5: #1f8a7a;  /* Sub-local — teal            */
+  --adm-0-fg: color-mix(in oklch, var(--adm-0) 30%, var(--cc-white));
+  --adm-1-fg: color-mix(in oklch, var(--adm-1) 30%, var(--cc-white));
+  --adm-2-fg: color-mix(in oklch, var(--adm-2) 30%, var(--cc-white));
+  --adm-3-fg: color-mix(in oklch, var(--adm-3) 30%, var(--cc-white));
+  --adm-4-fg: color-mix(in oklch, var(--adm-4) 35%, var(--cc-white));
+  --adm-5-fg: color-mix(in oklch, var(--adm-5) 35%, var(--cc-white));
+
+  /* DEPRECATED tier aliases — kept for byte-diff against the mockups only.
+     There is no supranational tier in the product; do not use in new code. */
+  --tier-planetary:     var(--adm-0);
+  --tier-supranational: var(--adm-1);
+  --tier-national:      var(--adm-2);
+  --tier-regional:      var(--adm-3);
+  --tier-municipal:     var(--adm-4);
+  --tier-neighborhood:  var(--adm-5);
+
+  /* ============================================ DATA-VIZ (Wong colorblind-safe)
+     The map/district viewers use this set for distinct fills. */
+  --wong-black:   #000000;
+  --wong-orange:  #e69f00;
+  --wong-skyblue: #56b4e9;
+  --wong-green:   #009e73;
+  --wong-yellow:  #f0e442;
+  --wong-blue:    #0072b2;
+  --wong-vermil:  #d55e00;
+  --wong-purple:  #cc79a7;
+
+  /* ====================================================== GAMIFICATION ACCENTS
+     For the civic-achievement layer. Celebratory but never garish — earned,
+     not loot-box. Built from brand gold, not neon. */
+  --xp-gold:    var(--cc-gold-500);
+  --xp-gold-lo: var(--cc-gold-700);
+  --rank-bronze: #b9842a;
+  --rank-silver: #c4ccd6;
+  --rank-gold:   #d69d36;
+
+  /* ================================================================== TYPE SCALE
+     rem-based; line-heights tuned for 25+ languages with long words (de/fi)
+     and tall scripts (CJK / Devanagari). */
+  --text-xs:   .75rem;    --lh-xs:   1.4;
+  --text-sm:   .875rem;   --lh-sm:   1.45;
+  --text-base: 1rem;      --lh-base: 1.55;
+  --text-lg:   1.125rem;  --lh-lg:   1.5;
+  --text-xl:   1.25rem;   --lh-xl:   1.45;
+  --text-2xl:  1.5rem;    --lh-2xl:  1.3;
+  --text-3xl:  1.875rem;  --lh-3xl:  1.2;
+  --text-4xl:  2.25rem;   --lh-4xl:  1.15;
+  --text-5xl:  3rem;      --lh-5xl:  1.05;
+  --text-6xl:  3.75rem;   --lh-6xl:  1.0;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-caps: 0.08em;   /* eyebrows / overlines */
+
+  /* ============================================================ RADII / SHADOW */
+  --radius-sm: .25rem;   /* badges, chips            */
+  --radius-md: .375rem;  /* inputs, buttons          */
+  --radius-lg: .5rem;    /* cards, sections          */
+  --radius-xl: .75rem;   /* modals, hero panels      */
+  --radius-full: 9999px;
+
+  /* Shadows are subtle on dark (mostly borders do the work); richer on light. */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.30);
+  --shadow-md: 0 4px 10px rgba(0,0,0,.35);
+  --shadow-lg: 0 14px 34px rgba(0,0,0,.45);
+  --shadow-brand: 0 10px 30px rgba(100,50,100,.18);  /* purple-tinted, light bg */
+  --ring-focus: 0 0 0 3px color-mix(in oklch, var(--cc-gold-400) 60%, transparent);
+
+  /* ================================================================== SPACING
+     4px base, matching the app (Tailwind --spacing:.25rem). */
+  --space-1: .25rem; --space-2: .5rem;  --space-3: .75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem;  --space-10: 2.5rem;
+  --space-12: 3rem;  --space-16: 4rem;
+
+  --ease-standard: cubic-bezier(.4, 0, .2, 1);
+  --ease-out: cubic-bezier(0, 0, .2, 1);
+  --dur-fast: .12s;
+  --dur: .18s;
+  --dur-slow: .3s;
+}
+
+/* ============================================================================
+   SEMANTIC TEXT STYLES — apply directly or copy into component CSS.
+   ============================================================================ */
+.cc-display {           /* hero / classical framing */
+  font-family: var(--font-display);
+  font-size: var(--text-5xl); line-height: var(--lh-5xl);
+  font-weight: 400; letter-spacing: var(--tracking-tight);
+}
+.cc-h1 { font-family: var(--font-sans); font-size: var(--text-3xl); line-height: var(--lh-3xl); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+.cc-h2 { font-family: var(--font-sans); font-size: var(--text-2xl); line-height: var(--lh-2xl); font-weight: var(--weight-semibold); }
+.cc-h3 { font-family: var(--font-sans); font-size: var(--text-lg);  line-height: var(--lh-lg);  font-weight: var(--weight-semibold); }
+.cc-body { font-family: var(--font-sans); font-size: var(--text-base); line-height: var(--lh-base); font-weight: var(--weight-regular); }
+.cc-small { font-family: var(--font-sans); font-size: var(--text-sm); line-height: var(--lh-sm); }
+.cc-eyebrow {           /* overline / section label */
+  font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+}
+.cc-citation {          /* "Art. II §2" constitutional references */
+  font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0;
+}
+.cc-code, code.cc-code { font-family: var(--font-mono); font-size: .9em; }
+
+/* Logical properties for RTL safety (Arabic / Hebrew). */
+[dir] .cc-pad-inline { padding-inline: var(--space-4); }

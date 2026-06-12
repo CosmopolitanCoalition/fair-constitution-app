@@ -1,0 +1,30 @@
+{
+    "app": {
+        "name": "World of Statecraft",
+        "skip": "跳转到主要内容"
+    },
+    "header": {
+        "search": "搜索",
+        "notifications": "通知",
+        "language": "语言"
+    },
+    "nav": {
+        "home": "首页",
+        "civicHome": "首页",
+        "elections": "选举",
+        "openBallot": "开放选票",
+        "rankedBallot": "排序选票",
+        "petitions": "请愿",
+        "organizations": "组织",
+        "jurisdictions": "辖区",
+        "legislature": "立法机构",
+        "myRecord": "我的记录",
+        "learn": "学习"
+    },
+    "demo": {
+        "persona": "角色扮演",
+        "role": "角色",
+        "jurisdiction": "辖区",
+        "locale": "语言"
+    }
+}

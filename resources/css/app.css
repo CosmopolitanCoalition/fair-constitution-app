@@ -18,9 +18,55 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* ──────────────────────────────────────────────────────────────────────────
+   CGA design system (DESIGN_frontend_port.md §A).
+   tokens.css / fonts.css are :root custom props + @font-face (layer choice
+   cosmetic). components.css imports into layer(components) — CRITICAL:
+   Tailwind emits `@layer theme, base, components, utilities`, so existing
+   utility-styled pages keep winning over the CGA component classes until
+   they are deliberately migrated.
+   ────────────────────────────────────────────────────────────────────────── */
+@import './cga/fonts.css' layer(base);
+@import './cga/tokens.css' layer(base);
+@import './cga/components.css' layer(components);
+@import './cga/dev-bar.css' layer(components);
+
+/* Semantic governance tokens → Tailwind utilities (bg-gov-surface,
+   text-gov-fg-muted, border-gov-border, text-status-danger, bg-adm-3 …).
+   `inline` makes utilities emit the var() reference, so per-instance theming
+   (e.g. the purple↔blue --gov-primary swap) works without rebuilds. */
+@theme inline {
+    --font-sans: var(--font-sans);
+    --font-display: var(--font-display);
+    --font-mono: var(--font-mono);
+    --color-gov-bg: var(--gov-bg);
+    --color-gov-surface: var(--gov-surface);
+    --color-gov-surface-2: var(--gov-surface-2);
+    --color-gov-border: var(--gov-border);
+    --color-gov-border-strong: var(--gov-border-strong);
+    --color-gov-fg: var(--gov-fg);
+    --color-gov-fg-strong: var(--gov-fg-strong);
+    --color-gov-fg-muted: var(--gov-fg-muted);
+    --color-gov-fg-subtle: var(--gov-fg-subtle);
+    --color-gov-primary: var(--gov-primary);
+    --color-gov-link: var(--gov-link);
+    --color-status-success: var(--status-success);
+    --color-status-warning: var(--status-warning);
+    --color-status-danger: var(--status-danger);
+    --color-status-info: var(--status-info);
+    --color-adm-0: var(--adm-0);
+    --color-adm-1: var(--adm-1);
+    --color-adm-2: var(--adm-2);
+    --color-adm-3: var(--adm-3);
+    --color-adm-4: var(--adm-4);
+    --color-adm-5: var(--adm-5);
+    --color-adm-0-fg: var(--adm-0-fg);
+    --color-adm-1-fg: var(--adm-1-fg);
+    --color-adm-2-fg: var(--adm-2-fg);
+    --color-adm-3-fg: var(--adm-3-fg);
+    --color-adm-4-fg: var(--adm-4-fg);
+    --color-adm-5-fg: var(--adm-5-fg);
+    --color-gold: var(--cc-gold-400);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────

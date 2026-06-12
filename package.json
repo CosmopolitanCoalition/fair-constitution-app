@@ -19,7 +19,9 @@
         "@vitejs/plugin-vue": "^6.0.4",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "leaflet": "^1.9.4",
+        "lucide-vue-next": "^1.0.0",
         "protomaps-leaflet": "^5.1.0",
-        "vue": "^3.5.28"
+        "vue": "^3.5.28",
+        "vue-i18n": "^11.4.5"
     }
 }

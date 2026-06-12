@@ -1,0 +1,30 @@
+{
+    "app": {
+        "name": "World of Statecraft",
+        "skip": "تخطّ إلى المحتوى الرئيسي"
+    },
+    "header": {
+        "search": "بحث",
+        "notifications": "الإشعارات",
+        "language": "اللغة"
+    },
+    "nav": {
+        "home": "الرئيسية",
+        "civicHome": "الرئيسية",
+        "elections": "الانتخابات",
+        "openBallot": "الاقتراع المفتوح",
+        "rankedBallot": "الاقتراع التفضيلي",
+        "petitions": "العرائض",
+        "organizations": "المنظمات",
+        "jurisdictions": "الولايات",
+        "legislature": "الهيئة التشريعية",
+        "myRecord": "سجلي",
+        "learn": "تعلّم"
+    },
+    "demo": {
+        "persona": "الشخصية",
+        "role": "الدور",
+        "jurisdiction": "الولاية",
+        "locale": "اللغة"
+    }
+}
