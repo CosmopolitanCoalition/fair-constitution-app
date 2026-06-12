@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Jobs\Clocks\AdvanceElectionPhaseJob;
 use App\Jobs\Clocks\EvaluateCriticalPopulationJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
+use App\Jobs\Clocks\FinalistCutoffJob;
+use App\Jobs\Clocks\ScheduleGeneralElectionJob;
+use App\Jobs\Clocks\SpecialElectionBackstopJob;
 use App\Models\Clock;
 use App\Models\ClockTimer;
 use DateTimeInterface;
@@ -31,13 +35,33 @@ class ClockService
 {
     /**
      * clock_id => handler job dispatched when the clock fires. Grows as
-     * phases land (CLK-01 → ScheduleGeneralElectionJob in Phase B, …).
-     * Fires for unmapped clocks still chain an audit entry — observable
-     * before their machinery exists.
+     * phases land. Fires for unmapped clocks still chain an audit entry —
+     * observable before their machinery exists.
+     *
+     * Phase B (WI-B3): handlers receive the fired timer's id as their
+     * first constructor argument (`$handler::dispatch($timer->id)`) so
+     * election jobs know their subject. The Phase A jobs (CLK-05/06)
+     * declare no constructor, so the extra argument is ignored — backward
+     * compatible by construction.
      */
     public const HANDLERS = [
+        'CLK-01' => ScheduleGeneralElectionJob::class,
+        'CLK-04' => SpecialElectionBackstopJob::class,
         'CLK-05' => EvaluateResidencyThresholdsJob::class,
         'CLK-06' => EvaluateCriticalPopulationJob::class,
+        'CLK-18' => FinalistCutoffJob::class,
+    ];
+
+    /**
+     * payload.step => handler job, consulted BEFORE the clock-id map.
+     * CLK-01 carries two distinct duties (design §B.1): the legislature-
+     * subject 'schedule_general' fire (HANDLERS map above) and the
+     * election-subject phase timers at ranked_opens_at / ranked_closes_at,
+     * which route to AdvanceElectionPhaseJob by their payload step.
+     */
+    public const STEP_HANDLERS = [
+        'ranked_open'  => AdvanceElectionPhaseJob::class,
+        'ranked_close' => AdvanceElectionPhaseJob::class,
     ];
 
     public function __construct(
@@ -137,8 +161,17 @@ class ClockService
             return true;
         });
 
-        if ($fired && ($handler = self::HANDLERS[$timer->clock_id] ?? null) !== null) {
-            $handler::dispatch();
+        if ($fired) {
+            $step    = $timer->payload['step'] ?? null;
+            $handler = ($step !== null ? (self::STEP_HANDLERS[$step] ?? null) : null)
+                ?? self::HANDLERS[$timer->clock_id]
+                ?? null;
+
+            if ($handler !== null) {
+                // Pass the fired timer to the handler (Phase B dispatch
+                // contract). Jobs without a constructor ignore the arg.
+                $handler::dispatch($timer->id);
+            }
         }
 
         return $fired;
