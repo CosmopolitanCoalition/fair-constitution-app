@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\Civic\PingController;
+use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
+use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\RasterTileController;
 use App\Http\Controllers\SetupController;
+use App\Http\Middleware\DevToolsEnabled;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -173,6 +177,29 @@ Route::patch('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureCon
 Route::delete('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureController::class, 'deleteMap'])->name('legislatures.maps.delete');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/activate', [LegislatureController::class, 'activateMap'])->name('legislatures.maps.activate');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy',     [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
+
+// WI-5 — Civic identity module: residency claim lifecycle + location pings.
+Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
+    Route::get('/residency', [ResidencyController::class, 'show'])->name('residency');
+    Route::post('/residency/declare', [ResidencyController::class, 'declare'])->name('residency.declare');
+    Route::post('/residency/confirm', [ResidencyController::class, 'confirm'])->name('residency.confirm');
+    Route::post('/residency/redeclare', [ResidencyController::class, 'redeclare'])->name('residency.redeclare');
+    Route::post('/pings', [PingController::class, 'store'])->name('pings.store');
+});
+
+// WI-4 — dev tooling: impersonation + ping simulator. Registered ONLY in
+// the local environment; DevToolsEnabled additionally 404s at runtime when
+// config('cga.impersonation') is off (instant toggle, and testable —
+// boot-time registration can't be flipped inside a test). It runs BEFORE
+// 'auth' so disabled tooling is indistinguishable from a missing route.
+if (app()->environment('local') && config('cga.impersonation', true)) {
+    Route::middleware([DevToolsEnabled::class, 'auth'])->prefix('dev')->name('dev.')->group(function () {
+        Route::get('/users', [ImpersonationController::class, 'index'])->name('users');
+        Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+        Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
+        Route::post('/pings/simulate', [PingController::class, 'simulate'])->name('pings.simulate');
+    });
+}
 
 // Session auth — register / login / logout (WI-3).
 require __DIR__.'/auth.php';

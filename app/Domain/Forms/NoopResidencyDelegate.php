@@ -22,4 +22,9 @@ class NoopResidencyDelegate implements ResidencyHandlerDelegate
     {
         return ['ping_persisted' => false, 'stub' => 'location ping machinery lands in WI-5'];
     }
+
+    public function confirmVerification(?User $actor, array $payload): array
+    {
+        return ['associations_created' => false, 'stub' => 'association sweep machinery lands in WI-5'];
+    }
 }
