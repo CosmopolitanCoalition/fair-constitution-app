@@ -28,6 +28,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Clock,
+    Copy,
     ExternalLink,
     FileText,
     Globe,
@@ -77,6 +78,9 @@ const ICONS = {
     'globe': Globe,
     'lock': Lock,
     'clock': Clock,
+    /* FE-B1 addition: BallotReceipt's "Copy receipt" button
+       (PHASE_B_DESIGN_frontend.md §A.5 names icon=copy). */
+    'copy': Copy,
     'map-pin': MapPin,
     'map': Map,
     'users': Users,

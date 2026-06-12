@@ -1,0 +1,1750 @@
+{
+  "_source": {
+    "stv": "mockups/electoral/results.html window.STV_DATA (real Gregory-method STV count over synthetic ballots; quota and transfers internally consistent)",
+    "candidates": "mockups/assets/js/fixtures.js world.candidates (elec-manhattan-2031 approval phase; 7 seats, finalist line at X=21)",
+    "organizations": "mockups/assets/js/fixtures.js world.organizations (the 5 endorsing orgs)",
+    "elections": "mockups/assets/js/fixtures.js world.elections",
+    "rankedBallot": "mockups/electoral/ranked-ballot.html FINALISTS/WRITE_INS/agg (Kings County race, 5 seats, 15 finalists)",
+    "countback": "mockups/electoral/vacancy-countback.html RERUN/QUOTA (NY County seat 4 — Renata Silva resigned)"
+  },
+  "stv": {
+    "total": 412383,
+    "quota": 41239,
+    "seats": 9,
+    "rounds": 27,
+    "elected": [
+      {
+        "name": "Rita Alvarez",
+        "round": 16
+      },
+      {
+        "name": "Sam Porter",
+        "round": 19
+      },
+      {
+        "name": "Nora Whitfield",
+        "round": 20
+      },
+      {
+        "name": "Carl Jensen",
+        "round": 21
+      },
+      {
+        "name": "Leo Tanaka",
+        "round": 22
+      },
+      {
+        "name": "Adwoa Boateng",
+        "round": 24
+      },
+      {
+        "name": "Maya Okonjo",
+        "round": 25
+      },
+      {
+        "name": "Joe Calhoun",
+        "round": 26
+      },
+      {
+        "name": "Aisha Diop",
+        "round": 27
+      }
+    ],
+    "display": [
+      {
+        "n": 1,
+        "action": "Tanya Brooks eliminated — 5,224 votes transfer at current value",
+        "transfer": {
+          "from": "Tanya Brooks",
+          "kind": "elimination",
+          "to": [
+            [
+              "Felipe Ortiz",
+              1650
+            ],
+            [
+              "Aisha Diop",
+              825
+            ],
+            [
+              "Grace Liu",
+              825
+            ],
+            [
+              "Joe Calhoun",
+              825
+            ],
+            [
+              "Rina Patel",
+              550
+            ],
+            [
+              "Quinn Avery (write-in)",
+              275
+            ],
+            [
+              "Rita Alvarez",
+              275
+            ]
+          ],
+          "exhausted": 0
+        },
+        "tallies": [
+          [
+            "Rita Alvarez",
+            28454
+          ],
+          [
+            "Adwoa Boateng",
+            24331
+          ],
+          [
+            "Leo Tanaka",
+            23323
+          ],
+          [
+            "Sade Williams",
+            20986
+          ],
+          [
+            "Aisha Diop",
+            20894
+          ],
+          [
+            "Maya Okonjo",
+            20436
+          ],
+          [
+            "Nora Whitfield",
+            19519
+          ],
+          [
+            "Carl Jensen",
+            19153
+          ],
+          [
+            "Pedro Gomes",
+            18328
+          ],
+          [
+            "Lila Haddad",
+            18191
+          ],
+          [
+            "Sam Porter",
+            17687
+          ],
+          [
+            "Rina Patel",
+            17183
+          ],
+          [
+            "Grace Liu",
+            15671
+          ],
+          [
+            "Dan Foster",
+            14204
+          ]
+        ],
+        "electedSoFar": []
+      },
+      {
+        "n": 2,
+        "action": "Ingrid Bauer eliminated — 6,965 votes transfer at current value",
+        "transfer": {
+          "from": "Ingrid Bauer",
+          "kind": "elimination",
+          "to": [
+            [
+              "Sam Porter",
+              2199
+            ],
+            [
+              "Vera Krause",
+              1833
+            ],
+            [
+              "Carl Jensen",
+              1100
+            ],
+            [
+              "Nora Whitfield",
+              733
+            ],
+            [
+              "Pavel Novak",
+              733
+            ],
+            [
+              "Ivan Petrov",
+              367
+            ]
+          ],
+          "exhausted": 0
+        },
+        "tallies": [
+          [
+            "Rita Alvarez",
+            28729
+          ],
+          [
+            "Adwoa Boateng",
+            24331
+          ],
+          [
+            "Leo Tanaka",
+            23323
+          ],
+          [
+            "Aisha Diop",
+            21719
+          ],
+          [
+            "Sade Williams",
+            20986
+          ],
+          [
+            "Maya Okonjo",
+            20436
+          ],
+          [
+            "Nora Whitfield",
+            19519
+          ],
+          [
+            "Carl Jensen",
+            19153
+          ],
+          [
+            "Pedro Gomes",
+            18328
+          ],
+          [
+            "Lila Haddad",
+            18191
+          ],
+          [
+            "Rina Patel",
+            17732
+          ],
+          [
+            "Sam Porter",
+            17687
+          ],
+          [
+            "Grace Liu",
+            16495
+          ],
+          [
+            "Joe Calhoun",
+            14754
+          ]
+        ],
+        "electedSoFar": []
+      },
+      {
+        "n": 3,
+        "action": "Ivan Petrov eliminated — 7,698 votes transfer at current value",
+        "transfer": {
+          "from": "Ivan Petrov",
+          "kind": "elimination",
+          "to": [
+            [
+              "Nora Whitfield",
+              2199
+            ],
+            [
+              "Kenji Sato",
+              2199
+            ],
+            [
+              "Carl Jensen",
+              1100
+            ],
+            [
+              "Vera Krause",
+              1100
+            ],
+            [
+              "Sam Porter",
+              1100
+            ]
+          ],
+          "exhausted": 0
+        },
+        "tallies": [
+          [
+            "Rita Alvarez",
+            28729
+          ],
+          [
+            "Adwoa Boateng",
+            24331
+          ],
+          [
+            "Leo Tanaka",
+            23323
+          ],
+          [
+            "Aisha Diop",
+            21719
+          ],
+          [
+            "Sade Williams",
+            20986
+          ],
+          [
+            "Maya Okonjo",
+            20436
+          ],
+          [
+            "Carl Jensen",
+            20253
+          ],
+          [
+            "Nora Whitfield",
+            20253
+          ],
+          [
+            "Sam Porter",
+            19886
+          ],
+          [
+            "Pedro Gomes",
+            18328
+          ],
+          [
+            "Lila Haddad",
+            18191
+          ],
+          [
+            "Rina Patel",
+            17732
+          ],
+          [
+            "Grace Liu",
+            16495
+          ],
+          [
+            "Joe Calhoun",
+            14754
+          ]
+        ],
+        "electedSoFar": []
+      },
+      {
+        "n": 4,
+        "action": "Chris Dunn eliminated — 7,789 votes transfer at current value",
+        "transfer": {
+          "from": "Chris Dunn",
+          "kind": "elimination",
+          "to": [
+            [
+              "Tom Reeves",
+              2291
+            ],
+            [
+              "Nora Whitfield",
+              2291
+            ],
+            [
+              "Sam Porter",
+              916
+            ],
+            [
+              "Dan Foster",
+              916
+            ],
+            [
+              "Carl Jensen",
+              916
+            ],
+            [
+              "Joe Calhoun",
+              458
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 5,
+        "action": "Marco Ricci eliminated — 9,072 votes transfer at current value",
+        "transfer": {
+          "from": "Marco Ricci",
+          "kind": "elimination",
+          "to": [
+            [
+              "Rita Alvarez",
+              2474
+            ],
+            [
+              "Adwoa Boateng",
+              2062
+            ],
+            [
+              "Olu Adebayo",
+              1237
+            ],
+            [
+              "Pedro Gomes",
+              1237
+            ],
+            [
+              "Rina Patel",
+              1237
+            ],
+            [
+              "Maya Okonjo",
+              412
+            ],
+            [
+              "Leo Tanaka",
+              412
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 6,
+        "action": "Felipe Ortiz eliminated — 9,347 votes transfer at current value",
+        "transfer": {
+          "from": "Felipe Ortiz",
+          "kind": "elimination",
+          "to": [
+            [
+              "Rita Alvarez",
+              3299
+            ],
+            [
+              "Quinn Avery (write-in)",
+              3024
+            ],
+            [
+              "Grace Liu",
+              1100
+            ],
+            [
+              "Joe Calhoun",
+              825
+            ],
+            [
+              "Rina Patel",
+              550
+            ],
+            [
+              "Aisha Diop",
+              550
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 7,
+        "action": "Olu Adebayo eliminated — 10,722 votes transfer at current value",
+        "transfer": {
+          "from": "Olu Adebayo",
+          "kind": "elimination",
+          "to": [
+            [
+              "Rina Patel",
+              2887
+            ],
+            [
+              "Maya Okonjo",
+              2887
+            ],
+            [
+              "Leo Tanaka",
+              2062
+            ],
+            [
+              "Rita Alvarez",
+              1237
+            ],
+            [
+              "Pedro Gomes",
+              825
+            ],
+            [
+              "Adwoa Boateng",
+              825
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 8,
+        "action": "Kenji Sato eliminated — 10,997 votes transfer at current value",
+        "transfer": {
+          "from": "Kenji Sato",
+          "kind": "elimination",
+          "to": [
+            [
+              "Sam Porter",
+              2932
+            ],
+            [
+              "Nora Whitfield",
+              2199
+            ],
+            [
+              "Vera Krause",
+              2199
+            ],
+            [
+              "Pavel Novak",
+              1833
+            ],
+            [
+              "Carl Jensen",
+              1833
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 9,
+        "action": "Helen Marsh eliminated — 11,455 votes transfer at current value",
+        "transfer": {
+          "from": "Helen Marsh",
+          "kind": "elimination",
+          "to": [
+            [
+              "Tom Reeves",
+              3207
+            ],
+            [
+              "Carl Jensen",
+              3207
+            ],
+            [
+              "Nora Whitfield",
+              1833
+            ],
+            [
+              "Joe Calhoun",
+              1375
+            ],
+            [
+              "Sam Porter",
+              916
+            ],
+            [
+              "Dan Foster",
+              916
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 10,
+        "action": "Pavel Novak eliminated — 13,196 votes transfer at current value",
+        "transfer": {
+          "from": "Pavel Novak",
+          "kind": "elimination",
+          "to": [
+            [
+              "Nora Whitfield",
+              4399
+            ],
+            [
+              "Sam Porter",
+              3666
+            ],
+            [
+              "Vera Krause",
+              3299
+            ],
+            [
+              "Carl Jensen",
+              1833
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 11,
+        "action": "Dan Foster eliminated — 16,037 votes transfer at current value",
+        "transfer": {
+          "from": "Dan Foster",
+          "kind": "elimination",
+          "to": [
+            [
+              "Sam Porter",
+              4582
+            ],
+            [
+              "Joe Calhoun",
+              3207
+            ],
+            [
+              "Tom Reeves",
+              3207
+            ],
+            [
+              "Nora Whitfield",
+              2749
+            ],
+            [
+              "Carl Jensen",
+              2291
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 12,
+        "action": "Vera Krause eliminated — 16,862 votes transfer at current value",
+        "transfer": {
+          "from": "Vera Krause",
+          "kind": "elimination",
+          "to": [
+            [
+              "Carl Jensen",
+              7331
+            ],
+            [
+              "Sam Porter",
+              6598
+            ],
+            [
+              "Nora Whitfield",
+              2932
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 13,
+        "action": "Quinn Avery (write-in) eliminated — 16,999 votes transfer at current value",
+        "transfer": {
+          "from": "Quinn Avery (write-in)",
+          "kind": "elimination",
+          "to": [
+            [
+              "Joe Calhoun",
+              3024
+            ],
+            [
+              "Aisha Diop",
+              2199
+            ],
+            [
+              "Rita Alvarez",
+              1833
+            ],
+            [
+              "Rina Patel",
+              1650
+            ],
+            [
+              "Grace Liu",
+              1650
+            ],
+            [
+              "Leo Tanaka",
+              1375
+            ],
+            [
+              "Lila Haddad",
+              1375
+            ],
+            [
+              "Sade Williams",
+              1146
+            ],
+            [
+              "Tom Reeves",
+              1146
+            ],
+            [
+              "Pedro Gomes",
+              916
+            ],
+            [
+              "Maya Okonjo",
+              687
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 14,
+        "action": "Grace Liu eliminated — 19,245 votes transfer at current value",
+        "transfer": {
+          "from": "Grace Liu",
+          "kind": "elimination",
+          "to": [
+            [
+              "Aisha Diop",
+              4124
+            ],
+            [
+              "Joe Calhoun",
+              2749
+            ],
+            [
+              "Adwoa Boateng",
+              2199
+            ],
+            [
+              "Lila Haddad",
+              2199
+            ],
+            [
+              "Leo Tanaka",
+              2199
+            ],
+            [
+              "Rina Patel",
+              2199
+            ],
+            [
+              "Sade Williams",
+              1650
+            ],
+            [
+              "Rita Alvarez",
+              1375
+            ],
+            [
+              "Maya Okonjo",
+              550
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 15,
+        "action": "Pedro Gomes eliminated — 21,306 votes transfer at current value",
+        "transfer": {
+          "from": "Pedro Gomes",
+          "kind": "elimination",
+          "to": [
+            [
+              "Rina Patel",
+              4536
+            ],
+            [
+              "Maya Okonjo",
+              4032
+            ],
+            [
+              "Adwoa Boateng",
+              3299
+            ],
+            [
+              "Rita Alvarez",
+              2749
+            ],
+            [
+              "Leo Tanaka",
+              2566
+            ],
+            [
+              "Sade Williams",
+              1375
+            ],
+            [
+              "Lila Haddad",
+              1375
+            ],
+            [
+              "Tom Reeves",
+              1375
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 16,
+        "action": "Rita Alvarez elected — surplus 458 transfers at value 0.011 (Gregory)",
+        "transfer": {
+          "from": "Rita Alvarez",
+          "kind": "surplus",
+          "to": [
+            [
+              "Rina Patel",
+              94
+            ],
+            [
+              "Maya Okonjo",
+              75
+            ],
+            [
+              "Adwoa Boateng",
+              63
+            ],
+            [
+              "Leo Tanaka",
+              62
+            ],
+            [
+              "Aisha Diop",
+              57
+            ],
+            [
+              "Joe Calhoun",
+              57
+            ],
+            [
+              "Lila Haddad",
+              30
+            ],
+            [
+              "Sade Williams",
+              16
+            ],
+            [
+              "Tom Reeves",
+              3
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 17,
+        "action": "Lila Haddad eliminated — 23,169 votes transfer at current value",
+        "transfer": {
+          "from": "Lila Haddad",
+          "kind": "elimination",
+          "to": [
+            [
+              "Leo Tanaka",
+              6015
+            ],
+            [
+              "Maya Okonjo",
+              4587
+            ],
+            [
+              "Adwoa Boateng",
+              3849
+            ],
+            [
+              "Aisha Diop",
+              3849
+            ],
+            [
+              "Sade Williams",
+              3490
+            ],
+            [
+              "Tom Reeves",
+              1380
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 18,
+        "action": "Tom Reeves eliminated — 26,125 votes transfer at current value",
+        "transfer": {
+          "from": "Tom Reeves",
+          "kind": "elimination",
+          "to": [
+            [
+              "Nora Whitfield",
+              5040
+            ],
+            [
+              "Sam Porter",
+              4582
+            ],
+            [
+              "Joe Calhoun",
+              4124
+            ],
+            [
+              "Leo Tanaka",
+              3895
+            ],
+            [
+              "Sade Williams",
+              3215
+            ],
+            [
+              "Carl Jensen",
+              2749
+            ],
+            [
+              "Maya Okonjo",
+              2520
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 19,
+        "action": "Sam Porter elected — surplus 3,940 transfers at value 0.087 (Gregory)",
+        "transfer": {
+          "from": "Sam Porter",
+          "kind": "surplus",
+          "to": [
+            [
+              "Nora Whitfield",
+              1854
+            ],
+            [
+              "Carl Jensen",
+              1646
+            ],
+            [
+              "Joe Calhoun",
+              440
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 20,
+        "action": "Nora Whitfield elected — surplus 4,511 transfers at value 0.099 (Gregory)",
+        "transfer": {
+          "from": "Nora Whitfield",
+          "kind": "surplus",
+          "to": [
+            [
+              "Carl Jensen",
+              3083
+            ],
+            [
+              "Joe Calhoun",
+              1428
+            ]
+          ],
+          "exhausted": 0
+        }
+      },
+      {
+        "n": 21,
+        "action": "Carl Jensen elected — surplus 5,003 transfers at value 0.108 (Gregory)",
+        "transfer": {
+          "from": "Carl Jensen",
+          "kind": "surplus",
+          "to": [
+            [
+              "Joe Calhoun",
+              2771
+            ],
+            [
+              "Rina Patel",
+              412
+            ],
+            [
+              "Adwoa Boateng",
+              370
+            ],
+            [
+              "Aisha Diop",
+              366
+            ],
+            [
+              "Leo Tanaka",
+              308
+            ],
+            [
+              "Maya Okonjo",
+              268
+            ],
+            [
+              "Sade Williams",
+              164
+            ]
+          ],
+          "exhausted": 344
+        }
+      },
+      {
+        "n": 22,
+        "action": "Leo Tanaka elected — surplus 977 transfers at value 0.023 (Gregory)",
+        "transfer": {
+          "from": "Leo Tanaka",
+          "kind": "surplus",
+          "to": [
+            [
+              "Maya Okonjo",
+              279
+            ],
+            [
+              "Adwoa Boateng",
+              237
+            ],
+            [
+              "Sade Williams",
+              203
+            ],
+            [
+              "Aisha Diop",
+              166
+            ],
+            [
+              "Rina Patel",
+              87
+            ]
+          ],
+          "exhausted": 5
+        }
+      },
+      {
+        "n": 23,
+        "action": "Rina Patel eliminated — 31,384 votes transfer at current value",
+        "transfer": {
+          "from": "Rina Patel",
+          "kind": "elimination",
+          "to": [
+            [
+              "Adwoa Boateng",
+              9998
+            ],
+            [
+              "Maya Okonjo",
+              8318
+            ],
+            [
+              "Joe Calhoun",
+              8041
+            ],
+            [
+              "Aisha Diop",
+              4738
+            ],
+            [
+              "Sade Williams",
+              47
+            ]
+          ],
+          "exhausted": 241
+        }
+      },
+      {
+        "n": 24,
+        "action": "Adwoa Boateng elected — surplus 5,995 transfers at value 0.127 (Gregory)",
+        "transfer": {
+          "from": "Adwoa Boateng",
+          "kind": "surplus",
+          "to": [
+            [
+              "Maya Okonjo",
+              4407
+            ],
+            [
+              "Aisha Diop",
+              778
+            ],
+            [
+              "Sade Williams",
+              771
+            ],
+            [
+              "Joe Calhoun",
+              11
+            ]
+          ],
+          "exhausted": 28
+        }
+      },
+      {
+        "n": 25,
+        "action": "Maya Okonjo elected — surplus 8,220 transfers at value 0.166 (Gregory)",
+        "transfer": {
+          "from": "Maya Okonjo",
+          "kind": "surplus",
+          "to": [
+            [
+              "Sade Williams",
+              3545
+            ],
+            [
+              "Aisha Diop",
+              2067
+            ],
+            [
+              "Joe Calhoun",
+              553
+            ]
+          ],
+          "exhausted": 2055
+        }
+      },
+      {
+        "n": 26,
+        "action": "Joe Calhoun elected — surplus 2,578 transfers at value 0.059 (Gregory)",
+        "transfer": {
+          "from": "Joe Calhoun",
+          "kind": "surplus",
+          "to": [
+            [
+              "Aisha Diop",
+              1329
+            ],
+            [
+              "Sade Williams",
+              207
+            ]
+          ],
+          "exhausted": 1042
+        }
+      },
+      {
+        "n": 27,
+        "action": "Aisha Diop elected — surplus 704 transfers at value 0.017 (Gregory)",
+        "transfer": {
+          "from": "Aisha Diop",
+          "kind": "surplus",
+          "to": [
+            [
+              "Sade Williams",
+              447
+            ]
+          ],
+          "exhausted": 257
+        },
+        "tallies": [
+          [
+            "Aisha Diop",
+            41943
+          ],
+          [
+            "Sade Williams",
+            36812
+          ],
+          [
+            "Maya Okonjo",
+            0
+          ],
+          [
+            "Carl Jensen",
+            0
+          ],
+          [
+            "Rita Alvarez",
+            0
+          ],
+          [
+            "Sam Porter",
+            0
+          ],
+          [
+            "Adwoa Boateng",
+            0
+          ],
+          [
+            "Leo Tanaka",
+            0
+          ],
+          [
+            "Nora Whitfield",
+            0
+          ],
+          [
+            "Joe Calhoun",
+            0
+          ]
+        ],
+        "electedSoFar": [
+          "Rita Alvarez",
+          "Sam Porter",
+          "Nora Whitfield",
+          "Carl Jensen",
+          "Leo Tanaka",
+          "Adwoa Boateng",
+          "Maya Okonjo",
+          "Joe Calhoun",
+          "Aisha Diop"
+        ]
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "id": "diego-ramos",
+      "name": "Diego Ramos",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "commons-party"
+      ],
+      "individualEndorsements": 41,
+      "approvals": 4182,
+      "deltaDay": 3,
+      "tags": [
+        "housing",
+        "transit"
+      ],
+      "statement": "Frequent buses, fewer evictions, open books."
+    },
+    {
+      "id": "keisha-boyd",
+      "name": "Keisha Boyd",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "green-horizon"
+      ],
+      "individualEndorsements": 28,
+      "approvals": 3974,
+      "deltaDay": -1,
+      "tags": [
+        "climate",
+        "parks"
+      ],
+      "incumbent": true,
+      "statement": "Tree canopy and clean air are infrastructure."
+    },
+    {
+      "id": "linh-pham",
+      "name": "Linh Pham",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 12,
+      "approvals": 3551,
+      "deltaDay": 5,
+      "tags": [
+        "small-business"
+      ],
+      "statement": "No machine behind me — just the public record."
+    },
+    {
+      "id": "robert-hale",
+      "name": "Robert Hale",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "five-boroughs-chamber",
+        "uptown-neighbors"
+      ],
+      "individualEndorsements": 19,
+      "approvals": 2870,
+      "deltaDay": 0,
+      "tags": [
+        "small-business",
+        "budget"
+      ],
+      "incumbent": true
+    },
+    {
+      "id": "fatou-ndiaye",
+      "name": "Fatou Ndiaye",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "hudson-mutual-aid"
+      ],
+      "individualEndorsements": 33,
+      "approvals": 2641,
+      "deltaDay": -2,
+      "tags": [
+        "housing",
+        "mutual-aid"
+      ]
+    },
+    {
+      "id": "omar-castillo",
+      "name": "Omar Castillo",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "commons-party"
+      ],
+      "individualEndorsements": 22,
+      "approvals": 2563,
+      "deltaDay": 1,
+      "tags": [
+        "transit"
+      ]
+    },
+    {
+      "id": "wren-ashby",
+      "name": "Wren Ashby",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 51,
+      "approvals": 2497,
+      "deltaDay": 4,
+      "tags": [
+        "education"
+      ],
+      "statement": "Endorsed by neighbors, not organizations."
+    },
+    {
+      "id": "dmitri-volkov",
+      "name": "Dmitri Volkov",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "green-horizon"
+      ],
+      "individualEndorsements": 9,
+      "approvals": 2310,
+      "deltaDay": -3,
+      "tags": [
+        "climate",
+        "water"
+      ]
+    },
+    {
+      "id": "june-okada",
+      "name": "June Okada",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "uptown-neighbors"
+      ],
+      "individualEndorsements": 17,
+      "approvals": 2204,
+      "deltaDay": 2,
+      "tags": [
+        "parks",
+        "zoning"
+      ],
+      "incumbent": true
+    },
+    {
+      "id": "caleb-wright",
+      "name": "Caleb Wright",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "five-boroughs-chamber"
+      ],
+      "individualEndorsements": 8,
+      "approvals": 2107,
+      "deltaDay": 0,
+      "tags": [
+        "budget"
+      ]
+    },
+    {
+      "id": "nadia-haq",
+      "name": "Nadia Haq",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "hudson-mutual-aid",
+        "green-horizon"
+      ],
+      "individualEndorsements": 26,
+      "approvals": 2031,
+      "deltaDay": 6,
+      "tags": [
+        "health",
+        "housing"
+      ]
+    },
+    {
+      "id": "sergio-mendes",
+      "name": "Sérgio Mendes",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 4,
+      "approvals": 1968,
+      "deltaDay": -1,
+      "tags": [
+        "transit"
+      ]
+    },
+    {
+      "id": "priscilla-ortega",
+      "name": "Priscilla Ortega",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "commons-party"
+      ],
+      "individualEndorsements": 14,
+      "approvals": 1873,
+      "deltaDay": 1,
+      "tags": [
+        "education",
+        "budget"
+      ]
+    },
+    {
+      "id": "theo-lindqvist",
+      "name": "Theo Lindqvist",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 7,
+      "approvals": 1762,
+      "deltaDay": 0,
+      "tags": [
+        "zoning"
+      ]
+    },
+    {
+      "id": "amara-bello",
+      "name": "Amara Bello",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "green-horizon"
+      ],
+      "individualEndorsements": 11,
+      "approvals": 1655,
+      "deltaDay": 2,
+      "tags": [
+        "climate"
+      ]
+    },
+    {
+      "id": "hugo-marchetti",
+      "name": "Hugo Marchetti",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "five-boroughs-chamber"
+      ],
+      "individualEndorsements": 6,
+      "approvals": 1541,
+      "deltaDay": -2,
+      "tags": [
+        "small-business"
+      ]
+    },
+    {
+      "id": "dalia-mansour",
+      "name": "Dalia Mansour",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "hudson-mutual-aid"
+      ],
+      "individualEndorsements": 21,
+      "approvals": 1490,
+      "deltaDay": 3,
+      "tags": [
+        "health"
+      ]
+    },
+    {
+      "id": "felix-abara",
+      "name": "Felix Abara",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 3,
+      "approvals": 1392,
+      "deltaDay": 0,
+      "tags": [
+        "water"
+      ]
+    },
+    {
+      "id": "iris-kovacs",
+      "name": "Iris Kovács",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "uptown-neighbors"
+      ],
+      "individualEndorsements": 9,
+      "approvals": 1305,
+      "deltaDay": 1,
+      "tags": [
+        "parks"
+      ]
+    },
+    {
+      "id": "malik-johnson",
+      "name": "Malik Johnson",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "commons-party"
+      ],
+      "individualEndorsements": 5,
+      "approvals": 1228,
+      "deltaDay": -1,
+      "tags": [
+        "transit",
+        "housing"
+      ]
+    },
+    {
+      "id": "sun-li-park",
+      "name": "Sun-Li Park",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 13,
+      "approvals": 1140,
+      "deltaDay": 4,
+      "tags": [
+        "education"
+      ]
+    },
+    {
+      "id": "gloria-acheampong",
+      "name": "Gloria Acheampong",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "green-horizon"
+      ],
+      "individualEndorsements": 2,
+      "approvals": 1056,
+      "deltaDay": -1,
+      "tags": [
+        "climate",
+        "transit"
+      ]
+    },
+    {
+      "id": "bastian-keller",
+      "name": "Bastian Keller",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [],
+      "individualEndorsements": 1,
+      "approvals": 967,
+      "deltaDay": 0,
+      "tags": [
+        "budget"
+      ]
+    },
+    {
+      "id": "yara-haddad",
+      "name": "Yara Haddad",
+      "election": "elec-manhattan-2031",
+      "endorsedBy": [
+        "hudson-mutual-aid"
+      ],
+      "individualEndorsements": 16,
+      "approvals": 873,
+      "deltaDay": 2,
+      "tags": [
+        "mutual-aid",
+        "health"
+      ]
+    }
+  ],
+  "organizations": [
+    {
+      "id": "commons-party",
+      "name": "The Commons Party",
+      "type": "political_party",
+      "endorsementCount": 1284
+    },
+    {
+      "id": "green-horizon",
+      "name": "Green Horizon Alliance",
+      "type": "political_party",
+      "endorsementCount": 962
+    },
+    {
+      "id": "five-boroughs-chamber",
+      "name": "Five Boroughs Chamber of Commerce",
+      "type": "business",
+      "endorsementCount": 312
+    },
+    {
+      "id": "hudson-mutual-aid",
+      "name": "Hudson Mutual Aid",
+      "type": "nonprofit",
+      "endorsementCount": 178
+    },
+    {
+      "id": "uptown-neighbors",
+      "name": "Uptown Neighbors",
+      "type": "informal",
+      "endorsementCount": 64
+    }
+  ],
+  "elections": [
+    {
+      "id": "elec-manhattan-2031",
+      "jurisdiction": "usa-3-new-york-county",
+      "kind": "general",
+      "phase": "approval",
+      "seats": 7,
+      "finalistCount": 21,
+      "finalistRule": "X = f(seats) · CLK-21",
+      "clocks": [
+        "CLK-18",
+        "CLK-21"
+      ]
+    },
+    {
+      "id": "elec-brooklyn-2031",
+      "jurisdiction": "usa-3-kings-county",
+      "kind": "general",
+      "phase": "ranked",
+      "seats": 5,
+      "finalistCount": 15,
+      "ranksClose": "2031-05-30T23:59:00Z",
+      "clocks": [
+        "CLK-21"
+      ]
+    },
+    {
+      "id": "elec-queens-2031",
+      "jurisdiction": "usa-3-queens-county",
+      "kind": "general",
+      "phase": "certifying",
+      "seats": 9,
+      "finalistCount": 27,
+      "certifyingSince": "2031-05-12T14:00:00Z",
+      "clocks": [
+        "CLK-07"
+      ]
+    },
+    {
+      "id": "elec-new-york-2031",
+      "jurisdiction": "usa-2-new-york",
+      "kind": "general",
+      "phase": "approval",
+      "seats": 272,
+      "districts": 34,
+      "note": "State legislature — 34 districts of 5–9 seats",
+      "finalistRule": "top X per district · CLK-21",
+      "clocks": [
+        "CLK-18",
+        "CLK-21"
+      ]
+    },
+    {
+      "id": "elec-usa-2031",
+      "jurisdiction": "usa-1-united-states",
+      "kind": "general",
+      "phase": "approval",
+      "seats": 692,
+      "districts": 87,
+      "note": "Federal legislature — 87 districts of 5–9 seats",
+      "finalistRule": "top X per district · CLK-21",
+      "clocks": [
+        "CLK-18",
+        "CLK-21"
+      ]
+    },
+    {
+      "id": "elec-earth-2031",
+      "jurisdiction": "earth-0-earth",
+      "kind": "general",
+      "phase": "approval",
+      "seats": 1999,
+      "districts": 274,
+      "note": "Global parliament — 274 districts of 5–9 seats",
+      "finalistRule": "top X per district · CLK-21",
+      "clocks": [
+        "CLK-18",
+        "CLK-21"
+      ]
+    }
+  ],
+  "rankedBallot": {
+    "race": "elec-brooklyn-2031",
+    "seats": 5,
+    "finalistCount": 15,
+    "finalists": [
+      "Tessa Brandon",
+      "Luis Herrera",
+      "Mo Chen",
+      "Abeni Adeola",
+      "Petra Novotná",
+      "Sam Whitaker",
+      "Imani Carter",
+      "Viktor Hansen",
+      "Rosa Linares",
+      "Kofi Boateng",
+      "Mei Watanabe",
+      "Owen Gallagher",
+      "Zahra Karimi",
+      "Nils Bergström",
+      "Carmen Ruiz"
+    ],
+    "writeIns": [
+      "Harriet Sloane",
+      "Devon Pratt",
+      "Lucia Ferrante",
+      "Ahmed Suleiman"
+    ],
+    "liveAggregate": {
+      "ballotsSoFar": 41832,
+      "quotaIfClosedNow": 6973,
+      "top": [
+        [
+          "Tessa Brandon",
+          5121
+        ],
+        [
+          "Abeni Adeola",
+          4876
+        ],
+        [
+          "Luis Herrera",
+          4519
+        ],
+        [
+          "Imani Carter",
+          4230
+        ],
+        [
+          "Mo Chen",
+          3987
+        ],
+        [
+          "Rosa Linares",
+          3744
+        ],
+        [
+          "Sam Whitaker",
+          3490
+        ],
+        [
+          "Kofi Boateng",
+          3211
+        ]
+      ],
+      "remainderNote": "+ 7 more finalists below 3,000 first preferences — every ballot can still reorder this."
+    }
+  },
+  "countback": {
+    "quota": 28755,
+    "sourceGloss": "Re-run source: the prior 2030 New York County election — 287,540 valid ballots, 9 seats, Droop quota floor(287,540 ÷ 10) + 1 = 28,755.",
+    "rerun": {
+      "found": [
+        {
+          "name": "Renata Silva",
+          "votes": 0,
+          "removed": true
+        },
+        {
+          "name": "Camille Verhoeven",
+          "votes": 29344,
+          "elected": true
+        },
+        {
+          "name": "DeShawn Mills",
+          "votes": 24011
+        },
+        {
+          "name": "Greta Olsen",
+          "votes": 19876
+        },
+        {
+          "name": "Exhausted ballots",
+          "votes": 12205,
+          "exhausted": true
+        }
+      ],
+      "failed": [
+        {
+          "name": "Renata Silva",
+          "votes": 0,
+          "removed": true
+        },
+        {
+          "name": "DeShawn Mills",
+          "votes": 24011
+        },
+        {
+          "name": "Greta Olsen",
+          "votes": 19876
+        },
+        {
+          "name": "Exhausted ballots",
+          "votes": 41830,
+          "exhausted": true
+        }
+      ]
+    }
+  }
+}

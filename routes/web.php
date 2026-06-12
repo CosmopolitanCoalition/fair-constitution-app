@@ -6,6 +6,7 @@ use App\Http\Controllers\Civic\MyRecordController;
 use App\Http\Controllers\Civic\PingController;
 use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
+use App\Http\Controllers\Dev\ElectoralKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LegislatureController;
@@ -224,6 +225,8 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
         Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
         Route::post('/pings/simulate', [PingController::class, 'simulate'])->name('pings.simulate');
+        // FE-B1 — fixture-first harness: every Electoral component in every state.
+        Route::get('/electoral-kit', [ElectoralKitController::class, 'show'])->name('electoral-kit');
     });
 }
 

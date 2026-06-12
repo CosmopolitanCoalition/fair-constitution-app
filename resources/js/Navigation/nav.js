@@ -28,10 +28,13 @@ export const NAV = [
         { id: 'my-record', labelKey: 'nav.myRecord', icon: 'file-text', href: '/civic/record', phase: 'A' },
         { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'A' },
     ] },
+    /* FE-B0: item ids match the `nav` values in config/cga/surfaces.php
+       (elections/* entries) so aria-current resolves; items stay phase 'B'
+       (Planned flag) until the pages land and phasesLive flips. */
     { key: 'elections', titleKey: 'nav.elections', visibility: 'all', items: [
         { id: 'open-ballot', labelKey: 'nav.openBallot', icon: 'vote', href: '/elections/open-ballot', phase: 'B' },
         { id: 'ranked-ballot', labelKey: 'nav.rankedBallot', icon: 'check', href: '/elections/ranked-ballot', phase: 'B' },
-        { id: 'election-detail', labelKey: 'nav.electionDetail', icon: 'clock', href: '/elections', phase: 'B' },
+        { id: 'elections', labelKey: 'nav.electionDetail', icon: 'clock', href: '/elections', phase: 'B' },
         { id: 'results', labelKey: 'nav.results', icon: 'bar-chart', href: '/elections/results', phase: 'B' },
         { id: 'candidacy', labelKey: 'nav.candidacy', icon: 'user', href: '/elections/candidacy', phase: 'B' },
     ] },
