@@ -78,6 +78,17 @@ class JurisdictionController extends Controller
                 ->exists()
             : false;
 
+        // FE-C2 — seated chamber gate: when current members exist the CTA
+        // splits into "Chamber" + "District map"
+        // (PHASE_C_DESIGN_frontend.md §B nav integration).
+        $chamberSeated = $legislatureId
+            ? DB::table('legislature_members')
+                ->where('legislature_id', $legislatureId)
+                ->whereIn('status', ['elected', 'seated'])
+                ->whereNull('deleted_at')
+                ->exists()
+            : false;
+
         // Current election for this jurisdiction's legislature (if any) —
         // renders an "Election" CTA next to the legislature link. Latest
         // non-cancelled; live phases rank ahead of certified/final.
@@ -164,6 +175,7 @@ class JurisdictionController extends Controller
             'review'                     => $reviewSummary,
             'legislature_id'             => $legislatureId,
             'has_district_map'           => $hasDistrictMap,
+            'chamber_seated'             => $chamberSeated,
             'current_election'           => $currentElection ? [
                 'id'     => (string) $currentElection->id,
                 'status' => $currentElection->status,

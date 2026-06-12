@@ -136,10 +136,22 @@ function formatDate(iso) {
                     </span>
                 </template>
 
+                <!-- FE-C2 — status gains the seated/forming chamber badge;
+                     seated chambers (members_count > 0) link to the Chamber
+                     surface alongside the mapper link. -->
                 <template #cell-status="{ row }">
                     <StatusBadge :tone="row.status === 'active' ? 'success' : 'neutral'">
                         {{ row.status }}
                     </StatusBadge>
+                    <StatusBadge
+                        :tone="row.members_count > 0 ? 'info' : 'neutral'"
+                        style="margin-inline-start: var(--space-1)"
+                    >{{ row.members_count > 0 ? 'seated' : 'forming' }}</StatusBadge>
+                    <Link
+                        v-if="row.members_count > 0"
+                        :href="`/legislatures/${row.id}/chamber`"
+                        style="margin-inline-start: var(--space-2)"
+                    >Chamber</Link>
                 </template>
 
                 <template #cell-district_count="{ row }">

@@ -18,6 +18,11 @@ use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Controllers\Elections\ResultsController;
 use App\Http\Controllers\Elections\VacancyController;
 use App\Http\Controllers\JurisdictionController;
+use App\Http\Controllers\Legislature\BillController;
+use App\Http\Controllers\Legislature\ChamberController;
+use App\Http\Controllers\Legislature\ChamberResolverController;
+use App\Http\Controllers\Legislature\SessionController;
+use App\Http\Controllers\Legislature\SettingsController;
 use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\RasterTileController;
@@ -265,8 +270,11 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('election')->name('elections.ranked-ballot');
     Route::post('/elections/{election}/races/{race}/ballots', [BallotController::class, 'store'])
         ->whereUuid(['election', 'race'])->name('elections.ballots.store');           // F-IND-007
-    Route::post('/elections/{election}/races/{race}/referendum-ballots', [BallotController::class, 'storeReferendum'])
-        ->whereUuid(['election', 'race'])->name('elections.referendum-ballots.store'); // F-IND-008
+    // F-IND-008 — QUESTION-scoped, not race-scoped (Phase C C-8: the
+    // referendum envelope/ballot pair carries referendum_question_id;
+    // race_id is NULL on the referendum kind). Body: {question_id, choice}.
+    Route::post('/elections/{election}/referendum-ballots', [BallotController::class, 'storeReferendum'])
+        ->whereUuid('election')->name('elections.referendum-ballots.store'); // F-IND-008
 
     // FE-B6 — Results (parallel batch: ResultsController)
     Route::get('/elections/{election}/results', [ResultsController::class, 'show'])
@@ -296,6 +304,174 @@ Route::middleware('auth')->group(function () {
 
 // Receipt self-audit — public, unauthenticated-OK (anonymized by design).
 Route::post('/receipt-check', [BallotController::class, 'receiptCheck'])->name('receipt-check');
+
+/*
+|--------------------------------------------------------------------------
+| Phase C — legislature / civic / system surfaces (FE-C2…C11 route table)
+|--------------------------------------------------------------------------
+| The COMPLETE per-design route table (PHASE_C_DESIGN_frontend.md §B),
+| registered up front for all three Phase C page batches — the same
+| pattern Phase B used:
+|   FE-C2…C5  → Legislature\{ChamberResolverController,ChamberController,
+|               SessionController,BillController,SettingsController}
+|               (this batch)
+|   FE-C6…C8  → Legislature\{CommitteeController,SpeakerController,
+|               OversightController} (parallel batch — routes point at
+|               them before the classes exist; Laravel resolves
+|               controllers at dispatch, so the routes are inert until
+|               those WIs land)
+|   FE-C9…C11 → Legislature\{ReferendumController,EmergencyPowerController},
+|               Civic\{PetitionController,RelocationController},
+|               System\{PublicRecordsController,TermSyncController}
+|               (batch 3 — same posture)
+|
+| Reads are public-to-authenticated (legislature business is public
+| record — Art. II §2); every WRITE is one ConstitutionalEngine filing —
+| role gates + state guards live in the engine, never in route
+| middleware alone. ConstitutionalViolation → 422 with the citation
+| verbatim (errors.constitution).
+*/
+Route::middleware('auth')->group(function () {
+    // The /legislature/* resolver prefix: nav hrefs stay literal while the
+    // canonical surfaces are legislature-scoped (§B shared conventions).
+    Route::get('/legislature/{sub?}', ChamberResolverController::class)
+        ->where('sub', '|session|bills|committees|referendums|emergency-powers|oversight|settings|speaker-tools')
+        ->name('legislature.resolve');
+
+    // ── FE-C2 — Chamber (legislature/legislature-home) ──────────────────────
+    Route::get('/legislatures/{legislature}/chamber', [ChamberController::class, 'show'])
+        ->whereUuid('legislature')->name('chamber.show');
+    Route::post('/members/{member}/oath', [ChamberController::class, 'oath'])
+        ->whereUuid('member')->name('members.oath');                          // F-LEG-001
+
+    // ── FE-C3 — SessionConsole (legislature/session-console) ────────────────
+    Route::get('/legislatures/{legislature}/session', [SessionController::class, 'show'])
+        ->whereUuid('legislature')->name('session.show');
+    Route::post('/legislatures/{legislature}/sessions', [SessionController::class, 'store'])
+        ->whereUuid('legislature')->name('sessions.store');                   // F-SPK-001
+    Route::post('/legislatures/{legislature}/speaker-ballot', [SessionController::class, 'launchSpeakerBallot'])
+        ->whereUuid('legislature')->name('sessions.speaker-ballot');          // F-LEG-008 (open)
+    Route::post('/sessions/{session}/attendance', [SessionController::class, 'attendance'])
+        ->whereUuid('session')->name('sessions.attendance');                  // F-LEG-002
+    Route::post('/sessions/{session}/quorum', [SessionController::class, 'quorum'])
+        ->whereUuid('session')->name('sessions.quorum');                      // F-SPK-003
+    Route::post('/sessions/{session}/agenda', [SessionController::class, 'agenda'])
+        ->whereUuid('session')->name('sessions.agenda');                      // F-SPK-002
+    Route::post('/sessions/{session}/motions', [SessionController::class, 'motion'])
+        ->whereUuid('session')->name('sessions.motions');                     // F-LEG-007
+    Route::post('/sessions/{session}/statements', [SessionController::class, 'statement'])
+        ->whereUuid('session')->name('sessions.statements');                  // F-LEG-006
+    Route::post('/sessions/{session}/compel', [SessionController::class, 'compel'])
+        ->whereUuid('session')->name('sessions.compel');                      // F-SPK-008
+    Route::post('/sessions/{session}/adjourn', [SessionController::class, 'adjourn'])
+        ->whereUuid('session')->name('sessions.adjourn');                     // F-SPK-009
+
+    // ONE cast endpoint for every chamber decision — the vote row resolves
+    // the canonical form (F-LEG-004 floor / F-LEG-005 committee /
+    // F-LEG-008 speaker RCV / F-LEG-011 chair RCV).
+    Route::post('/votes/{vote}/cast', [SessionController::class, 'cast'])
+        ->whereUuid('vote')->name('votes.cast');
+    Route::post('/votes/{vote}/tiebreak', [SessionController::class, 'tiebreak'])
+        ->whereUuid('vote')->name('votes.tiebreak');                          // F-SPK-004
+
+    // ── FE-C4 — Bills + BillDetail (legislature/bills, bill-detail) ─────────
+    Route::get('/legislatures/{legislature}/bills', [BillController::class, 'index'])
+        ->whereUuid('legislature')->name('bills.index');
+    Route::post('/legislatures/{legislature}/bills', [BillController::class, 'store'])
+        ->whereUuid('legislature')->name('bills.store');                      // F-LEG-003
+    Route::post('/legislatures/{legislature}/bills/validate', [BillController::class, 'validateSetting'])
+        ->whereUuid('legislature')->name('bills.validate');                   // pure pre-flight
+    Route::get('/bills/{bill}', [BillController::class, 'show'])
+        ->whereUuid('bill')->name('bills.show');
+    Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
+        ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
+
+    // ── FE-C5 — Settings register (legislature/settings) ────────────────────
+    Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])
+        ->whereUuid('legislature')->name('settings.show');
+
+    // ── FE-C6 — Committees + CommitteeDetail (parallel batch) ───────────────
+    Route::get('/legislatures/{legislature}/committees', [\App\Http\Controllers\Legislature\CommitteeController::class, 'index'])
+        ->whereUuid('legislature')->name('committees.index');
+    Route::post('/legislatures/{legislature}/committees', [\App\Http\Controllers\Legislature\CommitteeController::class, 'store'])
+        ->whereUuid('legislature')->name('committees.store');                 // F-LEG-009
+    Route::post('/legislatures/{legislature}/committee-preferences', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storePreferences'])
+        ->whereUuid('legislature')->name('committees.preferences');           // F-LEG-010
+    Route::post('/legislatures/{legislature}/committees/assign', [\App\Http\Controllers\Legislature\CommitteeController::class, 'assign'])
+        ->whereUuid('legislature')->name('committees.assign');                // F-SPK-005
+    Route::get('/committees/{committee}', [\App\Http\Controllers\Legislature\CommitteeController::class, 'show'])
+        ->whereUuid('committee')->name('committees.show');
+    Route::post('/committees/{committee}/meetings', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storeMeeting'])
+        ->whereUuid('committee')->name('committees.meetings');                // F-CHR-001
+    Route::post('/meetings/{meeting}/agenda', [\App\Http\Controllers\Legislature\CommitteeController::class, 'meetingAgenda'])
+        ->whereUuid('meeting')->name('meetings.agenda');                      // F-CHR-002
+    Route::post('/meetings/{meeting}/testimony', [\App\Http\Controllers\Legislature\CommitteeController::class, 'testimony'])
+        ->whereUuid('meeting')->name('meetings.testimony');                   // → public_records
+    Route::post('/committees/{committee}/reports', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storeReport'])
+        ->whereUuid('committee')->name('committees.reports');                 // F-CHR-004
+    Route::post('/bills/{bill}/refer-to-floor', [\App\Http\Controllers\Legislature\CommitteeController::class, 'referToFloor'])
+        ->whereUuid('bill')->name('bills.refer-to-floor');                    // F-CHR-003
+    Route::post('/committees/{committee}/chair-ballot', [\App\Http\Controllers\Legislature\CommitteeController::class, 'openChairBallot'])
+        ->whereUuid('committee')->name('committees.chair-ballot');            // F-LEG-011 (re-ballot)
+
+    // ── FE-C7 — SpeakerTools (parallel batch) ───────────────────────────────
+    Route::get('/legislatures/{legislature}/speaker', [\App\Http\Controllers\Legislature\SpeakerController::class, 'show'])
+        ->whereUuid('legislature')->name('speaker.show');
+    Route::post('/legislatures/{legislature}/priorities', [\App\Http\Controllers\Legislature\SpeakerController::class, 'storePriority'])
+        ->whereUuid('legislature')->name('speaker.priorities');               // F-SPK-006
+
+    // ── FE-C8 — Oversight (parallel batch) ──────────────────────────────────
+    Route::get('/legislatures/{legislature}/oversight', [\App\Http\Controllers\Legislature\OversightController::class, 'show'])
+        ->whereUuid('legislature')->name('oversight.show');
+    Route::post('/legislatures/{legislature}/investigations', [\App\Http\Controllers\Legislature\OversightController::class, 'intake'])
+        ->whereUuid('legislature')->name('oversight.intake');                 // I-ADM intake (audited non-form action)
+    Route::post('/investigations/{investigation}/refer', [\App\Http\Controllers\Legislature\OversightController::class, 'referInvestigation'])
+        ->whereUuid('investigation')->name('investigations.refer');           // R-29
+    Route::post('/legislatures/{legislature}/removal-proceedings', [\App\Http\Controllers\Legislature\OversightController::class, 'openProceeding'])
+        ->whereUuid('legislature')->name('oversight.removal-proceedings');    // F-SPK-007 + F-LEG-022
+    Route::post('/legislatures/{legislature}/vacancies', [\App\Http\Controllers\Legislature\OversightController::class, 'declareVacancy'])
+        ->whereUuid('legislature')->name('oversight.vacancies');              // F-LEG-036
+    Route::post('/legislatures/{legislature}/admin-office', [\App\Http\Controllers\Legislature\OversightController::class, 'createOffice'])
+        ->whereUuid('legislature')->name('oversight.admin-office');           // F-LEG-013
+
+    // ── FE-C9 — Referendums + EmergencyPowers (batch 3) ─────────────────────
+    Route::get('/legislatures/{legislature}/referendums', [\App\Http\Controllers\Legislature\ReferendumController::class, 'index'])
+        ->whereUuid('legislature')->name('referendums.index');
+    Route::post('/legislatures/{legislature}/referendums', [\App\Http\Controllers\Legislature\ReferendumController::class, 'store'])
+        ->whereUuid('legislature')->name('referendums.store');                // F-LEG-023
+    Route::post('/laws/{law}/referendum-modification', [\App\Http\Controllers\Legislature\ReferendumController::class, 'modify'])
+        ->whereUuid('law')->name('laws.referendum-modification');             // F-LEG-034 (CLK-19 gate)
+    Route::get('/legislatures/{legislature}/emergency-powers', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'index'])
+        ->whereUuid('legislature')->name('emergency-powers.index');
+    Route::post('/legislatures/{legislature}/emergency-powers', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'store'])
+        ->whereUuid('legislature')->name('emergency-powers.store');           // F-LEG-024
+    Route::post('/emergency-powers/{power}/renewals', [\App\Http\Controllers\Legislature\EmergencyPowerController::class, 'renew'])
+        ->whereUuid('power')->name('emergency-powers.renew');                 // F-LEG-025
+
+    // ── FE-C10 — Petitions + PetitionDetail + Relocation (batch 3) ──────────
+    Route::get('/civic/petitions', [\App\Http\Controllers\Civic\PetitionController::class, 'index'])
+        ->name('civic.petitions.index');
+    Route::post('/civic/petitions', [\App\Http\Controllers\Civic\PetitionController::class, 'store'])
+        ->name('civic.petitions.store');                                      // F-IND-009
+    Route::get('/civic/petitions/{petition}', [\App\Http\Controllers\Civic\PetitionController::class, 'show'])
+        ->whereUuid('petition')->name('civic.petitions.show');
+    Route::post('/petitions/{petition}/signatures', [\App\Http\Controllers\Civic\PetitionController::class, 'sign'])
+        ->whereUuid('petition')->name('petitions.signatures.store');          // F-IND-010
+    Route::delete('/petitions/{petition}/signatures', [\App\Http\Controllers\Civic\PetitionController::class, 'revoke'])
+        ->whereUuid('petition')->name('petitions.signatures.revoke');         // F-IND-010 (revocable)
+    Route::get('/civic/relocation', [\App\Http\Controllers\Civic\RelocationController::class, 'show'])
+        ->name('civic.relocation');
+    Route::post('/civic/relocation/travelling', [\App\Http\Controllers\Civic\RelocationController::class, 'travelling'])
+        ->name('civic.relocation.travelling');                                // audited engine action, no F-ID
+
+    // ── FE-C11 — PublicRecords + TermSync (batch 3) ─────────────────────────
+    Route::get('/system/public-records', [\App\Http\Controllers\System\PublicRecordsController::class, 'index'])
+        ->name('system.public-records');
+    Route::post('/system/public-records/statements', [\App\Http\Controllers\System\PublicRecordsController::class, 'statement'])
+        ->name('system.public-records.statements');                           // F-LEG-006
+    Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])
+        ->name('system.term-sync');
+});
 
 // WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim
 // lifecycle + location pings.
@@ -340,6 +516,15 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::get('/electoral-kit', [ElectoralKitController::class, 'show'])->name('electoral-kit');
         // FE-C1 — fixture-first harness: every Phase C legislature component.
         Route::get('/legislature-kit', [LegislatureKitController::class, 'show'])->name('legislature-kit');
+    });
+
+    // Dev login-as: a passwordless web session for any user — the
+    // operator-driven persona switch for live walkthroughs (the chamber
+    // needs many distinct members). Reachable WITHOUT a prior session (no
+    // 'auth' gate) so it can establish the first one; still local-only +
+    // DevToolsEnabled-gated like the rest of the dev tooling.
+    Route::middleware(DevToolsEnabled::class)->prefix('dev')->name('dev.')->group(function () {
+        Route::post('/login-as', \App\Http\Controllers\Dev\LoginAsController::class)->name('login-as');
     });
 }
 

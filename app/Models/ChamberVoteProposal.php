@@ -28,6 +28,15 @@ class ChamberVoteProposal extends Model
     public const KIND_RULES_OF_ORDER          = 'rules_of_order';
     public const KIND_ETHICS_CODE             = 'ethics_code';
 
+    // Votes-laws batch 2 (C-8/C-9): referendum delegation (F-LEG-023),
+    // referendum-act modification (F-LEG-034), emergency invocation /
+    // renewal (F-LEG-024/025) — same posture: the institution row
+    // (question / law version / power) is created only on adoption.
+    public const KIND_REFERENDUM_DELEGATION       = 'referendum_delegation';
+    public const KIND_REFERENDUM_ACT_MODIFICATION = 'referendum_act_modification';
+    public const KIND_EMERGENCY_INVOCATION        = 'emergency_invocation';
+    public const KIND_EMERGENCY_RENEWAL           = 'emergency_renewal';
+
     public const STATUS_OPEN     = 'open';
     public const STATUS_ADOPTED  = 'adopted';
     public const STATUS_REJECTED = 'rejected';

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Jobs\Clocks\EvaluateCriticalPopulationJob;
+use App\Jobs\Clocks\EvaluatePetitionThresholdJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
 use App\Models\ClockTimer;
 use App\Services\ClockService;
@@ -51,5 +52,9 @@ class EvaluateClocksJob implements ShouldQueue
 
         EvaluateResidencyThresholdsJob::dispatch();
         EvaluateCriticalPopulationJob::dispatch();
+        // CLK-17 (Phase C batch 2) — petition thresholds watch a quantity,
+        // not a deadline; the sweep is the safety net behind the
+        // event-driven signature-insert check.
+        EvaluatePetitionThresholdJob::dispatch();
     }
 }

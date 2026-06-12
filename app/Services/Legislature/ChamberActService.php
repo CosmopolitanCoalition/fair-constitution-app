@@ -332,6 +332,31 @@ class ChamberActService
                 return ['laws', (string) $law->id];
             })(),
 
+            // ── Votes-laws batch 2 (C-8/C-9) ────────────────────────────────
+            ChamberVoteProposal::KIND_REFERENDUM_DELEGATION => (function () use ($proposal, $vote) {
+                $question = app(\App\Services\ReferendumService::class)->createFromDelegation($proposal, $vote);
+
+                return ['referendum_questions', (string) $question->id];
+            })(),
+
+            ChamberVoteProposal::KIND_REFERENDUM_ACT_MODIFICATION => (function () use ($proposal, $vote) {
+                $law = app(\App\Services\ReferendumService::class)->applyModification($proposal, $vote);
+
+                return ['laws', (string) $law->id];
+            })(),
+
+            ChamberVoteProposal::KIND_EMERGENCY_INVOCATION => (function () use ($proposal, $vote) {
+                $power = app(\App\Services\EmergencyPowerService::class)->activateFromProposal($proposal, $vote);
+
+                return ['emergency_powers', (string) $power->id];
+            })(),
+
+            ChamberVoteProposal::KIND_EMERGENCY_RENEWAL => (function () use ($proposal, $vote) {
+                $renewal = app(\App\Services\EmergencyPowerService::class)->renewFromProposal($proposal, $vote);
+
+                return ['emergency_power_renewals', (string) $renewal->id];
+            })(),
+
             default => throw new ConstitutionalViolation(
                 "Unknown proposal kind [{$proposal->proposal_kind}].",
                 'WF-SYS-04'

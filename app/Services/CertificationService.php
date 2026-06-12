@@ -210,9 +210,13 @@ class CertificationService implements CertificationPipeline
         }
 
         $nextElectionId = null;
+        $referendums    = [];
 
         if ($isSpecial) {
             $this->resolveVacancy($vacancy, $winners);
+
+            // A whole-jurisdiction special may carry questions too (§D).
+            $referendums = app(ReferendumService::class)->certifyForElection($election, null);
         } else {
             $this->advanceLegislatureTerm($legislature, $window);
 
@@ -226,6 +230,16 @@ class CertificationService implements CertificationPipeline
 
             // The loop closes: election N+1 with its approval phase open.
             $nextElectionId = (string) $this->lifecycle->openSuccessor($election)->id;
+
+            // C-R1 (votes_laws §D): resolve this ballot's referendum
+            // questions against the population peg — passed questions
+            // enact with the CLK-19 shield anchored to the successor
+            // general (the shield lapses when IT certifies)…
+            $referendums = app(ReferendumService::class)->certifyForElection($election, $nextElectionId);
+
+            // …and THIS certification is the lapse point for acts whose
+            // shield election is the one now certified (general only).
+            app(ReferendumService::class)->releaseShields($election);
         }
 
         // Winners derive R-09 from the member rows — flush so a long-lived
@@ -247,6 +261,7 @@ class CertificationService implements CertificationPipeline
             ],
             'next_election_id' => $nextElectionId,
             'vacancy_filled'   => $vacancy !== null ? (string) $vacancy->id : null,
+            'referendums'      => $referendums,
         ];
     }
 

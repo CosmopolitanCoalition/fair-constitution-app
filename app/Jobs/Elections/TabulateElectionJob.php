@@ -93,6 +93,14 @@ class TabulateElectionJob implements ShouldQueue
 
             TabulateRaceJob::dispatch($race->id, $this->kind, $this->auditId);
         }
+
+        // C-R1 — the ReferendumTallyStep (votes_laws §D): question counts
+        // are tiny (yes/no per question), so they tally inline after the
+        // race fan-out. Idempotent — only `scheduled` questions tally;
+        // certification re-checks as the safety net.
+        if ($this->kind === Tabulation::KIND_INITIAL && $this->raceId === null) {
+            app(\App\Services\ReferendumService::class)->tallyForElection($election);
+        }
     }
 
     private function alreadyCounted(ElectionRace $race): bool

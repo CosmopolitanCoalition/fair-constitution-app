@@ -39,4 +39,9 @@ class BillVersion extends Model
     {
         return $this->belongsTo(Bill::class, 'bill_id');
     }
+
+    public function changedBy(): BelongsTo
+    {
+        return $this->belongsTo(LegislatureMember::class, 'changed_by_member_id');
+    }
 }

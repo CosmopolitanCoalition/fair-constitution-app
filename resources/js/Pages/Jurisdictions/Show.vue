@@ -190,13 +190,23 @@
                          jurisdiction with children), so `v-if="legislature_id"`
                          naturally gates state 1 → states 2/3. -->
                     <template v-if="legislature_id">
+                        <!-- FE-C2 — seated chamber: the CTA splits into
+                             "Chamber" (the legislature-home surface) +
+                             "District map" (the mapper). -->
+                        <a v-if="chamber_seated"
+                           :href="`/legislatures/${legislature_id}/chamber`"
+                           class="block w-full text-center text-xs font-medium px-3 py-2 rounded
+                                  bg-amber-800 hover:bg-amber-700 text-amber-100 transition-colors">
+                            Chamber →
+                        </a>
                         <!-- This jurisdiction IS the legislature's root, so its
                              own slug is the legislature's canonical address. -->
                         <a v-if="has_district_map"
                            :href="`/legislatures/${jurisdiction.slug}`"
+                           :class="chamber_seated ? 'mt-1.5' : ''"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
-                            View Legislature &amp; Districts →
+                            {{ chamber_seated ? 'District map →' : 'View Legislature & Districts →' }}
                         </a>
                         <a v-else
                            :href="`/legislatures/${jurisdiction.slug}`"
@@ -373,6 +383,9 @@ const props = defineProps({
     map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
     has_district_map:    { type: Boolean, default: false },
+    // FE-C2 — true when the legislature has current members: the CTA
+    // splits into "Chamber" + "District map".
+    chamber_seated:      { type: Boolean, default: false },
     // Current election for this jurisdiction's legislature ({ id, status })
     // or null — drives the "Election" CTA under the legislature link.
     current_election:    { type: Object, default: null },

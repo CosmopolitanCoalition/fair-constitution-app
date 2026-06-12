@@ -166,6 +166,11 @@ class TermLockstepTest extends TestCase
             $this->normalize($this->appPath() . '/Models/Term.php'),                  // fillable/casts
             $this->normalize($this->appPath() . '/Services/CertificationService.php'), // Term::create + window math
             $this->normalize($this->appPath() . '/Services/Legislature/ChamberActService.php'), // civil-appointment Term::create (Phase C)
+            // FE-C2: READ-shaped display prop — the Chamber page's term card
+            // serializes legislatures.term_ends_on into an Inertia array
+            // ('ends_on' => …->toDateString()); no Term row is touched. The
+            // no-update pin above still covers every mutation path.
+            $this->normalize($this->appPath() . '/Http/Controllers/Legislature/Concerns/ResolvesChamber.php'),
         ];
 
         $found = [];

@@ -59,11 +59,18 @@ class BallotSecrecyTest extends TestCase
 {
     private const LIVE_CONNECTION = 'pgsql_ballot_secrecy';
 
-    /** Columns `ballots` must have — and may ONLY have (design §A B-7). */
+    /**
+     * Columns `ballots` must have — and may ONLY have (design §A B-7;
+     * Phase C C-8 adds referendum_question_id — the migration's
+     * anticipated "extended with question id in Phase C": a question id
+     * in clear on an anonymous ballot leaks nothing, there is no voter
+     * linkage; the yes/no choice stays inside payload_encrypted).
+     */
     private const BALLOT_COLUMNS = [
         'id',
         'race_id',
         'kind',
+        'referendum_question_id',
         'payload_encrypted',
         'salt',
         'ballot_hash',
@@ -310,10 +317,10 @@ class BallotSecrecyTest extends TestCase
             $this->assertNotSame('ballots', $fk->to_table, "{$fk->from_table} references ballots — re-linking path.");
 
             if ($fk->from_table === 'ballots') {
-                $this->assertSame(
-                    'election_races',
+                $this->assertContains(
                     $fk->to_table,
-                    'ballots may only reference election_races — nothing voter-shaped.'
+                    ['election_races', 'referendum_questions'],
+                    'ballots may only reference election_races / referendum_questions — nothing voter-shaped.'
                 );
             }
         }
@@ -335,9 +342,11 @@ class BallotSecrecyTest extends TestCase
             );
         }
 
-        // No shared join column beyond the legitimate race/kind pair.
+        // No shared join column beyond the legitimate race/question/kind
+        // scope columns (a shared SCOPE is not a linking channel; a shared
+        // per-ballot identifier would be).
         $shared = array_intersect($envelopeColumns, self::BALLOT_COLUMNS);
-        $this->assertEqualsCanonicalizing(['id', 'race_id', 'kind'], array_values($shared));
+        $this->assertEqualsCanonicalizing(['id', 'race_id', 'kind', 'referendum_question_id'], array_values($shared));
     }
 
     // ======================================================================

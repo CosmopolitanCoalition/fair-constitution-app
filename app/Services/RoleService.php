@@ -141,6 +141,11 @@ class RoleService implements ResolvesRoles
         if ($hasActiveAssociation) {
             $roles[] = 'R-03';
             $roles[] = 'R-04'; // R-04 ⇔ R-03, Art. I — never add a condition here
+            // R-05 Petitioner (Phase C, votes_laws §E): derives from R-03 +
+            // the act of creating — petitioning is part of the same
+            // association-only rights surface (Art. I · Art. II §6). Never
+            // add a condition here either.
+            $roles[] = 'R-05';
         }
 
         if ($hasStandingCandidacy) {

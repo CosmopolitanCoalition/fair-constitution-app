@@ -203,6 +203,11 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             $this->armPhaseTimers($election);
 
+            // C-R1 (votes_laws §D): queued referendum questions ride the
+            // next jurisdiction-wide ballot — attach when its schedule is
+            // set/confirmed (idempotent; the CLK-18 cutoff re-checks).
+            app(ReferendumService::class)->attachQueued($election->refresh());
+
             return $election->refresh();
         });
     }
@@ -246,6 +251,10 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 $this->createRaces($successor, $legislature, $plan);
                 $this->openApproval($successor);
             }
+
+            // Questions queued while no covering ballot existed attach to
+            // the fresh successor immediately (C-R1, votes_laws §D).
+            app(ReferendumService::class)->attachQueued($successor->refresh());
 
             return $successor->refresh();
         });
@@ -576,6 +585,11 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             if ($fresh === null || $fresh->status !== Election::STATUS_APPROVAL_OPEN) {
                 return $fresh ?? $election; // idempotent no-op (timer re-fires, races already cut)
             }
+
+            // Last attach point before the ballot freezes (CLK-18 — the
+            // votes_laws §D hook): queued questions for this jurisdiction
+            // ride this ballot.
+            app(ReferendumService::class)->attachQueued($fresh);
 
             foreach ($fresh->races()->get() as $race) {
                 $standings = $this->approvals->rollupRace($race, freeze: true);

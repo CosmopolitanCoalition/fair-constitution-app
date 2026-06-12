@@ -37,6 +37,7 @@ class Ballot extends Model
         'id',
         'race_id',
         'kind',
+        'referendum_question_id',
         'payload_encrypted',
         'salt',
         'ballot_hash',

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Elections;
 
 use App\Domain\Ballots\BallotReceiptHolder;
 use App\Domain\Engine\ConstitutionalEngine;
-use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Handlers\BallotSubmission;
 use App\Domain\Forms\Support\RaceFootprint;
 use App\Http\Controllers\Controller;
@@ -13,6 +12,7 @@ use App\Models\BallotEnvelope;
 use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\ElectionRace;
+use App\Models\ReferendumQuestion;
 use App\Support\ElectionPhase;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +27,7 @@ use Inertia\Response;
  *
  *   GET  /elections/{election}/ranked-ballot[?race=]   — show
  *   POST /elections/{election}/races/{race}/ballots    — store (F-IND-007)
- *   POST .../referendum-ballots                        — storeReferendum (F-IND-008, Phase C)
+ *   POST /elections/{election}/referendum-ballots      — storeReferendum (F-IND-008; question-scoped)
  *   POST /receipt-check                                — receiptCheck (public)
  *
  * Receipt flow (§D.3/§D.4): the engine files F-IND-007; BallotBox stashes
@@ -97,10 +97,11 @@ class BallotController extends Controller
             'alreadyVoted'      => $envelope !== null
                 ? ['committed_at' => $envelope->committed_at?->toIso8601String()]
                 : null,
-            // Referendum content arrives with Phase C (F-LEG-023 pipeline);
-            // the slot ships wired but empty — render nothing, not a fake.
-            'referendum'        => null,
-            'referendumVoted'   => false,
+            // Phase C (C-R1): the F-LEG-023/petition pipeline fills the
+            // Phase B slot — scheduled questions of THIS election the
+            // viewer's association covers.
+            'referendum'        => $this->referendumProp($election, $userId),
+            'referendumVoted'   => $this->referendumVoted($election, $userId),
             // Live first-preference aggregate: null until its backend WI
             // lands — the page renders nothing (§B.5).
             'liveAggregate'     => null,
@@ -146,17 +147,41 @@ class BallotController extends Controller
     }
 
     /**
-     * F-IND-008 — referendum ballots. The commitment scheme accepts only
-     * ranked ballots in Phase B (BallotBox::write pins it); the route
-     * ships so the contract is visible, and the refusal carries its
-     * citation rather than a 404.
+     * F-IND-008 — commit the referendum ballot through the engine
+     * (Phase C C-R1: the Phase B 422 stub goes LIVE). Question-scoped:
+     * the body names {question_id, choice}; the handler validates the
+     * window + association and BallotBox writes the envelope/anonymous
+     * ballot pair under the election's wrapped key. Same single-pull
+     * receipt flash as the ranked path.
      */
-    public function storeReferendum(Request $request, Election $election, ElectionRace $race): never
+    public function storeReferendum(Request $request, Election $election): RedirectResponse
     {
-        throw new ConstitutionalViolation(
-            'Referendum ballots (F-IND-008) arrive with Phase C — no referendum question is attached to this race.',
-            'Art. II §6'
-        );
+        $validated = $request->validate([
+            'question_id' => ['required', 'uuid'],
+            'choice'      => ['required', 'in:yes,no'],
+        ]);
+
+        $question = ReferendumQuestion::query()->findOrFail($validated['question_id']);
+
+        abort_unless((string) $question->election_id === (string) $election->id, 404);
+
+        $this->engine->file('F-IND-008', $request->user(), [
+            'question_id'     => (string) $question->id,
+            'choice'          => $validated['choice'],
+            'jurisdiction_id' => (string) $question->jurisdiction_id,
+        ]);
+
+        $receipt = $this->receipts->take();
+
+        $redirect = redirect("/elections/{$election->id}/ranked-ballot")
+            ->with('status', 'Referendum ballot committed — your participation is recorded; your choice is sealed.');
+
+        if ($receipt !== null) {
+            $redirect->with('receipt_hash', $receipt->ballotHash)
+                ->with('receipt_salt', $receipt->salt);
+        }
+
+        return $redirect;
     }
 
     /**
@@ -198,6 +223,53 @@ class BallotController extends Controller
     // -------------------------------------------------------------------------
     // Props builders
     // -------------------------------------------------------------------------
+
+    /**
+     * The Phase B referendum slot, filled (C-R1): the first SCHEDULED
+     * question of this election whose jurisdiction the viewer's active
+     * associations cover. Null when none — the page renders nothing.
+     */
+    private function referendumProp(Election $election, string $userId): ?array
+    {
+        $question = ReferendumQuestion::query()
+            ->where('election_id', (string) $election->id)
+            ->where('status', ReferendumQuestion::STATUS_SCHEDULED)
+            ->whereIn('jurisdiction_id', function ($sub) use ($userId) {
+                $sub->select('jurisdiction_id')
+                    ->from('residency_confirmations')
+                    ->where('user_id', $userId)
+                    ->where('is_active', true);
+            })
+            ->orderBy('created_at')
+            ->first();
+
+        if ($question === null) {
+            return null;
+        }
+
+        return [
+            'id'        => (string) $question->id,
+            'title'     => 'Referendum question',
+            'text'      => $question->question,
+            'law_text'  => $question->law_text,
+            'act_type'  => $question->act_type,
+            'threshold' => $question->threshold,
+            'origin'    => $question->origin,
+        ];
+    }
+
+    private function referendumVoted(Election $election, string $userId): bool
+    {
+        return BallotEnvelope::query()
+            ->where('user_id', $userId)
+            ->where('kind', BallotEnvelope::KIND_REFERENDUM)
+            ->whereIn('referendum_question_id', function ($sub) use ($election) {
+                $sub->select('id')
+                    ->from('referendum_questions')
+                    ->where('election_id', (string) $election->id);
+            })
+            ->exists();
+    }
 
     /**
      * The finalist roster — top X in frozen cutoff order (frozen standings

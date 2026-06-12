@@ -128,6 +128,56 @@ final class BallotCrypto
         return json_encode($normalized, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
+    // -------------------------------------------------------------------------
+    // Canonical referendum choice (Phase C, F-IND-008)
+    // -------------------------------------------------------------------------
+
+    /** The only choices a referendum ballot may carry (Art. II §6). */
+    public const REFERENDUM_CHOICES = ['yes', 'no'];
+
+    /**
+     * Canonical byte representation of a referendum ballot: a JSON object
+     * {question_id, choice}. Exactly like canonicalRankings(), this exact
+     * byte string is what gets encrypted AND what the commitment hash
+     * binds. The question id rides INSIDE the sealed payload too, so a
+     * decrypted ballot self-identifies even if rows were mis-filed.
+     */
+    public static function canonicalReferendum(string $questionId, string $choice): string
+    {
+        if (! Str::isUuid($questionId)) {
+            throw new InvalidArgumentException('Referendum ballot requires the question UUID.');
+        }
+
+        $choice = strtolower(trim($choice));
+
+        if (! in_array($choice, self::REFERENDUM_CHOICES, true)) {
+            throw new InvalidArgumentException('A referendum ballot answers yes or no.');
+        }
+
+        return json_encode(
+            ['question_id' => strtolower($questionId), 'choice' => $choice],
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        );
+    }
+
+    /**
+     * Decrypt a referendum ballot payload back to its parts.
+     *
+     * @return array{question_id: string, choice: string}
+     */
+    public static function decryptReferendum(string $payloadEncrypted, string $dataKey): array
+    {
+        $decoded = json_decode(self::decryptToCanonical($payloadEncrypted, $dataKey), true);
+
+        if (! is_array($decoded)
+            || ! is_string($decoded['question_id'] ?? null)
+            || ! in_array($decoded['choice'] ?? null, self::REFERENDUM_CHOICES, true)) {
+            throw new RuntimeException('Decrypted ballot payload is not a referendum choice.');
+        }
+
+        return ['question_id' => $decoded['question_id'], 'choice' => $decoded['choice']];
+    }
+
     /** Fresh commitment salt: 32 random bytes as 64 hex chars (the stored/receipt form). */
     public static function newSaltHex(): string
     {

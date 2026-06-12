@@ -70,6 +70,28 @@ use App\Domain\Engine\ConstitutionalViolation;
  *  - session.agenda_order — the locked agenda head (emergency review,
  *                           constitutional matters) is immutable and
  *                           precedes all general business (Art. II §2).
+ *
+ * Phase C batch 2 rules (PHASE_C_DESIGN_votes_laws §D/§F — additive):
+ *
+ *  - emergency.civic_process_shield — emergency powers cannot disrupt any
+ *                           civic process (Art. II §7). Three mechanisms:
+ *                           (1) structural absence — no API anywhere can
+ *                           defer an election, session, ballot, or
+ *                           residency process (architecture-pinned);
+ *                           (2) protected-form invariance — filings of
+ *                           EMERGENCY_PROTECTED_FORMS may never carry
+ *                           emergency_power_id / enabling_* keys;
+ *                           (3) forward rule — only forms declared in
+ *                           EMERGENCY_ENABLED_FORMS may cite a power as
+ *                           enabling authority (empty in Phase C; Phase D
+ *                           executive orders register there).
+ *  - referendum.shield    — CLK-19 (Art. II §6): an act passed by
+ *                           population supermajority is immune to
+ *                           legislative modification/repeal until the
+ *                           next general election certifies. Evaluated at
+ *                           FILING time (F-LEG-034) against
+ *                           laws.shield_expires_with_election_id — no
+ *                           timer exists; the gate IS the clock.
  */
 class ConstitutionalValidator
 {
@@ -172,6 +194,42 @@ class ConstitutionalValidator
     ];
 
     /**
+     * emergency.civic_process_shield (Art. II §7) — the forms an emergency
+     * power may NEVER touch: the whole individual-rights surface
+     * (registration, residency, pings, ballots, petitions, candidacy),
+     * candidates, the election board's machinery, session calling/quorum,
+     * attendance/votes/vacancies, and the judiciary (Phase E). No handler
+     * for these forms may read emergency_powers state, and no filing of
+     * them may carry an emergency citation. This list may only ever GROW,
+     * under constitutional review; EmergencyCeilingTest pins it.
+     */
+    public const EMERGENCY_PROTECTED_FORMS = [
+        // Individuals — the rights surface (Art. I + Art. II).
+        'F-IND-001', 'F-IND-002', 'F-IND-003', 'F-IND-004', 'F-IND-005', 'F-IND-006',
+        'F-IND-007', 'F-IND-008', 'F-IND-009', 'F-IND-010', 'F-IND-011', 'F-IND-012',
+        'F-IND-013', 'F-IND-014', 'F-IND-015', 'F-IND-016', 'F-IND-017',
+        // Candidates.
+        'F-CAN-001', 'F-CAN-002', 'F-CAN-003',
+        // Election board machinery — elections cannot be touched.
+        'F-ELB-001', 'F-ELB-002', 'F-ELB-003', 'F-ELB-004', 'F-ELB-005', 'F-ELB-006',
+        // Sessions cannot be suspended; quorum cannot be gamed.
+        'F-SPK-001', 'F-SPK-003',
+        // Attendance, votes, vacancy machinery.
+        'F-LEG-002', 'F-LEG-004', 'F-LEG-005', 'F-LEG-036',
+        // Courts (Phase E) — protected from day one.
+        'F-JDG-001', 'F-JDG-002', 'F-JDG-003', 'F-JDG-004', 'F-JDG-005',
+        'F-JDG-006', 'F-JDG-007', 'F-JDG-008', 'F-JDG-009', 'F-JDG-010',
+    ];
+
+    /**
+     * The forward rule's allowlist: forms whose handlers may accept
+     * enabling_type = 'emergency_power'. EMPTY in Phase C — Phase D
+     * executive orders / department rules must declare themselves here
+     * (their "order rejected pre-issuance" contract consumes this hook).
+     */
+    public const EMERGENCY_ENABLED_FORMS = [];
+
+    /**
      * Engine entry point: hardened checks for a canonical form filing.
      * Throws ConstitutionalViolation (with citation) on breach; returns
      * silently when the filing is constitutionally permissible.
@@ -179,9 +237,11 @@ class ConstitutionalValidator
     public function check(string $canonicalFormId, array $payload): void
     {
         $this->guardAutomaticRights($canonicalFormId, $payload);
+        $this->guardEmergencyCivicProcessShield($canonicalFormId, $payload);
 
         match ($canonicalFormId) {
             'F-LEG-031' => $this->checkSettingChange($payload),
+            'F-LEG-034' => $this->checkReferendumActModification($payload),
             'F-ELB-001' => $this->checkSchedulingOrderRaces($payload),
             'F-ELB-002' => $this->checkValidationGround($payload),
             default     => null,
@@ -584,6 +644,139 @@ class ConstitutionalValidator
                 'Art. II §2'
             );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // emergency.civic_process_shield (Art. II §7 — Phase C batch 2)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Pure form of the shield (pinned by EmergencyCeilingTest):
+     *  - a PROTECTED form may never carry an emergency citation key
+     *    (emergency_power_id / enabling_*) — the civic process runs
+     *    byte-identically with or without an active power;
+     *  - NO form outside EMERGENCY_ENABLED_FORMS may cite a power as its
+     *    enabling authority.
+     *
+     * @param  list<string>  $payloadKeys  top-level payload keys (lowercased by caller)
+     */
+    public static function assertEmergencyCivicProcessShield(
+        string $canonicalFormId,
+        array $payloadKeys,
+        mixed $enablingType,
+    ): void {
+        if (in_array($canonicalFormId, self::EMERGENCY_PROTECTED_FORMS, true)) {
+            foreach ($payloadKeys as $key) {
+                if ($key === 'emergency_power_id' || str_starts_with($key, 'enabling_')) {
+                    throw new ConstitutionalViolation(
+                        sprintf(
+                            '%s is a protected civic process — emergency powers cannot touch it '
+                            . '(offending key: %s). Elections, sessions, courts, residency, petitions, '
+                            . 'and records run identically under any emergency.',
+                            $canonicalFormId,
+                            $key
+                        ),
+                        'Art. II §7'
+                    );
+                }
+            }
+        }
+
+        if ($enablingType === 'emergency_power'
+            && ! in_array($canonicalFormId, self::EMERGENCY_ENABLED_FORMS, true)) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    '%s is not declared as an emergency-enabled form — no undeclared handler may cite '
+                    . 'an emergency power as enabling authority.',
+                    $canonicalFormId
+                ),
+                'Art. II §7'
+            );
+        }
+    }
+
+    private function guardEmergencyCivicProcessShield(string $canonicalFormId, array $payload): void
+    {
+        self::assertEmergencyCivicProcessShield(
+            $canonicalFormId,
+            array_map(fn ($key) => strtolower((string) $key), array_keys($payload)),
+            $payload['enabling_type'] ?? null,
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // referendum.shield (CLK-19, Art. II §6 — Phase C batch 2)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Pure form of the CLK-19 gate (pinned by ReferendumShieldTest): a
+     * referendum act passed by POPULATION SUPERMAJORITY whose shield
+     * election has not yet certified cannot be modified or repealed by
+     * the legislature. A majority-passed referendum act is modifiable
+     * same-term — at chamber supermajority (the F-LEG-034 vote class);
+     * after the shield election certifies it is an ordinary law.
+     */
+    public static function assertReferendumActModifiable(
+        bool $passedByPopulationSupermajority,
+        bool $shieldElectionPending,
+    ): void {
+        if ($passedByPopulationSupermajority && $shieldElectionPending) {
+            throw new ConstitutionalViolation(
+                'This act was passed by population supermajority — the legislature cannot modify or '
+                . 'repeal it until the next general election certifies; the protection lapses there '
+                . '(CLK-19).',
+                'Art. II §6'
+            );
+        }
+    }
+
+    /**
+     * F-LEG-034 filing gate: resolve the targeted law's shield state and
+     * delegate to the pure assert. Runs PRE-VOTE — the rejection (with
+     * citation) is recorded as a rejected=true chain row by the engine.
+     */
+    private function checkReferendumActModification(array $payload): void
+    {
+        $lawId = $payload['law_id'] ?? null;
+
+        if (! is_string($lawId) || $lawId === '') {
+            throw new ConstitutionalViolation(
+                'F-LEG-034 names the referendum act it modifies (law_id).',
+                'Art. II §6'
+            );
+        }
+
+        $law = \Illuminate\Support\Facades\DB::table('laws')
+            ->where('id', $lawId)
+            ->whereNull('deleted_at')
+            ->first(['origin', 'referendum_passed_by_supermajority', 'shield_expires_with_election_id']);
+
+        if ($law === null) {
+            throw new ConstitutionalViolation('F-LEG-034 targets an unknown law.', 'Art. II §6');
+        }
+
+        if ($law->origin !== 'referendum') {
+            throw new ConstitutionalViolation(
+                'F-LEG-034 modifies referendum-passed acts only — other laws amend through the bill path.',
+                'Art. II §6'
+            );
+        }
+
+        $shieldPending = false;
+
+        if ($law->shield_expires_with_election_id !== null) {
+            $status = \Illuminate\Support\Facades\DB::table('elections')
+                ->where('id', (string) $law->shield_expires_with_election_id)
+                ->value('status');
+
+            $shieldPending = $status !== null
+                && ! in_array($status, ['certified', 'audit_rerun', 'final', 'cancelled'], true);
+        }
+
+        self::assertReferendumActModifiable(
+            (bool) $law->referendum_passed_by_supermajority,
+            $shieldPending,
+        );
     }
 
     // -------------------------------------------------------------------------

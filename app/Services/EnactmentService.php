@@ -94,6 +94,145 @@ class EnactmentService
     }
 
     /**
+     * C-R1 (votes_laws §D "Certify") — enact a PASSED referendum question:
+     * laws row origin 'referendum', kind 'referendum_act', with the CLK-19
+     * shield inputs. `$passedBySupermajority` is computed by the caller
+     * REGARDLESS of the question's threshold class (a majority-class
+     * question passing at population-supermajority strength earns the
+     * shield — Art. II §6 shields "acts passed by population
+     * supermajority"); `$shieldElectionId` = the legislature's open
+     * successor general — the shield lapses when it certifies.
+     *
+     * Setting questions apply through the SAME setting_changes path as
+     * setting bills (TOCTOU re-check included).
+     */
+    public function enactFromReferendum(
+        \App\Models\ReferendumQuestion $question,
+        bool $passedBySupermajority,
+        ?string $shieldElectionId,
+    ): Law {
+        $election    = $question->election()->firstOrFail();
+        $legislature = Legislature::query()->findOrFail($election->legislature_id);
+
+        $law = $this->writeLaw(
+            legislatureId: (string) $legislature->id,
+            jurisdictionId: (string) $question->jurisdiction_id,
+            title: mb_strimwidth($question->question, 0, 255, '…'),
+            kind: Law::KIND_REFERENDUM_ACT,
+            scale: [(string) $question->jurisdiction_id],
+            text: $question->law_text,
+            origin: Law::ORIGIN_REFERENDUM,
+            sourceRefType: 'referendum_question',
+            sourceRefId: (string) $question->id,
+            scopeJudiciaryId: null,
+            enactingBillId: null,
+            effectiveAt: null,
+            viaForm: 'F-ELB-004',
+        );
+
+        $law->forceFill([
+            'origin_ref_type'                    => 'referendum_question',
+            'origin_ref_id'                      => (string) $question->id,
+            'referendum_passed_by_supermajority' => $passedBySupermajority,
+            'shield_expires_with_election_id'    => $passedBySupermajority ? $shieldElectionId : null,
+        ])->save();
+
+        if ($question->targets_setting_key !== null) {
+            $this->applySettingChangeForKey(
+                (string) $question->jurisdiction_id,
+                (string) $legislature->id,
+                (string) $question->targets_setting_key,
+                $question->proposed_value,
+                $law,
+            );
+        }
+
+        return $law;
+    }
+
+    /**
+     * THE law-amendment writer (versions 2+). DEFENSE IN DEPTH behind the
+     * CLK-19 validator rule (referendum.shield): a shielded law — origin
+     * 'referendum', passed by population supermajority, shield election
+     * not yet certified — accepts NO legislative version source; only a
+     * judicial remedy (Phase E) can pierce it. Pinned by
+     * ReferendumShieldTest.
+     */
+    public function amendLaw(
+        Law $law,
+        string $text,
+        string $source,
+        string $sourceRefType,
+        string $sourceRefId,
+        ?string $viaForm = null,
+    ): Law {
+        if (trim($text) === '') {
+            throw new ConstitutionalViolation('An amendment carries replacement law text.', 'Art. II §2 · as implemented');
+        }
+
+        $shielded = $law->origin === Law::ORIGIN_REFERENDUM
+            && (bool) $law->referendum_passed_by_supermajority
+            && app(ReferendumService::class)->shieldElectionPending($law);
+
+        if ($shielded && $source !== LawVersion::SOURCE_JUDICIAL_REMEDY) {
+            throw new ConstitutionalViolation(
+                "Act {$law->act_number} was passed by population supermajority — the legislature cannot "
+                . 'modify or repeal it until the next general election certifies (the shield lapses there).',
+                'Art. II §6'
+            );
+        }
+
+        $next     = (int) $law->current_version_no + 1;
+        $textHash = hash('sha256', $text);
+
+        LawVersion::create([
+            'law_id'          => $law->id,
+            'version_no'      => $next,
+            'text'            => $text,
+            'text_hash'       => $textHash,
+            'source'          => $source,
+            'source_ref_type' => $sourceRefType,
+            'source_ref_id'   => $sourceRefId,
+            'created_at'      => now(),
+        ]);
+
+        $law->forceFill([
+            'current_version_no' => $next,
+            'status'             => Law::STATUS_AMENDED,
+        ])->save();
+
+        $this->audit->append(
+            module: 'legislature',
+            event: 'law.amended',
+            payload: [
+                'law_id'     => (string) $law->id,
+                'act_number' => $law->act_number,
+                'version_no' => $next,
+                'source'     => $source,
+                'text_hash'  => $textHash,
+                'source_ref' => [$sourceRefType => $sourceRefId],
+            ],
+            ref: $viaForm ?? 'WF-LEG-06',
+            jurisdictionId: (string) $law->jurisdiction_id,
+        );
+
+        $this->records->publish(
+            kind: 'act',
+            title: "{$law->act_number} amended — version {$next}",
+            body: $text,
+            attrs: [
+                'jurisdiction_id' => (string) $law->jurisdiction_id,
+                'legislature_id'  => (string) $law->legislature_id,
+                'via_form'        => $viaForm,
+                'subject_type'    => 'law',
+                'subject_id'      => (string) $law->id,
+            ],
+        );
+
+        return $law;
+    }
+
+    /**
      * Chamber-ops seam (F-LEG-032/033 and other direct-adoption acts):
      * laws row + v1 straight from an adopted chamber vote, no bill.
      */
@@ -231,19 +370,37 @@ class EnactmentService
      */
     private function applySettingChange(Bill $bill, Law $law): void
     {
-        $key   = (string) $bill->targets_setting_key;
-        $value = $bill->proposed_value;
+        $this->applySettingChangeForKey(
+            (string) $bill->jurisdiction_id,
+            $bill->legislature_id !== null ? (string) $bill->legislature_id : null,
+            (string) $bill->targets_setting_key,
+            $bill->proposed_value,
+            $law,
+        );
+    }
 
+    /**
+     * The generalized settings application — shared by setting BILLS and
+     * setting REFERENDUM QUESTIONS (they apply "via the same
+     * setting_changes path", votes_laws §D).
+     */
+    private function applySettingChangeForKey(
+        string $jurisdictionId,
+        ?string $legislatureId,
+        string $key,
+        mixed $value,
+        Law $law,
+    ): void {
         // TOCTOU guard: the bounds may have moved between vote and
         // enactment — re-run the PROTECTED check.
         $this->validator->checkSettingChange(['setting_key' => $key, 'value' => $value]);
 
         $row = ConstitutionalSettings::query()
-            ->where('jurisdiction_id', $bill->jurisdiction_id)
+            ->where('jurisdiction_id', $jurisdictionId)
             ->first();
 
         if ($row === null) {
-            $row = $this->createFromNearestAncestor((string) $bill->jurisdiction_id);
+            $row = $this->createFromNearestAncestor($jurisdictionId);
         }
 
         $old = $row->{$key};
@@ -255,8 +412,8 @@ class EnactmentService
         ])->save();
 
         SettingChange::create([
-            'jurisdiction_id' => $bill->jurisdiction_id,
-            'legislature_id'  => $bill->legislature_id,
+            'jurisdiction_id' => $jurisdictionId,
+            'legislature_id'  => $legislatureId,
             'setting_key'     => $key,
             'old_value'       => $old,
             'new_value'       => $value,
@@ -276,7 +433,7 @@ class EnactmentService
                 'act_number'  => $law->act_number,
             ],
             ref: 'F-LEG-031',
-            jurisdictionId: (string) $bill->jurisdiction_id,
+            jurisdictionId: $jurisdictionId,
         );
 
         // Resolution happens at evaluation time everywhere — bust the
@@ -285,7 +442,6 @@ class EnactmentService
 
         // Dependent clock timers re-derive AFTER commit (the job reads
         // committed state; queue config decides sync/async execution).
-        $jurisdictionId = (string) $bill->jurisdiction_id;
         DB::afterCommit(fn () => RederiveClockTimersJob::dispatch($key, $jurisdictionId));
     }
 

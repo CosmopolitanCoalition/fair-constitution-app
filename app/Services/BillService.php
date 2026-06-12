@@ -191,6 +191,20 @@ class BillService
     {
         $this->assertStatus($bill, [Bill::STATUS_REFERRED, Bill::STATUS_IN_COMMITTEE]);
 
+        // Idempotence across surfaces (FE-C4 auto-open on referral adoption
+        // + the chamber-ops committee console): one open committee-stage
+        // vote per bill, ever.
+        $existing = ChamberVote::query()
+            ->where('votable_type', 'bill')
+            ->where('votable_id', $bill->id)
+            ->where('stage', ChamberVote::STAGE_COMMITTEE)
+            ->where('status', ChamberVote::STATUS_OPEN)
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
         return app(ChamberVoteService::class)->open(
             bodyType: ChamberVote::BODY_COMMITTEE,
             bodyId: $committeeId,

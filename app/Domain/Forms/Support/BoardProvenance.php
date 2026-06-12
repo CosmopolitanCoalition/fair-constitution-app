@@ -46,12 +46,33 @@ class BoardProvenance
     }
 
     /**
-     * Resolve the seated member row the filing acts through.
+     * Resolve a JURISDICTION's active board (Phase C, F-ELB-005 — the
+     * petition audit has no election; the board responsible is the
+     * petition jurisdiction's active board).
      */
-    public static function resolveMember(?User $actor, Election $election, string $formId): ElectionBoardMember
+    public static function boardForJurisdiction(string $jurisdictionId, string $formId): ElectionBoard
     {
-        $board = self::boardFor($election, $formId);
+        $board = ElectionBoard::query()
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->active()
+            ->first();
 
+        if ($board === null) {
+            throw new ConstitutionalViolation(
+                "{$formId} requires an election board — none is active for this jurisdiction.",
+                'CGA Forms Catalog (I-ELB)'
+            );
+        }
+
+        return $board;
+    }
+
+    /**
+     * Resolve the seated member row a filing against $board acts through
+     * (shared by the election- and jurisdiction-anchored paths).
+     */
+    public static function resolveMemberOnBoard(?User $actor, ElectionBoard $board, string $formId): ElectionBoardMember
+    {
         $member = $board->members()
             ->seated()
             ->when(
@@ -65,11 +86,19 @@ class BoardProvenance
             throw new ConstitutionalViolation(
                 $actor === null
                     ? "{$formId} system filing requires the bootstrap board's synthetic member row — this board has none."
-                    : "{$formId} must be filed by a seated member of THIS election's board.",
+                    : "{$formId} must be filed by a seated member of the responsible board.",
                 'CGA Forms Catalog (R-08)'
             );
         }
 
         return $member;
+    }
+
+    /**
+     * Resolve the seated member row the filing acts through.
+     */
+    public static function resolveMember(?User $actor, Election $election, string $formId): ElectionBoardMember
+    {
+        return self::resolveMemberOnBoard($actor, self::boardFor($election, $formId), $formId);
     }
 }

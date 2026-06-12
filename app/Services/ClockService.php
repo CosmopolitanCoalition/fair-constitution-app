@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Jobs\Clocks\AdvanceElectionPhaseJob;
 use App\Jobs\Clocks\EvaluateCriticalPopulationJob;
+use App\Jobs\Clocks\EvaluatePetitionThresholdJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
+use App\Jobs\Clocks\ExpireEmergencyPowerJob;
 use App\Jobs\Clocks\FinalistCutoffJob;
 use App\Jobs\Clocks\MeetingDeadlineJob;
 use App\Jobs\Clocks\ScheduleGeneralElectionJob;
@@ -48,10 +50,21 @@ class ClockService
     public const HANDLERS = [
         'CLK-01' => ScheduleGeneralElectionJob::class,
         'CLK-02' => MeetingDeadlineJob::class,
+        // CLK-03 — emergency auto-expiry: "nothing rolls over silently"
+        // (Art. II §7; Phase C batch 2).
+        'CLK-03' => ExpireEmergencyPowerJob::class,
         'CLK-04' => SpecialElectionBackstopJob::class,
         'CLK-05' => EvaluateResidencyThresholdsJob::class,
         'CLK-06' => EvaluateCriticalPopulationJob::class,
+        // CLK-17 — petition-threshold safety-net sweep (the signature
+        // insert is the event-driven primary path; Phase C batch 2).
+        'CLK-17' => EvaluatePetitionThresholdJob::class,
         'CLK-18' => FinalistCutoffJob::class,
+        // CLK-19 deliberately has NO timer — it is a validator gate
+        // (ConstitutionalValidator rule referendum.shield, Art. II §6),
+        // evaluated at filing time against
+        // laws.shield_expires_with_election_id. The registry row stays
+        // for the record.
     ];
 
     /**

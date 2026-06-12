@@ -152,6 +152,13 @@ class LegislatureController extends Controller
                 'a.activated_at',
                 DB::raw('(SELECT count(*) FROM legislature_districts ld
                           WHERE ld.legislature_id = l.id AND ld.deleted_at IS NULL) as district_count'),
+                // FE-C2 — seated chamber detection: rows with current
+                // members gain the Chamber link + seated/forming badge
+                // (PHASE_C_DESIGN_frontend.md §B nav integration).
+                DB::raw("(SELECT count(*) FROM legislature_members lm
+                          WHERE lm.legislature_id = l.id
+                            AND lm.status IN ('elected', 'seated')
+                            AND lm.deleted_at IS NULL) as members_count"),
             ])
             ->map(function ($r) use ($currentElections, $certifiedElections) {
                 $current = $currentElections->get($r->id);
@@ -164,6 +171,7 @@ class LegislatureController extends Controller
                     'type_a_seats'     => (int) $r->type_a_seats,
                     'type_b_seats'     => (int) $r->type_b_seats,
                     'status'           => $r->status,
+                    'members_count'    => (int) $r->members_count,
                     'district_count'   => (int) $r->district_count,
                     'activation_state' => $r->activation_state,
                     'activated_at'     => $r->activated_at
@@ -802,6 +810,13 @@ class LegislatureController extends Controller
                 'type_a_seats'         => (int) $leg->type_a_seats,
                 'type_b_seats'         => (int) ($leg->type_b_seats ?? 0),
                 'status'               => $leg->status,
+                // FE-C2 — seated chamber: the mapper header gains a
+                // "Chamber →" link to the legislature-home surface.
+                'chamber_seated'       => DB::table('legislature_members')
+                    ->where('legislature_id', $leg->id)
+                    ->whereIn('status', ['elected', 'seated'])
+                    ->whereNull('deleted_at')
+                    ->exists(),
             ],
             'scope' => (function () use ($scope) {
                 $bboxRow = DB::selectOne("

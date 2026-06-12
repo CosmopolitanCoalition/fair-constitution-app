@@ -240,6 +240,18 @@ class FormRegistry
         // (PHASE_C_DESIGN_votes_laws §G. The chamber-ops scope registers:
         // F-LEG-001, 008–013, 020–022, 032/033, F-SPK-004/005/006/007,
         // F-CHR-001..004, F-LEG-036.)
+        // Batch 2 (C-8..C-10): referendums, petitions, emergency powers —
+        // F-LEG-023/024/025 are CANONICAL here; the Workflows Catalog's
+        // F-LEG-022/023/024 citations for them are recorded CATALOG_DRIFT
+        // and never auto-resolve.
+        'F-LEG-023' => Handlers\ReferendumDelegation::class,
+        'F-LEG-024' => Handlers\EmergencyPowersDeclaration::class,
+        'F-LEG-025' => Handlers\EmergencyPowersRenewal::class,
+        'F-LEG-034' => Handlers\ReferendumActModification::class,
+        'F-IND-008' => Handlers\ReferendumVote::class,
+        'F-IND-009' => Handlers\PetitionCreation::class,
+        'F-IND-010' => Handlers\PetitionSignature::class,
+        'F-ELB-005' => Handlers\PetitionSignatureAudit::class,
         'F-LEG-002' => Handlers\AttendanceRegistration::class,
         'F-LEG-003' => Handlers\BillIntroduction::class,
         'F-LEG-004' => Handlers\FloorVoteCast::class,

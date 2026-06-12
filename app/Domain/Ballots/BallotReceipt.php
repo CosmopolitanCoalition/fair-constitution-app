@@ -30,6 +30,15 @@ final readonly class BallotReceipt
         return BallotCrypto::verifyCommitment($this->ballotHash, $this->salt, $rankings);
     }
 
+    /** Does this receipt commit to this referendum choice? (Phase C, F-IND-008) */
+    public function verifiesReferendum(string $questionId, string $choice): bool
+    {
+        return hash_equals(
+            $this->ballotHash,
+            BallotCrypto::commitmentHash($this->salt, BallotCrypto::canonicalReferendum($questionId, $choice))
+        );
+    }
+
     /** @return array{ballot_hash: string, salt: string} */
     public function toArray(): array
     {

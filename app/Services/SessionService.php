@@ -381,6 +381,7 @@ class SessionService
         ?string $billId = null,
         ?string $amendmentText = null,
         bool $openVote = true,
+        ?string $committeeId = null,
     ): Motion {
         if ($session->status !== LegislatureSession::STATUS_OPEN) {
             throw new ConstitutionalViolation('Motions are submitted in an open session.', 'Art. II §2');
@@ -392,6 +393,33 @@ class SessionService
 
         if (in_array($kind, Motion::BILL_KINDS, true) && $billId === null) {
             throw new ConstitutionalViolation("A [{$kind}] motion names a bill.", 'Art. II §2 · as implemented');
+        }
+
+        // FE-C4 — referral motions name their target committee. The motions
+        // table carries no committee column, so the target is stamped as a
+        // POINTER on the bill at filing (bills.committee_id; the ESM-07
+        // status transition still happens only on adoption via
+        // resolveMotionVote → BillService::referToCommittee). A failed
+        // motion leaves the pointer inert and re-referable.
+        if ($kind === Motion::KIND_REFERRAL) {
+            if ($committeeId === null) {
+                throw new ConstitutionalViolation('A referral motion names a committee.', 'Art. II §4 · as implemented');
+            }
+
+            $committeeBelongs = DB::table('committees')
+                ->where('id', $committeeId)
+                ->where('legislature_id', $session->legislature_id)
+                ->where('status', '!=', 'dissolved')
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (! $committeeBelongs) {
+                throw new ConstitutionalViolation('The named committee is not a live committee of this chamber.', 'Art. II §4');
+            }
+
+            \App\Models\Bill::query()
+                ->whereKey($billId)
+                ->update(['committee_id' => $committeeId, 'updated_at' => now()]);
         }
 
         $motion = Motion::create([
@@ -446,7 +474,11 @@ class SessionService
 
         match ($motion->kind) {
             Motion::KIND_DIRECT_TO_FLOOR => $bills->moveToFloor($motion->bill, $motion->session, $motion->movedBy),
-            Motion::KIND_REFERRAL        => $bills->referToCommittee($motion->bill, $motion->bill?->committee_id),
+            // Adopted referral: status → in_committee AND the committee_bill
+            // vote opens in the same transaction (stage='committee'; per-kind
+            // lanes in bicameral chambers — q7 binds at committee too), so
+            // F-LEG-005 casts have a live vote to land on (FE-C4).
+            Motion::KIND_REFERRAL        => $this->applyReferral($bills, $motion),
             Motion::KIND_TABLE           => $bills->table($motion->bill),
             Motion::KIND_AMENDMENT       => $bills->applyAmendment(
                 $motion->bill,
@@ -462,6 +494,19 @@ class SessionService
                 ->openBallot($motion->session->legislature),
             default => null,
         };
+    }
+
+    /** Adopted referral motion: refer + open the committee-stage vote. */
+    private function applyReferral(BillService $bills, Motion $motion): void
+    {
+        $bill = $motion->bill;
+
+        if ($bill === null || $bill->committee_id === null) {
+            return;
+        }
+
+        $bills->referToCommittee($bill, (string) $bill->committee_id);
+        $bills->openCommitteeVote($bill->refresh(), (string) $bill->committee_id, $motion->movedBy);
     }
 
     // =========================================================================
@@ -559,9 +604,12 @@ class SessionService
     // =========================================================================
 
     /**
-     * Locked agenda head: slot-1 emergency items (batch 2 fills the
-     * table; until then the head is honestly empty) — Art. II §2 order.
-     * Existing locked items keep their addressed state across re-opens.
+     * Locked agenda head — Art. II §2 order of business: one slot-1 item
+     * per emergency power LIVE in the session's footprint (votes_laws §F:
+     * area = the session jurisdiction, an ANCESTOR — downward visibility,
+     * the Dorinda pattern: the county sees the state's power — or a
+     * descendant). Existing locked items keep their addressed state
+     * across re-opens.
      */
     private function composeLockedHead(Legislature $legislature, array $existing): array
     {
@@ -569,11 +617,8 @@ class SessionService
         $tail = array_values(array_filter($existing, fn (array $i) => ! ($i['locked'] ?? false)));
 
         if ($head === [] && Schema::hasTable('emergency_powers')) {
-            $powers = DB::table('emergency_powers')
-                ->where('legislature_id', $legislature->id)
-                ->whereIn('status', ['active', 'renewed', 'under_review'])
-                ->whereNull('deleted_at')
-                ->get(['id', 'label']);
+            $powers = app(EmergencyPowerService::class)
+                ->activeInFootprint((string) $legislature->jurisdiction_id);
 
             foreach ($powers as $power) {
                 $head[] = [

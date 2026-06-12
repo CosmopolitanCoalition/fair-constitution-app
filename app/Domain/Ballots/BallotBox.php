@@ -7,6 +7,7 @@ use App\Models\Ballot;
 use App\Models\BallotEnvelope;
 use App\Models\Election;
 use App\Models\ElectionRace;
+use App\Models\ReferendumQuestion;
 use App\Models\User;
 use App\Services\AuditService;
 use Carbon\CarbonImmutable;
@@ -111,6 +112,139 @@ class BallotBox
     }
 
     /**
+     * The F-IND-008 engine path (Phase C — the "extended with question id"
+     * evolution the B-7 migration anticipated): same secrecy boundary,
+     * question-scoped. Envelope (kind 'referendum', referendum_question_id,
+     * race_id NULL — voter-linked, content-free) + anonymous ballot row
+     * (question id in clear — no voter linkage, so it leaks nothing; the
+     * {question_id, choice} payload sealed under the ELECTION's existing
+     * wrapped key). NO audit append — the returned payload is the engine's
+     * single chain entry (participation only, never the choice).
+     *
+     * @return array{0: BallotReceipt, 1: array{referendum_question_id: string, envelope_id: string}}
+     */
+    public function commitReferendumForEngine(User $voter, ReferendumQuestion $question, string $choice): array
+    {
+        return DB::transaction(function () use ($voter, $question, $choice): array {
+            // Canonicalize (and validate) BEFORE any state is touched.
+            $canonical = BallotCrypto::canonicalReferendum((string) $question->id, $choice);
+
+            $election = $question->election()->firstOrFail();
+
+            // Defense in depth — the F-IND-008 handler gates the window
+            // constitutionally; the box refuses out-of-window writes too.
+            if ($election->status !== Election::STATUS_RANKED_OPEN) {
+                throw new ConstitutionalViolation(
+                    "Referendum ballots may only be committed while the ranked window is open (election status: {$election->status}).",
+                    'Art. II §6'
+                );
+            }
+
+            // 1. Envelope — the partial unique (question, voter) is the
+            //    double-vote authority.
+            try {
+                $envelope = BallotEnvelope::create([
+                    'race_id'                => null,
+                    'user_id'                => $voter->id,
+                    'kind'                   => Ballot::KIND_REFERENDUM,
+                    'referendum_question_id' => $question->id,
+                    'committed_at'           => now(),
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                throw new DoubleVoteException(Ballot::KIND_REFERENDUM);
+            }
+
+            // 2. Per-election data key (the same wrapped key as ranked).
+            $dataKey = $this->ensureElectionKey($election);
+
+            // 3. Anonymous ballot row.
+            $salt = BallotCrypto::newSaltHex();
+            $hash = BallotCrypto::commitmentHash($salt, $canonical);
+
+            Ballot::create([
+                'id'                     => (string) Str::uuid(), // random v4 — see write()
+                'race_id'                => null,
+                'kind'                   => Ballot::KIND_REFERENDUM,
+                'referendum_question_id' => $question->id,
+                'payload_encrypted'      => BallotCrypto::encryptCanonical($canonical, $dataKey),
+                'salt'                   => $salt,
+                'ballot_hash'            => $hash,
+                'cast_bucket'            => CarbonImmutable::now('UTC')->startOfHour(),
+                'counted'                => false,
+            ]);
+
+            return [
+                new BallotReceipt($hash, $salt),
+                ['referendum_question_id' => (string) $question->id, 'envelope_id' => (string) $envelope->id],
+            ];
+        });
+    }
+
+    /**
+     * Decrypt a question's referendum ballots for the tally — same TRUST
+     * BOUNDARY as decryptForCount(): legitimate callers are the tabulation
+     * pipeline (ReferendumService::tallyForElection) and audit re-runs
+     * only. Commitments re-verified on the way out; a payload whose inner
+     * question id disagrees with the row aborts the count.
+     *
+     * @return Generator<int, string> 'yes' | 'no', in ballot_hash order
+     */
+    public function decryptReferendumForCount(ReferendumQuestion $question): Generator
+    {
+        $query = Ballot::query()
+            ->where('referendum_question_id', $question->id)
+            ->where('kind', Ballot::KIND_REFERENDUM)
+            ->orderBy('ballot_hash');
+
+        if (! $query->clone()->exists()) {
+            return;
+        }
+
+        $election = $question->election()->firstOrFail();
+
+        if ($election->ballot_key_wrapped === null) {
+            throw new RuntimeException(
+                "Question {$question->id} has ballots but election {$election->id} has no wrapped ballot key."
+            );
+        }
+
+        $dataKey = BallotCrypto::unwrapDataKey($election->ballot_key_wrapped, self::kek());
+
+        foreach ($query->cursor() as $ballot) {
+            $canonical = BallotCrypto::decryptToCanonical($ballot->payload_encrypted, $dataKey);
+
+            if (! hash_equals($ballot->ballot_hash, BallotCrypto::commitmentHash($ballot->salt, $canonical))) {
+                throw new RuntimeException(
+                    "Ballot {$ballot->id} failed commitment re-verification — tampering or key mismatch; aborting count."
+                );
+            }
+
+            $decoded = BallotCrypto::decryptReferendum($ballot->payload_encrypted, $dataKey);
+
+            if ($decoded['question_id'] !== strtolower((string) $question->id)) {
+                throw new RuntimeException(
+                    "Ballot {$ballot->id} payload names a different question — mis-filed row; aborting count."
+                );
+            }
+
+            yield $decoded['choice'];
+        }
+    }
+
+    /**
+     * Mark a question's referendum ballots counted (the tally's bookkeeping
+     * step — parity with race tabulation). Lives HERE because BallotBox is
+     * the single writer of the secrecy tables (BallotSecrecyTest pins it).
+     */
+    public function markReferendumBallotsCounted(ReferendumQuestion $question): int
+    {
+        return Ballot::query()
+            ->where('referendum_question_id', (string) $question->id)
+            ->where('kind', Ballot::KIND_REFERENDUM)
+            ->update(['counted' => true]);
+    }
+
+    /**
      * Steps 1–3 of the class docblock. Audit is the CALLER's duty — exactly
      * one participation entry per ballot, via one of the two public paths.
      *
@@ -120,7 +254,7 @@ class BallotBox
     {
         if ($kind !== Ballot::KIND_RANKED) {
             throw new \InvalidArgumentException(
-                'Phase B commits ranked ballots only — referendum ballots arrive with Phase C (F-IND-008).'
+                'write() commits ranked ballots only — referendum ballots go through commitReferendumForEngine (F-IND-008).'
             );
         }
 

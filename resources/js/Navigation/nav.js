@@ -58,15 +58,21 @@ export const NAV = [
            jurisdiction; each row links into its district mapper). */
         { id: 'legislatures', labelKey: 'nav.legislatures', icon: 'map', href: '/legislatures', phase: 'A' },
     ] },
+    /* FE-C2…C5 (landed): legislature-home / session-console / bills /
+       settings flipped live per the per-item phase-gate mechanism (the
+       Learn precedent above — phasesLive itself stays ['A','B'] until the
+       whole Phase C surface set ships). Roadmap provenance stays recorded
+       in config/cga/surfaces.php. committees/oversight flip with FE-C6/C8;
+       referendums/emergency-powers with FE-C9 (batch 3). */
     { key: 'legislature', titleKey: 'nav.legislature', visibility: 'role', roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], items: [
-        { id: 'legislature-home', labelKey: 'nav.chamber', icon: 'landmark', href: '/legislature', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], prereq: 'R-09', phase: 'C' },
-        { id: 'session-console', labelKey: 'nav.session', icon: 'users', href: '/legislature/session', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'C' },
-        { id: 'bills', labelKey: 'nav.bills', icon: 'file-text', href: '/legislature/bills', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13'], prereq: 'R-09', phase: 'C' },
+        { id: 'legislature-home', labelKey: 'nav.chamber', icon: 'landmark', href: '/legislature', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], prereq: 'R-09', phase: 'A' },
+        { id: 'session-console', labelKey: 'nav.session', icon: 'users', href: '/legislature/session', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'A' },
+        { id: 'bills', labelKey: 'nav.bills', icon: 'file-text', href: '/legislature/bills', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13'], prereq: 'R-09', phase: 'A' },
         { id: 'committees', labelKey: 'nav.committees', icon: 'users', href: '/legislature/committees', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13'], prereq: 'R-09', phase: 'C' },
         { id: 'referendums', labelKey: 'nav.referendums', icon: 'vote', href: '/legislature/referendums', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'C' },
         { id: 'emergency-powers', labelKey: 'nav.emergencyPowers', icon: 'alert-triangle', href: '/legislature/emergency-powers', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'C' },
         { id: 'oversight', labelKey: 'nav.oversight', icon: 'shield', href: '/legislature/oversight', enabledRoles: ['R-09', 'R-10', 'R-29'], prereq: 'R-29', phase: 'C' },
-        { id: 'settings', labelKey: 'nav.settings', icon: 'sliders', href: '/legislature/settings', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'C' },
+        { id: 'settings', labelKey: 'nav.settings', icon: 'sliders', href: '/legislature/settings', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'A' },
     ] },
     { key: 'speaker', titleKey: 'nav.speakerTools', visibility: 'role', roles: ['R-09', 'R-10'], items: [
         { id: 'speaker-tools', labelKey: 'nav.speakerTools', icon: 'landmark', href: '/legislature/speaker-tools', enabledRoles: ['R-10'], prereq: 'R-10', phase: 'C' },

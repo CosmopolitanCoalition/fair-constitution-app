@@ -69,11 +69,13 @@ class RightsAutomaticTest extends TestCase
     {
         // Voting and candidacy unlock together with the association —
         // there is no state in which an associated person lacks R-04.
-        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04'], RoleService::derive(true, true, true));
+        // R-05 (Petitioner, Phase C votes_laws §E) rides the same
+        // association-only surface — petitioning gates on R-03 alone.
+        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04', 'R-05'], RoleService::derive(true, true, true));
 
         // Association without an active claim (e.g. legacy data) still
         // carries the rights — the association IS the right.
-        $this->assertSame(['R-01', 'R-03', 'R-04'], RoleService::derive(true, false, true));
+        $this->assertSame(['R-01', 'R-03', 'R-04', 'R-05'], RoleService::derive(true, false, true));
     }
 
     public function test_residency_forms_remain_in_the_rights_automatic_guard(): void
@@ -96,7 +98,7 @@ class RightsAutomaticTest extends TestCase
     {
         // The Phase A call shape (3 args) must keep deriving identically —
         // the new facts default to false.
-        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04'], RoleService::derive(true, true, true));
+        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04', 'R-05'], RoleService::derive(true, true, true));
 
         // And with every Phase B fact on, R-03 ⇔ R-04 still holds.
         $roles = RoleService::derive(true, true, true, true, true, true, true, true);
@@ -104,7 +106,7 @@ class RightsAutomaticTest extends TestCase
             in_array('R-03', $roles, true),
             in_array('R-04', $roles, true),
         );
-        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04', 'R-06', 'R-07', 'R-08', 'R-09', 'R-23'], $roles);
+        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04', 'R-05', 'R-06', 'R-07', 'R-08', 'R-09', 'R-23'], $roles);
     }
 
     public function test_r06_derives_from_a_standing_candidacy(): void

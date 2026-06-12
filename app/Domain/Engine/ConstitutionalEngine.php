@@ -50,6 +50,9 @@ class ConstitutionalEngine
         // into the chain — accepted ballots are recorded by BallotBox as
         // participation only, and rejections get the same treatment here.
         'rankings',
+        // Referendum ballot content (Art. II §6, Phase C F-IND-008): the
+        // voter's yes/no must never reach the chain — same treatment.
+        'choice',
     ];
 
     public function __construct(

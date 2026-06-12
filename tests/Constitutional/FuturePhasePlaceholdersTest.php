@@ -41,23 +41,23 @@ class FuturePhasePlaceholdersTest extends TestCase
     // named), identical math at committee and floor (q-ledger #q7).
     // Art. V §3.
 
-    public function test_emergency_powers_ceiling_and_civic_process_protection(): void
-    {
-        $this->markTestSkipped(
-            'Phase C — emergency powers: supermajority only, disaster/invasion causes only, '
-            . '≤ 90 days including each renewal, auto-expire, cannot disrupt any civic process '
-            . '(engine-level, not UI). Art. II §7.'
-        );
-    }
+    // test_emergency_powers_ceiling_and_civic_process_protection — replaced
+    // by the real EmergencyCeilingTest (Phase C / C-E1): closed cause enum
+    // (disaster/invasion only), ≤ min(90, resolved max) for declarations
+    // AND each renewal, renewal-of-expired rejected, CLK-03 auto-expiry
+    // flips active → expired with audit + record, protected-form
+    // invariance (EMERGENCY_PROTECTED_FORMS), no deferral API anywhere
+    // (architecture assertion). Art. II §7.
 
-    public function test_referendum_act_same_term_shield(): void
-    {
-        $this->markTestSkipped(
-            'Phase C — CLK-19: acts passed by population supermajority cannot be modified or '
-            . 'repealed by the legislature in the same term; convert to ordinary law after the '
-            . 'next general election. Art. II §6.'
-        );
-    }
+    // test_referendum_act_same_term_shield — replaced by the real
+    // ReferendumShieldTest (Phase C / C-R1): CLK-19 validator gate
+    // (referendum.shield) rejects F-LEG-034 against population-
+    // supermajority acts while the shield election is pending; the
+    // law_versions writer refuses legislative_amendment on shielded laws;
+    // majority-passed acts modify same-term at chamber supermajority;
+    // certification of the shield election releases the shield; population
+    // thresholds resolve through the PROTECTED quorum()/supermajority()
+    // over the CIVIC population. Art. II §6.
 
     public function test_worker_representation_thresholds_and_scaling(): void
     {

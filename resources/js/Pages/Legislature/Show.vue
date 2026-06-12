@@ -40,6 +40,14 @@
                         to assign here
                         · Quota: {{ quota.toLocaleString() }} pop/seat
                     </div>
+                    <!-- FE-C2 — seated chamber: reverse link into the
+                         legislature-home surface (the Chamber page links
+                         back here as "Districts & maps →"). -->
+                    <a v-if="legislature.chamber_seated"
+                       :href="`/legislatures/${legislature.id}/chamber`"
+                       class="inline-block mt-1.5 text-xs font-medium text-amber-300 hover:text-amber-200 transition-colors">
+                        Chamber →
+                    </a>
                 </div>
 
                 <!-- Breadcrumb -->

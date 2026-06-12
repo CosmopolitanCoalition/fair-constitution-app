@@ -63,6 +63,10 @@ class MotionSubmission implements FormHandler
             text: (string) ($payload['text'] ?? ''),
             billId: isset($payload['bill_id']) ? (string) $payload['bill_id'] : null,
             amendmentText: isset($payload['amendment_text']) ? (string) $payload['amendment_text'] : null,
+            // FE-C4: referral motions name their target committee — the
+            // pointer is stamped at filing; the STATUS transition still
+            // happens only on adoption (SessionService::resolveMotionVote).
+            committeeId: isset($payload['committee_id']) ? (string) $payload['committee_id'] : null,
         );
 
         return [
