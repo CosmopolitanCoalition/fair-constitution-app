@@ -9,7 +9,6 @@ use App\Domain\Forms\Contracts\CertificationPipeline;
 use App\Domain\Forms\Contracts\ElectionSchedulingDelegate;
 use App\Domain\Forms\Contracts\ResidencyHandlerDelegate;
 use App\Domain\Forms\NoopBallotBoxDelegate;
-use App\Domain\Forms\NoopCertificationPipeline;
 use App\Domain\Forms\NoopElectionSchedulingDelegate;
 use App\Models\User;
 use App\Services\AuditService;
@@ -26,11 +25,11 @@ use Illuminate\Support\ServiceProvider;
  *  - ResolvesRoles → RoleService              (was StubRoleResolver)
  *  - ResidencyHandlerDelegate → ResidencyService (was NoopResidencyDelegate)
  *
- * Phase B (WI-B4) adds the election-handler seams, no-op until their
- * owners merge (the orchestrator rebinds — same pattern as WI-5):
- *  - BallotBoxDelegate → BallotBox            (WI-B2)
+ * Phase B (WI-B4) added the election-handler seams; all three now carry
+ * their real implementations:
+ *  - BallotBoxDelegate → EngineBallotBox      (WI-B2)
  *  - ElectionSchedulingDelegate → ElectionLifecycleService (WI-B3)
- *  - CertificationPipeline → seating pipeline (WI-B5)
+ *  - CertificationPipeline → CertificationService (WI-B5)
  *
  * RoleService is a singleton so the derivation is request-cached (one
  * fact-query pass per user per request); ResidencyService::* writers and
@@ -50,16 +49,18 @@ class ConstitutionProvider extends ServiceProvider
         $this->app->singleton(ResidencyService::class);
         $this->app->bind(ResidencyHandlerDelegate::class, fn ($app) => $app->make(ResidencyService::class));
 
-        // Phase B handler seams — real bindings (WI-B2/WI-B3 merged):
+        // Phase B handler seams — real bindings (WI-B2/WI-B3/WI-B5 merged):
         //  - EngineBallotBox commits through the engine without a second chain
         //    entry; the receipt travels out-of-band via the read-once holder
         //    (scoped: one holder per request, never cached across requests).
-        //  - CertificationPipeline stays no-op until WI-B5 lands the seating
-        //    pipeline.
+        //  - CertificationService is the WI-B5 seating pipeline: F-ELB-004
+        //    seats winners + terms (CLK-10 lockstep), flips the legislature
+        //    active, arms CLK-01/CLK-10, opens election N+1; F-ELB-006
+        //    dispatches the audit re-tabulation.
         $this->app->scoped(\App\Domain\Ballots\BallotReceiptHolder::class);
         $this->app->bind(BallotBoxDelegate::class, \App\Domain\Ballots\EngineBallotBox::class);
         $this->app->bind(ElectionSchedulingDelegate::class, fn ($app) => $app->make(\App\Services\ElectionLifecycleService::class));
-        $this->app->bind(CertificationPipeline::class, NoopCertificationPipeline::class);
+        $this->app->bind(CertificationPipeline::class, fn ($app) => $app->make(\App\Services\CertificationService::class));
     }
 
     public function boot(): void

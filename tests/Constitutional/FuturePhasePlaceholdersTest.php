@@ -21,13 +21,11 @@ class FuturePhasePlaceholdersTest extends TestCase
     // against the published hash list, double-vote rejection, audit-chain
     // content discipline. Art. II §2 (ballot secrecy).
 
-    public function test_elections_cannot_be_skipped_or_delayed_by_officials(): void
-    {
-        $this->markTestSkipped(
-            'Phase B — CLK-01/CLK-02 election triggers fire from the clock registry with no '
-            . 'discretionary suppression path. Hardened per the architecture plan.'
-        );
-    }
+    // test_elections_cannot_be_skipped_or_delayed_by_officials — replaced
+    // by the real ElectionClockTest (WI-B5): elections fire from the clock
+    // registry (handler map pinned), no public API can move a timer's
+    // fires_at, ESM-03 has no backward/skip edges, out-of-window special
+    // dates are rejected with citation. Art. II §2/§5.
 
     public function test_peg_quorum_uses_all_serving_members(): void
     {
@@ -97,11 +95,11 @@ class FuturePhasePlaceholdersTest extends TestCase
         );
     }
 
-    public function test_term_lockstep_across_branches(): void
-    {
-        $this->markTestSkipped(
-            'Phase E — legislative, elected-executive, and elected-judicial terms expire '
-            . 'together; harmonization at the encompassing level. Art. III §3; Art. IV §3.'
-        );
-    }
+    // test_term_lockstep_across_branches — replaced by the real
+    // TermLockstepTest (WI-B5/B6): the shared `terms` substrate is live —
+    // lockstep windows derive from one schedule, replacement terms inherit
+    // the ORIGINAL expiry exactly, and no code path can mutate a lockstep
+    // ends_on (write-once at creation, source-scanned). Executive and
+    // judicial offices join the SAME table in Phases D/E; the lockstep
+    // guarantee they inherit is pinned now. Art. III §3; Art. IV §3.
 }
