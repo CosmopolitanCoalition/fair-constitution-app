@@ -78,13 +78,16 @@ function fmt(iso) {
 
 /* ------------------------------------------------------- rank → review -- */
 
-const ranking = ref([]); // [{ candidacy_id, name, write_in }] — page-local ONLY (§D.1)
+/* [{ id: candidacy_id, name, write_in, chips }] — page-local ONLY (§D.1).
+   FE-C1: RankList generalized to { id, name, chips } (write-in renders as
+   a chip); write_in stays for the review-card suffix + commit semantics. */
+const ranking = ref([]);
 const reviewing = ref(false);
 const committing = ref(false);
 const reviewCard = ref(null);
 
-const rankedIds = computed(() => new Set(ranking.value.map((e) => e.candidacy_id)));
-const rankIndex = (id) => ranking.value.findIndex((e) => e.candidacy_id === id);
+const rankedIds = computed(() => new Set(ranking.value.map((e) => e.id)));
+const rankIndex = (id) => ranking.value.findIndex((e) => e.id === id);
 
 const guidance = computed(() =>
     ranking.value.length < props.race.seats
@@ -97,7 +100,7 @@ const guidance = computed(() =>
 
 function addFinalist(entry) {
     if (rankedIds.value.has(entry.candidacy_id)) return;
-    ranking.value = [...ranking.value, { candidacy_id: entry.candidacy_id, name: entry.name, write_in: false }];
+    ranking.value = [...ranking.value, { id: entry.candidacy_id, name: entry.name, write_in: false, chips: [] }];
 }
 
 function review() {
@@ -110,7 +113,7 @@ function commit() {
     committing.value = true;
     router.post(
         `/elections/${props.race.election_id}/races/${props.race.id}/ballots`,
-        { rankings: ranking.value.map((e) => e.candidacy_id) },
+        { rankings: ranking.value.map((e) => e.id) },
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -152,7 +155,10 @@ const writeInResults = computed(() =>
 );
 
 function addWriteIn(match) {
-    ranking.value = [...ranking.value, { candidacy_id: match.candidacy_id, name: match.name, write_in: true }];
+    ranking.value = [
+        ...ranking.value,
+        { id: match.candidacy_id, name: match.name, write_in: true, chips: ['write-in'] },
+    ];
     announce(`${match.name} added as a write-in — rank ${ranking.value.length}`);
 }
 
@@ -398,7 +404,7 @@ const aggScale = computed(() =>
         <!-- ======================================= review & commit ======= -->
         <Card v-if="showBallotArea && reviewing" ref="reviewCard" as="section" title="Review &amp; commit">
             <ol>
-                <li v-for="entry in ranking" :key="entry.candidacy_id">
+                <li v-for="entry in ranking" :key="entry.id">
                     {{ entry.name }}<template v-if="entry.write_in"> (write-in)</template>
                 </li>
             </ol>

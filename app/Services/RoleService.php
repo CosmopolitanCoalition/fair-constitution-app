@@ -28,9 +28,23 @@ use Illuminate\Support\Facades\DB;
  *                        operator drives the synthetic board in dev)
  *   R-09 Legislator    — a current legislature_members row
  *                        (status elected|seated)
+ *   R-10 Speaker       — legislatures.speaker_id points at the user's
+ *                        CURRENT member row (Phase C; authoritative fact =
+ *                        the legislature pointer, never is_speaker)
+ *   R-11 Committee mbr — a live committee_seats row (status seated,
+ *                        vacated_at NULL) on a non-dissolved committee,
+ *                        member current (Phase C)
+ *   R-12 Cmte chair    — committees.chair_member_id → current member row
+ *                        (Phase C; R-12 ⇒ R-11 by construction — chair
+ *                        candidates are committee members)
+ *   R-13 Alt chair     — committees.alternate_member_id → same (acts when
+ *                        the chair is absent — handler-checked)
  *   R-23 Org agent     — organizations.agent_user_id points at the user on
  *                        an active org (the minimal Phase B substrate
  *                        gating F-ORG-002; full org module is Phase D)
+ *   R-29 Admin staff   — a SEATED appointment (appointable_type
+ *                        'admin_offices') on a non-dissolved office with
+ *                        an active civil-appointment term (Phase C)
  *
  * Guests carry no roles here; the Inertia layer maps "no user" to the
  * mockups' R-00 visitor code for display. The shared-prop exposure
@@ -71,6 +85,11 @@ class RoleService implements ResolvesRoles
             $this->hasActiveBoardSeat($user),
             $this->hasCurrentLegislatureSeat($id),
             $this->hasOrgAgency($id),
+            $this->isSpeaker($id),
+            $this->hasCommitteeSeat($id),
+            $this->isCommitteeChair($id),
+            $this->isAlternateChair($id),
+            $this->hasAdminAppointment($id),
         );
     }
 
@@ -103,6 +122,11 @@ class RoleService implements ResolvesRoles
         bool $hasBoardSeat = false,
         bool $hasLegislatureSeat = false,
         bool $hasOrgAgency = false,
+        bool $isSpeaker = false,
+        bool $hasCommitteeSeat = false,
+        bool $isCommitteeChair = false,
+        bool $isAlternateChair = false,
+        bool $hasAdminAppointment = false,
     ): array {
         if (! $authenticated) {
             return [];
@@ -133,10 +157,33 @@ class RoleService implements ResolvesRoles
 
         if ($hasLegislatureSeat) {
             $roles[] = 'R-09';
+
+            // Chamber offices presuppose a current seat (Phase C): the
+            // facts below all derive THROUGH a current member row, so a
+            // vacated/removed member loses R-10..R-13 atomically with R-09.
+            if ($isSpeaker) {
+                $roles[] = 'R-10';
+            }
+
+            if ($hasCommitteeSeat || $isCommitteeChair) {
+                $roles[] = 'R-11'; // R-12 ⇒ R-11 by construction
+            }
+
+            if ($isCommitteeChair) {
+                $roles[] = 'R-12';
+            }
+
+            if ($isAlternateChair) {
+                $roles[] = 'R-13';
+            }
         }
 
         if ($hasOrgAgency) {
             $roles[] = 'R-23';
+        }
+
+        if ($hasAdminAppointment) {
+            $roles[] = 'R-29';
         }
 
         return $roles;
@@ -273,6 +320,82 @@ class RoleService implements ResolvesRoles
             ->where('agent_user_id', $userId)
             ->where('is_active', true)
             ->whereNull('deleted_at')
+            ->exists();
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase C fact queries (chamber ops §G.2 — derived, never stored)
+    // -------------------------------------------------------------------------
+
+    /** R-10: legislatures.speaker_id → the user's CURRENT member row. */
+    private function isSpeaker(string $userId): bool
+    {
+        return DB::table('legislatures as l')
+            ->join('legislature_members as m', 'm.id', '=', 'l.speaker_id')
+            ->where('m.user_id', $userId)
+            ->whereIn('m.status', ['elected', 'seated'])
+            ->whereNull('m.deleted_at')
+            ->whereNull('l.deleted_at')
+            ->exists();
+    }
+
+    /** R-11: a live seat on a non-dissolved committee, member current. */
+    private function hasCommitteeSeat(string $userId): bool
+    {
+        return DB::table('committee_seats as cs')
+            ->join('committees as c', 'c.id', '=', 'cs.committee_id')
+            ->join('legislature_members as m', 'm.id', '=', 'cs.member_id')
+            ->where('m.user_id', $userId)
+            ->whereIn('m.status', ['elected', 'seated'])
+            ->whereNull('m.deleted_at')
+            ->where('cs.status', 'seated')
+            ->whereNull('cs.vacated_at')
+            ->where('c.status', '!=', 'dissolved')
+            ->whereNull('c.deleted_at')
+            ->exists();
+    }
+
+    /** R-12: committees.chair_member_id → the user's current member row. */
+    private function isCommitteeChair(string $userId): bool
+    {
+        return $this->holdsCommitteePointer($userId, 'chair_member_id');
+    }
+
+    /** R-13: committees.alternate_member_id → same. */
+    private function isAlternateChair(string $userId): bool
+    {
+        return $this->holdsCommitteePointer($userId, 'alternate_member_id');
+    }
+
+    private function holdsCommitteePointer(string $userId, string $column): bool
+    {
+        return DB::table('committees as c')
+            ->join('legislature_members as m', 'm.id', '=', "c.{$column}")
+            ->where('m.user_id', $userId)
+            ->whereIn('m.status', ['elected', 'seated'])
+            ->whereNull('m.deleted_at')
+            ->where('c.status', '!=', 'dissolved')
+            ->whereNull('c.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-29: a SEATED appointment on a non-dissolved admin office with an
+     * active civil-appointment term.
+     */
+    private function hasAdminAppointment(string $userId): bool
+    {
+        return DB::table('appointments as a')
+            ->join('admin_offices as o', 'o.id', '=', 'a.appointable_id')
+            ->join('terms as t', 't.id', '=', 'a.term_id')
+            ->where('a.appointable_type', 'admin_offices')
+            ->where('a.nominee_user_id', $userId)
+            ->where('a.status', 'seated')
+            ->whereNull('a.deleted_at')
+            ->where('o.status', '!=', 'dissolved')
+            ->whereNull('o.deleted_at')
+            ->where('t.status', 'active')
+            ->whereNull('t.deleted_at')
             ->exists();
     }
 }

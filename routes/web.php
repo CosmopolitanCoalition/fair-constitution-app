@@ -7,6 +7,7 @@ use App\Http\Controllers\Civic\PingController;
 use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
+use App\Http\Controllers\Dev\LegislatureKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\Dev\ResidencyGrantController;
 use App\Http\Controllers\Elections\ApprovalController;
@@ -337,6 +338,8 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::post('/residency/grant', [ResidencyGrantController::class, 'grant'])->name('residency.grant');
         // FE-B1 — fixture-first harness: every Electoral component in every state.
         Route::get('/electoral-kit', [ElectoralKitController::class, 'show'])->name('electoral-kit');
+        // FE-C1 — fixture-first harness: every Phase C legislature component.
+        Route::get('/legislature-kit', [LegislatureKitController::class, 'show'])->name('legislature-kit');
     });
 }
 

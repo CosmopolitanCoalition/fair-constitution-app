@@ -925,6 +925,40 @@ a, summary { transition: color var(--dur) var(--ease-standard), border-color var
    zero inline styles. */
 h3:has(> .stv-action) { margin-block: var(--space-4) var(--space-2); }
 
+/* ----------------------------------------------- 6c. LEGISLATURE ADDITIONS (FE-C0) */
+/* The classes PHASE_C_DESIGN_frontend.md §A.0 names as missing — every other
+   legislature class (.seat-map/.seat-dot, .law-diff, .meter*, .lifecycle,
+   .state-strip, .agenda eyebrow/flow-step-n, .banner--emergency) was already
+   ported above. Zero-inline-style posture as 6b. */
+
+/* .agenda-list — the session agenda <ol>. Source:
+   mockups/legislature/session-console.html line 62, which inlined
+   gap/padding-inline-start/list-style on the <ol id="agenda">. */
+.agenda-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* .agenda-slot — one agenda position (the mockup rendered each <li> as
+   .card.card--inset; named here so AgendaStrip carries reorder controls and
+   the locked state without inline layout). --locked = the constitutionally
+   pinned positions 1–2 (gold border + lock icon; Art. II §2; §7). */
+.agenda-slot {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  border: 1px solid var(--gov-border); border-radius: var(--radius-lg);
+  padding: var(--space-3); background: var(--gov-surface);
+}
+.agenda-slot--locked { border-color: color-mix(in oklch, var(--cc-gold-400) 45%, transparent); }
+
+/* .tally-kind — visual rail distinguishing per-kind tally cards in the
+   bicameral VoteTally (PHASE_C_DESIGN_frontend.md §C). Color is never the
+   only signal: each card carries its kind label. */
+.tally-kind { border-inline-start: 3px solid var(--gov-border-strong); padding-inline-start: var(--space-3); }
+.tally-kind--type-b { border-inline-start-color: var(--status-info); }
+
+/* .law-diff white-space — §A.2: segments are server-computed and rendered
+   verbatim (pre-wrap) so what citizens see is exactly what the audit chain
+   hashed. The 6a port carried the mockup rule, which never needed this (the
+   mockup hand-wrote <p> markup around its del/ins). */
+.law-diff { white-space: pre-wrap; }
+
 /* ------------------------------------------------- 7. CONTRAST & FORCED COLORS */
 /* prefers-contrast: more — raise the quiet tiers of the text/border ramps.
    Same token contract, higher-contrast values (WCAG SC 1.4.6 direction). */

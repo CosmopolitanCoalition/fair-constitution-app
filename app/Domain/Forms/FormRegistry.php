@@ -235,6 +235,46 @@ class FormRegistry
         'F-CAN-002' => Handlers\EndorsementRequest::class,
         'F-CAN-003' => Handlers\CandidacyWithdrawal::class,
         'F-ORG-002' => Handlers\CandidateEndorsementGrant::class,
+
+        // ── Phase C — legislature operations, votes-laws scope ──────────────
+        // (PHASE_C_DESIGN_votes_laws §G. The chamber-ops scope registers:
+        // F-LEG-001, 008–013, 020–022, 032/033, F-SPK-004/005/006/007,
+        // F-CHR-001..004, F-LEG-036.)
+        'F-LEG-002' => Handlers\AttendanceRegistration::class,
+        'F-LEG-003' => Handlers\BillIntroduction::class,
+        'F-LEG-004' => Handlers\FloorVoteCast::class,
+        'F-LEG-005' => Handlers\CommitteeVoteCast::class,
+        'F-LEG-006' => Handlers\PublicRecordStatement::class,
+        'F-LEG-007' => Handlers\MotionSubmission::class,
+        'F-SPK-001' => Handlers\SessionCall::class,
+        'F-SPK-002' => Handlers\AgendaSetting::class,
+        'F-SPK-003' => Handlers\QuorumCountPublication::class,
+        'F-SPK-008' => Handlers\AttendanceCompulsionOrder::class,
+        'F-SPK-009' => Handlers\SessionMinutesPublication::class,
+
+        // ── Phase C — legislature operations, chamber-ops scope ─────────────
+        // (PHASE_C_DESIGN_chamber_ops §G.1: speaker, committees, oversight,
+        // board transition, vacancy loop. F-LEG-020/021 stay unregistered —
+        // no seated BoG/judicial subjects until Phase D/E.)
+        'F-LEG-001' => Handlers\OathOfOffice::class,
+        'F-LEG-008' => Handlers\SpeakerElectionVote::class,
+        'F-LEG-009' => Handlers\CommitteeCreationAct::class,
+        'F-LEG-010' => Handlers\CommitteePreferenceRanking::class,
+        'F-LEG-011' => Handlers\CommitteeChairVote::class,
+        'F-LEG-012' => Handlers\ElectionBoardCreationAct::class,
+        'F-LEG-013' => Handlers\AdminOfficeCreationAct::class,
+        'F-LEG-022' => Handlers\RemovalVote::class,
+        'F-LEG-032' => Handlers\RulesOfOrderAdoption::class,
+        'F-LEG-033' => Handlers\EthicsCodeAdoption::class,
+        'F-LEG-036' => Handlers\VacancyDeclaration::class,
+        'F-SPK-004' => Handlers\TieBreakingVote::class,
+        'F-SPK-005' => Handlers\CommitteeAssignmentAdministration::class,
+        'F-SPK-006' => Handlers\MemberPriorityFacilitation::class,
+        'F-SPK-007' => Handlers\RemovalPresiding::class,
+        'F-CHR-001' => Handlers\CommitteeMeetingCall::class,
+        'F-CHR-002' => Handlers\CommitteeAgendaSetting::class,
+        'F-CHR-003' => Handlers\BillReferralToFloor::class,
+        'F-CHR-004' => Handlers\CommitteeReportFiling::class,
     ];
 
     /**

@@ -67,6 +67,19 @@ class VacancyService
      * Declare a vacancy on a current legislature seat and queue the
      * countback. `$queueCountback = false` lets the dev command run the
      * countback inline (`vacancy:declare --sync`).
+     *
+     * Phase C additions (chamber ops §F.1):
+     *  - `$memberStatus` — removal proceedings (F-LEG-022 → F-LEG-036)
+     *    record the seat as `removed`, not `vacated` (both are terminal
+     *    non-current statuses; the countback strike logic already treats
+     *    them identically);
+     *  - committee echo — the member's live committee seats vacate
+     *    (`chamber_vacancy`) and chair/alternate pointers they held clear
+     *    (WF-LEG-13 refill queue + recheck note);
+     *  - speaker echo — a vacating Speaker clears legislatures.speaker_id
+     *    (replacement balloting is the chamber's next business; this is
+     *    NOT the first-election lockout — the chamber had a functioning
+     *    organization: "serves until next legislature unless replaced").
      */
     public function declare(
         LegislatureMember $member,
@@ -74,6 +87,7 @@ class VacancyService
         ?User $declaredBy = null,
         string $via = 'dev',
         bool $queueCountback = true,
+        string $memberStatus = LegislatureMember::STATUS_VACATED,
     ): Vacancy {
         if (! in_array($member->status, LegislatureMember::CURRENT_STATUSES, true)) {
             throw new ConstitutionalViolation(
@@ -82,14 +96,23 @@ class VacancyService
             );
         }
 
+        if (! in_array($memberStatus, [LegislatureMember::STATUS_VACATED, LegislatureMember::STATUS_REMOVED], true)) {
+            throw new ConstitutionalViolation(
+                "A vacancy declaration ends the seat as vacated or removed — not [{$memberStatus}].",
+                'Art. II §5'
+            );
+        }
+
         $legislature = $member->legislature()->firstOrFail();
 
-        $vacancy = DB::transaction(function () use ($member, $legislature, $reason, $declaredBy, $via): Vacancy {
+        $vacancy = DB::transaction(function () use ($member, $legislature, $reason, $declaredBy, $via, $memberStatus): Vacancy {
             $member->forceFill([
-                'status'         => LegislatureMember::STATUS_VACATED,
+                'status'         => $memberStatus,
                 'vacated_at'     => now(),
                 'vacancy_reason' => $reason,
             ])->save();
+
+            $this->cascadeChamberOffices($member, $legislature);
 
             // The term row's STATUS moves; its ends_on never does (CLK-10).
             if ($member->term_id !== null) {
@@ -214,6 +237,75 @@ class VacancyService
     // =========================================================================
     // Internals
     // =========================================================================
+
+    /**
+     * Phase C cascades (chamber ops §F.1) — committee echo + speaker echo.
+     * Raw table writes (no model dependency on the chamber-ops batch):
+     * the committees tables land with the 2026_06_21 migrations; guarded
+     * so pre-Phase-C databases (and the rolled-back test posture) skip
+     * cleanly.
+     */
+    private function cascadeChamberOffices(LegislatureMember $member, $legislature): void
+    {
+        if (\Illuminate\Support\Facades\Schema::hasTable('committee_seats')) {
+            // Committee echo: vacate live placements (WF-LEG-13 queue).
+            $vacatedSeats = DB::table('committee_seats')
+                ->where('member_id', (string) $member->id)
+                ->whereNull('vacated_at')
+                ->update([
+                    'status'         => 'vacated',
+                    'vacated_at'     => now(),
+                    'vacated_reason' => 'chamber_vacancy',
+                    'updated_at'     => now(),
+                ]);
+
+            // Clear chair/alternate pointers the member held.
+            $chairCleared = DB::table('committees')
+                ->where('chair_member_id', (string) $member->id)
+                ->update(['chair_member_id' => null, 'updated_at' => now()]);
+
+            $alternateCleared = DB::table('committees')
+                ->where('alternate_member_id', (string) $member->id)
+                ->update(['alternate_member_id' => null, 'updated_at' => now()]);
+
+            if ($vacatedSeats > 0 || $chairCleared > 0 || $alternateCleared > 0) {
+                $this->audit->append(
+                    module: 'legislature',
+                    event: 'vacancy.committee_echo',
+                    payload: [
+                        'member_id'         => (string) $member->id,
+                        'seats_vacated'     => $vacatedSeats,
+                        'chair_cleared'     => $chairCleared,
+                        'alternate_cleared' => $alternateCleared,
+                        'citation'          => 'Art. II §5 · WF-LEG-13',
+                    ],
+                    ref: 'ESM-13',
+                    jurisdictionId: (string) $legislature->jurisdiction_id,
+                );
+            }
+        }
+
+        // Speaker echo: the chamber loses its presiding officer — clear
+        // the authoritative pointer; the next session's first general
+        // business is a replacement balloting.
+        if ($legislature->speaker_id !== null && (string) $legislature->speaker_id === (string) $member->id) {
+            $legislature->forceFill(['speaker_id' => null])->save();
+            $member->forceFill(['is_speaker' => false])->save();
+
+            $this->audit->append(
+                module: 'legislature',
+                event: 'vacancy.speaker_echo',
+                payload: [
+                    'legislature_id' => (string) $legislature->id,
+                    'member_id'      => (string) $member->id,
+                    'note'           => 'Speaker seat vacated — replacement balloting is the next session\'s first general business.',
+                    'citation'       => 'Art. II §3 · §5',
+                ],
+                ref: 'ESM-13',
+                jurisdictionId: (string) $legislature->jurisdiction_id,
+            );
+        }
+    }
 
     /**
      * Cumulative strikes: candidacies of every member who held a seat in

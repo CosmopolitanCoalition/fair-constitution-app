@@ -1,0 +1,238 @@
+{
+  "_source": {
+    "chamber": "mockups/assets/js/fixtures.js world.chamber — New York County, 9 seats (STV), seat 4 vacant; persona ids resolved to names via world.personas. The SeatMap pinning fixture: 1 ring, seniority-alternating placement, speaker gold, vacancy dashed.",
+    "sanMarino": "synthetic 41-seat bicameral chamber shaped like the LIVE San Marino fixture (32 type_a across 4 districts + 9 type_b, one per castello — PHASE_C_DESIGN_frontend.md §B.1/§C; Art. V §3). Names are synthetic; the STRUCTURE (kinds, speaker, one vacancy, 3 rings) is the contract.",
+    "agenda": "mockups/legislature/session-console.html agenda renderer (locked slots 1–2, constitutional order; emergency + challenge scenario variants) + world.emergency / world.challenge",
+    "votes": "threshold grammar from mockups/legislature/bill-detail.html (committee 2-of-3 'all members, not those present'; floor majority 5-of-9 + supermajority ceil(9×2/3)=6; dualMeter() per-kind blocks) — re-denominated for the live chambers: Montegiardino 8 serving (majority 5, supermajority ceil(8×2/3)=6), San Marino type_a 32 (17/22) + type_b 9 (5/6) per PHASE_C_DESIGN_frontend.md §C. ALL numbers here are 'server-snapshotted': the component never computes them.",
+    "casts": "mockups/legislature/session-console.html motions fixture ('4–4 → Speaker broke the tie (F-SPK-004)') + bill-detail floor grammar; explanations per Art. II §2 (published with the vote)",
+    "lawDiff": "mockups/judiciary/constitutional-challenge.html lawDiff() — Curfew Ordinance (New York County) §3, del/ins verbatim",
+    "emergency": "mockups/assets/js/fixtures.js world.emergency — Hurricane Dorinda landfall, day 41 of 90, CLK-03",
+    "petition": "mockups/civic/petition-detail.html signature meter — 1,044,310 of 1,010,062 required (5% of 20,201,249, New York state) · CLK-17",
+    "committees": "mockups/assets/js/fixtures.js world.committees — 3 committees × 3 seats (allocation 9 ÷ (3 × 3) = 1)"
+  },
+
+  "chamber": {
+    "name": "New York County legislature",
+    "mode": "unicameral",
+    "seats": 9,
+    "serving": 8,
+    "quorum": 5,
+    "supermajority": 6,
+    "termEnds": "2035-11-01",
+    "members": [
+      { "id": "ny-01", "seat_no": 1, "name": "Yuki Tanaka", "speaker": true, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 1.12, "district_label": null, "note": null },
+      { "id": "ny-02", "seat_no": 2, "name": "Marcus Chen", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 1.08, "district_label": null, "note": null },
+      { "id": "ny-03", "seat_no": 3, "name": "Kwame Mensah", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 1.04, "district_label": null, "note": null },
+      { "id": "ny-04", "seat_no": 4, "name": null, "speaker": false, "vacant": true, "seat_kind": null, "days_served": 0, "vote_share_norm": null, "district_label": null, "note": "Renata Silva resigned — countback running (WF-ELE-03)" },
+      { "id": "ny-05", "seat_no": 5, "name": "Asha Okonkwo", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 0.99, "district_label": null, "note": null },
+      { "id": "ny-06", "seat_no": 6, "name": "Jonas Petersen", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 0.97, "district_label": null, "note": null },
+      { "id": "ny-07", "seat_no": 7, "name": "Maribel Santos", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 0.95, "district_label": null, "note": "No endorsing organization" },
+      { "id": "ny-08", "seat_no": 8, "name": "Adaeze Nwosu", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 87, "vote_share_norm": 0.93, "district_label": null, "note": "Seated by countback — 87 days served" },
+      { "id": "ny-09", "seat_no": 9, "name": "Lev Aronov", "speaker": false, "vacant": false, "seat_kind": null, "days_served": 212, "vote_share_norm": 0.9, "district_label": null, "note": null }
+    ]
+  },
+
+  "sanMarino": {
+    "name": "San Marino chamber",
+    "mode": "bicameral",
+    "seats": 41,
+    "by_kind": { "type_a": { "seats": 32, "serving": 31 }, "type_b": { "seats": 9, "serving": 9 } },
+    "members": [
+      { "id": "sm-01", "seat_no": 1, "name": "Maria Belluzzi", "speaker": true, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.15, "district_label": "District 1", "note": null },
+      { "id": "sm-02", "seat_no": 2, "name": "Paolo Gasperoni", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.12, "district_label": "District 1", "note": null },
+      { "id": "sm-03", "seat_no": 3, "name": "Chiara Zafferani", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.1, "district_label": "District 1", "note": null },
+      { "id": "sm-04", "seat_no": 4, "name": "Luca Mularoni", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.08, "district_label": "District 1", "note": null },
+      { "id": "sm-05", "seat_no": 5, "name": "Elena Giardi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.07, "district_label": "District 1", "note": null },
+      { "id": "sm-06", "seat_no": 6, "name": "Marco Stolfi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.05, "district_label": "District 1", "note": null },
+      { "id": "sm-07", "seat_no": 7, "name": "Francesca Renzi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.04, "district_label": "District 1", "note": null },
+      { "id": "sm-08", "seat_no": 8, "name": "Andrea Casali", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.03, "district_label": "District 1", "note": null },
+      { "id": "sm-09", "seat_no": 9, "name": "Silvia Berardi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.02, "district_label": "District 2", "note": null },
+      { "id": "sm-10", "seat_no": 10, "name": "Davide Cecchetti", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.01, "district_label": "District 2", "note": null },
+      { "id": "sm-11", "seat_no": 11, "name": "Giulia Bollini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 1.0, "district_label": "District 2", "note": null },
+      { "id": "sm-12", "seat_no": 12, "name": "Nicola Selva", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.99, "district_label": "District 2", "note": null },
+      { "id": "sm-13", "seat_no": 13, "name": "Martina Guidi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.98, "district_label": "District 2", "note": null },
+      { "id": "sm-14", "seat_no": 14, "name": "Alessandro Vagnini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.97, "district_label": "District 2", "note": null },
+      { "id": "sm-15", "seat_no": 15, "name": "Sara Tonnini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.96, "district_label": "District 2", "note": null },
+      { "id": "sm-16", "seat_no": 16, "name": "Federico Pelliccioni", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.95, "district_label": "District 2", "note": null },
+      { "id": "sm-17", "seat_no": 17, "name": null, "speaker": false, "vacant": true, "seat_kind": "type_a", "days_served": 0, "vote_share_norm": null, "district_label": "District 3", "note": "Resigned — countback running (WF-ELE-03)" },
+      { "id": "sm-18", "seat_no": 18, "name": "Valentina Ercolani", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.94, "district_label": "District 3", "note": null },
+      { "id": "sm-19", "seat_no": 19, "name": "Tommaso Beccari", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.93, "district_label": "District 3", "note": null },
+      { "id": "sm-20", "seat_no": 20, "name": "Laura Montanari", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.92, "district_label": "District 3", "note": null },
+      { "id": "sm-21", "seat_no": 21, "name": "Stefano Zanotti", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.91, "district_label": "District 3", "note": null },
+      { "id": "sm-22", "seat_no": 22, "name": "Anna Forcellini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.9, "district_label": "District 3", "note": null },
+      { "id": "sm-23", "seat_no": 23, "name": "Giovanni Macina", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.89, "district_label": "District 3", "note": null },
+      { "id": "sm-24", "seat_no": 24, "name": "Beatrice Fabbri", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 121, "vote_share_norm": 0.88, "district_label": "District 3", "note": "Seated by countback — 121 days served" },
+      { "id": "sm-25", "seat_no": 25, "name": "Riccardo Bonelli", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.87, "district_label": "District 4", "note": null },
+      { "id": "sm-26", "seat_no": 26, "name": "Camilla Righi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.86, "district_label": "District 4", "note": null },
+      { "id": "sm-27", "seat_no": 27, "name": "Matteo Albani", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.85, "district_label": "District 4", "note": null },
+      { "id": "sm-28", "seat_no": 28, "name": "Ilaria Santi", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.84, "district_label": "District 4", "note": null },
+      { "id": "sm-29", "seat_no": 29, "name": "Pietro Morri", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.83, "district_label": "District 4", "note": null },
+      { "id": "sm-30", "seat_no": 30, "name": "Roberta Felici", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.82, "district_label": "District 4", "note": null },
+      { "id": "sm-31", "seat_no": 31, "name": "Enrico Battistini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 180, "vote_share_norm": 0.81, "district_label": "District 4", "note": null },
+      { "id": "sm-32", "seat_no": 32, "name": "Lucia Venturini", "speaker": false, "vacant": false, "seat_kind": "type_a", "days_served": 64, "vote_share_norm": 0.8, "district_label": "District 4", "note": "Seated by countback — 64 days served" },
+      { "id": "sm-33", "seat_no": 33, "name": "Carlo Terenzi", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 1.06, "district_label": "Città di San Marino", "note": null },
+      { "id": "sm-34", "seat_no": 34, "name": "Donatella Gatti", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 1.02, "district_label": "Serravalle", "note": null },
+      { "id": "sm-35", "seat_no": 35, "name": "Massimo Conti", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.98, "district_label": "Borgo Maggiore", "note": null },
+      { "id": "sm-36", "seat_no": 36, "name": "Patrizia Ugolini", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.95, "district_label": "Domagnano", "note": null },
+      { "id": "sm-37", "seat_no": 37, "name": "Sergio Canti", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.93, "district_label": "Fiorentino", "note": null },
+      { "id": "sm-38", "seat_no": 38, "name": "Monica Della Valle", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.9, "district_label": "Acquaviva", "note": null },
+      { "id": "sm-39", "seat_no": 39, "name": "Fabio Giancecchi", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.88, "district_label": "Faetano", "note": null },
+      { "id": "sm-40", "seat_no": 40, "name": "Alice Para", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 180, "vote_share_norm": 0.86, "district_label": "Chiesanuova", "note": null },
+      { "id": "sm-41", "seat_no": 41, "name": "Gabriele Berti", "speaker": false, "vacant": false, "seat_kind": "type_b", "days_served": 95, "vote_share_norm": 0.84, "district_label": "Montegiardino", "note": "Seated by countback — 95 days served" }
+    ]
+  },
+
+  "agenda": {
+    "emergencyActive": [
+      { "position": 1, "locked": true, "kind": "emergency_powers", "title": "Review of active emergency power — Hurricane Dorinda landfall", "subject": { "type": "emergency_power", "id": "ep-2031-01", "href": "/legislatures/demo/emergency-powers" }, "status": "in_progress" },
+      { "position": 2, "locked": true, "kind": "constitutional_matters", "title": "No constitutional matters pending.", "subject": null, "status": "none" },
+      { "position": 3, "locked": false, "kind": "committee_report", "title": "Committee report: Environment & Infrastructure on the Clean Air Act", "subject": { "type": "bill", "id": "bill-2031-07", "href": "/bills/bill-2031-07" }, "status": "pending" },
+      { "position": 4, "locked": false, "kind": "priority", "title": "Member priorities (F-SPK-006)", "subject": null, "status": "pending" },
+      { "position": 5, "locked": false, "kind": "motion", "title": "Motions & statements", "subject": null, "status": "pending" }
+    ],
+    "allClear": [
+      { "position": 1, "locked": true, "kind": "emergency_powers", "title": "No outstanding emergency powers — item clears automatically.", "subject": null, "status": "none" },
+      { "position": 2, "locked": true, "kind": "constitutional_matters", "title": "No constitutional matters pending.", "subject": null, "status": "none" },
+      { "position": 3, "locked": false, "kind": "committee_report", "title": "Committee report: Budget & Revenue quarterly review", "subject": null, "status": "done" },
+      { "position": 4, "locked": false, "kind": "statement", "title": "Statements for the public record", "subject": null, "status": "pending" }
+    ]
+  },
+
+  "votes": {
+    "montegiardino": {
+      "mode": "unicameral",
+      "serving": 8,
+      "quorum": { "present": 6, "required": 5 },
+      "majority": { "requiredYes": 5 },
+      "supermajority": { "requiredYes": 6 },
+      "committee": { "serving": 3, "requiredYes": 2 },
+      "outcomes": {
+        "pending": null,
+        "adopted": { "yes": 5, "no": 2, "abstain": 1 },
+        "failed": { "yes": 3, "no": 4, "abstain": 1 }
+      }
+    },
+    "nyCountyTie": {
+      "mode": "unicameral",
+      "serving": 9,
+      "requiredYes": 5,
+      "quorum": { "present": 9, "required": 5 },
+      "tied": { "yes": 4, "no": 4, "abstain": 0 },
+      "tied_broken": { "yes": 5, "no": 4, "abstain": 0 }
+    },
+    "sanMarino": {
+      "mode": "bicameral",
+      "majority": {
+        "adopted": [
+          { "kind": "type_a", "label": "Type A · population-apportioned (32 serving)", "serving": 32, "requiredYes": 17, "yes": 19, "no": 9, "abstain": 4, "quorum": { "present": 28, "required": 17 }, "agreed": true },
+          { "kind": "type_b", "label": "Type B · one per castello (9 serving)", "serving": 9, "requiredYes": 5, "yes": 6, "no": 2, "abstain": 1, "quorum": { "present": 8, "required": 5 }, "agreed": true }
+        ],
+        "failed_type_b": [
+          { "kind": "type_a", "label": "Type A · population-apportioned (32 serving)", "serving": 32, "requiredYes": 17, "yes": 21, "no": 8, "abstain": 3, "quorum": { "present": 29, "required": 17 }, "agreed": true },
+          { "kind": "type_b", "label": "Type B · one per castello (9 serving)", "serving": 9, "requiredYes": 5, "yes": 3, "no": 5, "abstain": 1, "quorum": { "present": 9, "required": 5 }, "agreed": false }
+        ],
+        "pending": [
+          { "kind": "type_a", "label": "Type A · population-apportioned (32 serving)", "serving": 32, "requiredYes": 17, "yes": 11, "no": 4, "abstain": 1, "quorum": { "present": 27, "required": 17 }, "agreed": null },
+          { "kind": "type_b", "label": "Type B · one per castello (9 serving)", "serving": 9, "requiredYes": 5, "yes": 2, "no": 1, "abstain": 0, "quorum": { "present": 7, "required": 5 }, "agreed": null }
+        ]
+      },
+      "supermajority": {
+        "adopted": [
+          { "kind": "type_a", "label": "Type A · population-apportioned (32 serving)", "serving": 32, "requiredYes": 22, "yes": 24, "no": 6, "abstain": 2, "quorum": { "present": 30, "required": 17 }, "agreed": true },
+          { "kind": "type_b", "label": "Type B · one per castello (9 serving)", "serving": 9, "requiredYes": 6, "yes": 7, "no": 1, "abstain": 1, "quorum": { "present": 9, "required": 5 }, "agreed": true }
+        ],
+        "failed_type_a": [
+          { "kind": "type_a", "label": "Type A · population-apportioned (32 serving)", "serving": 32, "requiredYes": 22, "yes": 20, "no": 10, "abstain": 2, "quorum": { "present": 31, "required": 17 }, "agreed": false },
+          { "kind": "type_b", "label": "Type B · one per castello (9 serving)", "serving": 9, "requiredYes": 6, "yes": 7, "no": 2, "abstain": 0, "quorum": { "present": 9, "required": 5 }, "agreed": true }
+        ]
+      },
+      "committee": [
+        { "kind": "type_a", "label": "Type A · population-apportioned members on committee", "serving": 3, "requiredYes": 2, "yes": 2, "no": 1, "abstain": 0, "quorum": { "present": 3, "required": 2 }, "agreed": true },
+        { "kind": "type_b", "label": "Type B · equal-apportioned members on committee", "serving": 2, "requiredYes": 2, "yes": 2, "no": 0, "abstain": 0, "quorum": { "present": 2, "required": 2 }, "agreed": true }
+      ]
+    }
+  },
+
+  "casts": {
+    "unicameral": [
+      { "member_name": "Marcus Chen", "seat_kind": null, "value": "yes", "explanation": "Air-quality standards are overdue — the committee testimony was unambiguous.", "speaker_tiebreak": false },
+      { "member_name": "Kwame Mensah", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Asha Okonkwo", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Jonas Petersen", "seat_kind": null, "value": "no", "explanation": "The compliance window is too short for small stationary sources.", "speaker_tiebreak": false },
+      { "member_name": "Maribel Santos", "seat_kind": null, "value": "no", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Adaeze Nwosu", "seat_kind": null, "value": "abstain", "explanation": "Recused — prior consultancy for a named source.", "speaker_tiebreak": false },
+      { "member_name": "Lev Aronov", "seat_kind": null, "value": "absent", "explanation": null, "speaker_tiebreak": false }
+    ],
+    "tieBroken": [
+      { "member_name": "Marcus Chen", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Kwame Mensah", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Asha Okonkwo", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Adaeze Nwosu", "seat_kind": null, "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Jonas Petersen", "seat_kind": null, "value": "no", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Maribel Santos", "seat_kind": null, "value": "no", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Lev Aronov", "seat_kind": null, "value": "no", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Renata Park", "seat_kind": null, "value": "no", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Yuki Tanaka", "seat_kind": null, "value": "yes", "explanation": "Tie on the floor — casting to break it, per the rules of order.", "speaker_tiebreak": true }
+    ],
+    "bicameral": [
+      { "member_name": "Paolo Gasperoni", "seat_kind": "type_a", "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Chiara Zafferani", "seat_kind": "type_a", "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Luca Mularoni", "seat_kind": "type_a", "value": "no", "explanation": "Scale should bind the castelli individually, not the republic.", "speaker_tiebreak": false },
+      { "member_name": "Elena Giardi", "seat_kind": "type_a", "value": "absent", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Carlo Terenzi", "seat_kind": "type_b", "value": "yes", "explanation": null, "speaker_tiebreak": false },
+      { "member_name": "Donatella Gatti", "seat_kind": "type_b", "value": "yes", "explanation": "The castello consents — our council reviewed the text.", "speaker_tiebreak": false },
+      { "member_name": "Massimo Conti", "seat_kind": "type_b", "value": "abstain", "explanation": null, "speaker_tiebreak": false }
+    ]
+  },
+
+  "lawDiff": {
+    "label": "Curfew Ordinance (New York County) — §3 · remedy preview",
+    "segments": [
+      { "op": "eq", "text": "No person shall remain in any public street, park, or greenway " },
+      { "op": "del", "text": "between 22:00 and 05:00." },
+      { "op": "eq", "text": " " },
+      { "op": "ins", "text": "during a declared emergency under Art. II §7, within that emergency’s stated area and duration." }
+    ]
+  },
+
+  "emergencies": [
+    {
+      "id": "ep-2031-01",
+      "label": "Hurricane Dorinda landfall",
+      "cause": "natural_disaster",
+      "jurisdiction_name": "New York (state)",
+      "day": 41,
+      "max_days": 90,
+      "expires_at": "2031-07-30T00:00:00Z",
+      "declared_by_legislature": "New York state legislature",
+      "under_review": false,
+      "href": "/legislatures/demo/emergency-powers"
+    },
+    {
+      "id": "ep-2031-02",
+      "label": "Acquaviva flood basin failure",
+      "cause": "natural_disaster",
+      "jurisdiction_name": "San Marino",
+      "day": 7,
+      "max_days": 30,
+      "expires_at": "2031-06-23T00:00:00Z",
+      "declared_by_legislature": "San Marino chamber",
+      "under_review": true,
+      "href": "/legislatures/demo/emergency-powers"
+    }
+  ],
+
+  "petition": {
+    "title": "New York Clean Water Standards Act (petition initiative)",
+    "signatures": 1044310,
+    "threshold": 1010062,
+    "pct": "5.00",
+    "population": 20201249
+  },
+
+  "committees": [
+    { "id": "com-env", "name": "Environment & Infrastructure" },
+    { "id": "com-budget", "name": "Budget & Revenue" },
+    { "id": "com-safety", "name": "Public Safety & Justice" }
+  ]
+}

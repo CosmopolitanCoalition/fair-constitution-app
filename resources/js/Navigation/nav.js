@@ -30,6 +30,10 @@ export const NAV = [
            sidebar never renders a dead link; flip back to 'A' when the Learn
            surface ships. */
         { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'C' },
+        /* FE-C0: relocation gets its own item (PHASE_C_DESIGN_frontend.md §B
+           nav integration) — the mockup parked the surface under civic-home.
+           Stays Planned until the FE-C10 page lands and phasesLive flips. */
+        { id: 'relocation', labelKey: 'nav.relocation', icon: 'globe', href: '/civic/relocation', phase: 'C' },
     ] },
     /* FE-B0: item ids match the `nav` values in config/cga/surfaces.php
        (elections/* entries) so aria-current resolves; items stay phase 'B'
@@ -101,6 +105,7 @@ export const NAV = [
     ...(import.meta.env.DEV
         ? [{ key: 'dev', titleKey: 'nav.dev', visibility: 'all', items: [
             { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
+            { id: 'dev-legislature-kit', labelKey: 'nav.legislatureKit', icon: 'sliders', href: '/dev/legislature-kit', phase: 'A' },
         ] }]
         : []),
 ];

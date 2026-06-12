@@ -778,7 +778,19 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             'legislature',
             $legislature->id,
             $firesAt,
-            ['step' => 'schedule_general'],
+            [
+                'step'   => 'schedule_general',
+                // C-B2 derivation anchor (PHASE_C_DESIGN_votes_laws §C.5):
+                // a later election_interval_months setting bill re-derives
+                // fires_at = anchor_at + months − lead_days through
+                // ClockService::rederiveForSetting. lead_days is frozen
+                // here so re-derivation moves ONLY the interval part.
+                'derive' => [
+                    'anchor_at' => Carbon::instance($certifiedAt)->toIso8601String(),
+                    'unit'      => 'months',
+                    'lead_days' => $leadDays,
+                ],
+            ],
         );
     }
 

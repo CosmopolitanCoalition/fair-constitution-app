@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Engine\ConstitutionalEngine;
 use App\Models\LegislatureMember;
 use App\Models\Vacancy;
 use App\Services\VacancyService;
@@ -9,10 +10,14 @@ use Illuminate\Console\Command;
 
 /**
  * WI-B6 dev tool — declare a vacancy on a seated member and drive the
- * ESM-13 machine (countback → fill | special election). Operator-only by
- * construction: artisan is not reachable from the HTTP surface, and the
- * vacancy rides `declared_via_form = 'dev'` so the chain records the
- * provenance honestly. F-LEG-036 (the real declaration form) is Phase C.
+ * ESM-13 machine (countback → fill | special election).
+ *
+ * Phase C (chamber ops §F.1): rerouted through
+ * `ConstitutionalEngine::file('F-LEG-036', null, …)` — even dev
+ * declarations now chain identically to the constitutional path (the
+ * `declared_via_form = 'dev'` posture is retired for live use; the chain
+ * records a system-filed F-LEG-036). The command itself is kept as the
+ * operator's console entry point.
  *
  *   php artisan vacancy:declare {member-uuid}
  *   php artisan vacancy:declare --race={race-uuid}     # first current member
@@ -26,9 +31,9 @@ class VacancyDeclareCommand extends Command
         {--reason=resigned : recorded vacancy reason}
         {--sync : run the countback inline instead of queueing it}';
 
-    protected $description = 'Dev: declare a legislature seat vacancy and run the countback (Art. II §5)';
+    protected $description = 'Dev: declare a legislature seat vacancy via F-LEG-036 and run the countback (Art. II §5)';
 
-    public function handle(VacancyService $vacancies): int
+    public function handle(ConstitutionalEngine $engine, VacancyService $vacancies): int
     {
         $member = $this->resolveMember();
 
@@ -38,17 +43,15 @@ class VacancyDeclareCommand extends Command
 
         $this->line("Vacating member <info>{$member->id}</info> (user {$member->user_id}, seat {$member->seat_no}, status {$member->status})");
 
-        $sync = (bool) $this->option('sync');
+        $result = $engine->file('F-LEG-036', null, [
+            'member_id'       => (string) $member->id,
+            'reason'          => (string) $this->option('reason'),
+            'jurisdiction_id' => (string) $member->legislature()->value('jurisdiction_id'),
+        ]);
 
-        $vacancy = $vacancies->declare(
-            $member,
-            (string) $this->option('reason'),
-            declaredBy: null,
-            via: 'dev',
-            queueCountback: ! $sync,
-        );
+        $vacancy = Vacancy::query()->findOrFail($result->recorded['vacancy_id']);
 
-        if ($sync) {
+        if ((bool) $this->option('sync')) {
             $vacancy = $vacancies->runCountback($vacancy);
         }
 

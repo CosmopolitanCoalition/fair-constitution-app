@@ -6,6 +6,7 @@ use App\Jobs\Clocks\AdvanceElectionPhaseJob;
 use App\Jobs\Clocks\EvaluateCriticalPopulationJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
 use App\Jobs\Clocks\FinalistCutoffJob;
+use App\Jobs\Clocks\MeetingDeadlineJob;
 use App\Jobs\Clocks\ScheduleGeneralElectionJob;
 use App\Jobs\Clocks\SpecialElectionBackstopJob;
 use App\Models\Clock;
@@ -46,6 +47,7 @@ class ClockService
      */
     public const HANDLERS = [
         'CLK-01' => ScheduleGeneralElectionJob::class,
+        'CLK-02' => MeetingDeadlineJob::class,
         'CLK-04' => SpecialElectionBackstopJob::class,
         'CLK-05' => EvaluateResidencyThresholdsJob::class,
         'CLK-06' => EvaluateCriticalPopulationJob::class,

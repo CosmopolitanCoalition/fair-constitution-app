@@ -61,6 +61,16 @@ class ConstitutionProvider extends ServiceProvider
         $this->app->bind(BallotBoxDelegate::class, \App\Domain\Ballots\EngineBallotBox::class);
         $this->app->bind(ElectionSchedulingDelegate::class, fn ($app) => $app->make(\App\Services\ElectionLifecycleService::class));
         $this->app->bind(CertificationPipeline::class, fn ($app) => $app->make(\App\Services\CertificationService::class));
+
+        // Phase C votes-laws seam: the chamber vote engine consults the
+        // committee roster through this contract. The chamber-ops
+        // committees substrate is live (2026_06_21 migrations) — bound to
+        // the real roster over committee_seats; NoopCommitteeRoster stays
+        // as the documented fallback stub.
+        $this->app->bind(
+            \App\Domain\Forms\Contracts\CommitteeRoster::class,
+            \App\Services\Legislature\EloquentCommitteeRoster::class
+        );
     }
 
     public function boot(): void

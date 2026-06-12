@@ -55,8 +55,15 @@ class ResidencyService implements ResidencyHandlerDelegate
      * An open UNVERIFIED claim (declared/ping_monitoring/threshold_met/
      * verified) is superseded — that is the "correct the boundary"
      * redeclare path; its raw pings are purged (days do not transfer: the
-     * boundary changed, so containment must be re-proven). An ACTIVE claim
-     * blocks: relocation with zero rights gap is WF-CIV-03, Phase C.
+     * boundary changed, so containment must be re-proven).
+     *
+     * An ACTIVE claim no longer blocks (Phase C, WF-CIV-03 — chamber ops
+     * §F.2): a new declaration alongside an active claim IS relocation.
+     * The active claim stays ACTIVE while the new claim monitors — rights
+     * never gap; the constitutional grace is exactly the new
+     * jurisdiction's CLK-05 threshold. The hand-over (supersede + transfer
+     * associations + officeholder footprint check) happens at
+     * confirmVerification(), when the new claim verifies.
      */
     public function declare(?User $actor, array $payload): array
     {
@@ -69,20 +76,22 @@ class ResidencyService implements ResidencyHandlerDelegate
 
         $jurisdictionId = (string) $payload['jurisdiction_id']; // validated by the handler
 
-        $open = ResidencyClaim::query()
+        $openClaims = ResidencyClaim::query()
             ->where('user_id', $actor->id)
             ->open()
             ->lockForUpdate()
-            ->first();
+            ->get();
 
-        $supersededId = null;
+        $supersededId     = null;
+        $relocationFromId = null;
 
-        if ($open !== null) {
+        foreach ($openClaims as $open) {
             if ($open->status === ResidencyClaim::STATUS_ACTIVE) {
-                throw new ConstitutionalViolation(
-                    'An active residency already exists for this individual — relocation (a new claim with zero rights gap) arrives with WF-CIV-03 in Phase C.',
-                    'Art. I · WF-CIV-03 (not yet implemented)'
-                );
+                // Relocation posture: the active claim KEEPS the rights
+                // until the new claim verifies (zero rights gap, Art. I).
+                $relocationFromId = $open->id;
+
+                continue;
             }
 
             $open->forceFill([
@@ -108,10 +117,11 @@ class ResidencyService implements ResidencyHandlerDelegate
         $this->roles->flushUser((string) $actor->id);
 
         return [
-            'claim_id'            => $claim->id,
-            'claim_status'        => $claim->status,
-            'threshold_days'      => $this->thresholdDays($claim),
-            'superseded_claim_id' => $supersededId,
+            'claim_id'                => $claim->id,
+            'claim_status'            => $claim->status,
+            'threshold_days'          => $this->thresholdDays($claim),
+            'superseded_claim_id'     => $supersededId,
+            'relocation_from_claim_id' => $relocationFromId,
         ];
     }
 
@@ -280,6 +290,49 @@ class ResidencyService implements ResidencyHandlerDelegate
             'verified_at'                    => $now,
         ])->save();
 
+        // ── Relocation hand-over (Phase C, WF-CIV-03 — chamber ops §F.2) ────
+        // A prior ACTIVE claim is superseded NOW (not at declaration):
+        // rights never gapped because it stayed active through monitoring.
+        // Its associations outside the new sweep deactivate (transferred);
+        // shared ancestors (Earth, …) keep their active rows untouched.
+        $newIds = array_map(fn ($level) => (string) $level->id, $levels);
+
+        $priorActive = ResidencyClaim::query()
+            ->where('user_id', $claim->user_id)
+            ->whereKeyNot($claim->id)
+            ->where('status', ResidencyClaim::STATUS_ACTIVE)
+            ->lockForUpdate()
+            ->get();
+
+        $relocated = $priorActive->isNotEmpty();
+
+        foreach ($priorActive as $prior) {
+            $prior->forceFill([
+                'status'        => ResidencyClaim::STATUS_SUPERSEDED,
+                'superseded_at' => $now,
+            ])->save();
+        }
+
+        $transferred = 0;
+
+        if ($relocated) {
+            $transferred = DB::table('residency_confirmations')
+                ->where('user_id', $claim->user_id)
+                ->where('is_active', true)
+                ->whereNotIn('jurisdiction_id', $newIds)
+                ->update([
+                    'is_active'           => false,
+                    'deactivated_at'      => $now,
+                    'deactivation_reason' => 'relocation',
+                    'updated_at'          => $now,
+                ]);
+
+            // Officeholder footprint check AFTER the facts commit — an
+            // out-of-footprint seat system-files F-LEG-036 (reason
+            // 'relocation') into the Phase B countback/special loop.
+            \App\Jobs\HandleOfficeholderRelocationJob::dispatch((string) $claim->user_id)->afterCommit();
+        }
+
         // ── Privacy purge: raw coordinates never outlive verification ───────
         $purged = LocationPing::query()->where('claim_id', $claim->id)->delete();
 
@@ -291,6 +344,8 @@ class ResidencyService implements ResidencyHandlerDelegate
             'threshold_days'               => $threshold,
             'qualifying_days'              => $days,
             'purged_pings'                 => (int) $purged,
+            'relocation'                   => $relocated,
+            'associations_transferred'     => $transferred,
         ];
     }
 

@@ -41,6 +41,35 @@ use App\Domain\Engine\ConstitutionalViolation;
  *  - rights.automatic     — extended to candidacy: F-IND-011 and F-ELB-002
  *                           join the guard; rejection knows the single
  *                           ground 'no_residency_association' (Art. I).
+ *
+ * Phase C rules (PHASE_C_DESIGN_chamber_ops §G.3 — additive pure asserts;
+ * supermajority()/quorum() remain THE only threshold functions and are
+ * untouched):
+ *
+ *  - speaker.tiebreak_only — the Speaker remains a serving member (every
+ *                           denominator) but casts ONLY when the vote is
+ *                           in tie state: every other serving member's
+ *                           cast resolved AND yes == no (Art. II §3).
+ *                           assertSpeakerTieState() is the rule; the
+ *                           chamber vote engine calls it before any
+ *                           F-SPK-004 cast records.
+ *  - removal.presider     — a removal proceeding is never presided over
+ *                           by its own subject (Art. II §3); the chamber
+ *                           designates a substitute presider for the
+ *                           Speaker's own case.
+ *  - committees.kind_split — bicameral committees mirror the chamber-kind
+ *                           ratio: split present, totals the seat count,
+ *                           each kind ≥ 1 whenever seats ≥ 2 (Art. V §3 —
+ *                           per-kind dual agreement must never be vacuous
+ *                           at committee stage, q-ledger #q7).
+ *  - vacancy.declarer     — F-LEG-036: the Speaker or the system may
+ *                           declare any current seat vacant; a plain
+ *                           legislator only their OWN (resignation) —
+ *                           declaration is never a weapon (Art. II §5 ·
+ *                           as implemented).
+ *  - session.agenda_order — the locked agenda head (emergency review,
+ *                           constitutional matters) is immutable and
+ *                           precedes all general business (Art. II §2).
  */
 class ConstitutionalValidator
 {
@@ -400,6 +429,161 @@ class ConstitutionalValidator
     public static function quorum(int $serving): int
     {
         return intdiv($serving, 2) + 1;
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase C — chamber-operations rules (pure asserts; design §G.3)
+    // -------------------------------------------------------------------------
+
+    /**
+     * speaker.tiebreak_only (Art. II §3) — the Speaker votes ONLY to break
+     * a tie. Tie state: every other serving member's cast is resolved (all
+     * have cast, or the vote is closing with non-casters counting as part
+     * of the unchanged peg denominator) AND yes == no. The tie-break never
+     * manufactures a supermajority — the outcome is recomputed against the
+     * UNCHANGED peg threshold afterwards; this assert only gates whether
+     * the Speaker's cast may record at all.
+     */
+    public static function assertSpeakerTieState(int $yes, int $no, bool $allOtherCastsResolved): void
+    {
+        if (! $allOtherCastsResolved) {
+            throw new ConstitutionalViolation(
+                'The Speaker votes only on ties — other serving members have not yet resolved their casts.',
+                'Art. II §3'
+            );
+        }
+
+        if ($yes !== $no) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'The Speaker votes only on ties — the vote stands %d yes / %d no, which is not a tie.',
+                    $yes,
+                    $no
+                ),
+                'Art. II §3'
+            );
+        }
+    }
+
+    /**
+     * removal.presider (Art. II §3) — a removal proceeding may never be
+     * presided over by its own subject. The subject identity is the
+     * member row for legislature subjects; callers pass the resolved ids.
+     */
+    public static function assertRemovalPresider(string $presiderMemberId, string $subjectType, string $subjectId): void
+    {
+        if ($subjectType === 'legislature_members' && $presiderMemberId === $subjectId) {
+            throw new ConstitutionalViolation(
+                'No one presides over their own removal proceeding — the chamber must designate a substitute presider.',
+                'Art. II §3'
+            );
+        }
+    }
+
+    /**
+     * committees.kind_split (Art. V §3) — bicameral committees mirror the
+     * chamber-kind ratio: a split must be present, total the seat count,
+     * and give each kind at least one seat whenever seats ≥ 2 (a committee
+     * containing one kind makes per-kind dual agreement vacuous at the
+     * committee stage — q-ledger #q7). Unicameral committees carry no split.
+     */
+    public static function assertCommitteeKindSplit(int $seats, ?int $typeASeats, ?int $typeBSeats, bool $bicameral): void
+    {
+        if (! $bicameral) {
+            if ($typeASeats !== null || $typeBSeats !== null) {
+                throw new ConstitutionalViolation(
+                    'A unicameral chamber\'s committees carry no kind split.',
+                    'Art. V §3'
+                );
+            }
+
+            return;
+        }
+
+        if ($typeASeats === null || $typeBSeats === null) {
+            throw new ConstitutionalViolation(
+                'A bicameral chamber\'s committees must carry a type_a/type_b seat split (Art. V §3 mirror).',
+                'Art. V §3'
+            );
+        }
+
+        if ($typeASeats + $typeBSeats !== $seats) {
+            throw new ConstitutionalViolation(
+                sprintf('Committee kind split %d + %d must total the %d seats.', $typeASeats, $typeBSeats, $seats),
+                'Art. V §3'
+            );
+        }
+
+        if ($seats >= 2 && ($typeASeats < 1 || $typeBSeats < 1)) {
+            throw new ConstitutionalViolation(
+                'Every committee of 2+ seats must seat both chamber kinds — per-kind dual agreement may never be vacuous.',
+                'Art. V §3'
+            );
+        }
+    }
+
+    /**
+     * vacancy.declarer (Art. II §5 · as implemented) — F-LEG-036: the
+     * Speaker or the system may declare any current seat vacant; a plain
+     * legislator may declare only their OWN seat (resignation). Prevents
+     * declaration-as-weapon.
+     */
+    public static function assertVacancyDeclarer(bool $isSystem, bool $isSpeaker, bool $ownSeat): void
+    {
+        if ($isSystem || $isSpeaker || $ownSeat) {
+            return;
+        }
+
+        throw new ConstitutionalViolation(
+            'A legislator may declare only their own seat vacant (resignation); declaring another '
+            . 'member\'s seat requires the Speaker or the system.',
+            'Art. II §5 · as implemented'
+        );
+    }
+
+    /**
+     * session.agenda_order (Art. II §2) — the locked agenda head is
+     * immutable: every locked item of the current agenda must appear
+     * unchanged, in order, at the head of the proposed agenda. Items are
+     * arrays carrying at least `kind` and `locked`; locked items are
+     * compared by their stable identity keys (kind, ref_type, ref_id).
+     *
+     * @param  list<array<string, mixed>>  $current
+     * @param  list<array<string, mixed>>  $proposed
+     */
+    public static function assertAgendaOrder(array $current, array $proposed): void
+    {
+        $identity = fn (array $item): string => json_encode([
+            'kind'     => $item['kind'] ?? null,
+            'ref_type' => $item['ref_type'] ?? null,
+            'ref_id'   => $item['ref_id'] ?? null,
+        ]);
+
+        $lockedHead = array_values(array_filter($current, fn ($item) => (bool) (((array) $item)['locked'] ?? false)));
+
+        foreach ($lockedHead as $position => $item) {
+            $candidate = $proposed[$position] ?? null;
+
+            if ($candidate === null
+                || ! (bool) (((array) $candidate)['locked'] ?? false)
+                || $identity((array) $candidate) !== $identity((array) $item)) {
+                throw new ConstitutionalViolation(
+                    'The locked agenda head (emergency review, constitutional matters) is immutable and '
+                    . 'precedes all general business — agenda filings may only reorder or insert after it.',
+                    'Art. II §2'
+                );
+            }
+        }
+
+        // No NEW locked items may be smuggled in by a filing either.
+        $proposedLocked = array_filter($proposed, fn ($item) => (bool) (((array) $item)['locked'] ?? false));
+
+        if (count($proposedLocked) !== count($lockedHead)) {
+            throw new ConstitutionalViolation(
+                'Agenda filings may not add or remove locked items — the locked head is engine-composed.',
+                'Art. II §2'
+            );
+        }
     }
 
     // -------------------------------------------------------------------------

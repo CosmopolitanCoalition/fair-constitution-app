@@ -102,10 +102,11 @@ const writeInsAvailable = computed(() =>
         (name) => !ranking.value.some((e) => e.name === name),
     ),
 );
+/* FE-C1: RankList items are { id, name, chips } now (write-in = chip). */
 function addFinalist(entry) {
     ranking.value = [
         ...ranking.value,
-        { candidacy_id: entry.candidacy_id, name: entry.name, write_in: false },
+        { id: entry.candidacy_id, name: entry.name, chips: [] },
     ];
 }
 function addWriteIn() {
@@ -113,9 +114,9 @@ function addWriteIn() {
     ranking.value = [
         ...ranking.value,
         {
-            candidacy_id: writeInPick.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            id: writeInPick.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             name: writeInPick.value,
-            write_in: true,
+            chips: ['write-in'],
         },
     ];
     writeInPick.value = '';

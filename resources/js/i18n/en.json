@@ -16,6 +16,7 @@
         "civicHome": "Home",
         "myRecord": "My record",
         "learn": "Learn",
+        "relocation": "Relocation",
         "elections": "Elections",
         "openBallot": "Open ballot",
         "rankedBallot": "Ranked ballot",
@@ -72,7 +73,8 @@
         "phase": "Phase",
         "menu": "Menu",
         "dev": "Dev tools",
-        "electoralKit": "Electoral kit"
+        "electoralKit": "Electoral kit",
+        "legislatureKit": "Legislature kit"
     },
     "footer": {
         "audit": "Audit #{n} · chained",

@@ -27,21 +27,19 @@ class FuturePhasePlaceholdersTest extends TestCase
     // fires_at, ESM-03 has no backward/skip edges, out-of-window special
     // dates are rejected with citation. Art. II §2/§5.
 
-    public function test_peg_quorum_uses_all_serving_members(): void
-    {
-        $this->markTestSkipped(
-            'Phase C — chamber votes: quorum and pass thresholds computed over ALL serving '
-            . 'members (vacancies stay in the denominator), never members present. Art. II §2.'
-        );
-    }
+    // test_peg_quorum_uses_all_serving_members — replaced by the real
+    // PegQuorumTest (Phase C / C-V2): lane thresholds delegate to the
+    // PROTECTED functions, vacancy invariance (8 serving + 1 vacancy →
+    // 5/6), absent ≡ no, abstain never counts toward yes, the Speaker
+    // stays in the denominator and casts only via F-SPK-004, outcome
+    // never computable from `present`. Art. II §2.
 
-    public function test_bicameral_dual_agreement_per_kind(): void
-    {
-        $this->markTestSkipped(
-            'Phase C — type A and type B seat kinds must independently satisfy their own '
-            . 'peg quorum + majority/supermajority, at committee AND floor (q-ledger #q7). Art. V §3.'
-        );
-    }
+    // test_bicameral_dual_agreement_per_kind — replaced by the real
+    // BicameralDualAgreementTest (Phase C / C-V2): exactly two kind lanes
+    // with independent per-kind quorum + threshold over each lane's OWN
+    // serving, failing one kind fails the act (with the failing kind
+    // named), identical math at committee and floor (q-ledger #q7).
+    // Art. V §3.
 
     public function test_emergency_powers_ceiling_and_civic_process_protection(): void
     {

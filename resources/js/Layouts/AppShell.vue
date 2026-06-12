@@ -35,6 +35,7 @@ import AppHeader from '@/Components/Shell/AppHeader.vue';
 import AppSidebar from '@/Components/Shell/AppSidebar.vue';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
 import DevBar from '@/Components/Shell/DevBar.vue';
+import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -69,6 +70,11 @@ const jurisdiction = computed(() => page.props.jurisdiction ?? null);
 const impersonation = computed(() => page.props.impersonation ?? null);
 const surface = computed(() => page.props.surface ?? null);
 const phasesLive = computed(() => page.props.app?.phasesLive ?? ['A']);
+/* FE-C1 (PHASE_C_DESIGN_frontend.md §A.8): active emergency powers whose
+   area covers the viewer's association chain. Shared by
+   HandleInertiaRequests when the C-EMERGENCY backend lands — defensive
+   null fallback so the shell renders before and after. */
+const activeEmergencies = computed(() => page.props.app?.activeEmergencies ?? []);
 
 /* Pages below (PageScaffold, AboutSurface consumers) can inject the surface
    without re-reading page props. */
@@ -333,6 +339,9 @@ onBeforeUnmount(() => {
                  emergency powers etc. — mount here in their shipping phase). -->
             <div class="shell-banners" style="flex-shrink: 0">
                 <SchemaUpdateBanner />
+                <!-- Art. II §7 · CLK-03 — renders nothing when no power is
+                     active; every page gets the banner for free. -->
+                <EmergencyBanner :emergencies="activeEmergencies" />
             </div>
 
             <slot />
