@@ -69,5 +69,9 @@ class ConstitutionProvider extends ServiceProvider
         // the same vocabulary — see App\Http\Middleware\EnsureRole).
         Gate::define('associated', fn (User $user) => in_array('R-03', $this->app->make(ResolvesRoles::class)->rolesFor($user), true));
         Gate::define('voter', fn (User $user) => in_array('R-04', $this->app->make(ResolvesRoles::class)->rolesFor($user), true));
+        // FE-B7 — the board console gate: R-08 derives from a seated row on
+        // an active board, or from the operator driving an active BOOTSTRAP
+        // board (RoleService::hasActiveBoardSeat).
+        Gate::define('access-board', fn (User $user) => in_array('R-08', $this->app->make(ResolvesRoles::class)->rolesFor($user), true));
     }
 }

@@ -63,9 +63,19 @@ class HandleInertiaRequests extends Middleware
             ],
             'jurisdiction' => fn () => $this->jurisdictionProps($user),
             'instance'     => fn () => $this->instanceProps(),
+            // Live roadmap phases — the sidebar renders items from later
+            // phases as "Planned · Phase X" until their phase ships here.
+            'app'          => ['phasesLive' => ['A', 'B']],
             'locale'       => fn () => app()->getLocale(),
             'flash'        => [
                 'status' => fn () => $request->session()->get('status'),
+                // FE-B5 — the one-shot ballot receipt (§D.3): flashed by
+                // BallotController@store, rendered exactly once by the
+                // redirect-back response, then gone — session flash is
+                // single-pull by construction. Never persisted anywhere
+                // voter-linked; no GET endpoint ever returns it again.
+                'receipt_hash' => fn () => $request->session()->get('receipt_hash'),
+                'receipt_salt' => fn () => $request->session()->get('receipt_salt'),
             ],
         ]);
     }
