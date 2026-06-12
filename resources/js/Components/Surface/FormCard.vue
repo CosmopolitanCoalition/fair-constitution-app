@@ -30,6 +30,12 @@ const props = defineProps({
     inertiaForm: { type: Object, default: null },
     submitLabel: { type: String, default: 'Submit' },
     processingLabel: { type: String, default: 'Submitting…' },
+    /**
+     * Window-closed UX (FE-B3): disables the submit Btn. ALWAYS paired
+     * with engine-side enforcement — UI disabling is UX, never the
+     * boundary (PHASE_B_DESIGN_frontend.md §B.2).
+     */
+    disabled: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['submit']);
@@ -71,7 +77,7 @@ function onSubmit() {
             <slot />
 
             <div class="cluster">
-                <Btn type="submit" variant="primary" :disabled="inertiaForm?.processing ?? false">
+                <Btn type="submit" variant="primary" :disabled="disabled || (inertiaForm?.processing ?? false)">
                     {{ inertiaForm?.processing ? processingLabel : submitLabel }}
                 </Btn>
                 <slot name="actions" />

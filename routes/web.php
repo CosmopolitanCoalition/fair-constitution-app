@@ -8,6 +8,13 @@ use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
+use App\Http\Controllers\Elections\ApprovalController;
+use App\Http\Controllers\Elections\BallotController;
+use App\Http\Controllers\Elections\BoardConsoleController;
+use App\Http\Controllers\Elections\CandidacyController;
+use App\Http\Controllers\Elections\ElectionController;
+use App\Http\Controllers\Elections\ResultsController;
+use App\Http\Controllers\Elections\VacancyController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
@@ -190,6 +197,103 @@ Route::patch('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureCon
 Route::delete('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureController::class, 'deleteMap'])->name('legislatures.maps.delete');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/activate', [LegislatureController::class, 'activateMap'])->name('legislatures.maps.activate');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy',     [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
+
+/*
+|--------------------------------------------------------------------------
+| Phase B — election surfaces (FE-B2…B8 route table)
+|--------------------------------------------------------------------------
+| The COMPLETE per-design route table (PHASE_B_DESIGN_frontend.md §B),
+| registered up front for both Phase B page batches:
+|   FE-B2/B3/B4 → Elections\{ElectionController,CandidacyController,
+|                 ApprovalController} (this batch)
+|   FE-B5…B8   → Elections\{BallotController,ResultsController,
+|                 BoardConsoleController,VacancyController} (parallel batch
+|                 — routes point at them before the classes exist; Laravel
+|                 only resolves controllers at dispatch, so the routes are
+|                 inert until those WIs land).
+|
+| Election records are public to authenticated residents (R-01+); writes
+| are guarded by the constitutional engine (role gates + phase windows),
+| never by route middleware alone. /receipt-check is deliberately OUTSIDE
+| 'auth': the lookup is anonymized by design (design §D — anyone may check
+| any hash against ballots.ballot_hash).
+*/
+Route::middleware('auth')->group(function () {
+    // Jurisdiction-scoped resolver: finds the viewer's election (or renders
+    // the CLK-01 empty state). The nav entry points below resolve the same
+    // way, then forward to the election-scoped page.
+    Route::get('/elections', [ElectionController::class, 'index'])->name('elections.index');
+    Route::get('/elections/open-ballot',   [ElectionController::class, 'entry'])->defaults('target', 'open-ballot')->name('elections.entry.open-ballot');
+    Route::get('/elections/candidacy',     [ElectionController::class, 'entry'])->defaults('target', 'candidacy')->name('elections.entry.candidacy');
+    Route::get('/elections/ranked-ballot', [ElectionController::class, 'entry'])->defaults('target', 'ranked-ballot')->name('elections.entry.ranked-ballot');
+    Route::get('/elections/results',       [ElectionController::class, 'entry'])->defaults('target', 'results')->name('elections.entry.results');
+    // nav.js points the R-08 section at /elections/board + /elections/countback;
+    // the canonical surfaces live at /board (vacancy links render per-id).
+    Route::redirect('/elections/board', '/board');
+    Route::redirect('/elections/countback', '/board');
+
+    // FE-B2 — ElectionDetail
+    Route::get('/elections/{election}', [ElectionController::class, 'show'])
+        ->whereUuid('election')->name('elections.show');
+
+    // FE-B3 — CandidacyRegistration (F-IND-011) + CandidateProfile
+    Route::get('/elections/{election}/candidacy', [CandidacyController::class, 'create'])
+        ->whereUuid('election')->name('elections.candidacy.create');
+    Route::post('/elections/{election}/candidacy', [CandidacyController::class, 'store'])
+        ->whereUuid('election')->name('elections.candidacy.store');
+    Route::get('/candidates/{candidacy}', [CandidacyController::class, 'show'])
+        ->whereUuid('candidacy')->name('candidates.show');
+    Route::patch('/candidates/{candidacy}', [CandidacyController::class, 'update'])
+        ->whereUuid('candidacy')->name('candidates.update');                     // F-CAN-001
+    Route::post('/candidates/{candidacy}/withdraw', [CandidacyController::class, 'withdraw'])
+        ->whereUuid('candidacy')->name('candidates.withdraw');                   // F-CAN-003
+    Route::post('/candidates/{candidacy}/endorsement-requests', [CandidacyController::class, 'requestEndorsement'])
+        ->whereUuid('candidacy')->name('candidates.endorsement-requests.store'); // F-CAN-002
+
+    // FE-B4 — OpenBallot + approve/revoke (engine actions, no F-ID — design §C)
+    Route::get('/elections/{election}/open-ballot', [ApprovalController::class, 'show'])
+        ->whereUuid('election')->name('elections.open-ballot');
+    Route::post('/elections/{election}/approvals', [ApprovalController::class, 'store'])
+        ->whereUuid('election')->name('elections.approvals.store');
+    Route::delete('/elections/{election}/approvals/{candidacy}', [ApprovalController::class, 'destroy'])
+        ->whereUuid(['election', 'candidacy'])->name('elections.approvals.destroy');
+
+    // FE-B5 — RankedBallot (parallel batch: BallotController)
+    Route::get('/elections/{election}/ranked-ballot', [BallotController::class, 'show'])
+        ->whereUuid('election')->name('elections.ranked-ballot');
+    Route::post('/elections/{election}/races/{race}/ballots', [BallotController::class, 'store'])
+        ->whereUuid(['election', 'race'])->name('elections.ballots.store');           // F-IND-007
+    Route::post('/elections/{election}/races/{race}/referendum-ballots', [BallotController::class, 'storeReferendum'])
+        ->whereUuid(['election', 'race'])->name('elections.referendum-ballots.store'); // F-IND-008
+
+    // FE-B6 — Results (parallel batch: ResultsController)
+    Route::get('/elections/{election}/results', [ResultsController::class, 'show'])
+        ->whereUuid('election')->name('elections.results');
+    Route::get('/elections/{election}/results.csv', [ResultsController::class, 'csv'])
+        ->whereUuid('election')->name('elections.results.csv');
+
+    // FE-B7 — BoardConsole (parallel batch: BoardConsoleController)
+    Route::get('/board', [BoardConsoleController::class, 'show'])->name('board.show');
+    Route::post('/board/scheduling-orders', [BoardConsoleController::class, 'schedule'])
+        ->name('board.scheduling-orders.store');                                  // F-ELB-001
+    Route::post('/board/validations/{candidacy}', [BoardConsoleController::class, 'decideValidation'])
+        ->whereUuid('candidacy')->name('board.validations.decide');               // F-ELB-002
+    Route::post('/elections/{election}/certify', [BoardConsoleController::class, 'certify'])
+        ->whereUuid('election')->name('elections.certify');                       // F-ELB-004
+    Route::post('/elections/{election}/recount', [BoardConsoleController::class, 'recount'])
+        ->whereUuid('election')->name('elections.recount');                       // F-ELB-006
+
+    // FE-B8 — VacancyCountback (parallel batch: VacancyController)
+    Route::get('/vacancies/{vacancy}', [VacancyController::class, 'show'])
+        ->whereUuid('vacancy')->name('vacancies.show');
+    Route::post('/vacancies/{vacancy}/certify', [VacancyController::class, 'certify'])
+        ->whereUuid('vacancy')->name('vacancies.certify');                        // F-ELB-004
+    Route::post('/vacancies/{vacancy}/special-election', [VacancyController::class, 'scheduleSpecial'])
+        ->whereUuid('vacancy')->name('vacancies.special-election');               // F-ELB-001
+});
+
+// Receipt self-audit — public, unauthenticated-OK (anonymized by design).
+Route::post('/receipt-check', [BallotController::class, 'receiptCheck'])->name('receipt-check');
 
 // WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim
 // lifecycle + location pings.

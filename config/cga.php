@@ -49,4 +49,16 @@ return [
     */
     'election_demo_compression' => env('CGA_ELECTION_DEMO_COMPRESSION', false),
 
+    /*
+    | Position-tag vocabulary (FE-B3). The fixed chip-toggle set offered by
+    | F-IND-011/F-CAN-001 (PHASE_B_DESIGN_frontend.md §B.2 — "fixed
+    | vocabulary (config)"). Operational chrome, not constitutional: the
+    | engine's only rails on tags are length counts (CampaignProfileSetup),
+    | never content. Vocabulary ported from the mockup fixture set.
+    */
+    'position_tag_vocabulary' => [
+        'budget', 'climate', 'education', 'health', 'housing', 'mutual-aid',
+        'parks', 'small-business', 'transit', 'water', 'zoning',
+    ],
+
 ];
