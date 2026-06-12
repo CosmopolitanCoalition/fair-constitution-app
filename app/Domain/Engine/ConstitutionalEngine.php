@@ -45,6 +45,11 @@ class ConstitutionalEngine
         'remember_token',
         'token',
         'secret',
+        // Ballot content (Art. II §2 secrecy): a REJECTED F-IND-007 filing
+        // (double-vote, window-closed) must never seal the voter's rankings
+        // into the chain — accepted ballots are recorded by BallotBox as
+        // participation only, and rejections get the same treatment here.
+        'rankings',
     ];
 
     public function __construct(

@@ -79,10 +79,61 @@ class RightsAutomaticTest extends TestCase
     public function test_residency_forms_remain_in_the_rights_automatic_guard(): void
     {
         // The validator's rights.automatic guard must keep covering the
-        // forms that establish the R-02 → R-03 → R-04 chain.
+        // forms that establish the R-02 → R-03 → R-04 chain, PLUS the
+        // Phase B candidacy forms (WI-B4, PHASE_B_DESIGN_schema_lifecycle
+        // §C): registration and board validation are rights-automatic —
+        // association is the only gate. This list may only ever GROW, and
+        // only under constitutional review.
         $this->assertSame(
-            ['F-IND-003', 'F-IND-005', 'F-IND-006'],
+            ['F-IND-003', 'F-IND-005', 'F-IND-006', 'F-IND-011', 'F-ELB-002'],
             ConstitutionalValidator::RIGHTS_AUTOMATIC_FORMS
         );
+    }
+
+    // ─── Phase B derivations (WI-B4): R-06..R-09, R-23 ───────────────────
+
+    public function test_phase_b_facts_default_off_and_never_disturb_the_rights_chain(): void
+    {
+        // The Phase A call shape (3 args) must keep deriving identically —
+        // the new facts default to false.
+        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04'], RoleService::derive(true, true, true));
+
+        // And with every Phase B fact on, R-03 ⇔ R-04 still holds.
+        $roles = RoleService::derive(true, true, true, true, true, true, true, true);
+        $this->assertSame(
+            in_array('R-03', $roles, true),
+            in_array('R-04', $roles, true),
+        );
+        $this->assertSame(['R-01', 'R-02', 'R-03', 'R-04', 'R-06', 'R-07', 'R-08', 'R-09', 'R-23'], $roles);
+    }
+
+    public function test_r06_derives_from_a_standing_candidacy(): void
+    {
+        $this->assertContains('R-06', RoleService::derive(true, false, false, true));
+        $this->assertNotContains('R-06', RoleService::derive(true, true, true, false));
+    }
+
+    public function test_r07_requires_r06(): void
+    {
+        // An endorsement without a standing candidacy derives nothing.
+        $roles = RoleService::derive(true, true, true, false, true);
+        $this->assertNotContains('R-07', $roles);
+        $this->assertNotContains('R-06', $roles);
+
+        // Candidacy + org endorsement → R-06 and R-07 together.
+        $roles = RoleService::derive(true, true, true, true, true);
+        $this->assertContains('R-06', $roles);
+        $this->assertContains('R-07', $roles);
+    }
+
+    public function test_r08_and_r09_derive_independently_from_their_seat_rows(): void
+    {
+        $this->assertSame(['R-01', 'R-08'], RoleService::derive(true, false, false, false, false, true));
+        $this->assertSame(['R-01', 'R-09'], RoleService::derive(true, false, false, false, false, false, true));
+    }
+
+    public function test_unauthenticated_holds_no_phase_b_roles_either(): void
+    {
+        $this->assertSame([], RoleService::derive(false, true, true, true, true, true, true, true));
     }
 }

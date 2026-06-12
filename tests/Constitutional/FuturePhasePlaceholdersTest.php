@@ -16,14 +16,10 @@ use PHPUnit\Framework\TestCase;
  */
 class FuturePhasePlaceholdersTest extends TestCase
 {
-    public function test_ballot_envelope_never_links_to_ballot(): void
-    {
-        $this->markTestSkipped(
-            'Phase B — schema/architecture test: no FK, join column, or timestamp correlation '
-            . 'path between ballot_envelopes and ballots; receipt hash verifiable against '
-            . 'published anonymized hashes. Art. II §2 (ballot secrecy).'
-        );
-    }
+    // test_ballot_envelope_never_links_to_ballot — replaced by the real
+    // BallotSecrecyTest (WI-B2): schema unlinkability, receipt verification
+    // against the published hash list, double-vote rejection, audit-chain
+    // content discipline. Art. II §2 (ballot secrecy).
 
     public function test_elections_cannot_be_skipped_or_delayed_by_officials(): void
     {

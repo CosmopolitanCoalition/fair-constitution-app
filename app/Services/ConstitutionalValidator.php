@@ -31,6 +31,16 @@ use App\Domain\Engine\ConstitutionalViolation;
  *                           conditions beyond jurisdictional association
  *                           (Art. I — voting and candidacy are absolute
  *                           rights of residency).
+ *
+ * Phase B rules (WI-B4, PHASE_B_DESIGN_schema_lifecycle §C):
+ *
+ *  - elections.race_structure — chamber races 5–9 seats, `single` exactly
+ *                           1, at-large never above the legislature max
+ *                           (Art. II §2, §8 — subdivision mandatory above
+ *                           the max).
+ *  - rights.automatic     — extended to candidacy: F-IND-011 and F-ELB-002
+ *                           join the guard; rejection knows the single
+ *                           ground 'no_residency_association' (Art. I).
  */
 class ConstitutionalValidator
 {
@@ -39,16 +49,25 @@ class ConstitutionalValidator
      * automatic rights chain (R-02 → R-03 → R-04). Filings of these forms
      * may never carry eligibility conditions beyond jurisdictional
      * association. Art. I. The constitutional test suite pins this list.
+     *
+     * Phase B (WI-B4, PHASE_B_DESIGN_schema_lifecycle §C) extends the
+     * guard to CANDIDACY — registration and board validation are
+     * rights-automatic exactly like the residency forms: association is
+     * the only gate, rejection knows a single ground.
      */
     public const RIGHTS_AUTOMATIC_FORMS = [
         'F-IND-003', // Residency Declaration
         'F-IND-005', // GPS Residency Ping
         'F-IND-006', // Residency Verification Confirmation
+        'F-IND-011', // Candidacy Registration (Phase B)
+        'F-ELB-002', // Candidate Validation (Phase B)
     ];
 
     /**
      * Payload keys that would smuggle an eligibility condition into a
-     * rights-automatic form.
+     * rights-automatic form. (Phase B adds the candidacy-shaped riders;
+     * F-ELB-002's `rejection_reason` is deliberately NOT here — it is
+     * value-checked instead: the single permissible ground.)
      */
     private const FORBIDDEN_ELIGIBILITY_KEYS = [
         'eligibility',
@@ -60,6 +79,10 @@ class ConstitutionalValidator
         'qualification',
         'qualifications',
         'requires_identity_verification',
+        'ground',
+        'grounds',
+        'disqualification',
+        'criminal_record',
     ];
 
     /**
@@ -112,6 +135,11 @@ class ConstitutionalValidator
         'worker_rep_parity_employees'       => ['min' => 1, 'max' => 2000, 'citation' => 'Art. III §6'],
         'residency_confirmation_days'       => ['min' => 1, 'max' => 365, 'citation' => 'Art. I · as implemented'],
         'initiative_petition_threshold_pct' => ['min' => 0.01, 'max' => 100, 'citation' => 'Art. II §6'],
+        // Phase B (WI-B4) — the open-ballot phase settings (B-12):
+        // CLK-21 finalist count X = multiplier × seats.
+        'finalist_multiplier'               => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §2 · as implemented'],
+        'ranked_window_days'                => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2 · as implemented'],
+        'approval_min_days'                 => ['min' => 1, 'max' => 365, 'citation' => 'Art. II §2 · as implemented'],
     ];
 
     /**
@@ -125,6 +153,8 @@ class ConstitutionalValidator
 
         match ($canonicalFormId) {
             'F-LEG-031' => $this->checkSettingChange($payload),
+            'F-ELB-001' => $this->checkSchedulingOrderRaces($payload),
+            'F-ELB-002' => $this->checkValidationGround($payload),
             default     => null,
         };
     }
@@ -236,6 +266,110 @@ class ConstitutionalValidator
                     ConstitutionalDefaults::HARD_CEILING
                 ),
                 'Art. II §2'
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // elections.race_structure (Phase B / WI-B4 — Art. II §2, §8)
+    // -------------------------------------------------------------------------
+
+    /**
+     * elections.race_structure — design §B.4 ruling, enforced wherever a
+     * race is created (F-ELB-001 handler with the resolved max; payload
+     * pre-check below with the hardened ceiling):
+     *
+     *  - chamber races (type_a / type_b) carry 5–9 seats (hardened band);
+     *  - `single` races carry exactly 1 seat (individual-executive
+     *    exception — fired by Phase D);
+     *  - an AT-LARGE race (district_id NULL) may never exceed the
+     *    legislature's max seats: above the max, subdivision into a
+     *    district map is MANDATORY (Art. II §8) — a 10+-seat at-large
+     *    race is unconstitutional on its face.
+     */
+    public function checkRaceStructure(string $seatKind, int $seats, ?string $districtId, ?int $maxSeats = null): void
+    {
+        // The amendable max can never exceed the hardened ceiling.
+        $max = min($maxSeats ?? ConstitutionalDefaults::HARD_CEILING, ConstitutionalDefaults::HARD_CEILING);
+
+        if ($seatKind === 'single') {
+            if ($seats !== 1) {
+                throw new ConstitutionalViolation(
+                    "A 'single' race elects exactly one seat (got {$seats}) — the individual-executive exception.",
+                    'Art. III §2'
+                );
+            }
+
+            return;
+        }
+
+        if (! in_array($seatKind, ['type_a', 'type_b'], true)) {
+            throw new ConstitutionalViolation(
+                "Unknown race seat_kind [{$seatKind}].",
+                'Art. II §2'
+            );
+        }
+
+        $this->assertSeatsInRange($seats);
+
+        if ($districtId === null && $seats > $max) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'An at-large race may not carry %d seats (max %d) — above the maximum, subdivision '
+                    . 'into separate voter pools is mandatory.',
+                    $seats,
+                    $max
+                ),
+                'Art. II §8'
+            );
+        }
+    }
+
+    /**
+     * F-ELB-001 payload pre-check: any explicit race list must satisfy
+     * the race-structure rule at the hardened ceiling. The handler
+     * re-validates with the per-jurisdiction resolved max.
+     */
+    private function checkSchedulingOrderRaces(array $payload): void
+    {
+        $races = $payload['races'] ?? null;
+
+        if (! is_array($races)) {
+            return;
+        }
+
+        foreach ($races as $race) {
+            $race = (array) $race;
+
+            $this->checkRaceStructure(
+                (string) ($race['seat_kind'] ?? 'type_a'),
+                (int) ($race['seats'] ?? 0),
+                isset($race['district_id']) ? (string) $race['district_id'] : null,
+            );
+        }
+    }
+
+    /**
+     * F-ELB-002 — Art. I: the ONLY permissible rejection ground is
+     * 'no_residency_association'. A filing that names any other ground is
+     * rejected pre-commit (the DB CHECK is the last line; this is the
+     * first). The handler additionally rejects a 'reject' decision against
+     * a candidate whose residency IS satisfied.
+     */
+    private function checkValidationGround(array $payload): void
+    {
+        $ground = $payload['rejection_reason'] ?? null;
+
+        if (($payload['decision'] ?? null) === 'reject'
+            && $ground !== null
+            && $ground !== 'no_residency_association') {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Candidacy rejection knows a single permissible ground — no_residency_association. '
+                    . 'Ground %s is unconstitutional (candidacy is an absolute right of residency).',
+                    json_encode($ground)
+                ),
+                'Art. I'
             );
         }
     }

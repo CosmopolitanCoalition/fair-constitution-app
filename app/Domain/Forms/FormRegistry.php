@@ -205,11 +205,16 @@ class FormRegistry
     ];
 
     /**
-     * Phase A handler map: canonical form id => handler class.
+     * Handler map: canonical form id => handler class.
      * Handlers live at app/Domain/Forms/Handlers/{StudlyName}.php.
      * Forms without a handler cannot be filed yet (later phases).
+     *
+     * Phase A: the identity/residency slice + F-LEG-031.
+     * Phase B (WI-B4): the 11 election handlers of
+     * PHASE_B_DESIGN_schema_lifecycle §C.
      */
     public const HANDLERS = [
+        // ── Phase A ─────────────────────────────────────────────────────────
         'F-IND-001' => Handlers\IndividualRegistration::class,
         'F-IND-002' => Handlers\ProfileManagement::class,
         'F-IND-003' => Handlers\ResidencyDeclaration::class,
@@ -217,6 +222,19 @@ class FormRegistry
         'F-IND-005' => Handlers\GpsResidencyPing::class,
         'F-IND-006' => Handlers\ResidencyVerificationConfirmation::class,
         'F-LEG-031' => Handlers\AmendableSettingChange::class,
+
+        // ── Phase B — elections (WI-B4) ─────────────────────────────────────
+        'F-ELB-001' => Handlers\ElectionSchedulingOrder::class,
+        'F-ELB-002' => Handlers\CandidateValidation::class,
+        'F-ELB-003' => Handlers\SubdivisionBoundaryDrawing::class,
+        'F-ELB-004' => Handlers\ElectionResultsCertification::class,
+        'F-ELB-006' => Handlers\RecountAuditOrder::class,
+        'F-IND-007' => Handlers\BallotSubmission::class,
+        'F-IND-011' => Handlers\CandidacyRegistration::class,
+        'F-CAN-001' => Handlers\CampaignProfileSetup::class,
+        'F-CAN-002' => Handlers\EndorsementRequest::class,
+        'F-CAN-003' => Handlers\CandidacyWithdrawal::class,
+        'F-ORG-002' => Handlers\CandidateEndorsementGrant::class,
     ];
 
     /**

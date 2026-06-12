@@ -63,6 +63,10 @@ class SettingsBoundsTest extends TestCase
             'worker_rep_parity_employees',
             'residency_confirmation_days',
             'initiative_petition_threshold_pct',
+            // Phase B (WI-B4) — open-ballot phase settings (migration B-12):
+            'finalist_multiplier',
+            'ranked_window_days',
+            'approval_min_days',
         ];
 
         $this->assertSame($expected, array_keys(ConstitutionalValidator::SETTING_BOUNDS));
@@ -93,8 +97,31 @@ class SettingsBoundsTest extends TestCase
         $this->change('voting_method', 'stv_droop');
         $this->change('judiciary_is_elected', false);
         $this->change('initiative_petition_threshold_pct', 5.00);
+        // Phase B defaults (B-12) are in range by construction.
+        $this->change('finalist_multiplier', 3);
+        $this->change('ranked_window_days', 14);
+        $this->change('approval_min_days', 30);
 
         $this->expectNotToPerformAssertions();
+    }
+
+    public function test_phase_b_election_settings_are_bounded(): void
+    {
+        foreach ([
+            ['finalist_multiplier', 0],   // X must be ≥ seats (multiplier ≥ 1)
+            ['finalist_multiplier', 11],
+            ['ranked_window_days', 0],
+            ['ranked_window_days', 61],
+            ['approval_min_days', 0],
+            ['approval_min_days', 366],
+        ] as [$key, $value]) {
+            try {
+                $this->change($key, $value);
+                $this->fail("{$key} = {$value} must be rejected");
+            } catch (ConstitutionalViolation $e) {
+                $this->assertSame('Art. II §2 · as implemented', $e->citation);
+            }
+        }
     }
 
     // ─── Hardened ceilings/floors rejected with citation ─────────────────
