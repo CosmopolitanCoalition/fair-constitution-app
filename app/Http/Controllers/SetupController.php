@@ -256,10 +256,15 @@ class SetupController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
+        // The founder is the operator account and accepts the terms by
+        // creating the instance (WI-3 users schema: terms_accepted_at is
+        // NOT NULL, is_operator unlocks dev tooling like impersonation).
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name'              => $data['name'],
+            'email'             => $data['email'],
+            'password'          => Hash::make($data['password']),
+            'terms_accepted_at' => now(),
+            'is_operator'       => true,
         ]);
 
         Auth::login($user);

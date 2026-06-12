@@ -173,3 +173,6 @@ Route::patch('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureCon
 Route::delete('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureController::class, 'deleteMap'])->name('legislatures.maps.delete');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/activate', [LegislatureController::class, 'activateMap'])->name('legislatures.maps.activate');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy',     [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
+
+// Session auth — register / login / logout (WI-3).
+require __DIR__.'/auth.php';

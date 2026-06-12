@@ -12,8 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
-            \Inertia\Middleware::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
+
+        // WI-3 session auth: unauthenticated → /login; already-authenticated
+        // hitting guest-only routes (login/register) → home.
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo('/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -28,8 +28,21 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'status' => 'registered',
+            'terms_accepted_at' => now(),
+            'languages' => ['en'],
+            'timezone' => 'UTC',
+            'locale' => 'en',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /** Mark the account as the instance operator (founder). */
+    public function operator(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_operator' => true,
+        ]);
     }
 
     /**

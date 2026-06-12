@@ -40,6 +40,7 @@ class ConstitutionalEngine
     private const SENSITIVE_KEYS = [
         'password',
         'password_confirmation',
+        'password_hash',
         'current_password',
         'remember_token',
         'token',
