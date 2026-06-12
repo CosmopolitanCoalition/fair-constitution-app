@@ -2,6 +2,11 @@
 
 namespace App\Services;
 
+use App\Domain\Engine\ConstitutionalEngine;
+use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\Election;
+use App\Models\ElectionBoard;
+use App\Models\ElectionBoardMember;
 use App\Models\Jurisdiction;
 use App\Models\JurisdictionActivation;
 use Illuminate\Support\Facades\Artisan;
@@ -25,12 +30,33 @@ use RuntimeException;
  *        type_b_seats = count(direct children) — one seat per constituent,
  *        Art. V §3; both kinds required whenever constituents exist.
  *      - LEAF jurisdictions → type_a = max(5, round(∛own population)),
- *        unicameral (type_b = 0). Districted later if > 9 — the 5–9 cap
- *        is per district/voter pool, not chamber size.
+ *        unicameral (type_b = 0), CLAMPED to the resolved ceiling (9):
+ *        a childless jurisdiction has nothing to subdivide over, and a
+ *        > 9-seat voter pool is unconstitutional (Art. II §2/§8). The
+ *        clamp is audited; the shortest-split-line drawing tool
+ *        (backlog #1) restores cube-root sizing with districts later.
  *      status 'forming', term_number 1.
  *   3. executive + judiciary stubs (InstitutionStubService — shared with
  *      Setup Step 4).
+ *   3.5 (WI-B7, design §B.3 — bootstrap elections, WF-ELE-02):
+ *      a. constitute the bootstrap election board (is_bootstrap=true +
+ *         the synthetic system member, user_id NULL);
+ *      b. chambers with children whose type_a exceeds the ceiling →
+ *         generate + activate the INITIAL DISTRICT MAP
+ *         (InitialDistrictMapService → DistrictingService auto-composite
+ *         → system-filed F-ELB-003);
+ *      c. leaf chambers above the ceiling → THE CLAMP (re-plan to 9);
+ *      d. system-file F-ELB-001 scheduling the first general election
+ *         (engine seam → ElectionLifecycleService; dates compressed only
+ *         via config('cga.election_demo_compression') — config, never
+ *         data). A §B.4-blocked chamber records the rejected chain entry
+ *         and activation continues.
  *   4. → self_governing (legislature row exists).
+ *
+ * replan() — re-enter step 3.5 for an ALREADY-activated jurisdiction
+ * whose legislature is still memberless + forming (the Montegiardino
+ * 10-seat dev row; `jurisdiction:activate <slug> --replan`). Seated
+ * chambers are never resized.
  *
  * Every step appends to the audit chain (module 'jurisdictions',
  * ref WF-JUR-01) — these entries become the Phase F bootstrap-tracker
@@ -49,6 +75,9 @@ class ActivationService
     public function __construct(
         private readonly AuditService $audit,
         private readonly InstitutionStubService $stubs,
+        private readonly InitialDistrictMapService $initialMaps,
+        private readonly ElectionLifecycleService $lifecycle,
+        private readonly ConstitutionalEngine $engine,
     ) {
     }
 
@@ -233,6 +262,9 @@ class ActivationService
             jurisdictionId: $jurisdiction->id,
         );
 
+        // ── Step 3.5: bootstrap elections (WI-B7, design §B.3) ─────────────
+        $this->bootstrapElections($jurisdiction, $activation);
+
         // ── Step 4: → self_governing ────────────────────────────────────────
         DB::transaction(function () use ($jurisdiction, $activation, $legislature) {
             $activation->forceFill([
@@ -252,6 +284,58 @@ class ActivationService
                 jurisdictionId: $jurisdiction->id,
             );
         });
+
+        return $activation->refresh();
+    }
+
+    /**
+     * WI-B7 — re-enter step 3.5 for an ALREADY-activated jurisdiction
+     * (`jurisdiction:activate <slug> --replan`). Pre-conditions: an
+     * activation row at bootstrapping or beyond, and a MEMBERLESS,
+     * FORMING legislature — a seated chamber is never resized. Re-runs
+     * the sizing posture (leaf clamp / initial map), the bootstrap board,
+     * and the first-election scheduling. Idempotent: every sub-step
+     * adopts existing state.
+     */
+    public function replan(Jurisdiction $jurisdiction): JurisdictionActivation
+    {
+        $activation = JurisdictionActivation::query()
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->first();
+
+        if ($activation === null || ! $activation->hasReached(JurisdictionActivation::STATE_BOOTSTRAPPING)) {
+            throw new RuntimeException(
+                "--replan requires an already-activated jurisdiction — run jurisdiction:activate {$jurisdiction->slug} first."
+            );
+        }
+
+        $legislature = $this->legislatureRow($jurisdiction->id);
+
+        if ($legislature === null) {
+            throw new RuntimeException("No legislature to re-plan for {$jurisdiction->slug}.");
+        }
+
+        if (! $this->isMemberlessForming($legislature)) {
+            throw new RuntimeException(
+                "Re-plan refused: legislature {$legislature->id} is not a memberless forming chamber — "
+                . 'seated chambers are never resized.'
+            );
+        }
+
+        $this->audit->append(
+            module: 'jurisdictions',
+            event: 'activation_replan',
+            payload: [
+                'activation_id'  => $activation->id,
+                'legislature_id' => (string) $legislature->id,
+                'type_a_seats'   => (int) $legislature->type_a_seats,
+                'type_b_seats'   => (int) $legislature->type_b_seats,
+            ],
+            ref: 'WF-JUR-01',
+            jurisdictionId: $jurisdiction->id,
+        );
+
+        $this->bootstrapElections($jurisdiction, $activation);
 
         return $activation->refresh();
     }
@@ -362,14 +446,20 @@ class ActivationService
     }
 
     /**
-     * Leaf path: unicameral, type_a = max(5, round(∛own population)).
-     * No ceiling clamp — a > 9-seat leaf chamber is districted later
-     * (the 5–9 cap is per district/voter pool, not chamber size).
+     * Leaf path: unicameral, type_a = max(5, round(∛own population)),
+     * CLAMPED to the resolved ceiling (WI-B7 / design §B.4 Montegiardino
+     * ruling): a leaf has no constituents to district over, so a chamber
+     * above the ceiling would be an unconstitutional > 9-seat voter pool
+     * (Art. II §2/§8). The clamp resolves toward the constitution — the
+     * cube-root law is amendable-layer, the 9 max is hardened. Lifted
+     * later by the shortest-split-line drawing tool (backlog #1).
      */
     private function instantiateLeaf(Jurisdiction $jurisdiction): object
     {
-        $plan  = self::seatPlan((float) ($jurisdiction->population ?? 0), 0.0, 0);
-        $total = $plan['type_a'] + $plan['type_b'];
+        $plan    = self::seatPlan((float) ($jurisdiction->population ?? 0), 0.0, 0);
+        $ceiling = ConstitutionalDefaults::ceiling($jurisdiction->id);
+        $typeA   = min($plan['type_a'], $ceiling);
+        $total   = $typeA + $plan['type_b'];
 
         $id = (string) Str::uuid();
 
@@ -379,18 +469,294 @@ class ActivationService
             'term_number'     => 1,
             'status'          => 'forming',
             'total_seats'     => $total,
-            'type_a_seats'    => $plan['type_a'],
+            'type_a_seats'    => $typeA,
             'type_b_seats'    => $plan['type_b'],
             'quorum_required' => self::quorumRequired($total),
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);
 
+        if ($typeA < $plan['type_a']) {
+            $this->auditLeafClamp($jurisdiction->id, $id, $plan['type_a'], $typeA, $ceiling);
+        }
+
         return (object) [
             'id'           => $id,
-            'type_a_seats' => $plan['type_a'],
+            'type_a_seats' => $typeA,
             'type_b_seats' => $plan['type_b'],
             'total_seats'  => $total,
         ];
+    }
+
+    // =========================================================================
+    // Step 3.5 — bootstrap elections (WI-B7, design §B.3 / WF-ELE-02)
+    // =========================================================================
+
+    /**
+     * Bootstrap board + sizing posture + first general election for the
+     * jurisdiction's legislature. No-op unless the chamber is memberless
+     * + forming (a seated chamber is never touched). Every sub-step is
+     * individually idempotent and audited.
+     */
+    private function bootstrapElections(Jurisdiction $jurisdiction, JurisdictionActivation $activation): void
+    {
+        $legislature = $this->legislatureRow($jurisdiction->id);
+
+        if ($legislature === null || ! $this->isMemberlessForming($legislature)) {
+            return;
+        }
+
+        // (a) the bootstrap election board (system-as-board).
+        $this->ensureBootstrapBoard($jurisdiction, $legislature);
+
+        // (b)/(c) sizing posture: initial map (children) or clamp (leaf).
+        $legislature = $this->applySeatPosture($jurisdiction, $activation, $legislature);
+
+        // (d) first general election — F-ELB-001 through the engine.
+        $this->scheduleBootstrapElection($jurisdiction, $activation, $legislature);
+    }
+
+    /**
+     * Constitute the bootstrap election board (design §B.3.1): one
+     * `election_boards` row `is_bootstrap=true, status='active'` plus the
+     * synthetic system member (user_id NULL — always 'seated' per the B-2
+     * CHECK). An existing ACTIVE board (bootstrap or real) is adopted.
+     */
+    private function ensureBootstrapBoard(Jurisdiction $jurisdiction, object $legislature): ElectionBoard
+    {
+        $existing = ElectionBoard::query()
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->active()
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return DB::transaction(function () use ($jurisdiction, $legislature) {
+            $board = ElectionBoard::create([
+                'jurisdiction_id' => $jurisdiction->id,
+                'legislature_id'  => (string) $legislature->id,
+                'is_bootstrap'    => true,
+                'status'          => ElectionBoard::STATUS_ACTIVE,
+            ]);
+
+            $member = ElectionBoardMember::create([
+                'election_board_id' => (string) $board->id,
+                'user_id'           => null, // THE SYSTEM ITSELF (B-2 schema)
+                'status'            => ElectionBoardMember::STATUS_SEATED,
+            ]);
+
+            $this->audit->append(
+                module: 'elections',
+                event: 'bootstrap_board_constituted',
+                payload: [
+                    'election_board_id' => (string) $board->id,
+                    'legislature_id'    => (string) $legislature->id,
+                    'is_bootstrap'      => true,
+                    'system_member_id'  => (string) $member->id,
+                    'banner'            => 'temporary · replacement queued (retired by WF-ELE-10, Phase C)',
+                ],
+                ref: 'WF-ELE-02',
+                jurisdictionId: $jurisdiction->id,
+            );
+
+            return $board;
+        });
+    }
+
+    /**
+     * Sizing posture for a memberless forming chamber (design §B.4):
+     *  - children + type_a > ceiling → generate + activate the initial
+     *    district map (San Marino: 32 type_a over 9 castelli → 5–9-seat
+     *    districts). Generation failure records the blocked posture and
+     *    leaves the §B.4 engine rejection to the F-ELB-001 filing.
+     *  - leaf + type_a > ceiling → THE CLAMP to the ceiling
+     *    (Montegiardino: 10 → 9), audited with citation.
+     *
+     * @return object the (possibly re-planned) legislatures row
+     */
+    private function applySeatPosture(Jurisdiction $jurisdiction, JurisdictionActivation $activation, object $legislature): object
+    {
+        $ceiling = ConstitutionalDefaults::ceiling($jurisdiction->id);
+        $typeA   = (int) $legislature->type_a_seats;
+
+        if ($typeA <= $ceiling) {
+            return $legislature;
+        }
+
+        $childCount = (int) DB::table('jurisdictions')
+            ->where('parent_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->count();
+
+        if ($childCount > 0) {
+            try {
+                $map = $this->initialMaps->ensureInitialMap($legislature, $jurisdiction->id);
+
+                if ($map !== null) {
+                    $activation->forceFill(['notes' => array_merge($activation->notes ?? [], [
+                        'initial_district_map' => [
+                            'map_id'         => $map['map_id'],
+                            'district_count' => $map['district_count'],
+                            'seat_vector'    => $map['seat_vector'],
+                            'generated'      => $map['generated'],
+                            'at'             => now()->toIso8601String(),
+                        ],
+                    ])])->save();
+                }
+            } catch (RuntimeException|ConstitutionalViolation $e) {
+                // F-ELB-003 violations are already chained by the engine;
+                // generation failures get their own rejected entry. Either
+                // way the chamber stays in the §B.4 blocked posture and
+                // activation continues (self_governing = legislature row
+                // exists — design §B.3.3).
+                if ($e instanceof RuntimeException) {
+                    $this->audit->append(
+                        module: 'elections',
+                        event: 'district_map.generation_failed',
+                        payload: [
+                            'legislature_id' => (string) $legislature->id,
+                            'type_a_seats'   => $typeA,
+                            'reason'         => $e->getMessage(),
+                        ],
+                        ref: 'WF-ELE-02',
+                        jurisdictionId: $jurisdiction->id,
+                        rejected: true,
+                        blockedReason: $e->getMessage() . ' (Art. II §8)',
+                    );
+                }
+            }
+
+            return $this->legislatureRow($jurisdiction->id) ?? $legislature;
+        }
+
+        // THE CLAMP — undistrictable leaf above the ceiling (Art. II §2/§8).
+        $typeB = (int) $legislature->type_b_seats;
+        $total = $ceiling + $typeB;
+
+        DB::table('legislatures')
+            ->where('id', $legislature->id)
+            ->update([
+                'type_a_seats'    => $ceiling,
+                'total_seats'     => $total,
+                'quorum_required' => self::quorumRequired($total),
+                'updated_at'      => now(),
+            ]);
+
+        $this->auditLeafClamp($jurisdiction->id, (string) $legislature->id, $typeA, $ceiling, $ceiling);
+
+        return $this->legislatureRow($jurisdiction->id) ?? $legislature;
+    }
+
+    /**
+     * Schedule the chamber's first general election by SYSTEM-FILING
+     * F-ELB-001 through the ConstitutionalEngine (null actor = the
+     * bootstrap board acting as the system; design §B.3.2). Dates come
+     * from ElectionLifecycleService::defaultDates — constitutional
+     * windows unless config('cga.election_demo_compression') is set
+     * (config, never data). An existing open-cycle election is adopted
+     * (idempotent). A §B.4-blocked plan is recorded by the engine as a
+     * rejected chain entry with citation; activation proceeds.
+     */
+    private function scheduleBootstrapElection(Jurisdiction $jurisdiction, JurisdictionActivation $activation, object $legislature): void
+    {
+        $existing = Election::query()
+            ->where('legislature_id', (string) $legislature->id)
+            ->where('kind', Election::KIND_GENERAL)
+            ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($existing !== null) {
+            $this->noteBootstrapElection($activation, (string) $existing->id);
+
+            return;
+        }
+
+        $dates = $this->lifecycle->defaultDates($jurisdiction->id);
+
+        try {
+            $result = $this->engine->file('F-ELB-001', null, [
+                'jurisdiction_id'    => $jurisdiction->id,
+                'legislature_id'     => (string) $legislature->id,
+                'kind'               => Election::KIND_GENERAL,
+                'trigger'            => 'bootstrap',
+                'approval_opens_at'  => $dates['approval_opens_at']->toIso8601String(),
+                'finalist_cutoff_at' => $dates['finalist_cutoff_at']->toIso8601String(),
+                'ranked_opens_at'    => $dates['ranked_opens_at']->toIso8601String(),
+                'ranked_closes_at'   => $dates['ranked_closes_at']->toIso8601String(),
+            ]);
+
+            $this->noteBootstrapElection($activation, (string) ($result->recorded['election_id'] ?? ''));
+        } catch (ConstitutionalViolation $violation) {
+            // The engine sealed the rejected=true chain entry (citation
+            // included). Record the posture on the tracker row only.
+            $activation->forceFill(['notes' => array_merge($activation->notes ?? [], [
+                'bootstrap_election_blocked' => [
+                    'reason'   => $violation->getMessage(),
+                    'citation' => $violation->citation,
+                    'at'       => now()->toIso8601String(),
+                ],
+            ])])->save();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Small shared helpers
+    // -------------------------------------------------------------------------
+
+    private function legislatureRow(string $jurisdictionId): ?object
+    {
+        return DB::table('legislatures')
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->first();
+    }
+
+    private function isMemberlessForming(object $legislature): bool
+    {
+        if (($legislature->status ?? null) !== 'forming') {
+            return false;
+        }
+
+        return ! DB::table('legislature_members')
+            ->where('legislature_id', $legislature->id)
+            ->whereNull('deleted_at')
+            ->exists();
+    }
+
+    private function auditLeafClamp(string $jurisdictionId, string $legislatureId, int $from, int $to, int $ceiling): void
+    {
+        $this->audit->append(
+            module: 'jurisdictions',
+            event: 'legislature_seats_clamped',
+            payload: [
+                'legislature_id' => $legislatureId,
+                'from_type_a'    => $from,
+                'to_type_a'      => $to,
+                'ceiling'        => $ceiling,
+                'citation'       => 'Art. II §2; Art. II §8',
+                'note'           => 'clamped_pending_subdivision_capability — undistrictable leaf above the '
+                    . 'per-voter-pool maximum; the shortest-split-line drawing tool (backlog #1) restores '
+                    . 'cube-root sizing with intra-jurisdiction districts later.',
+            ],
+            ref: 'WF-JUR-01',
+            jurisdictionId: $jurisdictionId,
+        );
+    }
+
+    private function noteBootstrapElection(JurisdictionActivation $activation, string $electionId): void
+    {
+        $notes = $activation->notes ?? [];
+
+        if (($notes['bootstrap_election_id'] ?? null) === $electionId) {
+            return;
+        }
+
+        $notes['bootstrap_election_id'] = $electionId;
+        unset($notes['bootstrap_election_blocked']);
+
+        $activation->forceFill(['notes' => $notes])->save();
     }
 }

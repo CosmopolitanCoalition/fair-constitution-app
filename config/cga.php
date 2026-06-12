@@ -36,4 +36,17 @@ return [
     */
     'critical_population_default' => env('CGA_CRITICAL_POPULATION', 1),
 
+    /*
+    | Election demo compression (WI-B7). False (default) = constitutional
+    | phase windows (approval_min_days / ranked_window_days resolved per
+    | jurisdiction). A positive integer N compresses every phase boundary
+    | to N minutes from now for live demos — read as an int by
+    | ElectionLifecycleService::defaultDates() (minute spacing) and as a
+    | bool by the F-ELB-001 handler (skips the approval_min_days floor).
+    | Compression is CONFIG, never data: no election row ever records that
+    | its windows were compressed-by-right — re-running without the env
+    | var restores constitutional timing everywhere.
+    */
+    'election_demo_compression' => env('CGA_ELECTION_DEMO_COMPRESSION', false),
+
 ];
