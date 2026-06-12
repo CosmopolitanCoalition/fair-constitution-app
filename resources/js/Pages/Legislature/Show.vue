@@ -1,5 +1,4 @@
 <template>
-    <AppLayout>
         <div
             v-if="setup_mode"
             class="shrink-0 bg-blue-900/40 border-b border-blue-700 px-4 py-2 flex items-center justify-between gap-3 text-sm"
@@ -1305,15 +1304,21 @@
                 </div><!-- end inner map area wrapper -->
             </div>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Map tool: full chrome + flush main (the Leaflet sizing contract — flex
+// column, no padding, overflow hidden; the setup banner stays shrink-0 and
+// .lm-split takes flex-1, exactly as under the legacy AppLayout).
+defineOptions({
+    layout: (h, page) => h(AppShell, { variant: 'flush' }, () => page),
+})
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 const props = defineProps({

@@ -19,7 +19,12 @@
  */
 import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
+
+// Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
+defineOptions({
+    layout: (h, page) => h(AppShell, { chrome: 'minimal', variant: 'wide' }, () => page),
+})
 
 const props = defineProps({
     status: { type: Object, required: true },
@@ -94,8 +99,7 @@ const schemaCardOk = computed(() => status.value.schema_state === 'up_to_date')
 </script>
 
 <template>
-    <AppLayout :hide-nav="true">
-        <div class="max-w-3xl mx-auto w-full px-6 py-12 space-y-8">
+    <div class="max-w-3xl mx-auto w-full px-6 py-12 space-y-8">
             <header>
                 <h1 class="text-3xl font-bold text-white">Database Setup</h1>
                 <p class="text-gray-400 mt-2">
@@ -152,6 +156,5 @@ const schemaCardOk = computed(() => status.value.schema_state === 'up_to_date')
                     Continue to wizard →
                 </button>
             </section>
-        </div>
-    </AppLayout>
+    </div>
 </template>

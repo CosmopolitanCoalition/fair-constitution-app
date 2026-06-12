@@ -1,10 +1,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import CosmicAddressPicker from '@/Components/CosmicAddressPicker.vue'
 import ImportBackupPanel from '@/Components/Setup/ImportBackupPanel.vue'
+
+// Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
+defineOptions({
+    layout: (h, page) => h(AppShell, { chrome: 'minimal', variant: 'wide' }, () => page),
+})
 
 const props = defineProps({
     step: { type: Number, required: true },
@@ -86,8 +91,7 @@ const canSubmit = computed(() =>
 </script>
 
 <template>
-    <AppLayout :hide-nav="true">
-        <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+    <div class="max-w-4xl mx-auto px-6 py-8 w-full">
             <SetupStepper :current="0" :completed="settings.setup_step_completed" />
 
             <header class="mt-8 mb-6">
@@ -205,6 +209,5 @@ const canSubmit = computed(() =>
                     </button>
                 </div>
             </section>
-        </div>
-    </AppLayout>
+    </div>
 </template>

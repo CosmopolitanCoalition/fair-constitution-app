@@ -143,8 +143,10 @@ class JurisdictionController extends Controller
             'has_district_map'           => $hasDistrictMap,
             // Map-acceptance gate (only meaningful at planet scope, but
             // always sent so the frontend can hide the button at sub-scopes
-            // without an extra round-trip).
-            'instance' => [
+            // without an extra round-trip). Named map_acceptance — NOT
+            // 'instance' — so it can't shadow the Inertia shared 'instance'
+            // prop (HandleInertiaRequests) that the AppShell footer reads.
+            'map_acceptance' => [
                 'is_planet_scope'              => (int) $jurisdiction->adm_level === 0,
                 'map_accepted_at'              => $instanceSettings?->map_accepted_at?->toIso8601String(),
                 'apportionment_completed_at'   => $instanceSettings?->apportionment_completed_at?->toIso8601String(),

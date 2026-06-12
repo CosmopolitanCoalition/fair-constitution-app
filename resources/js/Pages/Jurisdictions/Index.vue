@@ -1,6 +1,5 @@
 <template>
-    <AppLayout>
-        <div class="flex flex-col h-full bg-gray-950 text-white">
+    <div class="flex flex-col flex-1 min-h-0 bg-gray-950 text-white">
 
             <!-- Toolbar -->
             <div class="flex items-center gap-3 px-6 py-3 bg-gray-900 border-b border-gray-800 shrink-0">
@@ -92,14 +91,19 @@
                     />
                 </div>
             </div>
-        </div>
-    </AppLayout>
+    </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
+
+// Table-led tool surface: full chrome + flush main, reproducing the legacy
+// full-height column (toolbar / scrolling table / pinned pagination).
+defineOptions({
+    layout: (h, page) => h(AppShell, { variant: 'flush' }, () => page),
+})
 
 const admLabels = {
     0: 'World',

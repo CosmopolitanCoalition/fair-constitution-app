@@ -1,12 +1,11 @@
 <template>
-    <AppLayout>
-        <!-- flex-1 instead of an explicit calc(100vh - 49px). The hardcoded
-             49px assumed only the top nav existed; if a SchemaUpdateBanner
-             (or any other element) renders above us, the explicit height
-             overflows and the top nav can scroll out of view. flex-1 lets
-             AppLayout's main do the sizing, which is correct regardless of
-             how many siblings the nav has. -->
-        <div class="flex flex-1 overflow-hidden min-h-0">
+    <!-- flex-1 instead of an explicit calc(100vh - 49px). The hardcoded
+         49px assumed only the top nav existed; if a SchemaUpdateBanner
+         (or any other element) renders above us, the explicit height
+         overflows and the top nav can scroll out of view. flex-1 lets
+         AppShell's main--flush flex column do the sizing, which is correct
+         regardless of how many siblings render above us. -->
+    <div class="flex flex-1 overflow-hidden min-h-0">
 
             <!-- Left panel: metadata -->
             <aside class="w-80 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
@@ -194,13 +193,13 @@
                          Disabled until the ETL has finished and the operator
                          hasn't already accepted. Click stamps map_accepted_at
                          and dispatches apportionment:seed via Horizon. -->
-                    <div v-if="instance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
-                        <div v-if="instance.map_accepted_at"
+                    <div v-if="map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
+                        <div v-if="map_acceptance.map_accepted_at"
                              class="bg-emerald-900/40 border border-emerald-700 rounded-lg p-3 text-emerald-200">
                             <div class="text-xs uppercase tracking-wider mb-1">Maps accepted</div>
-                            <div class="text-sm">{{ formatTime(instance.map_accepted_at) }}</div>
-                            <div v-if="instance.apportionment_completed_at" class="text-xs text-emerald-300 mt-1">
-                                Apportionment completed {{ formatTime(instance.apportionment_completed_at) }}
+                            <div class="text-sm">{{ formatTime(map_acceptance.map_accepted_at) }}</div>
+                            <div v-if="map_acceptance.apportionment_completed_at" class="text-xs text-emerald-300 mt-1">
+                                Apportionment completed {{ formatTime(map_acceptance.apportionment_completed_at) }}
                             </div>
                             <div v-else class="text-xs text-emerald-300 mt-1 italic">
                                 Apportionment running…
@@ -321,16 +320,21 @@
                     >Raster</button>
                 </div>
             </div>
-        </div>
-    </AppLayout>
+    </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+// Map tool: full chrome + flush main (the Leaflet sizing contract — flex
+// column, no padding, overflow hidden; panes manage their own scroll).
+defineOptions({
+    layout: (h, page) => h(AppShell, { variant: 'flush' }, () => page),
+})
 
 const props = defineProps({
     jurisdiction:        Object,
@@ -341,7 +345,7 @@ const props = defineProps({
     // P.6 Inertia props
     meta:                { type: Object, default: null },
     review:              { type: Object, default: () => ({}) },
-    instance:            { type: Object, default: () => ({ is_planet_scope: false }) },
+    map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
     has_district_map:    { type: Boolean, default: false },
 })
@@ -433,7 +437,7 @@ async function acceptMaps() {
         }
         // Reload so the page reflects the persisted map_accepted_at + the
         // apportionment-running banner. Server provides the canonical state.
-        router.reload({ only: ['instance'] })
+        router.reload({ only: ['map_acceptance'] })
     } catch (e) {
         acceptError.value = String(e?.message || e)
     } finally {

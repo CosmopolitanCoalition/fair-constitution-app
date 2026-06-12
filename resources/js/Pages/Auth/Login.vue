@@ -7,6 +7,9 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import Banner from '@/Components/Ui/Banner.vue';
+
+// Standalone (pre-shell) page — opt out of the AppShell default layout.
+defineOptions({ layout: null });
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import CheckboxField from '@/Components/Ui/CheckboxField.vue';

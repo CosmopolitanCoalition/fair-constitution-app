@@ -1,7 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import AppLayout from '@/Layouts/AppLayout.vue'
+import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
+
+// Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
+defineOptions({
+    layout: (h, page) => h(AppShell, { chrome: 'minimal', variant: 'wide' }, () => page),
+})
 
 const props = defineProps({
     step: { type: Number, required: true },
@@ -40,8 +45,7 @@ onMounted(loadSummary)
 </script>
 
 <template>
-    <AppLayout :hide-nav="true">
-        <div class="max-w-4xl mx-auto px-6 py-8 w-full">
+    <div class="max-w-4xl mx-auto px-6 py-8 w-full">
             <SetupStepper :current="3" :completed="settings.setup_step_completed" />
 
             <header class="mt-8 mb-6">
@@ -126,6 +130,5 @@ onMounted(loadSummary)
                     </div>
                 </div>
             </section>
-        </div>
-    </AppLayout>
+    </div>
 </template>
