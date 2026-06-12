@@ -201,6 +201,7 @@ Both start as legislature-delegated. Converts to directly elected by supermajori
 
 ```
 app/Services/VoteCountingService.php
+app/Domain/Counting/   (counting core: Micro, BallotSet, CountInput, CountResult, RoundResult, CountbackResult)
 app/Services/DistrictingService.php
 app/Services/ElectionTriggerService.php
 app/Services/ConstitutionalValidator.php

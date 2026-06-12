@@ -16,23 +16,6 @@ use PHPUnit\Framework\TestCase;
  */
 class FuturePhasePlaceholdersTest extends TestCase
 {
-    public function test_stv_droop_gregory_fractional_transfers(): void
-    {
-        $this->markTestSkipped(
-            'Phase B — VoteCountingService (PROTECTED): PR-STV with Droop quota and '
-            . 'Gregory fractional surplus transfers fills all seats in one count; '
-            . 'pin against the mockup results fixture (412,383 ballots, quota 41,239, 27 rounds). Art. II §2.'
-        );
-    }
-
-    public function test_countback_is_universal_no_faction_filter(): void
-    {
-        $this->markTestSkipped(
-            'Phase B — countback re-runs prior ballots with the vacating member removed, '
-            . 'no faction/endorsement filtering (q-ledger #q6). Failure → special election 90–180 days. Art. II §5.'
-        );
-    }
-
     public function test_ballot_envelope_never_links_to_ballot(): void
     {
         $this->markTestSkipped(
