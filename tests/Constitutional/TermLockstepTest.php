@@ -152,13 +152,20 @@ class TermLockstepTest extends TestCase
     /**
      * The creation sites are exactly where the design puts them: `'ends_on'
      * =>` (the write-shaped quoted key) appears in app/ ONLY in the Term
-     * model's casts and CertificationService's Term::create blocks.
+     * model's casts, CertificationService's Term::create blocks, and —
+     * Phase C (constitutional review note, PHASE_C_DESIGN_chamber_ops
+     * §D.1/§E.1) — ChamberActService's CIVIL-APPOINTMENT Term::create
+     * (election board members / admin staff, Art. II §9: 10-year civil
+     * appointments seated by chamber consent votes, CLK-09 armed at the
+     * expiry). Civil appointments are NOT lockstep terms; the no-update
+     * pin above still covers them — ends_on stays write-once everywhere.
      */
     public function test_ends_on_writes_live_only_in_the_certification_pipeline(): void
     {
         $whitelist = [
             $this->normalize($this->appPath() . '/Models/Term.php'),                  // fillable/casts
             $this->normalize($this->appPath() . '/Services/CertificationService.php'), // Term::create + window math
+            $this->normalize($this->appPath() . '/Services/Legislature/ChamberActService.php'), // civil-appointment Term::create (Phase C)
         ];
 
         $found = [];
