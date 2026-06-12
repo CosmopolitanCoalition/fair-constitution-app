@@ -86,6 +86,17 @@ class ConstitutionalEngine
             return DB::transaction(function () use ($canonical, $handler, $actor, $payload, $actorId, $jurisdictionId): EngineResult {
                 $recorded = $handler->handle($actor, $payload);
 
+                // Self-creating filings (F-IND-001): the actor does not exist
+                // until the handler creates them. Adopt the created individual
+                // as the actor so their own record slice (WI-8 My Record)
+                // includes its genesis "account created" entry. Rejected
+                // filings never reach here, so they keep a null actor.
+                if ($actorId === null
+                    && isset($recorded['user_id'])
+                    && Str::isUuid((string) $recorded['user_id'])) {
+                    $actorId = (string) $recorded['user_id'];
+                }
+
                 $entry = $this->audit->append(
                     module: $handler->module(),
                     event: $handler->event(),

@@ -33,9 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // WI-3 session auth: unauthenticated → /login; already-authenticated
-        // hitting guest-only routes (login/register) → home.
+        // hitting guest-only routes (login/register) → the civic dashboard
+        // (WI-8 — /civic is the post-login landing).
         $middleware->redirectGuestsTo('/login');
-        $middleware->redirectUsersTo('/');
+        $middleware->redirectUsersTo('/civic');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Constitutional denials surface as 422s carrying their citation —

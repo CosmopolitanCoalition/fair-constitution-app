@@ -35,7 +35,8 @@ return [
         'title'     => 'Civic home',
         'module'    => 'civic',
         'nav'       => 'civic-home',
-        'roles'     => ['R-03', 'R-04'],
+        // R-01 included: a fresh registrant lands here pre-residency (WI-8).
+        'roles'     => ['R-01', 'R-03', 'R-04'],
         'workflows' => ['WF-CIV-02', 'WF-CIV-04', 'WF-CIV-06', 'WF-CIV-08'],
         'forms'     => [],
         'clocks'    => [],

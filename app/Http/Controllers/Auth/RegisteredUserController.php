@@ -71,7 +71,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // /civic is WI-8 — land on home with a flash until then.
-        return redirect('/')->with('status', 'Account created — your Individual record now exists.');
+        // WI-8: the civic dashboard is the post-registration landing.
+        return redirect('/civic')->with('status', 'Account created — your Individual record now exists.');
     }
 }

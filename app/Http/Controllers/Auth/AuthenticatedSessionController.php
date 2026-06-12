@@ -65,7 +65,8 @@ class AuthenticatedSessionController extends Controller
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        // WI-8: the civic dashboard is the post-login landing.
+        return redirect()->intended('/civic');
     }
 
     /** POST /logout */

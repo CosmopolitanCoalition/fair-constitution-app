@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Civic\HomeController;
+use App\Http\Controllers\Civic\IdentityVerificationController;
+use App\Http\Controllers\Civic\MyRecordController;
 use App\Http\Controllers\Civic\PingController;
 use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
@@ -9,12 +12,17 @@ use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\RasterTileController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\System\AuditChainController;
 use App\Http\Middleware\DevToolsEnabled;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Home');
+// WI-8: /civic is the authenticated landing; Home stays the guest welcome.
+Route::get('/', function (Request $request) {
+    return $request->user() !== null
+        ? redirect('/civic')
+        : Inertia::render('Home');
 });
 
 // Setup wizard — WordPress-style install flow.
@@ -178,13 +186,27 @@ Route::delete('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureCo
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/activate', [LegislatureController::class, 'activateMap'])->name('legislatures.maps.activate');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy',     [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
 
-// WI-5 — Civic identity module: residency claim lifecycle + location pings.
+// WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim
+// lifecycle + location pings.
 Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
+    Route::get('', [HomeController::class, 'show'])->name('home');
+    Route::get('/record', [MyRecordController::class, 'show'])->name('record');
+    Route::post('/record/profile', [MyRecordController::class, 'updateProfile'])->name('record.profile');
+    Route::get('/identity', [IdentityVerificationController::class, 'show'])->name('identity');
+    Route::post('/identity/request', [IdentityVerificationController::class, 'requestAttestation'])->name('identity.request');
+    Route::get('/jurisdictions/search', [ResidencyController::class, 'searchJurisdictions'])->name('jurisdictions.search');
     Route::get('/residency', [ResidencyController::class, 'show'])->name('residency');
     Route::post('/residency/declare', [ResidencyController::class, 'declare'])->name('residency.declare');
     Route::post('/residency/confirm', [ResidencyController::class, 'confirm'])->name('residency.confirm');
     Route::post('/residency/redeclare', [ResidencyController::class, 'redeclare'])->name('residency.redeclare');
     Route::post('/pings', [PingController::class, 'store'])->name('pings.store');
+});
+
+// WI-8 — System of record: read-only audit-chain viewer (auth — the chain
+// is the shared public record of the instance) + operator-triggered verify.
+Route::middleware('auth')->prefix('system')->name('system.')->group(function () {
+    Route::get('/audit-chain', [AuditChainController::class, 'show'])->name('audit-chain');
+    Route::post('/audit-chain/verify', [AuditChainController::class, 'verify'])->name('audit-chain.verify');
 });
 
 // WI-4 — dev tooling: impersonation + ping simulator. Registered ONLY in

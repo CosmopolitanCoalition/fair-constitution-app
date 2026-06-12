@@ -9,9 +9,10 @@ use InvalidArgumentException;
 /**
  * F-IND-002 — Profile Management (R-01).
  *
- * Records which profile fields changed. Only the whitelisted, non-sensitive
- * fields are ever recorded; the actual user-row update is performed by the
- * calling controller (WI-3/WI-8) around this filing.
+ * Applies the whitelisted profile fields to the actor's user row INSIDE
+ * the engine transaction (WI-8) — mutation and audit entry commit or roll
+ * back together (WF-SYS-04). Only non-sensitive fields are accepted, and
+ * only those fields ever appear on the chain.
  */
 class ProfileManagement implements FormHandler
 {
@@ -52,6 +53,14 @@ class ProfileManagement implements FormHandler
             throw new InvalidArgumentException(
                 'F-IND-002 requires at least one profile field: ' . implode(', ', self::ALLOWED_FIELDS) . '.'
             );
+        }
+
+        // Apply inside the engine transaction — no mutation without its
+        // chain entry, no entry without its mutation. F-IND-002 is filed
+        // by the individual, so $actor is always present here (the engine
+        // role-gates R-01 before handle()).
+        if ($actor !== null) {
+            $actor->fill($changes)->save();
         }
 
         return [

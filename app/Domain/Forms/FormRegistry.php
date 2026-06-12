@@ -213,6 +213,7 @@ class FormRegistry
         'F-IND-001' => Handlers\IndividualRegistration::class,
         'F-IND-002' => Handlers\ProfileManagement::class,
         'F-IND-003' => Handlers\ResidencyDeclaration::class,
+        'F-IND-004' => Handlers\IdentityVerificationSubmission::class,
         'F-IND-005' => Handlers\GpsResidencyPing::class,
         'F-IND-006' => Handlers\ResidencyVerificationConfirmation::class,
         'F-LEG-031' => Handlers\AmendableSettingChange::class,
