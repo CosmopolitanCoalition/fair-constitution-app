@@ -55,7 +55,9 @@ onMounted(loadSummary)
                 <p class="text-gray-300 leading-relaxed">
                     This is where your instance gets its first shape. Every legislature needs a map —
                     a partition of its jurisdiction into districts sized within the constitutional
-                    min/max seat range.
+                    min/max seat range. Setup builds the <strong>first</strong> legislature — the root
+                    jurisdiction's. Additional legislatures activate automatically as jurisdictions
+                    reach critical population (CLK-06).
                 </p>
             </header>
 
@@ -87,9 +89,31 @@ onMounted(loadSummary)
                         </div>
                     </div>
                 </div>
+                <!-- WI-9: enumerate the legislatures (setup creates one —
+                     the root's; CLK-06 activations add more over time).
+                     Each row links to its own district mapper. -->
+                <div v-if="summary.rows?.length" class="mt-4 border-t border-emerald-800/50 pt-3">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">Legislatures</div>
+                    <ul class="space-y-1 text-sm">
+                        <li v-for="leg in summary.rows" :key="leg.slug" class="flex items-baseline gap-2">
+                            <a :href="`/legislatures/${leg.slug}`" class="text-emerald-300 hover:text-emerald-100 underline-offset-2 hover:underline">
+                                {{ leg.name }}
+                            </a>
+                            <span class="text-gray-400 text-xs tabular-nums">
+                                {{ (leg.type_a_seats + leg.type_b_seats).toLocaleString() }} seats
+                                <template v-if="leg.type_b_seats > 0">
+                                    ({{ leg.type_a_seats.toLocaleString() }} A + {{ leg.type_b_seats.toLocaleString() }} B)
+                                </template>
+                            </span>
+                        </li>
+                        <li v-if="summary.legislatures > summary.rows.length" class="text-gray-500 text-xs italic">
+                            … and {{ (summary.legislatures - summary.rows.length).toLocaleString() }} more
+                        </li>
+                    </ul>
+                </div>
                 <p class="text-gray-400 text-xs mt-4 italic">
-                    Cube-root sizing applied per Taagepera's law — every parent jurisdiction with direct
-                    children now has a sized legislature ready for districting.
+                    Cube-root sizing applied per Taagepera's law. Setup sizes the root legislature;
+                    other jurisdictions get theirs when they activate at critical population (CLK-06).
                 </p>
             </section>
 

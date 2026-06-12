@@ -173,6 +173,63 @@ class LegislatureController extends Controller
     }
 
     /**
+     * Legislature index — WI-9 multi-legislature switcher.
+     *
+     * GET /legislatures
+     *
+     * One row per legislature: jurisdiction name/slug (the canonical
+     * mapper address), adm level, seats per chamber type, status, district
+     * count, and activation state (WF-JUR-01; null = no activation row —
+     * the setup-founded root legislature is the expected case). Same auth
+     * posture as show(): public, like the jurisdiction viewer.
+     */
+    public function index(): Response
+    {
+        $rows = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->leftJoin('jurisdiction_activations as a', function ($join) {
+                $join->on('a.jurisdiction_id', '=', 'l.jurisdiction_id')
+                     ->whereNull('a.deleted_at');
+            })
+            ->whereNull('l.deleted_at')
+            ->orderBy('j.adm_level')
+            ->orderByDesc(DB::raw('l.type_a_seats + l.type_b_seats'))
+            ->get([
+                'l.id',
+                'l.type_a_seats',
+                'l.type_b_seats',
+                'l.status',
+                'j.name as jurisdiction_name',
+                'j.slug as jurisdiction_slug',
+                'j.adm_level',
+                'a.state as activation_state',
+                'a.activated_at',
+                DB::raw('(SELECT count(*) FROM legislature_districts ld
+                          WHERE ld.legislature_id = l.id AND ld.deleted_at IS NULL) as district_count'),
+            ])
+            ->map(fn ($r) => [
+                'id'               => $r->id,
+                'jurisdiction'     => $r->jurisdiction_name,
+                'slug'             => $r->jurisdiction_slug,
+                'adm_level'        => (int) $r->adm_level,
+                'type_a_seats'     => (int) $r->type_a_seats,
+                'type_b_seats'     => (int) $r->type_b_seats,
+                'status'           => $r->status,
+                'district_count'   => (int) $r->district_count,
+                'activation_state' => $r->activation_state,
+                'activated_at'     => $r->activated_at
+                    ? \Illuminate\Support\Carbon::parse($r->activated_at)->toIso8601String()
+                    : null,
+            ])
+            ->values();
+
+        return Inertia::render('Legislature/Index', [
+            'surface'      => \App\Support\SurfaceMeta::for('legislature/index'),
+            'legislatures' => $rows,
+        ]);
+    }
+
+    /**
      * Legislature browser.
      *
      * GET /legislatures/{legislature_id}[?scope={jurisdiction_id}]

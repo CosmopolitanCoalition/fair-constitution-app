@@ -1594,6 +1594,33 @@ class SetupController extends Controller
             ->limit(1)
             ->first(['j.name as jurisdiction_name', 'l.type_a_seats', 'l.type_b_seats']);
 
+        // WI-9: enumerate the legislatures themselves (jurisdiction name +
+        // slug for the mapper link, seats per chamber type). During setup
+        // there is exactly one (the root's); after CLK-06 activations there
+        // are N — capped at 25 rows for the panel, with `legislatures`
+        // remaining the authoritative count.
+        $rows = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->whereNull('l.deleted_at')
+            ->orderBy('j.adm_level')
+            ->orderByDesc(DB::raw('l.type_a_seats + l.type_b_seats'))
+            ->limit(25)
+            ->get([
+                'j.name as jurisdiction_name',
+                'j.slug as jurisdiction_slug',
+                'j.adm_level',
+                'l.type_a_seats',
+                'l.type_b_seats',
+            ])
+            ->map(fn ($r) => [
+                'name'         => $r->jurisdiction_name,
+                'slug'         => $r->jurisdiction_slug,
+                'adm_level'    => (int) $r->adm_level,
+                'type_a_seats' => (int) $r->type_a_seats,
+                'type_b_seats' => (int) $r->type_b_seats,
+            ])
+            ->values();
+
         return response()->json([
             'legislatures' => (int) ($row->legislatures ?? 0),
             'total_seats'  => (int) ($row->total_seats ?? 0),
@@ -1601,6 +1628,7 @@ class SetupController extends Controller
                 'name'  => $largest->jurisdiction_name,
                 'seats' => (int) $largest->type_a_seats + (int) $largest->type_b_seats,
             ] : null,
+            'rows'         => $rows,
         ]);
     }
 
@@ -1935,11 +1963,14 @@ class SetupController extends Controller
      */
     private function resolveRootJurisdiction(): ?object
     {
+        // slug included so Step 3's mapper handoff can address the
+        // legislature canonically (/legislatures/{slug}) instead of
+        // falling back to the UUID + redirect (WI-9).
         return DB::table('jurisdictions')
             ->where('adm_level', 0)
             ->whereNull('deleted_at')
             ->orderBy('created_at')
-            ->first(['id', 'name']);
+            ->first(['id', 'name', 'slug']);
     }
 
 }

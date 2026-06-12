@@ -44,7 +44,9 @@ export const NAV = [
     ] },
     { key: 'jurisdictions', titleKey: 'nav.jurisdictions', visibility: 'all', items: [
         { id: 'jurisdiction-browser', labelKey: 'nav.jurisdictionBrowser', icon: 'globe', href: '/jurisdictions', phase: 'A' },
-        { id: 'district-mapper', labelKey: 'nav.districtMapper', icon: 'map', href: '/legislatures', phase: 'A' },
+        /* WI-9: points at the legislature INDEX (all N legislatures listed by
+           jurisdiction; each row links into its district mapper). */
+        { id: 'legislatures', labelKey: 'nav.legislatures', icon: 'map', href: '/legislatures', phase: 'A' },
     ] },
     { key: 'legislature', titleKey: 'nav.legislature', visibility: 'role', roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], items: [
         { id: 'legislature-home', labelKey: 'nav.chamber', icon: 'landmark', href: '/legislature', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], prereq: 'R-09', phase: 'C' },

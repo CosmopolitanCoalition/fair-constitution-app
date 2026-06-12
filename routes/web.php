@@ -156,6 +156,10 @@ Route::delete('/api/export/jurisdictions/{exportId}',      [JurisdictionControll
 Route::post('/api/import/jurisdictions',                   [JurisdictionController::class, 'importMaps'])->name('jurisdictions.import');
 
 // Legislature browser
+// WI-9: /legislatures is the multi-legislature index (the sidebar's entry
+// point — no UUID memorization). Registered before the {legislature_id}
+// catch-all; same public posture as show().
+Route::get('/legislatures', [LegislatureController::class, 'index'])->name('legislatures.index');
 Route::get('/legislatures/{legislature_id}', [LegislatureController::class, 'show'])->name('legislatures.show');
 
 // Legislature district editing API

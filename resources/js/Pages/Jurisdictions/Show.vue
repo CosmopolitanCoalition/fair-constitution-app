@@ -156,6 +156,23 @@
                         </div>
                     </div>
 
+                    <!-- WI-9 — Activation status line (WF-JUR-01 bootstrap
+                         tracker). Reads jurisdiction_activations: no row =
+                         dormant boundary; planet root special-cased as
+                         founded-at-setup. Styled like the review-issue
+                         badges above. -->
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1.5">Activation</div>
+                        <div class="flex items-baseline flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 rounded text-xs" :class="activationDisplay.chip">
+                                {{ activationDisplay.label }}
+                            </span>
+                            <span v-if="activationDisplay.detail" class="text-[11px] text-gray-400">
+                                {{ activationDisplay.detail }}
+                            </span>
+                        </div>
+                    </div>
+
                     <!-- Legislature & Districts link — kept (separate concern from
                          the new viewer's stats panel; legislature browser still
                          owns type_a/b display). -->
@@ -348,6 +365,9 @@ const props = defineProps({
     map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
     has_district_map:    { type: Boolean, default: false },
+    // WI-9 — WF-JUR-01 bootstrap-tracker row { state, critical_population_at,
+    // activated_at } or null (= dormant boundary).
+    activation:          { type: Object, default: null },
 })
 
 props.jurisdiction.ancestors = props.ancestors
@@ -416,6 +436,48 @@ function formatTime(iso) {
     }
 }
 
+// WI-9 — activation status line (WF-JUR-01). Maps the bootstrap-tracker
+// state onto a badge + caption. No activation row = dormant boundary,
+// EXCEPT the planet root whose legislature is founded by the setup wizard
+// (the activation engine never files a row for it).
+const activationDisplay = computed(() => {
+    const a = props.activation
+    if (a?.state === 'self_governing') {
+        return {
+            label:  'Self-governing',
+            chip:   'bg-emerald-900 text-emerald-200 border border-emerald-700',
+            detail: a.activated_at ? `since ${formatTime(a.activated_at)}` : '',
+        }
+    }
+    if (a?.state === 'bootstrapping') {
+        return {
+            label:  'Bootstrapping',
+            chip:   'bg-violet-900 text-violet-200 border border-violet-700',
+            detail: 'institutions being seated',
+        }
+    }
+    if (a?.state === 'critical_population') {
+        return {
+            label:  'Critical population',
+            chip:   'bg-amber-900 text-amber-200 border border-amber-700',
+            detail: a.critical_population_at ? `reached ${formatTime(a.critical_population_at)}` : 'reached',
+        }
+    }
+    // boundary_loaded row, or no row at all.
+    if (!a && props.jurisdiction.adm_level === 0 && props.legislature_id) {
+        return {
+            label:  'Self-governing',
+            chip:   'bg-emerald-900 text-emerald-200 border border-emerald-700',
+            detail: 'founded at instance setup',
+        }
+    }
+    return {
+        label:  'Dormant',
+        chip:   'bg-gray-700 text-gray-300 border border-gray-600',
+        detail: 'activates at critical population',
+    }
+})
+
 async function acceptMaps() {
     if (acceptingMaps.value) return
     acceptingMaps.value = true
@@ -429,6 +491,11 @@ async function acceptMaps() {
                 'Accept':       'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
             },
+            // WI-9: apportionment scope = the jurisdiction whose maps are
+            // being accepted (the button only renders at planet scope today,
+            // so this is the planet root — but the endpoint no longer
+            // assumes it).
+            body: JSON.stringify({ jurisdiction_id: props.jurisdiction.id }),
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {

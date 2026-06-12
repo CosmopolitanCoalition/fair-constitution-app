@@ -98,6 +98,17 @@ return [
         'citation'  => 'Registration is open to any person — rights are inherent · Art. I',
     ],
 
+    'legislature/index' => [
+        'title'     => 'Legislatures',
+        'module'    => 'jurisdictions',
+        'nav'       => 'legislatures',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Every legislature sized by the cube-root law; 5–9 seats per district · Art. II §2',
+    ],
+
     'system/audit-chain' => [
         'title'     => 'Audit chain',
         'module'    => 'system',

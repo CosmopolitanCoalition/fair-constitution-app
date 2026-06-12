@@ -84,18 +84,41 @@ class GeojsonPrewarmCommand extends Command
             $seats   = (int) $leg->type_a_seats;
             $thr     = ConstitutionalDefaults::giantThreshold($rootId);
 
-            // Root + every drillable giant. EXISTS(children) keeps the list to
-            // scopes the mapper actually opens.
+            // Root + every drillable giant REACHABLE from this legislature's
+            // root (WI-9). The previous version scanned ALL jurisdictions,
+            // which silently assumed the planet legislature — for a small
+            // root (San Marino: 34 k pop, 32 seats) nearly every country on
+            // Earth would satisfy pop × seats / rootPop ≥ threshold and get
+            // pointlessly warmed. The chained CTE mirrors wizardSteps():
+            // giants under non-giant parents aren't drillable, so they're
+            // correctly excluded. EXISTS(children) keeps the list to scopes
+            // the mapper actually opens. (PDO forbids reusing named params,
+            // hence the numbered aliases.)
             $giantRows = DB::select(
-                "SELECT j.id
-                 FROM jurisdictions j
-                 WHERE j.deleted_at IS NULL
-                   AND (CAST(j.population AS numeric) * :seats / :rootpop) >= :thr
-                   AND EXISTS (
-                       SELECT 1 FROM jurisdictions c
-                       WHERE c.parent_id = j.id AND c.deleted_at IS NULL
-                   )",
-                ['seats' => $seats, 'rootpop' => $rootPop, 'thr' => $thr]
+                "WITH RECURSIVE giant_tree AS (
+                     SELECT j.id
+                     FROM jurisdictions j
+                     WHERE j.parent_id = :root
+                       AND j.deleted_at IS NULL
+                       AND (CAST(j.population AS numeric) * :seats1 / :rootpop1) >= :thr1
+                     UNION ALL
+                     SELECT j.id
+                     FROM jurisdictions j
+                     JOIN giant_tree gt ON j.parent_id = gt.id
+                     WHERE j.deleted_at IS NULL
+                       AND (CAST(j.population AS numeric) * :seats2 / :rootpop2) >= :thr2
+                 )
+                 SELECT gt.id
+                 FROM giant_tree gt
+                 WHERE EXISTS (
+                     SELECT 1 FROM jurisdictions c
+                     WHERE c.parent_id = gt.id AND c.deleted_at IS NULL
+                 )",
+                [
+                    'root'   => $rootId,
+                    'seats1' => $seats, 'rootpop1' => $rootPop, 'thr1' => $thr,
+                    'seats2' => $seats, 'rootpop2' => $rootPop, 'thr2' => $thr,
+                ]
             );
 
             $scopeIds = array_values(array_unique(array_merge(

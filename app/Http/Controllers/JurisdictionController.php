@@ -117,6 +117,16 @@ class JurisdictionController extends Controller
         // is done AND map_accepted_at is null.
         $instanceSettings = \App\Models\InstanceSettings::current();
 
+        // WI-9: activation status (WF-JUR-01 bootstrap tracker). No row =
+        // dormant boundary — the frontend renders "Dormant — activates at
+        // critical population" for that case (with a founded-at-setup
+        // special case for the planet root, whose legislature is built by
+        // the setup wizard rather than the activation engine).
+        $activation = DB::table('jurisdiction_activations')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->first(['state', 'critical_population_at', 'activated_at']);
+
         return Inertia::render('Jurisdictions/Show', [
             'jurisdiction' => [
                 'id'                      => $jurisdiction->id,
@@ -141,6 +151,15 @@ class JurisdictionController extends Controller
             'review'                     => $reviewSummary,
             'legislature_id'             => $legislatureId,
             'has_district_map'           => $hasDistrictMap,
+            'activation'                 => $activation ? [
+                'state'                  => $activation->state,
+                'critical_population_at' => $activation->critical_population_at
+                    ? \Illuminate\Support\Carbon::parse($activation->critical_population_at)->toIso8601String()
+                    : null,
+                'activated_at'           => $activation->activated_at
+                    ? \Illuminate\Support\Carbon::parse($activation->activated_at)->toIso8601String()
+                    : null,
+            ] : null,
             // Map-acceptance gate (only meaningful at planet scope, but
             // always sent so the frontend can hide the button at sub-scopes
             // without an extra round-trip). Named map_acceptance — NOT
@@ -412,23 +431,35 @@ class JurisdictionController extends Controller
         // (which ApportionmentSeedCommand now stamps on completion) to
         // flip the banner from "running…" → "completed".
         //
-        // Earth-only scope for now: we look up the adm_level=0 jurisdiction
-        // (the planet root) by id and pass its UUID to apportionment:seed
-        // until apportionment + district building are proven on a single
-        // legislature. To enable other scopes later, derive the scope from
-        // the clicked jurisdiction (this endpoint is currently only wired
-        // up on the planet-scope page).
-        $earthId = DB::table('jurisdictions')
+        // WI-9: the apportionment scope is derived from the jurisdiction
+        // whose maps are being accepted (the caller sends its UUID), falling
+        // back to the planet root for the legacy setup path (the button has
+        // only ever been rendered at planet scope, so the fallback IS the
+        // common case today). Acceptance itself remains a single global gate
+        // — map_accepted_at / setup_step_completed live on instance_settings
+        // — so the planet-only-gate semantics are unchanged; only the
+        // seeding call is parameterized.
+        $planetId = DB::table('jurisdictions')
             ->where('adm_level', 0)
             ->whereNull('deleted_at')
             ->value('id');
+        $scopeId = $request->input('jurisdiction_id');
+        if ($scopeId !== null) {
+            $scopeId = DB::table('jurisdictions')
+                ->where('id', $scopeId)
+                ->whereNull('deleted_at')
+                ->value('id');   // validate existence; null falls back below
+        }
+        $scopeId ??= $planetId;
         try {
             \Illuminate\Support\Facades\Artisan::queue('apportionment:seed', [
-                '--jurisdiction'   => $earthId,
-                // Setup-wizard path: this run IS the canonical apportionment,
-                // so it stamps instance_settings.apportionment_completed_at.
-                // (Activation-engine runs omit the flag — WI-7.)
-                '--stamp-instance' => true,
+                '--jurisdiction'   => $scopeId,
+                // Setup-wizard path (planet scope): this run IS the canonical
+                // apportionment, so it stamps
+                // instance_settings.apportionment_completed_at. Non-planet
+                // scopes (future per-jurisdiction acceptance) and
+                // activation-engine runs omit the flag — WI-7/WI-9.
+                '--stamp-instance' => $scopeId === $planetId,
             ]);
         } catch (\Throwable $e) {
             // Don't fail the acceptance — the operator can re-run the command
