@@ -26,13 +26,12 @@ export const NAV = [
     { key: 'home', titleKey: 'nav.home', visibility: 'all', items: [
         { id: 'civic-home', labelKey: 'nav.civicHome', icon: 'home', href: '/civic', phase: 'A' },
         { id: 'my-record', labelKey: 'nav.myRecord', icon: 'file-text', href: '/civic/record', phase: 'A' },
-        /* No /civic/learn route exists yet — flagged Planned (phase C) so the
-           sidebar never renders a dead link; flip back to 'A' when the Learn
-           surface ships. */
-        { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'C' },
-        /* FE-C0: relocation gets its own item (PHASE_C_DESIGN_frontend.md §B
-           nav integration) — the mockup parked the surface under civic-home.
-           Stays Planned until the FE-C10 page lands and phasesLive flips. */
+        /* No /civic/learn route exists yet — flagged Planned (phase D now
+           that C is live) so the sidebar never renders a dead link; flip
+           back to 'A' when the Learn surface ships. */
+        { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'D' },
+        /* FE-C10 (live): relocation has its own item (PHASE_C_DESIGN_frontend.md
+           §B nav integration) — the mockup parked the surface under civic-home. */
         { id: 'relocation', labelKey: 'nav.relocation', icon: 'globe', href: '/civic/relocation', phase: 'C' },
     ] },
     /* FE-B0: item ids match the `nav` values in config/cga/surfaces.php
@@ -58,12 +57,9 @@ export const NAV = [
            jurisdiction; each row links into its district mapper). */
         { id: 'legislatures', labelKey: 'nav.legislatures', icon: 'map', href: '/legislatures', phase: 'A' },
     ] },
-    /* FE-C2…C5 (landed): legislature-home / session-console / bills /
-       settings flipped live per the per-item phase-gate mechanism (the
-       Learn precedent above — phasesLive itself stays ['A','B'] until the
-       whole Phase C surface set ships). Roadmap provenance stays recorded
-       in config/cga/surfaces.php. committees/oversight flip with FE-C6/C8;
-       referendums/emergency-powers with FE-C9 (batch 3). */
+    /* Phase C complete (FE-C2…C11): phasesLive flipped to ['A','B','C'] with
+       the final batch — every legislature/civic/system Phase C item below is
+       live. Roadmap provenance stays recorded in config/cga/surfaces.php. */
     { key: 'legislature', titleKey: 'nav.legislature', visibility: 'role', roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], items: [
         { id: 'legislature-home', labelKey: 'nav.chamber', icon: 'landmark', href: '/legislature', enabledRoles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'], prereq: 'R-09', phase: 'A' },
         { id: 'session-console', labelKey: 'nav.session', icon: 'users', href: '/legislature/session', enabledRoles: ['R-09', 'R-10'], prereq: 'R-09', phase: 'A' },
@@ -98,7 +94,10 @@ export const NAV = [
         { id: 'setup-wizard', labelKey: 'nav.setupWizard', icon: 'globe', href: '/setup', phase: 'A' },
         { id: 'public-records', labelKey: 'nav.publicRecords', icon: 'file-text', href: '/system/public-records', phase: 'C' },
         { id: 'audit-chain', labelKey: 'nav.auditChain', icon: 'lock', href: '/system/audit-chain', phase: 'A' },
-        { id: 'clocks', labelKey: 'nav.clocks', icon: 'clock', href: '/system/clocks', phase: 'C' },
+        /* No /system/clocks route exists — the clocks browser is not a Phase C
+           surface (B.15/B.16 cover public-records + term-sync only). Flagged
+           Planned (phase D) so the C flip never renders a dead link. */
+        { id: 'clocks', labelKey: 'nav.clocks', icon: 'clock', href: '/system/clocks', phase: 'D' },
         { id: 'term-sync', labelKey: 'nav.termSync', icon: 'refresh-cw', href: '/system/term-sync', phase: 'C' },
         { id: 'amendments', labelKey: 'nav.amendments', icon: 'file-text', href: '/system/amendments', phase: 'E' },
     ] },

@@ -80,6 +80,30 @@ class HomeController extends Controller
             ])
             ->all();
 
+        // Open petitions in the viewer's association chain (FE-C10 — the
+        // Phase A honest empty state retired with the Phase C flip).
+        $petitions = $associationIds === [] ? [] : \App\Models\Petition::query()
+            ->whereIn('jurisdiction_id', $associationIds)
+            ->whereNotIn('status', [
+                \App\Models\Petition::STATUS_ADOPTED,
+                \App\Models\Petition::STATUS_REJECTED,
+                \App\Models\Petition::STATUS_INVALIDATED,
+            ])
+            ->with('jurisdiction:id,name')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get()
+            ->map(fn ($petition) => [
+                'id'              => (string) $petition->id,
+                'title'           => $petition->title,
+                'jurisdiction'    => $petition->jurisdiction?->name,
+                'state'           => $petition->status,
+                'signatures'      => $petition->liveSignatureCount(),
+                'threshold_count' => (int) $petition->threshold_count,
+                'href'            => "/civic/petitions/{$petition->id}",
+            ])
+            ->all();
+
         return Inertia::render('Civic/Home', [
             'surface'      => SurfaceMeta::for('civic/home'),
             'claim'        => $claimProps,
@@ -89,14 +113,14 @@ class HomeController extends Controller
                 'record_entries' => DB::table('audit_log')->where('actor_user_id', (string) $user->id)->count(),
                 'associations'   => count($associations),
                 'ballots_cast'   => 0, // Phase B
-                'petitions'      => 0, // Phase C
+                'petitions'      => count($petitions),
             ],
-            // Footprint elections (Phase B live). Petitions keep the HONEST
-            // empty state until Phase C — never faked with fixtures.
             'elections' => $elections,
-            'petitions' => [],
-            // Emergency banner slot: dormant until Phase C (Art. II §7
-            // scenario machinery). Null = nothing renders.
+            'petitions' => $petitions,
+            // Page-level emergency slot stays null — the Art. II §7 banner
+            // ships SHELL-WIDE via the app.activeEmergencies shared prop
+            // (HandleInertiaRequests, FE-C9); rendering it here too would
+            // double the alert.
             'emergency' => null,
         ]);
     }

@@ -13,6 +13,7 @@ use App\Models\ElectionBoard;
 use App\Models\ElectionCertification;
 use App\Models\ElectionRace;
 use App\Models\LegislatureMember;
+use App\Models\Petition;
 use App\Models\Tabulation;
 use App\Models\Vacancy;
 use App\Support\SurfaceMeta;
@@ -31,6 +32,8 @@ use Inertia\Response;
  *   POST /board/validations/{candidacy}    — decideValidation  (F-ELB-002)
  *   POST /elections/{election}/certify     — certify           (F-ELB-004)
  *   POST /elections/{election}/recount     — recount           (F-ELB-006)
+ *   POST /board/petition-audits/{petition} — auditPetition     (F-ELB-005 — FE-C10:
+ *                                            the Phase B empty-state panel goes live)
  *
  * Every write goes through ConstitutionalEngine::file — the controller
  * resolves WHICH actor posture applies (seated member files as
@@ -99,6 +102,20 @@ class BoardConsoleController extends Controller
             ->orderByDesc('declared_at')
             ->get();
 
+        // FE-C10 — F-ELB-005 panel live: petitions at threshold (due) +
+        // recent audited outcomes for the board's jurisdiction.
+        $petitions = Petition::query()
+            ->where('jurisdiction_id', (string) $board->jurisdiction_id)
+            ->whereIn('status', [
+                Petition::STATUS_THRESHOLD_REACHED,
+                Petition::STATUS_SIGNATURE_AUDIT,
+                Petition::STATUS_CONSTITUTIONAL_REVIEW,
+                Petition::STATUS_INVALIDATED,
+            ])
+            ->orderByDesc('updated_at')
+            ->limit(20)
+            ->get();
+
         return Inertia::render('Elections/BoardConsole', [
             'surface' => SurfaceMeta::for('elections/board-console'),
             'board' => [
@@ -125,7 +142,7 @@ class BoardConsoleController extends Controller
                 'electionsAdministered' => $open->count(),
                 'validationsPending'    => $pendingValidation->count(),
                 'countbacksRunning'     => $vacancies->where('status', Vacancy::STATUS_COUNTBACK_RUNNING)->count(),
-                'petitionAuditsDue'     => 0, // petitions are Phase C
+                'petitionAuditsDue'     => $petitions->where('status', Petition::STATUS_THRESHOLD_REACHED)->count(),
             ],
             'schedulable' => $open
                 ->filter(fn (Election $e) => in_array(
@@ -163,7 +180,24 @@ class BoardConsoleController extends Controller
                 ->values()
                 ->map(fn (Election $e) => $this->certifiableRow($e))
                 ->all(),
-            'petitionAudits' => [], // F-ELB-005 panel chrome ships; petitions are Phase C
+            'petitionAudits' => $petitions
+                ->map(fn (Petition $petition) => [
+                    'petition_id'     => (string) $petition->id,
+                    'title'           => $petition->title,
+                    'state'           => $petition->status,
+                    'signatures'      => $petition->liveSignatureCount(),
+                    'threshold_count' => (int) $petition->threshold_count,
+                    'due'             => $petition->status === Petition::STATUS_THRESHOLD_REACHED,
+                    'result'          => $petition->audit_result !== null ? [
+                        'checked'     => (int) ($petition->audit_result['checked'] ?? 0),
+                        'valid'       => (int) ($petition->audit_result['valid'] ?? 0),
+                        'pct_valid'   => (string) ($petition->audit_result['pct'] ?? '0.0'),
+                        'still_above' => (bool) ($petition->audit_result['passed'] ?? false),
+                    ] : null,
+                    'href'      => "/civic/petitions/{$petition->id}",
+                    'audit_url' => "/board/petition-audits/{$petition->id}",
+                ])
+                ->all(),
             'vacancies' => $vacancies
                 ->map(fn (Vacancy $vacancy) => [
                     'vacancy_id' => (string) $vacancy->id,
@@ -217,6 +251,38 @@ class BoardConsoleController extends Controller
         return back()->with('status', $validated['decision'] === 'validate'
             ? 'Validated — the candidate is in the approval pool.'
             : 'Rejected — no residency association found; the appeal path is open (Art. I).');
+    }
+
+    /**
+     * F-ELB-005 — run the independent petition signature audit (FE-C10).
+     * BoardProvenance inside the handler re-asserts the responsible board;
+     * here we resolve the actor posture against the jurisdiction's active
+     * board (seated member files as themselves; the operator drives a
+     * bootstrap board as a system filing).
+     */
+    public function auditPetition(Request $request, Petition $petition): RedirectResponse
+    {
+        $board    = $this->activeBoardFor(null, (string) $petition->jurisdiction_id);
+        $standing = $this->boardActorFor($request->user(), $board);
+
+        abort_if($standing === false, 403, 'This filing requires standing on the petition jurisdiction\'s board (R-08).');
+
+        $result = $this->engine->file('F-ELB-005', $standing['actor'], [
+            'petition_id'     => (string) $petition->id,
+            'jurisdiction_id' => (string) $petition->jurisdiction_id,
+        ]);
+
+        $audit = $result->recorded['audit_result'] ?? [];
+
+        return back()->with('status', sprintf(
+            'Signature audit complete (F-ELB-005) — %d of %d valid (%s%%): %s',
+            (int) ($audit['valid'] ?? 0),
+            (int) ($audit['checked'] ?? 0),
+            (string) ($audit['pct'] ?? '0.0'),
+            ($audit['passed'] ?? false)
+                ? 'still above threshold — the petition holds at constitutional review (Phase E).'
+                : 'below threshold — the petition is invalidated (kill-path, Art. II §6).'
+        ));
     }
 
     /** F-ELB-004 — certify the election (winners granted roles). */

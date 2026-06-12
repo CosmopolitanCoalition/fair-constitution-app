@@ -216,9 +216,26 @@ const electionBadge = (status) => ELECTION_STATUS[status] ?? { tone: 'neutral', 
             <!-- ──────────────────────────────────────────── Petitions -->
             <Card as="section" title="Petitions near you">
                 <p v-if="petitions.length === 0" class="gloss">
-                    No petitions yet — the petition module arrives in Phase C. Any associated
-                    resident will be able to start one; signature thresholds derive from
-                    jurisdiction population (5%, amendable · CLK-17).
+                    No open petitions in your association chain — any associated resident can
+                    start one; signature thresholds derive from jurisdiction population
+                    (5%, amendable · CLK-17).
+                </p>
+                <ul v-else class="stack" style="gap: var(--space-2); list-style: none; padding: 0; margin: 0">
+                    <li v-for="p in petitions" :key="p.id" class="cluster" style="justify-content: space-between">
+                        <span>
+                            <Link :href="p.href">{{ p.title }}</Link>
+                            <span class="citation" style="display: block">
+                                {{ p.jurisdiction }} · {{ p.signatures.toLocaleString() }} of {{ p.threshold_count.toLocaleString() }} signatures
+                            </span>
+                        </span>
+                        <StatusBadge :tone="p.state === 'gathering' ? 'info' : 'neutral'">{{ p.state }}</StatusBadge>
+                    </li>
+                </ul>
+                <p style="margin-block-start: var(--space-3)">
+                    <Link href="/civic/petitions">
+                        All petitions
+                        <Icon name="arrow-right" size="sm" />
+                    </Link>
                 </p>
             </Card>
 

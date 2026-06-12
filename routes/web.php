@@ -288,6 +288,8 @@ Route::middleware('auth')->group(function () {
         ->name('board.scheduling-orders.store');                                  // F-ELB-001
     Route::post('/board/validations/{candidacy}', [BoardConsoleController::class, 'decideValidation'])
         ->whereUuid('candidacy')->name('board.validations.decide');               // F-ELB-002
+    Route::post('/board/petition-audits/{petition}', [BoardConsoleController::class, 'auditPetition'])
+        ->whereUuid('petition')->name('board.petition-audits.run');               // F-ELB-005 (FE-C10 — panel live)
     Route::post('/elections/{election}/certify', [BoardConsoleController::class, 'certify'])
         ->whereUuid('election')->name('elections.certify');                       // F-ELB-004
     Route::post('/elections/{election}/recount', [BoardConsoleController::class, 'recount'])

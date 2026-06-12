@@ -171,6 +171,11 @@ class TermLockstepTest extends TestCase
             // ('ends_on' => …->toDateString()); no Term row is touched. The
             // no-update pin above still covers every mutation path.
             $this->normalize($this->appPath() . '/Http/Controllers/Legislature/Concerns/ResolvesChamber.php'),
+            // FE-C10: same READ-shaped display posture — the TermSync page
+            // (§B.16, read-only by design: zero actions, no API) serializes
+            // grouped Term.ends_on values into its lockstep table props.
+            // SELECT + groupBy only; no Term row is ever written.
+            $this->normalize($this->appPath() . '/Http/Controllers/System/TermSyncController.php'),
         ];
 
         $found = [];

@@ -5,9 +5,12 @@ namespace App\Http\Middleware;
 use App\Domain\Engine\Contracts\ResolvesRoles;
 use App\Http\Controllers\Dev\ImpersonationController;
 use App\Models\CosmicAddress;
+use App\Models\EmergencyPower;
 use App\Models\InstanceSettings;
 use App\Models\Jurisdiction;
 use App\Models\User;
+use App\Services\EmergencyPowerService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -65,7 +68,14 @@ class HandleInertiaRequests extends Middleware
             'instance'     => fn () => $this->instanceProps(),
             // Live roadmap phases — the sidebar renders items from later
             // phases as "Planned · Phase X" until their phase ships here.
-            'app'          => ['phasesLive' => ['A', 'B']],
+            // C flipped live with the final FE-C9/C10/C11 batch.
+            'app'          => [
+                'phasesLive' => ['A', 'B', 'C'],
+                // FE-C9 (§A.8): active emergency powers whose area covers
+                // the viewer's association chain — the AppShell renders
+                // the Art. II §7 banner on EVERY page from this prop.
+                'activeEmergencies' => fn () => $this->activeEmergencyProps($user),
+            ],
             'locale'       => fn () => app()->getLocale(),
             'flash'        => [
                 'status' => fn () => $request->session()->get('status'),
@@ -140,6 +150,68 @@ class HandleInertiaRequests extends Middleware
             'chain'        => $chain,
             'cosmicPrefix' => $this->cosmicPrefix(),
         ];
+    }
+
+    /**
+     * FE-C9 — the cross-surface emergency banner feed (Art. II §7 ·
+     * CLK-03): live powers whose area of effect intersects the viewer's
+     * association chain — the Dorinda pattern (the county sees the
+     * state's power; one recursive footprint query via the service, model
+     * hydration only when a power actually exists — i.e. almost never).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function activeEmergencyProps(?User $user): array
+    {
+        if ($user === null || ! Schema::hasTable('emergency_powers')) {
+            return [];
+        }
+
+        // The deepest active association anchors the footprint walk (its
+        // ups+downs cover the whole chain).
+        $jurisdictionId = DB::table('residency_confirmations as rc')
+            ->join('jurisdictions as j', 'j.id', '=', 'rc.jurisdiction_id')
+            ->where('rc.user_id', (string) $user->id)
+            ->where('rc.is_active', true)
+            ->whereNull('j.deleted_at')
+            ->orderByDesc('j.adm_level')
+            ->value('j.id');
+
+        if ($jurisdictionId === null) {
+            return [];
+        }
+
+        $hits = app(EmergencyPowerService::class)->activeInFootprint((string) $jurisdictionId);
+
+        if ($hits === []) {
+            return [];
+        }
+
+        return EmergencyPower::query()
+            ->whereIn('id', array_map(fn ($hit) => (string) $hit->id, $hits))
+            ->with(['areaJurisdiction:id,name', 'legislature.jurisdiction:id,name'])
+            ->orderBy('starts_at')
+            ->get()
+            ->map(function (EmergencyPower $power) {
+                $starts  = CarbonImmutable::parse($power->starts_at);
+                $expires = CarbonImmutable::parse($power->expires_at);
+                $maxDays = max(1, (int) $starts->diffInDays($expires));
+
+                return [
+                    'id'                => (string) $power->id,
+                    'label'             => $power->label,
+                    'cause'             => $power->cause,
+                    'jurisdiction_name' => $power->areaJurisdiction?->name ?? 'this jurisdiction',
+                    'day'               => min($maxDays, max(1, (int) $starts->diffInDays(CarbonImmutable::now()) + 1)),
+                    'max_days'          => $maxDays,
+                    'expires_at'        => $expires->toIso8601String(),
+                    'declared_by_legislature' => ($power->legislature?->jurisdiction?->name ?? 'declaring') . ' legislature',
+                    'under_review'      => $power->status === EmergencyPower::STATUS_UNDER_REVIEW,
+                    'href'              => "/legislatures/{$power->legislature_id}/emergency-powers",
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     /**

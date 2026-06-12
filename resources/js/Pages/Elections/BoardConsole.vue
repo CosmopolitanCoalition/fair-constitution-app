@@ -6,10 +6,11 @@
  * operator driving an active bootstrap board). Panels map 1:1 to the
  * mockup contract table: Scheduling (F-ELB-001) · Validation queue
  * (F-ELB-002) · District-map oversight (F-ELB-003 prereq) · Certification
- * (F-ELB-004) + Recount (F-ELB-006) · Signature audit (F-ELB-005 — Phase C
- * empty state) · Vacancies. The bootstrap banner renders from the REAL
- * board.is_bootstrap flag (the mockup's toggle was a scenario control,
- * not product UI).
+ * (F-ELB-004) + Recount (F-ELB-006) · Signature audit (F-ELB-005 — live
+ * since FE-C10: petitions at threshold render with the run-audit action;
+ * the Phase B empty state is retired) · Vacancies. The bootstrap banner
+ * renders from the REAL board.is_bootstrap flag (the mockup's toggle was
+ * a scenario control, not product UI).
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
@@ -146,6 +147,19 @@ function orderRecount(electionId) {
         },
         onFinish: () => {
             certBusy[electionId] = false;
+        },
+    });
+}
+
+/* ------------------------------------- petition audit (F-ELB-005) ------ */
+const auditingPetition = ref(null);
+
+function runPetitionAudit(row) {
+    auditingPetition.value = row.petition_id;
+    router.post(row.audit_url, { form_id: 'F-ELB-005' }, {
+        preserveScroll: true,
+        onFinish: () => {
+            auditingPetition.value = null;
         },
     });
 }
@@ -444,8 +458,33 @@ function orderRecount(electionId) {
                     </h2>
                 </template>
                 <p class="citation">available to R-08 · prereq: petition at threshold · Art. II §6 (independent audit)</p>
-                <p class="gloss">No petitions at threshold.</p>
-                <p class="planned-flag">Petitions arrive with Phase C — the panel chrome ships now.</p>
+                <div v-if="petitionAudits.length" class="stack" style="gap: var(--space-3)">
+                    <div v-for="row in petitionAudits" :key="row.petition_id" class="card card--inset">
+                        <p style="margin-block-end: var(--space-1)">
+                            <a :href="row.href"><strong>{{ row.title }}</strong></a>
+                            {{ ' ' }}
+                            <StatusBadge :tone="row.due ? 'warning' : row.result?.still_above ? 'success' : row.result ? 'danger' : 'info'">
+                                {{ row.state }}
+                            </StatusBadge>
+                        </p>
+                        <p class="cc-small">
+                            {{ row.signatures.toLocaleString() }} live signatures · threshold {{ row.threshold_count.toLocaleString() }}
+                        </p>
+                        <p v-if="row.result" class="cc-small">
+                            {{ row.result.valid.toLocaleString() }} of {{ row.result.checked.toLocaleString() }} valid
+                            ({{ row.result.pct_valid }}%) —
+                            {{ row.result.still_above ? 'still above threshold' : 'below threshold — invalidated (kill-path)' }}
+                        </p>
+                        <Btn
+                            v-if="row.due"
+                            variant="primary"
+                            size="sm"
+                            :disabled="auditingPetition === row.petition_id"
+                            @click="runPetitionAudit(row)"
+                        >Run signature audit (F-ELB-005)</Btn>
+                    </div>
+                </div>
+                <p v-else class="gloss">No petitions at threshold.</p>
             </Card>
 
             <!-- ===================================== vacancies =========== -->
