@@ -114,6 +114,7 @@ class SetupController extends Controller
             $extra['root_jurisdiction'] = $root ? [
                 'id'   => $root->id,
                 'name' => $root->name,
+                'slug' => $root->slug ?? null,   // canonical legislature address
             ] : null;
             $extra['root_legislature_id'] = $root
                 ? DB::table('legislatures')

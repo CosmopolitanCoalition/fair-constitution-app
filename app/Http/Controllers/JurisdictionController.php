@@ -449,7 +449,10 @@ class JurisdictionController extends Controller
         $tolerance = $this->toleranceForZoom($zoom);
         $cacheKey  = "geojson.children.{$jurisdiction->id}.z{$zoom}";
 
-        $data = Cache::remember($cacheKey, 86400, function () use ($jurisdiction, $tolerance) {
+        // Persist-until-invalidated: boundary geometry only changes on a fresh
+        // ETL / restore (flushed there), never on a district redraw. Prewarmed
+        // entries must not silently expire on a 24h TTL, so cache forever.
+        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
             $rows = DB::select("
                 SELECT
                     j.id,
@@ -517,7 +520,8 @@ class JurisdictionController extends Controller
         $tolerance = $this->toleranceForZoom($zoom);
         $cacheKey  = "geojson.siblings.{$jurisdiction->id}.z{$zoom}";
 
-        $data = Cache::remember($cacheKey, 86400, function () use ($jurisdiction, $tolerance) {
+        // Persist-until-invalidated (see childrenGeoJson note).
+        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
             $rows = DB::select("
                 SELECT
                     j.id,
@@ -590,7 +594,8 @@ class JurisdictionController extends Controller
             ? "geojson.self.{$jurisdiction->id}.precise"
             : "geojson.self.{$jurisdiction->id}.z{$zoom}";
 
-        $data = Cache::remember($cacheKey, 86400, function () use ($jurisdiction, $tolerance, $precise) {
+        // Persist-until-invalidated (see childrenGeoJson note).
+        $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance, $precise) {
             $sql = $precise
                 ? "SELECT
                        ST_AsGeoJSON(geom) AS geojson,

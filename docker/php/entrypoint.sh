@@ -76,5 +76,35 @@ fi
     done
 ) &
 
+# ── 3. Boot-time cache prewarm dispatch (horizon container only) ───────────
+# The HORIZON container dispatches the raster + GeoJSON warm jobs so that app +
+# horizon booting together don't double-queue. The jobs run on Horizon's
+# `long-running` supervisor; live tile/GeoJSON requests are still served
+# synchronously by PHP-FPM (generate-on-miss), so whatever the operator is
+# looking at always preempts this background work.
+#
+# Both jobs are idempotent: rasters:prewarm skips every already-cached tile via
+# the file-exists fast-path, and the GeoJSON caches are rememberForever — so a
+# normal restart re-dispatch is cheap. They also self-guard on empty data
+# (rasters:prewarm → empty land mask → quick exit; geojson:prewarm → "no
+# legislatures" → exit), so a fresh instance still in setup warms nothing. This
+# mirrors the documented "just re-dispatch on restart" recovery recipe.
+case "$*" in
+  *horizon*)
+    (
+        # Wait until the app serves a request (implies Postgres + Redis online)
+        # before dispatching — artisan needs the DB to enumerate scopes.
+        for i in $(seq 1 90); do
+            curl -fsS -o /dev/null --max-time 30 http://nginx/ 2>/dev/null && break
+            sleep 1
+        done
+        cd /var/www/html
+        echo "[entrypoint] dispatching raster (z0-12) + geojson prewarm to Horizon" >&2
+        php artisan rasters:prewarm --min-zoom=0 --max-zoom=12 --land-only --queue 2>/dev/null || true
+        php artisan geojson:prewarm --queue 2>/dev/null || true
+    ) &
+    ;;
+esac
+
 # Hand off to the upstream php image's entrypoint, which exec's CMD.
 exec docker-php-entrypoint "$@"

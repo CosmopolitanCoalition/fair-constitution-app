@@ -223,7 +223,28 @@
       "Bash(grep -n \"^watch\\\\|^async function\\\\|function.*{$\" \"E:\\\\fair-constitution-app\\\\.claude\\\\worktrees\\\\practical-payne-17d537\\\\resources\\\\js\\\\Pages\\\\Legislature\\\\Show.vue\")",
       "Bash(grep -C 3 \"use \\(\\\\$\" \"E:\\\\fair-constitution-app\\\\app\\\\Http\\\\Controllers\\\\LegislatureController.php\")",
       "Bash(xargs grep -l \"class MassReseedJob\")",
-      "Bash(xargs grep -l \"wizard\" -i)"
+      "Bash(xargs grep -l \"wizard\" -i)",
+      "Bash(git -C E:/fair-constitution-app/.claude/worktrees/practical-payne-17d537 log --oneline -1)",
+      "Bash(git -C E:/fair-constitution-app log --oneline -1)",
+      "Bash(git -C E:/fair-constitution-app/.claude/worktrees/practical-payne-17d537 status --short)",
+      "Bash(git -C E:/fair-constitution-app status --short)",
+      "Bash(git -C E:/fair-constitution-app/.claude/worktrees/practical-payne-17d537 rev-list --left-right --count main...HEAD)",
+      "Bash(python -c \"import docx, openpyxl; print\\('python-docx + openpyxl OK'\\)\")",
+      "Bash(grep -n -E \"^\\(const|let|var|window\\\\.\\)|^\\\\s{0,2}[a-zA-Z_]+:\\\\s*[\\\\[{]\" \"E:/fair-constitution-app/mockups/assets/js/fixtures.js\")",
+      "Bash(python -)",
+      "Bash(grep -n -E \"^\\\\s{0,4}[a-zA-Z_][a-zA-Z0-9_]*\\\\s*[:=]\\\\s*\\(\\\\[|\\\\{|window\\)\" \"E:/fair-constitution-app/mockups/assets/js/fixtures.js\")",
+      "Bash(python3 -)",
+      "Bash(python -X utf8 -c ' *)",
+      "Bash(PYTHONIOENCODING=utf-8 python -)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(PYTHONIOENCODING=utf8 python3 -)",
+      "Read(//c/Users/JOSEPH~1/AppData/Local/Temp/claude/salvage/**)",
+      "Bash(sed -n '/## 10\\\\. Multiple legislatures/,$p' LEGISLATURE_and_EXECUTIVE_domains.md)",
+      "Bash(sed -n '/## 8\\\\. Cross-cutting backend implications/,$p' JUDICIARY_ORGANIZATIONS.md)",
+      "Bash(git ls-tree *)",
+      "Bash(awk '/public function completeStep4/,/^    }/' app/Http/Controllers/SetupController.php)",
+      "Bash(awk '/private function generateInstitutionStubs/,/^    }$/' app/Http/Controllers/SetupController.php)",
+      "Bash(grep -nE \"^#{1,4} |^### A\\\\.|^\\\\| Decision\" \"C:/Users/JOSEPH~1/AppData/Local/Temp/claude/salvage/DESIGN_schema_engine.md\")"
     ]
   }
 }

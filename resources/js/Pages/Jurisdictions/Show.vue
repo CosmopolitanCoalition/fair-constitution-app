@@ -174,14 +174,16 @@
                          jurisdiction with children), so `v-if="legislature_id"`
                          naturally gates state 1 → states 2/3. -->
                     <template v-if="legislature_id">
+                        <!-- This jurisdiction IS the legislature's root, so its
+                             own slug is the legislature's canonical address. -->
                         <a v-if="has_district_map"
-                           :href="`/legislatures/${legislature_id}`"
+                           :href="`/legislatures/${jurisdiction.slug}`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
                             View Legislature &amp; Districts →
                         </a>
                         <a v-else
-                           :href="`/legislatures/${legislature_id}`"
+                           :href="`/legislatures/${jurisdiction.slug}`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">
                             Create first district map →

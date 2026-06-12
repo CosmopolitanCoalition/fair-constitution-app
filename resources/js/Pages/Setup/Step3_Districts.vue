@@ -10,8 +10,11 @@ const props = defineProps({
     root_legislature_id: { type: String, default: null },
 })
 
+// Gate on the legislature existing, but address it by the root jurisdiction's
+// slug (canonical, parity with the jurisdiction viewer). Fall back to the UUID
+// if the slug somehow isn't present — the mapper route dual-accepts both.
 const mapperHref = props.root_legislature_id
-    ? `/legislatures/${props.root_legislature_id}?setup=1`
+    ? `/legislatures/${props.root_jurisdiction?.slug ?? props.root_legislature_id}?setup=1`
     : null
 
 const summary = ref(null)

@@ -125,6 +125,33 @@ def _sanitize_name(name: str) -> str:
     return cleaned.strip("-") or "unknown"
 
 
+def _demojibake(name: str) -> str:
+    """
+    Repair double-encoded (UTF-8-bytes-read-as-Latin-1) names that ship corrupted
+    in the geoBoundaries source GeoJSON, e.g. 'RegiÃ£o AutÃ³noma da Madeira' →
+    'Região Autónoma da Madeira', 'AÃ§ores' → 'Açores'.
+
+    Safe by construction:
+      • Fast-path returns unchanged unless the name has a Latin-1-supplement char
+        (U+0080–U+00FF) — the only bytes a UTF-8 sequence can masquerade as.
+        Real Persian/Arabic/CJK names (codepoints > U+00FF) are never candidates.
+      • A candidate is repaired only when it round-trips latin-1 → utf-8 WITHOUT
+        error AND the result differs. Correctly-encoded accented names
+        ('Île-de-France', 'Região') fail the utf-8 decode (a lone high byte isn't
+        valid UTF-8) and are returned untouched.
+
+    The lossy '?' (0x3f) corruption (e.g. Iran ADM4 names) is unrecoverable from
+    the source and is left as-is.
+    """
+    if not any(0x80 <= ord(ch) <= 0xFF for ch in name):
+        return name
+    try:
+        repaired = name.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return name
+    return repaired if repaired and repaired != name else name
+
+
 def make_slug(
     iso3: str,
     adm_level_app: int,
@@ -629,7 +656,20 @@ def _resolve_orphans_at_level_via_strategy(
         Classified 'topological' if chosen iso matches orphan iso,
         'cross_iso_topological' if it differs (the meaningful audit case).
     """
-    if strategy == "exact":
+    if strategy == "direct_intersect":
+        # Direct-level intersection (mirrors find_parent_by_strategy_ladder's
+        # Strategy 0): same-iso parent at the EXACT level above the orphan,
+        # matched by ST_Intersects rather than strict point-containment, so a
+        # coastal sub-unit re-chains to its true state/province even when the
+        # ADM boundaries are clipped differently at the shoreline. Run BEFORE
+        # 'exact' so the strict-containment classifier below only ever sees
+        # genuinely level-skipping orphans. The exact-level constraint rides on
+        # same_iso_join; the template's `p.adm_level < orphan_level` stays
+        # trivially satisfied (orphan_level-1 < orphan_level).
+        match_expr    = "ST_Intersects(p.geom, o.geom)"
+        same_iso_join = f"p.iso_code = o.iso_code AND p.adm_level = {orphan_level - 1}"
+        strategy_expr = "'direct'::varchar(32)"
+    elif strategy == "exact":
         # Same-iso, centroid OR PointOnSurface containment
         match_expr = (
             "ST_Contains(p.geom, ST_Centroid(o.geom)) "
@@ -735,7 +775,7 @@ def _resolve_orphans_at_level_via_strategy(
     n_topo         = sum(1 for r in rows if r["parent_assigned_via"] == "topological")
     n_cross        = sum(1 for r in rows if r["parent_assigned_via"] == "cross_iso_topological")
 
-    if strategy == "exact":
+    if strategy in ("direct_intersect", "exact"):
         return (n_direct, n_skip)
     if strategy == "buffered":
         return (n_buffered, 0)
@@ -798,6 +838,13 @@ def post_pass_orphan_resolution(
 
         if initial_orphans == 0:
             continue
+
+        # Direct-level ST_Intersects first — re-chains coastal/precision sub-units
+        # to their true parent before the strict-containment classifier can
+        # mislabel them 'skip_ancestor'.
+        n_di, _ = _resolve_orphans_at_level_via_strategy(conn, level, "direct_intersect")
+        conn.commit()
+        counts["direct"] += n_di
 
         n_direct, n_skip = _resolve_orphans_at_level_via_strategy(conn, level, "exact")
         conn.commit()
@@ -1186,6 +1233,50 @@ def find_parent_by_strategy_ladder(
     Returns (parent_uuid, strategy_used). strategy_used is None when the
     feature stays orphan.
     """
+    # Strategy 0 (direct-level intersection): match the orphan to a same-iso
+    # parent at the EXACT level above it (adm_level == orphan_level - 1) via
+    # ST_Intersects, not strict point-containment. A sub-unit always overlaps
+    # its proper parent even when the two boundaries are clipped differently at
+    # a coastline (e.g. Aransas vs Texas, Yuhuanxian vs Zhejiang). Those cases
+    # fail Strategy 1's strict ST_Contains(point) and used to skip straight to
+    # the country as 'skip_ancestor' — the regression the operator hit. Running
+    # this FIRST restores the pre-regression direct-level match and leaves the
+    # strict-containment ladder below to handle only genuine no-intermediate-
+    # level territories (Puerto Rico, Guam, Réunion).
+    #
+    # Tie-break (a border feature can intersect two parents): prefer the parent
+    # that actually contains the orphan's surface point / centroid; else the one
+    # with the largest bbox overlap. Both are cheap — point-in-polygon (cheap
+    # regardless of parent vertex count) + envelope area — never a full
+    # ST_Intersection (which OOMs on 5M-vertex geoms; see Strategy 2 notes). The
+    # GIST '&&' index bounds the ST_Intersects candidate set; at the direct
+    # level the parents are states/provinces, not the giant country polygon.
+    sql0 = """
+        WITH o AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326) AS geom)
+        SELECT j.id
+        FROM   jurisdictions j, o
+        WHERE  j.iso_code   = %s
+          AND  j.adm_level  = %s
+          AND  j.deleted_at IS NULL
+          AND  ST_Intersects(j.geom, o.geom)
+        ORDER BY
+          (ST_Contains(j.geom, ST_PointOnSurface(o.geom))
+            OR ST_Contains(j.geom, ST_Centroid(o.geom))) DESC,
+          ST_Area(ST_Intersection(ST_Envelope(j.geom), ST_Envelope(o.geom))) DESC
+        LIMIT 1
+    """
+    if orphan_adm_level - 1 >= 0:
+        try:
+            with get_cursor(conn) as cur:
+                cur.execute(sql0, (geom_geojson, iso3, orphan_adm_level - 1))
+                row = cur.fetchone()
+            if row:
+                return str(row["id"]), "direct"
+        except Exception as exc:
+            logger.warning("Strategy 0 lookup failed for iso3=%s lvl=%d: %s",
+                           iso3, orphan_adm_level, exc)
+            conn.rollback()
+
     # Strategy 1: same-iso, centroid OR PointOnSurface containment.
     # ST_Centroid is the fast common case; ST_PointOnSurface is the
     # crescent/island fallback (centroid in ocean, but PointOnSurface is
@@ -1360,12 +1451,12 @@ def _extract_name(props: dict, adm_n: int) -> str:
     # Try level-specific key first
     level_key = f"ADM{adm_n}_EN"
     if level_key in props and props[level_key]:
-        return str(props[level_key]).strip()
+        return _demojibake(str(props[level_key]).strip())
 
     for key in NAME_KEYS:
         val = props.get(key)
         if val and str(val).strip() not in ("", "None", "null"):
-            return str(val).strip()
+            return _demojibake(str(val).strip())
     return "Unknown"
 
 

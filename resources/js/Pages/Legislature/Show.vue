@@ -18,11 +18,11 @@
                 {{ active_map && active_map.status === 'active' ? '← Back to Setup' : '← Return to Setup' }}
             </button>
         </div>
-        <div class="flex flex-1 min-h-0 overflow-hidden">
+        <div class="lm-split flex flex-1 min-h-0 overflow-hidden">
 
             <!-- ══ Left panel ══════════════════════════════════════════════ -->
             <!-- max-w-96 prevents content overflow from bleeding onto the map -->
-            <aside class="w-96 max-w-96 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden">
+            <aside class="lm-sidebar w-96 max-w-96 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden">
 
                 <!-- Header -->
                 <div class="px-4 py-3 border-b border-gray-800 shrink-0">
@@ -214,7 +214,7 @@
                 </div>
 
                 <!-- ── Districts ─────────────────────────────────────── -->
-                <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
+                <div class="lm-sidebar-body flex-1 min-h-0 flex flex-col overflow-hidden">
 
                     <!-- Persistent mass-job progress banner (survives page navigation) -->
                     <div v-if="massJobRunning"
@@ -291,8 +291,14 @@
                         </div>
                     </div>
 
-                    <!-- Map Quality + Constitutional Flags — unified panel -->
-                    <div v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag"
+                    <!-- Map Quality + Constitutional Flags — unified panel.
+                         Also shown when `optimalLabel` exists even with zero
+                         districts: the Uniform Political Diversity "Optimal" is
+                         derived from the scope's seat budget + child
+                         apportionment (optimalConfig), so it's known before any
+                         district is drawn. The district-derived sections inside
+                         degrade gracefully ("— not yet computed" / hidden). -->
+                    <div v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel"
                          class="mx-2 mt-2 mb-1 rounded bg-gray-900 shrink-0 border"
                          :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                         <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800 cursor-pointer select-none"
@@ -723,7 +729,7 @@
                             <button @click="closeMassToolPanel" class="text-xs text-gray-500 hover:text-gray-300">✕</button>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <button v-for="opt in MASS_SCOPES" :key="opt.key"
+                            <button v-for="opt in visibleMassScopes" :key="opt.key"
                                     @click="massToolScope = opt.key"
                                     class="text-left px-2 py-1.5 rounded text-xs border transition-colors w-full"
                                     :class="massToolScope === opt.key
@@ -734,20 +740,15 @@
                                 <div v-if="opt.warn" class="text-amber-400 text-[10px] mt-0.5">⚠ May be slow for large legislatures</div>
                             </button>
                         </div>
-                        <!-- Unassigned + Clear no-op notice -->
-                        <div v-if="massToolPanel === 'clear' && massToolScope && massToolScope.endsWith('_unassigned')"
-                             class="mt-2 px-2 py-1.5 rounded bg-amber-950 border border-amber-800 text-xs text-amber-300">
-                            Clear only removes existing districts — there are none in unassigned scopes.
-                        </div>
                         <div class="flex items-center justify-end gap-2 mt-3">
                             <button @click="closeMassToolPanel"
                                     class="px-3 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
                                 Cancel
                             </button>
                             <button @click="runMassTool"
-                                    :disabled="!massToolScope || massToolRunning || (massToolPanel === 'clear' && massToolScope && massToolScope.endsWith('_unassigned'))"
+                                    :disabled="!massToolScope || massToolRunning"
                                     class="px-3 py-1 rounded text-xs border transition-colors"
-                                    :class="!massToolScope || massToolRunning || (massToolPanel === 'clear' && massToolScope && massToolScope.endsWith('_unassigned'))
+                                    :class="!massToolScope || massToolRunning
                                         ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
                                         : massToolPanel === 'clear'
                                             ? 'bg-red-700 border-red-600 text-white hover:bg-red-600'
@@ -758,7 +759,7 @@
                     </div>
 
                     <!-- Scrollable content area -->
-                    <div ref="sidebarListEl" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+                    <div ref="sidebarListEl" class="lm-sidebar-list flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
 
                     <!-- Rounding readiness banner -->
                     <div v-if="roundingReady"
@@ -1201,7 +1202,7 @@
                      rubber-band) are anchored to this div, not to the outer panel.
                      This means "top-3 right-3" always means "inside the map area",
                      regardless of whether the wizard bar is showing above it. -->
-                <div class="flex-1 relative flex flex-col min-w-0 overflow-hidden">
+                <div class="lm-mapside flex-1 relative flex flex-col min-w-0 overflow-hidden">
 
                 <div id="legislature-map" class="w-full flex-1"></div>
                 <!-- Rubber-band selection overlay (drag-select mode) -->
@@ -1629,11 +1630,21 @@ function startMassStatusPolling() {
 }
 
 const MASS_SCOPES = [
-    { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts' },
-    { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level' },
-    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope' },
-    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope' },
+    { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts',            clearable: false },
+    { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level',         clearable: true,  clearDesc: 'Remove all districts at this level' },
+    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope',      clearable: false },
+    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope', clearable: true,  clearDesc: 'Remove all districts here and at every nested giant scope' },
 ]
+
+// Clear only removes existing districts, so the "Unassigned" (fill-gaps) scopes
+// are meaningless for it — show only the "All" scopes, with Clear-appropriate
+// wording. Reseed shows all four with fill-gap wording.
+const visibleMassScopes = computed(() => {
+    const isClear = massToolPanel.value === 'clear'
+    return MASS_SCOPES
+        .filter(o => !isClear || o.clearable)
+        .map(o => ({ ...o, desc: isClear ? (o.clearDesc ?? o.desc) : o.desc }))
+})
 
 // Label layer visibility toggles
 // Label toggles — persisted in localStorage so they survive Inertia scope navigations
@@ -1744,14 +1755,12 @@ function rebuildDistrictLabelGroup() {
             )
         }
         if (!lines.length) continue
-        districtLabelGroup.addLayer(L.marker(item.center, {
-            icon: L.divIcon({
-                className: '',
-                html: `<div class="district-label-name" data-district-id="${item.distId}" style="border-color:${item.color}">${lines.join('')}</div>`,
-                iconSize: null, iconAnchor: [0, 0],
-            }),
-            interactive: false,
-        }))
+        const dIcon = L.divIcon({
+            className: '',
+            html: `<div class="district-label-name" data-district-id="${item.distId}" style="border-color:${item.color}">${lines.join('')}</div>`,
+            iconSize: null, iconAnchor: [0, 0],
+        })
+        addLabelWraps(districtLabelGroup, item.center, dIcon)
     }
     districtLabelGroup.addTo(_map)
 }
@@ -1856,11 +1865,11 @@ function buildAdjacencyMap() {
     for (const c of children) _adjacencyMap[c.id] = new Set()
     const EPS = 0.01
     for (let i = 0; i < children.length; i++) {
-        const li = layerByJid[children[i].id]
+        const li = nativeLayer(children[i].id)
         if (!li) continue
         let bi; try { bi = li.getBounds() } catch { continue }
         for (let j = i + 1; j < children.length; j++) {
-            const lj = layerByJid[children[j].id]
+            const lj = nativeLayer(children[j].id)
             if (!lj) continue
             let bj; try { bj = lj.getBounds() } catch { continue }
             if (bi.getWest()  <= bj.getEast()  + EPS &&
@@ -1880,20 +1889,27 @@ function buildAdjacencyMap() {
 function refreshJursLabels() {
     if (!jurisdictionLabelGroup) return
     for (const child of childrenRef.value) {
-        const marker = jursLabelMarkers[child.id]
-        if (!marker) continue
-        marker.setIcon(L.divIcon({
+        const markers = jursLabelMarkers[child.id]
+        if (!markers) continue
+        const icon = L.divIcon({
             className:  '',
             html:       buildJursLabelHtml(child),
             iconSize:   null,
             iconAnchor: [0, 0],
-        }))
+        })
+        // jursLabelMarkers[child.id] is the [native, −360, +360] wrap set.
+        for (const m of markers) m.setIcon(icon)
     }
 }
 
 // Reference to the Leaflet map instance (set in onMounted)
 let _map = null
 let _reinitRevision = 0   // incremented on every reinitMapLayers() call; guards against stale fetches
+
+// Floor zoom so the world fills the container vertically (256·2^z = h → z = log2(h/256)).
+// Extracted so the resize observer can recompute it after the container height changes
+// (device rotation, portrait re-stack). Mirrors the inline calc the map init used.
+function computeMinZoom(h) { return Math.max(0, Math.ceil(Math.log2((h || 700) / 256))) }
 
 // ── Antimeridian wrap helpers ──────────────────────────────────────────────
 // Leaflet wraps TileLayers automatically across ±180° longitude, but vector
@@ -1920,26 +1936,46 @@ function shiftedGeojson(geojson, delta) {
         })),
     }
 }
-function addAntimeridianWraps(geojson, styleFn) {
-    // Wrap clones are non-interactive on this page: the polygon click /
-    // hover handlers register a single layer per jurisdiction in
-    // `layerByJid`, and the rubber-band drag-select math expects one
-    // polygon-per-jurisdiction. Operators still see the world tile out
-    // continuously when scrolling east-west; selections happen on the
-    // central copy. (Jurisdictions/Show.vue makes its clones interactive
-    // because it has a slug-keyed registry of multiple layers per feature;
-    // adopting that here would require a bigger refactor.)
+function addAntimeridianWraps(geojson, styleFn, onEachFeature = null) {
+    // When onEachFeature is supplied the wrap clones become INTERACTIVE with
+    // the same handlers as the native polygon — so hovering or clicking
+    // Russia's Chukotka (or Fiji / NZ) on the OPPOSITE side of the map via a
+    // wrap clone behaves identically to the native copy. Cross-copy
+    // highlighting works because the child handler restyles every entry in
+    // layerByJid[jid] and the revealed handler restyles every member in its
+    // districtLayerMap — clones register into those same structures. Without
+    // an onEachFeature the clones stay non-interactive (used for the
+    // parent-outline layer, which is decorative only).
     if (!_map) return
     for (const dx of [-360, 360]) {
         const shifted = shiftedGeojson(geojson, dx)
         if (shifted && shifted.features.length > 0) {
             L.geoJSON(shifted, {
-                style:       styleFn,
-                interactive: false,
-                keyboard:    false,
+                style:        styleFn,
+                interactive:  onEachFeature !== null,
+                keyboard:     false,
+                onEachFeature: onEachFeature ?? undefined,
             }).addTo(_map)
         }
     }
+}
+
+// Label counterpart to addAntimeridianWraps(): a Leaflet marker at lng L renders
+// on exactly ONE world copy, so a label placed at a feature's native centre never
+// appears on that feature's ±360° wrap clones (the Brazil-past-the-dateline copy
+// shows polygons but no labels). Add the same marker at lng, lng−360 and lng+360
+// so the label rides along with whichever polygon copy is in view. The off-screen
+// clones are just detached DOM until the operator pans across the dateline, exactly
+// like the polygon wrap clones. Returns the markers created (native first) so
+// callers that update content later (refreshJursLabels) can setIcon() every copy.
+function addLabelWraps(group, center, icon) {
+    const markers = []
+    for (const dx of [0, -360, 360]) {
+        const m = L.marker(L.latLng(center.lat, center.lng + dx), { icon, interactive: false })
+        group.addLayer(m)
+        markers.push(m)
+    }
+    return markers
 }
 
 // WorldPop raster TileLayer — created lazily on first toggle-on so we don't
@@ -1995,7 +2031,7 @@ let _dragIsRemove = false  // true = Ctrl was held at mousedown → remove gestu
 
 // Jurs label marker registry — populated during jurisdictionLabelGroup build;
 // cleared on scope change; used by refreshJursLabels() to call setIcon() in-place.
-const jursLabelMarkers = {}  // jid → L.Marker
+const jursLabelMarkers = {}  // jid → L.Marker[]  ([native, −360, +360] antimeridian wrap copies)
 
 // Bounding-box adjacency map — jid → Set<jid>; built once after layers load.
 let _adjacencyMap = null
@@ -2049,7 +2085,12 @@ const optimalConfig = computed(() => {
         let best = null
         for (let d = dMin; d <= dMax; d++) {
             const q = Math.floor(poolSeats / d), r = poolSeats % d
-            if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+            // Min average Droop threshold (lower = more politically diverse):
+            // balanced partition = r districts of size q+1 (threshold 1/(q+2)) +
+            // (d−r) of size q (1/(q+1)); the average rewards larger districts and
+            // penalises a small-district outlier. Tie-break toward fewer districts.
+            const t = (r / (q + 2) + (d - r) / (q + 1)) / d
+            if (!best || t < best.t - 1e-9 || (Math.abs(t - best.t) < 1e-9 && d < best.d)) best = { d, q, r, t }
         }
         if (!best) break
 
@@ -2075,7 +2116,9 @@ const optimalConfig = computed(() => {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
                 const q = Math.floor(poolSeats / d), r = poolSeats % d
-                if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+                // Min average Droop threshold (lower = more diverse); see main loop above.
+                const t = (r / (q + 2) + (d - r) / (q + 1)) / d
+                if (!best || t < best.t - 1e-9 || (Math.abs(t - best.t) < 1e-9 && d < best.d)) best = { d, q, r, t }
             }
             if (best) return { ...best, expansionGroups, giantCount, giantSeats }
         }
@@ -2123,7 +2166,12 @@ const suboptimalConfig = computed(() => {
         let best = null
         for (let d = dMin; d <= dMax; d++) {
             const q = Math.floor(poolSeats / d), r = poolSeats % d
-            if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+            // Min average Droop threshold (lower = more politically diverse):
+            // balanced partition = r districts of size q+1 (threshold 1/(q+2)) +
+            // (d−r) of size q (1/(q+1)); the average rewards larger districts and
+            // penalises a small-district outlier. Tie-break toward fewer districts.
+            const t = (r / (q + 2) + (d - r) / (q + 1)) / d
+            if (!best || t < best.t - 1e-9 || (Math.abs(t - best.t) < 1e-9 && d < best.d)) best = { d, q, r, t }
         }
         if (!best) break
         const maxAllowed = best.q + (best.r > 0 ? 1 : 0)
@@ -2144,7 +2192,9 @@ const suboptimalConfig = computed(() => {
             let best = null
             for (let d = dMin; d <= dMax; d++) {
                 const q = Math.floor(poolSeats / d), r = poolSeats % d
-                if (!best || r < best.r || (r === best.r && d < best.d)) best = { d, q, r }
+                // Min average Droop threshold (lower = more diverse); see main loop above.
+                const t = (r / (q + 2) + (d - r) / (q + 1)) / d
+                if (!best || t < best.t - 1e-9 || (Math.abs(t - best.t) < 1e-9 && d < best.d)) best = { d, q, r, t }
             }
             if (best) return { ...best, expansionGroups, assignedSeats, giantSeats }
         }
@@ -2614,11 +2664,34 @@ function showStatus(type, text, ms = 3500) {
 }
 
 // ── Map management helpers ─────────────────────────────────────────────────────
+// Resolve a jurisdiction id → slug from whatever the current page already knows
+// (scope, its children, the ancestor chain). Returns null when unknown — callers
+// fall back to the raw UUID and the backend's dual-accept route canonicalizes it
+// to the slug form via a 302.
+function slugForScope(scopeId) {
+    if (!scopeId) return null
+    if (scopeId === props.scope?.id) return props.scope?.slug ?? null
+    const c = (props.children ?? []).find(x => x.id === scopeId)
+    if (c?.slug) return c.slug
+    const a = (props.ancestors ?? []).find(x => x.id === scopeId)
+    if (a?.slug) return a.slug
+    return null
+}
+
+// Build a human-facing mapper URL. Path uses the legislature's slug (= its root
+// jurisdiction slug); scope uses the target's slug when known. Root scope omits
+// ?scope entirely for the clean canonical form. Preserves map + setup params so
+// wizard mode (?setup=1) and a non-active map survive drill-down navigation.
 function mapUrl(scopeId, mapId) {
-    const mid = mapId !== undefined ? mapId : props.active_map?.id
-    let url = `/legislatures/${props.legislature.id}?scope=${scopeId}`
-    if (mid) url += `&map=${mid}`
-    return url
+    const mid     = mapId !== undefined ? mapId : props.active_map?.id
+    const legPath = props.legislature.slug ?? props.legislature.id
+    const isRoot  = scopeId === props.legislature.root_jurisdiction_id
+    const q = []
+    if (!isRoot) q.push(`scope=${slugForScope(scopeId) ?? scopeId}`)
+    if (mid)     q.push(`map=${mid}`)
+    const setup = new URLSearchParams(window.location.search).get('setup')
+    if (setup)   q.push(`setup=${setup}`)
+    return `/legislatures/${legPath}` + (q.length ? `?${q.join('&')}` : '')
 }
 
 function countFlags(flags) {
@@ -2763,7 +2836,7 @@ async function confirmDeleteMap(mapId) {
         if (!resp.ok) { showStatus('error', data.error ?? 'Failed to delete map'); return }
         // If we deleted the map we're currently viewing, navigate to root (no map param)
         if (mapId === props.active_map?.id) {
-            router.visit(`/legislatures/${props.legislature.id}`)
+            router.visit(`/legislatures/${props.legislature.slug ?? props.legislature.id}`)
         } else {
             router.visit(mapUrl(props.scope.id))
         }
@@ -2840,9 +2913,20 @@ function getLayerStyle(jid) {
     return STYLE_NORMAL(dist?.color_index ?? 0)
 }
 
+// layerByJid[jid] holds an ARRAY of Leaflet layers: the native polygon plus
+// its ±360° antimeridian wrap clones. These helpers operate over every copy so
+// a restyle/highlight on an antimeridian jurisdiction (Russia, Fiji, NZ) keeps
+// all visible copies in sync; bounds-based math reads the native (first) copy.
+function copiesOf(jid)    { const v = layerByJid[jid]; return Array.isArray(v) ? v : (v ? [v] : []) }
+function nativeLayer(jid) { return copiesOf(jid)[0] ?? null }
+function registerCopy(jid, layer) {
+    if (!Array.isArray(layerByJid[jid])) layerByJid[jid] = []
+    layerByJid[jid].push(layer)
+}
+
 function restyleLayer(jid) {
-    const layer = layerByJid[jid]
-    if (layer) layer.setStyle(getLayerStyle(jid))
+    const style = getLayerStyle(jid)
+    for (const layer of copiesOf(jid)) layer.setStyle(style)
 }
 function restyleAll() {
     for (const jid of Object.keys(layerByJid)) restyleLayer(jid)
@@ -2851,16 +2935,16 @@ function restyleAll() {
 // ── Sidebar hover → map highlight ────────────────────────────────────────────
 function highlightJids(jids) {
     for (const jid of jids) {
-        const layer = layerByJid[jid]
-        if (!layer) continue
         const style = getLayerStyle(jid)
-        layer.setStyle({
-            ...style,
-            fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.2, 0.92),
-            weight: Math.max((style.weight ?? 1) + 1, 2),
-            color: '#fbbf24',
-        })
-        layer.bringToFront()
+        for (const layer of copiesOf(jid)) {
+            layer.setStyle({
+                ...style,
+                fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.2, 0.92),
+                weight: Math.max((style.weight ?? 1) + 1, 2),
+                color: '#fbbf24',
+            })
+            layer.bringToFront()
+        }
     }
 }
 function unhighlightJids(jids) {
@@ -2875,7 +2959,7 @@ function panMapToDistrict(districtId) {
     if (!dist || !_map) return
     const bounds = L.latLngBounds([])
     for (const m of dist.members) {
-        const layer = layerByJid[m.id]
+        const layer = nativeLayer(m.id)
         if (layer) try { bounds.extend(layer.getBounds()) } catch (_) {}
     }
     if (bounds.isValid()) _map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 })
@@ -2886,34 +2970,47 @@ function fitBoundsToPendingMembers() {
     if (!_map || pendingAdd.value.size === 0) return
     const bounds = L.latLngBounds([])
     for (const jid of pendingAdd.value) {
-        const layer = layerByJid[jid]
+        const layer = nativeLayer(jid)
         if (layer) try { bounds.extend(layer.getBounds()) } catch (_) {}
     }
     if (bounds.isValid()) _map.fitBounds(bounds, { padding: [60, 60] })
 }
 
 /** Scroll the sidebar district list to the row for the given districtId. */
+// Active scroll container for the sidebar: sidebarListEl on desktop; the <aside>
+// (.lm-sidebar) when a mobile media query makes the list overflow:visible and the
+// whole sidebar scrolls as one. scrollBy() on a non-scrolling element is a no-op,
+// so map-click auto-scroll must target whichever element actually scrolls.
+function sidebarScroller() {
+    const list = sidebarListEl.value
+    if (!list) return null
+    const oy = getComputedStyle(list).overflowY
+    return (oy === 'auto' || oy === 'scroll') ? list : (list.closest('.lm-sidebar') || list)
+}
+
 function scrollToSidebarRow(districtId) {
-    if (!sidebarListEl.value) return
-    const el = sidebarListEl.value.querySelector(`[data-district-id="${districtId}"]`)
+    const scroller = sidebarScroller()
+    if (!scroller) return
+    const el = scroller.querySelector(`[data-district-id="${districtId}"]`)
     if (!el) return
-    // scrollIntoView block:'start' would land under the sticky sort header.
-    // Instead manually compute the target scrollTop so the row appears just
-    // below the sticky header (approx 28px — "Name Seats Population Rep" bar).
-    const STICKY_HEADER_H = 28
-    const containerTop = sidebarListEl.value.getBoundingClientRect().top
-    const rowTop        = el.getBoundingClientRect().top
-    const offset        = rowTop - containerTop - STICKY_HEADER_H
-    sidebarListEl.value.scrollBy({ top: offset, behavior: 'smooth' })
+    // On desktop the list scrolls and a sticky sort header (~28px) overlaps its
+    // top, so nudge the row below it. In mobile single-scroll the headers are
+    // static (no overlap) → no offset.
+    const STICKY_HEADER_H = scroller === sidebarListEl.value ? 28 : 0
+    const containerTop = scroller.getBoundingClientRect().top
+    const rowTop       = el.getBoundingClientRect().top
+    const offset       = rowTop - containerTop - STICKY_HEADER_H
+    scroller.scrollBy({ top: offset, behavior: 'smooth' })
 }
 
 /** Scroll the sidebar so the Unassigned section header (which holds the Create
  *  button and seat-preview pill) is visible at the top of the list area. */
 function scrollToUnassignedSection() {
-    if (!sidebarListEl.value || !unassignedSectionEl.value) return
-    const containerTop = sidebarListEl.value.getBoundingClientRect().top
+    const scroller = sidebarScroller()
+    if (!scroller || !unassignedSectionEl.value) return
+    const containerTop = scroller.getBoundingClientRect().top
     const sectionTop   = unassignedSectionEl.value.getBoundingClientRect().top
-    sidebarListEl.value.scrollBy({ top: sectionTop - containerTop, behavior: 'smooth' })
+    scroller.scrollBy({ top: sectionTop - containerTop, behavior: 'smooth' })
 }
 
 /**
@@ -3639,18 +3736,17 @@ async function reinitMapLayers() {
             )
         }
 
-        const childLayer = L.geoJSON(gj, {
-            style: feat => {
-                const jid = feat.id ?? feat.properties?.id
-                return getLayerStyle(jid)
-            },
-
-            onEachFeature(feat, layer) {
+        // Shared per-feature binding — used by the native polygon layer AND
+        // each ±360° antimeridian wrap clone, so a hover/click on Russia's
+        // Chukotka (or Fiji / NZ) works on whichever copy is under the cursor.
+        // Every copy registers under layerByJid[jid] so cross-copy restyle
+        // keeps them in sync.
+        const bindChildFeature = (feat, layer) => {
                 const jid   = feat.id ?? feat.properties?.id
                 const child = childById[jid]
                 if (!child) return
 
-                layerByJid[jid] = layer
+                registerCopy(jid, layer)
 
                 // Dynamic tooltip content (called on each mouseover/mousemove)
                 function tooltipContent() {
@@ -3687,12 +3783,24 @@ async function reinitMapLayers() {
                     sharedTooltip.setLatLng(e.latlng)
                     sharedTooltip.addTo(_map)
                     const style = getLayerStyle(jid)
-                    layer.setStyle({
+                    const hov = {
                         ...style,
                         fillOpacity: Math.min((style.fillOpacity ?? 0.33) + 0.15, 0.9),
                         weight: Math.max((style.weight ?? 1) + 1, 2),
-                    })
-                    layer.bringToFront()
+                    }
+                    // Restyle every copy (native + antimeridian wraps) so the
+                    // whole jurisdiction lights up regardless of which side of
+                    // the dateline the cursor is on.
+                    //
+                    // Do NOT bringToFront() here. With the interactive wrap
+                    // clones each L.geoJSON layer owns its own <g>; reordering a
+                    // path to the front on hover changes which element is topmost
+                    // at the cursor, so mousedown lands on one element (<g>) and
+                    // mouseup on another (<path>) — different targets, so the
+                    // browser never synthesizes a click. That silently broke
+                    // click-to-draw and click-to-select on the map. Districts
+                    // read fine without front-ordering (borders share colour).
+                    for (const l of copiesOf(jid)) l.setStyle(hov)
                 })
                 layer.on('mousemove', function (e) {
                     sharedTooltip.setLatLng(e.latlng)
@@ -3700,7 +3808,7 @@ async function reinitMapLayers() {
                 })
                 layer.on('mouseout', function () {
                     sharedTooltip.remove()
-                    layer.setStyle(getLayerStyle(jid))
+                    restyleLayer(jid)   // resets every copy
                 })
 
                 layer.on('click', function (e) {
@@ -3746,12 +3854,18 @@ async function reinitMapLayers() {
                         scrollToUnassignedSection()
                     }
                 })
-            },
+        }
+
+        const childLayer = L.geoJSON(gj, {
+            style: feat => getLayerStyle(feat.id ?? feat.properties?.id),
+            onEachFeature: bindChildFeature,
         }).addTo(_map)
 
-        // ±360° wrap clones so the at-scope polygons appear continuously
-        // when the operator scrolls east/west past the antimeridian.
-        addAntimeridianWraps(gj, feat => getLayerStyle(feat.id ?? feat.properties?.id))
+        // ±360° wrap clones so the at-scope polygons appear continuously when
+        // the operator scrolls east/west past the antimeridian — INTERACTIVE
+        // (same bindChildFeature) so the wrapped copy hovers/clicks just like
+        // the native one and registers under layerByJid for cross-copy restyle.
+        addAntimeridianWraps(gj, feat => getLayerStyle(feat.id ?? feat.properties?.id), bindChildFeature)
 
         if (gj.features.length > 0) {
             _map.fitBounds(childLayer.getBounds(), { padding: [30, 30] })
@@ -3820,7 +3934,7 @@ async function reinitMapLayers() {
         // suppressing it — both labels then appear without stacking on the same point.
         const JURS_COLLIDE = 0.2
         for (const child of childrenRef.value) {
-            const layer = layerByJid[child.id]
+            const layer = nativeLayer(child.id)
             if (!layer) continue
             let center = null
             try {
@@ -3843,17 +3957,14 @@ async function reinitMapLayers() {
                     center       = L.latLng(center.lat + latOff, center.lng)
                 } catch (_) {}
             }
-            const jursMarker = L.marker(center, {
-                icon: L.divIcon({
-                    className:  '',
-                    html:       buildJursLabelHtml(child),
-                    iconSize:   null,
-                    iconAnchor: [0, 0],
-                }),
-                interactive: false,
+            const jursIcon = L.divIcon({
+                className:  '',
+                html:       buildJursLabelHtml(child),
+                iconSize:   null,
+                iconAnchor: [0, 0],
             })
-            jursLabelMarkers[child.id] = jursMarker
-            jurisdictionLabelGroup.addLayer(jursMarker)
+            // Store ALL wrap copies so refreshJursLabels() updates every one.
+            jursLabelMarkers[child.id] = addLabelWraps(jurisdictionLabelGroup, center, jursIcon)
         }
 
         // Build _districtLabelData for regular districts.
@@ -3886,16 +3997,18 @@ async function reinitMapLayers() {
             // mouseover can highlight ALL jurisdictions in the same district at once.
             const districtLayerMap = new Map()
 
-            const revealedLayer = L.geoJSON({ type: 'FeatureCollection', features: revColoredFeats }, {
-                style: feat => {
-                    const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
-                    // fillOpacity 0.33 = ~67% transparent so the Protomaps basemap
-                    // and the optional WorldPop raster show through underneath.
-                    // Border opacity stays 1.0 so districts remain crisply
-                    // outlined. Hover bumps fill to 0.55 for visual feedback.
-                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
-                },
-                onEachFeature(feat, layer) {
+            // fillOpacity 0.33 = ~67% transparent so the Protomaps basemap and
+            // the optional WorldPop raster show through underneath. Border
+            // opacity stays 1.0 so districts remain crisply outlined. Hover
+            // bumps fill to 0.55 for visual feedback.
+            const revStyleFn = feat => {
+                const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
+                return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
+            }
+            // Shared binding for the native layer AND its ±360° wrap clones; all
+            // copies register into the same districtLayerMap so cross-member
+            // highlight (and hover/click) spans the antimeridian.
+            const bindRevealedFeature = (feat, layer) => {
                     // Register this layer under its district so siblings can be found later
                     const distId = feat.properties.district_id
                     if (!districtLayerMap.has(distId)) districtLayerMap.set(distId, [])
@@ -3929,18 +4042,21 @@ async function reinitMapLayers() {
                         if (editingDistrictId.value) return  // don't interrupt edit / new-district mode
                         drillTo(feat.properties.parent_jurisdiction_id)
                     })
-                },
+            }
+
+            const revealedLayer = L.geoJSON({ type: 'FeatureCollection', features: revColoredFeats }, {
+                style:         revStyleFn,
+                onEachFeature: bindRevealedFeature,
             }).addTo(_map)
 
-            // ±360° wrap clones for the revealed sub-district fills so
-            // drilled-in views (e.g. Russia, Alaska) tile continuously
-            // across the antimeridian.
+            // ±360° wrap clones for the revealed sub-district fills so drilled-in
+            // views (Russia, Alaska) tile continuously across the antimeridian —
+            // INTERACTIVE (same bindRevealedFeature) so the wrapped copy hovers/
+            // clicks like the native and joins the district's highlight group.
             addAntimeridianWraps(
                 { type: 'FeatureCollection', features: revColoredFeats },
-                feat => {
-                    const color = DISTRICT_COLORS[feat.properties.color_index ?? 0]
-                    return { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 }
-                },
+                revStyleFn,
+                bindRevealedFeature,
             )
 
             // Build per-district label data from revealed sub-layers:
@@ -4081,8 +4197,7 @@ onMounted(async () => {
     //     antimeridian wrap continues to work.
     //   - maxBoundsViscosity=1.0: hard limit, no rubber-band overshoot.
     const mapEl = document.getElementById('legislature-map')
-    const mapH  = (mapEl?.clientHeight) || 700
-    const dynamicMinZoom = Math.max(0, Math.ceil(Math.log2(mapH / 256)))
+    const dynamicMinZoom = computeMinZoom(mapEl?.clientHeight)
     _map = L.map('legislature-map', {
         zoomControl:        true,
         worldCopyJump:      true,
@@ -4090,6 +4205,16 @@ onMounted(async () => {
         maxBounds:          [[-85.05, -540], [85.05, 540]],
         maxBoundsViscosity: 1.0,
     })
+
+    // Re-measure the map on any container size change: device rotation, the
+    // portrait re-stack, or the short-viewport reflow. Debounced via
+    // scheduleMapRefresh; observing the element catches CSS-only flex resizes
+    // that window 'resize' would miss. orientationchange is a fallback.
+    if (typeof ResizeObserver !== 'undefined') {
+        _mapResizeRO = new ResizeObserver(scheduleMapRefresh)
+        _mapResizeRO.observe(mapEl)
+    }
+    window.addEventListener('orientationchange', scheduleMapRefresh)
 
     // Custom pane for the Protomaps basemap. zIndex=150 puts it below the
     // default tilePane (200, used by the WorldPop raster) and well below
@@ -4267,7 +4392,7 @@ onMounted(async () => {
             // This mirrors the single-click handler's `if (isGiant) return` guard.
             if (child.fractional_seats >= GIANT_THRESHOLD) continue
 
-            const layer = layerByJid[child.id]
+            const layer = nativeLayer(child.id)
             if (!layer) continue
             let center = null
             try { center = layer.getBounds().getCenter() } catch (_) {}
@@ -4403,11 +4528,37 @@ function _onSpaceUp(e) {
     isSpaceHeld.value = false
     // Dragging is re-disabled automatically by the rubber-band mousedown handler
 }
+
+// ── Mobile viewport handling: re-measure the Leaflet container after any size
+//    change (rotation, portrait re-stack, short-viewport reflow). Leaflet caches
+//    the container size at init and never re-reads it; without invalidateSize()
+//    tiles/center go stale after a rotate, and the height-derived minZoom floor
+//    (computeMinZoom) becomes wrong for the new height.
+let _mapResizeRO = null
+let _mapResizeTimer = null
+function refreshMapViewport() {
+    if (!_map) return
+    _map.invalidateSize({ animate: false })
+    const h = document.getElementById('legislature-map')?.clientHeight
+    if (!h) return
+    const newMin = computeMinZoom(h)
+    if (newMin !== _map.getMinZoom()) _map.setMinZoom(newMin)
+    if (_map.getZoom() < newMin) _map.setZoom(newMin)
+}
+function scheduleMapRefresh() {
+    if (_mapResizeTimer) clearTimeout(_mapResizeTimer)
+    // Debounce + rAF: measure once, after the CSS layout settles and paints.
+    _mapResizeTimer = setTimeout(() => { _mapResizeTimer = null; requestAnimationFrame(refreshMapViewport) }, 150)
+}
+
 window.addEventListener('keydown', _onSpaceDown)
 window.addEventListener('keyup',   _onSpaceUp)
 onUnmounted(() => {
     window.removeEventListener('keydown', _onSpaceDown)
     window.removeEventListener('keyup',   _onSpaceUp)
+    if (_mapResizeRO) { _mapResizeRO.disconnect(); _mapResizeRO = null }
+    window.removeEventListener('orientationchange', scheduleMapRefresh)
+    if (_mapResizeTimer) { clearTimeout(_mapResizeTimer); _mapResizeTimer = null }
     clearAutoStepTimer()   // safety cleanup in case of unexpected unmount mid-countdown
     // The mass-status + elapsed timers leak across navigation if a job is
     // running when the operator leaves the page. Without this cleanup, every
@@ -4545,5 +4696,33 @@ watch([pendingAdd, editingDistrictId], refreshJursLabels, { flush: 'post' })
     background: rgba(96, 165, 250, 0.08);
     pointer-events: none;
     z-index: 1000;
+}
+
+/* ── Mobile District Mapper — SHORT viewports (phone landscape, any short window).
+   The <aside> becomes the single scroll container; the former flex-1 scroll
+   regions collapse to natural height so the whole sidebar scrolls as one. The
+   two `sticky top-0` headers share one scroll context here, so pin them static
+   to avoid overlap. Height-only trigger intentionally also helps a short DESKTOP
+   window (same clipping bug). 600px cleanly separates landscape (~360-450px tall)
+   from portrait (~700-930px tall, handled below). Desktop tall layout is untouched. */
+@media (max-height: 600px) {
+    .lm-sidebar       { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .lm-sidebar-body,
+    .lm-sidebar-list  { flex: 0 0 auto; min-height: 0; overflow: visible; }
+    .lm-sidebar-list .sticky { position: static; }
+}
+
+/* ── Portrait phones/phablets: STACK map on top, full-width scrolling sidebar
+   below. dvh excludes the mobile URL bar (vh fallback first). The ResizeObserver
+   re-measures Leaflet when the map height switches from flex-1 to 45dvh. Gated to
+   <=768px so desktop/large-tablet portrait windows are unaffected. */
+@media (orientation: portrait) and (max-width: 768px) {
+    .lm-split    { flex-direction: column; }
+    .lm-mapside  { flex: 0 0 45vh; flex: 0 0 45dvh; min-height: 0; }
+    .lm-sidebar  { width: 100%; max-width: 100%; flex: 1 1 auto; min-height: 0;
+                   overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .lm-sidebar-body,
+    .lm-sidebar-list  { flex: 0 0 auto; min-height: 0; overflow: visible; }
+    .lm-sidebar-list .sticky { position: static; }
 }
 </style>

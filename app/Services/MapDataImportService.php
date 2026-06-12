@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Jobs\PrewarmGeojsonCachesJob;
+use App\Jobs\PrewarmRasterTilesJob;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
@@ -166,6 +169,25 @@ class MapDataImportService
         DB::table('instance_settings')->update([
             'map_accepted_at' => now(),
         ]);
+
+        // A restore replaces jurisdictions / districts / settings wholesale, so
+        // every derived cache (boundary GeoJSON, revealed GeoJSON, mass-op flags)
+        // is now stale. Flush the whole cache store — cheaper and safer than
+        // tracking exactly which keys the donor's data invalidates — then
+        // re-dispatch the background prewarm so the new state is hot before the
+        // operator opens the mapper.
+        //
+        // Raster TILE files on disk are keyed by z/x/y (not jurisdiction): a
+        // same-data round-trip leaves them valid and the prewarm just fills
+        // gaps. A restore bringing *different* WorldPop data should be followed
+        // by a manual tile-cache clear — rare, so not automated here.
+        Cache::flush();
+        try {
+            PrewarmRasterTilesJob::dispatch();   // z0-12 land-only (defaults)
+            PrewarmGeojsonCachesJob::dispatch();
+        } catch (\Throwable $e) {
+            Log::warning('post-restore prewarm dispatch failed', ['error' => $e->getMessage()]);
+        }
 
         $this->rmTree($stageDir);
 

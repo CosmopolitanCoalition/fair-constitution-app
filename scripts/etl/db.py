@@ -22,6 +22,14 @@ DB_CONFIG = {
     "dbname":   os.environ.get("DB_NAME",     "fair_constitution"),
     "user":     os.environ.get("DB_USER",     "fc_user"),
     "password": os.environ.get("DB_PASSWORD", "fc_password"),
+    # Force UTF-8 on the wire (defensive). The default already resolves to UTF8
+    # in our containers, but pinning it removes any dependence on the container
+    # locale so non-Latin names always round-trip cleanly into the UTF-8 columns.
+    # NOTE: the observed Iran '?' / Madeira mojibake names are NOT introduced
+    # here — they are corrupted in the geoBoundaries *source* GeoJSON itself
+    # (verified). The reversible mojibake is un-mangled in import_geoboundaries.py
+    # (_demojibake); the lossy '?' Persian names are unrecoverable from source.
+    "client_encoding":     "UTF8",
     # TCP keepalives — prevent PostgreSQL from dropping idle connections
     # during long per-country processing (CAN, RUS, USA can take minutes).
     "keepalives":          1,
