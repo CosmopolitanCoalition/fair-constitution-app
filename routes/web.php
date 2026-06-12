@@ -8,6 +8,7 @@ use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
+use App\Http\Controllers\Dev\ResidencyGrantController;
 use App\Http\Controllers\Elections\ApprovalController;
 use App\Http\Controllers\Elections\BallotController;
 use App\Http\Controllers\Elections\BoardConsoleController;
@@ -305,6 +306,8 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/identity/request', [IdentityVerificationController::class, 'requestAttestation'])->name('identity.request');
     Route::get('/jurisdictions/search', [ResidencyController::class, 'searchJurisdictions'])->name('jurisdictions.search');
     Route::get('/residency', [ResidencyController::class, 'show'])->name('residency');
+    // Point-first declare preview: smallest containing jurisdiction + chain.
+    Route::post('/residency/locate', [ResidencyController::class, 'locate'])->name('residency.locate');
     Route::post('/residency/declare', [ResidencyController::class, 'declare'])->name('residency.declare');
     Route::post('/residency/confirm', [ResidencyController::class, 'confirm'])->name('residency.confirm');
     Route::post('/residency/redeclare', [ResidencyController::class, 'redeclare'])->name('residency.redeclare');
@@ -329,6 +332,9 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
         Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
         Route::post('/pings/simulate', [PingController::class, 'simulate'])->name('pings.simulate');
+        // Dev residency bypass: declare → simulated pings → verify, all
+        // through the real engine, in one request (dev-only relocation).
+        Route::post('/residency/grant', [ResidencyGrantController::class, 'grant'])->name('residency.grant');
         // FE-B1 — fixture-first harness: every Electoral component in every state.
         Route::get('/electoral-kit', [ElectoralKitController::class, 'show'])->name('electoral-kit');
     });

@@ -70,7 +70,9 @@
         "planned": "Planned",
         "stage": "Stage",
         "phase": "Phase",
-        "menu": "Menu"
+        "menu": "Menu",
+        "dev": "Dev tools",
+        "electoralKit": "Electoral kit"
     },
     "footer": {
         "audit": "Audit #{n} · chained",

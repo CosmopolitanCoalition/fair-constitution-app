@@ -55,6 +55,31 @@ class HomeController extends Controller
 
         $associations = $this->roles->associationsFor($user);
 
+        // Elections in the viewer's FOOTPRINT: one row per non-cancelled
+        // election whose jurisdiction the viewer is actively associated
+        // with (the Art. I association sweep covers every enclosing level,
+        // so a San Marino resident sees the San Marino chamber's election).
+        // Live phases rank ahead of certified/final.
+        $associationIds = array_column($associations, 'id');
+
+        $elections = $associationIds === [] ? [] : DB::table('elections as e')
+            ->join('jurisdictions as j', 'j.id', '=', 'e.jurisdiction_id')
+            ->whereNull('e.deleted_at')
+            ->where('e.status', '!=', 'cancelled')
+            ->whereIn('e.jurisdiction_id', $associationIds)
+            ->orderByRaw("CASE WHEN e.status IN ('certified', 'final') THEN 1 ELSE 0 END")
+            ->orderByDesc('e.created_at')
+            ->limit(10)
+            ->get(['e.id', 'e.status', 'e.kind', 'j.name as jurisdiction_name', 'j.adm_level'])
+            ->map(fn ($row) => [
+                'id'           => (string) $row->id,
+                'status'       => $row->status,
+                'kind'         => $row->kind,
+                'jurisdiction' => $row->jurisdiction_name,
+                'adm_level'    => (int) $row->adm_level,
+            ])
+            ->all();
+
         return Inertia::render('Civic/Home', [
             'surface'      => SurfaceMeta::for('civic/home'),
             'claim'        => $claimProps,
@@ -66,9 +91,9 @@ class HomeController extends Controller
                 'ballots_cast'   => 0, // Phase B
                 'petitions'      => 0, // Phase C
             ],
-            // HONEST empty states — these institutions ship in B/C; the
-            // dashboard never fakes them with fixtures.
-            'elections' => [],
+            // Footprint elections (Phase B live). Petitions keep the HONEST
+            // empty state until Phase C — never faked with fixtures.
+            'elections' => $elections,
             'petitions' => [],
             // Emergency banner slot: dormant until Phase C (Art. II §7
             // scenario machinery). Null = nothing renders.

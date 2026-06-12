@@ -55,6 +55,21 @@ const scopeName = computed(
         page.props.jurisdiction?.current?.name ??
         null,
 );
+
+/* Election phase → badge tone + label (elections.status vocabulary). */
+const ELECTION_STATUS = {
+    scheduled:       { tone: 'neutral', label: 'Scheduled' },
+    approval_open:   { tone: 'info',    label: 'Approval open' },
+    finalist_cutoff: { tone: 'info',    label: 'Finalist cutoff' },
+    ranked_open:     { tone: 'warning', label: 'Ranked open' },
+    voting_closed:   { tone: 'warning', label: 'Voting closed' },
+    tabulating:      { tone: 'warning', label: 'Tabulating' },
+    certified:       { tone: 'success', label: 'Certified' },
+    audit_rerun:     { tone: 'warning', label: 'Audit rerun' },
+    final:           { tone: 'success', label: 'Final' },
+};
+
+const electionBadge = (status) => ELECTION_STATUS[status] ?? { tone: 'neutral', label: status };
 </script>
 
 <template>
@@ -169,10 +184,29 @@ const scopeName = computed(
         <!-- ──────────────────────────────────────────────── Elections -->
         <Card as="section" :title="`Active elections${scopeName ? ` — ${scopeName}` : ''}`">
             <p v-if="elections.length === 0" class="gloss">
-                No elections scheduled — the elections engine arrives in Phase B. When a race opens
-                in any jurisdiction you are associated with, it appears here with its phase and
-                ballot call-to-action.
+                No elections in your footprint yet — when a race opens in any jurisdiction you
+                are associated with, it appears here with its phase and ballot call-to-action.
             </p>
+            <ul v-else class="election-list">
+                <li v-for="e in elections" :key="e.id" class="election-row">
+                    <Link :href="`/elections/${e.id}`">
+                        <AdmChip :level="e.adm_level" :label="e.jurisdiction" />
+                        <span style="margin-inline-start: var(--space-2)">{{ e.kind }} election</span>
+                    </Link>
+                    <StatusBadge :tone="electionBadge(e.status).tone">
+                        {{ electionBadge(e.status).label }}
+                    </StatusBadge>
+                    <Link v-if="e.status === 'approval_open'" :href="`/elections/${e.id}/open-ballot`">
+                        Open ballot →
+                    </Link>
+                    <Link v-else-if="e.status === 'ranked_open'" :href="`/elections/${e.id}/ranked-ballot`">
+                        Ranked ballot →
+                    </Link>
+                    <Link v-else-if="e.status === 'certified' || e.status === 'final'" :href="`/elections/${e.id}/results`">
+                        Results →
+                    </Link>
+                </li>
+            </ul>
             <p class="citation" style="margin-block-start: var(--space-2)">
                 Approval phase opens the moment the prior election certifies · CLK-18 · Art. II §2
             </p>
@@ -206,3 +240,24 @@ const scopeName = computed(
         </div>
     </PageScaffold>
 </template>
+
+<style scoped>
+.election-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.election-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--gov-border, #d6d9de);
+}
+
+.election-row:last-child {
+    border-block-end: 0;
+}
+</style>

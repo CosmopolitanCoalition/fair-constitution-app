@@ -20,7 +20,9 @@ use Inertia\Response;
  * WI-5/WI-8 — Civic/Residency: the resident-facing claim lifecycle.
  *
  *   GET  /civic/residency             — claim state, ping meter, panel state
- *   GET  /civic/jurisdictions/search  — declare-form jurisdiction picker
+ *   POST /civic/residency/locate      — point-first preview: smallest containing
+ *                                       jurisdiction + ancestor chain (read-only)
+ *   GET  /civic/jurisdictions/search  — declare-form jurisdiction picker (tertiary)
  *   POST /civic/residency/declare     — F-IND-003 via the engine
  *   POST /civic/residency/confirm     — "this is my residence" → F-IND-006
  *   POST /civic/residency/redeclare   — correct the boundary → new F-IND-003
@@ -87,6 +89,54 @@ class ResidencyController extends Controller
             'defaultThreshold' => ResidencyService::DEFAULT_THRESHOLD_DAYS,
             'panel'        => $panel,
             'associations' => $this->roles->associationsFor($user),
+        ]);
+    }
+
+    /**
+     * POST /civic/residency/locate {lat, lng} — point-first declare preview.
+     *
+     * Resolves the SMALLEST containing jurisdiction (PostGIS ST_Contains,
+     * GIST-driven) plus its full ancestor chain, root-first. Strictly
+     * read-only — nothing is filed; the resolved jurisdiction_id feeds the
+     * normal F-IND-003 declare submit. 404-shaped payload when the point
+     * is in open water / outside every loaded boundary.
+     */
+    public function locate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        $found = $this->residency->locateJurisdiction(
+            (float) $validated['lat'],
+            (float) $validated['lng'],
+        );
+
+        if ($found === null) {
+            return response()->json([
+                'found'   => false,
+                'message' => 'No jurisdiction contains this point — it appears to be in open water or outside every loaded boundary.',
+            ], 404);
+        }
+
+        $chain = $this->residency->ancestorChain((string) $found->id);
+
+        return response()->json([
+            'found'        => true,
+            'jurisdiction' => [
+                'id'        => (string) $found->id,
+                'name'      => $found->name,
+                'slug'      => $found->slug,
+                'adm_level' => (int) $found->adm_level,
+            ],
+            // Root-first (Earth → … → smallest boundary).
+            'chain' => array_map(fn ($row) => [
+                'id'        => (string) $row->id,
+                'name'      => $row->name,
+                'slug'      => $row->slug,
+                'adm_level' => (int) $row->adm_level,
+            ], $chain),
         ]);
     }
 

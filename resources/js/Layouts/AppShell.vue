@@ -17,9 +17,12 @@
  *
  * Chrome modes:
  *   full    → header + sidebar + footer
- *   minimal → header + footer only (setup wizard). Also forced while the
- *             instance setup is incomplete (`instance.setupComplete`), which
- *             preserves the legacy AppLayout behavior of hiding nav pre-setup.
+ *   minimal → header + footer only (setup wizard pages pass this explicitly).
+ *             NOTE: minimal is NOT forced pre-setup anymore — the design
+ *             system's intent is the full constitutional sitemap visible from
+ *             day one (unbuilt items render "Planned · Phase X"), and hiding
+ *             the sidebar left the app un-navigable on instances that never
+ *             clicked the final setup confirm (operator report 2026-06-14).
  *
  * Shared-prop consumption is DEFENSIVE: `jurisdiction`, `impersonation`,
  * `app.phasesLive` and `devBar` ship from a parallel work item — every read
@@ -66,14 +69,13 @@ const jurisdiction = computed(() => page.props.jurisdiction ?? null);
 const impersonation = computed(() => page.props.impersonation ?? null);
 const surface = computed(() => page.props.surface ?? null);
 const phasesLive = computed(() => page.props.app?.phasesLive ?? ['A']);
-const setupComplete = computed(() => instance.value.setupComplete ?? true);
 
 /* Pages below (PageScaffold, AboutSurface consumers) can inject the surface
    without re-reading page props. */
 provide('cga:surface', surface);
 
 /* ------------------------------------------------------------------ chrome */
-const minimal = computed(() => props.chrome === 'minimal' || !setupComplete.value);
+const minimal = computed(() => props.chrome === 'minimal');
 
 /* The ported .app-shell grid reserves a 15rem sidebar column; in minimal
    chrome the sidebar is absent, so collapse to a single column (inline style

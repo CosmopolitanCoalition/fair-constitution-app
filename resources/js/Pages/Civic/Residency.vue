@@ -4,9 +4,15 @@
  * EXPLORE_civic_electoral.md §2; mockups/civic/residency.html).
  *
  * Sections: Residency-Claim StateStrip (machine PHP-owned, prop-fed) ·
- * F-IND-003 declare/redeclare FormCard with live jurisdiction search ·
- * F-IND-005 ping card (ThresholdMeter, manual ping via browser
- * geolocation with lat/lng fallback, dev-only simulator) · declared-
+ * F-IND-003 declare/redeclare FormCard — POINT-FIRST: "use my current
+ * location" or click the picker map → POST /civic/residency/locate
+ * resolves the smallest containing jurisdiction + its full ancestor
+ * chain (read-only preview), then the normal declare submit files
+ * F-IND-003 with the resolved id; name search remains as a tertiary
+ * collapse (it searches jurisdiction NAMES — street-address geocoding
+ * needs an offline geocoder, out of scope) · F-IND-005 ping card
+ * (ThresholdMeter, manual ping via browser geolocation with lat/lng
+ * fallback, dev-only simulator + dev-only instant grant) · declared-
  * boundary Leaflet map (boundary polygon + ping-day count — raw ping
  * coordinates are PRIVATE: encrypted at rest, purged on verification,
  * never sent to the client) · F-IND-006 confirmation panel in its three
@@ -56,6 +62,76 @@ const declareForm = useForm({
     ping_consent: false,
 });
 
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+/* Point-first declare: browser geolocation or a picker-map click resolves
+   the SMALLEST containing jurisdiction + its root-first ancestor chain via
+   POST /civic/residency/locate (read-only preview — nothing is filed). */
+const located = ref(null); // { jurisdiction, chain } from /locate
+const locatingPoint = ref(false);
+const locateError = ref(null);
+const pickerLatLng = ref(null); // last picked/geolocated point {lat,lng}
+let locateSeq = 0;
+
+async function locatePoint(lat, lng) {
+    const seq = ++locateSeq;
+    locatingPoint.value = true;
+    locateError.value = null;
+    try {
+        const res = await fetch('/civic/residency/locate', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: JSON.stringify({ lat, lng }),
+        });
+        const data = await res.json().catch(() => null);
+        if (seq !== locateSeq) return; // a newer click superseded this one
+        if (res.ok && data?.found) {
+            located.value = data;
+            selected.value = null; // the point wins over any earlier search pick
+            declareForm.jurisdiction_id = data.jurisdiction.id;
+        } else {
+            located.value = null;
+            declareForm.jurisdiction_id = '';
+            locateError.value =
+                data?.message ?? `Could not resolve a jurisdiction for this point (${res.status}).`;
+        }
+    } catch {
+        if (seq === locateSeq) locateError.value = 'Locate failed — network error.';
+    } finally {
+        if (seq === locateSeq) locatingPoint.value = false;
+    }
+}
+
+const geolocating = ref(false);
+
+function useMyLocation() {
+    locateError.value = null;
+    if (!('geolocation' in navigator)) {
+        locateError.value = 'Browser geolocation unavailable — click your home on the map instead.';
+        return;
+    }
+    geolocating.value = true;
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            geolocating.value = false;
+            const { latitude: lat, longitude: lng } = pos.coords;
+            setPickerPin(lat, lng);
+            if (pickerMap) pickerMap.setView([lat, lng], 11);
+            locatePoint(lat, lng);
+        },
+        () => {
+            geolocating.value = false;
+            locateError.value = 'Could not read your location — click your home on the map instead.';
+        },
+        { enableHighAccuracy: false, timeout: 10000 },
+    );
+}
+
 const search = ref('');
 const searching = ref(false);
 const results = ref([]);
@@ -92,6 +168,7 @@ watch(search, (q) => {
 
 function pick(jurisdiction) {
     selected.value = jurisdiction;
+    located.value = null; // an explicit name pick overrides the point preview
     declareForm.jurisdiction_id = jurisdiction.id;
     results.value = [];
     search.value = '';
@@ -160,14 +237,13 @@ async function simulate(days = 30) {
     simulating.value = true;
     simulateResult.value = null;
     try {
-        const token = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
         const res = await fetch('/dev/pings/simulate', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                'X-CSRF-TOKEN': token,
+                'X-CSRF-TOKEN': csrfToken(),
             },
             body: JSON.stringify({ days }),
         });
@@ -183,11 +259,151 @@ async function simulate(days = 30) {
     }
 }
 
+/* Dev-only instant grant (POST /dev/residency/grant — same WI-4 gate):
+   declare → simulated pings → verify, all through the real engine, in one
+   request. Targets the located/picked jurisdiction; falls back to the pin
+   coordinates, then to the already-declared boundary. */
+const granting = ref(false);
+const grantResult = ref(null);
+
+const devGrantTarget = computed(() => {
+    if (declareForm.jurisdiction_id) {
+        return {
+            payload: { jurisdiction_id: declareForm.jurisdiction_id },
+            name: located.value?.jurisdiction?.name ?? selected.value?.name ?? 'the selected boundary',
+        };
+    }
+    if (pickerLatLng.value) {
+        return {
+            payload: { lat: pickerLatLng.value.lat, lng: pickerLatLng.value.lng },
+            name: 'the picked point',
+        };
+    }
+    if (props.claim?.jurisdiction?.id) {
+        return {
+            payload: { jurisdiction_id: props.claim.jurisdiction.id },
+            name: props.claim.jurisdiction.name,
+        };
+    }
+    return null;
+});
+
+async function devGrant() {
+    if (!devGrantTarget.value) return;
+    granting.value = true;
+    grantResult.value = null;
+    try {
+        const res = await fetch('/dev/residency/grant', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: JSON.stringify(devGrantTarget.value.payload),
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.granted) {
+            grantResult.value = data.already
+                ? `Already a verified resident of ${data.jurisdiction?.name} — nothing to do.`
+                : `Granted — verified resident of ${data.jurisdiction?.name} (${data.chain?.length ?? '?'} associations).`;
+            router.reload({ preserveScroll: true });
+        } else {
+            grantResult.value = data?.message ?? `Grant failed (${res.status}).`;
+        }
+    } catch {
+        grantResult.value = 'Grant failed — network error.';
+    } finally {
+        granting.value = false;
+    }
+}
+
 /* ─────────────────────────────────── F-IND-006 — confirm / correct */
 
 const confirmForm = useForm({});
 function submitConfirm() {
     confirmForm.post('/civic/residency/confirm', { preserveScroll: true });
+}
+
+/* ──────────────────────────── Leaflet maps (lazy) — shared basemap */
+
+let leaflet = null; // cached module after first dynamic import
+
+async function loadLeaflet() {
+    if (!leaflet) {
+        leaflet = (await import('leaflet')).default;
+        await import('leaflet/dist/leaflet.css');
+    }
+    return leaflet;
+}
+
+/* Basemap: same dated-PMTiles lookup the jurisdiction viewer uses; maps
+   degrade to polygon-on-blue when no bundle is configured. */
+async function addBasemap(target) {
+    try {
+        const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' });
+        const data = res.ok ? await res.json() : null;
+        if (data?.url) {
+            const protomaps = await import('protomaps-leaflet');
+            const basemaps = await import('@protomaps/basemaps');
+            const flavor = basemaps.namedFlavor('light');
+            protomaps
+                .leafletLayer({ url: data.url, flavor, attribution: 'Basemap © <a href="https://protomaps.com">Protomaps</a> · © OpenStreetMap' })
+                .addTo(target);
+        }
+    } catch {
+        /* no basemap — the map still works */
+    }
+}
+
+/* ───────────────── Declare-card picker map (point-first declare) */
+
+const pickerEl = ref(null);
+let pickerMap = null;
+let pickerPin = null;
+
+function setPickerPin(lat, lng) {
+    pickerLatLng.value = { lat, lng };
+    if (!pickerMap || !leaflet) return;
+    if (pickerPin) {
+        pickerPin.setLatLng([lat, lng]);
+    } else {
+        // circleMarker, not the default icon marker — Leaflet's icon PNGs
+        // need bundler asset wiring; a vector pin needs none. Wong vermillion.
+        pickerPin = leaflet
+            .circleMarker([lat, lng], {
+                radius: 8,
+                color: '#d55e00',
+                weight: 2,
+                fillColor: '#d55e00',
+                fillOpacity: 0.5,
+            })
+            .addTo(pickerMap);
+    }
+}
+
+async function mountPickerMap() {
+    if (!pickerEl.value || pickerMap) return;
+
+    const L = await loadLeaflet();
+
+    pickerMap = L.map(pickerEl.value, {
+        zoomControl: true,
+        attributionControl: true,
+        worldCopyJump: true,
+    });
+    pickerMap.attributionControl.setPrefix(
+        '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>',
+    );
+    pickerMap.setView([20, 0], 2);
+    addBasemap(pickerMap);
+
+    // Every click (re)drops the pin and re-resolves the chain preview.
+    pickerMap.on('click', (ev) => {
+        setPickerPin(ev.latlng.lat, ev.latlng.lng);
+        locatePoint(ev.latlng.lat, ev.latlng.lng);
+    });
 }
 
 /* ──────────────────────────── Declared-boundary map (Leaflet, lazy) */
@@ -199,8 +415,7 @@ let boundaryLayer = null;
 async function mountMap() {
     if (!props.claim?.jurisdiction?.id || !mapEl.value || map) return;
 
-    const L = (await import('leaflet')).default;
-    await import('leaflet/dist/leaflet.css');
+    const L = await loadLeaflet();
 
     map = L.map(mapEl.value, {
         zoomControl: true,
@@ -214,23 +429,7 @@ async function mountMap() {
         'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>',
     );
     map.setView([20, 0], 2);
-
-    // Basemap: same dated-PMTiles lookup the jurisdiction viewer uses; the
-    // page degrades to polygon-on-blue when no bundle is configured.
-    try {
-        const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' });
-        const data = res.ok ? await res.json() : null;
-        if (data?.url) {
-            const protomaps = await import('protomaps-leaflet');
-            const basemaps = await import('@protomaps/basemaps');
-            const flavor = basemaps.namedFlavor('light');
-            protomaps
-                .leafletLayer({ url: data.url, flavor, attribution: 'Basemap © <a href="https://protomaps.com">Protomaps</a> · © OpenStreetMap' })
-                .addTo(map);
-        }
-    } catch {
-        /* no basemap — boundary still renders */
-    }
+    addBasemap(map);
 
     try {
         const res = await fetch(
@@ -257,7 +456,12 @@ async function mountMap() {
     }
 }
 
-onMounted(() => nextTick(mountMap));
+onMounted(() =>
+    nextTick(() => {
+        mountMap();
+        mountPickerMap();
+    }),
+);
 watch(
     () => props.claim?.jurisdiction?.id,
     async () => {
@@ -273,6 +477,9 @@ watch(
 onBeforeUnmount(() => {
     if (map) map.remove();
     map = null;
+    if (pickerMap) pickerMap.remove();
+    pickerMap = null;
+    pickerPin = null;
 });
 </script>
 
@@ -322,7 +529,7 @@ onBeforeUnmount(() => {
             ref="declareFormEl"
             :form="formMeta('F-IND-003')"
             :inertia-form="declareForm"
-            :submit-label="hasClaim ? 'Redeclare — correct the boundary' : 'Declare residency'"
+            :submit-label="hasClaim ? 'Redeclare — correct the boundary' : located ? 'Declare residency here' : 'Declare residency'"
             processing-label="Filing F-IND-003…"
             @submit="submitDeclare"
         >
@@ -331,42 +538,89 @@ onBeforeUnmount(() => {
                 boundary — qualifying days do not transfer (containment must be re-proven).
             </p>
 
-            <Field
-                label="Jurisdiction of residence"
-                hint="Declare the smallest boundary you live inside; every enclosing level associates automatically."
-                :error="declareForm.errors.jurisdiction_id"
-                required
-            >
-                <template #control="{ id, invalid, describedBy }">
-                    <input
-                        :id="id"
-                        v-model="search"
-                        class="field-input"
-                        type="search"
-                        placeholder="Search by name — e.g. New York, Serravalle…"
-                        autocomplete="off"
-                        :aria-invalid="invalid ? 'true' : undefined"
-                        :aria-describedby="describedBy"
-                    />
-                </template>
-            </Field>
+            <!-- POINT-FIRST: where you ARE resolves where you live. The point
+                 itself never leaves this preview — only the resolved
+                 jurisdiction_id is filed with F-IND-003. -->
+            <div class="cluster" style="margin-block-end: var(--space-2)">
+                <Btn
+                    variant="primary"
+                    icon="map-pin"
+                    :disabled="geolocating || locatingPoint"
+                    @click="useMyLocation"
+                >
+                    {{ geolocating ? 'Locating…' : 'Use my current location' }}
+                </Btn>
+                <span class="gloss">or click your home on the map below</span>
+            </div>
 
-            <p v-if="searching" class="gloss" role="status">Searching…</p>
-            <ul v-if="results.length" class="search-results" role="listbox" aria-label="Matching jurisdictions">
-                <li v-for="result in results" :key="result.id">
-                    <button type="button" class="search-result" role="option" aria-selected="false" @click="pick(result)">
-                        <AdmChip :level="result.adm_level" :label="result.name" />
-                        <span class="citation">
-                            {{ result.parent_name ? `in ${result.parent_name} · ` : '' }}{{ result.slug }}
-                        </span>
-                    </button>
-                </li>
-            </ul>
+            <div
+                ref="pickerEl"
+                class="boundary-map"
+                aria-label="Map — click to drop a pin on where you live"
+                style="margin-block-end: var(--space-3)"
+            ></div>
+
+            <p v-if="locatingPoint" class="gloss" role="status">Resolving the smallest containing boundary…</p>
+            <p v-if="locateError" class="field-error" role="alert">{{ locateError }}</p>
+
+            <!-- Resolved chain preview: root-first, smallest boundary last — the
+                 declared boundary; every enclosing level associates on verify. -->
+            <div v-if="located" class="locate-preview" role="status">
+                <p class="cc-small" style="margin-block-end: var(--space-1)">
+                    You appear to live in
+                    <strong>{{ located.jurisdiction.name }}</strong> — the smallest boundary
+                    containing your point. Its full chain:
+                </p>
+                <div class="cluster">
+                    <template v-for="(level, i) in located.chain" :key="level.id">
+                        <span v-if="i > 0" aria-hidden="true">→</span>
+                        <AdmChip :level="level.adm_level" :label="level.name" />
+                    </template>
+                </div>
+            </div>
+
+            <!-- Tertiary: search jurisdiction NAMES (not street addresses). -->
+            <details class="search-collapse" style="margin-block-end: var(--space-3)">
+                <summary>Or search by place name</summary>
+                <Field
+                    label="Jurisdiction of residence"
+                    hint="Searches jurisdiction names (e.g. Serravalle, New York) — not street addresses; address geocoding needs an offline geocoder and is out of scope for now. Declare the smallest boundary you live inside."
+                    :error="declareForm.errors.jurisdiction_id"
+                >
+                    <template #control="{ id, invalid, describedBy }">
+                        <input
+                            :id="id"
+                            v-model="search"
+                            class="field-input"
+                            type="search"
+                            placeholder="Search by name — e.g. New York, Serravalle…"
+                            autocomplete="off"
+                            :aria-invalid="invalid ? 'true' : undefined"
+                            :aria-describedby="describedBy"
+                        />
+                    </template>
+                </Field>
+
+                <p v-if="searching" class="gloss" role="status">Searching…</p>
+                <ul v-if="results.length" class="search-results" role="listbox" aria-label="Matching jurisdictions">
+                    <li v-for="result in results" :key="result.id">
+                        <button type="button" class="search-result" role="option" aria-selected="false" @click="pick(result)">
+                            <AdmChip :level="result.adm_level" :label="result.name" />
+                            <span class="citation">
+                                {{ result.parent_name ? `in ${result.parent_name} · ` : '' }}{{ result.slug }}
+                            </span>
+                        </button>
+                    </li>
+                </ul>
+            </details>
 
             <p v-if="selected" style="margin-block-end: var(--space-3)">
                 Selected:
                 <AdmChip :level="selected.adm_level" :label="selected.name" />
                 <span v-if="selected.parent_name" class="citation"> in {{ selected.parent_name }}</span>
+            </p>
+            <p v-if="declareForm.errors.jurisdiction_id && !located && !selected" class="field-error">
+                {{ declareForm.errors.jurisdiction_id }}
             </p>
 
             <div class="field" :class="{ 'field--invalid': declareForm.errors.ping_consent }">
@@ -378,6 +632,26 @@ onBeforeUnmount(() => {
                 <span v-if="declareForm.errors.ping_consent" class="field-error">
                     {{ declareForm.errors.ping_consent }}
                 </span>
+            </div>
+
+            <!-- Dev-only instant grant: declare → pings → verify in one click,
+                 all real engine filings (gated exactly like the simulator). -->
+            <div v-if="isDev" style="margin-block-start: var(--space-3)">
+                <div class="cluster">
+                    <Btn
+                        variant="gold"
+                        size="sm"
+                        icon="map-pin"
+                        :disabled="!devGrantTarget || granting"
+                        @click="devGrant"
+                    >
+                        {{ granting ? 'Granting…' : 'Dev: grant residency here instantly' }}
+                    </Btn>
+                    <span class="citation">local only · real F-IND-003/005/006 filings · relocates if already verified</span>
+                </div>
+                <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">
+                    {{ grantResult }}
+                </p>
             </div>
         </FormCard>
 
@@ -552,6 +826,30 @@ onBeforeUnmount(() => {
                 <p class="citation" style="margin-block-start: var(--space-3)">
                     Residency verified → all associations → rights unlocked · Art. I; Art. V §1
                 </p>
+
+                <!-- Dev-only relocation: pick a new point in the declare card
+                     (or leave it — re-granting the declared boundary is a
+                     no-op) and become a verified resident there in one click. -->
+                <div v-if="isDev" style="margin-block-start: var(--space-3)">
+                    <div class="cluster">
+                        <Btn
+                            variant="gold"
+                            size="sm"
+                            icon="map-pin"
+                            :disabled="!devGrantTarget || granting"
+                            @click="devGrant"
+                        >
+                            {{ granting ? 'Granting…' : 'Dev: grant residency here instantly' }}
+                        </Btn>
+                        <span class="citation">
+                            targets {{ devGrantTarget?.name ?? '—' }} · dev-only relocation
+                            (deactivates the old associations, then real F-IND filings)
+                        </span>
+                    </div>
+                    <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">
+                        {{ grantResult }}
+                    </p>
+                </div>
             </template>
         </Card>
     </PageScaffold>
@@ -564,6 +862,20 @@ onBeforeUnmount(() => {
     border-radius: var(--radius-md, 8px);
     background: var(--gov-surface-2, #eef0f3);
     overflow: hidden;
+}
+
+.locate-preview {
+    margin-block-end: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--gov-border, #d6d9de);
+    border-radius: var(--radius-md, 8px);
+    background: var(--gov-surface-2, #eef0f3);
+}
+
+.search-collapse > summary {
+    cursor: pointer;
+    color: var(--gov-link, inherit);
+    margin-block-end: var(--space-2);
 }
 
 .search-results {

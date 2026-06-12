@@ -423,6 +423,58 @@ class ResidencyService implements ResidencyHandlerDelegate
             ->first();
     }
 
+    /**
+     * Point-first declare: the SMALLEST jurisdiction containing a WGS84
+     * point (highest adm_level wins — declare the smallest boundary you
+     * live inside). GIST-index-driven (jurisdictions_geom_idx); NULL when
+     * no boundary contains the point (open ocean / unloaded territory).
+     *
+     * @return object{id: string, name: string, slug: ?string, adm_level: int}|null
+     */
+    public function locateJurisdiction(float $lat, float $lng): ?object
+    {
+        return DB::selectOne(
+            'SELECT id, name, slug, adm_level
+             FROM jurisdictions
+             WHERE deleted_at IS NULL
+               AND geom IS NOT NULL
+               AND ST_Contains(geom, ST_SetSRID(ST_MakePoint(?, ?), 4326))
+             ORDER BY adm_level DESC
+             LIMIT 1',
+            [$lng, $lat]
+        );
+    }
+
+    /**
+     * Root-first ancestor chain (Earth → … → the jurisdiction itself) via
+     * recursive CTE up parent_id. Read-only preview for the point-first
+     * declare flow — the association sweep at verification time remains
+     * sweepJurisdictions() (which additionally handles dual-footprint twins).
+     *
+     * @return list<object{id: string, name: string, slug: ?string, adm_level: int}>
+     */
+    public function ancestorChain(string $jurisdictionId): array
+    {
+        return DB::select(
+            'WITH RECURSIVE chain AS (
+                SELECT j.id, j.name, j.slug, j.adm_level, j.parent_id, 0 AS depth
+                FROM jurisdictions j
+                WHERE j.id = ? AND j.deleted_at IS NULL
+
+                UNION ALL
+
+                SELECT p.id, p.name, p.slug, p.adm_level, p.parent_id, c.depth + 1
+                FROM chain c
+                JOIN jurisdictions p ON p.id = c.parent_id AND p.deleted_at IS NULL
+                WHERE c.depth < ' . self::MAX_CHAIN_DEPTH . '
+            )
+            SELECT id, name, slug, adm_level::int AS adm_level
+            FROM chain
+            ORDER BY depth DESC',
+            [$jurisdictionId]
+        );
+    }
+
     // =========================================================================
 
     /**

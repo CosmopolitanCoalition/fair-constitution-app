@@ -17,7 +17,8 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 const props = defineProps({
     surface: { type: Object, required: true },
     /** [{ id, jurisdiction, slug, adm_level, type_a_seats, type_b_seats,
-     *     status, district_count, activation_state, activated_at }] */
+     *     status, district_count, activation_state, activated_at,
+     *     election: { id, status } | null, results_election_id }] */
     legislatures: { type: Array, required: true },
 });
 
@@ -27,8 +28,26 @@ const columns = [
     { key: 'seats', label: 'Seats', align: 'right' },
     { key: 'status', label: 'Status' },
     { key: 'district_count', label: 'Districts', align: 'right' },
+    { key: 'election', label: 'Election' },
     { key: 'activation', label: 'Activation' },
 ];
+
+/* Election phase → badge tone + label (elections.status vocabulary —
+   ElectionLifecycleService machine). Cancelled never reaches the page
+   (filtered server-side). */
+const ELECTION_STATUS = {
+    scheduled:       { tone: 'neutral', label: 'Scheduled' },
+    approval_open:   { tone: 'info',    label: 'Approval open' },
+    finalist_cutoff: { tone: 'info',    label: 'Finalist cutoff' },
+    ranked_open:     { tone: 'warning', label: 'Ranked open' },
+    voting_closed:   { tone: 'warning', label: 'Voting closed' },
+    tabulating:      { tone: 'warning', label: 'Tabulating' },
+    certified:       { tone: 'success', label: 'Certified' },
+    audit_rerun:     { tone: 'warning', label: 'Audit rerun' },
+    final:           { tone: 'success', label: 'Final' },
+};
+
+const electionBadge = (status) => ELECTION_STATUS[status] ?? { tone: 'neutral', label: status };
 
 /* WF-JUR-01 state → badge tone + label. No activation row on the planet
    root = founded by the setup wizard (the activation engine never files a
@@ -75,7 +94,8 @@ function formatDate(iso) {
         <template #intro>
             Every legislature on this instance. Setup founds the first — the root
             jurisdiction's; additional legislatures activate as jurisdictions reach
-            critical population (CLK-06). Open a row to view its districts in the mapper.
+            critical population (CLK-06). Open a row to view its districts in the mapper;
+            the Election column jumps straight to each chamber's current election and results.
         </template>
         <template #about>
             <p>
@@ -124,6 +144,24 @@ function formatDate(iso) {
 
                 <template #cell-district_count="{ row }">
                     <span class="mono">{{ row.district_count.toLocaleString() }}</span>
+                </template>
+
+                <!-- Per-chamber election affordances: current election link +
+                     phase badge, and a Results link once certified. -->
+                <template #cell-election="{ row }">
+                    <template v-if="row.election">
+                        <Link :href="`/elections/${row.election.id}`">Election</Link>
+                        <StatusBadge
+                            :tone="electionBadge(row.election.status).tone"
+                            style="margin-inline-start: var(--space-2)"
+                        >{{ electionBadge(row.election.status).label }}</StatusBadge>
+                        <Link
+                            v-if="row.results_election_id"
+                            :href="`/elections/${row.results_election_id}/results`"
+                            style="margin-inline-start: var(--space-2)"
+                        >Results</Link>
+                    </template>
+                    <span v-else class="gloss">—</span>
                 </template>
 
                 <template #cell-activation="{ row }">

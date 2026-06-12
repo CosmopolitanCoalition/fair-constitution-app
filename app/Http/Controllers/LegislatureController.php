@@ -105,6 +105,32 @@ class LegislatureController extends Controller
      */
     public function index(): Response
     {
+        // Per-chamber election affordances: the CURRENT election (latest
+        // non-cancelled; live phases rank ahead of certified/final) and the
+        // latest CERTIFIED election (drives the Results link). Two
+        // DISTINCT ON picks keyed by legislature_id — /legislatures is the
+        // hub for reaching every chamber's election surfaces.
+        $currentElections = collect(DB::select(
+            "SELECT DISTINCT ON (legislature_id) legislature_id, id, status
+             FROM elections
+             WHERE deleted_at IS NULL
+               AND status <> 'cancelled'
+               AND legislature_id IS NOT NULL
+             ORDER BY legislature_id,
+                      CASE WHEN status IN ('certified', 'final') THEN 1 ELSE 0 END,
+                      created_at DESC"
+        ))->keyBy('legislature_id');
+
+        $certifiedElections = collect(DB::select(
+            "SELECT DISTINCT ON (legislature_id) legislature_id, id
+             FROM elections
+             WHERE deleted_at IS NULL
+               AND status <> 'cancelled'
+               AND legislature_id IS NOT NULL
+               AND certified_at IS NOT NULL
+             ORDER BY legislature_id, certified_at DESC"
+        ))->keyBy('legislature_id');
+
         $rows = DB::table('legislatures as l')
             ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
             ->leftJoin('jurisdiction_activations as a', function ($join) {
@@ -127,20 +153,29 @@ class LegislatureController extends Controller
                 DB::raw('(SELECT count(*) FROM legislature_districts ld
                           WHERE ld.legislature_id = l.id AND ld.deleted_at IS NULL) as district_count'),
             ])
-            ->map(fn ($r) => [
-                'id'               => $r->id,
-                'jurisdiction'     => $r->jurisdiction_name,
-                'slug'             => $r->jurisdiction_slug,
-                'adm_level'        => (int) $r->adm_level,
-                'type_a_seats'     => (int) $r->type_a_seats,
-                'type_b_seats'     => (int) $r->type_b_seats,
-                'status'           => $r->status,
-                'district_count'   => (int) $r->district_count,
-                'activation_state' => $r->activation_state,
-                'activated_at'     => $r->activated_at
-                    ? \Illuminate\Support\Carbon::parse($r->activated_at)->toIso8601String()
-                    : null,
-            ])
+            ->map(function ($r) use ($currentElections, $certifiedElections) {
+                $current = $currentElections->get($r->id);
+
+                return [
+                    'id'               => $r->id,
+                    'jurisdiction'     => $r->jurisdiction_name,
+                    'slug'             => $r->jurisdiction_slug,
+                    'adm_level'        => (int) $r->adm_level,
+                    'type_a_seats'     => (int) $r->type_a_seats,
+                    'type_b_seats'     => (int) $r->type_b_seats,
+                    'status'           => $r->status,
+                    'district_count'   => (int) $r->district_count,
+                    'activation_state' => $r->activation_state,
+                    'activated_at'     => $r->activated_at
+                        ? \Illuminate\Support\Carbon::parse($r->activated_at)->toIso8601String()
+                        : null,
+                    'election'         => $current === null ? null : [
+                        'id'     => (string) $current->id,
+                        'status' => $current->status,
+                    ],
+                    'results_election_id' => $certifiedElections->get($r->id)?->id,
+                ];
+            })
             ->values();
 
         return Inertia::render('Legislature/Index', [

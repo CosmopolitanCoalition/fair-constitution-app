@@ -78,6 +78,19 @@ class JurisdictionController extends Controller
                 ->exists()
             : false;
 
+        // Current election for this jurisdiction's legislature (if any) —
+        // renders an "Election" CTA next to the legislature link. Latest
+        // non-cancelled; live phases rank ahead of certified/final.
+        $currentElection = $legislatureId
+            ? DB::table('elections')
+                ->where('legislature_id', $legislatureId)
+                ->whereNull('deleted_at')
+                ->where('status', '!=', 'cancelled')
+                ->orderByRaw("CASE WHEN status IN ('certified', 'final') THEN 1 ELSE 0 END")
+                ->orderByDesc('created_at')
+                ->first(['id', 'status'])
+            : null;
+
         // P.6: pull supplementary metadata from the geoboundary_metadata table.
         // Joined here rather than via the model's row to keep the show()
         // response shape independent of the import-time meta dict — operator
@@ -151,6 +164,10 @@ class JurisdictionController extends Controller
             'review'                     => $reviewSummary,
             'legislature_id'             => $legislatureId,
             'has_district_map'           => $hasDistrictMap,
+            'current_election'           => $currentElection ? [
+                'id'     => (string) $currentElection->id,
+                'status' => $currentElection->status,
+            ] : null,
             'activation'                 => $activation ? [
                 'state'                  => $activation->state,
                 'critical_population_at' => $activation->critical_population_at

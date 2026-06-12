@@ -26,7 +26,10 @@ export const NAV = [
     { key: 'home', titleKey: 'nav.home', visibility: 'all', items: [
         { id: 'civic-home', labelKey: 'nav.civicHome', icon: 'home', href: '/civic', phase: 'A' },
         { id: 'my-record', labelKey: 'nav.myRecord', icon: 'file-text', href: '/civic/record', phase: 'A' },
-        { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'A' },
+        /* No /civic/learn route exists yet — flagged Planned (phase C) so the
+           sidebar never renders a dead link; flip back to 'A' when the Learn
+           surface ships. */
+        { id: 'learn', labelKey: 'nav.learn', icon: 'book-open', href: '/civic/learn', phase: 'C' },
     ] },
     /* FE-B0: item ids match the `nav` values in config/cga/surfaces.php
        (elections/* entries) so aria-current resolves; items stay phase 'B'
@@ -89,6 +92,17 @@ export const NAV = [
         { id: 'term-sync', labelKey: 'nav.termSync', icon: 'refresh-cw', href: '/system/term-sync', phase: 'C' },
         { id: 'amendments', labelKey: 'nav.amendments', icon: 'file-text', href: '/system/amendments', phase: 'E' },
     ] },
+    /* Dev tooling — client-gated on import.meta.env.DEV, the same signal the
+       DevBar uses (AppShell devBarOn). The /dev/* routes are additionally
+       registered ONLY in the local environment + DevToolsEnabled-gated
+       (routes/web.php WI-4 group), so a production build that somehow shipped
+       with DEV true would still 404. The dev residency bypass is a button on
+       /civic/residency (not a page), so the kit is the only item here. */
+    ...(import.meta.env.DEV
+        ? [{ key: 'dev', titleKey: 'nav.dev', visibility: 'all', items: [
+            { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
+        ] }]
+        : []),
 ];
 
 export default NAV;

@@ -204,6 +204,14 @@
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">
                             Create first district map →
                         </a>
+                        <!-- Current election for this chamber (latest
+                             non-cancelled; live phases outrank certified). -->
+                        <a v-if="current_election"
+                           :href="`/elections/${current_election.id}`"
+                           class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
+                                  bg-sky-800 hover:bg-sky-700 text-sky-100 transition-colors">
+                            Election — {{ electionPhaseLabel }} →
+                        </a>
                     </template>
 
                     <!-- P.6 — Acceptance gate. Visible only at planet scope.
@@ -365,6 +373,9 @@ const props = defineProps({
     map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
     has_district_map:    { type: Boolean, default: false },
+    // Current election for this jurisdiction's legislature ({ id, status })
+    // or null — drives the "Election" CTA under the legislature link.
+    current_election:    { type: Object, default: null },
     // WI-9 — WF-JUR-01 bootstrap-tracker row { state, critical_population_at,
     // activated_at } or null (= dormant boundary).
     activation:          { type: Object, default: null },
@@ -440,6 +451,21 @@ function formatTime(iso) {
 // state onto a badge + caption. No activation row = dormant boundary,
 // EXCEPT the planet root whose legislature is founded by the setup wizard
 // (the activation engine never files a row for it).
+// Election phase label for the "Election" CTA (elections.status vocabulary).
+const ELECTION_PHASE_LABELS = {
+    scheduled:       'Scheduled',
+    approval_open:   'Approval open',
+    finalist_cutoff: 'Finalist cutoff',
+    ranked_open:     'Ranked open',
+    voting_closed:   'Voting closed',
+    tabulating:      'Tabulating',
+    certified:       'Certified',
+    audit_rerun:     'Audit rerun',
+    final:           'Final',
+}
+const electionPhaseLabel = computed(() =>
+    ELECTION_PHASE_LABELS[props.current_election?.status] ?? props.current_election?.status ?? '')
+
 const activationDisplay = computed(() => {
     const a = props.activation
     if (a?.state === 'self_governing') {

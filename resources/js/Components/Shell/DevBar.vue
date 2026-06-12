@@ -32,6 +32,9 @@ defineProps({
                 <Icon name="chevron-down" size="sm" class="dev-caret" />
             </summary>
             <div class="dev-controls">
+                <!-- Static dev-tool pointer (no props — the residency page
+                     hosts the actual dev grant/simulate controls). -->
+                <a class="dev-control" href="/civic/residency">Residency tool → /civic/residency</a>
                 <slot />
             </div>
         </details>
