@@ -262,3 +262,60 @@ prod-404. CI: constitutional suite is a merge gate.
    antimeridian, labels), setup wizard — full manual pass, before/after screenshots.
 7. `tools/qa_scan.py`-adapted scan over `resources/css/cga/` + `Components/` (zero hex outside
    tokens, logical properties only) wired into CI.
+
+---
+
+# NON-BLOCKING BACKLOG (operator-noted 2026-06-12 + known deferrals)
+
+Items recorded during the Phase A acceptance review. None block Phase B; each is
+scheduled for the pass named beside it.
+
+## District mapper / geographic
+1. **Shortest-split-line drawing — San Marino is the first live case.** Its
+   legislature (type_a 32 over only 9 castelli with no deeper subdivisions)
+   cannot reach 5–9 seat districts by composing existing jurisdiction lines —
+   the manual/algorithmic line-drawing tool (worldpop_rasters +
+   population_within() were built for exactly this) becomes load-bearing.
+   → Revisit in the ALL-PHASES-DONE pass over everything built.
+2. **Legislature scope must be bounded by its own jurisdiction subtree.** In the
+   San Marino legislature browser a link (wizard "↑ Earth" / breadcrumb) walks
+   the view ABOVE the legislature's root — navigating to Earth scope *inside the
+   San Marino legislature*, which is meaningless. A legislature has no scope
+   outside itself. Never surfaced for Earth because Earth is the top. Fix: clamp
+   scope navigation (breadcrumb, ↑ button, prev/next wizard row) to the
+   legislature's root subtree.
+   → Small; fold into the next district-mapper touch (Phase B exercises the
+   mapper for election districts).
+3. **Auto-seed + import quality pass.** Re-verify the autoseed algorithm and the
+   geoBoundaries import for clean, accurate geographic data, and generate
+   INITIAL district maps for ALL jurisdictions at activation so every
+   legislature starts with all seats created (today: activation creates the
+   chamber but no district map; Earth's map was hand/auto-seeded in setup).
+   → Scheduled alongside the operator's planned fresh ETL run; pairs with the
+   ETL fixes already on this branch (Strategy 0 re-nesting, demojibake).
+
+## User creation / civic UX
+4. **Residency declaration must be point-first, not id-first.** The Phase A form
+   makes a fresh, uneducated user find their jurisdiction by name/id search.
+   Correct UX: set an address OR drop a pin (browser geolocation / device
+   tools / typed address) → the system reverse-resolves the smallest containing
+   jurisdiction via ST_Contains and derives ALL enclosing associations from the
+   point. The jurisdiction outcome is dictated by the location, never picked
+   from a list. (The manual-ping button already uses geolocation; the
+   declaration step should lead with the same affordance + an address geocoder.)
+   → Civic-slice refinement; candidate for early Phase C polish or an
+   opportunistic Phase B side-fix if civic screens are touched.
+
+## Carried from Phase A reports
+5. **Dual-footprint twin matching** in the residency ancestor sweep: live pairs
+   (e.g. PR) are not exact ST_Equals (~0.27% area delta across geoBoundaries
+   sources) — needs a tolerance match or an explicit twin-link column (data
+   design decision; pairs with backlog #3's fresh import).
+6. **SetupStepper re-skin** to the mockup `.stepper` classes (4-state vs
+   2-state mismatch made it non-trivial; visually fine as-is).
+7. **Third-party accessibility audit** (axe-core/Pa11y unavailable in the
+   mockup environment; assistive-tech walkthroughs scheduled against the
+   production build).
+8. **qa_scan-style CI check** over resources/css/cga/ + Components/ (zero hex
+   outside tokens, logical properties only) — the adapted scan exists for
+   mockups; port to CI.
