@@ -716,11 +716,52 @@ class JudiciaryCreationConversionTest extends TestCase
             $withMembers = $this->constituentsWithServingMembers($conn, $constituents);
 
             if (count($withMembers) === $expected && count($constituents) === $expected) {
-                return [$legislature, $judiciary, $withMembers];
+                $this->resetJudiciaryToForming($conn, $judiciary);
+
+                return [$legislature, $judiciary->refresh(), $withMembers];
             }
         }
 
-        $this->markTestSkipped("Live DB has no forming judiciary whose chamber has exactly {$expected} constituent legislature(s) — seed San Marino.");
+        $this->markTestSkipped("Live DB has no judiciary whose chamber has exactly {$expected} constituent legislature(s) — seed San Marino.");
+    }
+
+    /**
+     * Reset a (possibly demo-seeded appointed/elected) court to a clean
+     * `forming` footing — status, lifecycle pointers, and the seat pool —
+     * inside the caller's rolled-back transaction, so the F-LEG-017 creation
+     * flow runs from scratch with zero residue.
+     */
+    private function resetJudiciaryToForming(Connection $conn, Judiciary $judiciary): void
+    {
+        $seatIds = $conn->table('judicial_seats')->where('judiciary_id', $judiciary->id)->pluck('id')->all();
+
+        if ($seatIds !== []) {
+            // Demo cases seat these judges on panels and attribute opinions /
+            // sentences / warrants to them. Clear every FK to the seat pool
+            // before tearing it down — all inside this test's rolled-back
+            // transaction (zero residue). None of these tables is append-only
+            // (only case_filings is, and it references cases, not seats).
+            $conn->table('panel_judges')->whereIn('judicial_seat_id', $seatIds)->delete();
+            $conn->table('panels')->whereIn('presiding_judge_seat_id', $seatIds)->update(['presiding_judge_seat_id' => null]);
+            $conn->table('opinions')->whereIn('authored_by_seat_id', $seatIds)->delete();
+            $conn->table('sentencing_orders')->whereIn('issued_by_seat_id', $seatIds)->delete();
+            $conn->table('warrants')->whereIn('issued_by_seat_id', $seatIds)->delete();
+        }
+
+        $conn->table('judicial_nominations')->where('judiciary_id', $judiciary->id)->delete();
+        $conn->table('judicial_seats')->where('judiciary_id', $judiciary->id)->delete();
+
+        $judiciary->forceFill([
+            'status' => Judiciary::STATUS_FORMING,
+            'type' => Judiciary::TYPE_APPOINTED,
+            'nomination_mode' => null,
+            'judge_count' => null,
+            'creation_law_id' => null,
+            'conversion_process_id' => null,
+            'conversion_law_id' => null,
+            'converted_at' => null,
+            'source_legislature_id' => null,
+        ])->save();
     }
 
     /**
@@ -749,13 +790,14 @@ class JudiciaryCreationConversionTest extends TestCase
     {
         foreach ($this->formingJudiciaries($conn) as [$legislature, $judiciary]) {
             if (JudiciaryFormationService::constituentJurisdictionIds($legislature) === []) {
-                $this->driveToAppointed(app(ConstitutionalEngine::class), $legislature, $judiciary, []);
+                $this->resetJudiciaryToForming($conn, $judiciary);
+                $this->driveToAppointed(app(ConstitutionalEngine::class), $legislature, $judiciary->refresh(), []);
 
                 return [$legislature, $judiciary->refresh()];
             }
         }
 
-        $this->markTestSkipped('Live DB has no forming judiciary whose chamber has zero constituents — seed Montegiardino.');
+        $this->markTestSkipped('Live DB has no judiciary whose chamber has zero constituents — seed Montegiardino.');
     }
 
     /**
@@ -881,8 +923,16 @@ class JudiciaryCreationConversionTest extends TestCase
     {
         $pairs = [];
 
+        // Select by STRUCTURE (a chamber with serving members), NOT by judiciary
+        // lifecycle stage: institutions:demo-e leaves San Marino's court
+        // `appointed`, and it is the only one with constituents. The specific
+        // helpers RESET the chosen court to `forming` inside this test's
+        // rolled-back transaction, so the F-LEG-017 flow runs from scratch —
+        // never coupled to the live judiciary stage (the demo-d/ExecConversion
+        // precedent).
         $judiciaries = Judiciary::query()
-            ->where('status', Judiciary::STATUS_FORMING)
+            ->where('status', '!=', 'dissolved')
+            ->whereNull('deleted_at')
             ->get();
 
         foreach ($judiciaries as $judiciary) {

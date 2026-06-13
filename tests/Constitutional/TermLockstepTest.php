@@ -202,6 +202,11 @@ class TermLockstepTest extends TestCase
             $this->normalize($this->appPath().'/Http/Controllers/Organizations/OrganizationController.php'),
             $this->normalize($this->appPath().'/Http/Controllers/Organizations/BoardElectionController.php'),
             $this->normalize($this->appPath().'/Http/Controllers/Organizations/CgcController.php'),
+            // FE-E2: same READ-shaped display posture — the Judiciary/Home page
+            // serializes judicial_seats.term_ends_on into its nomination-roster
+            // props ('ends_on' => …->toDateString()). GET controller only; the
+            // no-update pin above still covers every mutation path.
+            $this->normalize($this->appPath().'/Http/Controllers/Judiciary/JudiciaryController.php'),
         ];
 
         $found = [];
