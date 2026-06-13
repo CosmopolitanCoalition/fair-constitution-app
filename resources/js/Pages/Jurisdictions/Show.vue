@@ -224,6 +224,16 @@
                         </a>
                     </template>
 
+                    <!-- FE-D0 — public entry to the executive surfaces (the
+                         Executive nav section is officeholder-gated, so this
+                         CTA is how residents reach the office; public read). -->
+                    <a v-if="executive_id"
+                       :href="`/executives/${executive_id}`"
+                       class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
+                              bg-indigo-800 hover:bg-indigo-700 text-indigo-100 transition-colors">
+                        Executive →
+                    </a>
+
                     <!-- P.6 — Acceptance gate. Visible only at planet scope.
                          Disabled until the ETL has finished and the operator
                          hasn't already accepted. Click stamps map_accepted_at
@@ -382,6 +392,7 @@ const props = defineProps({
     review:              { type: Object, default: () => ({}) },
     map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
+    executive_id:        String,
     has_district_map:    { type: Boolean, default: false },
     // FE-C2 — true when the legislature has current members: the CTA
     // splits into "Chamber" + "District map".

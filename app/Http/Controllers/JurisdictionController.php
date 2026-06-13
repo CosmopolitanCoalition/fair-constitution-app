@@ -33,7 +33,7 @@ class JurisdictionController extends Controller
 
         return Inertia::render('Jurisdictions/Index', [
             'jurisdictions' => $jurisdictions,
-            'filters'       => $request->only(['search', 'adm_level']),
+            'filters' => $request->only(['search', 'adm_level']),
         ]);
     }
 
@@ -64,6 +64,15 @@ class JurisdictionController extends Controller
         // legislature post-apportionment, but the legislature isn't
         // meaningfully viewable until at least one district map exists.
         $legislatureId = DB::table('legislatures')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->value('id');
+
+        // FE-D0 cross-link: the public entry to the executive surfaces (the
+        // Executive nav section is officeholder-gated). Every activated
+        // jurisdiction gets a forming executive stub; the CTA renders when
+        // one exists (public read — Art. II §2 · Art. III).
+        $executiveId = DB::table('executives')
             ->where('jurisdiction_id', $jurisdiction->id)
             ->whereNull('deleted_at')
             ->value('id');
@@ -108,13 +117,13 @@ class JurisdictionController extends Controller
         // sees continent/region/income-group context from the same source
         // the import script wrote.
         $meta = DB::selectOne(
-            "
+            '
             SELECT name AS boundary_name, continent, unsdg_region, unsdg_subregion,
                    world_bank_income_group, year_represented, boundary_canonical
             FROM   geoboundary_metadata
             WHERE  iso_code = :iso AND adm_level = 0
             LIMIT 1
-            ",
+            ',
             ['iso' => $jurisdiction->iso_code]
         );
 
@@ -129,7 +138,7 @@ class JurisdictionController extends Controller
         $directChildOrphans = (int) DB::table('jurisdictions')
             ->where('parent_id', $jurisdiction->id)
             ->whereNull('deleted_at')
-            ->whereRaw("COALESCE(population, 0) = 0")
+            ->whereRaw('COALESCE(population, 0) = 0')
             ->count();
 
         // P.6: review-issue summary for this specific jurisdiction
@@ -153,39 +162,40 @@ class JurisdictionController extends Controller
 
         return Inertia::render('Jurisdictions/Show', [
             'jurisdiction' => [
-                'id'                      => $jurisdiction->id,
-                'name'                    => $jurisdiction->name,
-                'slug'                    => $jurisdiction->slug,
-                'iso_code'                => $jurisdiction->iso_code,
-                'adm_level'               => $jurisdiction->adm_level,
-                'adm_label'               => $jurisdiction->adm_label,
-                'population'              => $jurisdiction->population,
-                'population_year'         => $jurisdiction->population_year,
-                'timezone'                => $jurisdiction->timezone,
-                'source'                  => $jurisdiction->source,
-                'parent_assigned_via'     => $jurisdiction->parent_assigned_via ?? null,
+                'id' => $jurisdiction->id,
+                'name' => $jurisdiction->name,
+                'slug' => $jurisdiction->slug,
+                'iso_code' => $jurisdiction->iso_code,
+                'adm_level' => $jurisdiction->adm_level,
+                'adm_label' => $jurisdiction->adm_label,
+                'population' => $jurisdiction->population,
+                'population_year' => $jurisdiction->population_year,
+                'timezone' => $jurisdiction->timezone,
+                'source' => $jurisdiction->source,
+                'parent_assigned_via' => $jurisdiction->parent_assigned_via ?? null,
                 'population_assigned_via' => $jurisdiction->population_assigned_via ?? null,
-                'official_languages'      => $jurisdiction->official_languages ?? [],
+                'official_languages' => $jurisdiction->official_languages ?? [],
             ],
-            'ancestors'                  => $jurisdiction->ancestors,
-            'childCount'                 => $childCount,
-            'hasChildren'                => $childCount > 0,
-            'directChildOrphans'         => $directChildOrphans,
-            'meta'                       => $meta ? (array) $meta : null,
-            'review'                     => $reviewSummary,
-            'legislature_id'             => $legislatureId,
-            'has_district_map'           => $hasDistrictMap,
-            'chamber_seated'             => $chamberSeated,
-            'current_election'           => $currentElection ? [
-                'id'     => (string) $currentElection->id,
+            'ancestors' => $jurisdiction->ancestors,
+            'childCount' => $childCount,
+            'hasChildren' => $childCount > 0,
+            'directChildOrphans' => $directChildOrphans,
+            'meta' => $meta ? (array) $meta : null,
+            'review' => $reviewSummary,
+            'legislature_id' => $legislatureId,
+            'executive_id' => $executiveId !== null ? (string) $executiveId : null,
+            'has_district_map' => $hasDistrictMap,
+            'chamber_seated' => $chamberSeated,
+            'current_election' => $currentElection ? [
+                'id' => (string) $currentElection->id,
                 'status' => $currentElection->status,
             ] : null,
-            'activation'                 => $activation ? [
-                'state'                  => $activation->state,
+            'activation' => $activation ? [
+                'state' => $activation->state,
                 'critical_population_at' => $activation->critical_population_at
                     ? \Illuminate\Support\Carbon::parse($activation->critical_population_at)->toIso8601String()
                     : null,
-                'activated_at'           => $activation->activated_at
+                'activated_at' => $activation->activated_at
                     ? \Illuminate\Support\Carbon::parse($activation->activated_at)->toIso8601String()
                     : null,
             ] : null,
@@ -195,10 +205,10 @@ class JurisdictionController extends Controller
             // 'instance' — so it can't shadow the Inertia shared 'instance'
             // prop (HandleInertiaRequests) that the AppShell footer reads.
             'map_acceptance' => [
-                'is_planet_scope'              => (int) $jurisdiction->adm_level === 0,
-                'map_accepted_at'              => $instanceSettings?->map_accepted_at?->toIso8601String(),
-                'apportionment_completed_at'   => $instanceSettings?->apportionment_completed_at?->toIso8601String(),
-                'setup_step_completed'         => $instanceSettings?->setup_step_completed,
+                'is_planet_scope' => (int) $jurisdiction->adm_level === 0,
+                'map_accepted_at' => $instanceSettings?->map_accepted_at?->toIso8601String(),
+                'apportionment_completed_at' => $instanceSettings?->apportionment_completed_at?->toIso8601String(),
+                'setup_step_completed' => $instanceSettings?->setup_step_completed,
             ],
         ]);
     }
@@ -222,7 +232,7 @@ class JurisdictionController extends Controller
     public function exportMaps(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse|JsonResponse
     {
         $skipRasters = $request->boolean('skip_rasters');
-        $async       = $request->boolean('async');
+        $async = $request->boolean('async');
 
         // Selective tables[]: optional explicit subset of
         // MapDataExportService::TABLES. Accepts the array natively or as a
@@ -239,15 +249,16 @@ class JurisdictionController extends Controller
         }
 
         if ($async) {
-            $exportId = 'map-data-' . now()->format('Ymd-His') . '-' . substr(bin2hex(random_bytes(4)), 0, 8);
+            $exportId = 'map-data-'.now()->format('Ymd-His').'-'.substr(bin2hex(random_bytes(4)), 0, 8);
             \App\Jobs\ExportMapDataJob::dispatch($exportId, $skipRasters, $tables);
+
             return response()->json([
-                'ok'          => true,
-                'mode'        => 'async',
-                'export_id'   => $exportId,
-                'skip_rasters'=> $skipRasters,
-                'tables'      => $tables,
-                'status_url'  => '/api/export/jurisdictions/list',
+                'ok' => true,
+                'mode' => 'async',
+                'export_id' => $exportId,
+                'skip_rasters' => $skipRasters,
+                'tables' => $tables,
+                'status_url' => '/api/export/jurisdictions/list',
             ]);
         }
 
@@ -256,8 +267,10 @@ class JurisdictionController extends Controller
                 ->export(skipRasters: $skipRasters, tables: $tables);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('export failed: '.$e->getMessage());
+
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
+
         // deleteFileAfterSend: cleans up the tmp tarball after the browser
         // finishes downloading. Operators can re-export anytime.
         return response()->download($path)->deleteFileAfterSend(true);
@@ -292,34 +305,37 @@ class JurisdictionController extends Controller
         foreach (glob("{$dir}/*.status.json") ?: [] as $statusFile) {
             $raw = @file_get_contents($statusFile);
             $decoded = is_string($raw) ? json_decode($raw, true) : null;
-            if (! is_array($decoded)) continue;
+            if (! is_array($decoded)) {
+                continue;
+            }
 
             // Confirm the archive is actually present (could've been deleted
             // out from under us). If status is "done" but the file is gone,
             // surface as "expired".
             $archiveName = $decoded['archive_filename'] ?? null;
-            $archiveOk   = $archiveName !== null && is_file("{$dir}/{$archiveName}");
-            $surface     = $decoded['status'] ?? 'unknown';
+            $archiveOk = $archiveName !== null && is_file("{$dir}/{$archiveName}");
+            $surface = $decoded['status'] ?? 'unknown';
             if ($surface === 'done' && ! $archiveOk) {
                 $surface = 'expired';
             }
 
             $exports[] = [
-                'export_id'        => $decoded['export_id']        ?? basename($statusFile, '.status.json'),
-                'status'           => $surface,
-                'skip_rasters'     => (bool) ($decoded['skip_rasters'] ?? false),
-                'started_at'       => $decoded['started_at']       ?? null,
-                'completed_at'     => $decoded['completed_at']     ?? null,
-                'error'            => $decoded['error']            ?? null,
-                'archive_filename' => $archiveOk ? $archiveName    : null,
-                'size_bytes'       => $decoded['size_bytes']       ?? null,
+                'export_id' => $decoded['export_id'] ?? basename($statusFile, '.status.json'),
+                'status' => $surface,
+                'skip_rasters' => (bool) ($decoded['skip_rasters'] ?? false),
+                'started_at' => $decoded['started_at'] ?? null,
+                'completed_at' => $decoded['completed_at'] ?? null,
+                'error' => $decoded['error'] ?? null,
+                'archive_filename' => $archiveOk ? $archiveName : null,
+                'size_bytes' => $decoded['size_bytes'] ?? null,
                 // Live progress snapshot from ExportMapDataJob's onProgress
                 // callback (null until pg_dump has emitted its first tick).
-                'progress'         => $decoded['progress']         ?? null,
+                'progress' => $decoded['progress'] ?? null,
             ];
         }
         // Newest first
         usort($exports, fn ($a, $b) => strcmp((string) $b['started_at'], (string) $a['started_at']));
+
         return response()->json(['exports' => $exports]);
     }
 
@@ -339,6 +355,7 @@ class JurisdictionController extends Controller
         if (! is_file($path)) {
             return response()->json(['error' => 'not found'], 404);
         }
+
         return response()->download($path);
     }
 
@@ -361,6 +378,7 @@ class JurisdictionController extends Controller
             true,
             3600,
         );
+
         return response()->json(['ok' => true]);
     }
 
@@ -376,6 +394,7 @@ class JurisdictionController extends Controller
         $dir = storage_path('app/exports');
         @unlink("{$dir}/{$exportId}.status.json");
         @unlink("{$dir}/{$exportId}.tar.gz");
+
         return response()->json(['ok' => true]);
     }
 
@@ -395,7 +414,7 @@ class JurisdictionController extends Controller
         $controlDir = base_path('scripts/etl/control');
         if (is_file($controlDir.'/running.json')) {
             return response()->json([
-                'ok'    => false,
+                'ok' => false,
                 'error' => 'An ETL run is in progress; import would clobber its in-flight data.',
             ], 409);
         }
@@ -418,8 +437,10 @@ class JurisdictionController extends Controller
                 ->importFromUpload($request->file('archive'), $tables);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('import failed: '.$e->getMessage());
+
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
+
         return response()->json(['ok' => true] + $result);
     }
 
@@ -436,22 +457,22 @@ class JurisdictionController extends Controller
         $instance = \App\Models\InstanceSettings::current();
         if (! $instance) {
             return response()->json([
-                'ok'    => false,
+                'ok' => false,
                 'error' => 'Instance settings row is missing — bootstrap not complete.',
             ], 422);
         }
 
         if ($instance->map_accepted_at) {
             return response()->json([
-                'ok'                          => true,
-                'already_accepted'            => true,
-                'map_accepted_at'             => $instance->map_accepted_at->toIso8601String(),
-                'apportionment_completed_at'  => $instance->apportionment_completed_at?->toIso8601String(),
+                'ok' => true,
+                'already_accepted' => true,
+                'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+                'apportionment_completed_at' => $instance->apportionment_completed_at?->toIso8601String(),
             ]);
         }
 
         $instance->forceFill([
-            'map_accepted_at'      => now(),
+            'map_accepted_at' => now(),
             'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
         ])->save();
 
@@ -482,7 +503,7 @@ class JurisdictionController extends Controller
         $scopeId ??= $planetId;
         try {
             \Illuminate\Support\Facades\Artisan::queue('apportionment:seed', [
-                '--jurisdiction'   => $scopeId,
+                '--jurisdiction' => $scopeId,
                 // Setup-wizard path (planet scope): this run IS the canonical
                 // apportionment, so it stamps
                 // instance_settings.apportionment_completed_at. Non-planet
@@ -499,7 +520,7 @@ class JurisdictionController extends Controller
         }
 
         return response()->json([
-            'ok'              => true,
+            'ok' => true,
             'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
         ]);
     }
@@ -511,15 +532,15 @@ class JurisdictionController extends Controller
      */
     public function childrenGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
-        $zoom      = (int) $request->query('zoom', 6);
+        $zoom = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey  = "geojson.children.{$jurisdiction->id}.z{$zoom}";
+        $cacheKey = "geojson.children.{$jurisdiction->id}.z{$zoom}";
 
         // Persist-until-invalidated: boundary geometry only changes on a fresh
         // ETL / restore (flushed there), never on a district redraw. Prewarmed
         // entries must not silently expire on a 24h TTL, so cache forever.
         $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
-            $rows = DB::select("
+            $rows = DB::select('
                 SELECT
                     j.id,
                     j.name,
@@ -542,26 +563,26 @@ class JurisdictionController extends Controller
                   AND j.deleted_at IS NULL
                   AND j.geom IS NOT NULL
                 ORDER BY j.name
-            ", [
+            ', [
                 'tolerance' => $tolerance,
                 'parent_id' => $jurisdiction->id,
             ]);
 
             $features = array_map(function ($row) {
                 return [
-                    'type'       => 'Feature',
-                    'id'         => $row->id,
-                    'geometry'   => json_decode($row->geojson),
+                    'type' => 'Feature',
+                    'id' => $row->id,
+                    'geometry' => json_decode($row->geojson),
                     'properties' => [
-                        'id'                  => $row->id,
-                        'name'                => $row->name,
-                        'slug'                => $row->slug,
-                        'adm_level'           => $row->adm_level,
-                        'population'          => (int) $row->population,
-                        'iso_code'            => $row->iso_code,
-                        'child_count'         => (int) $row->child_count,
-                        'centroid_lat'        => (float) $row->centroid_lat,
-                        'centroid_lng'        => (float) $row->centroid_lng,
+                        'id' => $row->id,
+                        'name' => $row->name,
+                        'slug' => $row->slug,
+                        'adm_level' => $row->adm_level,
+                        'population' => (int) $row->population,
+                        'iso_code' => $row->iso_code,
+                        'child_count' => (int) $row->child_count,
+                        'centroid_lat' => (float) $row->centroid_lat,
+                        'centroid_lng' => (float) $row->centroid_lng,
                     ],
                 ];
             }, $rows);
@@ -578,17 +599,17 @@ class JurisdictionController extends Controller
      */
     public function siblingsGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
-        if (!$jurisdiction->parent_id) {
+        if (! $jurisdiction->parent_id) {
             return response()->json(['type' => 'FeatureCollection', 'features' => []]);
         }
 
-        $zoom      = (int) $request->query('zoom', 6);
+        $zoom = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey  = "geojson.siblings.{$jurisdiction->id}.z{$zoom}";
+        $cacheKey = "geojson.siblings.{$jurisdiction->id}.z{$zoom}";
 
         // Persist-until-invalidated (see childrenGeoJson note).
         $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance) {
-            $rows = DB::select("
+            $rows = DB::select('
                 SELECT
                     j.id,
                     j.name,
@@ -606,27 +627,27 @@ class JurisdictionController extends Controller
                   AND j.deleted_at IS NULL
                   AND j.geom IS NOT NULL
                 ORDER BY j.name
-            ", [
+            ', [
                 'tolerance' => $tolerance,
                 'parent_id' => $jurisdiction->parent_id,
-                'self_id'   => $jurisdiction->id,
+                'self_id' => $jurisdiction->id,
             ]);
 
             $features = array_map(function ($row) {
                 return [
-                    'type'       => 'Feature',
-                    'id'         => $row->id,
-                    'geometry'   => json_decode($row->geojson),
+                    'type' => 'Feature',
+                    'id' => $row->id,
+                    'geometry' => json_decode($row->geojson),
                     'properties' => [
-                        'id'                  => $row->id,
-                        'name'                => $row->name,
-                        'slug'                => $row->slug,
-                        'adm_level'           => $row->adm_level,
-                        'population'          => (int) $row->population,
-                        'iso_code'            => $row->iso_code,
-                        'child_count'         => (int) $row->child_count,
-                        'centroid_lat'        => (float) $row->centroid_lat,
-                        'centroid_lng'        => (float) $row->centroid_lng,
+                        'id' => $row->id,
+                        'name' => $row->name,
+                        'slug' => $row->slug,
+                        'adm_level' => $row->adm_level,
+                        'population' => (int) $row->population,
+                        'iso_code' => $row->iso_code,
+                        'child_count' => (int) $row->child_count,
+                        'centroid_lat' => (float) $row->centroid_lat,
+                        'centroid_lng' => (float) $row->centroid_lng,
                     ],
                 ];
             }, $rows);
@@ -653,28 +674,28 @@ class JurisdictionController extends Controller
      */
     public function selfGeoJson(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
-        $precise   = $request->boolean('precise');
-        $zoom      = (int) $request->query('zoom', 6);
+        $precise = $request->boolean('precise');
+        $zoom = (int) $request->query('zoom', 6);
         $tolerance = $this->toleranceForZoom($zoom);
-        $cacheKey  = $precise
+        $cacheKey = $precise
             ? "geojson.self.{$jurisdiction->id}.precise"
             : "geojson.self.{$jurisdiction->id}.z{$zoom}";
 
         // Persist-until-invalidated (see childrenGeoJson note).
         $data = Cache::rememberForever($cacheKey, function () use ($jurisdiction, $tolerance, $precise) {
             $sql = $precise
-                ? "SELECT
+                ? 'SELECT
                        ST_AsGeoJSON(geom) AS geojson,
                        ST_Y(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lat,
                        ST_X(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lng
                    FROM jurisdictions
-                   WHERE id = :id AND geom IS NOT NULL"
-                : "SELECT
+                   WHERE id = :id AND geom IS NOT NULL'
+                : 'SELECT
                        ST_AsGeoJSON(ST_Simplify(geom, :tolerance)) AS geojson,
                        ST_Y(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lat,
                        ST_X(COALESCE(centroid, ST_PointOnSurface(geom))) AS centroid_lng
                    FROM jurisdictions
-                   WHERE id = :id AND geom IS NOT NULL";
+                   WHERE id = :id AND geom IS NOT NULL';
 
             $bindings = $precise
                 ? ['id' => $jurisdiction->id]
@@ -682,18 +703,18 @@ class JurisdictionController extends Controller
 
             $row = DB::selectOne($sql, $bindings);
 
-            if (!$row || !$row->geojson) {
+            if (! $row || ! $row->geojson) {
                 return ['type' => 'FeatureCollection', 'features' => []];
             }
 
             return [
-                'type'     => 'FeatureCollection',
+                'type' => 'FeatureCollection',
                 'features' => [[
-                    'type'       => 'Feature',
-                    'geometry'   => json_decode($row->geojson),
+                    'type' => 'Feature',
+                    'geometry' => json_decode($row->geojson),
                     'properties' => [
-                        'id'           => $jurisdiction->id,
-                        'name'         => $jurisdiction->name,
+                        'id' => $jurisdiction->id,
+                        'name' => $jurisdiction->name,
                         'centroid_lat' => (float) $row->centroid_lat,
                         'centroid_lng' => (float) $row->centroid_lng,
                     ],
@@ -719,7 +740,7 @@ class JurisdictionController extends Controller
         $cacheKey = "ancestors.{$jurisdiction->id}";
 
         $chain = Cache::remember($cacheKey, 86400, function () use ($jurisdiction) {
-            $rows = DB::select("
+            $rows = DB::select('
                 WITH RECURSIVE chain AS (
                     SELECT id, name, adm_level, parent_id, 0 AS depth
                     FROM jurisdictions
@@ -733,11 +754,11 @@ class JurisdictionController extends Controller
                 SELECT id, name, adm_level
                 FROM chain
                 ORDER BY depth DESC
-            ", ['id' => $jurisdiction->id]);
+            ', ['id' => $jurisdiction->id]);
 
             return array_map(fn ($r) => [
-                'id'        => $r->id,
-                'name'      => $r->name,
+                'id' => $r->id,
+                'name' => $r->name,
                 'adm_level' => (int) $r->adm_level,
             ], $rows);
         });
