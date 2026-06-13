@@ -474,6 +474,96 @@ Route::middleware('auth')->group(function () {
         ->name('system.public-records.statements');                           // F-LEG-006
     Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])
         ->name('system.term-sync');
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PHASE D — Executive & Organizations (FE-D2..D9). Public read across the
+    // board (orders, departments, boards, registry, IP register are public
+    // record — Art. II §2 · Art. III); *actions* gate by derived role + engine
+    // 422. POSTs run through ConstitutionalEngine::file().
+    // ════════════════════════════════════════════════════════════════════════
+
+    // ── FE-D0 — /executive[/{sub}] resolver (nav hrefs → exec-scoped surfaces) ─
+    Route::get('/executive/{sub?}', \App\Http\Controllers\Executive\ExecutiveResolverController::class)
+        ->where('sub', 'departments|actions|reporting')->name('executive.resolve');
+
+    // ── FE-D2 — Executive/Home ──────────────────────────────────────────────
+    Route::get('/executives/{executive}', [\App\Http\Controllers\Executive\ExecutiveController::class, 'show'])
+        ->whereUuid('executive')->name('executives.show');
+
+    // ── FE-D3 — Departments + DepartmentDetail (BoG-consent exit surface) ────
+    Route::get('/executives/{executive}/departments', [\App\Http\Controllers\Executive\DepartmentController::class, 'index'])
+        ->whereUuid('executive')->name('executive.departments');
+    Route::get('/departments/{department}', [\App\Http\Controllers\Executive\DepartmentController::class, 'show'])
+        ->whereUuid('department')->name('executive.department-detail');
+    Route::post('/departments/{department}/nominations', [\App\Http\Controllers\Executive\DepartmentController::class, 'nominate'])
+        ->whereUuid('department')->name('executive.departments.nominate');         // F-EXE-001
+    Route::post('/departments/{department}/removal-requests', [\App\Http\Controllers\Executive\DepartmentController::class, 'requestRemoval'])
+        ->whereUuid('department')->name('executive.departments.removal');          // F-EXE-003
+
+    // ── FE-D5 — DepartmentReporting ─────────────────────────────────────────
+    Route::get('/departments/{department}/reporting', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'show'])
+        ->whereUuid('department')->name('departments.reporting');
+    Route::post('/departments/{department}/rules', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'fileRule'])
+        ->whereUuid('department')->name('departments.rules');                      // F-BOG-001
+    Route::post('/departments/{department}/reports', [\App\Http\Controllers\Executive\DepartmentReportingController::class, 'fileReport'])
+        ->whereUuid('department')->name('departments.reports');                    // F-BOG-002
+
+    // ── FE-D4 — Actions (order-rejection exit surface) ──────────────────────
+    Route::get('/executives/{executive}/actions', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'index'])
+        ->whereUuid('executive')->name('executive.actions');
+    Route::post('/executives/{executive}/orders', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeOrder'])
+        ->whereUuid('executive')->name('executive.orders.store');                  // F-EXE-005
+    Route::post('/executives/{executive}/policy-proposals', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeProposal'])
+        ->whereUuid('executive')->name('executive.proposals.store');               // F-EXE-002
+    Route::post('/executives/{executive}/investigations', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeInvestigation'])
+        ->whereUuid('executive')->name('executive.investigations.store');          // F-EXE-004
+    Route::post('/appropriations/{appropriation}/applications', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeApplication'])
+        ->whereUuid('appropriation')->name('executive.appropriations.applications.store');
+
+    // ── FE-D6/D7/D9 — Organizations: STATIC paths BEFORE the {organization} wildcard ─
+    Route::get('/organizations', [\App\Http\Controllers\Organizations\OrganizationController::class, 'index'])
+        ->name('organizations.index');
+    Route::post('/organizations', [\App\Http\Controllers\Organizations\OrganizationController::class, 'store'])
+        ->name('organizations.store');                                             // F-IND-012
+    Route::get('/organizations/co-determination', [\App\Http\Controllers\Organizations\CoDeterminationController::class, 'show'])
+        ->name('organizations.co-determination');                                  // FE-D7 (CLK-13 exit surface)
+    Route::get('/organizations/transfers-conversions', [\App\Http\Controllers\Organizations\TransferController::class, 'index'])
+        ->name('organizations.transfers-conversions');                             // FE-D9
+
+    Route::get('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'show'])
+        ->whereUuid('organization')->name('organizations.show');                   // 302s is_cgc → /cgc
+    Route::patch('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'update'])
+        ->whereUuid('organization')->name('organizations.update');                 // F-ORG-001
+    Route::get('/organizations/{organization}/cgc', [\App\Http\Controllers\Organizations\CgcController::class, 'show'])
+        ->whereUuid('organization')->name('organizations.cgc.show');               // FE-D9
+    Route::post('/organizations/{organization}/ip-register', [\App\Http\Controllers\Organizations\CgcController::class, 'registerIp'])
+        ->whereUuid('organization')->name('organizations.ip-register');            // CGC public-domain dedication (additive only)
+    Route::post('/organizations/{organization}/memberships', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeMembership'])
+        ->whereUuid('organization')->name('organizations.memberships.store');      // F-IND-013
+    Route::post('/organizations/{organization}/workers', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeWorker'])
+        ->whereUuid('organization')->name('organizations.workers.store');          // F-IND-014 (the headcount feed)
+    Route::post('/organizations/{organization}/documents', [\App\Http\Controllers\Organizations\OrganizationController::class, 'storeDocument'])
+        ->whereUuid('organization')->name('organizations.documents.store');        // F-ORG-001
+    Route::post('/organizations/{organization}/endorsements/{endorsementRequest}/grant', [\App\Http\Controllers\Organizations\OrganizationController::class, 'grantEndorsement'])
+        ->whereUuid('organization')->whereUuid('endorsementRequest')->name('organizations.endorsements.grant'); // F-ORG-002
+    Route::post('/contracts/{contract}/cosign', [\App\Http\Controllers\Organizations\OrganizationController::class, 'cosignContract'])
+        ->whereUuid('contract')->name('contracts.cosign');                         // F-ORG-001 (countersign)
+
+    // ── FE-D8 — BoardElections (owner/worker tracks + joint chair) ──────────
+    Route::get('/organizations/{organization}/board-elections', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'show'])
+        ->whereUuid('organization')->name('organizations.board-elections');
+    Route::post('/organizations/{organization}/board-elections', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'store'])
+        ->whereUuid('organization')->name('organizations.board-elections.store');  // F-ORG-003 / F-ORG-004
+
+    // ── FE-D9 — Transfers / conversions / dissolution ───────────────────────
+    Route::post('/organizations/{organization}/transfers', [\App\Http\Controllers\Organizations\TransferController::class, 'transfer'])
+        ->whereUuid('organization')->name('organizations.transfers');             // F-ORG-005
+    Route::post('/transfers/{transfer}/consent', [\App\Http\Controllers\Organizations\TransferController::class, 'consent'])
+        ->whereUuid('transfer')->name('transfers.consent');                       // F-ORG-005 (counterparty)
+    Route::post('/organizations/{organization}/conversion-requests', [\App\Http\Controllers\Organizations\TransferController::class, 'conversionRequest'])
+        ->whereUuid('organization')->name('organizations.conversion-requests');   // F-ORG-006
+    Route::post('/organizations/{organization}/dissolution', [\App\Http\Controllers\Organizations\TransferController::class, 'dissolution'])
+        ->whereUuid('organization')->name('organizations.dissolution');           // F-ORG-007
 });
 
 // WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim

@@ -200,6 +200,22 @@ class WorkerRepresentationTest extends TestCase
         // `\s*+` is POSSESSIVE so the post-`=>` whitespace cannot give back
         // characters and let the lookahead evaluate against a space (which
         // would defeat both exclusions).
+        //
+        // FE-D2..D9 display READERS: the Phase D page controllers serialize
+        // the engine snapshot ('worker_seats' => (int) $board->worker_seats)
+        // into DepartmentCard / co-determination Inertia props. These are
+        // READS of the boards row for display, never writes — CoDetermination
+        // Service remains the sole WRITER of the column. GET controllers only.
+        $displayReaders = array_map(
+            fn ($p) => str_replace('\\', '/', app_path($p)),
+            [
+                'Http/Controllers/Executive/DepartmentController.php',
+                'Http/Controllers/Executive/ExecutiveController.php',
+                'Http/Controllers/Organizations/CoDeterminationController.php',
+                'Http/Controllers/Organizations/OrganizationController.php',
+            ]
+        );
+
         foreach ($iterator as $file) {
             if ($file->getExtension() !== 'php') {
                 continue;
@@ -207,7 +223,7 @@ class WorkerRepresentationTest extends TestCase
 
             $path = str_replace('\\', '/', $file->getPathname());
 
-            if ($path === $allowed) {
+            if ($path === $allowed || in_array($path, $displayReaders, true)) {
                 continue;
             }
 

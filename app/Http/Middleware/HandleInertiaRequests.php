@@ -70,7 +70,7 @@ class HandleInertiaRequests extends Middleware
             // phases as "Planned · Phase X" until their phase ships here.
             // C flipped live with the final FE-C9/C10/C11 batch.
             'app'          => [
-                'phasesLive' => ['A', 'B', 'C'],
+                'phasesLive' => ['A', 'B', 'C', 'D'],
                 // FE-C9 (§A.8): active emergency powers whose area covers
                 // the viewer's association chain — the AppShell renders
                 // the Art. II §7 banner on EVERY page from this prop.

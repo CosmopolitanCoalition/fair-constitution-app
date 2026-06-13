@@ -192,6 +192,16 @@ class TermLockstepTest extends TestCase
             // grouped Term.ends_on values into its lockstep table props.
             // SELECT + groupBy only; no Term row is ever written.
             $this->normalize($this->appPath().'/Http/Controllers/System/TermSyncController.php'),
+            // FE-D2..D9: the same READ-shaped display posture — the Phase D
+            // executive/org surfaces serialize board_seats.term ends_on into
+            // their BoardStrip roster props ('ends_on' => …->toDateString()).
+            // GET controllers only; no Term row is ever written (the no-update
+            // pin above covers every mutation path).
+            $this->normalize($this->appPath().'/Http/Controllers/Executive/ExecutiveController.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/Executive/DepartmentController.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/Organizations/OrganizationController.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/Organizations/BoardElectionController.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/Organizations/CgcController.php'),
         ];
 
         $found = [];
