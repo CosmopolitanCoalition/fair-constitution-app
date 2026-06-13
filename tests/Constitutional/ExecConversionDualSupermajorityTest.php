@@ -479,6 +479,13 @@ class ExecConversionDualSupermajorityTest extends TestCase
 
             $jurisdictionId = (string) $legislature->jurisdiction_id;
 
+            // The revert must return the office to its PRE-CONVERSION footing,
+            // whatever it was — `forming` on a virgin instance, or `delegated`
+            // once a delegation act stands (institutions:demo-d delegates this
+            // very executive). Capture it; the invariant is revert-to-pre-state,
+            // never a hardcoded value coupled to live demo seeding.
+            $preConversionStatus = (string) $executive->status;
+
             $this->assertSame(
                 1,
                 Executive::query()->where('jurisdiction_id', $jurisdictionId)->count(),
@@ -580,8 +587,11 @@ class ExecConversionDualSupermajorityTest extends TestCase
             $executive->refresh();
             $this->assertNotSame(Executive::STATUS_ELECTED, $executive->status,
                 'One lane does not convert — the office is never elected on a failed constituent lane.');
-            $this->assertSame(Executive::STATUS_FORMING, $executive->status,
-                'The failed dual lane reverts the executive to its pre-conversion footing (forming).');
+            $this->assertSame($preConversionStatus, $executive->status,
+                'The failed dual lane reverts the executive to its PRE-CONVERSION footing (forming on a '
+                .'virgin instance, delegated once a delegation act stands) — never elected, never a fork.');
+            $this->assertNotSame(Executive::STATUS_CONVERSION_VOTED, $executive->status,
+                'The conversion_voted limbo is cleared on a failed lane — the office is back to a settled state.');
             $this->assertSame(
                 0,
                 DB::table('elections')->where('executive_id', (string) $executive->id)->where('kind', 'executive')->count(),
@@ -687,6 +697,18 @@ class ExecConversionDualSupermajorityTest extends TestCase
             ->whereIn('status', [Executive::STATUS_FORMING, Executive::STATUS_DELEGATED])
             ->whereHas('jurisdiction', fn ($q) => $q->whereNull('deleted_at'))
             ->get()
+            // DETERMINISTIC selection: prefer the convertible chamber with the
+            // MOST direct child jurisdictions (San Marino's castelli) so this
+            // with-constituents scenario always lands on a chamber that actually
+            // HAS constituents. Never the arbitrary physical-row order of get():
+            // a Phase D delegation (institutions:demo-d UPDATEs this executive
+            // row) reshuffles that order and would otherwise hand back a
+            // leaf chamber, skipping the test.
+            ->sortByDesc(fn (Executive $exec) => $conn->table('jurisdictions')
+                ->where('parent_id', (string) $exec->jurisdiction_id)
+                ->whereNull('deleted_at')
+                ->count())
+            ->values()
             ->first(function (Executive $exec) {
                 $legislature = Legislature::query()
                     ->where('jurisdiction_id', $exec->jurisdiction_id)
