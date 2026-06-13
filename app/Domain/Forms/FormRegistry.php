@@ -304,6 +304,23 @@ class FormRegistry
         'F-LEG-019' => Handlers\CgcCreationAct::class,
         'F-LEG-026' => Handlers\MonopolyAcquisitionVote::class,
         'F-LEG-027' => Handlers\CgcReorganizationSaleVote::class,
+
+        // ── Phase D — executive scope (PHASE_D_DESIGN_executive §B/§D:
+        // delegation/conversion + department creation are LEGISLATIVE acts
+        // that ride the bill→proposal lane; F-EXE-* act through a seated
+        // executive member; F-BOG-* through a seated governor (R-18).
+        // F-LEG-020 stays unregistered — it is the consent VOTE, cast via
+        // F-LEG-004 like every consent.)
+        'F-LEG-014' => Handlers\ExecutiveDelegationAct::class,
+        'F-LEG-015' => Handlers\ExecutiveOfficeCreationAct::class,
+        'F-LEG-016' => Handlers\DepartmentCreationAct::class,
+        'F-EXE-001' => Handlers\BoardGovernorNomination::class,
+        'F-EXE-002' => Handlers\DepartmentPolicyProposal::class,
+        'F-EXE-003' => Handlers\BoardMemberRemovalRequest::class,
+        'F-EXE-004' => Handlers\DepartmentInvestigationOrder::class,
+        'F-EXE-005' => Handlers\ExecutiveOrder::class,
+        'F-BOG-001' => Handlers\DepartmentRuleImplementation::class,
+        'F-BOG-002' => Handlers\DepartmentReportFiling::class,
     ];
 
     /**
@@ -353,12 +370,12 @@ class FormRegistry
         }
 
         return [
-            'id'            => $canonical,
-            'name'          => self::FORMS[$canonical]['name'],
-            'roles'         => self::FORMS[$canonical]['roles'],
-            'aliases'       => $aliases,
+            'id' => $canonical,
+            'name' => self::FORMS[$canonical]['name'],
+            'roles' => self::FORMS[$canonical]['roles'],
+            'aliases' => $aliases,
             'catalog_drift' => $drift,
-            'handler'       => self::HANDLERS[$canonical] ?? null,
+            'handler' => self::HANDLERS[$canonical] ?? null,
         ];
     }
 
