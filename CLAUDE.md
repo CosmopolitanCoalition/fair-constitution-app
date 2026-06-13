@@ -218,22 +218,38 @@ scripts/etl/run_skater.py
 
 ## Module Build Order
 
-**Phase 0 — Foundation** ← CURRENT PHASE
-- [x] Docker stack
-- [x] Laravel 12 + Vue 3 + Inertia.js
-- [x] 9 constitutional migrations
-- [x] docs/ reference library + extract_docs.py
-- [ ] Laravel Models + relationships
-- [ ] ConstitutionalValidator service
-- [ ] Audit log with cryptographic chaining
-- [ ] Pinia state management + i18n
+**Phases 0–5 COMPLETE** (Foundation → Judiciary & Law). All live, constitutionally
+tested (suite green, zero skips), each with standing browsable demo data
+(`elections:demo`, `institutions:demo-d`, `institutions:demo-e`). Detailed phase
+plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 103-form
+ConstitutionalEngine, the PROTECTED hardened layer, and the hash-chained audit
+log span every phase.
 
-**Phase 1 — Identity & Jurisdictions** (Weeks 7-14)
-**Phase 2 — Elections Engine** (Weeks 15-24) — VoteCountingService (PROTECTED)
-**Phase 3 — Legislature Operations** (Weeks 25-36)
-**Phase 4 — Executive & Organizations** (Weeks 37-48)
-**Phase 5 — Judiciary & Law** (Weeks 49-60)
-**Phase 6 — Federation** (Weeks 61-76)
+- [x] **Phase 0 — Foundation**: Docker stack · Laravel 12 + Vue 3 + Inertia ·
+  constitutional migrations · ConstitutionalEngine + hash-chained `audit_log` ·
+  clocks + scheduler · activation engine · design system + AppShell + i18n
+- [x] **Phase 1 — Identity & Jurisdictions**: UUID users + session auth ·
+  residency claims + GPS pings · recursive ancestor-sweep associations · derived
+  roles (R-01→R-04, never stored)
+- [x] **Phase 2 — Elections Engine**: PROTECTED `VoteCountingService`
+  (PR-STV/Droop/Gregory · RCV · universal countback) · two-phase open ballot ·
+  ballot commitment scheme · bootstrap board · certification auto-seating
+- [x] **Phase 3 — Legislature Operations**: peg-quorum chamber votes · bicameral
+  dual agreement · speaker (RCV supermajority) · committees · bills → versioned
+  laws · referendums · petitions · emergency powers (CLK-03)
+- [x] **Phase 4 — Executive & Organizations**: exec delegation/conversion (dual
+  supermajority) · departments + BoG (10-yr CLK-09) · executive orders w/
+  pre-issuance scope validation · full org module + co-determination (CLK-13/14) ·
+  board elections · CGC public-domain IP register
+- [x] **Phase 5 — Judiciary & Law**: appointed/elected courts (equal-per-constituent
+  nomination) · cases/panels/juries/advocates · double jeopardy · the Art. IV §5
+  three-path challenge ending in DIRECT judicial law-editing (`judicial_remedy`
+  law version, full history preserved)
+
+**Phase 6 — Federation & mobile** (Weeks 61-76) ← NEXT
+- Peer mesh + Full Faith & Credit sync + authority flip (export bundle = seed) ·
+  union formation / disintermediation / border settlement / restoration · Sanctum
+  + Capacitor geofenced GPS pinging · full i18n
 
 ---
 
