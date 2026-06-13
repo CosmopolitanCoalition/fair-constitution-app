@@ -47,6 +47,17 @@ export const NAV = [
     { key: 'petitions', titleKey: 'nav.petitions', visibility: 'all', items: [
         { id: 'petitions', labelKey: 'nav.petitions', icon: 'file-text', href: '/civic/petitions', phase: 'C' },
     ] },
+    /* FE-E0 (PHASE_E_DESIGN_frontend.md §B nav integration): the `court`
+       section below is role-gated (the officeholder's launchpad), but the
+       docket + challenge tracker are PUBLIC RECORD (Art. II §2). This
+       all-visibility item is the public entry to the docket for any
+       associated resident, who never holds a court role — mirrors how
+       org-registry lives in an all-visibility organizations section.
+       Stays phase 'E' (Planned flag) until phasesLive flips at the final
+       batch; the JudiciaryResolverController keeps /judiciary/docket stable. */
+    { key: 'judiciaryPublic', titleKey: 'nav.judiciaryPublic', visibility: 'all', items: [
+        { id: 'public-docket', labelKey: 'nav.publicDocket', icon: 'scale', href: '/judiciary/docket', phase: 'E' },
+    ] },
     { key: 'organizations', titleKey: 'nav.organizations', visibility: 'all', items: [
         { id: 'org-registry', labelKey: 'nav.orgRegistry', icon: 'building', href: '/organizations', phase: 'D' },
         { id: 'co-determination', labelKey: 'nav.coDetermination', icon: 'users', href: '/organizations/co-determination', phase: 'D' },
@@ -121,6 +132,7 @@ export const NAV = [
             { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
             { id: 'dev-legislature-kit', labelKey: 'nav.legislatureKit', icon: 'sliders', href: '/dev/legislature-kit', phase: 'A' },
             { id: 'dev-executive-kit', labelKey: 'nav.executiveOrgKit', icon: 'sliders', href: '/dev/executive-kit', phase: 'A' },
+            { id: 'dev-judiciary-kit', labelKey: 'nav.judiciaryKit', icon: 'sliders', href: '/dev/judiciary-kit', phase: 'A' },
         ] }]
         : []),
 ];

@@ -1,0 +1,417 @@
+{
+  "_source": {
+    "panel": "mockups/judiciary/case-detail.html stage 3 + judiciary-home.html severity table (lines 37–45) — the State v. Whitfield panel: 3 seated judges (Asante presiding, Haugen, Kowalski) + Alemán RECUSED (authored the residency-integrity advisory opinion the prosecution cites). `panelSize` and `isFullCourt` are frozen ENGINE snapshots of the panels row (size, is_en_banc) computed by App\\Services\\Judiciary\\PanelSizing (CLK-16) — the component NEVER derives size from severity. The fullCourt variant feeds panelSize=5 + isFullCourt=true (major constitutional question). The pinFullCourtFromMajor variant proves the unit pin: a 'major' severity with panelSize=3 still renders 3.",
+    "case": "mockups/judiciary/case-detail.html stages[]/STAGE_STATE[] — State v. Whitfield, criminal/serious, current_stage 6 (jury selection), jury_entitled, double_jeopardy. The 10 ordinal stages + the Case ESM strip. The majorVariant is constitutional/constitutional_major at stage 3 (full court, no jury).",
+    "challenge": "mockups/judiciary/constitutional-challenge.html renderTracker()/lawDiff() — the Novák finding on Curfew Ordinance §3 (New York County): finding 2031-05-21, remedy due within 60 days (CLK-12), override window closes 2031-06-20 (CLK-11). Heard by the FULL COURT (major constitutional question, CLK-16). Three states: windowOpen (override 4/9, needs 6), overridden (override met), applied (Path C — the judicial_remedy LawVersion del/ins). `override.required` is the engine ceil snapshot — the requiredOverride variant feeds required=99 to prove no client ceil(). remedy_diff.segments are App\\Support\\TextDiff::segments output (server-computed).",
+    "juror": "mockups/judiciary/juror-view.html QUESTIONS[]/render() — the State v. Whitfield summons (drawn 2031-06-02, pool 14,733,408, report 2031-06-24, courtroom 3); the 5 conflict questions; clean + flagged result branches.",
+    "conversion": "mockups/judiciary/judiciary-home.html conv{} — New York State judiciary conversion to elected: legislature 180/272 (needs 182) PAIRED with constituent counties 40/62 (needs 42); neither meets threshold. ConstituentConsentPanel reused verbatim (the Phase D exec-conversion component, structurally identical for Art. IV §3 judiciary conversion). The passed variant has both met. `required` numbers are frozen multi_jurisdiction_votes / chamber_votes snapshots — NEVER client ceil().",
+    "machines": "config/cga/state_machines.php ESM 'case' + 'constitutional_challenge' (FE-E0) — the real pages receive these as PHP-owned props.",
+    "stages": "the 10 case-detail.html lifecycle labels + STAGE_STATE map.",
+    "forms": "SurfaceMeta-shaped form records (id/name/availableTo/citation) — the kit feeds these to FormCard directly; the real pages resolve them through surface.forms via FormRegistry."
+  },
+
+  "machines": {
+    "case": [
+      "filed", "accepted", "paneled", "jury_empaneled", "heard",
+      "deliberation", "decided", "sentenced", "closed", "dismissed", "appealed"
+    ],
+    "constitutional_challenge": [
+      "filed", "under_review", "finding_issued", "remedy_recommended",
+      "legislative_window_open", "amended_by_legislature", "overridden",
+      "judicial_remedy_applied", "closed", "dismissed"
+    ]
+  },
+
+  "stages": [
+    { "index": 1, "title": "Filing" },
+    { "index": 2, "title": "Classification" },
+    { "index": 3, "title": "Panel assignment" },
+    { "index": 4, "title": "Initial hearing" },
+    { "index": 5, "title": "Evidence docket" },
+    { "index": 6, "title": "Jury selection" },
+    { "index": 7, "title": "Arguments" },
+    { "index": 8, "title": "Deliberation" },
+    { "index": 9, "title": "Judgement" },
+    { "index": 10, "title": "Opinion" }
+  ],
+  "stageStateMap": [
+    "filed", "accepted", "paneled", "jury_empaneled", "jury_empaneled",
+    "jury_empaneled", "heard", "deliberation", "decided", "closed"
+  ],
+
+  "panel": {
+    "serious": {
+      "severity": "serious",
+      "panelSize": 3,
+      "isFullCourt": false,
+      "rule": "Panel of 3 — odd, severity-scaled · CLK-16 · Art. IV §4",
+      "seats": [
+        { "judge": { "name": "Kofi Asante" }, "is_presiding": true, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Mira Haugen" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Janek Kowalski" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Beatriz Alemán" }, "is_presiding": false, "screening": "recused", "screening_reason": "Recused — authored the residency-integrity advisory opinion the prosecution cites", "result": "recused" }
+      ]
+    },
+    "fullCourt": {
+      "severity": "constitutional_major",
+      "panelSize": 5,
+      "isFullCourt": true,
+      "rule": "Full court — all 5 judges · CLK-16 · hardened · Art. IV §4",
+      "seats": [
+        { "judge": { "name": "Dr. Lena Novák" }, "is_presiding": true, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Kofi Asante" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Mira Haugen" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Janek Kowalski" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Amara Diop" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" }
+      ]
+    },
+    "pinFullCourtFromMajor": {
+      "severity": "constitutional_major",
+      "panelSize": 3,
+      "isFullCourt": false,
+      "rule": "ENGINE PIN: severity='constitutional_major' but panelSize=3 / isFullCourt=false — the component renders the snapshot, never the severity",
+      "seats": [
+        { "judge": { "name": "Engine Snapshot A" }, "is_presiding": true, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Engine Snapshot B" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Engine Snapshot C" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" }
+      ]
+    },
+    "pending": {
+      "severity": "moderate",
+      "panelSize": 3,
+      "isFullCourt": false,
+      "rule": "Panel of 3 — odd, severity-scaled · CLK-16 · Art. IV §4",
+      "seats": [
+        { "judge": { "name": "Kofi Asante" }, "is_presiding": true, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Mira Haugen" }, "is_presiding": false, "screening": "no_conflicts", "screening_reason": null, "result": "seated" },
+        { "judge": { "name": "Rubén Ortiz" }, "is_presiding": false, "screening": "excluded", "screening_reason": "Excluded at the draw — prior involvement in the underlying matter; the draw re-runs", "result": "excluded" }
+      ]
+    }
+  },
+
+  "case": {
+    "whitfield": {
+      "id": "case-2031-097",
+      "docket_no": "case-2031-097",
+      "title": "State v. Whitfield",
+      "kind": "criminal",
+      "severity": "serious",
+      "court": { "name": "New York State court" },
+      "double_jeopardy": true,
+      "jury_entitled": true,
+      "current_stage": 6,
+      "current_state": "jury_empaneled"
+    },
+    "major": {
+      "id": "case-2031-114",
+      "docket_no": "case-2031-114",
+      "title": "Novák — Curfew Ordinance §3 (constitutional question)",
+      "kind": "constitutional",
+      "severity": "constitutional_major",
+      "court": { "name": "New York County court" },
+      "double_jeopardy": false,
+      "jury_entitled": false,
+      "current_stage": 3,
+      "current_state": "paneled"
+    }
+  },
+
+  "challenge": {
+    "windowOpen": {
+      "id": "chal-2031-008",
+      "name": "Novák v. Curfew Ordinance §3",
+      "law": { "id": "law-curfew-3", "name": "Curfew Ordinance (New York County) — §3", "href": "/legislature/laws/law-curfew-3" },
+      "filed_by_label": "a New York County resident",
+      "filed_at": "2031-04-14",
+      "court": { "name": "New York County court" },
+      "is_major": true,
+      "full_court_size": 5,
+      "writing_judge": { "name": "Dr. Lena Novák" },
+      "state": "legislative_window_open",
+      "finding": {
+        "form_card": { "id": "F-JDG-004", "name": "Constitutional Finding", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5 — a contradiction in law" },
+        "text": "A blanket nightly curfew contradicts the freedom of movement and assembly guaranteed by Art. I, absent a declared emergency under Art. II §7"
+      },
+      "remedy": {
+        "form_card": { "id": "F-JDG-005", "name": "Remedy Recommendation", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5 — sets the CLK-11/CLK-12 per-case windows" },
+        "text": "Narrow §3 to apply only within a declared emergency's stated area and duration",
+        "timeframe_days": 60,
+        "timeframe_due_on": "2031-07-20",
+        "clk": "CLK-12",
+        "veto_window_days": 30,
+        "veto_closes_on": "2031-06-20",
+        "veto_clk": "CLK-11",
+        "tz": "shown in your timezone (UTC−5 · America/New_York) · stored as UTC"
+      },
+      "override": {
+        "form_card": { "id": "F-LEG-035", "name": "Judiciary Override Vote", "availableTo": ["R-09"], "citation": "Art. IV §5; Art. VII — supermajority of all serving, within the veto window" },
+        "vote": null,
+        "required": 6,
+        "serving": 9,
+        "yes": 4,
+        "closed": false
+      },
+      "resolution": "window_open",
+      "bill_href": "/legislature/bills/bill-curfew-amend",
+      "enforcement": { "href": "/executive/actions" },
+      "judicial_remedy_form_card": { "id": "F-JDG-006", "name": "Judicial Remedy Application", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5 — judicial_remedy law version when the window closes" },
+      "remedy_diff": {
+        "applied": false,
+        "version_no": 3,
+        "prior_version_no": 2,
+        "history_href": "/legislature/laws/law-curfew-3/versions",
+        "segments": [
+          { "op": "eq", "text": "No person shall remain in any public street, park, or greenway " },
+          { "op": "del", "text": "between 22:00 and 05:00." },
+          { "op": "ins", "text": "during a declared emergency under Art. II §7, within that emergency’s stated area and duration." }
+        ]
+      }
+    },
+    "overridden": {
+      "id": "chal-2031-008",
+      "name": "Novák v. Curfew Ordinance §3",
+      "law": { "id": "law-curfew-3", "name": "Curfew Ordinance (New York County) — §3", "href": "/legislature/laws/law-curfew-3" },
+      "filed_by_label": "a New York County resident",
+      "filed_at": "2031-04-14",
+      "court": { "name": "New York County court" },
+      "is_major": true,
+      "full_court_size": 5,
+      "writing_judge": { "name": "Dr. Lena Novák" },
+      "state": "overridden",
+      "finding": {
+        "form_card": { "id": "F-JDG-004", "name": "Constitutional Finding", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "A blanket nightly curfew contradicts the freedom of movement and assembly guaranteed by Art. I"
+      },
+      "remedy": {
+        "form_card": { "id": "F-JDG-005", "name": "Remedy Recommendation", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "Narrow §3 to apply only within a declared emergency's stated area and duration",
+        "timeframe_days": 60,
+        "timeframe_due_on": "2031-07-20",
+        "clk": "CLK-12",
+        "veto_window_days": 30,
+        "veto_closes_on": "2031-06-20",
+        "veto_clk": "CLK-11",
+        "tz": "shown in your timezone (UTC−5 · America/New_York) · stored as UTC"
+      },
+      "override": {
+        "form_card": { "id": "F-LEG-035", "name": "Judiciary Override Vote", "availableTo": ["R-09"], "citation": "Art. IV §5; Art. VII" },
+        "vote": {
+          "serving": 9,
+          "requiredYes": 6,
+          "tallies": { "yes": 7, "no": 2, "abstain": 0 },
+          "outcome": "adopted"
+        },
+        "required": 6,
+        "serving": 9,
+        "yes": 7,
+        "closed": true
+      },
+      "resolution": "overridden",
+      "bill_href": "/legislature/bills/bill-curfew-amend",
+      "enforcement": { "href": "/executive/actions" },
+      "judicial_remedy_form_card": { "id": "F-JDG-006", "name": "Judicial Remedy Application", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+      "remedy_diff": {
+        "applied": false,
+        "version_no": 2,
+        "prior_version_no": 2,
+        "history_href": "/legislature/laws/law-curfew-3/versions",
+        "segments": [
+          { "op": "eq", "text": "No person shall remain in any public street, park, or greenway " },
+          { "op": "del", "text": "between 22:00 and 05:00." },
+          { "op": "ins", "text": "during a declared emergency under Art. II §7, within that emergency’s stated area and duration." }
+        ]
+      }
+    },
+    "applied": {
+      "id": "chal-2031-008",
+      "name": "Novák v. Curfew Ordinance §3",
+      "law": { "id": "law-curfew-3", "name": "Curfew Ordinance (New York County) — §3", "href": "/legislature/laws/law-curfew-3" },
+      "filed_by_label": "a New York County resident",
+      "filed_at": "2031-04-14",
+      "court": { "name": "New York County court" },
+      "is_major": true,
+      "full_court_size": 5,
+      "writing_judge": { "name": "Dr. Lena Novák" },
+      "state": "judicial_remedy_applied",
+      "finding": {
+        "form_card": { "id": "F-JDG-004", "name": "Constitutional Finding", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "A blanket nightly curfew contradicts the freedom of movement and assembly guaranteed by Art. I"
+      },
+      "remedy": {
+        "form_card": { "id": "F-JDG-005", "name": "Remedy Recommendation", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "Narrow §3 to apply only within a declared emergency's stated area and duration",
+        "timeframe_days": 60,
+        "timeframe_due_on": "2031-07-20",
+        "clk": "CLK-12",
+        "veto_window_days": 30,
+        "veto_closes_on": "2031-06-20",
+        "veto_clk": "CLK-11",
+        "tz": "shown in your timezone (UTC−5 · America/New_York) · stored as UTC"
+      },
+      "override": {
+        "form_card": { "id": "F-LEG-035", "name": "Judiciary Override Vote", "availableTo": ["R-09"], "citation": "Art. IV §5; Art. VII" },
+        "vote": {
+          "serving": 9,
+          "requiredYes": 6,
+          "tallies": { "yes": 4, "no": 5, "abstain": 0 },
+          "outcome": "failed"
+        },
+        "required": 6,
+        "serving": 9,
+        "yes": 4,
+        "closed": true
+      },
+      "resolution": "applied",
+      "bill_href": "/legislature/bills/bill-curfew-amend",
+      "enforcement": { "href": "/executive/actions" },
+      "judicial_remedy_form_card": { "id": "F-JDG-006", "name": "Judicial Remedy Application", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5 — judicial_remedy LawVersion" },
+      "remedy_diff": {
+        "applied": true,
+        "version_no": 3,
+        "prior_version_no": 2,
+        "history_href": "/legislature/laws/law-curfew-3/versions",
+        "segments": [
+          { "op": "eq", "text": "No person shall remain in any public street, park, or greenway " },
+          { "op": "del", "text": "between 22:00 and 05:00." },
+          { "op": "ins", "text": "during a declared emergency under Art. II §7, within that emergency’s stated area and duration." }
+        ]
+      }
+    },
+    "requiredOverride": {
+      "id": "chal-pin",
+      "name": "Pin — override required rendered verbatim",
+      "law": { "id": "law-pin", "name": "Pin Ordinance", "href": null },
+      "filed_by_label": "a resident",
+      "filed_at": "2031-04-14",
+      "court": { "name": "Pin court" },
+      "is_major": false,
+      "full_court_size": 5,
+      "writing_judge": { "name": "Pin Judge" },
+      "state": "legislative_window_open",
+      "finding": {
+        "form_card": { "id": "F-JDG-004", "name": "Constitutional Finding", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "Pin finding"
+      },
+      "remedy": {
+        "form_card": { "id": "F-JDG-005", "name": "Remedy Recommendation", "availableTo": ["R-19", "R-20"], "citation": "Art. IV §5" },
+        "text": "Pin remedy",
+        "timeframe_days": 60,
+        "timeframe_due_on": "2031-07-20",
+        "clk": "CLK-12",
+        "veto_window_days": 30,
+        "veto_closes_on": "2031-06-20",
+        "veto_clk": "CLK-11",
+        "tz": "stored as UTC"
+      },
+      "override": {
+        "form_card": { "id": "F-LEG-035", "name": "Judiciary Override Vote", "availableTo": ["R-09"], "citation": "Art. IV §5; Art. VII" },
+        "vote": null,
+        "required": 99,
+        "serving": 9,
+        "yes": 4,
+        "closed": false
+      },
+      "resolution": "window_open",
+      "bill_href": null,
+      "enforcement": { "href": "/executive/actions" },
+      "judicial_remedy_form_card": null,
+      "remedy_diff": null
+    }
+  },
+
+  "fileForm": {
+    "id": "F-IND-016",
+    "name": "Constitutional Challenge Filing",
+    "alias": "F-IND-013",
+    "availableTo": ["R-03"],
+    "citation": "Art. IV §5 — any inhabitant may file; no standing gatekeeper beyond jurisdictional association"
+  },
+
+  "juror": {
+    "summons": {
+      "id": "summons-2031-0420",
+      "case": { "id": "case-2031-097", "title": "State v. Whitfield", "href": "/cases/case-2031-097" },
+      "drawn_at": "2031-06-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC",
+      "pool_size": "14,733,408 eligible jurisdictionally associated residents of New York",
+      "report_at": "2031-06-24 09:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC",
+      "location": "New York State court, courtroom 3 — 12 jurors + 2 alternates will be empaneled",
+      "seed_audit_href": "/system/audit-chain",
+      "service_state": "conflict_screening"
+    },
+    "questions": [
+      { "id": "q1", "text": "Do you know the accused, the advocates, or any listed witness personally?" },
+      { "id": "q2", "text": "Do you have any financial interest in the outcome of this case?" },
+      { "id": "q3", "text": "Were you involved in the events at issue, or in the investigation?" },
+      { "id": "q4", "text": "Have you formed a fixed opinion about this case from coverage or conversation?" },
+      { "id": "q5", "text": "Have you served on a jury or panel in a related case?" }
+    ],
+    "can": { "submitScreening": true },
+    "sourceForm": {
+      "id": "F-JDG-002",
+      "name": "Jury Selection Order",
+      "availableTo": ["R-19", "R-20"],
+      "citation": "Art. IV §4 — the Jury Selection Order that created this summons"
+    }
+  },
+
+  "conversion": {
+    "subjectLabel": "Conversion to an elected judiciary",
+    "legislatureLabel": "New York State legislature",
+    "open": {
+      "legislatureVote": {
+        "mode": "unicameral",
+        "thresholdClass": "supermajority",
+        "serving": 272,
+        "requiredYes": 182,
+        "tallies": { "yes": 180, "no": 88, "abstain": 4 },
+        "outcome": "pending"
+      },
+      "process": {
+        "id": "mjv-jud-convert-1",
+        "kind": "jud_office_create",
+        "status": "open",
+        "total": 62,
+        "required": 42,
+        "yes": 40,
+        "closes_at": "2031-08-01",
+        "consents": [
+          { "jurisdiction": "New York County", "result": "yes" },
+          { "jurisdiction": "Kings County", "result": "yes" },
+          { "jurisdiction": "Queens County", "result": "yes" },
+          { "jurisdiction": "Bronx County", "result": "yes" },
+          { "jurisdiction": "Richmond County", "result": "no" },
+          { "jurisdiction": "Westchester County", "result": "yes" },
+          { "jurisdiction": "Erie County", "result": "pending" }
+        ]
+      }
+    },
+    "passed": {
+      "legislatureVote": {
+        "mode": "unicameral",
+        "thresholdClass": "supermajority",
+        "serving": 272,
+        "requiredYes": 182,
+        "tallies": { "yes": 213, "no": 55, "abstain": 4 },
+        "outcome": "adopted"
+      },
+      "process": {
+        "id": "mjv-jud-convert-1",
+        "kind": "jud_office_create",
+        "status": "passed",
+        "total": 62,
+        "required": 42,
+        "yes": 51,
+        "closes_at": null,
+        "consents": [
+          { "jurisdiction": "New York County", "result": "yes" },
+          { "jurisdiction": "Kings County", "result": "yes" },
+          { "jurisdiction": "Queens County", "result": "yes" },
+          { "jurisdiction": "Bronx County", "result": "yes" },
+          { "jurisdiction": "Richmond County", "result": "yes" },
+          { "jurisdiction": "Westchester County", "result": "yes" },
+          { "jurisdiction": "Erie County", "result": "yes" }
+        ]
+      }
+    }
+  }
+}

@@ -112,4 +112,36 @@ return [
         'converted', 'dissolved',
     ],
 
+    // ESM-CASE — cases (PHASE_E_DESIGN_schema; App\Models\CourtCase, the
+    // WF-JUD-03 spine). DB status strings (the CourtCase::STATUS_* CHECK).
+    // 'jury_empaneled' is the optional pass for jury-entitled criminal cases
+    // (Art. IV §4); 'appealed' re-enters the lifecycle at a wider panel
+    // (deferred surface, the case-detail stage-10 cross-link). CaseService
+    // is the only writer of `status` — the page renders, never advances.
+    'case' => [
+        'filed', 'accepted', 'paneled', 'jury_empaneled', 'heard',
+        'deliberation', 'decided', 'sentenced', 'closed',
+        // branches
+        'dismissed', 'appealed',
+    ],
+
+    // ESM-CC — constitutional challenges (PHASE_E_DESIGN_challenge_law §A;
+    // App\Models\ConstitutionalChallenge, the Art. IV §5 machine). The
+    // challenge is its OWN durable entity, distinct from the `cases` row it
+    // is heard in — the CLK-11/CLK-12 windows run for weeks-to-months AFTER
+    // the hearing, gated on legislature action. The three resolution paths
+    // ('amended_by_legislature' | 'overridden' | 'judicial_remedy_applied')
+    // are mutually exclusive terminals; 'judicial_remedy_applied' →
+    // 'closed' is the exit criterion (the judicial_remedy LawVersion).
+    // ConstitutionalChallengeService is the only writer of `status`.
+    'constitutional_challenge' => [
+        'filed', 'under_review', 'finding_issued', 'remedy_recommended',
+        'legislative_window_open',
+        // resolution terminals (one of the three Art. IV §5 paths)
+        'amended_by_legislature', 'overridden', 'judicial_remedy_applied',
+        'closed',
+        // branch
+        'dismissed',
+    ],
+
 ];

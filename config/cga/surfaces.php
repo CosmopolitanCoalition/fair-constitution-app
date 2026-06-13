@@ -740,4 +740,134 @@ return [
         'citation'  => 'Dev harness — fixture-first component verification (FE-D1) · not product UI',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | Phase E — judiciary surfaces (FE-E0; PHASE_E_DESIGN_frontend.md §B)
+    |----------------------------------------------------------------------
+    | Contract data from each mockup's CGA_PAGE block (mockups/judiciary/*)
+    | + the §B per-page surface rows. ids = mockup ids. Per-form citations
+    | carry the mockup form cards' `basis` strings. PUBLIC-READ posture
+    | (the defining Phase E rule, Art. II §2): dockets / opinions /
+    | challenges are public record; actions gate by derived role via can.*
+    | + engine 422, never a page 403. The F-IND-013 → F-IND-016 drift
+    | (CATALOG_DRIFT, WF-JUD-05) resolves through FormRegistry for display
+    | only. Pages land in FE-E2…E6; registering the ids first lets every
+    | controller pass SurfaceMeta::for() from day one. `nav:` maps the
+    | detail surfaces onto the role-gated court items — case-detail →
+    | case-docket; the rest map to themselves (the JudiciaryResolverController
+    | keeps the nav hrefs stable while canonical surfaces are court-scoped).
+    */
+
+    'judiciary/judiciary-home' => [
+        'title'     => 'Judiciary home',
+        'module'    => 'judiciary',
+        'nav'       => 'judiciary-home',
+        'roles'     => ['R-19', 'R-20'],
+        'workflows' => ['WF-JUD-01', 'WF-JUD-02', 'WF-JUD-07'],
+        'forms'     => [
+            ['id' => 'F-LEG-017', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judiciary creation by supermajority act of the legislature'],
+            ['id' => 'F-LEG-021', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judicial nomination consent vote, same supermajority as creation'],
+            ['id' => 'F-LEG-018', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §3 — conversion to elected, dual supermajority (legislature + constituent jurisdictions)'],
+        ],
+        'clocks'    => ['CLK-09', 'CLK-10', 'CLK-15', 'CLK-16'],
+        'citation'  => 'Appointed judiciary · panels ≥3 odd, full court for major questions · Art. IV §2; Art. IV §4 · CLK-16',
+    ],
+
+    'judiciary/case-docket' => [
+        'title'     => 'Case docket',
+        'module'    => 'judiciary',
+        'nav'       => 'case-docket',
+        'roles'     => ['R-19', 'R-20', 'R-21', 'R-03'],
+        'workflows' => ['WF-JUD-03'],
+        'forms'     => [
+            ['id' => 'F-IND-017', 'availableTo' => ['R-03'], 'citation' => 'Art. IV §4 — civil/criminal case filing; the court classifies justiciability + severity at acceptance'],
+            ['id' => 'F-IND-016', 'availableTo' => ['R-03'], 'citation' => 'Art. IV §5 — constitutional challenge; any inhabitant, no standing gatekeeper'],
+            ['id' => 'F-ADV-001', 'availableTo' => ['R-21'], 'citation' => 'Art. I — case filing on behalf of a client'],
+            ['id' => 'F-JDG-001', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — case acceptance + panel assignment with conflict screening; hardened'],
+        ],
+        'clocks'    => ['CLK-16'],
+        'citation'  => 'Panel ≥3 and odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16',
+    ],
+
+    'judiciary/case-detail' => [
+        'title'     => 'Case detail',
+        'module'    => 'judiciary',
+        'nav'       => 'case-docket',
+        'roles'     => ['R-19', 'R-20', 'R-21', 'R-22'],
+        'workflows' => ['WF-JUD-03', 'WF-JUD-04'],
+        'forms'     => [
+            ['id' => 'F-IND-017', 'availableTo' => ['R-03'], 'citation' => 'Art. IV §4 — civil/criminal case filing'],
+            ['id' => 'F-JDG-001', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — case acceptance + conflict-screened panel; hardened'],
+            ['id' => 'F-JDG-002', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — jury selection order; random draw, seed published to the audit chain'],
+            ['id' => 'F-ADV-002', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — motion filing'],
+            ['id' => 'F-ADV-003', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — evidence submission'],
+            ['id' => 'F-JDG-003', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4–§5 — opinion / ruling, commentary on the law as written or edited'],
+            ['id' => 'F-JDG-009', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. II §8 — sentencing order; criminal outcome carries the double-jeopardy flag'],
+            ['id' => 'F-JDG-010', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. I — warrant; stated reason and duration required'],
+        ],
+        'clocks'    => ['CLK-16'],
+        'citation'  => 'Case lifecycle · panel ≥3 odd · Art. IV §4 · CLK-16 — double jeopardy barred · Art. II §8',
+    ],
+
+    'judiciary/constitutional-challenge' => [
+        'title'     => 'Constitutional challenge tracker',
+        'module'    => 'judiciary',
+        'nav'       => 'constitutional-challenge',
+        'roles'     => ['R-03', 'R-09', 'R-19', 'R-20'],
+        'workflows' => ['WF-JUD-05'],
+        'forms'     => [
+            ['id' => 'F-IND-016', 'availableTo' => ['R-03'], 'citation' => 'Art. IV §5 — constitutional challenge filing; any inhabitant, no standing gatekeeper'],
+            ['id' => 'F-JDG-004', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §5 — constitutional finding (a contradiction in law)'],
+            ['id' => 'F-JDG-005', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §5 — remedy recommendation; sets the CLK-11/CLK-12 per-case windows'],
+            ['id' => 'F-JDG-006', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §5 — judiciary applies the remedy directly when the window closes; judicial_remedy law version'],
+            ['id' => 'F-LEG-035', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §5; Art. VII — supermajority override of all serving, cast within the veto window'],
+        ],
+        'clocks'    => ['CLK-11', 'CLK-12', 'CLK-16'],
+        'citation'  => 'Amend, override by supermajority in the veto window, or the judiciary edits the law · Art. IV §5 · CLK-11 · CLK-12',
+    ],
+
+    'judiciary/advocate-console' => [
+        'title'     => 'Advocate console',
+        'module'    => 'judiciary',
+        'nav'       => 'advocate-console',
+        'roles'     => ['R-21', 'R-03'],
+        'workflows' => ['WF-CIV-07', 'WF-JUD-03'],
+        'forms'     => [
+            ['id' => 'F-IND-015', 'availableTo' => ['R-03'], 'citation' => 'Art. IV §4; Art. I — advocate registration; confers R-21, keeps the bar zealous and competent'],
+            ['id' => 'F-ADV-001', 'availableTo' => ['R-21'], 'citation' => 'Art. I — new case on behalf of a client; queued for acceptance + panel assignment'],
+            ['id' => 'F-ADV-002', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — motion filing; stage-gated by the engine'],
+            ['id' => 'F-ADV-003', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — evidence submission; on the open docket'],
+            ['id' => 'F-ADV-004', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — brief / argument; accepted until deliberation'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Zealous & competent advocates · Art. IV §4 — right to legal representation · Art. I',
+    ],
+
+    'judiciary/juror-view' => [
+        'title'     => 'Juror view',
+        'module'    => 'judiciary',
+        'nav'       => 'juror-view',
+        'roles'     => ['R-22'],
+        'workflows' => ['WF-JUD-04'],
+        'forms'     => [
+            ['id' => 'F-JDG-002', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — the Jury Selection Order that created this summons'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Jury of peers · Art. IV §4 — no interference, no fees · Art. II §8',
+    ],
+
+    // FE-E1 dev harness — every Phase E judiciary component in every state,
+    // rendered from resources/js/fixtures/judiciary.json. Dev-gated route
+    // only (pattern: dev/electoral-kit, dev/legislature-kit, dev/executive-kit).
+    'dev/judiciary-kit' => [
+        'title'     => 'Judiciary component kit',
+        'module'    => 'judiciary',
+        'nav'       => null,
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Dev harness — fixture-first component verification (FE-E1) · not product UI',
+    ],
+
 ];

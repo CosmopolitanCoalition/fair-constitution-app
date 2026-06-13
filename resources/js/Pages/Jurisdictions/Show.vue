@@ -234,6 +234,15 @@
                         Executive →
                     </a>
 
+                    <!-- FE-E0 — public entry to the court surfaces (dockets +
+                         opinions are public record, Art. II §2). -->
+                    <a v-if="judiciary_id"
+                       :href="`/judiciaries/${judiciary_id}`"
+                       class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-1.5
+                              bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors">
+                        Judiciary →
+                    </a>
+
                     <!-- P.6 — Acceptance gate. Visible only at planet scope.
                          Disabled until the ETL has finished and the operator
                          hasn't already accepted. Click stamps map_accepted_at
@@ -393,6 +402,7 @@ const props = defineProps({
     map_acceptance:      { type: Object, default: () => ({ is_planet_scope: false }) },
     legislature_id:      String,
     executive_id:        String,
+    judiciary_id:        String,
     has_district_map:    { type: Boolean, default: false },
     // FE-C2 — true when the legislature has current members: the CTA
     // splits into "Chamber" + "District map".

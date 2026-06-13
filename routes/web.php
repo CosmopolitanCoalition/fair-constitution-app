@@ -8,6 +8,7 @@ use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
 use App\Http\Controllers\Dev\ExecutiveOrgKitController;
+use App\Http\Controllers\Dev\JudiciaryKitController;
 use App\Http\Controllers\Dev\LegislatureKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\Dev\ResidencyGrantController;
@@ -564,6 +565,55 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.conversion-requests');   // F-ORG-006
     Route::post('/organizations/{organization}/dissolution', [\App\Http\Controllers\Organizations\TransferController::class, 'dissolution'])
         ->whereUuid('organization')->name('organizations.dissolution');           // F-ORG-007
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PHASE E — Judiciary & Law (FE-E2..E6). Dockets/opinions/challenges are
+    // public record (Art. II §2); actions gate by role + engine 422.
+    // ════════════════════════════════════════════════════════════════════════
+
+    // ── FE-E0 — per-viewer surfaces (specific routes FIRST) + the resolver ──
+    Route::get('/judiciary/advocate', [\App\Http\Controllers\Judiciary\AdvocateController::class, 'show'])
+        ->name('judiciary.advocate');
+    Route::post('/advocate/registration', [\App\Http\Controllers\Judiciary\AdvocateController::class, 'register'])
+        ->name('judiciary.advocate.register');                                    // F-IND-015
+    Route::get('/judiciary/jury/{summons}', [\App\Http\Controllers\Judiciary\JurorController::class, 'show'])
+        ->whereUuid('summons')->name('judiciary.juror.show');
+    Route::post('/judiciary/jury/{summons}/screening', [\App\Http\Controllers\Judiciary\JurorController::class, 'screening'])
+        ->whereUuid('summons')->name('judiciary.juror.screening');                // voir-dire (no F-* form)
+    Route::get('/judiciary/{sub?}', \App\Http\Controllers\Judiciary\JudiciaryResolverController::class)
+        ->where('sub', 'docket|challenges|jury')->name('judiciary.resolve');
+
+    // ── FE-E2 — Judiciary/Home ──────────────────────────────────────────────
+    Route::get('/judiciaries/{judiciary}', [\App\Http\Controllers\Judiciary\JudiciaryController::class, 'show'])
+        ->whereUuid('judiciary')->name('judiciaries.show');
+
+    // ── FE-E3 — Docket + CaseDetail ─────────────────────────────────────────
+    Route::get('/judiciaries/{judiciary}/docket', [\App\Http\Controllers\Judiciary\DocketController::class, 'index'])
+        ->whereUuid('judiciary')->name('judiciary.docket');
+    Route::post('/judiciaries/{judiciary}/cases', [\App\Http\Controllers\Judiciary\DocketController::class, 'store'])
+        ->whereUuid('judiciary')->name('judiciary.cases.store');                  // F-IND-017 / F-ADV-001
+    Route::get('/cases/{case}', [\App\Http\Controllers\Judiciary\CaseController::class, 'show'])
+        ->whereUuid('case')->name('judiciary.cases.show');
+    Route::post('/cases/{case}/acceptance', [\App\Http\Controllers\Judiciary\CaseController::class, 'acceptance'])
+        ->whereUuid('case')->name('judiciary.cases.acceptance');                  // F-JDG-001
+    Route::post('/cases/{case}/jury-orders', [\App\Http\Controllers\Judiciary\CaseController::class, 'juryOrder'])
+        ->whereUuid('case')->name('judiciary.cases.jury-orders');                 // F-JDG-002
+    Route::post('/cases/{case}/opinions', [\App\Http\Controllers\Judiciary\CaseController::class, 'opinion'])
+        ->whereUuid('case')->name('judiciary.cases.opinions');                    // F-JDG-003
+    Route::post('/cases/{case}/sentencing', [\App\Http\Controllers\Judiciary\CaseController::class, 'sentencing'])
+        ->whereUuid('case')->name('judiciary.cases.sentencing');                  // F-JDG-009
+    Route::post('/cases/{case}/warrants', [\App\Http\Controllers\Judiciary\CaseController::class, 'warrant'])
+        ->whereUuid('case')->name('judiciary.cases.warrants');                    // F-JDG-010
+    Route::post('/cases/{case}/filings', [\App\Http\Controllers\Judiciary\CaseController::class, 'filing'])
+        ->whereUuid('case')->name('judiciary.cases.filings.store');               // F-ADV-002/003/004
+
+    // ── FE-E5 — Constitutional challenges (Art. IV §5 — the exit surface) ────
+    Route::get('/constitutional-challenges', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'index'])
+        ->name('judiciary.challenges.index');
+    Route::get('/constitutional-challenges/{challenge}', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'show'])
+        ->whereUuid('challenge')->name('judiciary.challenges.show');
+    Route::post('/constitutional-challenges', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'file'])
+        ->name('judiciary.challenges.file');                                      // F-IND-016
 });
 
 // WI-5/WI-8 — Civic module: dashboard, record, identity, residency claim
@@ -611,6 +661,8 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::get('/legislature-kit', [LegislatureKitController::class, 'show'])->name('legislature-kit');
         // FE-D1 — fixture-first harness: every Phase D executive/orgs component.
         Route::get('/executive-kit', [ExecutiveOrgKitController::class, 'show'])->name('executive-kit');
+        // FE-E1 — fixture-first harness: every Phase E judiciary component.
+        Route::get('/judiciary-kit', [JudiciaryKitController::class, 'show'])->name('judiciary-kit');
     });
 
     // Dev login-as: a passwordless web session for any user — the

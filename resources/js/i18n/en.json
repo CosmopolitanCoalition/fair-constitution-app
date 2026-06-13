@@ -55,6 +55,8 @@
         "challenges": "Constitutional challenges",
         "advocateConsole": "Advocate console",
         "jurorView": "Jury service",
+        "judiciaryPublic": "Courts",
+        "publicDocket": "Public docket",
         "system": "System",
         "setupWizard": "Instance setup",
         "publicRecords": "Public records",
@@ -76,7 +78,8 @@
         "dev": "Dev tools",
         "electoralKit": "Electoral kit",
         "legislatureKit": "Legislature kit",
-        "executiveOrgKit": "Executive & orgs kit"
+        "executiveOrgKit": "Executive & orgs kit",
+        "judiciaryKit": "Judiciary kit"
     },
     "footer": {
         "audit": "Audit #{n} · chained",

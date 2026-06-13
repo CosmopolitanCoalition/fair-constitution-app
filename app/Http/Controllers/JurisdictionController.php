@@ -77,6 +77,14 @@ class JurisdictionController extends Controller
             ->whereNull('deleted_at')
             ->value('id');
 
+        // FE-E0 cross-link: the public entry to the court surfaces. Renders
+        // once the judiciary is past `forming` (a real court — Art. II §2).
+        $judiciaryId = DB::table('judiciaries')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', 'forming')
+            ->value('id');
+
         // P.6.x.3: has-district-map gate. When true, "View Legislature &
         // Districts" button shows; when false (but legislature exists),
         // "Create first district map" shows instead.
@@ -184,6 +192,7 @@ class JurisdictionController extends Controller
             'review' => $reviewSummary,
             'legislature_id' => $legislatureId,
             'executive_id' => $executiveId !== null ? (string) $executiveId : null,
+            'judiciary_id' => $judiciaryId !== null ? (string) $judiciaryId : null,
             'has_district_map' => $hasDistrictMap,
             'chamber_seated' => $chamberSeated,
             'current_election' => $currentElection ? [
