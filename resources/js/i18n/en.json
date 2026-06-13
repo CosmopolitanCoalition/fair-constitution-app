@@ -27,6 +27,7 @@
         "organizations": "Organizations",
         "orgRegistry": "Registry",
         "coDetermination": "Co-determination",
+        "transfers": "Transfers & conversions",
         "jurisdictions": "Jurisdictions",
         "jurisdictionBrowser": "Browser",
         "legislatures": "Legislatures",
@@ -74,7 +75,8 @@
         "menu": "Menu",
         "dev": "Dev tools",
         "electoralKit": "Electoral kit",
-        "legislatureKit": "Legislature kit"
+        "legislatureKit": "Legislature kit",
+        "executiveOrgKit": "Executive & orgs kit"
     },
     "footer": {
         "audit": "Audit #{n} · chained",

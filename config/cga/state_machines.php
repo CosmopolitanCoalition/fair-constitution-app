@@ -78,4 +78,38 @@ return [
         'under_review', 'narrowed', 'struck',
     ],
 
+    // ESM-16 — executive offices (PHASE_D_DESIGN_executive.md D-1; FE-D0).
+    // One row per jurisdiction, forever: conversion evolves the SAME row
+    // (committee→individual flips `type`), never a second one. The chart's
+    // bracketed [Modified by constituent supermajority] is an EVENT
+    // (exec_office_alter process row + audit), not a resting state — no
+    // 'modified' status exists in the CHECK.
+    'executive_office' => [
+        'forming', 'delegated', 'conversion_voted', 'elected',
+        // terminal branches
+        'dissolved', 'reverted',
+    ],
+
+    // ESM-17 — departments / Boards of Governors (PHASE_D_DESIGN_executive.md
+    // D-3). 'removal_requested' is NOT a stored department status: an open
+    // governor_removal_requests row splices it into the display machine
+    // live (the Phase B CandidacyController::machineFor() idiom) without
+    // interrupting 'operating'.
+    'department_board' => [
+        'chartered', 'oversight_assigned', 'governors_nominated', 'consented',
+        'operating', 'reporting',
+        // branches
+        'rechartered', 'dissolved',
+    ],
+
+    // ESM-18 — organizations (PHASE_D_DESIGN_organizations.md D-O1 / D.1).
+    // The chart's [Endorsing] and [Co-determination tiers] are DERIVED
+    // display states (endorsements exist / worker_count vs the CLK-13/14
+    // thresholds), never stored — same posture as roles.
+    'organization' => [
+        'registered', 'active', 'transfer_pending', 'transferred',
+        // branches
+        'converted', 'dissolved',
+    ],
+
 ];

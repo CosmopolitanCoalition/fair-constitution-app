@@ -959,6 +959,43 @@ h3:has(> .stv-action) { margin-block: var(--space-4) var(--space-2); }
    mockup hand-wrote <p> markup around its del/ins). */
 .law-diff { white-space: pre-wrap; }
 
+/* -------------------------- 6d. EXECUTIVE + ORGANIZATIONS ADDITIONS (FE-D0) */
+/* executive + organizations additions — PHASE_D_DESIGN_frontend.md §A.0.
+   Every other class the 11 Phase D screens use (.meter*, .stv-*, .log-row*,
+   .state-strip, .lifecycle, .stepper, .receipt, .amendable, .hardened,
+   .form-chip, .tag-chip, .org-chip, .persona-chip, .stat, .banner--*,
+   .table, .chip-toggle, layout utilities) was already ported above.
+   Zero-inline-style posture as 6b/6c; zero hex, logical properties only. */
+
+/* .range-input — the co-determination explorer slider. Source:
+   mockups/organizations/co-determination.html line 33, which inlined
+   inline-size/accent-color on <input type="range" id="headcount">. */
+.range-input { inline-size: 100%; accent-color: var(--gov-primary); }
+
+/* .meter--lg — the larger scale-meter track. Source: co-determination.html
+   line 38 inlined block-size:.875rem on the scaling meter's .meter. */
+.meter--lg { block-size: .875rem; }
+
+/* Board composition strip + seat pips (BoardStrip; department-detail.html
+   board roster / board-elections.html seated board). Flat pips, no SVG —
+   the circular SeatMap stays a chamber-only artifact. Color is never the
+   only signal: every pip carries an aria-label and the strip renders a
+   text legend. */
+.board-strip { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.seat-pip {
+  inline-size: 1rem; block-size: 1rem; border-radius: 50%;
+  border: 1px solid var(--gov-border-strong);
+  background: color-mix(in oklch, var(--gov-primary) 45%, var(--gov-bg));
+}
+.seat-pip--worker { background: color-mix(in oklch, var(--status-info) 45%, var(--gov-bg)); border-color: var(--status-info); }
+.seat-pip--vacant { background: var(--gov-surface-2); border-style: dashed; }
+.seat-pip--chair { box-shadow: 0 0 0 2px var(--cc-gold-400); }
+
+/* .seat-dot--worker — the SVG SeatMap counterpart of .seat-pip--worker for
+   worker-class seats, should a board ever render through the chamber
+   SeatMap (fill/stroke pair of the flat-strip variant above). */
+.seat-dot--worker { fill: color-mix(in oklch, var(--status-info) 55%, var(--gov-bg)); stroke: var(--status-info); }
+
 /* ------------------------------------------------- 7. CONTRAST & FORCED COLORS */
 /* prefers-contrast: more — raise the quiet tiers of the text/border ramps.
    Same token contract, higher-contrast values (WCAG SC 1.4.6 direction). */

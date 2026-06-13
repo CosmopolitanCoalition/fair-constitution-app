@@ -7,6 +7,7 @@ use App\Http\Controllers\Civic\PingController;
 use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
+use App\Http\Controllers\Dev\ExecutiveOrgKitController;
 use App\Http\Controllers\Dev\LegislatureKitController;
 use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\Dev\ResidencyGrantController;
@@ -518,6 +519,8 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::get('/electoral-kit', [ElectoralKitController::class, 'show'])->name('electoral-kit');
         // FE-C1 — fixture-first harness: every Phase C legislature component.
         Route::get('/legislature-kit', [LegislatureKitController::class, 'show'])->name('legislature-kit');
+        // FE-D1 — fixture-first harness: every Phase D executive/orgs component.
+        Route::get('/executive-kit', [ExecutiveOrgKitController::class, 'show'])->name('executive-kit');
     });
 
     // Dev login-as: a passwordless web session for any user — the

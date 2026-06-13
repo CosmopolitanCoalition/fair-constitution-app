@@ -50,6 +50,12 @@ export const NAV = [
     { key: 'organizations', titleKey: 'nav.organizations', visibility: 'all', items: [
         { id: 'org-registry', labelKey: 'nav.orgRegistry', icon: 'building', href: '/organizations', phase: 'D' },
         { id: 'co-determination', labelKey: 'nav.coDetermination', icon: 'users', href: '/organizations/co-determination', phase: 'D' },
+        /* FE-D0 (PHASE_C→D nav integration, PHASE_D_DESIGN_frontend.md §B):
+           transfers/conversions gets its own item; the detail surfaces
+           (org-detail, cgc-detail, board-elections, transfers) map their
+           aria-current to `org-registry`/`transfers-conversions` via the
+           `nav:` field in config/cga/surfaces.php. */
+        { id: 'transfers-conversions', labelKey: 'nav.transfers', icon: 'refresh-cw', href: '/organizations/transfers-conversions', phase: 'D' },
     ] },
     { key: 'jurisdictions', titleKey: 'nav.jurisdictions', visibility: 'all', items: [
         { id: 'jurisdiction-browser', labelKey: 'nav.jurisdictionBrowser', icon: 'globe', href: '/jurisdictions', phase: 'A' },
@@ -94,10 +100,13 @@ export const NAV = [
         { id: 'setup-wizard', labelKey: 'nav.setupWizard', icon: 'globe', href: '/setup', phase: 'A' },
         { id: 'public-records', labelKey: 'nav.publicRecords', icon: 'file-text', href: '/system/public-records', phase: 'C' },
         { id: 'audit-chain', labelKey: 'nav.auditChain', icon: 'lock', href: '/system/audit-chain', phase: 'A' },
-        /* No /system/clocks route exists — the clocks browser is not a Phase C
-           surface (B.15/B.16 cover public-records + term-sync only). Flagged
-           Planned (phase D) so the C flip never renders a dead link. */
-        { id: 'clocks', labelKey: 'nav.clocks', icon: 'clock', href: '/system/clocks', phase: 'D' },
+        /* No /system/clocks route exists — the clocks browser is not one of
+           the 11 Phase D surfaces either (it was parked at D only to avoid a
+           dead link at the C flip). Re-flagged Planned (phase E) per
+           PHASE_D_DESIGN_frontend.md §E "Flip + critical path" so the D flip
+           never renders a dead link; flip back if end-of-phase slack ships
+           the read-only clocks DataTable. */
+        { id: 'clocks', labelKey: 'nav.clocks', icon: 'clock', href: '/system/clocks', phase: 'E' },
         { id: 'term-sync', labelKey: 'nav.termSync', icon: 'refresh-cw', href: '/system/term-sync', phase: 'C' },
         { id: 'amendments', labelKey: 'nav.amendments', icon: 'file-text', href: '/system/amendments', phase: 'E' },
     ] },
@@ -111,6 +120,7 @@ export const NAV = [
         ? [{ key: 'dev', titleKey: 'nav.dev', visibility: 'all', items: [
             { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
             { id: 'dev-legislature-kit', labelKey: 'nav.legislatureKit', icon: 'sliders', href: '/dev/legislature-kit', phase: 'A' },
+            { id: 'dev-executive-kit', labelKey: 'nav.executiveOrgKit', icon: 'sliders', href: '/dev/executive-kit', phase: 'A' },
         ] }]
         : []),
 ];

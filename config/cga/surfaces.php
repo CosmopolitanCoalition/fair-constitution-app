@@ -545,4 +545,199 @@ return [
         'citation'  => 'Dev harness — fixture-first component verification (FE-C1) · not product UI',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | Phase D — executive / organizations surfaces (FE-D0;
+    | PHASE_D_DESIGN_frontend.md §B + §E row FE-D0)
+    |----------------------------------------------------------------------
+    | Contract data from each mockup's CGA_PAGE block (mockups/executive/*,
+    | mockups/organizations/*) + the EXPLORE contract tables. Per-form
+    | citations carry the mockup form cards' `basis` strings
+    | (mockups/assets/js/fixtures.js forms[]); fixture-specific titles
+    | ("Public Works & Utilities — department detail") are generalized —
+    | the registry serves every instance, not the mockup's New York County.
+    | The F-BOG-001/002 ↔ F-GOV-001/002 catalog drift resolves through
+    | FormRegistry as established (SurfaceMeta::form()). Pages land in
+    | FE-D2…D9; registering the ids first lets every controller pass
+    | SurfaceMeta::for() from day one.
+    */
+
+    'executive/executive-home' => [
+        'title'     => 'Executive home',
+        'module'    => 'executive',
+        'nav'       => 'executive-home',
+        'roles'     => ['R-14', 'R-15', 'R-16', 'R-17'],
+        'workflows' => ['WF-EXE-01', 'WF-EXE-02', 'WF-EXE-03'],
+        'forms'     => [
+            ['id' => 'F-LEG-014', 'availableTo' => ['R-09'], 'citation' => 'Art. III §2 — delegation by act; members remain seated legislators'],
+            ['id' => 'F-LEG-015', 'availableTo' => ['R-09'], 'citation' => 'Art. III §3 · Art. VII — dual supermajority (own chamber + constituent jurisdictions)'],
+        ],
+        'clocks'    => ['CLK-10'],
+        'citation'  => 'Delegated by default · conversion by dual supermajority · Art. III §2–3 · CLK-10',
+    ],
+
+    'executive/departments' => [
+        'title'     => 'Department registry',
+        'module'    => 'executive',
+        'nav'       => 'departments',
+        'roles'     => ['R-14', 'R-15', 'R-16', 'R-30'],
+        'workflows' => ['WF-EXE-04', 'WF-EXE-05', 'WF-EXE-06'],
+        'forms'     => [
+            ['id' => 'F-LEG-016', 'availableTo' => ['R-09'], 'citation' => 'Art. II §9 — department creation is an ordinary-majority act'],
+            ['id' => 'F-EXE-001', 'citation' => 'Art. III §4 — nomination dossier; governors are politically neutral'],
+            ['id' => 'F-LEG-020', 'availableTo' => ['R-09'], 'citation' => 'Art. III §4 — consent = peg-quorum majority of all serving'],
+            ['id' => 'F-EXE-003', 'citation' => 'Art. III §4 — removal by ordinary majority of all serving (hiring and firing)'],
+        ],
+        'clocks'    => ['CLK-09', 'CLK-13', 'CLK-14'],
+        'citation'  => 'Departments · Art. II §9 — boards & oversight · Art. III §4 — co-determination · Art. III §6',
+    ],
+
+    'executive/department-detail' => [
+        'title'     => 'Department detail',
+        'module'    => 'executive',
+        'nav'       => 'departments',
+        'roles'     => ['R-14', 'R-15', 'R-16', 'R-18', 'R-30'],
+        'workflows' => ['WF-EXE-04', 'WF-EXE-05', 'WF-EXE-06'],
+        'forms'     => [
+            ['id' => 'F-EXE-001', 'citation' => 'Art. III §4 — triggers the F-LEG-020 consent vote (peg-quorum majority of all serving)'],
+            ['id' => 'F-EXE-003', 'citation' => 'Art. III §4 — good-faith competence/ethics finding; grounds published'],
+        ],
+        'clocks'    => ['CLK-09', 'CLK-13', 'CLK-14'],
+        'citation'  => 'Department charter & board · Art. II §9 · Art. III §4 — worker seats · Art. III §6',
+    ],
+
+    'executive/department-reporting' => [
+        'title'     => 'Department reporting',
+        'module'    => 'executive',
+        'nav'       => 'department-reporting',
+        'roles'     => ['R-18'],
+        'workflows' => ['WF-EXE-09'],
+        'forms'     => [
+            // Catalog aliases F-GOV-001/002 (renumbering drift) resolve via FormRegistry.
+            ['id' => 'F-BOG-001', 'citation' => 'Art. III §4 — rules implement, they cannot exceed, the charter and enabling acts'],
+            ['id' => 'F-BOG-002', 'citation' => 'Art. III §4 — reports to executive + legislature, published to public record'],
+        ],
+        'clocks'    => ['CLK-09', 'CLK-03'],
+        'citation'  => 'Implementation rules & reports to executive + legislature · Art. III §4 · CLK-09',
+    ],
+
+    'executive/executive-actions' => [
+        'title'     => 'Executive actions',
+        'module'    => 'executive',
+        'nav'       => 'executive-actions',
+        'roles'     => ['R-14', 'R-15', 'R-16'],
+        'workflows' => ['WF-EXE-07', 'WF-EXE-08'],
+        'forms'     => [
+            ['id' => 'F-EXE-005', 'citation' => 'Art. III §1–3 — scope validated pre-issuance; rejections go on the public record'],
+            ['id' => 'F-EXE-002', 'citation' => 'Art. III §4 (Powers and Oversight) — the board adopts, amends, or declines'],
+            ['id' => 'F-EXE-004', 'citation' => 'Art. III §4 — full and equal investigative power over overseen departments'],
+        ],
+        'clocks'    => ['CLK-03'],
+        'citation'  => 'Orders within delegated scope · Art. III §2–3 — judicially reviewable · Art. IV §5',
+    ],
+
+    'organizations/org-registry' => [
+        'title'     => 'Organization registry',
+        'module'    => 'organizations',
+        'nav'       => 'org-registry',
+        'roles'     => ['R-03', 'R-23'],
+        'workflows' => ['WF-ORG-01'],
+        'forms'     => [
+            ['id' => 'F-IND-012', 'availableTo' => ['R-03'], 'citation' => 'Art. I (Economic Freedom) — any associated resident may register'],
+            ['id' => 'F-ORG-001', 'citation' => 'Art. I (Economic Freedom)'],
+        ],
+        'clocks'    => ['CLK-13'],
+        'citation'  => 'One registry, no faction layer · Art. I · Art. III §5–6',
+    ],
+
+    'organizations/org-detail' => [
+        'title'     => 'Organization profile',
+        'module'    => 'organizations',
+        'nav'       => 'org-registry',
+        'roles'     => ['R-23', 'R-24', 'R-06', 'R-07'],
+        'workflows' => ['WF-ORG-02', 'WF-ORG-03'],
+        'forms'     => [
+            ['id' => 'F-ORG-001', 'citation' => 'Art. I (Economic Freedom) — self-managed profile'],
+            ['id' => 'F-CAN-002', 'availableTo' => ['R-06'], 'citation' => 'Art. I (Freedom of Assembly) — the candidate requests'],
+            ['id' => 'F-ORG-002', 'citation' => 'Art. I (Freedom of Assembly) — granting confers R-07'],
+            ['id' => 'F-IND-013', 'availableTo' => ['R-01'], 'citation' => 'Art. I (Freedom of Assembly) — creates the membership record (R-24)'],
+            ['id' => 'F-IND-014', 'availableTo' => ['R-01'], 'citation' => 'Art. III §6 (Work Councils) — THE co-determination headcount feed · CLK-13 / CLK-14'],
+        ],
+        'clocks'    => ['CLK-13', 'CLK-14'],
+        'citation'  => 'Endorsements are polymorphic — granting confers R-07 · Art. I · Art. II §2',
+    ],
+
+    'organizations/cgc-detail' => [
+        'title'     => 'Common Good Corporation',
+        'module'    => 'organizations',
+        'nav'       => 'org-registry',
+        'roles'     => ['R-09', 'R-18', 'R-25', 'R-27'],
+        'workflows' => ['WF-ORG-08', 'WF-ORG-09', 'WF-ORG-04'],
+        'forms'     => [
+            ['id' => 'F-LEG-019', 'availableTo' => ['R-09'], 'citation' => 'Art. III §5 — the legislature creates; oversight assigned at creation'],
+        ],
+        'clocks'    => ['CLK-13', 'CLK-14'],
+        'citation'  => 'Regulated identically to private peers · IP perpetually public domain · Art. III §5',
+    ],
+
+    'organizations/board-elections' => [
+        'title'     => 'Board elections',
+        'module'    => 'organizations',
+        'nav'       => 'org-registry',
+        'roles'     => ['R-23', 'R-24', 'R-25', 'R-26', 'R-27', 'R-28'],
+        'workflows' => ['WF-ORG-05', 'WF-ORG-04'],
+        'forms'     => [
+            ['id' => 'F-ORG-003', 'citation' => 'Art. III §4, §6 — owner track; the same PR-STV engine as public elections'],
+            ['id' => 'F-ORG-004', 'citation' => 'Art. III §6 — worker track; also fired system-side by CLK-13'],
+        ],
+        'clocks'    => ['CLK-13', 'CLK-14'],
+        'citation'  => 'Owner STV + worker STV + joint chair RCV · Art. III §4, §6',
+    ],
+
+    'organizations/co-determination' => [
+        'title'     => 'Co-determination scaling',
+        'module'    => 'organizations',
+        'nav'       => 'co-determination',
+        'roles'     => ['R-25', 'R-27', 'R-23'],
+        'workflows' => ['WF-ORG-04', 'WF-ORG-05'],
+        'forms'     => [
+            ['id' => 'F-ORG-004', 'citation' => 'Art. III §6 — composition change re-triggers the joint chair election'],
+        ],
+        'clocks'    => ['CLK-13', 'CLK-14'],
+        // Threshold values are AMENDABLE (CLK-13/14) — the registry line
+        // states the rule, the page renders the live resolved values.
+        'citation'  => 'First worker seat at the CLK-13 minimum · parity at the CLK-14 threshold · Art. III §6',
+    ],
+
+    'organizations/transfers-conversions' => [
+        'title'     => 'Transfers and conversions',
+        'module'    => 'organizations',
+        'nav'       => 'org-registry',
+        'roles'     => ['R-23', 'R-24', 'R-09'],
+        'workflows' => ['WF-ORG-06', 'WF-ORG-07', 'WF-ORG-09', 'WF-ORG-10'],
+        'forms'     => [
+            ['id' => 'F-ORG-005', 'citation' => 'Art. I (Freedom to Contract) — mutual consent mandatory, no hostile path'],
+            ['id' => 'F-LEG-026', 'availableTo' => ['R-09'], 'citation' => 'Art. III §5 — the only path overriding owner consent; ordinary majority of all serving'],
+            ['id' => 'F-ORG-006', 'citation' => 'Art. III §5 (conversion provisions)'],
+            ['id' => 'F-LEG-027', 'availableTo' => ['R-09'], 'citation' => 'Art. III §5 — public→private runs through the legislature; public-domain IP stays public'],
+            ['id' => 'F-ORG-007', 'citation' => 'Art. I (Economic Freedom) — voluntary; judicial dissolution (WF-ORG-10) is Phase E'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Mutual consent mandatory; monopoly path compensates ≥ fair market (hardened) · Art. III §5',
+    ],
+
+    // FE-D1 dev harness — every Phase D executive/organizations component
+    // in every state, rendered from resources/js/fixtures/executive.json.
+    // Dev-gated route only (pattern: dev/electoral-kit, dev/legislature-kit).
+    'dev/executive-kit' => [
+        'title'     => 'Executive & organizations component kit',
+        'module'    => 'executive',
+        'nav'       => null,
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Dev harness — fixture-first component verification (FE-D1) · not product UI',
+    ],
+
 ];

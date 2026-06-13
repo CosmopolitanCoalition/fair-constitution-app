@@ -1,0 +1,438 @@
+{
+  "_source": {
+    "consent": "mockups/executive/executive-home.html lines 65–84 — the F-LEG-015 conversion record: New York State legislature 8 of 9 serving (threshold 6 = ceil(9 × 2/3) · Art. VII) PAIRED with 51 of 62 constituent counties (threshold 42 = ceil(62 × 2/3) · Art. III §3). ALL `required` numbers are frozen 'server snapshots' of multi_jurisdiction_votes / chamber_votes rows — the component NEVER computes ceil(total × 2/3). The requiredOverride variant feeds required=99 to prove it.",
+    "codet": "mockups/organizations/co-determination.html — Bluefin Logistics 740 workers / 9 owner seats / 3 worker seats; thresholds {100, 2000} are the SERVER-RESOLVED worker_rep_min/parity_employees (CLK-13/14, AMENDABLE — the nonDefaultThresholds variant {50, 1000} proves nothing is hardcoded). workerSeats and nextStepAt are engine outputs frozen here: 740 → max(1, round((740−100) ÷ 1,900 × 9)) = 3; next seat at 839.",
+    "boards": "mockups/executive/department-detail.html lines 49–88 — Public Works & Utilities board roster: 7 appointed governors (10-yr CLK-09 terms, 2030-07-01 → 2040-07-01; Olsen expiring) + 4 worker-elected (lockstep CLK-10 terms ending 2035-11-01 with the legislature) + Adeyemi joint-elected chair. The invalid variant models the exit-criterion-2 moment: worker_seats bumped by the scale, the new seat VACANT, boards.composition_valid=false.",
+    "ownership": "mockups/organizations/org-detail.html detail{} (Bluefin stock / 1,204 shareholders; Northstar equal partnership) + transfers-conversions.html internal-restructuring copy (unanimity rule) + co-determination.html gloss / owner ruling #12 (CGC: the Board of Governors stands where shareholders would).",
+    "departments": "mockups/assets/js/fixtures.js world.departments — the 5 New York County departments (Chief Executive 84w, Treasury 152w → 1 worker seat, Public Works & Utilities 1,240w → 4, Justice Administration 96w, Emergency Management 61w) + departments.html coDetCell() grammar.",
+    "orders": "mockups/executive/executive-actions.html orders[] — EO-2031-14/13 issued, EO-2031-11 'Defer the New York County ranked-window opening' REJECTED PRE-ISSUANCE with the line-208 citation verbatim; the emergency-enabled variant carries the banner grammar ('emergency methods widen the delegated scope only within the declared area and duration').",
+    "stepper": "mockups/executive/departments.html lines 90–93 — the BoG pipeline: Nomination dossier · F-EXE-001 → Consent vote · F-LEG-020 → Seated · R-18.",
+    "machines": "display-only peek at config/cga/state_machines.php ESM-16/17/18 (FE-D0) — the real pages receive these as PHP-owned props."
+  },
+
+  "consent": {
+    "subjectLabel": "Conversion to elected individual office",
+    "legislatureLabel": "New York State legislature",
+    "legislatureVote": {
+      "mode": "unicameral",
+      "thresholdClass": "supermajority",
+      "serving": 9,
+      "requiredYes": 6,
+      "tallies": { "yes": 8, "no": 1, "abstain": 0 },
+      "outcome": "adopted"
+    },
+    "legislatureVoteFailed": {
+      "mode": "unicameral",
+      "thresholdClass": "supermajority",
+      "serving": 9,
+      "requiredYes": 6,
+      "tallies": { "yes": 5, "no": 4, "abstain": 0 },
+      "outcome": "failed"
+    },
+    "legislatureVotePending": {
+      "mode": "unicameral",
+      "thresholdClass": "supermajority",
+      "serving": 9,
+      "requiredYes": 6,
+      "tallies": { "yes": 4, "no": 1, "abstain": 0 },
+      "outcome": "pending"
+    },
+    "processPassed": {
+      "id": "mjv-ny-conversion",
+      "kind": "exec_office_create",
+      "status": "passed",
+      "total": 62,
+      "required": 42,
+      "yes": 51,
+      "no": 7,
+      "pending": 4,
+      "closes_at": null,
+      "consents": [
+        { "jurisdiction": { "id": "j-ny", "name": "New York", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-02-21" },
+        { "jurisdiction": { "id": "j-kings", "name": "Kings", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "7 of 9 serving" }, "decided_at": "2030-02-22" },
+        { "jurisdiction": { "id": "j-queens", "name": "Queens", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-02-24" },
+        { "jurisdiction": { "id": "j-bronx", "name": "Bronx", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "5 of 7 serving" }, "decided_at": "2030-02-25" },
+        { "jurisdiction": { "id": "j-richmond", "name": "Richmond", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "4 of 5 serving" }, "decided_at": "2030-02-25" },
+        { "jurisdiction": { "id": "j-westchester", "name": "Westchester", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 9 serving" }, "decided_at": "2030-02-27" },
+        { "jurisdiction": { "id": "j-erie", "name": "Erie", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-03-01" },
+        { "jurisdiction": { "id": "j-albany", "name": "Albany", "adm_chip": { "level": 3, "label": "County" } }, "result": "no", "chamber_vote": { "href": "#", "summary": "3 of 8 serving" }, "decided_at": "2030-03-02" },
+        { "jurisdiction": { "id": "j-monroe", "name": "Monroe", "adm_chip": { "level": 3, "label": "County" } }, "result": "pending", "chamber_vote": null, "decided_at": null },
+        { "jurisdiction": { "id": "j-suffolk", "name": "Suffolk", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "7 of 9 serving" }, "decided_at": "2030-03-04" }
+      ]
+    },
+    "processOpen": {
+      "id": "mjv-ny-conversion-open",
+      "kind": "exec_office_create",
+      "status": "open",
+      "total": 62,
+      "required": 42,
+      "yes": 30,
+      "no": 5,
+      "pending": 27,
+      "closes_at": "2030-04-15",
+      "consents": [
+        { "jurisdiction": { "id": "j-ny", "name": "New York", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-02-21" },
+        { "jurisdiction": { "id": "j-kings", "name": "Kings", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "7 of 9 serving" }, "decided_at": "2030-02-22" },
+        { "jurisdiction": { "id": "j-albany", "name": "Albany", "adm_chip": { "level": 3, "label": "County" } }, "result": "no", "chamber_vote": { "href": "#", "summary": "3 of 8 serving" }, "decided_at": "2030-03-02" },
+        { "jurisdiction": { "id": "j-monroe", "name": "Monroe", "adm_chip": { "level": 3, "label": "County" } }, "result": "pending", "chamber_vote": null, "decided_at": null },
+        { "jurisdiction": { "id": "j-suffolk", "name": "Suffolk", "adm_chip": { "level": 3, "label": "County" } }, "result": "pending", "chamber_vote": null, "decided_at": null }
+      ]
+    },
+    "processFailed": {
+      "id": "mjv-ny-conversion-failed",
+      "kind": "exec_office_create",
+      "status": "failed",
+      "total": 62,
+      "required": 42,
+      "yes": 38,
+      "no": 24,
+      "pending": 0,
+      "closes_at": null,
+      "consents": [
+        { "jurisdiction": { "id": "j-ny", "name": "New York", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-02-21" },
+        { "jurisdiction": { "id": "j-albany", "name": "Albany", "adm_chip": { "level": 3, "label": "County" } }, "result": "no", "chamber_vote": { "href": "#", "summary": "3 of 8 serving" }, "decided_at": "2030-03-02" },
+        { "jurisdiction": { "id": "j-erie", "name": "Erie", "adm_chip": { "level": 3, "label": "County" } }, "result": "no", "chamber_vote": { "href": "#", "summary": "2 of 8 serving" }, "decided_at": "2030-03-05" }
+      ]
+    },
+    "requiredOverride": {
+      "id": "mjv-required-override",
+      "kind": "exec_office_create",
+      "status": "open",
+      "total": 62,
+      "required": 99,
+      "yes": 51,
+      "no": 7,
+      "pending": 4,
+      "closes_at": null,
+      "consents": [
+        { "jurisdiction": { "id": "j-ny", "name": "New York", "adm_chip": { "level": 3, "label": "County" } }, "result": "yes", "chamber_vote": { "href": "#", "summary": "6 of 8 serving" }, "decided_at": "2030-02-21" }
+      ]
+    },
+    "legacyBillShape": {
+      "total": 9,
+      "required": 6,
+      "yes": 4,
+      "status": "open",
+      "consents": [
+        { "jurisdiction": "Serravalle", "result": "yes", "act_href": null },
+        { "jurisdiction": "Borgo Maggiore", "result": "yes", "act_href": null },
+        { "jurisdiction": "Domagnano", "result": "yes", "act_href": null },
+        { "jurisdiction": "Faetano", "result": "yes", "act_href": null },
+        { "jurisdiction": "Fiorentino", "result": "no", "act_href": null },
+        { "jurisdiction": "Acquaviva", "result": "pending", "act_href": null },
+        { "jurisdiction": "Chiesanuova", "result": "pending", "act_href": null },
+        { "jurisdiction": "Montegiardino", "result": "pending", "act_href": null },
+        { "jurisdiction": "City of San Marino", "result": "pending", "act_href": null }
+      ]
+    }
+  },
+
+  "codet": {
+    "bluefin": {
+      "entityLabel": "Bluefin Logistics",
+      "workers": 740,
+      "ownerSeats": 9,
+      "workerSeats": 3,
+      "thresholds": { "min": 100, "parity": 2000 },
+      "nextStepAt": 839
+    },
+    "nonDefaultThresholds": {
+      "entityLabel": "Bluefin Logistics (thresholds amended by act — fixture)",
+      "workers": 740,
+      "ownerSeats": 9,
+      "workerSeats": 7,
+      "thresholds": { "min": 50, "parity": 1000 },
+      "nextStepAt": 842
+    },
+    "belowThreshold": {
+      "entityLabel": "Chief Executive Office",
+      "workers": 84,
+      "ownerSeats": 5,
+      "workerSeats": 0,
+      "thresholds": { "min": 100, "parity": 2000 },
+      "nextStepAt": null
+    },
+    "parity": {
+      "entityLabel": "Synthetic parity case",
+      "workers": 2000,
+      "ownerSeats": 9,
+      "workerSeats": 9,
+      "thresholds": { "min": 100, "parity": 2000 },
+      "nextStepAt": null
+    },
+    "cgc": {
+      "entityLabel": "Manhattan Water & Power",
+      "workers": 1450,
+      "ownerSeats": 7,
+      "workerSeats": 5,
+      "thresholds": { "min": 100, "parity": 2000 },
+      "nextStepAt": 1593
+    }
+  },
+
+  "boards": {
+    "publicWorks": {
+      "compositionValid": true,
+      "requiredWorkerSeats": 4,
+      "seats": [
+        { "id": "pw-01", "seat_class": "governor", "holder": { "name": "Dr. Samuel Adeyemi" }, "is_chair": true, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-02", "seat_class": "governor", "holder": { "name": "Dr. Imani Wekesa" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-03", "seat_class": "governor", "holder": { "name": "Anders Lindgren" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-04", "seat_class": "governor", "holder": { "name": "Dr. Carmen Reyes" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-05", "seat_class": "governor", "holder": { "name": "Kofi Asante" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-06", "seat_class": "governor", "holder": { "name": "Dr. Yasmin Qureshi" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2040-07-01", "clock": "CLK-09" } },
+        { "id": "pw-07", "seat_class": "governor", "holder": { "name": "Dr. Henrik Olsen" }, "is_chair": false, "status": "seated", "expiring": true, "term": { "starts_on": "2021-09-01", "ends_on": "2031-09-01", "clock": "CLK-09" } },
+        { "id": "pw-08", "seat_class": "worker_elected", "holder": { "name": "Marisol Vega" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2035-11-01", "clock": "CLK-10" } },
+        { "id": "pw-09", "seat_class": "worker_elected", "holder": { "name": "Dejan Ilić" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2035-11-01", "clock": "CLK-10" } },
+        { "id": "pw-10", "seat_class": "worker_elected", "holder": { "name": "Hannah Osei" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2035-11-01", "clock": "CLK-10" } },
+        { "id": "pw-11", "seat_class": "worker_elected", "holder": { "name": "Pyotr Sokolov" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2030-07-01", "ends_on": "2035-11-01", "clock": "CLK-10" } }
+      ]
+    },
+    "invalid": {
+      "compositionValid": false,
+      "requiredWorkerSeats": 1,
+      "seats": [
+        { "id": "tr-01", "seat_class": "governor", "holder": { "name": "Grace Mwangi" }, "is_chair": true, "status": "seated", "term": { "starts_on": "2029-10-01", "ends_on": "2039-10-01", "clock": "CLK-09" } },
+        { "id": "tr-02", "seat_class": "governor", "holder": { "name": "Tomasz Nowak" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2029-10-01", "ends_on": "2039-10-01", "clock": "CLK-09" } },
+        { "id": "tr-03", "seat_class": "governor", "holder": { "name": "Leila Haddad" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2029-10-01", "ends_on": "2039-10-01", "clock": "CLK-09" } },
+        { "id": "tr-04", "seat_class": "governor", "holder": { "name": "Owen Gallagher" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2029-10-01", "ends_on": "2039-10-01", "clock": "CLK-09" } },
+        { "id": "tr-05", "seat_class": "governor", "holder": { "name": "Sofía Iglesias" }, "is_chair": false, "status": "seated", "term": { "starts_on": "2029-10-01", "ends_on": "2039-10-01", "clock": "CLK-09" } },
+        { "id": "tr-06", "seat_class": "worker_elected", "holder": null, "is_chair": false, "status": "vacant", "term": null }
+      ]
+    }
+  },
+
+  "ownership": {
+    "stock": {
+      "structure": "stock",
+      "isCgc": false,
+      "stakes": [
+        { "holder": { "type": "organization", "name": "Meridian Holdings", "href": "#" }, "units": 124500, "pct": 10.3 },
+        { "holder": { "type": "individual", "name": "Helena Brandt", "href": "#" }, "units": 86000, "pct": 7.1 },
+        { "holder": { "type": "individual", "name": "Cyrus Tehrani", "href": "#" }, "units": 61200, "pct": 5.1 },
+        { "holder": { "type": "individual", "name": "Margaret Osei", "href": "#" }, "units": 44800, "pct": 3.7 }
+      ],
+      "memberCounts": { "shareholders": 1204, "workers": 740 },
+      "structureHistory": []
+    },
+    "equalPartnership": {
+      "structure": "equal_partnership",
+      "isCgc": false,
+      "stakes": [
+        { "holder": { "type": "individual", "name": "Astrid Nilsen", "href": "#" }, "units": 1, "pct": 8.33 },
+        { "holder": { "type": "individual", "name": "Bram Janssens", "href": "#" }, "units": 1, "pct": 8.33 },
+        { "holder": { "type": "individual", "name": "Carla Mendes", "href": "#" }, "units": 1, "pct": 8.33 }
+      ],
+      "memberCounts": { "partners": 12, "workers": 38 },
+      "structureHistory": [
+        { "seq": 412, "from_structure": "partnership", "to_structure": "equal_partnership", "rule_applied": "unanimity of partners (the structure's own rule)", "at": "2028-03-14" }
+      ]
+    },
+    "cgc": {
+      "structure": null,
+      "isCgc": true,
+      "stakes": [],
+      "memberCounts": { "workers": 1450 },
+      "structureHistory": []
+    }
+  },
+
+  "departments": [
+    {
+      "id": "dep-chief",
+      "name": "Chief Executive Office",
+      "kind": "chief_executive",
+      "status": "operating",
+      "worker_count": 84,
+      "board": {
+        "owner_seats": 5,
+        "worker_seats": 0,
+        "composition_valid": true,
+        "seats": [
+          { "id": "ce-1", "seat_class": "governor", "holder": { "name": "Governor 1" }, "is_chair": true, "status": "seated" },
+          { "id": "ce-2", "seat_class": "governor", "holder": { "name": "Governor 2" }, "is_chair": false, "status": "seated" },
+          { "id": "ce-3", "seat_class": "governor", "holder": { "name": "Governor 3" }, "is_chair": false, "status": "seated" },
+          { "id": "ce-4", "seat_class": "governor", "holder": { "name": "Governor 4" }, "is_chair": false, "status": "seated" },
+          { "id": "ce-5", "seat_class": "governor", "holder": { "name": "Governor 5" }, "is_chair": false, "status": "seated" }
+        ]
+      },
+      "charter": { "act_number": "Act 2030-08", "href": "#", "reporting_interval_months": 3 },
+      "oversees_cgcs": [],
+      "next_report": { "due_on": "2031-07-01", "status": "due" },
+      "href": "#"
+    },
+    {
+      "id": "dep-treasury",
+      "name": "Treasury",
+      "kind": "treasury",
+      "status": "operating",
+      "worker_count": 152,
+      "board": {
+        "owner_seats": 5,
+        "worker_seats": 1,
+        "composition_valid": true,
+        "seats": [
+          { "id": "tr-1", "seat_class": "governor", "holder": { "name": "Grace Mwangi" }, "is_chair": true, "status": "seated" },
+          { "id": "tr-2", "seat_class": "governor", "holder": { "name": "Governor 2" }, "is_chair": false, "status": "seated" },
+          { "id": "tr-3", "seat_class": "governor", "holder": { "name": "Governor 3" }, "is_chair": false, "status": "seated" },
+          { "id": "tr-4", "seat_class": "governor", "holder": { "name": "Governor 4" }, "is_chair": false, "status": "seated" },
+          { "id": "tr-5", "seat_class": "governor", "holder": { "name": "Governor 5" }, "is_chair": false, "status": "seated" },
+          { "id": "tr-6", "seat_class": "worker_elected", "holder": { "name": "Worker rep" }, "is_chair": false, "status": "seated" }
+        ]
+      },
+      "charter": { "act_number": "Act 2030-09", "href": "#", "reporting_interval_months": 3 },
+      "oversees_cgcs": [],
+      "next_report": { "due_on": "2031-06-30", "status": "due_soon" },
+      "href": "#"
+    },
+    {
+      "id": "dep-works",
+      "name": "Public Works & Utilities",
+      "kind": "other",
+      "status": "operating",
+      "worker_count": 1240,
+      "board": {
+        "owner_seats": 7,
+        "worker_seats": 4,
+        "composition_valid": true,
+        "seats": [
+          { "id": "pw-1", "seat_class": "governor", "holder": { "name": "Dr. Samuel Adeyemi" }, "is_chair": true, "status": "seated" },
+          { "id": "pw-2", "seat_class": "governor", "holder": { "name": "Dr. Imani Wekesa" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-3", "seat_class": "governor", "holder": { "name": "Anders Lindgren" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-4", "seat_class": "governor", "holder": { "name": "Dr. Carmen Reyes" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-5", "seat_class": "governor", "holder": { "name": "Kofi Asante" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-6", "seat_class": "governor", "holder": { "name": "Dr. Yasmin Qureshi" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-7", "seat_class": "governor", "holder": { "name": "Dr. Henrik Olsen" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-8", "seat_class": "worker_elected", "holder": { "name": "Marisol Vega" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-9", "seat_class": "worker_elected", "holder": { "name": "Dejan Ilić" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-10", "seat_class": "worker_elected", "holder": { "name": "Hannah Osei" }, "is_chair": false, "status": "seated" },
+          { "id": "pw-11", "seat_class": "worker_elected", "holder": { "name": "Pyotr Sokolov" }, "is_chair": false, "status": "seated" }
+        ]
+      },
+      "charter": { "act_number": "Act 2030-11", "href": "#", "reporting_interval_months": 3 },
+      "oversees_cgcs": [{ "name": "Manhattan Water & Power", "href": "#" }],
+      "next_report": { "due_on": "2031-07-15", "status": "due" },
+      "href": "#"
+    },
+    {
+      "id": "dep-justice",
+      "name": "Justice Administration",
+      "kind": "justice",
+      "status": "operating",
+      "worker_count": 96,
+      "board": {
+        "owner_seats": 5,
+        "worker_seats": 0,
+        "composition_valid": true,
+        "seats": [
+          { "id": "ja-1", "seat_class": "governor", "holder": { "name": "Governor 1" }, "is_chair": true, "status": "seated" },
+          { "id": "ja-2", "seat_class": "governor", "holder": { "name": "Governor 2" }, "is_chair": false, "status": "seated" },
+          { "id": "ja-3", "seat_class": "governor", "holder": { "name": "Governor 3" }, "is_chair": false, "status": "seated" },
+          { "id": "ja-4", "seat_class": "governor", "holder": { "name": "Governor 4" }, "is_chair": false, "status": "seated" },
+          { "id": "ja-5", "seat_class": "governor", "holder": null, "is_chair": false, "status": "vacant" }
+        ]
+      },
+      "charter": { "act_number": "Act 2030-10", "href": "#", "reporting_interval_months": 6 },
+      "oversees_cgcs": [],
+      "next_report": { "due_on": "2031-09-01", "status": "due" },
+      "href": "#"
+    },
+    {
+      "id": "dep-emergency",
+      "name": "Emergency Management",
+      "kind": "other",
+      "status": "operating",
+      "worker_count": 61,
+      "board": {
+        "owner_seats": 5,
+        "worker_seats": 0,
+        "composition_valid": true,
+        "seats": [
+          { "id": "em-1", "seat_class": "governor", "holder": { "name": "Governor 1" }, "is_chair": true, "status": "seated" },
+          { "id": "em-2", "seat_class": "governor", "holder": { "name": "Governor 2" }, "is_chair": false, "status": "seated" },
+          { "id": "em-3", "seat_class": "governor", "holder": { "name": "Governor 3" }, "is_chair": false, "status": "seated" },
+          { "id": "em-4", "seat_class": "governor", "holder": { "name": "Dr. Renu Patel" }, "is_chair": false, "status": "nominated" },
+          { "id": "em-5", "seat_class": "governor", "holder": null, "is_chair": false, "status": "vacant" }
+        ]
+      },
+      "charter": { "act_number": "Act 2030-12", "href": "#", "reporting_interval_months": 3 },
+      "oversees_cgcs": [],
+      "next_report": { "due_on": "2031-05-31", "status": "overdue" },
+      "href": "#"
+    }
+  ],
+
+  "orders": [
+    {
+      "id_display": "EO-2031-14",
+      "title": "Activate emergency shelter network",
+      "department": { "name": "Emergency Management" },
+      "issued_at_display": "2031-05-04 09:12",
+      "status": "issued",
+      "enabling": { "type": "law", "label": "Act 2030-02 — delegation", "href": "#" },
+      "rejection_citation": null,
+      "note": "Within delegated emergency oversight · Hurricane Dorinda response",
+      "public_record": null,
+      "review": null
+    },
+    {
+      "id_display": "EO-2031-13",
+      "title": "Reassign Public Works crews to storm-debris removal",
+      "department": { "name": "Public Works & Utilities" },
+      "issued_at_display": "2031-05-03 16:40",
+      "status": "issued",
+      "enabling": { "type": "law", "label": "Act 2030-11 — charter function", "href": "#" },
+      "rejection_citation": null,
+      "note": "Within delegated scope · charter function",
+      "public_record": null,
+      "review": null
+    },
+    {
+      "id_display": "EO-2031-12",
+      "title": "Open auxiliary water distribution points in the declared area",
+      "department": { "name": "Emergency Management" },
+      "issued_at_display": "2031-05-03 08:05",
+      "status": "issued",
+      "enabling": { "type": "emergency_power", "label": "Emergency power — Hurricane Dorinda (day 41 of 90)", "href": "#" },
+      "rejection_citation": null,
+      "note": "Emergency-enabled · expires with the power · CLK-03",
+      "public_record": null,
+      "review": null
+    },
+    {
+      "id_display": "EO-2031-11",
+      "title": "Defer the New York County ranked-window opening by 14 days",
+      "department": { "name": "Chief Executive Office" },
+      "issued_at_display": "2031-05-02 11:05",
+      "status": "rejected_pre_issuance",
+      "enabling": { "type": "law", "label": "Act 2030-02 — delegation", "href": "#" },
+      "rejection_citation": "elections cannot be disrupted (Art. II §7) and election scheduling is outside the delegated scope (Art. III §2)",
+      "note": null,
+      "public_record": { "seq": 9118, "href": "/system/public-records?seq=9118" },
+      "review": null
+    }
+  ],
+
+  "orderBody": "All county shelter facilities shall extend operating hours to 24/7 for the duration of the declared emergency; department heads shall report capacity daily to the executive committee.",
+
+  "orderMachine": ["drafted", "scope_validated", "issued", "rejected_pre_issuance", "under_review", "struck", "revoked"],
+
+  "stepper": {
+    "bogSeated": [
+      { "label": "Nomination dossier · F-EXE-001", "icon": "file-text", "state": "done" },
+      { "label": "Consent vote · F-LEG-020", "icon": "landmark", "state": "done" },
+      { "label": "Seated · R-18", "icon": "check", "state": "active" }
+    ],
+    "bogConsentPending": [
+      { "label": "Nomination dossier · F-EXE-001", "icon": "file-text", "state": "done" },
+      { "label": "Consent vote · F-LEG-020", "icon": "landmark", "state": "active" },
+      { "label": "Seated · R-18", "icon": "check", "state": "pending" }
+    ]
+  },
+
+  "machines": {
+    "executive_office": ["forming", "delegated", "conversion_voted", "elected", "dissolved", "reverted"],
+    "department_board": ["chartered", "oversight_assigned", "governors_nominated", "consented", "operating", "reporting", "rechartered", "dissolved"],
+    "organization": ["registered", "active", "transfer_pending", "transferred", "converted", "dissolved"]
+  }
+}

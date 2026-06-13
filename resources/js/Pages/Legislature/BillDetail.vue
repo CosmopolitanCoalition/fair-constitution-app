@@ -26,7 +26,7 @@ import LawDiff from '@/Components/Ui/LawDiff.vue';
 import LifecycleTracker from '@/Components/Ui/LifecycleTracker.vue';
 import PersonaChip from '@/Components/Ui/PersonaChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 
@@ -299,30 +299,17 @@ function chairReferToFloor() {
         </div>
 
         <!-- ================================ constituent consents ======== -->
+        <!-- FE-D1: the inline card became the shared dual-supermajority
+             component (PHASE_D_DESIGN_frontend.md §A.1) — the floor tally
+             pairs with the multi_jurisdiction_votes process; both
+             `required` numbers stay engine snapshots. -->
         <Card v-if="constituentProcess" as="section" title="Constituent jurisdictions — dual supermajority">
-            <ThresholdMeter
-                :value="constituentProcess.yes"
-                :max="constituentProcess.total"
-                :threshold="constituentProcess.required"
-                label="Constituent consents"
-            >
-                {{ constituentProcess.yes }} of {{ constituentProcess.total }} constituent legislatures consent
-                <template #note>needs {{ constituentProcess.required }} · Art. V §6</template>
-            </ThresholdMeter>
-            <DataTable
-                :columns="[
-                    { key: 'jurisdiction', label: 'Constituent legislature' },
-                    { key: 'result', label: 'Consent' },
-                ]"
-                :rows="constituentProcess.consents"
-                caption="Constituent consents"
-            >
-                <template #cell-result="{ row }">
-                    <StatusBadge :tone="row.result === 'yes' ? 'success' : row.result === 'no' ? 'danger' : 'info'">
-                        {{ row.result }}
-                    </StatusBadge>
-                </template>
-            </DataTable>
+            <ConstituentConsentPanel
+                :legislature-vote="floorVote?.tally ?? null"
+                :legislature-label="legislature.name"
+                :process="constituentProcess"
+                basis="Art. V §6"
+            />
         </Card>
 
         <!-- ===================================== enactment / failure ==== -->
