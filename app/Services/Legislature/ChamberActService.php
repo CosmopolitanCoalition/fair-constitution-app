@@ -54,8 +54,7 @@ class ChamberActService
         private readonly SettingsResolver $settings,
         private readonly ClockService $clocks,
         private readonly RoleService $roles,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // Proposals (filed by the F-LEG-012/013/032/033 handlers;
@@ -193,9 +192,16 @@ class ChamberActService
 
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
             $proposal->forceFill([
-                'status'     => ChamberVoteProposal::STATUS_REJECTED,
+                'status' => ChamberVoteProposal::STATUS_REJECTED,
                 'decided_at' => now(),
             ])->save();
+
+            // Phase E (Path 2): a FAILED override leaves the challenge
+            // legislative_window_open — Path 1/3 stay available, the clocks
+            // keep running (§5.4). Record the failure for the docket.
+            if ($proposal->proposal_kind === ChamberVoteProposal::KIND_JUDICIARY_OVERRIDE) {
+                app(\App\Services\Judiciary\JudiciaryOverrideService::class)->noteOverrideFailed($proposal);
+            }
 
             return;
         }
@@ -221,20 +227,30 @@ class ChamberActService
                 app(\App\Services\Executive\BoardGovernorService::class)->handleRejectedNomination($appointment);
             }
 
+            // Phase E: a rejected judge nomination reopens its judicial seat
+            // for renomination (the §B.3 loop).
+            if ($appointment->appointable_type === 'judicial_seats') {
+                app(\App\Services\Judiciary\JudicialSeatService::class)->handleRejectedNomination($appointment);
+            }
+
             return;
         }
 
         match ($appointment->appointable_type) {
             'election_boards' => $this->seatBoardAppointment($appointment),
-            'admin_offices'   => $this->seatOfficeAppointment($appointment),
+            'admin_offices' => $this->seatOfficeAppointment($appointment),
             // Phase D (PHASE_D_DESIGN_executive §C.2/§E.2): board-governor
             // consent (F-EXE-001 → F-LEG-020 via bog_consent) and the thin
             // R-30 department-staff slice ride the SAME consent pipeline.
             'board_seats' => app(\App\Services\Executive\BoardGovernorService::class)->seat($appointment),
             'departments' => app(\App\Services\Executive\BoardGovernorService::class)->seatCivilOfficer($appointment),
+            // Phase E (PHASE_E_DESIGN_judiciary §B.3): judicial nomination
+            // consent (F-LEG-021 via bog_consent) seats a judge with a
+            // 10-year civil-appointment term — the SAME consent pipeline.
+            'judicial_seats' => app(\App\Services\Judiciary\JudicialSeatService::class)->seat($appointment),
             default => throw new ConstitutionalViolation(
-                "Chamber-ops consent knows election_boards, admin_offices, board_seats, and departments "
-                . "targets, not [{$appointment->appointable_type}].",
+                'Chamber-ops consent knows election_boards, admin_offices, board_seats, departments, '
+                ."and judicial_seats targets, not [{$appointment->appointable_type}].",
                 'WF-SYS-04'
             ),
         };
@@ -247,7 +263,7 @@ class ChamberActService
     private function applyProposalAdoption(ChamberVote $vote, ChamberVoteProposal $proposal): void
     {
         $legislature = $proposal->legislature()->firstOrFail();
-        $payload     = (array) $proposal->payload;
+        $payload = (array) $proposal->payload;
 
         [$resultType, $resultId] = match ($proposal->proposal_kind) {
             ChamberVoteProposal::KIND_COMMITTEE_CREATION => (function () use ($proposal) {
@@ -259,9 +275,9 @@ class ChamberActService
             ChamberVoteProposal::KIND_ELECTION_BOARD_CREATION => (function () use ($proposal, $legislature, $payload) {
                 $board = ElectionBoard::create([
                     'jurisdiction_id' => (string) $payload['jurisdiction_id'],
-                    'legislature_id'  => (string) $legislature->id,
-                    'is_bootstrap'    => false,
-                    'status'          => ElectionBoard::STATUS_FORMING,
+                    'legislature_id' => (string) $legislature->id,
+                    'is_bootstrap' => false,
+                    'status' => ElectionBoard::STATUS_FORMING,
                 ]);
 
                 $appointments = $this->nominate(
@@ -278,17 +294,17 @@ class ChamberActService
                     title: 'Proper election board constituted (forming)',
                     body: sprintf(
                         'Board %s constituted by supermajority act of legislature %s; %d nominee(s) await '
-                        . 'consent. The bootstrap board retires when the proper board seats (WF-ELE-10).',
+                        .'consent. The bootstrap board retires when the proper board seats (WF-ELE-10).',
                         (string) $board->id,
                         (string) $legislature->id,
                         count($appointments)
                     ),
                     attrs: [
                         'jurisdiction_id' => (string) $payload['jurisdiction_id'],
-                        'legislature_id'  => (string) $legislature->id,
-                        'via_form'        => 'F-LEG-012',
-                        'subject_type'    => 'election_boards',
-                        'subject_id'      => (string) $board->id,
+                        'legislature_id' => (string) $legislature->id,
+                        'via_form' => 'F-LEG-012',
+                        'subject_type' => 'election_boards',
+                        'subject_id' => (string) $board->id,
                     ],
                 );
 
@@ -297,9 +313,9 @@ class ChamberActService
 
             ChamberVoteProposal::KIND_ADMIN_OFFICE_CREATION => (function () use ($proposal, $legislature, $payload, $vote) {
                 $office = AdminOffice::create([
-                    'legislature_id'     => (string) $legislature->id,
+                    'legislature_id' => (string) $legislature->id,
                     'created_by_vote_id' => (string) $vote->id,
-                    'status'             => AdminOffice::STATUS_CREATED,
+                    'status' => AdminOffice::STATUS_CREATED,
                 ]);
 
                 $appointments = $this->nominate(
@@ -321,10 +337,10 @@ class ChamberActService
                     ),
                     attrs: [
                         'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                        'legislature_id'  => (string) $legislature->id,
-                        'via_form'        => 'F-LEG-013',
-                        'subject_type'    => 'admin_offices',
-                        'subject_id'      => (string) $office->id,
+                        'legislature_id' => (string) $legislature->id,
+                        'via_form' => 'F-LEG-013',
+                        'subject_type' => 'admin_offices',
+                        'subject_id' => (string) $office->id,
                     ],
                 );
 
@@ -371,25 +387,33 @@ class ChamberActService
 
             // ── Phase D executive scope (PHASE_D_DESIGN_executive §B/§C):
             // F-LEG-014 / F-LEG-015 / F-LEG-016 adoption effects ─────────
-            ChamberVoteProposal::KIND_EXEC_DELEGATION =>
-                app(\App\Services\Executive\ExecutiveFormationService::class)->applyDelegation($proposal, $vote),
+            ChamberVoteProposal::KIND_EXEC_DELEGATION => app(\App\Services\Executive\ExecutiveFormationService::class)->applyDelegation($proposal, $vote),
 
-            ChamberVoteProposal::KIND_EXEC_CONVERSION =>
-                app(\App\Services\Executive\ExecutiveFormationService::class)->applyConversionAdoption($proposal, $vote),
+            ChamberVoteProposal::KIND_EXEC_CONVERSION => app(\App\Services\Executive\ExecutiveFormationService::class)->applyConversionAdoption($proposal, $vote),
 
-            ChamberVoteProposal::KIND_DEPARTMENT_CREATION =>
-                app(\App\Services\Executive\DepartmentService::class)->createFromProposal($proposal, $vote),
+            ChamberVoteProposal::KIND_DEPARTMENT_CREATION => app(\App\Services\Executive\DepartmentService::class)->createFromProposal($proposal, $vote),
 
             // ── Phase D organizations scope (PHASE_D_DESIGN_organizations
             // §D.2): F-LEG-019 / F-LEG-026 / F-LEG-027 adoption effects ──
-            ChamberVoteProposal::KIND_CGC_CREATION =>
-                app(\App\Services\Organizations\CgcService::class)->adoptCreation($vote, $proposal),
+            ChamberVoteProposal::KIND_CGC_CREATION => app(\App\Services\Organizations\CgcService::class)->adoptCreation($vote, $proposal),
 
-            ChamberVoteProposal::KIND_MONOPOLY_ACQUISITION =>
-                app(\App\Services\Organizations\OrgConversionService::class)->adoptMonopolyAcquisition($vote, $proposal),
+            ChamberVoteProposal::KIND_MONOPOLY_ACQUISITION => app(\App\Services\Organizations\OrgConversionService::class)->adoptMonopolyAcquisition($vote, $proposal),
 
-            ChamberVoteProposal::KIND_CGC_REORG_SALE =>
-                app(\App\Services\Organizations\OrgConversionService::class)->adoptReorgSale($vote, $proposal),
+            ChamberVoteProposal::KIND_CGC_REORG_SALE => app(\App\Services\Organizations\OrgConversionService::class)->adoptReorgSale($vote, $proposal),
+
+            // ── Phase E judiciary scope (PHASE_E_DESIGN_judiciary §B):
+            // F-LEG-017 creation / F-LEG-018 conversion adoption effects
+            // (the EXEC_KINDS precedent — dispatched to
+            // JudiciaryFormationService) ────────────────────────────────
+            ChamberVoteProposal::KIND_JUDICIARY_CREATION => app(\App\Services\Judiciary\JudiciaryFormationService::class)->applyCreation($proposal, $vote),
+
+            ChamberVoteProposal::KIND_JUDICIARY_CONVERSION => app(\App\Services\Judiciary\JudiciaryFormationService::class)->applyConversionAdoption($proposal, $vote),
+
+            // ── Phase E challenge & law (PHASE_E_DESIGN_challenge_law §B.5):
+            // F-LEG-035 supermajority override of a constitutional finding
+            // (Path 2). On adoption within CLK-11 the law stands UNCHANGED and
+            // the challenge closes `overridden` (returns the result tuple). ──
+            ChamberVoteProposal::KIND_JUDICIARY_OVERRIDE => array_values(app(\App\Services\Judiciary\JudiciaryOverrideService::class)->resolveOverrideAdoption($vote, $proposal)),
 
             default => throw new ConstitutionalViolation(
                 "Unknown proposal kind [{$proposal->proposal_kind}].",
@@ -398,10 +422,10 @@ class ChamberActService
         };
 
         $proposal->forceFill([
-            'status'      => ChamberVoteProposal::STATUS_ADOPTED,
-            'decided_at'  => now(),
+            'status' => ChamberVoteProposal::STATUS_ADOPTED,
+            'decided_at' => now(),
             'result_type' => $resultType,
-            'result_id'   => $resultId,
+            'result_id' => $resultId,
         ])->save();
     }
 
@@ -411,16 +435,16 @@ class ChamberActService
         $board = ElectionBoard::query()->whereKey($appointment->appointable_id)->firstOrFail();
 
         $starts = CarbonImmutable::now('UTC')->startOfDay();
-        $years  = $this->settings->resolveInt((string) $board->jurisdiction_id, 'civil_appointment_years', 10);
-        $ends   = $starts->addYears($years);
+        $years = $this->settings->resolveInt((string) $board->jurisdiction_id, 'civil_appointment_years', 10);
+        $ends = $starts->addYears($years);
 
         $memberRow = ElectionBoardMember::create([
             'election_board_id' => $board->id,
-            'user_id'           => $appointment->nominee_user_id,
-            'appointment_id'    => $appointment->id,
-            'status'            => 'seated',
-            'term_starts_on'    => $starts->toDateString(),
-            'term_ends_on'      => $ends->toDateString(),
+            'user_id' => $appointment->nominee_user_id,
+            'appointment_id' => $appointment->id,
+            'status' => 'seated',
+            'term_starts_on' => $starts->toDateString(),
+            'term_ends_on' => $ends->toDateString(),
         ]);
 
         $term = $this->openCivilTerm(
@@ -445,12 +469,12 @@ class ChamberActService
                 $years
             ),
             attrs: [
-                'actor_user_id'   => (string) $appointment->nominee_user_id,
+                'actor_user_id' => (string) $appointment->nominee_user_id,
                 'jurisdiction_id' => (string) $board->jurisdiction_id,
-                'legislature_id'  => $board->legislature_id !== null ? (string) $board->legislature_id : null,
-                'via_form'        => 'F-LEG-012',
-                'subject_type'    => 'election_board_members',
-                'subject_id'      => (string) $memberRow->id,
+                'legislature_id' => $board->legislature_id !== null ? (string) $board->legislature_id : null,
+                'via_form' => 'F-LEG-012',
+                'subject_type' => 'election_board_members',
+                'subject_id' => (string) $memberRow->id,
             ],
         );
 
@@ -460,22 +484,22 @@ class ChamberActService
         $transition = $this->boardTransition->maybeTransition($board->refresh());
 
         return [
-            'appointment_id'  => (string) $appointment->id,
+            'appointment_id' => (string) $appointment->id,
             'board_member_id' => (string) $memberRow->id,
-            'term_id'         => (string) $term->id,
-            'transitioned'    => $transition !== null,
+            'term_id' => (string) $term->id,
+            'transitioned' => $transition !== null,
         ];
     }
 
     /** @return array<string, mixed> */
     private function seatOfficeAppointment(Appointment $appointment): array
     {
-        $office      = AdminOffice::query()->whereKey($appointment->appointable_id)->firstOrFail();
+        $office = AdminOffice::query()->whereKey($appointment->appointable_id)->firstOrFail();
         $legislature = $office->legislature()->firstOrFail();
 
         $starts = CarbonImmutable::now('UTC')->startOfDay();
-        $years  = $this->settings->resolveInt((string) $legislature->jurisdiction_id, 'civil_appointment_years', 10);
-        $ends   = $starts->addYears($years);
+        $years = $this->settings->resolveInt((string) $legislature->jurisdiction_id, 'civil_appointment_years', 10);
+        $ends = $starts->addYears($years);
 
         $term = $this->openCivilTerm(
             officeKind: 'admin_staff',
@@ -503,12 +527,12 @@ class ChamberActService
                 $years
             ),
             attrs: [
-                'actor_user_id'   => (string) $appointment->nominee_user_id,
+                'actor_user_id' => (string) $appointment->nominee_user_id,
                 'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'legislature_id'  => (string) $legislature->id,
-                'via_form'        => 'F-LEG-013',
-                'subject_type'    => 'admin_offices',
-                'subject_id'      => (string) $office->id,
+                'legislature_id' => (string) $legislature->id,
+                'via_form' => 'F-LEG-013',
+                'subject_type' => 'admin_offices',
+                'subject_id' => (string) $office->id,
             ],
         );
 
@@ -516,8 +540,8 @@ class ChamberActService
 
         return [
             'appointment_id' => (string) $appointment->id,
-            'office_id'      => (string) $office->id,
-            'term_id'        => (string) $term->id,
+            'office_id' => (string) $office->id,
+            'term_id' => (string) $term->id,
         ];
     }
 
@@ -533,11 +557,11 @@ class ChamberActService
         string $voteType,
     ): array {
         $proposal = ChamberVoteProposal::create([
-            'legislature_id'        => $legislature->id,
-            'proposal_kind'         => $kind,
-            'payload'               => $payload,
+            'legislature_id' => $legislature->id,
+            'proposal_kind' => $kind,
+            'payload' => $payload,
             'proposed_by_member_id' => $proposer->id,
-            'status'                => ChamberVoteProposal::STATUS_OPEN,
+            'status' => ChamberVoteProposal::STATUS_OPEN,
         ]);
 
         $vote = $this->votes->open(
@@ -577,12 +601,12 @@ class ChamberActService
 
         foreach ($nominees as $userId) {
             $appointment = Appointment::create([
-                'appointable_type'   => $appointableType,
-                'appointable_id'     => $appointableId,
-                'nominee_user_id'    => (string) $userId,
-                'nominated_by'       => $nominatedBy !== null ? (string) $nominatedBy : null,
+                'appointable_type' => $appointableType,
+                'appointable_id' => $appointableId,
+                'nominee_user_id' => (string) $userId,
+                'nominated_by' => $nominatedBy !== null ? (string) $nominatedBy : null,
                 'nominated_via_form' => $viaForm,
-                'status'             => Appointment::STATUS_NOMINATED,
+                'status' => Appointment::STATUS_NOMINATED,
             ]);
 
             $vote = $this->votes->open(
@@ -596,7 +620,7 @@ class ChamberActService
             $appointment->forceFill(['consent_vote_id' => (string) $vote->id])->save();
 
             $out[] = [
-                'appointment_id'  => (string) $appointment->id,
+                'appointment_id' => (string) $appointment->id,
                 'consent_vote_id' => (string) $vote->id,
                 'nominee_user_id' => (string) $userId,
             ];
@@ -646,7 +670,7 @@ class ChamberActService
         if (! $associated) {
             throw new ConstitutionalViolation(
                 "{$formId} nominee [{$userId}] holds no active association with the jurisdiction — "
-                . 'association is the only eligibility check (Art. I).',
+                .'association is the only eligibility check (Art. I).',
                 'Art. I'
             );
         }

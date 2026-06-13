@@ -42,8 +42,7 @@ class EnactmentService
         private readonly ConstitutionalValidator $validator,
         private readonly PublicRecordService $records,
         private readonly SettingsResolver $settings,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // Bill enactment
@@ -81,8 +80,8 @@ class EnactmentService
         );
 
         $bill->forceFill([
-            'status'         => Bill::STATUS_ENACTED,
-            'enacted_at'     => now(),
+            'status' => Bill::STATUS_ENACTED,
+            'enacted_at' => now(),
             'enacted_law_id' => $law->id,
         ])->save();
 
@@ -111,7 +110,7 @@ class EnactmentService
         bool $passedBySupermajority,
         ?string $shieldElectionId,
     ): Law {
-        $election    = $question->election()->firstOrFail();
+        $election = $question->election()->firstOrFail();
         $legislature = Legislature::query()->findOrFail($election->legislature_id);
 
         $law = $this->writeLaw(
@@ -131,19 +130,26 @@ class EnactmentService
         );
 
         $law->forceFill([
-            'origin_ref_type'                    => 'referendum_question',
-            'origin_ref_id'                      => (string) $question->id,
+            'origin_ref_type' => 'referendum_question',
+            'origin_ref_id' => (string) $question->id,
             'referendum_passed_by_supermajority' => $passedBySupermajority,
-            'shield_expires_with_election_id'    => $passedBySupermajority ? $shieldElectionId : null,
+            'shield_expires_with_election_id' => $passedBySupermajority ? $shieldElectionId : null,
         ])->save();
 
         if ($question->targets_setting_key !== null) {
+            // Door 2b (PHASE_E_DESIGN_challenge_law §E.3): a population
+            // referendum amends a setting (and a population-supermajority pass
+            // earns the CLK-19 shield). A DUAL_DOOR_KEYS key is reachable here —
+            // the population door is never the ONLY route, it widens (Art. II §6).
             $this->applySettingChangeForKey(
                 (string) $question->jurisdiction_id,
                 (string) $legislature->id,
                 (string) $question->targets_setting_key,
                 $question->proposed_value,
                 $law,
+                route: 'population_supermajority',
+                processId: (string) $question->id,
+                constituentConsented: true,
             );
         }
 
@@ -177,39 +183,39 @@ class EnactmentService
         if ($shielded && $source !== LawVersion::SOURCE_JUDICIAL_REMEDY) {
             throw new ConstitutionalViolation(
                 "Act {$law->act_number} was passed by population supermajority — the legislature cannot "
-                . 'modify or repeal it until the next general election certifies (the shield lapses there).',
+                .'modify or repeal it until the next general election certifies (the shield lapses there).',
                 'Art. II §6'
             );
         }
 
-        $next     = (int) $law->current_version_no + 1;
+        $next = (int) $law->current_version_no + 1;
         $textHash = hash('sha256', $text);
 
         LawVersion::create([
-            'law_id'          => $law->id,
-            'version_no'      => $next,
-            'text'            => $text,
-            'text_hash'       => $textHash,
-            'source'          => $source,
+            'law_id' => $law->id,
+            'version_no' => $next,
+            'text' => $text,
+            'text_hash' => $textHash,
+            'source' => $source,
             'source_ref_type' => $sourceRefType,
-            'source_ref_id'   => $sourceRefId,
-            'created_at'      => now(),
+            'source_ref_id' => $sourceRefId,
+            'created_at' => now(),
         ]);
 
         $law->forceFill([
             'current_version_no' => $next,
-            'status'             => Law::STATUS_AMENDED,
+            'status' => Law::STATUS_AMENDED,
         ])->save();
 
         $this->audit->append(
             module: 'legislature',
             event: 'law.amended',
             payload: [
-                'law_id'     => (string) $law->id,
+                'law_id' => (string) $law->id,
                 'act_number' => $law->act_number,
                 'version_no' => $next,
-                'source'     => $source,
-                'text_hash'  => $textHash,
+                'source' => $source,
+                'text_hash' => $textHash,
                 'source_ref' => [$sourceRefType => $sourceRefId],
             ],
             ref: $viaForm ?? 'WF-LEG-06',
@@ -222,10 +228,10 @@ class EnactmentService
             body: $text,
             attrs: [
                 'jurisdiction_id' => (string) $law->jurisdiction_id,
-                'legislature_id'  => (string) $law->legislature_id,
-                'via_form'        => $viaForm,
-                'subject_type'    => 'law',
-                'subject_id'      => (string) $law->id,
+                'legislature_id' => (string) $law->legislature_id,
+                'via_form' => $viaForm,
+                'subject_type' => 'law',
+                'subject_id' => (string) $law->id,
             ],
         );
 
@@ -284,46 +290,46 @@ class EnactmentService
         ?string $viaForm,
     ): Law {
         $actNumber = $this->allocateActNumber($legislatureId);
-        $textHash  = hash('sha256', $text);
+        $textHash = hash('sha256', $text);
 
         $law = Law::create([
-            'jurisdiction_id'    => $jurisdictionId,
-            'legislature_id'     => $legislatureId,
-            'act_number'         => $actNumber,
-            'title'              => $title,
-            'kind'               => $kind,
-            'scale'              => $scale,
+            'jurisdiction_id' => $jurisdictionId,
+            'legislature_id' => $legislatureId,
+            'act_number' => $actNumber,
+            'title' => $title,
+            'kind' => $kind,
+            'scale' => $scale,
             'scope_judiciary_id' => $scopeJudiciaryId,
-            'origin'             => $origin,
-            'enacting_bill_id'   => $enactingBillId,
-            'status'             => Law::STATUS_IN_FORCE,
+            'origin' => $origin,
+            'enacting_bill_id' => $enactingBillId,
+            'status' => Law::STATUS_IN_FORCE,
             'current_version_no' => 1,
-            'effective_at'       => $effectiveAt ?? now(),
-            'enacted_at'         => now(),
+            'effective_at' => $effectiveAt ?? now(),
+            'enacted_at' => now(),
         ]);
 
         LawVersion::create([
-            'law_id'          => $law->id,
-            'version_no'      => 1,
-            'text'            => $text,
-            'text_hash'       => $textHash,
-            'source'          => LawVersion::SOURCE_ENACTMENT,
+            'law_id' => $law->id,
+            'version_no' => 1,
+            'text' => $text,
+            'text_hash' => $textHash,
+            'source' => LawVersion::SOURCE_ENACTMENT,
             'source_ref_type' => $sourceRefType,
-            'source_ref_id'   => $sourceRefId,
-            'created_at'      => now(),
+            'source_ref_id' => $sourceRefId,
+            'created_at' => now(),
         ]);
 
         $this->audit->append(
             module: 'legislature',
             event: 'law.enacted',
             payload: [
-                'law_id'     => $law->id,
+                'law_id' => $law->id,
                 'act_number' => $actNumber,
-                'kind'       => $kind,
-                'title'      => $title,
-                'text_hash'  => $textHash,
-                'origin'     => $origin,
-                'source'     => [$sourceRefType => $sourceRefId],
+                'kind' => $kind,
+                'title' => $title,
+                'text_hash' => $textHash,
+                'origin' => $origin,
+                'source' => [$sourceRefType => $sourceRefId],
             ],
             ref: 'WF-LEG-06',
             jurisdictionId: $jurisdictionId,
@@ -335,10 +341,10 @@ class EnactmentService
             body: $text,
             attrs: [
                 'jurisdiction_id' => $jurisdictionId,
-                'legislature_id'  => $legislatureId,
-                'via_form'        => $viaForm,
-                'subject_type'    => 'law',
-                'subject_id'      => (string) $law->id,
+                'legislature_id' => $legislatureId,
+                'via_form' => $viaForm,
+                'subject_type' => 'law',
+                'subject_id' => (string) $law->id,
             ],
         );
 
@@ -367,33 +373,60 @@ class EnactmentService
 
     /**
      * The settings path (§C.5 + the exit criterion's second half).
+     *
+     * Phase E (PHASE_E_DESIGN_challenge_law §E.3) — Door 2a detour: a setting
+     * bill targeting a DUAL_DOOR_KEYS key does NOT mutate the setting on chamber
+     * adoption. The chamber supermajority is insufficient (Art. IV §3 "must ALSO
+     * consent"); the constituent process opens and the setting mutates only when
+     * it passes. Where no constituents exist the constituent door is vacuously
+     * satisfied and the chamber supermajority suffices.
      */
     private function applySettingChange(Bill $bill, Law $law): void
     {
+        $key = (string) $bill->targets_setting_key;
+
+        if (in_array($key, \App\Services\ConstitutionalValidator::DUAL_DOOR_KEYS, true)) {
+            app(\App\Services\Judiciary\SettingAmendmentDoorService::class)
+                ->onDualDoorChamberAdoption($bill, $law);
+
+            return;
+        }
+
         $this->applySettingChangeForKey(
             (string) $bill->jurisdiction_id,
             $bill->legislature_id !== null ? (string) $bill->legislature_id : null,
-            (string) $bill->targets_setting_key,
+            $key,
             $bill->proposed_value,
             $law,
         );
     }
 
     /**
-     * The generalized settings application — shared by setting BILLS and
-     * setting REFERENDUM QUESTIONS (they apply "via the same
-     * setting_changes path", votes_laws §D).
+     * The generalized settings application — shared by setting BILLS, setting
+     * REFERENDUM QUESTIONS (votes_laws §D), and the Door 2a constituent pass
+     * (PHASE_E_DESIGN_challenge_law §E.3). `$route`/`$processId` stamp the
+     * two-door provenance; `$constituentConsented` carries the dual-door
+     * authorization through the TOCTOU re-check (a DUAL_DOOR_KEYS key applies
+     * ONLY via the constituent door, never Door 1 alone).
      */
-    private function applySettingChangeForKey(
+    public function applySettingChangeForKey(
         string $jurisdictionId,
         ?string $legislatureId,
         string $key,
         mixed $value,
         Law $law,
+        ?string $route = null,
+        ?string $processId = null,
+        bool $constituentConsented = false,
     ): void {
         // TOCTOU guard: the bounds may have moved between vote and
-        // enactment — re-run the PROTECTED check.
-        $this->validator->checkSettingChange(['setting_key' => $key, 'value' => $value]);
+        // enactment — re-run the PROTECTED check. A DUAL_DOOR_KEYS key carries
+        // the constituent-consent authorization so the re-check passes (the
+        // door was satisfied upstream).
+        $this->validator->checkSettingChange([
+            'setting_key' => $key,
+            'value' => $value,
+        ] + ($constituentConsented ? ['requires_constituent_consent' => true] : []));
 
         $row = ConstitutionalSettings::query()
             ->where('jurisdiction_id', $jurisdictionId)
@@ -406,20 +439,22 @@ class EnactmentService
         $old = $row->{$key};
 
         $row->forceFill([
-            $key                     => $value,
+            $key => $value,
             'last_amended_by_act_id' => $law->id,
-            'last_amended_at'        => now(),
+            'last_amended_at' => now(),
+            'last_amendment_route' => $route,
+            'last_amendment_process_id' => $processId,
         ])->save();
 
         SettingChange::create([
             'jurisdiction_id' => $jurisdictionId,
-            'legislature_id'  => $legislatureId,
-            'setting_key'     => $key,
-            'old_value'       => $old,
-            'new_value'       => $value,
-            'law_id'          => $law->id,
-            'applied_at'      => now(),
-            'created_at'      => now(),
+            'legislature_id' => $legislatureId,
+            'setting_key' => $key,
+            'old_value' => $old,
+            'new_value' => $value,
+            'law_id' => $law->id,
+            'applied_at' => now(),
+            'created_at' => now(),
         ]);
 
         $this->audit->append(
@@ -427,10 +462,10 @@ class EnactmentService
             event: 'setting.applied',
             payload: [
                 'setting_key' => $key,
-                'old_value'   => $old,
-                'new_value'   => $value,
-                'law_id'      => $law->id,
-                'act_number'  => $law->act_number,
+                'old_value' => $old,
+                'new_value' => $value,
+                'law_id' => $law->id,
+                'act_number' => $law->act_number,
             ],
             ref: 'F-LEG-031',
             jurisdictionId: $jurisdictionId,
@@ -477,7 +512,7 @@ class EnactmentService
 
         // No ancestor row anywhere: migration defaults apply.
         return ConstitutionalSettings::create([
-            'id'              => (string) \Illuminate\Support\Str::uuid(),
+            'id' => (string) \Illuminate\Support\Str::uuid(),
             'jurisdiction_id' => $jurisdictionId,
         ]);
     }

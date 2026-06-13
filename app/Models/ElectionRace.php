@@ -30,6 +30,9 @@ class ElectionRace extends Model
     // ceiling (Art. III §2 floors the committee model at 5; the 1–9 band
     // is a chamber rule).
     public const SEAT_KIND_EXEC_COMMITTEE = 'exec_committee';
+    // Phase E (E-3): judicial group races — judges are elected in GROUPS
+    // (Art. IV §3), seats ≥ judiciary_min_judges_per_race (5), NO ceiling.
+    public const SEAT_KIND_JUDICIAL_GROUP = 'judicial_group';
 
     public const ELECTORATE_RESIDENTS = 'residents';
     public const ELECTORATE_OWNERS    = 'owners';

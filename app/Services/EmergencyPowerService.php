@@ -55,8 +55,7 @@ class EmergencyPowerService
         private readonly PublicRecordService $records,
         private readonly ChamberVoteService $votes,
         private readonly ClockService $clocks,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // PURE Art. II §7 guards — pinned by EmergencyCeilingTest
@@ -69,7 +68,7 @@ class EmergencyPowerService
             throw new ConstitutionalViolation(
                 sprintf(
                     'Emergency powers exist for natural disaster or actual invasion only — cause %s is '
-                    . 'rejected pre-vote (economic, political, or public-order rationales are not causes).',
+                    .'rejected pre-vote (economic, political, or public-order rationales are not causes).',
                     json_encode($cause)
                 ),
                 'Art. II §7'
@@ -89,7 +88,7 @@ class EmergencyPowerService
             throw new ConstitutionalViolation(
                 sprintf(
                     'Rejected pre-vote: %s of %d day(s) exceeds the %d-day constitutional ceiling '
-                    . '(resolved emergency_powers_max_days = %d; hardened maximum 90 · CLK-03).',
+                    .'(resolved emergency_powers_max_days = %d; hardened maximum 90 · CLK-03).',
                     $what,
                     $days,
                     $ceiling,
@@ -149,23 +148,23 @@ class EmergencyPowerService
         if (! $this->inSubtree($areaId, (string) $legislature->jurisdiction_id)) {
             throw new ConstitutionalViolation(
                 'The declared area must be this legislature\'s jurisdiction or a descendant — '
-                . 'never beyond its authority.',
+                .'never beyond its authority.',
                 'Art. II §7'
             );
         }
 
         $proposal = ChamberVoteProposal::create([
-            'legislature_id'        => $legislature->id,
-            'proposal_kind'         => ChamberVoteProposal::KIND_EMERGENCY_INVOCATION,
-            'payload'               => [
-                'cause'                => $cause,
-                'label'                => $label,
-                'duration_days'        => $days,
+            'legislature_id' => $legislature->id,
+            'proposal_kind' => ChamberVoteProposal::KIND_EMERGENCY_INVOCATION,
+            'payload' => [
+                'cause' => $cause,
+                'label' => $label,
+                'duration_days' => $days,
                 'area_jurisdiction_id' => $areaId,
-                'methods'              => $methods,
+                'methods' => $methods,
             ],
             'proposed_by_member_id' => $proposer->id,
-            'status'                => ChamberVoteProposal::STATUS_OPEN,
+            'status' => ChamberVoteProposal::STATUS_OPEN,
         ]);
 
         $vote = $this->votes->open(
@@ -186,23 +185,23 @@ class EmergencyPowerService
     public function activateFromProposal(ChamberVoteProposal $proposal, ChamberVote $vote): EmergencyPower
     {
         $legislature = $proposal->legislature()->firstOrFail();
-        $payload     = (array) $proposal->payload;
+        $payload = (array) $proposal->payload;
 
-        $startsAt  = now();
+        $startsAt = now();
         $expiresAt = $startsAt->copy()->addDays((int) $payload['duration_days']);
 
         $power = EmergencyPower::create([
-            'legislature_id'         => (string) $legislature->id,
-            'jurisdiction_id'        => (string) $legislature->jurisdiction_id,
-            'cause'                  => (string) $payload['cause'],
-            'label'                  => (string) $payload['label'],
+            'legislature_id' => (string) $legislature->id,
+            'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+            'cause' => (string) $payload['cause'],
+            'label' => (string) $payload['label'],
             'declared_duration_days' => (int) $payload['duration_days'],
-            'area_jurisdiction_id'   => (string) $payload['area_jurisdiction_id'],
-            'methods'                => (string) $payload['methods'],
-            'invoke_vote_id'         => (string) $vote->id,
-            'status'                 => EmergencyPower::STATUS_ACTIVE,
-            'starts_at'              => $startsAt,
-            'expires_at'             => $expiresAt,
+            'area_jurisdiction_id' => (string) $payload['area_jurisdiction_id'],
+            'methods' => (string) $payload['methods'],
+            'invoke_vote_id' => (string) $vote->id,
+            'status' => EmergencyPower::STATUS_ACTIVE,
+            'starts_at' => $startsAt,
+            'expires_at' => $expiresAt,
         ]);
 
         // CLK-03 — deliberately NON-re-derivable (derive null): the
@@ -220,10 +219,10 @@ class EmergencyPowerService
             kind: 'act',
             title: "Emergency powers invoked — {$power->label}",
             body: sprintf(
-                "Cause: %s. Duration: %d day(s) — auto-expires %s; nothing rolls over silently (CLK-03). "
-                . "Area: within this legislature's authority. Methods: %s\n\n"
-                . 'Elections, sessions, courts, residency, petitions, and records cannot be disrupted — '
-                . 'enforced in code (Art. II §7).',
+                'Cause: %s. Duration: %d day(s) — auto-expires %s; nothing rolls over silently (CLK-03). '
+                ."Area: within this legislature's authority. Methods: %s\n\n"
+                .'Elections, sessions, courts, residency, petitions, and records cannot be disrupted — '
+                .'enforced in code (Art. II §7).',
                 $power->cause,
                 $power->declared_duration_days,
                 $expiresAt->toDateString(),
@@ -231,10 +230,10 @@ class EmergencyPowerService
             ),
             attrs: [
                 'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'legislature_id'  => (string) $legislature->id,
-                'via_form'        => 'F-LEG-024',
-                'subject_type'    => 'emergency_power',
-                'subject_id'      => (string) $power->id,
+                'legislature_id' => (string) $legislature->id,
+                'via_form' => 'F-LEG-024',
+                'subject_type' => 'emergency_power',
+                'subject_id' => (string) $power->id,
             ],
         );
 
@@ -255,7 +254,7 @@ class EmergencyPowerService
         if (! in_array($power->status, EmergencyPower::LIVE_STATUSES, true)) {
             throw new ConstitutionalViolation(
                 "An expired or struck power cannot be renewed (status: {$power->status}) — "
-                . 'a new emergency requires a new declaration.',
+                .'a new emergency requires a new declaration.',
                 'Art. II §7'
             );
         }
@@ -268,13 +267,13 @@ class EmergencyPowerService
         );
 
         $windowDays = (int) config('cga.emergency_renewal_window_days', 14);
-        $opensAt    = self::renewalWindowOpensAt($power->expires_at, $windowDays);
+        $opensAt = self::renewalWindowOpensAt($power->expires_at, $windowDays);
 
         if (now()->lt($opensAt)) {
             throw new ConstitutionalViolation(
                 sprintf(
                     'The renewal window opens %s (the final %d days before expiry) — a renewal vote this '
-                    . 'early would pre-commit a future chamber.',
+                    .'early would pre-commit a future chamber.',
                     $opensAt->toDateString(),
                     $windowDays
                 ),
@@ -285,14 +284,14 @@ class EmergencyPowerService
         $legislature = $power->legislature()->firstOrFail();
 
         $proposal = ChamberVoteProposal::create([
-            'legislature_id'        => (string) $legislature->id,
-            'proposal_kind'         => ChamberVoteProposal::KIND_EMERGENCY_RENEWAL,
-            'payload'               => [
+            'legislature_id' => (string) $legislature->id,
+            'proposal_kind' => ChamberVoteProposal::KIND_EMERGENCY_RENEWAL,
+            'payload' => [
                 'emergency_power_id' => (string) $power->id,
-                'extension_days'     => $extensionDays,
+                'extension_days' => $extensionDays,
             ],
             'proposed_by_member_id' => $proposer->id,
-            'status'                => ChamberVoteProposal::STATUS_OPEN,
+            'status' => ChamberVoteProposal::STATUS_OPEN,
         ]);
 
         $vote = $this->votes->open(
@@ -322,7 +321,7 @@ class EmergencyPowerService
         if (! in_array($power->status, EmergencyPower::LIVE_STATUSES, true)) {
             throw new ConstitutionalViolation(
                 "The power expired before the renewal vote closed (status: {$power->status}) — "
-                . 'nothing rolls over silently; a new declaration is required.',
+                .'nothing rolls over silently; a new declaration is required.',
                 'Art. II §7'
             );
         }
@@ -333,20 +332,20 @@ class EmergencyPowerService
         self::assertDuration($extension, $this->resolvedMaxDays((string) $power->jurisdiction_id), 'renewal extension');
 
         $previous = $power->expires_at;
-        $new      = $previous->copy()->addDays($extension);
+        $new = $previous->copy()->addDays($extension);
 
         $renewal = EmergencyPowerRenewal::create([
-            'emergency_power_id'  => (string) $power->id,
-            'vote_id'             => (string) $vote->id,
-            'extension_days'      => $extension,
+            'emergency_power_id' => (string) $power->id,
+            'vote_id' => (string) $vote->id,
+            'extension_days' => $extension,
             'previous_expires_at' => $previous,
-            'new_expires_at'      => $new,
-            'created_at'          => now(),
+            'new_expires_at' => $new,
+            'created_at' => now(),
         ]);
 
         $power->forceFill([
             'expires_at' => $new,
-            'status'     => EmergencyPower::STATUS_RENEWED,
+            'status' => EmergencyPower::STATUS_RENEWED,
         ])->save();
 
         // Cancel + re-arm CLK-03 (never move an armed timer).
@@ -368,7 +367,7 @@ class EmergencyPowerService
             title: "Emergency powers renewed — {$power->label}",
             body: sprintf(
                 'Fresh supermajority extends the power by %d day(s): %s → %s. Each renewal carries its own '
-                . '≤ %d-day ceiling; nothing rolls over silently (Art. II §7 · CLK-03).',
+                .'≤ %d-day ceiling; nothing rolls over silently (Art. II §7 · CLK-03).',
                 $extension,
                 $previous->toDateString(),
                 $new->toDateString(),
@@ -376,10 +375,10 @@ class EmergencyPowerService
             ),
             attrs: [
                 'jurisdiction_id' => (string) $power->jurisdiction_id,
-                'legislature_id'  => (string) $power->legislature_id,
-                'via_form'        => 'F-LEG-025',
-                'subject_type'    => 'emergency_power',
-                'subject_id'      => (string) $power->id,
+                'legislature_id' => (string) $power->legislature_id,
+                'via_form' => 'F-LEG-025',
+                'subject_type' => 'emergency_power',
+                'subject_id' => (string) $power->id,
             ],
         );
 
@@ -405,9 +404,9 @@ class EmergencyPowerService
             event: 'emergency.expired',
             payload: [
                 'emergency_power_id' => (string) $fresh->id,
-                'label'              => $fresh->label,
-                'declared_duration'  => (int) $fresh->declared_duration_days,
-                'expired_at'         => now()->toIso8601String(),
+                'label' => $fresh->label,
+                'declared_duration' => (int) $fresh->declared_duration_days,
+                'expired_at' => now()->toIso8601String(),
             ],
             ref: 'CLK-03',
             jurisdictionId: (string) $fresh->jurisdiction_id,
@@ -417,13 +416,13 @@ class EmergencyPowerService
             kind: 'other',
             title: "Emergency powers expired — {$fresh->label}",
             body: 'The declared duration elapsed and the power expired automatically — no action was '
-                . 'required and none was possible; nothing rolls over silently (Art. II §7 · CLK-03).',
+                .'required and none was possible; nothing rolls over silently (Art. II §7 · CLK-03).',
             attrs: [
                 'jurisdiction_id' => (string) $fresh->jurisdiction_id,
-                'legislature_id'  => (string) $fresh->legislature_id,
-                'via_clock'       => 'CLK-03',
-                'subject_type'    => 'emergency_power',
-                'subject_id'      => (string) $fresh->id,
+                'legislature_id' => (string) $fresh->legislature_id,
+                'via_clock' => 'CLK-03',
+                'subject_type' => 'emergency_power',
+                'subject_id' => (string) $fresh->id,
             ],
         );
 
@@ -433,6 +432,131 @@ class EmergencyPowerService
             ->expireRulesForEmergencyPower((string) $fresh->id);
 
         return true;
+    }
+
+    // =========================================================================
+    // F-JDG-007 — judicial review (Art. II §7; PHASE_E_DESIGN_challenge_law §C.1)
+    // =========================================================================
+
+    /**
+     * Open a judicial review on a LIVE power (status → under_review). CLK-03
+     * keeps running — review does not pause the constitutional ceiling.
+     */
+    public function openReview(EmergencyPower $power, string $caseId): EmergencyPower
+    {
+        $fresh = EmergencyPower::query()->whereKey($power->id)->lockForUpdate()->firstOrFail();
+
+        if (! in_array($fresh->status, EmergencyPower::LIVE_STATUSES, true)) {
+            throw new ConstitutionalViolation(
+                "Only a live emergency power can be reviewed (status: {$fresh->status}).",
+                'Art. II §7'
+            );
+        }
+
+        $fresh->forceFill([
+            'status' => EmergencyPower::STATUS_UNDER_REVIEW,
+            'judicial_review_case_id' => $caseId,
+        ])->save();
+
+        $this->audit->append(
+            module: 'legislature',
+            event: 'emergency.under_review',
+            payload: ['emergency_power_id' => (string) $fresh->id, 'case_id' => $caseId],
+            ref: 'F-JDG-007',
+            jurisdictionId: (string) $fresh->jurisdiction_id,
+        );
+
+        return $fresh;
+    }
+
+    /**
+     * Decide the review: write the emergency_power_reviews row and APPLY the
+     * outcome to the power (upheld → back live; narrowed → area/methods limited;
+     * struck → ended now + the emergency-enabled-rule cascade, like CLK-03).
+     *
+     * @param  array{review_basis:string, outcome:string, opinion_text:string,
+     *     narrowed_area_jurisdiction_id?:?string, narrowed_methods?:?array,
+     *     judiciary_id:string, case_id?:?string, challenge_id?:?string}  $attrs
+     */
+    public function decideReview(EmergencyPower $power, array $attrs): \App\Models\EmergencyPowerReview
+    {
+        $fresh = EmergencyPower::query()->whereKey($power->id)->lockForUpdate()->firstOrFail();
+
+        $outcome = (string) ($attrs['outcome'] ?? '');
+
+        if (! in_array($outcome, ['upheld', 'narrowed', 'struck'], true)) {
+            throw new ConstitutionalViolation('A review upholds, narrows, or strikes the power (Art. II §7).', 'Art. II §7');
+        }
+
+        $review = \App\Models\EmergencyPowerReview::create([
+            'emergency_power_id' => (string) $fresh->id,
+            'judiciary_id' => (string) $attrs['judiciary_id'],
+            'case_id' => isset($attrs['case_id']) ? (string) $attrs['case_id'] : null,
+            'challenge_id' => isset($attrs['challenge_id']) ? (string) $attrs['challenge_id'] : null,
+            'review_basis' => (string) ($attrs['review_basis'] ?? 'methods'),
+            'outcome' => $outcome,
+            'narrowed_area_jurisdiction_id' => $outcome === 'narrowed' && isset($attrs['narrowed_area_jurisdiction_id'])
+                ? (string) $attrs['narrowed_area_jurisdiction_id'] : null,
+            'narrowed_methods' => $outcome === 'narrowed' ? ($attrs['narrowed_methods'] ?? null) : null,
+            'opinion_text' => (string) ($attrs['opinion_text'] ?? ''),
+            'issued_at' => now(),
+        ]);
+
+        match ($outcome) {
+            'upheld' => $fresh->forceFill([
+                'status' => $fresh->renewals()->exists() ? EmergencyPower::STATUS_RENEWED : EmergencyPower::STATUS_ACTIVE,
+                'review_outcome' => 'upheld',
+            ])->save(),
+            'narrowed' => $fresh->forceFill([
+                'status' => EmergencyPower::STATUS_NARROWED,
+                'review_outcome' => 'narrowed',
+                'area_jurisdiction_id' => $review->narrowed_area_jurisdiction_id ?? $fresh->area_jurisdiction_id,
+                // methods is jsonb with no model cast — encode an array narrowing.
+                'methods' => $review->narrowed_methods !== null
+                    ? json_encode($review->narrowed_methods)
+                    : $fresh->methods,
+            ])->save(),
+            'struck' => $fresh->forceFill([
+                'status' => EmergencyPower::STATUS_STRUCK,
+                'review_outcome' => 'struck',
+            ])->save(),
+        };
+
+        $record = $this->records->publish(
+            kind: 'opinion',
+            title: sprintf('Emergency powers review — %s: %s', $fresh->label, $outcome),
+            body: (string) ($attrs['opinion_text'] ?? ''),
+            attrs: [
+                'jurisdiction_id' => (string) $fresh->jurisdiction_id,
+                'via_form' => 'F-JDG-007',
+                'subject_type' => 'emergency_powers',
+                'subject_id' => (string) $fresh->id,
+            ],
+        );
+
+        $review->forceFill(['record_id' => (string) $record->id])->save();
+
+        $this->audit->append(
+            module: 'legislature',
+            event: 'emergency.reviewed',
+            payload: [
+                'emergency_power_id' => (string) $fresh->id,
+                'review_id' => (string) $review->id,
+                'outcome' => $outcome,
+                'review_basis' => $review->review_basis,
+            ],
+            ref: 'F-JDG-007',
+            jurisdictionId: (string) $fresh->jurisdiction_id,
+        );
+
+        // A struck power ends immediately; emergency-enabled rules/orders citing
+        // it expire — the existing CLK-03 cascade hook.
+        if ($outcome === 'struck') {
+            app(\App\Services\Executive\DepartmentService::class)
+                ->expireRulesForEmergencyPower((string) $fresh->id);
+        }
+
+        return $review;
     }
 
     // =========================================================================

@@ -76,6 +76,8 @@ class Election extends Model
         'board_id',
         // Phase D (D-1): the office an `executive`-kind election fills.
         'executive_id',
+        // Phase E (E-1): the judiciary a `judicial`-kind election fills.
+        'judiciary_id',
     ];
 
     /** The wrapped ballot key must never serialize (design §B.5.2). */
@@ -121,6 +123,12 @@ class Election extends Model
     public function executive(): BelongsTo
     {
         return $this->belongsTo(Executive::class, 'executive_id');
+    }
+
+    /** Phase E (E-1): the judiciary a judicial election fills. */
+    public function judiciary(): BelongsTo
+    {
+        return $this->belongsTo(Judiciary::class, 'judiciary_id');
     }
 
     public function races(): HasMany

@@ -41,8 +41,7 @@ class BillService
     public function __construct(
         private readonly ConstitutionalValidator $validator,
         private readonly PublicRecordService $records,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // F-LEG-003 — introduce
@@ -109,7 +108,7 @@ class BillService
         }
 
         // Setting bills: bounds-checked PRE-VOTE (Phase A path, unchanged).
-        $settingKey    = $payload['targets_setting_key'] ?? null;
+        $settingKey = $payload['targets_setting_key'] ?? null;
         $proposedValue = $payload['proposed_value'] ?? null;
 
         if (($actType === Bill::TYPE_SETTING_CHANGE) !== ($settingKey !== null)) {
@@ -122,33 +121,36 @@ class BillService
         if ($settingKey !== null) {
             $this->validator->checkSettingChange([
                 'setting_key' => $settingKey,
-                'value'       => $proposedValue,
+                'value' => $proposedValue,
             ] + (is_array($proposedValue) ? [] : []));
         }
 
         $bill = Bill::create([
-            'legislature_id'      => $legislature->id,
-            'jurisdiction_id'     => $legislature->jurisdiction_id,
-            'sponsor_member_id'   => $sponsor->id,
-            'title'               => (string) $payload['title'],
-            'act_type'            => $actType,
-            'scale'               => $scale,
-            'scope_judiciary_id'  => $judiciaryId,
+            'legislature_id' => $legislature->id,
+            'jurisdiction_id' => $legislature->jurisdiction_id,
+            'sponsor_member_id' => $sponsor->id,
+            'title' => (string) $payload['title'],
+            'act_type' => $actType,
+            'scale' => $scale,
+            'scope_judiciary_id' => $judiciaryId,
             'targets_setting_key' => $settingKey,
-            'proposed_value'      => $proposedValue,
-            'effective_at'        => $payload['effective_at'] ?? null,
-            'status'              => Bill::STATUS_INTRODUCED,
-            'current_version_no'  => 1,
-            'introduced_at'       => now(),
+            'proposed_value' => $proposedValue,
+            // Phase E Path 1: a remedial bill is tagged to the challenge it
+            // answers (PHASE_E_DESIGN_challenge_law §B.4).
+            'targets_challenge_id' => isset($payload['targets_challenge_id']) ? (string) $payload['targets_challenge_id'] : null,
+            'effective_at' => $payload['effective_at'] ?? null,
+            'status' => Bill::STATUS_INTRODUCED,
+            'current_version_no' => 1,
+            'introduced_at' => now(),
         ]);
 
         BillVersion::create([
-            'bill_id'              => $bill->id,
-            'version_no'           => 1,
-            'law_text'             => $lawText,
+            'bill_id' => $bill->id,
+            'version_no' => 1,
+            'law_text' => $lawText,
             'changed_by_member_id' => $sponsor->id,
-            'change_kind'          => BillVersion::KIND_INTRODUCTION,
-            'created_at'           => now(),
+            'change_kind' => BillVersion::KIND_INTRODUCTION,
+            'created_at' => now(),
         ]);
 
         $this->records->publish(
@@ -156,12 +158,12 @@ class BillService
             title: "Bill introduced — {$bill->title}",
             body: $lawText,
             attrs: [
-                'actor_user_id'   => (string) $sponsor->user_id,
+                'actor_user_id' => (string) $sponsor->user_id,
                 'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'legislature_id'  => (string) $legislature->id,
-                'via_form'        => 'F-LEG-003',
-                'subject_type'    => 'bill',
-                'subject_id'      => (string) $bill->id,
+                'legislature_id' => (string) $legislature->id,
+                'via_form' => 'F-LEG-003',
+                'subject_type' => 'bill',
+                'subject_id' => (string) $bill->id,
             ],
         );
 
@@ -181,7 +183,7 @@ class BillService
         $this->assertStatus($bill, [Bill::STATUS_INTRODUCED, Bill::STATUS_REFERRED]);
 
         $bill->forceFill([
-            'status'       => $committeeId !== null ? Bill::STATUS_IN_COMMITTEE : Bill::STATUS_REFERRED,
+            'status' => $committeeId !== null ? Bill::STATUS_IN_COMMITTEE : Bill::STATUS_REFERRED,
             'committee_id' => $committeeId,
         ])->save();
     }
@@ -279,12 +281,12 @@ class BillService
         $next = $bill->current_version_no + 1;
 
         BillVersion::create([
-            'bill_id'              => $bill->id,
-            'version_no'           => $next,
-            'law_text'             => $text,
+            'bill_id' => $bill->id,
+            'version_no' => $next,
+            'law_text' => $text,
             'changed_by_member_id' => $member?->id,
-            'change_kind'          => $changeKind,
-            'created_at'           => now(),
+            'change_kind' => $changeKind,
+            'created_at' => now(),
         ]);
 
         $bill->forceFill(['current_version_no' => $next])->save();
@@ -320,7 +322,17 @@ class BillService
         if ($outcome === ChamberVote::OUTCOME_ADOPTED) {
             $bill->forceFill(['status' => Bill::STATUS_PASSED, 'passed_at' => now()])->save();
 
-            app(EnactmentService::class)->enact($bill, $vote);
+            $law = app(EnactmentService::class)->enact($bill, $vote);
+
+            // Phase E Path 1 (PHASE_E_DESIGN_challenge_law §B.4): a remedial
+            // bill tagged to an open constitutional challenge, enacted inside
+            // the CLK-12 window, closes the challenge `amended_by_legislature`
+            // and cancels both clocks (§5.3). A bill carrying no challenge tag
+            // is an ordinary enactment — the hook self-guards.
+            if ($bill->targets_challenge_id !== null) {
+                app(\App\Services\Judiciary\ConstitutionalChallengeService::class)
+                    ->onRemedialEnactment($bill->refresh(), $law);
+            }
         } else {
             $bill->forceFill(['status' => Bill::STATUS_FAILED, 'failed_at' => now()])->save();
         }
@@ -345,6 +357,17 @@ class BillService
 
     private function basisFor(Bill $bill): ?string
     {
+        // Phase E (PHASE_E_DESIGN_challenge_law §E.3): a DUAL_DOOR_KEYS setting
+        // bill upgrades its own chamber threshold to supermajority (Art. IV §3 —
+        // the constituent door is the SECOND gate; the chamber leg is itself a
+        // supermajority). The setting_change act_type is kept for the
+        // BillService setting-bill coupling; the dual-door key forces the basis.
+        if ($bill->act_type === Bill::TYPE_SETTING_CHANGE
+            && $bill->targets_setting_key !== null
+            && in_array((string) $bill->targets_setting_key, \App\Services\ConstitutionalValidator::DUAL_DOOR_KEYS, true)) {
+            return ChamberVote::BASIS_SUPERMAJORITY;
+        }
+
         return self::basisForActType($bill->act_type);
     }
 

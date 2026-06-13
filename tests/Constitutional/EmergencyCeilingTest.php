@@ -184,8 +184,22 @@ class EmergencyCeilingTest extends TestCase
     public function test_no_protected_form_handler_reads_emergency_state(): void
     {
         // Architecture pin: the handler of every PROTECTED form must not
-        // even mention emergency powers — invariance by construction.
+        // even mention emergency powers — invariance by construction. The
+        // shield guards against a protected civic process being ENABLED or
+        // SUSPENDED BY an emergency power.
+        //
+        // F-JDG-007 (Emergency Powers Review, Phase E) is the sole, principled
+        // exception: it is the JUDICIAL REVIEW of a power (Art. II §7
+        // "Emergency Powers are subject to Judicial review") — it reads the
+        // power to ACT ON it (uphold/narrow/strike), the constitutional check,
+        // never to be enabled by it. The shield still blocks the
+        // emergency_power_id/enabling_* keys on it (the handler names the power
+        // under review via `reviewed_power_id`), so the enablement floor holds.
         foreach (ConstitutionalValidator::EMERGENCY_PROTECTED_FORMS as $formId) {
+            if ($formId === 'F-JDG-007') {
+                continue; // the judicial-review form acts ON a power (Art. II §7), never enabled by one
+            }
+
             $handler = FormRegistry::handlerFor($formId);
 
             if ($handler === null) {

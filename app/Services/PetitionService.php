@@ -41,8 +41,7 @@ class PetitionService
         private readonly SettingsResolver $settings,
         private readonly ClockService $clocks,
         private readonly ReferendumService $referendums,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // PURE threshold math — pinned by the constitutional suite
@@ -77,7 +76,7 @@ class PetitionService
         if (! in_array($jurisdictionId, $associations, true)) {
             throw new ConstitutionalViolation(
                 'A petition is created inside the creator\'s own association chain — '
-                . 'association is the only gate (Art. I).',
+                .'association is the only gate (Art. I).',
                 'Art. I · Art. II §6'
             );
         }
@@ -98,7 +97,7 @@ class PetitionService
         if (! in_array($actType, Petition::ACT_TYPES, true)) {
             throw new ConstitutionalViolation(
                 "Unknown petition act_type [{$actType}] — ordinary, setting_change, or supermajority "
-                . '(no dual_supermajority by petition).',
+                .'(no dual_supermajority by petition).',
                 'Art. II §6 · as implemented'
             );
         }
@@ -129,29 +128,29 @@ class PetitionService
         if ($settingKey !== null) {
             $this->validator->checkSettingChange([
                 'setting_key' => $settingKey,
-                'value'       => $payload['proposed_value'] ?? null,
+                'value' => $payload['proposed_value'] ?? null,
             ]);
         }
 
         // CLK-17 snapshots: civic population + resolved pct.
         $basis = CivicPopulation::of($jurisdictionId);
-        $pct   = (float) ($this->settings->resolve($jurisdictionId, 'initiative_petition_threshold_pct') ?? 5.00);
+        $pct = (float) ($this->settings->resolve($jurisdictionId, 'initiative_petition_threshold_pct') ?? 5.00);
 
         $petition = Petition::create([
-            'creator_user_id'     => (string) $creator->getKey(),
-            'jurisdiction_id'     => $jurisdictionId,
-            'title'               => (string) $payload['title'],
-            'law_text'            => (string) $payload['law_text'],
-            'act_type'            => $actType,
+            'creator_user_id' => (string) $creator->getKey(),
+            'jurisdiction_id' => $jurisdictionId,
+            'title' => (string) $payload['title'],
+            'law_text' => (string) $payload['law_text'],
+            'act_type' => $actType,
             'targets_setting_key' => $settingKey,
-            'proposed_value'      => $payload['proposed_value'] ?? null,
-            'scale'               => $scale,
-            'scope_judiciary_id'  => $payload['scope_judiciary_id'] ?? null,
-            'population_basis'    => $basis,
-            'threshold_pct'       => $pct,
-            'threshold_count'     => self::thresholdCount($basis, $pct),
+            'proposed_value' => $payload['proposed_value'] ?? null,
+            'scale' => $scale,
+            'scope_judiciary_id' => $payload['scope_judiciary_id'] ?? null,
+            'population_basis' => $basis,
+            'threshold_pct' => $pct,
+            'threshold_count' => self::thresholdCount($basis, $pct),
             // Created → Gathering is atomic at filing (votes_laws §E).
-            'status'              => Petition::STATUS_GATHERING,
+            'status' => Petition::STATUS_GATHERING,
         ]);
 
         // CLK-17 threshold-watch (fires_at NULL — the sweep is the safety
@@ -176,11 +175,11 @@ class PetitionService
                 $petition->law_text
             ),
             attrs: [
-                'actor_user_id'   => (string) $creator->getKey(),
+                'actor_user_id' => (string) $creator->getKey(),
                 'jurisdiction_id' => $jurisdictionId,
-                'via_form'        => 'F-IND-009',
-                'subject_type'    => 'petition',
-                'subject_id'      => (string) $petition->id,
+                'via_form' => 'F-IND-009',
+                'subject_type' => 'petition',
+                'subject_id' => (string) $petition->id,
             ],
         );
 
@@ -198,7 +197,7 @@ class PetitionService
         if (! in_array($fresh->status, Petition::SIGNABLE_STATUSES, true)) {
             throw new ConstitutionalViolation(
                 "Petition is not open for signatures (status: {$fresh->status}) — the audited count "
-                . 'froze at the threshold check.',
+                .'froze at the threshold check.',
                 'Art. II §6'
             );
         }
@@ -214,7 +213,7 @@ class PetitionService
         if ($association === null) {
             throw new ConstitutionalViolation(
                 'Signing requires an active association with the petition\'s jurisdiction — '
-                . 'association is the only gate.',
+                .'association is the only gate.',
                 'Art. I'
             );
         }
@@ -233,10 +232,10 @@ class PetitionService
         }
 
         $signature = PetitionSignature::create([
-            'petition_id'    => $fresh->id,
-            'user_id'        => (string) $signer->getKey(),
+            'petition_id' => $fresh->id,
+            'user_id' => (string) $signer->getKey(),
             'association_id' => (string) $association->id,
-            'signed_at'      => now(),
+            'signed_at' => now(),
         ]);
 
         // Event-driven CLK-17 check (the sweep is the safety net).
@@ -295,10 +294,10 @@ class PetitionService
             module: 'civic',
             event: 'petition.threshold_reached',
             payload: [
-                'petition_id'     => (string) $petition->id,
+                'petition_id' => (string) $petition->id,
                 'live_signatures' => $live,
                 'threshold_count' => (int) $petition->threshold_count,
-                'threshold_pct'   => (string) $petition->threshold_pct,
+                'threshold_pct' => (string) $petition->threshold_pct,
             ],
             ref: 'CLK-17',
             jurisdictionId: (string) $petition->jurisdiction_id,
@@ -309,17 +308,17 @@ class PetitionService
             title: "Petition reached its signature threshold — {$petition->title}",
             body: sprintf(
                 '%d live signatures against a threshold of %d (%s%% of the civic population snapshot). '
-                . 'The election board\'s independent signature audit follows (F-ELB-005); the audited '
-                . 'count freezes here — signatures stay open during review.',
+                .'The election board\'s independent signature audit follows (F-ELB-005); the audited '
+                .'count freezes here — signatures stay open during review.',
                 $live,
                 (int) $petition->threshold_count,
                 (string) $petition->threshold_pct
             ),
             attrs: [
                 'jurisdiction_id' => (string) $petition->jurisdiction_id,
-                'via_clock'       => 'CLK-17',
-                'subject_type'    => 'petition',
-                'subject_id'      => (string) $petition->id,
+                'via_clock' => 'CLK-17',
+                'subject_type' => 'petition',
+                'subject_id' => (string) $petition->id,
             ],
         );
 
@@ -362,9 +361,9 @@ class PetitionService
             ->get();
 
         $checked = 0;
-        $valid   = 0;
+        $valid = 0;
         $reasons = [];
-        $seen    = [];
+        $seen = [];
 
         foreach ($signatures as $signature) {
             $checked++;
@@ -409,17 +408,17 @@ class PetitionService
         $passed = $valid >= (int) $fresh->threshold_count;
 
         $result = [
-            'checked'         => $checked,
-            'valid'           => $valid,
-            'invalid'         => $checked - $valid,
+            'checked' => $checked,
+            'valid' => $valid,
+            'invalid' => $checked - $valid,
             'invalid_reasons' => $reasons,
-            'pct'             => $checked > 0 ? number_format($valid * 100 / $checked, 1) : '0.0',
-            'passed'          => $passed,
+            'pct' => $checked > 0 ? number_format($valid * 100 / $checked, 1) : '0.0',
+            'passed' => $passed,
         ];
 
         $fresh->forceFill([
             'audit_result' => $result,
-            'status'       => $passed ? Petition::STATUS_CONSTITUTIONAL_REVIEW : Petition::STATUS_INVALIDATED,
+            'status' => $passed ? Petition::STATUS_CONSTITUTIONAL_REVIEW : Petition::STATUS_INVALIDATED,
         ])->save();
 
         $this->records->publish(
@@ -435,23 +434,23 @@ class PetitionService
             body: $passed
                 ? sprintf(
                     'Valid signatures (%d) meet the threshold of %d. The petition now awaits constitutional '
-                    . 'review — the judiciary is forming (Phase E, F-JDG-008); the petition holds at this '
-                    . 'stage because the kill-path is constitutional, not skippable.',
+                    .'review — the judiciary is forming (Phase E, F-JDG-008); the petition holds at this '
+                    .'stage because the kill-path is constitutional, not skippable.',
                     $valid,
                     (int) $fresh->threshold_count
                 )
                 : sprintf(
                     'Valid signatures (%d) fall below the threshold of %d — the petition is invalidated '
-                    . '(kill-path, Art. II §6 independent audit). Reasons: %s.',
+                    .'(kill-path, Art. II §6 independent audit). Reasons: %s.',
                     $valid,
                     (int) $fresh->threshold_count,
                     json_encode($reasons)
                 ),
             attrs: [
                 'jurisdiction_id' => (string) $fresh->jurisdiction_id,
-                'via_form'        => 'F-ELB-005',
-                'subject_type'    => 'petition',
-                'subject_id'      => (string) $fresh->id,
+                'via_form' => 'F-ELB-005',
+                'subject_type' => 'petition',
+                'subject_id' => (string) $fresh->id,
             ],
         );
 
@@ -477,13 +476,25 @@ class PetitionService
             );
         }
 
+        // Phase E (PHASE_E_DESIGN_challenge_law §C.2): the stub is RETIRED for
+        // jurisdictions with an active court — the production path is F-JDG-008.
+        // Only `forming`-court jurisdictions (and historical demo seeds) may
+        // still stub-advance; an operating court means use the real review.
+        if ($this->hasActiveCourt((string) $fresh->jurisdiction_id)) {
+            throw new ConstitutionalViolation(
+                'An active court hears this petition\'s constitutional review — use F-JDG-008, never the '
+                .'Phase C stub (the stub survives only for forming-court jurisdictions).',
+                'Art. II §6'
+            );
+        }
+
         $this->audit->append(
             module: 'civic',
             event: 'petition.review.stub_validated',
             payload: [
                 'petition_id' => (string) $fresh->id,
-                'note'        => 'Judiciary forming — F-JDG-008 review lands in Phase E; petition stub-validated',
-                'citation'    => 'Art. II §6 · deferred',
+                'note' => 'Judiciary forming — F-JDG-008 review lands in Phase E; petition stub-validated',
+                'citation' => 'Art. II §6 · deferred',
             ],
             ref: 'F-JDG-008',
             jurisdictionId: (string) $fresh->jurisdiction_id,
@@ -491,11 +502,127 @@ class PetitionService
 
         $fresh->forceFill([
             'review_stub' => true,
-            'status'      => Petition::STATUS_VALIDATED,
+            'status' => Petition::STATUS_VALIDATED,
         ])->save();
 
         $this->referendums->queueFromPetition($fresh);
 
         return $fresh;
+    }
+
+    // =========================================================================
+    // F-JDG-008 — the real constitutional review (Phase E supersedes the stub)
+    // =========================================================================
+
+    /**
+     * The judiciary's real constitutional review of a held petition
+     * (PHASE_E_DESIGN_challenge_law §C.2). The F-JDG-008 handler calls this;
+     * petition state ownership stays HERE (single source of truth).
+     *
+     *  - cleared → review_outcome 'cleared', review_case_id set, validated,
+     *    then queueFromPetition (the onward ballot path the stub already called).
+     *  - struck  → invalidated, review_outcome 'struck' (kill-path 2,
+     *    Art. II §6/§8) — NO referendum queued.
+     */
+    public function reviewByJudiciary(
+        Petition $petition,
+        string $outcome,
+        string $opinionText,
+        ?string $caseId = null,
+        ?string $contradictionCitation = null,
+    ): Petition {
+        if (! in_array($outcome, ['cleared', 'struck'], true)) {
+            throw new ConstitutionalViolation('A petition review clears or strikes (Art. II §6).', 'Art. II §6');
+        }
+
+        $fresh = Petition::query()->whereKey($petition->id)->lockForUpdate()->firstOrFail();
+
+        if ($fresh->status !== Petition::STATUS_CONSTITUTIONAL_REVIEW) {
+            throw new ConstitutionalViolation(
+                "Only a petition holding at constitutional review can be reviewed (status: {$fresh->status}).",
+                'Art. II §6'
+            );
+        }
+
+        $record = $this->records->publish(
+            kind: 'opinion',
+            title: sprintf(
+                'Petition constitutional review — %s: %s',
+                $fresh->title,
+                $outcome === 'cleared' ? 'cleared for the ballot' : 'struck (unconstitutional)'
+            ),
+            body: $outcome === 'struck' && $contradictionCitation !== null
+                ? $opinionText."\n\nContradiction: ".$contradictionCitation
+                : $opinionText,
+            attrs: [
+                'jurisdiction_id' => (string) $fresh->jurisdiction_id,
+                'via_form' => 'F-JDG-008',
+                'subject_type' => 'petition',
+                'subject_id' => (string) $fresh->id,
+            ],
+        );
+
+        if ($outcome === 'struck') {
+            $fresh->forceFill([
+                'status' => Petition::STATUS_INVALIDATED,
+                'review_outcome' => 'struck',
+                'review_case_id' => $caseId,
+            ])->save();
+
+            $this->audit->append(
+                module: 'civic',
+                event: 'petition.review.struck',
+                payload: [
+                    'petition_id' => (string) $fresh->id,
+                    'citation' => $contradictionCitation ?? 'Art. II §6',
+                    'record_id' => (string) $record->id,
+                ],
+                ref: 'F-JDG-008',
+                jurisdictionId: (string) $fresh->jurisdiction_id,
+            );
+
+            return $fresh;
+        }
+
+        $fresh->forceFill([
+            'status' => Petition::STATUS_VALIDATED,
+            'review_outcome' => 'cleared',
+            'review_case_id' => $caseId,
+        ])->save();
+
+        $this->audit->append(
+            module: 'civic',
+            event: 'petition.review.cleared',
+            payload: ['petition_id' => (string) $fresh->id, 'record_id' => (string) $record->id],
+            ref: 'F-JDG-008',
+            jurisdictionId: (string) $fresh->jurisdiction_id,
+        );
+
+        $this->referendums->queueFromPetition($fresh);
+
+        return $fresh;
+    }
+
+    /** An operating (appointed/elected) court exists in the jurisdiction's footprint. */
+    private function hasActiveCourt(string $jurisdictionId): bool
+    {
+        $current = $jurisdictionId;
+
+        for ($depth = 0; $depth < 32 && $current !== null; $depth++) {
+            $exists = DB::table('judiciaries')
+                ->where('jurisdiction_id', $current)
+                ->whereNull('deleted_at')
+                ->whereIn('status', ['appointed', 'elected'])
+                ->exists();
+
+            if ($exists) {
+                return true;
+            }
+
+            $parent = DB::table('jurisdictions')->where('id', $current)->value('parent_id');
+            $current = $parent !== null ? (string) $parent : null;
+        }
+
+        return false;
     }
 }

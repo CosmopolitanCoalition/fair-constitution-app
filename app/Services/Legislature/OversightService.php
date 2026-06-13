@@ -36,12 +36,13 @@ use Illuminate\Support\Facades\DB;
  */
 class OversightService
 {
-    /** kind → adopted outcome (Art. II §3/§5; Phase D adds Art. III §3). */
+    /** kind → adopted outcome (Art. II §3/§5; Phase D Art. III §3; Phase E Art. IV §4). */
     public const ADOPTED_OUTCOMES = [
         RemovalProceeding::KIND_IMPEACHMENT       => RemovalProceeding::OUTCOME_REMOVED,
         RemovalProceeding::KIND_EXPULSION         => RemovalProceeding::OUTCOME_EXPELLED,
         RemovalProceeding::KIND_CENSURE           => RemovalProceeding::OUTCOME_CENSURED,
         RemovalProceeding::KIND_EXECUTIVE_REMOVAL => RemovalProceeding::OUTCOME_REMOVED,
+        RemovalProceeding::KIND_JUDGE_REMOVAL     => RemovalProceeding::OUTCOME_REMOVED,
     ];
 
     /** Outcomes that vacate the seat (→ F-LEG-036). */
@@ -74,11 +75,12 @@ class OversightService
         string $via = 'manual',
     ): MisconductInvestigation {
         // Phase D extends the docket with executive members and board
-        // seats (F-EXE-004 legislative referral — design §D).
-        if (! in_array($subjectType, ['legislature_members', 'users', 'legislatures', 'executive_members', 'board_seats'], true)) {
+        // seats (F-EXE-004 legislative referral — design §D); Phase E adds
+        // judicial seats (Art. IV §4 removal parity).
+        if (! in_array($subjectType, ['legislature_members', 'users', 'legislatures', 'executive_members', 'board_seats', 'judicial_seats'], true)) {
             throw new ConstitutionalViolation(
                 "Investigation subjects are legislature_members, users, legislatures, executive_members, "
-                . "or board_seats — not [{$subjectType}].",
+                . "board_seats, or judicial_seats — not [{$subjectType}].",
                 'CGA Forms Catalog (I-ADM)'
             );
         }
@@ -229,6 +231,27 @@ class OversightService
                 throw new ConstitutionalViolation(
                     'Executive-removal proceedings run against SEATED members of this jurisdiction\'s executive.',
                     'Art. III §3'
+                );
+            }
+        }
+
+        // Phase E (design §B.6 — removal parity): judges carry the SAME
+        // removal exposure as legislators (Art. IV §4). The subject must be
+        // a SEATED judge of THIS jurisdiction's judiciary.
+        if ($subjectType === 'judicial_seats') {
+            $seat = \App\Models\JudicialSeat::query()->whereKey($subjectId)->first();
+
+            $belongs = $seat !== null
+                && $seat->status === \App\Models\JudicialSeat::STATUS_SEATED
+                && \App\Models\Judiciary::query()
+                    ->whereKey($seat->judiciary_id)
+                    ->where('jurisdiction_id', $legislature->jurisdiction_id)
+                    ->exists();
+
+            if (! $belongs) {
+                throw new ConstitutionalViolation(
+                    'Judge-removal proceedings run against SEATED judges of this jurisdiction\'s judiciary.',
+                    'Art. IV §4'
                 );
             }
         }
@@ -431,6 +454,92 @@ class OversightService
                     $formation->succeedPrincipal($executive);
                 }
             }
+        }
+
+        // Phase E (design §B.6 — Art. IV §4): a judge's removal at
+        // supermajority (the SAME machinery and threshold as a legislator —
+        // removal parity is the whole point, never a softer threshold)
+        // closes their seat. Appointed seat → the constituent/committee
+        // re-nominates into a fresh vacant seat (the §B.3 loop, equal-
+        // constituent invariant preserved). Elected seat → a vacancies row
+        // for countback off the original tabulation (the legislator path).
+        if ($resolved === RemovalProceeding::OUTCOME_REMOVED
+            && $proceeding->subject_type === 'judicial_seats') {
+            $this->removeJudge((string) $proceeding->subject_id);
+        }
+    }
+
+    /**
+     * Effect a judge removal (design §B.6): seat → removed, holder cleared,
+     * the judicial-appointment term → removed, its CLK-09 timer cancelled
+     * (the BoardGovernorService term-cancellation mechanics). Appointed
+     * seats reopen for renomination; elected seats open a vacancy for
+     * countback (advisors are N/A — countback is the sole fallback, then a
+     * special judicial election in the CLK-04 window if the pool is
+     * exhausted).
+     */
+    private function removeJudge(string $seatId): void
+    {
+        $seat = \App\Models\JudicialSeat::query()->whereKey($seatId)->lockForUpdate()->first();
+
+        if ($seat === null || $seat->status !== \App\Models\JudicialSeat::STATUS_SEATED) {
+            return;
+        }
+
+        $judiciary = \App\Models\Judiciary::query()->whereKey($seat->judiciary_id)->firstOrFail();
+        $holder    = $seat->user_id !== null ? (string) $seat->user_id : null;
+
+        // Term closes, its CLK-09 timer cancelled (appointed judges).
+        if ($seat->term_id !== null) {
+            $term = \App\Models\Term::query()->whereKey($seat->term_id)->first();
+
+            if ($term !== null && $term->status === \App\Models\Term::STATUS_ACTIVE) {
+                $term->forceFill(['status' => \App\Models\Term::STATUS_REMOVED])->save();
+
+                foreach (\App\Models\ClockTimer::query()
+                    ->armed()
+                    ->where('clock_id', 'CLK-09')
+                    ->where('subject_type', 'term')
+                    ->where('subject_id', (string) $term->id)
+                    ->get() as $timer) {
+                    app(\App\Services\ClockService::class)->cancel($timer, 'judge removed by supermajority vote');
+                }
+            }
+        }
+
+        $seatClass = $seat->seat_class;
+
+        $seat->forceFill([
+            'status'  => \App\Models\JudicialSeat::STATUS_REMOVED,
+            'user_id' => null,
+            'term_id' => null,
+        ])->save();
+
+        if ($seatClass === \App\Models\JudicialSeat::CLASS_ELECTED) {
+            // Elected seat → a vacancy row for the countback machinery
+            // (the legislator path; the seat's elected_in_race_id anchors
+            // the original tabulation the countback runs off).
+            \App\Models\Vacancy::create([
+                'seat_type'         => 'judicial_seats',
+                'seat_id'           => (string) $seat->id,
+                'legislature_id'    => $judiciary->source_legislature_id !== null
+                    ? (string) $judiciary->source_legislature_id
+                    : null,
+                'jurisdiction_id'   => (string) $judiciary->jurisdiction_id,
+                'declared_via_form' => 'F-LEG-022',
+                'status'            => \App\Models\Vacancy::STATUS_DETECTED,
+                'detected_at'       => now(),
+            ]);
+        } else {
+            // Appointed seat → the constituent/committee re-nominates into a
+            // fresh vacant seat (the §B.3 loop; a removed constituent-
+            // nominated judge reopens THAT constituent's slot, so the
+            // equal-constituent invariant is preserved).
+            app(\App\Services\Judiciary\JudicialSeatService::class)->reopenSeat($judiciary, $seat);
+        }
+
+        if ($holder !== null) {
+            app(\App\Services\RoleService::class)->flushUser($holder);
         }
     }
 }

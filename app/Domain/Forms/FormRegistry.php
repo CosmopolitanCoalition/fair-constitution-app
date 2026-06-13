@@ -321,6 +321,53 @@ class FormRegistry
         'F-EXE-005' => Handlers\ExecutiveOrder::class,
         'F-BOG-001' => Handlers\DepartmentRuleImplementation::class,
         'F-BOG-002' => Handlers\DepartmentReportFiling::class,
+
+        // ── Phase E — judiciary scope (PHASE_E_DESIGN_judiciary §B/§E.1:
+        // creation/conversion are LEGISLATIVE acts that ride the
+        // proposal→vote→adoption lane. F-LEG-021 stays unregistered — it is
+        // the Judicial Nomination Consent VOTE, cast via F-LEG-004 like
+        // every consent (the F-LEG-020 posture). F-LEG-022 (now accepting
+        // subject_type 'judicial_seats') and F-JDG-*/F-ADV-* are sibling /
+        // cases-agent scope.)
+        'F-LEG-017' => Handlers\JudiciaryCreationAct::class,
+        'F-LEG-018' => Handlers\JudiciaryConversionAct::class,
+
+        // ── Phase E — cases / juries / advocates scope
+        // (PHASE_E_DESIGN_cases_juries §B: the adjudication core. F-IND-015
+        // registers the bar (R-21); F-IND-017 / F-ADV-001 open cases (the
+        // double-jeopardy bar runs at the validator stage); F-ADV-002/003/004
+        // are advocate hearing filings under the attach-window gate; F-JDG-001
+        // accepts + panels (odd ≥3, en-banc), F-JDG-002 empanels the jury,
+        // F-JDG-003 publishes the opinion + closes, F-JDG-009 sentences a
+        // guilty verdict, F-JDG-010 issues a warrant (Art. II §8 facts). The
+        // VERDICT is NOT a form — it is a CaseService transition.)
+        'F-IND-015' => Handlers\AdvocateRegistration::class,
+        'F-IND-017' => Handlers\CaseFiling::class,
+        'F-ADV-001' => Handlers\AdvocateCaseFiling::class,
+        'F-ADV-002' => Handlers\MotionFiling::class,
+        'F-ADV-003' => Handlers\EvidenceSubmission::class,
+        'F-ADV-004' => Handlers\BriefFiling::class,
+        'F-JDG-001' => Handlers\CaseAcceptanceAndPanelAssignment::class,
+        'F-JDG-002' => Handlers\JurySelectionOrder::class,
+        'F-JDG-003' => Handlers\OpinionRulingFiling::class,
+        'F-JDG-009' => Handlers\SentencingOrder::class,
+        'F-JDG-010' => Handlers\WarrantIssuance::class,
+
+        // ── Phase E — challenge & law scope (PHASE_E_DESIGN_challenge_law §B/§D:
+        // the Art. IV §5 machine — F-IND-016 absolute-right filing → F-JDG-004
+        // finding → F-JDG-005 remedy+windows → the three paths. F-JDG-006 is
+        // the §5.5 judicial remedy (also the CLK-11 fired path); F-JDG-007
+        // emergency review (Art. II §7); F-JDG-008 the real petition review
+        // (supersedes the Phase C stub); F-LEG-035 the supermajority override
+        // (Path 2, riding the chamber_vote_proposal lane). Path 1 reuses the
+        // already-registered F-LEG-003 — no new handler.)
+        'F-IND-016' => Handlers\ConstitutionalChallengeFiling::class,
+        'F-JDG-004' => Handlers\ConstitutionalFinding::class,
+        'F-JDG-005' => Handlers\RemedyRecommendation::class,
+        'F-JDG-006' => Handlers\JudicialRemedyApplication::class,
+        'F-JDG-007' => Handlers\EmergencyPowersReview::class,
+        'F-JDG-008' => Handlers\PetitionConstitutionalReview::class,
+        'F-LEG-035' => Handlers\JudiciaryOverrideVote::class,
     ];
 
     /**

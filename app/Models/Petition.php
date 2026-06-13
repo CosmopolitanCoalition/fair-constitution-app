@@ -26,16 +26,25 @@ class Petition extends Model
 {
     use HasUuids, SoftDeletes;
 
-    public const STATUS_CREATED               = 'created';
-    public const STATUS_GATHERING             = 'gathering';
-    public const STATUS_THRESHOLD_REACHED     = 'threshold_reached';
-    public const STATUS_SIGNATURE_AUDIT       = 'signature_audit';
+    public const STATUS_CREATED = 'created';
+
+    public const STATUS_GATHERING = 'gathering';
+
+    public const STATUS_THRESHOLD_REACHED = 'threshold_reached';
+
+    public const STATUS_SIGNATURE_AUDIT = 'signature_audit';
+
     public const STATUS_CONSTITUTIONAL_REVIEW = 'constitutional_review';
-    public const STATUS_VALIDATED             = 'validated';
-    public const STATUS_ON_BALLOT             = 'on_ballot';
-    public const STATUS_ADOPTED               = 'adopted';
-    public const STATUS_REJECTED              = 'rejected';
-    public const STATUS_INVALIDATED           = 'invalidated';
+
+    public const STATUS_VALIDATED = 'validated';
+
+    public const STATUS_ON_BALLOT = 'on_ballot';
+
+    public const STATUS_ADOPTED = 'adopted';
+
+    public const STATUS_REJECTED = 'rejected';
+
+    public const STATUS_INVALIDATED = 'invalidated';
 
     /** act_types a petition may carry — no dual_supermajority by petition. */
     public const ACT_TYPES = ['ordinary', 'setting_change', 'supermajority'];
@@ -61,17 +70,18 @@ class Petition extends Model
         'audit_result',
         'review_case_id',
         'review_stub',
+        'review_outcome',
         'referendum_question_id',
     ];
 
     protected $casts = [
-        'proposed_value'   => 'array',
-        'scale'            => 'array',
+        'proposed_value' => 'array',
+        'scale' => 'array',
         'population_basis' => 'integer',
-        'threshold_pct'    => 'decimal:2',
-        'threshold_count'  => 'integer',
-        'audit_result'     => 'array',
-        'review_stub'      => 'boolean',
+        'threshold_pct' => 'decimal:2',
+        'threshold_count' => 'integer',
+        'audit_result' => 'array',
+        'review_stub' => 'boolean',
     ];
 
     public function creator(): BelongsTo

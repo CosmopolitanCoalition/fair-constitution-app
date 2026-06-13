@@ -48,6 +48,11 @@ use Illuminate\Support\Facades\DB;
  *                        'elected' (Phase D, Art. III §3)
  *   R-17 Exec advisor  — seated executive_members row role 'advisor'
  *                        (ranks 1–4, Phase D, Art. III §3)
+ *   R-21 Advocate      — a `registered` advocates row (Art. IV §4 · F-IND-015;
+ *                        the bar — the cases agent's F-ADV-* gate)
+ *   R-22 Juror         — an active jury summons (a jury_members row in an
+ *                        active screening status on a non-discharged jury;
+ *                        the juror-view surface, read-only)
  *   R-18 Dept governor — a SEATED board_seats row on a DEPARTMENT board —
  *                        governor AND worker_elected classes both
  *                        (worker-elected department members ARE governors
@@ -128,6 +133,10 @@ class RoleService implements ResolvesRoles
             $this->hasExecutiveAdvisorSeat($id),
             $this->hasDepartmentBoardSeat($id),
             $this->hasCivilOfficerTerm($id),
+            $this->hasJudicialSeat($id, 'appointed'),
+            $this->hasJudicialSeat($id, 'elected'),
+            $this->hasRegisteredAdvocacy($id),
+            $this->hasActiveJurySummons($id),
         );
     }
 
@@ -176,6 +185,10 @@ class RoleService implements ResolvesRoles
         bool $hasExecAdvisorSeat = false,
         bool $hasDepartmentBoardSeat = false,
         bool $hasCivilOfficerTerm = false,
+        bool $hasAppointedJudicialSeat = false,
+        bool $hasElectedJudicialSeat = false,
+        bool $hasRegisteredAdvocacy = false,
+        bool $hasActiveJurySummons = false,
     ): array {
         if (! $authenticated) {
             return [];
@@ -256,6 +269,27 @@ class RoleService implements ResolvesRoles
             $roles[] = 'R-18';
         }
 
+        // Phase E judiciary facts (Art. IV — derived from the seat rows;
+        // both grant the F-JDG-* filing capability the cases agent consumes).
+        if ($hasAppointedJudicialSeat) {
+            $roles[] = 'R-19'; // appointed judge (judiciary type 'appointed')
+        }
+
+        if ($hasElectedJudicialSeat) {
+            $roles[] = 'R-20'; // elected judge (judiciary type 'elected')
+        }
+
+        // R-21 Advocate — a registered advocates row (Art. IV §4; the cases
+        // agent's F-ADV-* / F-IND-017-advocate gate). R-22 Juror — an active
+        // jury summons (the juror-view surface; read-only, jurors file nothing).
+        if ($hasRegisteredAdvocacy) {
+            $roles[] = 'R-21';
+        }
+
+        if ($hasActiveJurySummons) {
+            $roles[] = 'R-22';
+        }
+
         if ($hasOrgAgency) {
             $roles[] = 'R-23';
         }
@@ -311,11 +345,11 @@ class RoleService implements ResolvesRoles
             ->orderBy('j.name')
             ->get(['j.id', 'j.name', 'j.slug', 'j.adm_level', 'rc.depth', 'rc.confirmed_at'])
             ->map(fn ($row) => [
-                'id'           => (string) $row->id,
-                'name'         => $row->name,
-                'slug'         => $row->slug,
-                'adm_level'    => (int) $row->adm_level,
-                'depth'        => $row->depth !== null ? (int) $row->depth : null,
+                'id' => (string) $row->id,
+                'name' => $row->name,
+                'slug' => $row->slug,
+                'adm_level' => (int) $row->adm_level,
+                'depth' => $row->depth !== null ? (int) $row->depth : null,
                 'confirmed_at' => $row->confirmed_at,
             ])
             ->all();
@@ -608,6 +642,56 @@ class RoleService implements ResolvesRoles
             ->where('t.office_kind', 'civil_officer')
             ->where('t.status', 'active')
             ->whereNull('t.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-19/R-20: a SEATED judicial_seats row on a judiciary of the given
+     * type (appointed ⇒ R-19; elected ⇒ R-20). Art. IV — the judge role is
+     * a pure function of the seat row + the court's type.
+     */
+    private function hasJudicialSeat(string $userId, string $judiciaryType): bool
+    {
+        return DB::table('judicial_seats as s')
+            ->join('judiciaries as j', 'j.id', '=', 's.judiciary_id')
+            ->where('s.user_id', $userId)
+            ->where('s.status', 'seated')
+            ->whereNull('s.deleted_at')
+            ->where('j.type', $judiciaryType)
+            ->where('j.status', '!=', 'dissolved')
+            ->whereNull('j.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-21: a `registered` advocates row (Art. IV §4 — the bar). Suspended /
+     * withdrawn advocates do not derive R-21.
+     */
+    private function hasRegisteredAdvocacy(string $userId): bool
+    {
+        return DB::table('advocates as a')
+            ->join('judiciaries as j', 'j.id', '=', 'a.judiciary_id')
+            ->where('a.user_id', $userId)
+            ->where('a.status', 'registered')
+            ->whereNull('a.deleted_at')
+            ->where('j.status', '!=', 'dissolved')
+            ->whereNull('j.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-22: an active jury summons — a jury_members row in an active screening
+     * status on a non-discharged jury (the juror-view surface; read-only).
+     */
+    private function hasActiveJurySummons(string $userId): bool
+    {
+        return DB::table('jury_members as m')
+            ->join('juries as ju', 'ju.id', '=', 'm.jury_id')
+            ->where('m.user_id', $userId)
+            ->whereIn('m.screening_status', ['summoned', 'screening', 'cleared', 'empaneled'])
+            ->whereNull('m.deleted_at')
+            ->where('ju.status', '!=', 'discharged')
+            ->whereNull('ju.deleted_at')
             ->exists();
     }
 

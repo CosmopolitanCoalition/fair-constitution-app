@@ -20,16 +20,24 @@ class MultiJurisdictionVote extends Model
     use HasUuids, SoftDeletes;
 
     public const BASIS_SUPERMAJORITY = 'supermajority';
-    public const BASIS_UNANIMITY     = 'unanimity';
 
-    public const STATUS_OPEN    = 'open';
-    public const STATUS_PASSED  = 'passed';
-    public const STATUS_FAILED  = 'failed';
+    public const BASIS_UNANIMITY = 'unanimity';
+
+    public const STATUS_OPEN = 'open';
+
+    public const STATUS_PASSED = 'passed';
+
+    public const STATUS_FAILED = 'failed';
+
     public const STATUS_EXPIRED = 'expired';
 
     public const KINDS = [
         'exec_office_create', 'exec_office_alter', 'judiciary_convert',
         'cultural_institution', 'additional_articles', 'union', 'disintermediation',
+        // Phase E (PHASE_E_DESIGN_challenge_law §E.3) — Door 2a: the
+        // constituent-consent leg of a dual-door setting amendment
+        // (DUAL_DOOR_KEYS, e.g. judiciary_is_elected, Art. IV §3).
+        'setting_amendment',
     ];
 
     protected $fillable = [
@@ -51,11 +59,11 @@ class MultiJurisdictionVote extends Model
 
     protected $casts = [
         'constituent_total' => 'integer',
-        'required'          => 'integer',
-        'yes_count'         => 'integer',
-        'no_count'          => 'integer',
-        'opens_at'          => 'datetime',
-        'closes_at'         => 'datetime',
+        'required' => 'integer',
+        'yes_count' => 'integer',
+        'no_count' => 'integer',
+        'opens_at' => 'datetime',
+        'closes_at' => 'datetime',
     ];
 
     public function initiatingLegislature(): BelongsTo

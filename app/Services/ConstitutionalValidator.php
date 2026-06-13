@@ -112,7 +112,24 @@ class ConstitutionalValidator
         'F-IND-006', // Residency Verification Confirmation
         'F-IND-011', // Candidacy Registration (Phase B)
         'F-ELB-002', // Candidate Validation (Phase B)
+        // Phase E (PHASE_E_DESIGN_challenge_law §B.1) — the constitutional
+        // challenge is an absolute right of every inhabitant (Art. IV §5.1 +
+        // Art. I): no fee, no eligibility test beyond residency association. A
+        // filing that smuggles ANY eligibility ground is unconstitutional.
+        'F-IND-016', // Constitutional Challenge Filing
     ];
+
+    /**
+     * settings.dual_door (HARDENED — Art. IV §3 / Art. V §2): amendable
+     * settings the constitution gates on MORE than a single legislature's
+     * supermajority — they need the constituent door too (Door 2a). A setting
+     * in this list CANNOT be amended through Door 1 (ordinary F-LEG-031) alone;
+     * the validator rejects an F-LEG-031 setting bill targeting it unless the
+     * filing flags requires_constituent_consent. Starts minimal
+     * (judiciary_is_elected — the one explicitly gated, Art. IV §3) and grows
+     * only under constitutional review. AmendmentDualDoorTest pins this list.
+     */
+    public const DUAL_DOOR_KEYS = ['judiciary_is_elected'];
 
     /**
      * Payload keys that would smuggle an eligibility condition into a
@@ -150,47 +167,47 @@ class ConstitutionalValidator
      * lockstep) land with the bill machinery in Phase C.
      */
     public const SETTING_BOUNDS = [
-        'election_interval_months'          => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2'],
+        'election_interval_months' => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2'],
         // Proportionality ratchet: replaceable only by a MORE proportional
         // method. Whitelist grows solely via constitutional review.
-        'voting_method'                     => ['allowed' => ['stv_droop'], 'citation' => 'Art. II §2'],
-        'special_election_min_days'         => ['min' => 1, 'max' => 180, 'citation' => 'Art. II §5'],
-        'special_election_max_days'         => ['min' => 1, 'max' => 180, 'citation' => 'Art. II §5'],
-        'legislature_min_seats'             => [
-            'min'      => ConstitutionalDefaults::HARD_FLOOR,
-            'max'      => ConstitutionalDefaults::HARD_CEILING,
+        'voting_method' => ['allowed' => ['stv_droop'], 'citation' => 'Art. II §2'],
+        'special_election_min_days' => ['min' => 1, 'max' => 180, 'citation' => 'Art. II §5'],
+        'special_election_max_days' => ['min' => 1, 'max' => 180, 'citation' => 'Art. II §5'],
+        'legislature_min_seats' => [
+            'min' => ConstitutionalDefaults::HARD_FLOOR,
+            'max' => ConstitutionalDefaults::HARD_CEILING,
             'citation' => 'Art. II §2',
         ],
-        'legislature_max_seats'             => [
-            'min'      => ConstitutionalDefaults::HARD_FLOOR,
-            'max'      => ConstitutionalDefaults::HARD_CEILING,
+        'legislature_max_seats' => [
+            'min' => ConstitutionalDefaults::HARD_FLOOR,
+            'max' => ConstitutionalDefaults::HARD_CEILING,
             'citation' => 'Art. II §2',
         ],
-        'legislature_sizing_law'            => ['allowed' => ['cube_root'], 'citation' => 'Art. II §2 · as implemented'],
+        'legislature_sizing_law' => ['allowed' => ['cube_root'], 'citation' => 'Art. II §2 · as implemented'],
         // Fraction must stay in (1/2, 1]; the supermajority() clamp
         // additionally guarantees the result never drops below majority+1.
-        'supermajority_numerator'           => ['min' => 1, 'max' => 255, 'citation' => 'Art. VII'],
-        'supermajority_denominator'         => ['min' => 2, 'max' => 255, 'citation' => 'Art. VII'],
-        'max_days_between_meetings'         => ['min' => 1, 'max' => 90, 'citation' => 'Art. II §2'],
-        'emergency_powers_max_days'         => ['min' => 1, 'max' => 90, 'citation' => 'Art. II §7'],
-        'civil_appointment_years'           => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §9'],
-        'judicial_appointment_years'        => ['min' => 1, 'max' => 10, 'citation' => 'Art. IV §1'],
-        'judiciary_min_judges_per_race'     => ['min' => 5, 'max' => 99, 'citation' => 'Art. IV §1'],
+        'supermajority_numerator' => ['min' => 1, 'max' => 255, 'citation' => 'Art. VII'],
+        'supermajority_denominator' => ['min' => 2, 'max' => 255, 'citation' => 'Art. VII'],
+        'max_days_between_meetings' => ['min' => 1, 'max' => 90, 'citation' => 'Art. II §2'],
+        'emergency_powers_max_days' => ['min' => 1, 'max' => 90, 'citation' => 'Art. II §7'],
+        'civil_appointment_years' => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §9'],
+        'judicial_appointment_years' => ['min' => 1, 'max' => 10, 'citation' => 'Art. IV §1'],
+        'judiciary_min_judges_per_race' => ['min' => 5, 'max' => 99, 'citation' => 'Art. IV §1'],
         // Flipping to elected requires supermajority + constituent
         // supermajority — that PROCESS gate lands in Phase C; the bounds
         // check here only constrains the value domain.
-        'judiciary_is_elected'              => ['allowed' => [true, false], 'citation' => 'Art. IV §1'],
+        'judiciary_is_elected' => ['allowed' => [true, false], 'citation' => 'Art. IV §1'],
         // Raising the first-seat threshold above 100 would weaken worker
         // representation below the constitutional floor; lowering is fine.
-        'worker_rep_min_employees'          => ['min' => 1, 'max' => 100, 'citation' => 'Art. III §6'],
-        'worker_rep_parity_employees'       => ['min' => 1, 'max' => 2000, 'citation' => 'Art. III §6'],
-        'residency_confirmation_days'       => ['min' => 1, 'max' => 365, 'citation' => 'Art. I · as implemented'],
+        'worker_rep_min_employees' => ['min' => 1, 'max' => 100, 'citation' => 'Art. III §6'],
+        'worker_rep_parity_employees' => ['min' => 1, 'max' => 2000, 'citation' => 'Art. III §6'],
+        'residency_confirmation_days' => ['min' => 1, 'max' => 365, 'citation' => 'Art. I · as implemented'],
         'initiative_petition_threshold_pct' => ['min' => 0.01, 'max' => 100, 'citation' => 'Art. II §6'],
         // Phase B (WI-B4) — the open-ballot phase settings (B-12):
         // CLK-21 finalist count X = multiplier × seats.
-        'finalist_multiplier'               => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §2 · as implemented'],
-        'ranked_window_days'                => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2 · as implemented'],
-        'approval_min_days'                 => ['min' => 1, 'max' => 365, 'citation' => 'Art. II §2 · as implemented'],
+        'finalist_multiplier' => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §2 · as implemented'],
+        'ranked_window_days' => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2 · as implemented'],
+        'approval_min_days' => ['min' => 1, 'max' => 365, 'citation' => 'Art. II §2 · as implemented'],
     ];
 
     /**
@@ -273,7 +290,12 @@ class ConstitutionalValidator
             'F-ORG-001' => $this->checkOrgProfileManagement($payload),
             'F-LEG-026' => $this->checkMonopolyAcquisition($payload),
             'F-LEG-027' => $this->checkCgcReorgSale($payload),
-            default     => null,
+            // Phase E — cases (PHASE_E_DESIGN_cases_juries §D.2). A criminal
+            // re-filing against the same accused for the same act is barred
+            // PRE-COMMIT (Art. II §8); the engine records the rejected=true
+            // chain row. F-ADV-001 is the advocate's on-behalf case filing.
+            'F-IND-017', 'F-ADV-001' => $this->checkCaseFiling($payload),
+            default => null,
         };
     }
 
@@ -288,7 +310,7 @@ class ConstitutionalValidator
      */
     public function checkSettingChange(array $payload): void
     {
-        $key   = $payload['setting_key'] ?? null;
+        $key = $payload['setting_key'] ?? null;
         $value = $payload['value'] ?? null;
 
         if (! is_string($key) || $key === '') {
@@ -305,7 +327,25 @@ class ConstitutionalValidator
             );
         }
 
-        $bounds   = self::SETTING_BOUNDS[$key];
+        // settings.dual_door (Art. IV §3 / Art. V §2): a DUAL_DOOR_KEYS setting
+        // cannot be amended through Door 1 (ordinary legislative supermajority)
+        // ALONE — it also needs the constituent door (Door 2a). The F-LEG-031
+        // setting bill must flag requires_constituent_consent; absent it, the
+        // ordinary path is structurally barred (the dual-door requirement
+        // cannot be bypassed).
+        if (in_array($key, self::DUAL_DOOR_KEYS, true)
+            && ($payload['requires_constituent_consent'] ?? false) !== true) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Amending [%s] requires a Supermajority of Constituent Jurisdictions to ALSO consent — '
+                    .'it cannot be changed by a single legislature\'s supermajority alone (Art. IV §3).',
+                    $key
+                ),
+                'Art. IV §3'
+            );
+        }
+
+        $bounds = self::SETTING_BOUNDS[$key];
         $citation = $bounds['citation'];
 
         if (isset($bounds['allowed'])) {
@@ -326,7 +366,7 @@ class ConstitutionalValidator
 
         if (! is_int($value) && ! is_float($value)) {
             throw new ConstitutionalViolation(
-                "{$key} requires a numeric value, got " . gettype($value) . '.',
+                "{$key} requires a numeric value, got ".gettype($value).'.',
                 $citation
             );
         }
@@ -351,17 +391,29 @@ class ConstitutionalValidator
         // filing changes only one side (the supermajority-fraction
         // pattern); the enactment-time re-run repeats the check.
         if ($key === 'worker_rep_min_employees' || $key === 'worker_rep_parity_employees') {
-            $min    = $key === 'worker_rep_min_employees' ? (int) $value : (int) ($payload['worker_rep_min_employees'] ?? 100);
+            $min = $key === 'worker_rep_min_employees' ? (int) $value : (int) ($payload['worker_rep_min_employees'] ?? 100);
             $parity = $key === 'worker_rep_parity_employees' ? (int) $value : (int) ($payload['worker_rep_parity_employees'] ?? 2000);
 
             self::assertCodeterminationOrdering($min, $parity);
+        }
+
+        // Judicial/civil appointment lockstep (Art. IV §1 · Art. II §9 —
+        // Phase E cross-key guard): the two term-length settings move
+        // together. Companion value defaults to the constitutional 10 when
+        // the filing changes only one side; the enactment-time re-run
+        // repeats the check.
+        if ($key === 'judicial_appointment_years' || $key === 'civil_appointment_years') {
+            $judicial = $key === 'judicial_appointment_years' ? (int) $value : (int) ($payload['judicial_appointment_years'] ?? 10);
+            $civil = $key === 'civil_appointment_years' ? (int) $value : (int) ($payload['civil_appointment_years'] ?? 10);
+
+            self::assertJudicialCivilLockstep($judicial, $civil);
         }
 
         // Supermajority fraction must stay strictly above 1/2 and at most 1
         // (Art. VII). Companion value defaults to the constitutional 2/3
         // when the filing changes only one side of the fraction.
         if ($key === 'supermajority_numerator' || $key === 'supermajority_denominator') {
-            $numerator   = $key === 'supermajority_numerator' ? (int) $value : (int) ($payload['supermajority_numerator'] ?? 2);
+            $numerator = $key === 'supermajority_numerator' ? (int) $value : (int) ($payload['supermajority_numerator'] ?? 2);
             $denominator = $key === 'supermajority_denominator' ? (int) $value : (int) ($payload['supermajority_denominator'] ?? 3);
 
             if ($denominator < 1 || $numerator * 2 <= $denominator || $numerator > $denominator) {
@@ -461,7 +513,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'An at-large race may not carry %d seats (max %d) — above the maximum, subdivision '
-                    . 'into separate voter pools is mandatory.',
+                    .'into separate voter pools is mandatory.',
                     $seats,
                     $max
                 ),
@@ -511,7 +563,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'Candidacy rejection knows a single permissible ground — no_residency_association. '
-                    . 'Ground %s is unconstitutional (candidacy is an absolute right of residency).',
+                    .'Ground %s is unconstitutional (candidacy is an absolute right of residency).',
                     json_encode($ground)
                 ),
                 'Art. I'
@@ -532,7 +584,7 @@ class ConstitutionalValidator
      */
     public static function supermajority(int $serving, int $numerator = 2, int $denominator = 3): int
     {
-        $fraction      = intdiv($serving * $numerator + $denominator - 1, $denominator); // integer ceil
+        $fraction = intdiv($serving * $numerator + $denominator - 1, $denominator); // integer ceil
         $majorityPlus1 = intdiv($serving, 2) + 2;
 
         return max($fraction, $majorityPlus1);
@@ -652,7 +704,7 @@ class ConstitutionalValidator
 
         throw new ConstitutionalViolation(
             'A legislator may declare only their own seat vacant (resignation); declaring another '
-            . 'member\'s seat requires the Speaker or the system.',
+            .'member\'s seat requires the Speaker or the system.',
             'Art. II §5 · as implemented'
         );
     }
@@ -670,9 +722,9 @@ class ConstitutionalValidator
     public static function assertAgendaOrder(array $current, array $proposed): void
     {
         $identity = fn (array $item): string => json_encode([
-            'kind'     => $item['kind'] ?? null,
+            'kind' => $item['kind'] ?? null,
             'ref_type' => $item['ref_type'] ?? null,
-            'ref_id'   => $item['ref_id'] ?? null,
+            'ref_id' => $item['ref_id'] ?? null,
         ]);
 
         $lockedHead = array_values(array_filter($current, fn ($item) => (bool) (((array) $item)['locked'] ?? false)));
@@ -685,7 +737,7 @@ class ConstitutionalValidator
                 || $identity((array) $candidate) !== $identity((array) $item)) {
                 throw new ConstitutionalViolation(
                     'The locked agenda head (emergency review, constitutional matters) is immutable and '
-                    . 'precedes all general business — agenda filings may only reorder or insert after it.',
+                    .'precedes all general business — agenda filings may only reorder or insert after it.',
                     'Art. II §2'
                 );
             }
@@ -727,8 +779,8 @@ class ConstitutionalValidator
                     throw new ConstitutionalViolation(
                         sprintf(
                             '%s is a protected civic process — emergency powers cannot touch it '
-                            . '(offending key: %s). Elections, sessions, courts, residency, petitions, '
-                            . 'and records run identically under any emergency.',
+                            .'(offending key: %s). Elections, sessions, courts, residency, petitions, '
+                            .'and records run identically under any emergency.',
                             $canonicalFormId,
                             $key
                         ),
@@ -743,7 +795,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     '%s is not declared as an emergency-enabled form — no undeclared handler may cite '
-                    . 'an emergency power as enabling authority.',
+                    .'an emergency power as enabling authority.',
                     $canonicalFormId
                 ),
                 'Art. II §7'
@@ -779,8 +831,8 @@ class ConstitutionalValidator
         if ($passedByPopulationSupermajority && $shieldElectionPending) {
             throw new ConstitutionalViolation(
                 'This act was passed by population supermajority — the legislature cannot modify or '
-                . 'repeal it until the next general election certifies; the protection lapses there '
-                . '(CLK-19).',
+                .'repeal it until the next general election certifies; the protection lapses there '
+                .'(CLK-19).',
                 'Art. II §6'
             );
         }
@@ -853,7 +905,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'Executive orders cannot touch the %s — elections, courts, and legislatures run '
-                    . 'identically under any executive instrument, emergency powers included.',
+                    .'identically under any executive instrument, emergency powers included.',
                     str_replace('_', ' ', $targetDomain)
                 ),
                 'Art. II §7'
@@ -872,13 +924,192 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'worker_rep_min_employees (%d) must stay strictly below worker_rep_parity_employees '
-                    . '(%d) — Art. III §6 scales worker representation linearly between the two.',
+                    .'(%d) — Art. III §6 scales worker representation linearly between the two.',
                     $minEmployees,
                     $parityEmployees
                 ),
                 'Art. III §6'
             );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase E — judiciary rules (Art. IV §1/§2; the Courts hook)
+    // -------------------------------------------------------------------------
+
+    /**
+     * judiciary.equal_constituent_nomination (HARDENED — Art. IV §2): a
+     * constituent-nominated court allocates an EQUAL number of judges to
+     * EACH constituent jurisdiction. The map is nominating_jurisdiction_id
+     * => seat count across all constituent_nominated seats; the counts must
+     * be uniform. Asserted at seat allocation (creation writes equal slots)
+     * AND re-asserted before the court can advance to `appointed`.
+     *
+     * @param  array<string, int>  $countsByConstituent
+     */
+    public static function assertEqualConstituentNomination(array $countsByConstituent): void
+    {
+        if ($countsByConstituent === []) {
+            throw new ConstitutionalViolation(
+                'A constituent-nominated court allocates seats to its constituents — none were found '
+                .'(Art. IV §2: an equal number of Judges are nominated by each Constituent Jurisdiction).',
+                'Art. IV §2'
+            );
+        }
+
+        $counts = array_values($countsByConstituent);
+
+        if (max($counts) !== min($counts)) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Constituent nomination must be EQUAL across all constituents (Art. IV §2) — the '
+                    .'allocation is uneven: %s.',
+                    json_encode($countsByConstituent)
+                ),
+                'Art. IV §2'
+            );
+        }
+    }
+
+    /**
+     * settings.judicial_civil_lockstep (HARDENED — Art. IV §1 · Art. II §9):
+     * the judicial and civil appointment term lengths move in LOCKSTEP
+     * (CLAUDE.md "Must stay in lockstep with civil"; CLK-09
+     * semantics: lockstep_pair). A divergent pair is rejected. This is the
+     * judiciary analogue of the D-2 codetermination_ordering relational
+     * guard.
+     */
+    public static function assertJudicialCivilLockstep(int $judicialYears, int $civilYears): void
+    {
+        if ($judicialYears !== $civilYears) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'judicial_appointment_years (%d) must equal civil_appointment_years (%d) — judicial and '
+                    .'civil appointments move in lockstep (Art. IV §1 · Art. II §9).',
+                    $judicialYears,
+                    $civilYears
+                ),
+                'Art. IV §1 · Art. II §9'
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase E — cases rules (Art. II §8 double jeopardy; Art. IV §4 panels)
+    // -------------------------------------------------------------------------
+
+    /**
+     * double_jeopardy (HARDENED — Art. II §8): a criminal case may not be
+     * re-filed against the same accused for the same act. Pure assert pinned
+     * by DoubleJeopardyTest; the engine records the rejected=true chain row.
+     *
+     * "Any Individual who has been prosecuted for a criminal act cannot be
+     * prosecuted for that same act again. All other Judgements can be
+     * overturned only by proven contradictions in law and errors found in
+     * the cases…" — non-criminal verdicts CAN be vacated (via the appeal
+     * path); a CRIMINAL one is final.
+     */
+    public static function assertNoDoubleJeopardy(
+        bool $isCriminal,
+        bool $priorTerminalCriminalVerdictExists,
+    ): void {
+        if ($isCriminal && $priorTerminalCriminalVerdictExists) {
+            throw new ConstitutionalViolation(
+                'This accused has already been prosecuted to a final verdict for this act — '
+                .'a criminal act cannot be prosecuted again.',
+                'Art. II §8'
+            );
+        }
+    }
+
+    /**
+     * panel.size_invariants (HARDENED — Art. IV §4): a panel sat to a case is
+     * "at least three (3), Odd in number, and scale with the severity…
+     * Constitutional Questions of significant importance are heard by the
+     * entire court." Pure assert pinned by PanelSizingTest / CaseLifecycleTest;
+     * the panels.size CHECK (size >= 3 AND size % 2 = 1) is the DB belt. The
+     * service computes size via PanelSizing::sizeFor and re-asserts HERE
+     * before seating.
+     */
+    public static function assertPanelSize(int $size, bool $enBanc, string $severity, int $seatedJudges): void
+    {
+        if ($size < 3) {
+            throw new ConstitutionalViolation(
+                sprintf('A panel sits at least three (3) judges (got %d).', $size),
+                'Art. IV §4'
+            );
+        }
+
+        if ($size % 2 !== 1) {
+            throw new ConstitutionalViolation(
+                sprintf('A panel sits an ODD number of judges (got %d).', $size),
+                'Art. IV §4'
+            );
+        }
+
+        if ($size > $seatedJudges) {
+            throw new ConstitutionalViolation(
+                sprintf('A panel of %d cannot exceed the %d seated judges of the court.', $size, $seatedJudges),
+                'Art. IV §4'
+            );
+        }
+
+        // A constitutional-major question is heard by the ENTIRE court (en
+        // banc); any lesser severity is a sub-panel of it.
+        if ($severity === 'constitutional_major' && ! $enBanc) {
+            throw new ConstitutionalViolation(
+                'A Constitutional Question of significant importance is heard by the entire court (en banc).',
+                'Art. IV §4'
+            );
+        }
+    }
+
+    /**
+     * F-IND-017 / F-ADV-001 filing gate: a CRIMINAL re-filing against the same
+     * accused for the same act (a prior case that reached a terminal criminal
+     * verdict, double_jeopardy_locked=true) is barred PRE-COMMIT (Art. II §8).
+     * The DB-read-in-validator posture follows the F-LEG-034 CLK-19 precedent;
+     * the same-act match is structural in E (same accused + same prior-case
+     * reference). A CIVIL re-filing on the same facts is NEVER barred.
+     */
+    private function checkCaseFiling(array $payload): void
+    {
+        if (($payload['kind'] ?? null) !== 'criminal') {
+            return; // double jeopardy is criminal-only (Art. II §8)
+        }
+
+        // Same-act reference: the accused (an individual party user) + the
+        // prior case this filing reopens (priors_case_id). A re-filing must
+        // name the prior criminal case it would re-prosecute; absent one,
+        // there is nothing to bar (a fresh accusation is justiciable).
+        $accusedUserId = $payload['accused_user_id'] ?? null;
+
+        if (! is_string($accusedUserId) || $accusedUserId === '') {
+            return; // no named accused individual to match against
+        }
+
+        // A terminal criminal verdict exists for this accused on a prior,
+        // double-jeopardy-locked criminal case in the same judiciary (the
+        // structural same-act floor; semantic "same act" is judicial).
+        $priorExists = \Illuminate\Support\Facades\DB::table('cases as c')
+            ->join('case_parties as p', 'p.case_id', '=', 'c.id')
+            ->where('c.kind', 'criminal')
+            ->where('c.double_jeopardy_locked', true)
+            ->whereNull('c.deleted_at')
+            ->where('p.party_user_id', $accusedUserId)
+            ->where('p.party_role', 'accused')
+            ->whereNull('p.deleted_at')
+            ->when(
+                isset($payload['judiciary_id']) && is_string($payload['judiciary_id']),
+                fn ($q) => $q->where('c.judiciary_id', $payload['judiciary_id']),
+            )
+            ->when(
+                isset($payload['prior_case_id']) && is_string($payload['prior_case_id']),
+                fn ($q) => $q->where('c.id', $payload['prior_case_id']),
+            )
+            ->exists();
+
+        self::assertNoDoubleJeopardy(true, $priorExists);
     }
 
     /**
@@ -915,7 +1146,7 @@ class ConstitutionalValidator
         if ($floor === null || $compensation === null) {
             throw new ConstitutionalViolation(
                 'A monopoly acquisition records the fair-market floor before compensation, and the '
-                . 'compensation itself — both are constitutional facts.',
+                .'compensation itself — both are constitutional facts.',
                 'Art. III §5'
             );
         }
@@ -924,7 +1155,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'Compensation %s is below the recorded fair-market floor %s — monopoly acquisition '
-                    . 'requires fair-market compensation to the prior owners.',
+                    .'requires fair-market compensation to the prior owners.',
                     number_format($compensation, 2),
                     number_format($floor, 2)
                 ),
@@ -959,7 +1190,7 @@ class ConstitutionalValidator
         if (($payload['type'] ?? null) === 'common_good_corp') {
             throw new ConstitutionalViolation(
                 'A Common Good Corporation is created by a legislative act (F-LEG-019) — it can never be '
-                . 'self-registered.',
+                .'self-registered.',
                 'Art. III §5'
             );
         }
@@ -983,7 +1214,7 @@ class ConstitutionalValidator
             throw new ConstitutionalViolation(
                 sprintf(
                     'Document package key [%s] collides with a constitutional form ID — self-managed '
-                    . 'internal forms live above the constitutional floor and can never override it.',
+                    .'internal forms live above the constitutional floor and can never override it.',
                     $key
                 ),
                 'CGA Forms Catalog · as implemented'
@@ -1008,7 +1239,7 @@ class ConstitutionalValidator
                 || trim((string) ($payload['fair_market_basis'] ?? '')) === '') {
                 throw new ConstitutionalViolation(
                     'A monopoly acquisition records the fair-market floor and its published valuation basis '
-                    . 'BEFORE any vote — fair-market compensation is the constitutional condition.',
+                    .'BEFORE any vote — fair-market compensation is the constitutional condition.',
                     'Art. III §5'
                 );
             }
@@ -1045,7 +1276,7 @@ class ConstitutionalValidator
             if (str_starts_with($lower, 'ip_') || str_contains($lower, 'reclaim')) {
                 throw new ConstitutionalViolation(
                     'CGC public-domain dedications are irreversible — no reorganization or sale may reclaim '
-                    . 'or privatize dedicated intellectual property (offending key: ' . $key . ').',
+                    .'or privatize dedicated intellectual property (offending key: '.$key.').',
                     'Art. III §5'
                 );
             }

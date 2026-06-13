@@ -95,7 +95,10 @@ class SettingsBoundsTest extends TestCase
         $this->change('emergency_powers_max_days', 90);
         $this->change('max_days_between_meetings', 90);
         $this->change('voting_method', 'stv_droop');
-        $this->change('judiciary_is_elected', false);
+        // judiciary_is_elected is a DUAL_DOOR_KEYS setting (Art. IV §3 — Phase E
+        // lands the constituent-consent gate the validator reserved): it passes
+        // the bounds check only WITH the constituent-consent flag (Door 2a).
+        $this->change('judiciary_is_elected', false, ['requires_constituent_consent' => true]);
         $this->change('initiative_petition_threshold_pct', 5.00);
         // Phase B defaults (B-12) are in range by construction.
         $this->change('finalist_multiplier', 3);

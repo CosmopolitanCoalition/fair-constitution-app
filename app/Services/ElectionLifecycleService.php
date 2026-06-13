@@ -460,6 +460,89 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         });
     }
 
+    /**
+     * Phase E (PHASE_E_DESIGN_judiciary §B.5) — the JUDICIAL election fired
+     * when an F-LEG-018 conversion process passes: kind `judicial`,
+     * lockstep-anchored to the legislature, ONE race —
+     *
+     *   seat_kind `judicial_group`, seats = the act's judge_count
+     *   (≥ judiciary_min_judges_per_race, NO ceiling — Art. IV §1; judges
+     *   are elected in GROUPS by the whole population, Art. IV §3; counted
+     *   by the UNTOUCHED PR-STV/Droop path).
+     *
+     * The FIRST election after conversion inherits the legislature's
+     * remaining term (CertificationService::inheritedWindow at seating —
+     * lockstep is never reset by conversion, CLK-10); thereafter judicial
+     * races ride the general election (CLK-01) — the executive precedent.
+     */
+    public function scheduleJudicial(
+        \App\Models\Judiciary $judiciary,
+        Legislature $legislature,
+        int $seats,
+        array $dates = [],
+    ): Election {
+        return DB::transaction(function () use ($judiciary, $legislature, $seats, $dates) {
+            $existing = Election::query()
+                ->where('judiciary_id', $judiciary->id)
+                ->where('kind', Election::KIND_JUDICIAL)
+                ->whereNotIn('status', [Election::STATUS_FINAL, Election::STATUS_CANCELLED, Election::STATUS_CERTIFIED])
+                ->first();
+
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            $jurisdictionId = (string) $legislature->jurisdiction_id;
+
+            $election = Election::create([
+                'jurisdiction_id'   => $jurisdictionId,
+                'legislature_id'    => (string) $legislature->id,
+                'judiciary_id'      => (string) $judiciary->id,
+                'kind'              => Election::KIND_JUDICIAL,
+                'status'            => Election::STATUS_SCHEDULED,
+                'trigger'           => 'conversion_act',
+                'voting_method'     => $this->votingMethodSnapshot($jurisdictionId),
+                'election_board_id' => $this->activeBoardId($jurisdictionId),
+            ]);
+
+            $this->applySchedule($election, $dates);
+
+            $race = ElectionRace::create([
+                'election_id'     => $election->id,
+                'district_id'     => null,
+                'jurisdiction_id' => $jurisdictionId,
+                'seat_kind'       => ElectionRace::SEAT_KIND_JUDICIAL_GROUP,
+                'seats'           => $seats,
+                'finalist_count'  => $this->finalistMultiplier($jurisdictionId) * $seats,
+                'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
+                'status'          => Election::STATUS_SCHEDULED,
+            ]);
+
+            $this->audit->append(
+                module: 'elections',
+                event: 'election.scheduled',
+                payload: [
+                    'election_id'  => $election->id,
+                    'kind'         => Election::KIND_JUDICIAL,
+                    'judiciary_id' => (string) $judiciary->id,
+                    'races'        => [[
+                        'race_id'        => $race->id,
+                        'seat_kind'      => $race->seat_kind,
+                        'seats'          => $race->seats,
+                        'finalist_count' => $race->finalist_count,
+                    ]],
+                ],
+                ref: 'F-LEG-018',
+                jurisdictionId: $jurisdictionId,
+            );
+
+            $this->openApproval($election);
+            $this->armPhaseTimers($election);
+
+            return $election->refresh();
+        });
+    }
+
     // =========================================================================
     // Race generation — the §B.4 ruling
     // =========================================================================

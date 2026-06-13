@@ -76,22 +76,26 @@ class FuturePhasePlaceholdersTest extends TestCase
     // keys rejected pre-vote, ip_is_public_domain never flips false on a
     // CGC, and the identical-regulation is_cgc branch pin. Art. III §5.
 
-    public function test_judicial_panels_odd_severity_scaled(): void
-    {
-        $this->markTestSkipped(
-            'Phase E — panels ≥ 3 judges, always odd, severity-scaled; full court for major '
-            . 'constitutional questions; minimum 5 judges per race. Art. IV §4.'
-        );
-    }
+    // test_judicial_panels_odd_severity_scaled — replaced by the real
+    // PanelSizingTest + CaseLifecycleTest (E-CASES): PanelSizing::sizeFor is a
+    // pure DB-free function pinned exhaustively (every panel ≥ 3, always odd,
+    // severity-scaled, monotonic; constitutional_major ⇒ the WHOLE court en
+    // banc), the panels.size CHECK (size >= 3 AND size % 2 = 1) is the DB belt,
+    // and CaseLifecycleTest drives accept→panel through the engine asserting
+    // the seated bench equals PanelSizing::sizeFor. The min-5-judges-per-race
+    // floor is pinned by JudiciaryCreationConversionTest (E-JUD). Art. IV §4.
 
-    public function test_art_iv_s5_three_path_resolution(): void
-    {
-        $this->markTestSkipped(
-            'Phase E — challenge → finding + remedy + window; legislature amends OR overrides '
-            . 'by supermajority within the judicial veto window; else the judiciary applies its '
-            . 'remedy directly to the law text as a new version. Art. IV §5.'
-        );
-    }
+    // test_art_iv_s5_three_path_resolution — replaced by the real
+    // Art4Section5Test (E-CHALLENGE): the FULL exit-criterion chain engine-filed
+    // — F-IND-016 (absolute right) → F-JDG-004 finding → F-JDG-005 remedy
+    // (arms exactly CLK-11 + CLK-12 with the judge-set override_value, CLK-11 to
+    // max(veto, remedy)) → the legislature does nothing → CLK-11 fires
+    // JudicialAutoRemedyJob → the law text is EDITED via a judicial_remedy
+    // law_versions row, version history preserved (Path 3, §5.5); PLUS the
+    // F-LEG-035 supermajority override leaving the law unchanged (Path 2, §5.4),
+    // the timely legislative amendment cancelling both clocks (Path 1, §5.3),
+    // the remove-remedy STRIKE piercing a CLK-19 referendum shield, and the
+    // Art. IV §3 amendments dual-door. Art. IV §5.
 
     // test_term_lockstep_across_branches — replaced by the real
     // TermLockstepTest (WI-B5/B6): the shared `terms` substrate is live —
@@ -100,4 +104,32 @@ class FuturePhasePlaceholdersTest extends TestCase
     // ends_on (write-once at creation, source-scanned). Executive and
     // judicial offices join the SAME table in Phases D/E; the lockstep
     // guarantee they inherit is pinned now. Art. III §3; Art. IV §3.
+
+    /**
+     * Roadmap-complete pin (E-CHALLENGE): every Phase B–E mechanic this class
+     * named is now pinned by a REAL constitutional test — ZERO skips remain.
+     * The class is kept as the documentary index (the comments above map each
+     * retired placeholder to the test that replaced it); this single live
+     * assertion guards that the replacement tests still exist, so a deletion
+     * that silently drops a pinned mechanic surfaces here.
+     */
+    public function test_every_placeholder_mechanic_is_pinned_by_a_real_test(): void
+    {
+        $base = \dirname(__DIR__).\DIRECTORY_SEPARATOR.'Constitutional'.\DIRECTORY_SEPARATOR;
+
+        foreach ([
+            'BallotSecrecyTest.php',          // Art. II §2 — ballot secrecy
+            'ElectionClockTest.php',          // Art. II §2/§5 — election clocks
+            'WorkerRepresentationTest.php',   // Art. III §6 — co-determination
+            'CgcIpPublicDomainTest.php',      // Art. III §5 — CGC public domain
+            'PanelSizingTest.php',            // Art. IV §4 — judicial panels
+            'CaseLifecycleTest.php',          // Art. IV §4 — case lifecycle
+            'Art4Section5Test.php',           // Art. IV §5 — challenge & law (THE exit criterion)
+        ] as $file) {
+            $this->assertFileExists(
+                $base.$file,
+                "The constitutional roadmap is incomplete — {$file} (a pinned mechanic) is missing."
+            );
+        }
+    }
 }

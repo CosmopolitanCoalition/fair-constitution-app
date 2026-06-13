@@ -434,7 +434,28 @@ class ExecutiveFormationService
             $vote->legislature_id !== null ? (string) $vote->legislature_id : null,
         );
 
-        $this->onProcessEvaluated($process->refresh());
+        $process = $process->refresh();
+
+        // The constituent_consent arm is GENERIC (built so Phase E judiciary
+        // conversion reuses it, ChamberVoteService.php:1119). Dispatch the
+        // decided process to its subject's owner: executives here, judiciaries
+        // to JudiciaryFormationService (the §B.4 seam).
+        if ($process->subject_type === 'judiciaries') {
+            app(\App\Services\Judiciary\JudiciaryFormationService::class)->onProcessEvaluated($process);
+
+            return;
+        }
+
+        // Phase E (PHASE_E_DESIGN_challenge_law §E.3): Door 2a — a dual-door
+        // setting amendment's constituent process resolves here (the SAME
+        // generic constituent_consent arm).
+        if ($process->subject_type === 'constitutional_settings') {
+            app(\App\Services\Judiciary\SettingAmendmentDoorService::class)->onProcessEvaluated($process);
+
+            return;
+        }
+
+        $this->onProcessEvaluated($process);
     }
 
     /**

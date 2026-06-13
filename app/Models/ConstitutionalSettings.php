@@ -10,6 +10,7 @@ class ConstitutionalSettings extends Model
     protected $table = 'constitutional_settings';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -37,26 +38,31 @@ class ConstitutionalSettings extends Model
         'type_b_seats_per_child',
         'last_amended_by_act_id',
         'last_amended_at',
+        // Phase E (PHASE_E_DESIGN_challenge_law §E.5) — the two-door amendment
+        // provenance: which route last amended a setting + the non-legislative
+        // process row (NULL for the ordinary F-LEG-031 legislative path).
+        'last_amendment_route',
+        'last_amendment_process_id',
     ];
 
     protected $casts = [
-        'election_interval_months'         => 'integer',
-        'legislature_min_seats'            => 'integer',
-        'legislature_max_seats'            => 'integer',
-        'supermajority_numerator'          => 'integer',
-        'supermajority_denominator'        => 'integer',
-        'max_days_between_meetings'        => 'integer',
-        'emergency_powers_max_days'        => 'integer',
-        'civil_appointment_years'          => 'integer',
-        'judicial_appointment_years'       => 'integer',
-        'judiciary_min_judges_per_race'    => 'integer',
-        'judiciary_is_elected'             => 'boolean',
-        'worker_rep_min_employees'         => 'integer',
-        'worker_rep_parity_employees'      => 'integer',
-        'residency_confirmation_days'      => 'integer',
+        'election_interval_months' => 'integer',
+        'legislature_min_seats' => 'integer',
+        'legislature_max_seats' => 'integer',
+        'supermajority_numerator' => 'integer',
+        'supermajority_denominator' => 'integer',
+        'max_days_between_meetings' => 'integer',
+        'emergency_powers_max_days' => 'integer',
+        'civil_appointment_years' => 'integer',
+        'judicial_appointment_years' => 'integer',
+        'judiciary_min_judges_per_race' => 'integer',
+        'judiciary_is_elected' => 'boolean',
+        'worker_rep_min_employees' => 'integer',
+        'worker_rep_parity_employees' => 'integer',
+        'residency_confirmation_days' => 'integer',
         'initiative_petition_threshold_pct' => 'float',
-        'type_b_seats_per_child'           => 'integer',
-        'last_amended_at'                  => 'datetime',
+        'type_b_seats_per_child' => 'integer',
+        'last_amended_at' => 'datetime',
     ];
 
     public function jurisdiction(): BelongsTo

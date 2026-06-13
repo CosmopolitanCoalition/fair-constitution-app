@@ -84,10 +84,12 @@ class RightsAutomaticTest extends TestCase
         // forms that establish the R-02 → R-03 → R-04 chain, PLUS the
         // Phase B candidacy forms (WI-B4, PHASE_B_DESIGN_schema_lifecycle
         // §C): registration and board validation are rights-automatic —
-        // association is the only gate. This list may only ever GROW, and
-        // only under constitutional review.
+        // association is the only gate. Phase E (PHASE_E_DESIGN_challenge_law
+        // §B.1) adds F-IND-016: the constitutional challenge is an absolute
+        // right of every inhabitant (Art. IV §5.1 · Art. I), condition-free.
+        // This list may only ever GROW, and only under constitutional review.
         $this->assertSame(
-            ['F-IND-003', 'F-IND-005', 'F-IND-006', 'F-IND-011', 'F-ELB-002'],
+            ['F-IND-003', 'F-IND-005', 'F-IND-006', 'F-IND-011', 'F-ELB-002', 'F-IND-016'],
             ConstitutionalValidator::RIGHTS_AUTOMATIC_FORMS
         );
     }
@@ -137,5 +139,77 @@ class RightsAutomaticTest extends TestCase
     public function test_unauthenticated_holds_no_phase_b_roles_either(): void
     {
         $this->assertSame([], RoleService::derive(false, true, true, true, true, true, true, true));
+    }
+
+    // ─── Phase E derivations (E-CASES): R-21 (Advocate), R-22 (Juror) ────────
+
+    /**
+     * Art. IV §4 — R-21 (Advocate) derives from a registered advocates row,
+     * R-22 (Juror) from an active jury summons. Both are appended at the TAIL
+     * of derive() (after R-30), so the established call shapes derive
+     * identically and R-03 ⇔ R-04 is untouched. The two judge derivations
+     * (R-19/R-20, E-JUD) sit before them.
+     */
+    public function test_advocate_and_juror_derive_from_their_rows_without_touching_the_rights_chain(): void
+    {
+        // 25 booleans drive R-19/R-20; the last two are R-21 advocacy and R-22
+        // jury summons. Authenticated, no association → just R-01 + the tail.
+        $rolesAdvocate = RoleService::derive(
+            true, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, // …R-20
+            true,  // hasRegisteredAdvocacy → R-21
+            false, // hasActiveJurySummons
+        );
+        $this->assertSame(['R-01', 'R-21'], $rolesAdvocate, 'A registered advocate with no association derives R-01 + R-21.');
+
+        $rolesJuror = RoleService::derive(
+            true, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false,
+            false,
+            true,  // hasActiveJurySummons → R-22
+        );
+        $this->assertSame(['R-01', 'R-22'], $rolesJuror, 'An active juror with no association derives R-01 + R-22.');
+    }
+
+    /**
+     * R-03 ⇔ R-04 holds with EVERY Phase E fact on — the new tail facts never
+     * sit between the association and the rights it grants (Art. I).
+     */
+    public function test_r04_iff_r03_holds_with_every_phase_e_fact_on(): void
+    {
+        foreach ([true, false] as $association) {
+            $roles = RoleService::derive(
+                true, true, $association,
+                true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true,
+                true,  // R-21
+                true,  // R-22
+            );
+
+            $this->assertSame(
+                in_array('R-03', $roles, true),
+                in_array('R-04', $roles, true),
+                'R-04 ⇔ R-03 must hold with every Phase E fact on (Art. I).'
+            );
+
+            if ($association) {
+                $this->assertContains('R-21', $roles);
+                $this->assertContains('R-22', $roles);
+            }
+        }
+    }
+
+    public function test_unauthenticated_holds_no_phase_e_roles_either(): void
+    {
+        $this->assertSame([], RoleService::derive(
+            false, true, true,
+            true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true,
+            true, true,
+        ));
     }
 }

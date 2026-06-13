@@ -30,14 +30,16 @@ class RemovalProceeding extends Model
     /**
      * Kinds with seated subjects. Phase D activates executive_removal
      * (removal parity — identical supermajority threshold and machinery
-     * as legislators, PHASE_D_DESIGN_executive §B.4); judge_removal
-     * activates in Phase E.
+     * as legislators, PHASE_D_DESIGN_executive §B.4); Phase E activates
+     * judge_removal (Art. IV §4 — judges carry the SAME removal exposure
+     * as legislators; PHASE_E_DESIGN_judiciary §B.6).
      */
     public const ACTIVE_KINDS = [
         self::KIND_IMPEACHMENT,
         self::KIND_CENSURE,
         self::KIND_EXPULSION,
         self::KIND_EXECUTIVE_REMOVAL,
+        self::KIND_JUDGE_REMOVAL,
     ];
 
     public const STATUS_OPENED               = 'opened';

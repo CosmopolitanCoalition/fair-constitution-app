@@ -22,9 +22,12 @@ class Bill extends Model
 {
     use HasUuids, SoftDeletes;
 
-    public const TYPE_ORDINARY           = 'ordinary';
-    public const TYPE_SETTING_CHANGE     = 'setting_change';
-    public const TYPE_SUPERMAJORITY      = 'supermajority';
+    public const TYPE_ORDINARY = 'ordinary';
+
+    public const TYPE_SETTING_CHANGE = 'setting_change';
+
+    public const TYPE_SUPERMAJORITY = 'supermajority';
+
     public const TYPE_DUAL_SUPERMAJORITY = 'dual_supermajority';
 
     public const ACT_TYPES = [
@@ -32,16 +35,25 @@ class Bill extends Model
         self::TYPE_SUPERMAJORITY, self::TYPE_DUAL_SUPERMAJORITY,
     ];
 
-    public const STATUS_INTRODUCED   = 'introduced';
-    public const STATUS_REFERRED     = 'referred';
+    public const STATUS_INTRODUCED = 'introduced';
+
+    public const STATUS_REFERRED = 'referred';
+
     public const STATUS_IN_COMMITTEE = 'in_committee';
-    public const STATUS_REPORTED     = 'reported';
-    public const STATUS_TABLED       = 'tabled';
-    public const STATUS_ON_FLOOR     = 'on_floor';
-    public const STATUS_PASSED       = 'passed';
-    public const STATUS_FAILED       = 'failed';
-    public const STATUS_ENACTED      = 'enacted';
-    public const STATUS_WITHDRAWN    = 'withdrawn';
+
+    public const STATUS_REPORTED = 'reported';
+
+    public const STATUS_TABLED = 'tabled';
+
+    public const STATUS_ON_FLOOR = 'on_floor';
+
+    public const STATUS_PASSED = 'passed';
+
+    public const STATUS_FAILED = 'failed';
+
+    public const STATUS_ENACTED = 'enacted';
+
+    public const STATUS_WITHDRAWN = 'withdrawn';
 
     protected $fillable = [
         'id',
@@ -54,6 +66,7 @@ class Bill extends Model
         'scope_judiciary_id',
         'targets_setting_key',
         'proposed_value',
+        'targets_challenge_id',
         'effective_at',
         'status',
         'committee_id',
@@ -66,14 +79,14 @@ class Bill extends Model
     ];
 
     protected $casts = [
-        'scale'              => 'array',
-        'proposed_value'     => 'json',
-        'effective_at'       => 'datetime',
+        'scale' => 'array',
+        'proposed_value' => 'json',
+        'effective_at' => 'datetime',
         'current_version_no' => 'integer',
-        'introduced_at'      => 'datetime',
-        'passed_at'          => 'datetime',
-        'failed_at'          => 'datetime',
-        'enacted_at'         => 'datetime',
+        'introduced_at' => 'datetime',
+        'passed_at' => 'datetime',
+        'failed_at' => 'datetime',
+        'enacted_at' => 'datetime',
     ];
 
     public function legislature(): BelongsTo

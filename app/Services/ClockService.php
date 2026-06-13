@@ -60,6 +60,12 @@ class ClockService
         // board-governor consequence: term completed, seat term_ended,
         // renomination opens; other office kinds stay record-only fires).
         'CLK-09' => \App\Jobs\Clocks\CivilTermExpiryJob::class,
+        // CLK-11/CLK-12 — the Art. IV §5 per-case judicial windows (Phase E
+        // challenge & law). CLK-11 (armed to max(veto, remedy)) fires the
+        // §5.5 auto-remedy — THE exit criterion; CLK-12 is the light marker
+        // that the legislative remedy timeframe lapsed (no transition).
+        'CLK-11' => \App\Jobs\Clocks\JudicialAutoRemedyJob::class,
+        'CLK-12' => \App\Jobs\Clocks\LegislativeWindowLapsedJob::class,
         // CLK-13/CLK-14 — co-determination thresholds (Art. III §6,
         // Phase D): the FIRE is registry-visible provenance; the handler
         // re-runs the idempotent headcount recompute (queued — the
@@ -86,15 +92,14 @@ class ClockService
      * which route to AdvanceElectionPhaseJob by their payload step.
      */
     public const STEP_HANDLERS = [
-        'ranked_open'  => AdvanceElectionPhaseJob::class,
+        'ranked_open' => AdvanceElectionPhaseJob::class,
         'ranked_close' => AdvanceElectionPhaseJob::class,
     ];
 
     public function __construct(
         private readonly AuditService $audit,
         private readonly SettingsResolver $settings,
-    ) {
-    }
+    ) {}
 
     /**
      * Arm a timer for a registry clock. $firesAt null = threshold-watch
@@ -116,25 +121,25 @@ class ClockService
 
         return DB::transaction(function () use ($clock, $jurisdictionId, $subjectType, $subjectId, $firesAt, $payload) {
             $timer = ClockTimer::create([
-                'clock_id'        => $clock->id,
+                'clock_id' => $clock->id,
                 'jurisdiction_id' => $jurisdictionId,
-                'subject_type'    => $subjectType,
-                'subject_id'      => $subjectId,
-                'armed_at'        => now(),
-                'fires_at'        => $firesAt,
-                'state'           => ClockTimer::STATE_ARMED,
-                'payload'         => $payload,
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'armed_at' => now(),
+                'fires_at' => $firesAt,
+                'state' => ClockTimer::STATE_ARMED,
+                'payload' => $payload,
             ]);
 
             $this->audit->append(
                 module: 'clocks',
                 event: 'armed',
                 payload: [
-                    'timer_id'     => $timer->id,
-                    'clock'        => $clock->id,
+                    'timer_id' => $timer->id,
+                    'clock' => $clock->id,
                     'subject_type' => $subjectType,
-                    'subject_id'   => $subjectId,
-                    'fires_at'     => $firesAt?->format(DateTimeInterface::ATOM),
+                    'subject_id' => $subjectId,
+                    'fires_at' => $firesAt?->format(DateTimeInterface::ATOM),
                 ],
                 ref: $clock->id,
                 jurisdictionId: $jurisdictionId,
@@ -159,7 +164,7 @@ class ClockService
             }
 
             $fresh->forceFill([
-                'state'   => ClockTimer::STATE_FIRED,
+                'state' => ClockTimer::STATE_FIRED,
                 'payload' => array_merge($fresh->payload ?? [], $context, [
                     'fired_at' => now()->toIso8601String(),
                 ]),
@@ -171,11 +176,11 @@ class ClockService
                 module: 'clocks',
                 event: 'fired',
                 payload: [
-                    'timer_id'       => $fresh->id,
-                    'clock'          => $fresh->clock_id,
-                    'clock_name'     => $clock?->name,
-                    'subject_type'   => $fresh->subject_type,
-                    'subject_id'     => $fresh->subject_id,
+                    'timer_id' => $fresh->id,
+                    'clock' => $fresh->clock_id,
+                    'clock_name' => $clock?->name,
+                    'subject_type' => $fresh->subject_type,
+                    'subject_id' => $fresh->subject_id,
                     'fires_workflow' => $clock?->fires_workflow,
                 ],
                 ref: $fresh->clock_id,
@@ -188,7 +193,7 @@ class ClockService
         });
 
         if ($fired) {
-            $step    = $timer->payload['step'] ?? null;
+            $step = $timer->payload['step'] ?? null;
             $handler = ($step !== null ? (self::STEP_HANDLERS[$step] ?? null) : null)
                 ?? self::HANDLERS[$timer->clock_id]
                 ?? null;
@@ -214,9 +219,9 @@ class ClockService
             }
 
             $fresh->forceFill([
-                'state'   => ClockTimer::STATE_CANCELLED,
+                'state' => ClockTimer::STATE_CANCELLED,
                 'payload' => array_merge($fresh->payload ?? [], array_filter([
-                    'cancelled_at'  => now()->toIso8601String(),
+                    'cancelled_at' => now()->toIso8601String(),
                     'cancel_reason' => $reason,
                 ])),
             ])->save();
@@ -226,8 +231,8 @@ class ClockService
                 event: 'cancelled',
                 payload: [
                     'timer_id' => $fresh->id,
-                    'clock'    => $fresh->clock_id,
-                    'reason'   => $reason,
+                    'clock' => $fresh->clock_id,
+                    'reason' => $reason,
                 ],
                 ref: $fresh->clock_id,
                 jurisdictionId: $fresh->jurisdiction_id,
@@ -254,7 +259,7 @@ class ClockService
         }
 
         $registryDefault = $clock->default_value['value'] ?? null;
-        $default         = is_numeric($registryDefault) ? (int) $registryDefault : $fallback;
+        $default = is_numeric($registryDefault) ? (int) $registryDefault : $fallback;
 
         $settingKey = $clock->settingKey();
 

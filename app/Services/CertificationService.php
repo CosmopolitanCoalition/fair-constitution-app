@@ -129,6 +129,16 @@ class CertificationService implements CertificationPipeline
             return $this->certifyExecutive($election, $certification);
         }
 
+        // Phase E (PHASE_E_DESIGN_judiciary §B.5 — constitutional review):
+        // judicial elections seat ELECTED JUDGES as judicial_seats. Same
+        // certified-tabulation + inherited-lockstep discipline as the
+        // executive path — judges are an STV group; their terms last the
+        // SAME length as legislators (Art. IV §3), the FIRST elected term
+        // inheriting the chamber's remaining lockstep window (CLK-10).
+        if ($election->kind === Election::KIND_JUDICIAL) {
+            return $this->certifyJudicial($election, $certification);
+        }
+
         $legislature = $election->legislature;
 
         if ($legislature === null) {
@@ -531,6 +541,238 @@ class CertificationService implements CertificationPipeline
         );
 
         return [$member, $term];
+    }
+
+    // =========================================================================
+    // Judicial certification (Phase E — Art. IV §3/§4; design §B.5)
+    // =========================================================================
+
+    /**
+     * Seat a judicial election's STV winners as judicial_seats
+     * (seat_class 'elected'):
+     *
+     *  - ONE judicial_group race (PR-STV/Droop, the UNTOUCHED counting
+     *    path): every seated result → a judicial_seats row, holder set,
+     *    status 'seated', provenance via elected_in_race_id;
+     *  - TERMS (lockstep, CLK-10): every elected judge gets a terms row
+     *    office_kind 'judicial_seat', term_class 'lockstep' — the FIRST
+     *    election after conversion uses inheritedWindow ending on the
+     *    chartering legislature's CURRENT term_ends_on (term = remainder;
+     *    conversion never resets lockstep, Art. IV §3);
+     *  - the appointed-era judicial_seats rows close ('term_ended', their
+     *    CLK-09 timers cancelled) — the appointed bench's civil terms
+     *    complete; the judiciary row evolves conversion_voted → elected,
+     *    type 'elected', converted_at set. I-JUD evolves on the SAME row
+     *    (no second judiciary row — ESM-18 is one machine). There are NO
+     *    advisors (judges are elected in a group, Art. IV §3).
+     */
+    private function certifyJudicial(Election $election, ElectionCertification $certification): array
+    {
+        $legislature = $election->legislature;
+        $judiciary   = $election->judiciary_id !== null
+            ? \App\Models\Judiciary::query()->find((string) $election->judiciary_id)
+            : null;
+
+        if ($legislature === null || $judiciary === null) {
+            throw new ConstitutionalViolation(
+                'A judicial election certifies against its legislature (lockstep anchor) and judiciary.',
+                'Art. IV §3'
+            );
+        }
+
+        if ($legislature->term_ends_on === null) {
+            throw new ConstitutionalViolation(
+                'No lockstep expiry exists to inherit — the chamber has no term schedule.',
+                'Art. IV §3'
+            );
+        }
+
+        $certifiedAt = $certification->certified_at !== null
+            ? CarbonImmutable::parse($certification->certified_at)
+            : CarbonImmutable::now('UTC');
+
+        // First election after conversion inherits the chamber's remaining
+        // lockstep window (conversion never resets lockstep — CLK-10).
+        $window = self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
+
+        $winners   = [];
+        $terms     = [];
+        $seatCount = 0;
+
+        foreach ($election->races()->get() as $race) {
+            $tabulation = $this->certifiedTabulation($race);
+
+            $results = RaceResult::query()
+                ->where('tabulation_id', $tabulation->id)
+                ->whereNotNull('seat_no')
+                ->orderBy('seat_no')
+                ->get();
+
+            $winnerIds = [];
+
+            foreach ($results as $result) {
+                $candidacy = Candidacy::query()->findOrFail($result->candidacy_id);
+
+                [$seat, $term] = $this->seatJudicialMember(
+                    judiciary: $judiciary,
+                    election: $election,
+                    race: $race,
+                    candidacy: $candidacy,
+                    seatNumber: ++$seatCount,
+                    window: $window,
+                );
+
+                $winnerIds[] = (string) $candidacy->id;
+
+                $winners[] = [
+                    'user_id'      => (string) $candidacy->user_id,
+                    'candidacy_id' => (string) $candidacy->id,
+                    'race_id'      => (string) $race->id,
+                    'seat_id'      => (string) $seat->id,
+                    'seat_number'  => (int) $seat->seat_number,
+                ];
+
+                $terms[] = [
+                    'term_id'        => (string) $term->id,
+                    'holder_user_id' => (string) $term->holder_user_id,
+                    'starts_on'      => $term->starts_on->toDateString(),
+                    'ends_on'        => $term->ends_on->toDateString(),
+                    'term_class'     => $term->term_class,
+                ];
+            }
+
+            Candidacy::query()
+                ->where('race_id', $race->id)
+                ->whereIn('status', [Candidacy::STATUS_FINALIST, Candidacy::STATUS_NON_FINALIST])
+                ->whereNotIn('id', $winnerIds)
+                ->update(['status' => Candidacy::STATUS_DEFEATED, 'updated_at' => now()]);
+        }
+
+        // The appointed bench closes: each seated appointed seat → term_ended,
+        // its civil-appointment term completes, CLK-09 timer cancelled (the
+        // governor-removal term-cancellation mechanics).
+        $this->closeAppointedBench($judiciary);
+
+        // The judiciary EVOLVES the SAME row (ESM-18 — one machine).
+        $judiciary->forceFill([
+            'status'       => \App\Models\Judiciary::STATUS_ELECTED,
+            'type'         => \App\Models\Judiciary::TYPE_ELECTED,
+            'converted_at' => now(),
+            'judge_count'  => $seatCount,
+        ])->save();
+
+        $this->roles->flush();
+
+        return [
+            'winners'     => $winners,
+            'terms'       => $terms,
+            'term_window' => [
+                'starts_on' => $window['starts_on']->toDateString(),
+                'ends_on'   => $window['ends_on']->toDateString(),
+                'inherited' => true,
+            ],
+            'judiciary'   => [
+                'id'     => (string) $judiciary->id,
+                'status' => $judiciary->refresh()->status,
+                'type'   => $judiciary->type,
+            ],
+            'next_election_id' => null,
+            'vacancy_filled'   => null,
+            'referendums'      => [],
+        ];
+    }
+
+    /**
+     * @param  array{starts_on: CarbonImmutable, ends_on: CarbonImmutable}  $window
+     * @return array{0: \App\Models\JudicialSeat, 1: Term}
+     */
+    private function seatJudicialMember(
+        \App\Models\Judiciary $judiciary,
+        Election $election,
+        ElectionRace $race,
+        Candidacy $candidacy,
+        int $seatNumber,
+        array $window,
+    ): array {
+        $seat = \App\Models\JudicialSeat::create([
+            'judiciary_id'       => (string) $judiciary->id,
+            'user_id'            => (string) $candidacy->user_id,
+            'seat_number'        => $seatNumber,
+            'seat_class'         => \App\Models\JudicialSeat::CLASS_ELECTED,
+            'elected_in_race_id' => (string) $race->id,
+            'term_starts_on'     => $window['starts_on']->toDateString(),
+            'term_ends_on'       => $window['ends_on']->toDateString(),
+            'status'             => \App\Models\JudicialSeat::STATUS_SEATED,
+        ]);
+
+        $term = Term::create([
+            'office_kind'        => 'judicial_seat',
+            'office_type'        => 'judicial_seats',
+            'office_id'          => (string) $seat->id,
+            'holder_user_id'     => (string) $candidacy->user_id,
+            'jurisdiction_id'    => (string) $election->jurisdiction_id,
+            'legislature_id'     => (string) $election->legislature_id,
+            'term_class'         => Term::CLASS_LOCKSTEP,
+            'starts_on'          => $window['starts_on']->toDateString(),
+            'ends_on'            => $window['ends_on']->toDateString(),
+            'source_election_id' => (string) $election->id,
+            'status'             => Term::STATUS_ACTIVE,
+        ]);
+
+        $seat->forceFill(['term_id' => (string) $term->id])->save();
+        $candidacy->forceFill(['status' => Candidacy::STATUS_ELECTED])->save();
+
+        // CLK-10 flag — same derived-lockstep observability as chamber seats.
+        $this->clocks->arm(
+            'CLK-10',
+            (string) $election->jurisdiction_id,
+            'term',
+            (string) $term->id,
+            null,
+            ['step' => 'lockstep', 'ends_on' => $window['ends_on']->toDateString()],
+        );
+
+        return [$seat, $term];
+    }
+
+    /**
+     * Close the appointed-era bench on conversion to elected: each seated
+     * appointed seat → term_ended, its civil-appointment term completes, its
+     * CLK-09 expiry timer cancelled (the BoardGovernorService removal
+     * term-cancellation mechanics). The rows close, never delete.
+     */
+    private function closeAppointedBench(\App\Models\Judiciary $judiciary): void
+    {
+        $seats = \App\Models\JudicialSeat::query()
+            ->where('judiciary_id', $judiciary->id)
+            ->where('status', \App\Models\JudicialSeat::STATUS_SEATED)
+            ->whereIn('seat_class', [
+                \App\Models\JudicialSeat::CLASS_CONSTITUENT_NOMINATED,
+                \App\Models\JudicialSeat::CLASS_COMMITTEE_NOMINATED,
+            ])
+            ->get();
+
+        foreach ($seats as $seat) {
+            if ($seat->term_id !== null) {
+                $term = Term::query()->whereKey($seat->term_id)->first();
+
+                if ($term !== null && $term->status === Term::STATUS_ACTIVE) {
+                    $term->forceFill(['status' => Term::STATUS_COMPLETED])->save();
+
+                    foreach ($this->armedTimers('term', (string) $term->id, 'CLK-09') as $timer) {
+                        $this->clocks->cancel($timer, 'appointed judge term closed on conversion to elected court');
+                    }
+                }
+            }
+
+            $holder = $seat->user_id !== null ? (string) $seat->user_id : null;
+
+            $seat->forceFill(['status' => \App\Models\JudicialSeat::STATUS_TERM_ENDED])->save();
+
+            if ($holder !== null) {
+                $this->roles->flushUser($holder);
+            }
+        }
     }
 
     // =========================================================================
