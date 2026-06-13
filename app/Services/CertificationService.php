@@ -120,6 +120,15 @@ class CertificationService implements CertificationPipeline
 
     public function certify(Election $election, ElectionCertification $certification): array
     {
+        // Phase D (PHASE_D_DESIGN_executive §B.2.6 — constitutional
+        // review): executive elections seat EXECUTIVE members, not
+        // chamber members. Same certified-tabulation discipline; the
+        // FIRST elected term inherits the legislature's remaining
+        // lockstep window (conversion never resets lockstep — CLK-10).
+        if ($election->kind === Election::KIND_EXECUTIVE) {
+            return $this->certifyExecutive($election, $certification);
+        }
+
         $legislature = $election->legislature;
 
         if ($legislature === null) {
@@ -273,6 +282,255 @@ class CertificationService implements CertificationPipeline
             $audit->race_id !== null ? (string) $audit->race_id : null,
             (string) $audit->id,
         );
+    }
+
+    // =========================================================================
+    // Executive certification (Phase D — Art. III §2/§3; design §B.2.6)
+    // =========================================================================
+
+    /**
+     * Seat an executive election's winners as executive_members:
+     *
+     *  - exec_committee races (PR-STV, untouched counting path): every
+     *    seated result → role 'principal', selection 'elected_stv';
+     *  - single races (RCV): the winner → 'principal'/'elected_rcv', then
+     *    deriveAdvisors() seats ranks 1–4 as 'advisor'/'advisor_derivation'
+     *    (underivable ranks stay vacant — the engine contract);
+     *  - TERMS (lockstep, CLK-10): every member AND advisor gets a terms
+     *    row office_kind 'executive_seat', term_class 'lockstep' — the
+     *    FIRST election after conversion uses inheritedWindow ending on
+     *    the legislature's CURRENT term_ends_on (term = remainder;
+     *    conversion never resets lockstep);
+     *  - the executive row evolves: conversion_voted → elected, type set
+     *    from the race shape, delegated-era member rows close ('left').
+     */
+    private function certifyExecutive(Election $election, ElectionCertification $certification): array
+    {
+        $legislature = $election->legislature;
+        $executive   = $election->executive;
+
+        if ($legislature === null || $executive === null) {
+            throw new ConstitutionalViolation(
+                'An executive election certifies against its legislature (lockstep anchor) and office.',
+                'Art. III §2'
+            );
+        }
+
+        if ($legislature->term_ends_on === null) {
+            throw new ConstitutionalViolation(
+                'No lockstep expiry exists to inherit — the chamber has no term schedule.',
+                'Art. III §3'
+            );
+        }
+
+        $certifiedAt = $certification->certified_at !== null
+            ? CarbonImmutable::parse($certification->certified_at)
+            : CarbonImmutable::now('UTC');
+
+        $window = self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
+
+        $winners = [];
+        $terms   = [];
+        $type    = $executive->type;
+
+        foreach ($election->races()->get() as $race) {
+            $tabulation = $this->certifiedTabulation($race);
+
+            $isCommittee = $race->seat_kind === ElectionRace::SEAT_KIND_EXEC_COMMITTEE;
+            $type        = $isCommittee ? 'committee' : 'individual';
+
+            $results = RaceResult::query()
+                ->where('tabulation_id', $tabulation->id)
+                ->whereNotNull('seat_no')
+                ->orderBy('seat_no')
+                ->get();
+
+            $winnerIds = [];
+
+            foreach ($results as $result) {
+                $candidacy = Candidacy::query()->findOrFail($result->candidacy_id);
+
+                [$member, $term] = $this->seatExecutiveMember(
+                    executive: $executive,
+                    election: $election,
+                    race: $race,
+                    candidacy: $candidacy,
+                    role: 'principal',
+                    rank: 0,
+                    selection: $isCommittee ? 'elected_stv' : 'elected_rcv',
+                    window: $window,
+                );
+
+                $winnerIds[] = (string) $candidacy->id;
+
+                $winners[] = [
+                    'user_id'      => (string) $candidacy->user_id,
+                    'candidacy_id' => (string) $candidacy->id,
+                    'race_id'      => (string) $race->id,
+                    'member_id'    => (string) $member->id,
+                    'role'         => 'principal',
+                    'rank'         => 0,
+                ];
+
+                $terms[] = [
+                    'term_id'        => (string) $term->id,
+                    'holder_user_id' => (string) $term->holder_user_id,
+                    'starts_on'      => $term->starts_on->toDateString(),
+                    'ends_on'        => $term->ends_on->toDateString(),
+                    'term_class'     => $term->term_class,
+                ];
+            }
+
+            // Individual model: ranks 1–4 advisors by sequential exclusion
+            // (deriveAdvisors — Art. III §3; underivable ranks stay vacant).
+            if (! $isCommittee) {
+                $advisorRuns = app(VoteCountingService::class)->deriveAdvisors(
+                    app(TabulationRecorder::class)->countInput($race)
+                );
+
+                foreach ([1, 2, 3, 4] as $rank) {
+                    $candidacyId = $advisorRuns[$rank]?->elected[0]['candidacy_id'] ?? null;
+
+                    if ($candidacyId === null) {
+                        continue; // vacant rank — the engine contract
+                    }
+
+                    $candidacy = Candidacy::query()->find($candidacyId);
+
+                    if ($candidacy === null) {
+                        continue;
+                    }
+
+                    [$member, $term] = $this->seatExecutiveMember(
+                        executive: $executive,
+                        election: $election,
+                        race: $race,
+                        candidacy: $candidacy,
+                        role: 'advisor',
+                        rank: $rank,
+                        selection: 'advisor_derivation',
+                        window: $window,
+                    );
+
+                    $winnerIds[] = (string) $candidacy->id;
+
+                    $winners[] = [
+                        'user_id'      => (string) $candidacy->user_id,
+                        'candidacy_id' => (string) $candidacy->id,
+                        'race_id'      => (string) $race->id,
+                        'member_id'    => (string) $member->id,
+                        'role'         => 'advisor',
+                        'rank'         => $rank,
+                    ];
+
+                    $terms[] = [
+                        'term_id'        => (string) $term->id,
+                        'holder_user_id' => (string) $term->holder_user_id,
+                        'starts_on'      => $term->starts_on->toDateString(),
+                        'ends_on'        => $term->ends_on->toDateString(),
+                        'term_class'     => $term->term_class,
+                    ];
+                }
+            }
+
+            Candidacy::query()
+                ->where('race_id', $race->id)
+                ->whereIn('status', [Candidacy::STATUS_FINALIST, Candidacy::STATUS_NON_FINALIST])
+                ->whereNotIn('id', $winnerIds)
+                ->update(['status' => Candidacy::STATUS_DEFEATED, 'updated_at' => now()]);
+        }
+
+        // The delegated era closes; ESM-16 evolves the SAME row — I-EXC
+        // dissolves into I-EEO.
+        DB::table('executive_members')
+            ->where('executive_id', $executive->id)
+            ->where('selection', 'delegated_proportional')
+            ->where('status', 'seated')
+            ->update(['status' => 'left', 'left_at' => now()->toDateString(), 'updated_at' => now()]);
+
+        $executive->forceFill([
+            'status'         => 'elected',
+            'type'           => $type,
+            'converted_at'   => now(),
+            'term_number'    => ((int) $executive->term_number) + ($executive->converted_at !== null ? 1 : 0),
+            'term_starts_on' => $window['starts_on']->toDateString(),
+            'term_ends_on'   => $window['ends_on']->toDateString(),
+        ])->save();
+
+        $this->roles->flush();
+
+        return [
+            'winners'     => $winners,
+            'terms'       => $terms,
+            'term_window' => [
+                'starts_on' => $window['starts_on']->toDateString(),
+                'ends_on'   => $window['ends_on']->toDateString(),
+                'inherited' => true,
+            ],
+            'executive'   => [
+                'id'     => (string) $executive->id,
+                'status' => $executive->refresh()->status,
+                'type'   => $executive->type,
+            ],
+            'next_election_id' => null,
+            'vacancy_filled'   => null,
+            'referendums'      => [],
+        ];
+    }
+
+    /**
+     * @param  array{starts_on: CarbonImmutable, ends_on: CarbonImmutable}  $window
+     * @return array{0: \App\Models\ExecutiveMember, 1: Term}
+     */
+    private function seatExecutiveMember(
+        \App\Models\Executive $executive,
+        Election $election,
+        ElectionRace $race,
+        Candidacy $candidacy,
+        string $role,
+        int $rank,
+        string $selection,
+        array $window,
+    ): array {
+        $member = \App\Models\ExecutiveMember::create([
+            'executive_id'       => (string) $executive->id,
+            'user_id'            => (string) $candidacy->user_id,
+            'role'               => $role,
+            'rank'               => $rank,
+            'joined_at'          => $window['starts_on']->toDateString(),
+            'elected_in_race_id' => (string) $race->id,
+            'selection'          => $selection,
+            'status'             => 'seated',
+        ]);
+
+        $term = Term::create([
+            'office_kind'        => 'executive_seat',
+            'office_type'        => 'executive_members',
+            'office_id'          => (string) $member->id,
+            'holder_user_id'     => (string) $candidacy->user_id,
+            'jurisdiction_id'    => (string) $election->jurisdiction_id,
+            'legislature_id'     => (string) $election->legislature_id,
+            'term_class'         => Term::CLASS_LOCKSTEP,
+            'starts_on'          => $window['starts_on']->toDateString(),
+            'ends_on'            => $window['ends_on']->toDateString(),
+            'source_election_id' => (string) $election->id,
+            'status'             => Term::STATUS_ACTIVE,
+        ]);
+
+        $member->forceFill(['term_id' => (string) $term->id])->save();
+        $candidacy->forceFill(['status' => Candidacy::STATUS_ELECTED])->save();
+
+        // CLK-10 flag — same derived-lockstep observability as chamber seats.
+        $this->clocks->arm(
+            'CLK-10',
+            (string) $election->jurisdiction_id,
+            'term',
+            (string) $term->id,
+            null,
+            ['step' => 'lockstep', 'ends_on' => $window['ends_on']->toDateString()],
+        );
+
+        return [$member, $term];
     }
 
     // =========================================================================
@@ -477,6 +735,11 @@ class CertificationService implements CertificationPipeline
             ->where('legislature_id', $legislature->id)
             ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
             ->update(['status' => LegislatureMember::STATUS_TERM_ENDED, 'updated_at' => now()]);
+
+        // Phase D (design §B.1.5): delegated executive members are ex
+        // officio — their executive seat ends with their legislative one.
+        app(\App\Services\Executive\ExecutiveFormationService::class)
+            ->closeDelegatedMembersOnTurnover($legislature);
     }
 
     /**

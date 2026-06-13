@@ -39,12 +39,39 @@ use Illuminate\Support\Facades\DB;
  *                        candidates are committee members)
  *   R-13 Alt chair     — committees.alternate_member_id → same (acts when
  *                        the chair is absent — handler-checked)
+ *   R-14 Delegated exec — seated executive_members principal, selection
+ *                        'delegated_proportional', executive 'delegated'
+ *                        (Phase D, Art. III §1–2)
+ *   R-15 Exec cmte mbr — seated principal, executive type 'committee',
+ *                        status 'elected' (Phase D, Art. III §2)
+ *   R-16 Individual exec — seated principal, type 'individual', status
+ *                        'elected' (Phase D, Art. III §3)
+ *   R-17 Exec advisor  — seated executive_members row role 'advisor'
+ *                        (ranks 1–4, Phase D, Art. III §3)
+ *   R-18 Dept governor — a SEATED board_seats row on a DEPARTMENT board —
+ *                        governor AND worker_elected classes both
+ *                        (worker-elected department members ARE governors
+ *                        per Art. III §6 and need F-BOG capability;
+ *                        flagged registry tension with R-27's org framing)
  *   R-23 Org agent     — organizations.agent_user_id points at the user on
  *                        an active org (the minimal Phase B substrate
  *                        gating F-ORG-002; full org module is Phase D)
+ *   R-24 Org member    — any org_memberships row status 'active' (Phase D)
+ *   R-25 Worker        — any org_workers row status 'active' (Phase D)
+ *   R-26 Owner board   — a SEATED board_seats row seat_class
+ *                        'owner_elected' (Phase D)
+ *   R-27 Worker board  — a SEATED board_seats row seat_class
+ *                        'worker_elected' (Phase D)
+ *   R-28 Board chair   — a SEATED seat with is_chair=true — any class:
+ *                        the joint chair can be governor/owner/worker
+ *                        (Phase D, Art. III §6)
  *   R-29 Admin staff   — a SEATED appointment (appointable_type
  *                        'admin_offices') on a non-dissolved office with
  *                        an active civil-appointment term (Phase C)
+ *   R-30 Civil officer — a SEATED appointment (appointable_type
+ *                        'departments') with an active 'civil_officer'
+ *                        civil-appointment term (Phase D thin slice —
+ *                        department staff via the C.2 consent pipeline)
  *
  * Guests carry no roles here; the Inertia layer maps "no user" to the
  * mockups' R-00 visitor code for display. The shared-prop exposure
@@ -90,6 +117,17 @@ class RoleService implements ResolvesRoles
             $this->isCommitteeChair($id),
             $this->isAlternateChair($id),
             $this->hasAdminAppointment($id),
+            $this->hasOrgMembership($id),
+            $this->hasWorkerRegistration($id),
+            $this->hasGovernanceBoardSeat($id, 'owner_elected'),
+            $this->hasGovernanceBoardSeat($id, 'worker_elected'),
+            $this->isGovernanceBoardChair($id),
+            $this->hasExecutiveSeat($id, 'delegated_proportional', null, 'delegated'),
+            $this->hasExecutiveSeat($id, null, 'committee', 'elected'),
+            $this->hasExecutiveSeat($id, null, 'individual', 'elected'),
+            $this->hasExecutiveAdvisorSeat($id),
+            $this->hasDepartmentBoardSeat($id),
+            $this->hasCivilOfficerTerm($id),
         );
     }
 
@@ -127,6 +165,17 @@ class RoleService implements ResolvesRoles
         bool $isCommitteeChair = false,
         bool $isAlternateChair = false,
         bool $hasAdminAppointment = false,
+        bool $hasOrgMembership = false,
+        bool $hasWorkerRegistration = false,
+        bool $hasOwnerBoardSeat = false,
+        bool $hasWorkerBoardSeat = false,
+        bool $isGovernanceBoardChair = false,
+        bool $hasDelegatedExecSeat = false,
+        bool $hasElectedCommitteeExecSeat = false,
+        bool $hasElectedIndividualExecSeat = false,
+        bool $hasExecAdvisorSeat = false,
+        bool $hasDepartmentBoardSeat = false,
+        bool $hasCivilOfficerTerm = false,
     ): array {
         if (! $authenticated) {
             return [];
@@ -183,12 +232,63 @@ class RoleService implements ResolvesRoles
             }
         }
 
+        // Phase D executive facts (Art. III — derived from the seat rows).
+        if ($hasDelegatedExecSeat) {
+            $roles[] = 'R-14';
+        }
+
+        if ($hasElectedCommitteeExecSeat) {
+            $roles[] = 'R-15';
+        }
+
+        if ($hasElectedIndividualExecSeat) {
+            $roles[] = 'R-16';
+        }
+
+        if ($hasExecAdvisorSeat) {
+            $roles[] = 'R-17';
+        }
+
+        // R-18 covers BOTH classes on a department board — worker-elected
+        // department members ARE governors per Art. III §6 and need the
+        // F-BOG filing capability (flagged registry tension with R-27).
+        if ($hasDepartmentBoardSeat) {
+            $roles[] = 'R-18';
+        }
+
         if ($hasOrgAgency) {
             $roles[] = 'R-23';
         }
 
+        // Phase D org facts (derived, never stored — same discipline).
+        if ($hasOrgMembership) {
+            $roles[] = 'R-24';
+        }
+
+        if ($hasWorkerRegistration) {
+            $roles[] = 'R-25';
+        }
+
+        if ($hasOwnerBoardSeat) {
+            $roles[] = 'R-26';
+        }
+
+        if ($hasWorkerBoardSeat) {
+            $roles[] = 'R-27';
+        }
+
+        // R-28 derives from ANY seated chair seat (governor/owner/worker —
+        // the joint chair is classless, Art. III §6).
+        if ($isGovernanceBoardChair) {
+            $roles[] = 'R-28';
+        }
+
         if ($hasAdminAppointment) {
             $roles[] = 'R-29';
+        }
+
+        if ($hasCivilOfficerTerm) {
+            $roles[] = 'R-30';
         }
 
         return $roles;
@@ -381,6 +481,133 @@ class RoleService implements ResolvesRoles
             ->whereNull('m.deleted_at')
             ->where('c.status', '!=', 'dissolved')
             ->whereNull('c.deleted_at')
+            ->exists();
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase D fact queries (organizations §D.3 — derived, never stored)
+    // -------------------------------------------------------------------------
+
+    /** R-24: any active org membership on a non-dissolved org. */
+    private function hasOrgMembership(string $userId): bool
+    {
+        return DB::table('org_memberships as m')
+            ->join('organizations as o', 'o.id', '=', 'm.organization_id')
+            ->where('m.user_id', $userId)
+            ->where('m.status', 'active')
+            ->whereNull('m.deleted_at')
+            ->where('o.status', '!=', 'dissolved')
+            ->whereNull('o.deleted_at')
+            ->exists();
+    }
+
+    /** R-25: any active worker registration (F-IND-014, countersigned). */
+    private function hasWorkerRegistration(string $userId): bool
+    {
+        return DB::table('org_workers')
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->exists();
+    }
+
+    /** R-26/R-27: a SEATED governance-board seat of the given class. */
+    private function hasGovernanceBoardSeat(string $userId, string $seatClass): bool
+    {
+        return DB::table('board_seats as s')
+            ->join('boards as b', 'b.id', '=', 's.board_id')
+            ->where('s.holder_user_id', $userId)
+            ->where('s.seat_class', $seatClass)
+            ->where('s.status', 'seated')
+            ->whereNull('s.deleted_at')
+            ->where('b.status', '!=', 'dissolved')
+            ->whereNull('b.deleted_at')
+            ->exists();
+    }
+
+    /** R-28: a SEATED chair seat — any class (Art. III §6 joint chair). */
+    private function isGovernanceBoardChair(string $userId): bool
+    {
+        return DB::table('board_seats as s')
+            ->join('boards as b', 'b.id', '=', 's.board_id')
+            ->where('s.holder_user_id', $userId)
+            ->where('s.is_chair', true)
+            ->where('s.status', 'seated')
+            ->whereNull('s.deleted_at')
+            ->where('b.status', '!=', 'dissolved')
+            ->whereNull('b.deleted_at')
+            ->exists();
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase D fact queries (executive §E.2 — derived, never stored)
+    // -------------------------------------------------------------------------
+
+    /**
+     * R-14/R-15/R-16: a seated PRINCIPAL on a non-dissolved executive,
+     * filtered by selection provenance / type / executive status.
+     */
+    private function hasExecutiveSeat(string $userId, ?string $selection, ?string $type, string $execStatus): bool
+    {
+        return DB::table('executive_members as em')
+            ->join('executives as e', 'e.id', '=', 'em.executive_id')
+            ->where('em.user_id', $userId)
+            ->where('em.role', 'principal')
+            ->where('em.status', 'seated')
+            ->whereNull('em.deleted_at')
+            ->when($selection !== null, fn ($q) => $q->where('em.selection', $selection))
+            ->when($type !== null, fn ($q) => $q->where('e.type', $type))
+            ->where('e.status', $execStatus)
+            ->whereNull('e.deleted_at')
+            ->exists();
+    }
+
+    /** R-17: a seated advisor (ranks 1–4) on a non-dissolved executive. */
+    private function hasExecutiveAdvisorSeat(string $userId): bool
+    {
+        return DB::table('executive_members as em')
+            ->join('executives as e', 'e.id', '=', 'em.executive_id')
+            ->where('em.user_id', $userId)
+            ->where('em.role', 'advisor')
+            ->where('em.status', 'seated')
+            ->whereNull('em.deleted_at')
+            ->where('e.status', '!=', 'dissolved')
+            ->whereNull('e.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-18: a SEATED seat on a DEPARTMENT board — governor AND
+     * worker_elected classes both (Art. III §6; design §E.2).
+     */
+    private function hasDepartmentBoardSeat(string $userId): bool
+    {
+        return DB::table('board_seats as s')
+            ->join('boards as b', 'b.id', '=', 's.board_id')
+            ->where('s.holder_user_id', $userId)
+            ->where('s.status', 'seated')
+            ->whereNull('s.deleted_at')
+            ->where('b.boardable_type', 'departments')
+            ->where('b.status', '!=', 'dissolved')
+            ->whereNull('b.deleted_at')
+            ->exists();
+    }
+
+    /**
+     * R-30: a SEATED department appointment with an active civil_officer
+     * term (Phase D thin slice).
+     */
+    private function hasCivilOfficerTerm(string $userId): bool
+    {
+        return DB::table('appointments as a')
+            ->join('terms as t', 't.id', '=', 'a.term_id')
+            ->where('a.appointable_type', 'departments')
+            ->where('a.nominee_user_id', $userId)
+            ->where('a.status', 'seated')
+            ->whereNull('a.deleted_at')
+            ->where('t.office_kind', 'civil_officer')
+            ->where('t.status', 'active')
+            ->whereNull('t.deleted_at')
             ->exists();
     }
 

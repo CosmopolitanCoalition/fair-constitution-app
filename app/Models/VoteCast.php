@@ -30,6 +30,9 @@ class VoteCast extends Model
         'id',
         'vote_id',
         'member_id',
+        // Phase D (D-O8): a board-seat caster on body_type='board' votes —
+        // exactly one of member_id / board_seat_id (DB XOR CHECK).
+        'board_seat_id',
         'lane',
         'value',
         'rankings',
@@ -54,5 +57,10 @@ class VoteCast extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(LegislatureMember::class, 'member_id');
+    }
+
+    public function boardSeat(): BelongsTo
+    {
+        return $this->belongsTo(BoardSeat::class, 'board_seat_id');
     }
 }

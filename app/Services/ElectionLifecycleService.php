@@ -370,6 +370,96 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         });
     }
 
+    /**
+     * Phase D (PHASE_D_DESIGN_executive §B.2.5) — the EXECUTIVE election
+     * fired when an F-LEG-015 conversion process passes: kind `executive`,
+     * lockstep-anchored to the legislature, ONE race —
+     *
+     *   committee model  ⇒ seat_kind `exec_committee`, seats = the act's
+     *                      member count (≥ 5, NO ceiling — Art. III §2;
+     *                      counted by the untouched PR-STV path);
+     *   individual model ⇒ seat_kind `single`, seats = 1 (RCV;
+     *                      deriveAdvisors seats ranks 1–4 at
+     *                      certification — Art. III §3).
+     *
+     * The FIRST election after conversion inherits the legislature's
+     * remaining term (CertificationService::inheritedWindow at seating —
+     * lockstep is never reset by conversion, CLK-10); thereafter exec
+     * races ride the general election (CLK-01).
+     */
+    public function scheduleExecutive(
+        \App\Models\Executive $executive,
+        Legislature $legislature,
+        string $targetType,
+        int $seats,
+        array $dates = [],
+    ): Election {
+        return DB::transaction(function () use ($executive, $legislature, $targetType, $seats, $dates) {
+            $existing = Election::query()
+                ->where('executive_id', $executive->id)
+                ->where('kind', Election::KIND_EXECUTIVE)
+                ->whereNotIn('status', [Election::STATUS_FINAL, Election::STATUS_CANCELLED, Election::STATUS_CERTIFIED])
+                ->first();
+
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            $jurisdictionId = (string) $legislature->jurisdiction_id;
+
+            $isCommittee = $targetType === \App\Models\Executive::TYPE_COMMITTEE;
+            $raceSeats   = $isCommittee ? $seats : 1;
+
+            $election = Election::create([
+                'jurisdiction_id'   => $jurisdictionId,
+                'legislature_id'    => (string) $legislature->id,
+                'executive_id'      => (string) $executive->id,
+                'kind'              => Election::KIND_EXECUTIVE,
+                'status'            => Election::STATUS_SCHEDULED,
+                'trigger'           => 'conversion_act',
+                'voting_method'     => $this->votingMethodSnapshot($jurisdictionId),
+                'election_board_id' => $this->activeBoardId($jurisdictionId),
+            ]);
+
+            $this->applySchedule($election, $dates);
+
+            $race = ElectionRace::create([
+                'election_id'     => $election->id,
+                'district_id'     => null,
+                'jurisdiction_id' => $jurisdictionId,
+                'seat_kind'       => $isCommittee ? ElectionRace::SEAT_KIND_EXEC_COMMITTEE : ElectionRace::SEAT_KIND_SINGLE,
+                'seats'           => $raceSeats,
+                'finalist_count'  => $this->finalistMultiplier($jurisdictionId) * $raceSeats,
+                'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
+                'status'          => Election::STATUS_SCHEDULED,
+            ]);
+
+            $this->audit->append(
+                module: 'elections',
+                event: 'election.scheduled',
+                payload: [
+                    'election_id'  => $election->id,
+                    'kind'         => Election::KIND_EXECUTIVE,
+                    'executive_id' => (string) $executive->id,
+                    'target_type'  => $targetType,
+                    'races'        => [[
+                        'race_id'        => $race->id,
+                        'seat_kind'      => $race->seat_kind,
+                        'seats'          => $race->seats,
+                        'finalist_count' => $race->finalist_count,
+                    ]],
+                ],
+                ref: 'F-LEG-015',
+                jurisdictionId: $jurisdictionId,
+            );
+
+            $this->openApproval($election);
+            $this->armPhaseTimers($election);
+
+            return $election->refresh();
+        });
+    }
+
     // =========================================================================
     // Race generation — the §B.4 ruling
     // =========================================================================

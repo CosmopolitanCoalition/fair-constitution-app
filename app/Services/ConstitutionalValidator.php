@@ -223,11 +223,28 @@ class ConstitutionalValidator
 
     /**
      * The forward rule's allowlist: forms whose handlers may accept
-     * enabling_type = 'emergency_power'. EMPTY in Phase C — Phase D
-     * executive orders / department rules must declare themselves here
-     * (their "order rejected pre-issuance" contract consumes this hook).
+     * enabling_type = 'emergency_power'. Phase D registers the executive
+     * branch here (PHASE_D_DESIGN_executive §D): orders (F-EXE-005) and
+     * department rules (F-BOG-001) may cite an ACTIVE power as enabling
+     * authority — and only within its declared area and duration; the
+     * scope rules below + EnablingInstruments enforce the bounds, and
+     * emergency-enabled rules EXPIRE with their power (CLK-03 cascade).
+     * EmergencyCeilingTest pins this list.
      */
-    public const EMERGENCY_ENABLED_FORMS = [];
+    public const EMERGENCY_ENABLED_FORMS = ['F-BOG-001', 'F-EXE-005'];
+
+    /**
+     * order.civic_process_protection (HARDENED — Art. II §7): the
+     * target_domain values an executive order may NEVER carry. Kept in
+     * the column enum so the ATTEMPT is typed honestly; rejection is
+     * unconditional. Semantic evasion is Phase E judicial-review
+     * territory — this is the engine-checkable floor.
+     */
+    public const ORDER_PROTECTED_DOMAINS = [
+        'electoral_process',
+        'judicial_process',
+        'legislative_process',
+    ];
 
     /**
      * Engine entry point: hardened checks for a canonical form filing.
@@ -244,6 +261,18 @@ class ConstitutionalValidator
             'F-LEG-034' => $this->checkReferendumActModification($payload),
             'F-ELB-001' => $this->checkSchedulingOrderRaces($payload),
             'F-ELB-002' => $this->checkValidationGround($payload),
+            // Phase D — order pre-issuance scope validation (Art. III §2 ·
+            // Art. II §7). Runs at the validator stage, OUTSIDE the engine
+            // transaction, so a violation persists its rejection artifacts
+            // (rejected_pre_issuance row + public record) BEFORE the
+            // rejected=true chain entry and the 422 — the exit-criterion
+            // mechanism (design §D "rejection-on-record").
+            'F-EXE-005' => $this->checkExecutiveOrder($payload),
+            // Phase D — organizations (PHASE_D_DESIGN_organizations §D.2).
+            'F-IND-012' => $this->checkOrganizationRegistration($payload),
+            'F-ORG-001' => $this->checkOrgProfileManagement($payload),
+            'F-LEG-026' => $this->checkMonopolyAcquisition($payload),
+            'F-LEG-027' => $this->checkCgcReorgSale($payload),
             default     => null,
         };
     }
@@ -313,6 +342,19 @@ class ConstitutionalValidator
                 ),
                 $citation
             );
+        }
+
+        // Co-determination ordering (Art. III §6 — Phase D cross-key
+        // guard): the first-seat threshold must stay strictly below the
+        // parity threshold or the Art. III §6 interpolation collapses.
+        // Companion value defaults to the constitutional 100/2000 when the
+        // filing changes only one side (the supermajority-fraction
+        // pattern); the enactment-time re-run repeats the check.
+        if ($key === 'worker_rep_min_employees' || $key === 'worker_rep_parity_employees') {
+            $min    = $key === 'worker_rep_min_employees' ? (int) $value : (int) ($payload['worker_rep_min_employees'] ?? 100);
+            $parity = $key === 'worker_rep_parity_employees' ? (int) $value : (int) ($payload['worker_rep_parity_employees'] ?? 2000);
+
+            self::assertCodeterminationOrdering($min, $parity);
         }
 
         // Supermajority fraction must stay strictly above 1/2 and at most 1
@@ -385,6 +427,20 @@ class ConstitutionalValidator
             if ($seats !== 1) {
                 throw new ConstitutionalViolation(
                     "A 'single' race elects exactly one seat (got {$seats}) — the individual-executive exception.",
+                    'Art. III §2'
+                );
+            }
+
+            return;
+        }
+
+        // Phase D (D-1 recut): the executive-committee race floors at 5
+        // with NO ceiling — Art. III §2 states no maximum; the 1–9 band
+        // is a chamber (Art. II §2) rule and must not cap it.
+        if ($seatKind === 'exec_committee') {
+            if ($seats < ConstitutionalDefaults::HARD_FLOOR) {
+                throw new ConstitutionalViolation(
+                    "An executive-committee race elects at least 5 seats (got {$seats}).",
                     'Art. III §2'
                 );
             }
@@ -777,6 +833,223 @@ class ConstitutionalValidator
             (bool) $law->referendum_passed_by_supermajority,
             $shieldPending,
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase D — executive order scope rules (Art. III §2 · Art. II §7)
+    // -------------------------------------------------------------------------
+
+    /**
+     * order.civic_process_protection (HARDENED, pure — pinned by
+     * OrderScopeValidationTest): an executive order targeting the
+     * electoral, judicial, or legislative process is rejected
+     * UNCONDITIONALLY — no enabling instrument, including an active
+     * emergency power, can reach a civic process (Art. II §7; the
+     * mockups' rejected fixture: deferring a ranked-window opening).
+     */
+    public static function assertOrderCivicProcessProtection(string $targetDomain): void
+    {
+        if (in_array($targetDomain, self::ORDER_PROTECTED_DOMAINS, true)) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Executive orders cannot touch the %s — elections, courts, and legislatures run '
+                    . 'identically under any executive instrument, emergency powers included.',
+                    str_replace('_', ' ', $targetDomain)
+                ),
+                'Art. II §7'
+            );
+        }
+    }
+
+    /**
+     * settings.codetermination_ordering (Art. III §6 — Phase D): the
+     * worker-representation thresholds must satisfy min < parity; the
+     * linear interpolation between them is the constitutional scaling.
+     */
+    public static function assertCodeterminationOrdering(int $minEmployees, int $parityEmployees): void
+    {
+        if ($minEmployees >= $parityEmployees) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'worker_rep_min_employees (%d) must stay strictly below worker_rep_parity_employees '
+                    . '(%d) — Art. III §6 scales worker representation linearly between the two.',
+                    $minEmployees,
+                    $parityEmployees
+                ),
+                'Art. III §6'
+            );
+        }
+    }
+
+    /**
+     * F-EXE-005 filing gate: delegate to the ExecutiveOrderService
+     * preflight — it resolves the acting context, runs the three scope
+     * rules (rule 3 via the pure assert above), and on violation PERSISTS
+     * the rejection artifacts before rethrowing (design §D
+     * "rejection-on-record"; the DB-read-in-validator posture follows the
+     * F-LEG-034 CLK-19 precedent).
+     */
+    private function checkExecutiveOrder(array $payload): void
+    {
+        // Drafts save without scope validation; issuance validates.
+        if (($payload['action'] ?? 'issue') === 'revoke') {
+            return; // revocation scope-checks in the service
+        }
+
+        app(\App\Services\Executive\ExecutiveOrderService::class)->preflight($payload);
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase D — organizations rules (Art. III §5/§6; PHASE_D_DESIGN_organizations)
+    // -------------------------------------------------------------------------
+
+    /**
+     * orgs.fair_market_floor (HARDENED — Art. III §5): a monopoly
+     * acquisition pays AT OR ABOVE the recorded fair-market floor. A
+     * below-floor compensation filing is rejected pre-commit with the
+     * citation (the engine records the rejected=true chain entry); the
+     * org_conversions CHECK is the DB belt.
+     */
+    public static function assertFairMarketCompensation(?float $floor, ?float $compensation): void
+    {
+        if ($floor === null || $compensation === null) {
+            throw new ConstitutionalViolation(
+                'A monopoly acquisition records the fair-market floor before compensation, and the '
+                . 'compensation itself — both are constitutional facts.',
+                'Art. III §5'
+            );
+        }
+
+        if ($compensation < $floor) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Compensation %s is below the recorded fair-market floor %s — monopoly acquisition '
+                    . 'requires fair-market compensation to the prior owners.',
+                    number_format($compensation, 2),
+                    number_format($floor, 2)
+                ),
+                'Art. III §5'
+            );
+        }
+    }
+
+    /**
+     * orgs.mutual_consent (WF-ORG-06): an ownership transfer proceeds
+     * only on BOTH consents — from-side and to-side. The only ownership
+     * path that overrides owner consent is monopoly acquisition, which is
+     * a conversion (Art. III §5), never a transfer.
+     */
+    public static function assertTransferConsents(bool $fromConsented, bool $toConsented): void
+    {
+        if (! $fromConsented || ! $toConsented) {
+            throw new ConstitutionalViolation(
+                'An ownership transfer requires the consent of BOTH parties — nothing moves on one signature.',
+                'Art. I · WF-ORG-06 · as implemented'
+            );
+        }
+    }
+
+    /**
+     * F-IND-012 — type whitelist: Common Good Corporations are created by
+     * LEGISLATURES (F-LEG-019), never self-registered (Art. III §5). The
+     * rejection carries the citation pre-commit.
+     */
+    private function checkOrganizationRegistration(array $payload): void
+    {
+        if (($payload['type'] ?? null) === 'common_good_corp') {
+            throw new ConstitutionalViolation(
+                'A Common Good Corporation is created by a legislative act (F-LEG-019) — it can never be '
+                . 'self-registered.',
+                'Art. III §5'
+            );
+        }
+    }
+
+    /**
+     * F-ORG-001 'manage_document_package' — the package key may never
+     * collide with a canonical/alias constitutional form ID: self-managed
+     * internal forms live ABOVE the constitutional floor and can never
+     * override it.
+     */
+    private function checkOrgProfileManagement(array $payload): void
+    {
+        if (($payload['action'] ?? null) !== 'manage_document_package') {
+            return;
+        }
+
+        $key = strtoupper(trim((string) ($payload['key'] ?? '')));
+
+        if ($key !== '' && \App\Domain\Forms\FormRegistry::exists($key)) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Document package key [%s] collides with a constitutional form ID — self-managed '
+                    . 'internal forms live above the constitutional floor and can never override it.',
+                    $key
+                ),
+                'CGA Forms Catalog · as implemented'
+            );
+        }
+    }
+
+    /**
+     * F-LEG-026 filing gates (Art. III §5): the proposal records the
+     * fair-market floor + published basis BEFORE any vote; the completion
+     * filing's compensation must meet the recorded floor (DB-read posture
+     * per the F-LEG-034 CLK-19 precedent).
+     */
+    private function checkMonopolyAcquisition(array $payload): void
+    {
+        $action = $payload['action'] ?? 'propose';
+
+        if ($action === 'propose') {
+            $floor = $payload['fair_market_floor'] ?? null;
+
+            if (! is_numeric($floor) || (float) $floor <= 0
+                || trim((string) ($payload['fair_market_basis'] ?? '')) === '') {
+                throw new ConstitutionalViolation(
+                    'A monopoly acquisition records the fair-market floor and its published valuation basis '
+                    . 'BEFORE any vote — fair-market compensation is the constitutional condition.',
+                    'Art. III §5'
+                );
+            }
+
+            return;
+        }
+
+        if ($action === 'record_compensation') {
+            $conversion = \Illuminate\Support\Facades\DB::table('org_conversions')
+                ->where('id', (string) ($payload['conversion_id'] ?? ''))
+                ->whereNull('deleted_at')
+                ->first(['fair_market_floor']);
+
+            $compensation = $payload['compensation'] ?? null;
+
+            self::assertFairMarketCompensation(
+                $conversion?->fair_market_floor !== null ? (float) $conversion->fair_market_floor : null,
+                is_numeric($compensation) ? (float) $compensation : null,
+            );
+        }
+    }
+
+    /**
+     * F-LEG-027 — Art. III §5 irreversibility gate, pre-vote: no
+     * reorganization/sale payload may carry an ip_-prefixed or reclaim
+     * key — a public-domain dedication can never be privatized, and the
+     * attempt itself is rejected on the record.
+     */
+    private function checkCgcReorgSale(array $payload): void
+    {
+        foreach (array_keys($payload) as $key) {
+            $lower = strtolower((string) $key);
+
+            if (str_starts_with($lower, 'ip_') || str_contains($lower, 'reclaim')) {
+                throw new ConstitutionalViolation(
+                    'CGC public-domain dedications are irreversible — no reorganization or sale may reclaim '
+                    . 'or privatize dedicated intellectual property (offending key: ' . $key . ').',
+                    'Art. III §5'
+                );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

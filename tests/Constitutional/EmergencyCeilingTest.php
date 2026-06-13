@@ -134,9 +134,15 @@ class EmergencyCeilingTest extends TestCase
 
         $this->assertSame($expected, ConstitutionalValidator::EMERGENCY_PROTECTED_FORMS);
 
-        // Phase C declares NO emergency-enabled forms — Phase D executive
-        // orders must register here before any payload may cite a power.
-        $this->assertSame([], ConstitutionalValidator::EMERGENCY_ENABLED_FORMS);
+        // Phase D registers the executive branch as the ONLY
+        // emergency-enabled forms (constitutional review,
+        // PHASE_D_DESIGN_executive §D): orders (F-EXE-005) and department
+        // rules (F-BOG-001) may cite an ACTIVE power — bounded to its
+        // declared area + duration by the order scope rules, with
+        // emergency-enabled rules expiring with the power (CLK-03
+        // cascade). The civic-process shield above is untouched: even an
+        // enabled form can never reach a protected process.
+        $this->assertSame(['F-BOG-001', 'F-EXE-005'], ConstitutionalValidator::EMERGENCY_ENABLED_FORMS);
     }
 
     public function test_protected_forms_reject_emergency_citing_payloads(): void
@@ -161,10 +167,18 @@ class EmergencyCeilingTest extends TestCase
         // F-LEG-025 (renewal) legitimately names its power — NOT protected.
         ConstitutionalValidator::assertEmergencyCivicProcessShield('F-LEG-025', ['emergency_power_id', 'extension_days'], null);
 
-        // Forward rule: NO undeclared form may cite a power as enabling
-        // authority (the allowlist is empty in Phase C).
-        $this->expectException(ConstitutionalViolation::class);
+        // Phase D opened a NARROW door: the emergency-enabled executive forms
+        // (F-EXE-005 order, F-BOG-001 department rule) MAY cite an active
+        // power as enabling authority — the shield lets exactly these pass
+        // (bounded elsewhere to the power's declared area + duration).
         ConstitutionalValidator::assertEmergencyCivicProcessShield('F-EXE-005', ['enabling_type'], 'emergency_power');
+        ConstitutionalValidator::assertEmergencyCivicProcessShield('F-BOG-001', ['enabling_type'], 'emergency_power');
+
+        // Forward rule (unchanged): every form OUTSIDE that allowlist is
+        // still refused — no undeclared handler may cite a power as enabling
+        // authority. F-LEG-014 (delegation) is neither protected nor enabled.
+        $this->expectException(ConstitutionalViolation::class);
+        ConstitutionalValidator::assertEmergencyCivicProcessShield('F-LEG-014', ['enabling_type'], 'emergency_power');
     }
 
     public function test_no_protected_form_handler_reads_emergency_state(): void
@@ -254,10 +268,10 @@ class EmergencyCeilingTest extends TestCase
             $engine = app(ConstitutionalEngine::class);
 
             $base = [
-                'legislature_id'  => (string) $legislature->id,
+                'legislature_id' => (string) $legislature->id,
                 'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'label'           => 'EmergencyCeilingTest throwaway',
-                'methods'         => 'Coordinate relief within constitutional order.',
+                'label' => 'EmergencyCeilingTest throwaway',
+                'methods' => 'Coordinate relief within constitutional order.',
             ];
 
             // ── cause outside the closed enum → rejected + chain row ──────
@@ -296,17 +310,17 @@ class EmergencyCeilingTest extends TestCase
 
             // ── throwaway ACTIVE power: CLK-03 fire flips → expired ───────
             $power = EmergencyPower::create([
-                'legislature_id'         => (string) $legislature->id,
-                'jurisdiction_id'        => (string) $legislature->jurisdiction_id,
-                'cause'                  => 'natural_disaster',
-                'label'                  => 'EmergencyCeilingTest expiry fixture',
+                'legislature_id' => (string) $legislature->id,
+                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'cause' => 'natural_disaster',
+                'label' => 'EmergencyCeilingTest expiry fixture',
                 'declared_duration_days' => 1,
-                'area_jurisdiction_id'   => (string) $legislature->jurisdiction_id,
-                'methods'                => 'n/a',
-                'invoke_vote_id'         => (string) $vote->id,
-                'status'                 => EmergencyPower::STATUS_ACTIVE,
-                'starts_at'              => now()->subDays(2),
-                'expires_at'             => now()->subDay(),
+                'area_jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'methods' => 'n/a',
+                'invoke_vote_id' => (string) $vote->id,
+                'status' => EmergencyPower::STATUS_ACTIVE,
+                'starts_at' => now()->subDays(2),
+                'expires_at' => now()->subDay(),
             ]);
 
             $timer = app(ClockService::class)->arm(
@@ -337,8 +351,8 @@ class EmergencyCeilingTest extends TestCase
             try {
                 $engine->file('F-LEG-025', $memberUser, [
                     'emergency_power_id' => (string) $power->id,
-                    'extension_days'     => 30,
-                    'jurisdiction_id'    => (string) $legislature->jurisdiction_id,
+                    'extension_days' => 30,
+                    'jurisdiction_id' => (string) $legislature->jurisdiction_id,
                 ]);
                 $this->fail('Renewing an expired power must be rejected (Art. II §7).');
             } catch (ConstitutionalViolation $e) {
@@ -388,7 +402,7 @@ class EmergencyCeilingTest extends TestCase
         }
 
         config([
-            'database.connections.' . self::LIVE_CONNECTION => array_merge(
+            'database.connections.'.self::LIVE_CONNECTION => array_merge(
                 config('database.connections.pgsql'),
                 ['database' => env('LIVE_PG_DATABASE', 'fair_constitution')]
             ),
@@ -400,7 +414,7 @@ class EmergencyCeilingTest extends TestCase
 
             return $connection;
         } catch (\Throwable $e) {
-            $this->markTestSkipped('Live PostgreSQL unreachable — run inside the app container. (' . $e->getMessage() . ')');
+            $this->markTestSkipped('Live PostgreSQL unreachable — run inside the app container. ('.$e->getMessage().')');
         }
     }
 }

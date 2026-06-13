@@ -59,22 +59,22 @@ class FuturePhasePlaceholdersTest extends TestCase
     // thresholds resolve through the PROTECTED quorum()/supermajority()
     // over the CIVIC population. Art. II §6.
 
-    public function test_worker_representation_thresholds_and_scaling(): void
-    {
-        $this->markTestSkipped(
-            'Phase D — first worker-elected governor at 100 employees, linear scaling to '
-            . 'parity at 2,000; joint chair elected by the full board; applies identically to '
-            . 'departments, CGCs, and private enterprises. Art. III §6.'
-        );
-    }
+    // test_worker_representation_thresholds_and_scaling — replaced by the
+    // real WorkerRepresentationTest (Phase D / D-O4): the Art. III §6
+    // formula pinned at its endpoints (99→0, 100→1, parity→owner seats,
+    // monotone, parity-capped), the frozen mockup cases verbatim, the
+    // single-implementation source pin, the invalid-board act/cure
+    // posture, the joint-chair majority-of-all-seated gate, and the
+    // CLK-13 100th-worker auto-trigger chain (the Phase D exit
+    // criterion). Art. III §6.
 
-    public function test_cgc_intellectual_property_is_public_domain_forever(): void
-    {
-        $this->markTestSkipped(
-            'Phase D — CGC IP register entries are irreversible: no write path may privatize '
-            . 'or delete a public-domain dedication. Art. III §5.'
-        );
-    }
+    // test_cgc_intellectual_property_is_public_domain_forever — replaced
+    // by the real CgcIpPublicDomainTest (Phase D / D-O6): append-only
+    // schema (trigger + privilege revocation + single-value status
+    // CHECK), raw UPDATE/DELETE raise, the dedicate-only write surface
+    // (model throws; source-scanned), sale payloads carrying ip_/reclaim
+    // keys rejected pre-vote, ip_is_public_domain never flips false on a
+    // CGC, and the identical-regulation is_cgc branch pin. Art. III §5.
 
     public function test_judicial_panels_odd_severity_scaled(): void
     {

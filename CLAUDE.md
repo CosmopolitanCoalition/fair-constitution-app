@@ -205,6 +205,7 @@ app/Domain/Counting/   (counting core: Micro, BallotSet, CountInput, CountResult
 app/Services/DistrictingService.php
 app/Services/ElectionTriggerService.php
 app/Services/ConstitutionalValidator.php
+app/Services/Organizations/CoDeterminationService.php   (Art. III §6 hardened math — Phase D)
 app/Models/ConstitutionalSettings.php
 app/Models/Jurisdiction.php
 database/migrations/2026_01_01_000001_create_jurisdictions_table.php

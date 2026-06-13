@@ -121,6 +121,17 @@ class ChamberVoteService
         // bicameral 'n/a') always run one 'all' lane over ALL serving.
         $perKind = ($config['bicameral'] ?? 'n/a') === 'per_kind';
 
+        // Phase D (Art. III §6 enforcement posture): an INVALID board
+        // cannot open a board vote except the cure path (chair election /
+        // seating side-effects). Already-open votes close normally —
+        // snapshot-at-open discipline.
+        if ($bodyType === ChamberVote::BODY_BOARD) {
+            \App\Services\Organizations\OrgBoardService::assertBoardMayOpenVote(
+                \App\Models\Board::query()->findOrFail($bodyId),
+                $voteType,
+            );
+        }
+
         [$legislature, $jurisdictionId, $laneCounts] = $this->resolveBody($bodyType, $bodyId, $perKind);
 
         // ── Art. II §2 session order: emergency business first ──────────────
@@ -324,6 +335,131 @@ class ChamberVoteService
             }
 
             if (VoteCast::query()->where('vote_id', $fresh->id)->where('is_tiebreak', false)->count() >= $expected) {
+                $this->close($fresh);
+            }
+
+            return $cast;
+        };
+
+        return DB::transactionLevel() > 0 ? $run() : DB::transaction($run);
+    }
+
+    // =========================================================================
+    // castBoardSeat — Phase D (D-O8: body_type='board' votes)
+    // =========================================================================
+
+    /**
+     * Record one BOARD SEAT's public vote on a body_type='board' chamber
+     * vote (the joint-chair RCV and board yes/no business — Art. III §6).
+     * Identical discipline to cast(): one transaction, immutable cast row
+     * (vote_casts.board_seat_id — the D-O8 XOR), lane counter, public
+     * record, auto-close at full participation. No Speaker logic — boards
+     * have no presiding neutrality rule; every seated seat casts.
+     *
+     * `cast_via_form` records 'WF-ORG-05' — FLAGGED REGISTRY GAP: the
+     * catalog carries no board-member ballot form; the workflow ref keeps
+     * the record honest until the registry grows one.
+     */
+    public function castBoardSeat(
+        ChamberVote $vote,
+        \App\Models\BoardSeat $seat,
+        ?string $value,
+        ?array $rankings = null,
+        ?string $explanation = null,
+        string $viaForm = 'WF-ORG-05',
+    ): VoteCast {
+        $run = function () use ($vote, $seat, $value, $rankings, $explanation, $viaForm): VoteCast {
+            $fresh = ChamberVote::query()->whereKey($vote->id)->lockForUpdate()->firstOrFail();
+
+            if ($fresh->status !== ChamberVote::STATUS_OPEN) {
+                throw new ConstitutionalViolation(
+                    "Vote {$fresh->id} is not open (status: {$fresh->status}).",
+                    'Art. III §6'
+                );
+            }
+
+            if ($fresh->body_type !== ChamberVote::BODY_BOARD) {
+                throw new ConstitutionalViolation(
+                    'Board-seat casts belong to board votes — chamber members cast through their member row.',
+                    'Art. III §6 · as implemented'
+                );
+            }
+
+            if ((string) $seat->board_id !== (string) $fresh->body_id
+                || $seat->status !== \App\Models\BoardSeat::STATUS_SEATED) {
+                throw new ConstitutionalViolation(
+                    'Only currently SEATED members of this board may cast on its votes.',
+                    'Art. III §6'
+                );
+            }
+
+            // Method/value pairing — identical to cast().
+            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
+                if (! in_array($value, [VoteCast::VALUE_YES, VoteCast::VALUE_NO, VoteCast::VALUE_ABSTAIN], true) || $rankings !== null) {
+                    throw new ConstitutionalViolation(
+                        'A yes/no vote takes exactly one of yes|no|abstain (no rankings).',
+                        'Art. III §6 · as implemented'
+                    );
+                }
+            } else {
+                if ($value !== null || ! is_array($rankings) || $rankings === []) {
+                    throw new ConstitutionalViolation(
+                        'A ranked vote takes a non-empty ranking list (no yes/no value).',
+                        'Art. III §6 · as implemented'
+                    );
+                }
+                $rankings = array_values(array_map('strval', $rankings));
+            }
+
+            if (VoteCast::query()->where('vote_id', $fresh->id)->where('board_seat_id', $seat->id)->exists()) {
+                throw new ConstitutionalViolation(
+                    'This seat has already cast on this vote — casts are immutable (the record is the record).',
+                    'Art. III §6 · as implemented'
+                );
+            }
+
+            $cast = VoteCast::create([
+                'vote_id'       => $fresh->id,
+                'member_id'     => null,
+                'board_seat_id' => $seat->id,
+                'lane'          => ChamberVoteTally::LANE_ALL,
+                'value'         => $value,
+                'rankings'      => $rankings,
+                'explanation'   => $explanation,
+                'cast_via_form' => $viaForm,
+                'cast_at'       => now(),
+            ]);
+
+            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
+                ChamberVoteTally::query()
+                    ->where('vote_id', $fresh->id)
+                    ->where('lane', ChamberVoteTally::LANE_ALL)
+                    ->increment($value);
+            }
+
+            // Board votes are governance acts — PUBLIC, like every
+            // chamber cast (the exact opposite of ballots).
+            $record = $this->records->publish(
+                kind: 'vote',
+                title: sprintf(
+                    'Board vote cast on %s — %s',
+                    $fresh->vote_type,
+                    $fresh->vote_method === ChamberVote::METHOD_YES_NO ? $value : 'ranked ballot'
+                ),
+                body: $explanation,
+                attrs: [
+                    'actor_user_id'   => $seat->holder_user_id !== null ? (string) $seat->holder_user_id : null,
+                    'jurisdiction_id' => (string) $fresh->jurisdiction_id,
+                    'via_workflow'    => $viaForm,
+                    'subject_type'    => 'chamber_vote',
+                    'subject_id'      => (string) $fresh->id,
+                ],
+            );
+
+            $cast->forceFill(['public_record_id' => $record->id])->save();
+
+            // Auto-close at full participation (every seated seat cast).
+            if (VoteCast::query()->where('vote_id', $fresh->id)->where('is_tiebreak', false)->count() >= $fresh->serving_snapshot) {
                 $this->close($fresh);
             }
 
@@ -748,7 +884,37 @@ class ChamberVoteService
             return [$legislature, (string) ($roster['jurisdiction_id'] ?? $legislature->jurisdiction_id), $roster['lanes']];
         }
 
-        throw new RuntimeException("Body type [{$bodyType}] votes land in Phase D (org boards).");
+        // Phase D (D-O8 — PHASE_D_DESIGN_organizations §C.3): board votes
+        // run ONE 'all' lane over the SEATED board seats — owner-elected,
+        // worker-elected, and governor seats all cast with equal votes
+        // (Art. III §6 "chair elected jointly by entire board").
+        // `legislature_id` stays NULL, as the chamber_votes migration
+        // anticipated; jurisdiction resolves through the boardable.
+        if ($bodyType === ChamberVote::BODY_BOARD) {
+            $board = \App\Models\Board::query()->findOrFail($bodyId);
+
+            $seated = \App\Models\BoardSeat::query()
+                ->where('board_id', $board->id)
+                ->where('status', \App\Models\BoardSeat::STATUS_SEATED)
+                ->count();
+
+            if ($seated < 1) {
+                throw new ConstitutionalViolation(
+                    'A board vote needs at least one seated board member.',
+                    'Art. III §6'
+                );
+            }
+
+            $jurisdictionId = $board->jurisdictionId();
+
+            if ($jurisdictionId === null) {
+                throw new RuntimeException("Board [{$bodyId}] resolves to no jurisdiction.");
+            }
+
+            return [null, $jurisdictionId, [ChamberVoteTally::LANE_ALL => $seated]];
+        }
+
+        throw new RuntimeException("Unknown chamber-vote body type [{$bodyType}].");
     }
 
     private function laneForMember(ChamberVote $vote, LegislatureMember $member): string
@@ -839,14 +1005,24 @@ class ChamberVoteService
 
         // Candidates: every serving member of the body (any member is
         // nominable — neutrality is a duty of the office, not an
-        // eligibility test).
-        $candidateIds = LegislatureMember::query()
-            ->where('legislature_id', $vote->legislature_id)
-            ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
-            ->orderBy('id')
-            ->pluck('id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
+        // eligibility test). Board votes (Phase D): every SEATED board
+        // seat — owner-elected, worker-elected, governor alike
+        // (Art. III §6 joint chair).
+        $candidateIds = $vote->body_type === ChamberVote::BODY_BOARD
+            ? \App\Models\BoardSeat::query()
+                ->where('board_id', $vote->body_id)
+                ->where('status', \App\Models\BoardSeat::STATUS_SEATED)
+                ->orderBy('id')
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->all()
+            : LegislatureMember::query()
+                ->where('legislature_id', $vote->legislature_id)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
+                ->orderBy('id')
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->all();
 
         $ballots = BallotSet::fromRankings(
             $casts->map(fn (VoteCast $c) => array_values($c->rankings ?? []))->filter(fn ($r) => $r !== [])
@@ -866,9 +1042,14 @@ class ChamberVoteService
         $winnerId = $result->elected[0]['candidacy_id'] ?? null;
         $passed   = $winnerId !== null;
 
-        if ($passed && $vote->threshold_basis === ChamberVote::BASIS_SUPERMAJORITY) {
+        if ($passed && ($vote->threshold_basis === ChamberVote::BASIS_SUPERMAJORITY
+            || $vote->body_type === ChamberVote::BODY_BOARD)) {
             // Peg: final-round tally must reach required_yes OF SERVING —
             // non-casters and exhausted ballots stay in the denominator.
+            // Board chair votes (rcv_majority, Phase D): the winner must
+            // reach a MAJORITY of ALL SEATED board seats — required_yes
+            // snapshots quorum(seated) at open (Art. III §6; the mockup's
+            // "12 ballots, majority is 7").
             $finalMicro = $result->finalTallies[$winnerId] ?? 0;
             $passed     = $finalMicro >= $tally->required_yes * VoteCountingService::SCALE;
         }
@@ -932,6 +1113,16 @@ class ChamberVoteService
             'appointment_consent'   => app(\App\Services\Legislature\ChamberActService::class)->resolveConsentVote($vote, $outcome),
             'removal_proceeding'    => app(\App\Services\Legislature\OversightService::class)->resolveRemovalVote($vote, $outcome),
             'committee'             => app(\App\Services\Legislature\CommitteeService::class)->resolveChairVote($vote, $outcome),
+            // Phase D (D-O8): board joint-chair election (Art. III §6).
+            'board'                 => app(\App\Services\Organizations\OrgBoardService::class)->resolveChairVote($vote, $outcome),
+            // Phase D executive scope (PHASE_D_DESIGN_executive §B/§C/§D):
+            // constituent consent (F-LEG-015 dual leg — generic, Phase E
+            // judiciary conversion reuses it), governor removal (ordinary
+            // majority, owner ruling #14), department policy proposals
+            // (the board decides).
+            'constituent_consent' => app(\App\Services\Executive\ExecutiveFormationService::class)->resolveConstituentConsentVote($vote, $outcome),
+            'governor_removal'    => app(\App\Services\Executive\BoardGovernorService::class)->resolveRemovalVote($vote, $outcome),
+            'policy_proposal'     => app(\App\Services\Executive\DepartmentService::class)->resolvePolicyVote($vote, $outcome),
             default  => null,
         };
     }
@@ -946,6 +1137,12 @@ class ChamberVoteService
             \App\Models\Appointment::class         => 'appointment_consent',
             \App\Models\RemovalProceeding::class   => 'removal_proceeding',
             \App\Models\Committee::class           => 'committee',
+            // Phase D (D-O8): board chair elections carry the board itself.
+            \App\Models\Board::class               => 'board',
+            // Phase D executive votables:
+            \App\Models\ConstituentConsent::class      => 'constituent_consent',
+            \App\Models\GovernorRemovalRequest::class  => 'governor_removal',
+            \App\Models\PolicyProposal::class          => 'policy_proposal',
             default                                => str_replace('\\', '.', strtolower(class_basename($votable))),
         };
     }

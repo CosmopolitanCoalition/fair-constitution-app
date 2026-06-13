@@ -100,7 +100,23 @@ class BallotSubmission implements FormHandler
 
         $userId = (string) $actor->getKey();
 
-        if (! RaceFootprint::userInFootprint($userId, $race)) {
+        // Phase D (PHASE_D_DESIGN_organizations §C.1): org-board races
+        // gate on CLASS membership (owners/workers, one-member-one-vote
+        // within the class — stakes are NEVER vote weights); residents
+        // races keep the Art. I association footprint. Ballot machinery
+        // (envelope/commitment/secrecy) is identical either way.
+        if ($race->electorate_type !== ElectionRace::ELECTORATE_RESIDENTS) {
+            $eligible = app(\App\Services\Organizations\OrgElectorateService::class)->isEligible($userId, $race);
+
+            if (! $eligible) {
+                throw new ConstitutionalViolation(
+                    'no_class_membership — this board race belongs to the '
+                    . ($race->electorate_type === ElectionRace::ELECTORATE_WORKERS ? 'worker' : 'owner')
+                    . ' class (Art. III §6).',
+                    'Art. III §6'
+                );
+            }
+        } elseif (! RaceFootprint::userInFootprint($userId, $race)) {
             throw new ConstitutionalViolation(
                 'Your active residency association does not resolve into this race — voting follows '
                 . 'jurisdictional association (Art. I).',

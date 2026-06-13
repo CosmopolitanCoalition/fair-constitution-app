@@ -32,6 +32,10 @@ class VoteTypeRegistryTest extends TestCase
         // RCV / STV (6)
         'general_legislative', 'exec_committee_stv', 'exec_individual_rcv',
         'judicial_election', 'committee_chair', 'committee_preference',
+        // Phase D addition (PHASE_D_DESIGN_organizations §C.3, additive
+        // under constitutional review): board joint chair — RCV by the
+        // ENTIRE board, winner needs a majority of ALL seated seats.
+        'board_chair_elect',
         // The implicit 33rd (owner ruling: unstated = majority of all serving)
         'procedural_motion',
     ];
@@ -42,7 +46,8 @@ class VoteTypeRegistryTest extends TestCase
 
     private const BASES        = [
         'majority', 'supermajority', 'population_majority', 'population_supermajority',
-        'rcv_single', 'rcv_supermajority', 'stv', 'ranked_preference', 'unanimity_constituents',
+        'rcv_single', 'rcv_supermajority', 'rcv_majority', 'stv', 'ranked_preference',
+        'unanimity_constituents',
     ];
 
     private const DENOMINATORS = ['serving', 'committee_serving', 'civic_population', 'constituent_jurisdictions', 'board'];
@@ -52,7 +57,9 @@ class VoteTypeRegistryTest extends TestCase
         $config = config('constitution.vote_types');
 
         $this->assertIsArray($config);
-        $this->assertCount(33, $config);
+        // 33 registry rows + the Phase D board-chair addition (additive
+        // registry change under constitutional review — design §C.3).
+        $this->assertCount(34, $config);
         $this->assertSame([], array_diff(self::KEYS, array_keys($config)), 'missing registry keys');
         $this->assertSame([], array_diff(array_keys($config), self::KEYS), 'keys not in the registry');
     }
@@ -81,6 +88,17 @@ class VoteTypeRegistryTest extends TestCase
     {
         foreach (config('constitution.vote_types') as $key => $row) {
             if ($row['engine'] !== 'chamber') {
+                continue;
+            }
+
+            // Phase D: the board chair vote runs on the chamber engine
+            // with the board's own seated-seat denominator and the
+            // rcv_majority close gate (Art. III §6 — winner needs a
+            // majority of ALL seated board seats).
+            if ($key === 'board_chair_elect') {
+                $this->assertSame('rcv_majority', $row['basis']);
+                $this->assertSame('board', $row['denominator']);
+
                 continue;
             }
 

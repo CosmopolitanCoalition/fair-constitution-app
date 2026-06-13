@@ -84,7 +84,7 @@ class TermLockstepTest extends TestCase
             foreach ($certificationInstants as $instant) {
                 $window = CertificationService::inheritedWindow(
                     CarbonImmutable::parse($instant),
-                    CarbonImmutable::parse($original . 'T00:00:00Z'),
+                    CarbonImmutable::parse($original.'T00:00:00Z'),
                 );
 
                 $this->assertSame(
@@ -121,11 +121,11 @@ class TermLockstepTest extends TestCase
         // are not writes) — across the statement, up to its semicolon.
         $forbidden = [
             '/->\s*update\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s' => 'query/model update() touching ends_on',
-            '/forceFill\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s'   => 'forceFill() touching ends_on',
-            '/->\s*fill\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s'   => 'fill() touching ends_on',
-            '/upsert\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s'      => 'upsert() touching ends_on',
-            '/->\s*ends_on\s*=[^=>]/'                        => 'property assignment to ends_on',
-            '/\bUPDATE\s+[^;]*\bSET\s+[^;]*\bends_on\b/is'   => 'raw SQL UPDATE ... SET ends_on',
+            '/forceFill\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s' => 'forceFill() touching ends_on',
+            '/->\s*fill\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s' => 'fill() touching ends_on',
+            '/upsert\s*\([^;]*[\'"]ends_on[\'"]\s*=>/s' => 'upsert() touching ends_on',
+            '/->\s*ends_on\s*=[^=>]/' => 'property assignment to ends_on',
+            '/\bUPDATE\s+[^;]*\bSET\s+[^;]*\bends_on\b/is' => 'raw SQL UPDATE ... SET ends_on',
         ];
 
         foreach ($this->appPhpFiles() as $path) {
@@ -145,7 +145,7 @@ class TermLockstepTest extends TestCase
         $this->assertSame(
             [],
             $violations,
-            "CLK-10 violation — lockstep ends_on is write-once at Term creation:\n" . implode("\n", $violations)
+            "CLK-10 violation — lockstep ends_on is write-once at Term creation:\n".implode("\n", $violations)
         );
     }
 
@@ -159,23 +159,39 @@ class TermLockstepTest extends TestCase
      * appointments seated by chamber consent votes, CLK-09 armed at the
      * expiry). Civil appointments are NOT lockstep terms; the no-update
      * pin above still covers them — ends_on stays write-once everywhere.
+     * Phase D adds two more creation-only sites in the same spirit:
+     * CivilAppointmentService (BoG 10-year civil terms) and
+     * OrgBoardSeatingService (board-cycle terms at certification).
      */
     public function test_ends_on_writes_live_only_in_the_certification_pipeline(): void
     {
         $whitelist = [
-            $this->normalize($this->appPath() . '/Models/Term.php'),                  // fillable/casts
-            $this->normalize($this->appPath() . '/Services/CertificationService.php'), // Term::create + window math
-            $this->normalize($this->appPath() . '/Services/Legislature/ChamberActService.php'), // civil-appointment Term::create (Phase C)
+            $this->normalize($this->appPath().'/Models/Term.php'),                  // fillable/casts
+            $this->normalize($this->appPath().'/Services/CertificationService.php'), // Term::create + window math
+            $this->normalize($this->appPath().'/Services/Legislature/ChamberActService.php'), // civil-appointment Term::create (Phase C)
+            // Phase D (constitutional review note, PHASE_D_DESIGN_executive
+            // §C): BoG governors are 10-year CIVIL appointments (Art. II §9)
+            // — CivilAppointmentService::openCivilTerm is a Term::create with
+            // CLK-09 armed at the expiry, exactly the ChamberActService
+            // posture. Civil appointments are NOT lockstep terms; the
+            // no-update pin above still covers them.
+            $this->normalize($this->appPath().'/Services/CivilAppointmentService.php'),
+            // Phase D (PHASE_D_DESIGN_organizations §C): org/CGC/department
+            // board seats get a board-cycle term at election certification —
+            // OrgBoardSeatingService::certify is a Term::create (ends_on =
+            // certified + cycle_months) plus window-math/clock-metadata reads
+            // of the same key. Write-once at creation; never mutated.
+            $this->normalize($this->appPath().'/Services/Organizations/OrgBoardSeatingService.php'),
             // FE-C2: READ-shaped display prop — the Chamber page's term card
             // serializes legislatures.term_ends_on into an Inertia array
             // ('ends_on' => …->toDateString()); no Term row is touched. The
             // no-update pin above still covers every mutation path.
-            $this->normalize($this->appPath() . '/Http/Controllers/Legislature/Concerns/ResolvesChamber.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/Legislature/Concerns/ResolvesChamber.php'),
             // FE-C10: same READ-shaped display posture — the TermSync page
             // (§B.16, read-only by design: zero actions, no API) serializes
             // grouped Term.ends_on values into its lockstep table props.
             // SELECT + groupBy only; no Term row is ever written.
-            $this->normalize($this->appPath() . '/Http/Controllers/System/TermSyncController.php'),
+            $this->normalize($this->appPath().'/Http/Controllers/System/TermSyncController.php'),
         ];
 
         $found = [];
@@ -193,11 +209,11 @@ class TermLockstepTest extends TestCase
         $this->assertSame(
             [],
             array_values($rogue),
-            "ends_on written outside the certification pipeline:\n" . implode("\n", $rogue)
+            "ends_on written outside the certification pipeline:\n".implode("\n", $rogue)
         );
 
         // Sanity: the legitimate creation site actually exists.
-        $this->assertContains($this->normalize($this->appPath() . '/Services/CertificationService.php'), $found);
+        $this->assertContains($this->normalize($this->appPath().'/Services/CertificationService.php'), $found);
     }
 
     // ======================================================================
@@ -237,7 +253,7 @@ class TermLockstepTest extends TestCase
 
     private function appPath(): string
     {
-        return dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'app';
+        return dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'app';
     }
 
     private function normalize(string $path): string

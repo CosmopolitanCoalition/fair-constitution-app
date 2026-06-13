@@ -215,14 +215,26 @@ class ChamberActService
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
             $appointment->forceFill(['status' => Appointment::STATUS_REJECTED])->save();
 
+            // Phase D: a rejected governor nomination reopens its board
+            // seat for renomination (the WF-EXE-05 loop).
+            if ($appointment->appointable_type === 'board_seats') {
+                app(\App\Services\Executive\BoardGovernorService::class)->handleRejectedNomination($appointment);
+            }
+
             return;
         }
 
         match ($appointment->appointable_type) {
             'election_boards' => $this->seatBoardAppointment($appointment),
             'admin_offices'   => $this->seatOfficeAppointment($appointment),
+            // Phase D (PHASE_D_DESIGN_executive §C.2/§E.2): board-governor
+            // consent (F-EXE-001 → F-LEG-020 via bog_consent) and the thin
+            // R-30 department-staff slice ride the SAME consent pipeline.
+            'board_seats' => app(\App\Services\Executive\BoardGovernorService::class)->seat($appointment),
+            'departments' => app(\App\Services\Executive\BoardGovernorService::class)->seatCivilOfficer($appointment),
             default => throw new ConstitutionalViolation(
-                "Chamber-ops consent knows election_boards and admin_offices targets, not [{$appointment->appointable_type}].",
+                "Chamber-ops consent knows election_boards, admin_offices, board_seats, and departments "
+                . "targets, not [{$appointment->appointable_type}].",
                 'WF-SYS-04'
             ),
         };
@@ -356,6 +368,28 @@ class ChamberActService
 
                 return ['emergency_power_renewals', (string) $renewal->id];
             })(),
+
+            // ── Phase D executive scope (PHASE_D_DESIGN_executive §B/§C):
+            // F-LEG-014 / F-LEG-015 / F-LEG-016 adoption effects ─────────
+            ChamberVoteProposal::KIND_EXEC_DELEGATION =>
+                app(\App\Services\Executive\ExecutiveFormationService::class)->applyDelegation($proposal, $vote),
+
+            ChamberVoteProposal::KIND_EXEC_CONVERSION =>
+                app(\App\Services\Executive\ExecutiveFormationService::class)->applyConversionAdoption($proposal, $vote),
+
+            ChamberVoteProposal::KIND_DEPARTMENT_CREATION =>
+                app(\App\Services\Executive\DepartmentService::class)->createFromProposal($proposal, $vote),
+
+            // ── Phase D organizations scope (PHASE_D_DESIGN_organizations
+            // §D.2): F-LEG-019 / F-LEG-026 / F-LEG-027 adoption effects ──
+            ChamberVoteProposal::KIND_CGC_CREATION =>
+                app(\App\Services\Organizations\CgcService::class)->adoptCreation($vote, $proposal),
+
+            ChamberVoteProposal::KIND_MONOPOLY_ACQUISITION =>
+                app(\App\Services\Organizations\OrgConversionService::class)->adoptMonopolyAcquisition($vote, $proposal),
+
+            ChamberVoteProposal::KIND_CGC_REORG_SALE =>
+                app(\App\Services\Organizations\OrgConversionService::class)->adoptReorgSale($vote, $proposal),
 
             default => throw new ConstitutionalViolation(
                 "Unknown proposal kind [{$proposal->proposal_kind}].",
@@ -571,6 +605,12 @@ class ChamberActService
         return $out;
     }
 
+    /**
+     * Phase D refactor (PHASE_D_DESIGN_executive §C.2): the term-opening
+     * mechanics moved VERBATIM to the shared CivilAppointmentService so
+     * board governors ride the SAME CLK-09 path. Identical signature,
+     * zero behavioral change to the Phase C call sites.
+     */
     private function openCivilTerm(
         string $officeKind,
         string $officeType,
@@ -582,36 +622,17 @@ class ChamberActService
         CarbonImmutable $starts,
         CarbonImmutable $ends,
     ): Term {
-        $term = Term::create([
-            'office_kind'           => $officeKind,
-            'office_type'           => $officeType,
-            'office_id'             => $officeId,
-            'holder_user_id'        => $holderUserId,
-            'jurisdiction_id'       => $jurisdictionId,
-            'legislature_id'        => $legislatureId,
-            'term_class'            => Term::CLASS_CIVIL_APPOINTMENT,
-            'starts_on'             => $starts->toDateString(),
-            'ends_on'               => $ends->toDateString(),
-            'source_appointment_id' => $appointment->id,
-            'status'                => Term::STATUS_ACTIVE,
-        ]);
-
-        $appointment->forceFill([
-            'status'  => Appointment::STATUS_SEATED,
-            'term_id' => $term->id,
-        ])->save();
-
-        // CLK-09 — civil-officer term expiry (deadline timer at ends_on).
-        $this->clocks->arm(
-            'CLK-09',
-            $jurisdictionId,
-            'term',
-            (string) $term->id,
-            $ends->startOfDay(),
-            ['step' => 'civil_term_expiry', 'ends_on' => $ends->toDateString()],
+        return app(\App\Services\CivilAppointmentService::class)->openCivilTerm(
+            officeKind: $officeKind,
+            officeType: $officeType,
+            officeId: $officeId,
+            holderUserId: $holderUserId,
+            jurisdictionId: $jurisdictionId,
+            legislatureId: $legislatureId,
+            appointment: $appointment,
+            starts: $starts,
+            ends: $ends,
         );
-
-        return $term;
     }
 
     private function assertNomineeAssociation(string $userId, string $jurisdictionId, string $formId): void

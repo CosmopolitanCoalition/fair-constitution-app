@@ -287,6 +287,23 @@ class FormRegistry
         'F-CHR-002' => Handlers\CommitteeAgendaSetting::class,
         'F-CHR-003' => Handlers\BillReferralToFloor::class,
         'F-CHR-004' => Handlers\CommitteeReportFiling::class,
+
+        // ── Phase D — organizations scope (PHASE_D_DESIGN_organizations §D.2:
+        // registry/membership/workers, board elections, transfers,
+        // conversions, CGC chartering. F-LEG-020 stays unregistered — it is
+        // the consent VOTE, cast via F-LEG-004 like every consent.)
+        'F-IND-012' => Handlers\OrganizationRegistration::class,
+        'F-IND-013' => Handlers\OrganizationMembershipApplication::class,
+        'F-IND-014' => Handlers\WorkerRegistration::class,
+        'F-ORG-001' => Handlers\OrganizationProfileManagement::class,
+        'F-ORG-003' => Handlers\BoardElectionAdministration::class,
+        'F-ORG-004' => Handlers\WorkerBoardElectionAdministration::class,
+        'F-ORG-005' => Handlers\OwnershipTransferInitiation::class,
+        'F-ORG-006' => Handlers\PublicPrivateConversionRequest::class,
+        'F-ORG-007' => Handlers\OrganizationDissolution::class,
+        'F-LEG-019' => Handlers\CgcCreationAct::class,
+        'F-LEG-026' => Handlers\MonopolyAcquisitionVote::class,
+        'F-LEG-027' => Handlers\CgcReorganizationSaleVote::class,
     ];
 
     /**

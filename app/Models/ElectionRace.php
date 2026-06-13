@@ -26,6 +26,10 @@ class ElectionRace extends Model
     public const SEAT_KIND_TYPE_A = 'type_a';
     public const SEAT_KIND_TYPE_B = 'type_b';
     public const SEAT_KIND_SINGLE = 'single';
+    // Phase D (D-1 recut): executive committee races — seats ≥ 5, NO
+    // ceiling (Art. III §2 floors the committee model at 5; the 1–9 band
+    // is a chamber rule).
+    public const SEAT_KIND_EXEC_COMMITTEE = 'exec_committee';
 
     public const ELECTORATE_RESIDENTS = 'residents';
     public const ELECTORATE_OWNERS    = 'owners';

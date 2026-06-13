@@ -37,6 +37,25 @@ class ChamberVoteProposal extends Model
     public const KIND_EMERGENCY_INVOCATION        = 'emergency_invocation';
     public const KIND_EMERGENCY_RENEWAL           = 'emergency_renewal';
 
+    // Phase D executive scope (PHASE_D_DESIGN_executive §B/§C — resolved
+    // by ExecutiveActService, the ChamberActService sibling): delegation
+    // (F-LEG-014), conversion to elected office (F-LEG-015), department
+    // creation (F-LEG-016). Same posture — the institution mutation
+    // happens only on adoption.
+    public const KIND_EXEC_DELEGATION     = 'exec_delegation';
+    public const KIND_EXEC_CONVERSION     = 'exec_conversion';
+    public const KIND_DEPARTMENT_CREATION = 'department_creation';
+
+    // Phase D organizations scope (PHASE_D_DESIGN_organizations §D.2):
+    // CGC chartering (F-LEG-019), monopoly acquisition (F-LEG-026), CGC
+    // reorganization/sale (F-LEG-027). All ride `procedural_motion`
+    // (registry gap — unstated thresholds are an ordinary majority of all
+    // serving, MANIFEST §8 owner ruling); the proposal kind distinguishes
+    // the act.
+    public const KIND_CGC_CREATION         = 'cgc_creation';
+    public const KIND_MONOPOLY_ACQUISITION = 'monopoly_acquisition';
+    public const KIND_CGC_REORG_SALE       = 'cgc_reorg_sale';
+
     public const STATUS_OPEN     = 'open';
     public const STATUS_ADOPTED  = 'adopted';
     public const STATUS_REJECTED = 'rejected';

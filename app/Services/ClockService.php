@@ -56,6 +56,17 @@ class ClockService
         'CLK-04' => SpecialElectionBackstopJob::class,
         'CLK-05' => EvaluateResidencyThresholdsJob::class,
         'CLK-06' => EvaluateCriticalPopulationJob::class,
+        // CLK-09 — civil-officer term expiry (Phase D wires the
+        // board-governor consequence: term completed, seat term_ended,
+        // renomination opens; other office kinds stay record-only fires).
+        'CLK-09' => \App\Jobs\Clocks\CivilTermExpiryJob::class,
+        // CLK-13/CLK-14 — co-determination thresholds (Art. III §6,
+        // Phase D): the FIRE is registry-visible provenance; the handler
+        // re-runs the idempotent headcount recompute (queued — the
+        // event-driven RecomputeWorkerHeadcountJob is the primary path,
+        // the nightly EvaluateCoDeterminationJob sweep the safety net).
+        'CLK-13' => \App\Jobs\Organizations\EvaluateCoDeterminationJob::class,
+        'CLK-14' => \App\Jobs\Organizations\EvaluateCoDeterminationJob::class,
         // CLK-17 — petition-threshold safety-net sweep (the signature
         // insert is the event-driven primary path; Phase C batch 2).
         'CLK-17' => EvaluatePetitionThresholdJob::class,

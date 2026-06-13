@@ -443,6 +443,26 @@ return [
         'citation'    => 'Art. II §2 · as implemented',
     ],
 
+    // ── Phase D addition (PHASE_D_DESIGN_organizations §C.3) ────────────────
+    // Board joint chair — RCV by the FULL board (owner-elected, worker-
+    // elected, and governor seats all cast, one lane, equal votes); the
+    // final-round winner must reach a MAJORITY of ALL seated board seats
+    // (rcv_majority — the peg-quorum close gate with the majority
+    // threshold). Additive registry change under constitutional review;
+    // VoteTypeRegistryTest pins it.
+
+    'board_chair_elect' => [
+        'label'       => 'Board joint chair election (RCV by entire board)',
+        'category'    => 'rcv_stv',
+        'engine'      => 'chamber',
+        'basis'       => 'rcv_majority',
+        'denominator' => 'board',
+        'bicameral'   => 'n/a',
+        'dual'        => null,
+        'phase'       => 'D',
+        'citation'    => 'Art. III §6',
+    ],
+
     // ── The implicit 33rd row ───────────────────────────────────────────────
     // Owner ruling (mockups MANIFEST §8): unstated votes are an ordinary
     // majority of all serving members.

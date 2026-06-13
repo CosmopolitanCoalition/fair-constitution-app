@@ -36,11 +36,12 @@ use Illuminate\Support\Facades\DB;
  */
 class OversightService
 {
-    /** kind → adopted outcome (Art. II §3/§5). */
+    /** kind → adopted outcome (Art. II §3/§5; Phase D adds Art. III §3). */
     public const ADOPTED_OUTCOMES = [
-        RemovalProceeding::KIND_IMPEACHMENT => RemovalProceeding::OUTCOME_REMOVED,
-        RemovalProceeding::KIND_EXPULSION   => RemovalProceeding::OUTCOME_EXPELLED,
-        RemovalProceeding::KIND_CENSURE     => RemovalProceeding::OUTCOME_CENSURED,
+        RemovalProceeding::KIND_IMPEACHMENT       => RemovalProceeding::OUTCOME_REMOVED,
+        RemovalProceeding::KIND_EXPULSION         => RemovalProceeding::OUTCOME_EXPELLED,
+        RemovalProceeding::KIND_CENSURE           => RemovalProceeding::OUTCOME_CENSURED,
+        RemovalProceeding::KIND_EXECUTIVE_REMOVAL => RemovalProceeding::OUTCOME_REMOVED,
     ];
 
     /** Outcomes that vacate the seat (→ F-LEG-036). */
@@ -72,9 +73,12 @@ class OversightService
         ?User $complainant = null,
         string $via = 'manual',
     ): MisconductInvestigation {
-        if (! in_array($subjectType, ['legislature_members', 'users', 'legislatures'], true)) {
+        // Phase D extends the docket with executive members and board
+        // seats (F-EXE-004 legislative referral — design §D).
+        if (! in_array($subjectType, ['legislature_members', 'users', 'legislatures', 'executive_members', 'board_seats'], true)) {
             throw new ConstitutionalViolation(
-                "Investigation subjects are legislature_members, users, or legislatures — not [{$subjectType}].",
+                "Investigation subjects are legislature_members, users, legislatures, executive_members, "
+                . "or board_seats — not [{$subjectType}].",
                 'CGA Forms Catalog (I-ADM)'
             );
         }
@@ -204,6 +208,27 @@ class OversightService
                 throw new ConstitutionalViolation(
                     'Removal proceedings run against CURRENT members of this chamber.',
                     'Art. II §3'
+                );
+            }
+        }
+
+        // Phase D (design §B.4 — removal parity): executive members are
+        // removable by the SAME supermajority machinery. The subject must
+        // be seated on THIS jurisdiction's executive.
+        if ($subjectType === 'executive_members') {
+            $subject = \App\Models\ExecutiveMember::query()->whereKey($subjectId)->first();
+
+            $belongs = $subject !== null
+                && $subject->status === \App\Models\ExecutiveMember::STATUS_SEATED
+                && \App\Models\Executive::query()
+                    ->whereKey($subject->executive_id)
+                    ->where('jurisdiction_id', $legislature->jurisdiction_id)
+                    ->exists();
+
+            if (! $belongs) {
+                throw new ConstitutionalViolation(
+                    'Executive-removal proceedings run against SEATED members of this jurisdiction\'s executive.',
+                    'Art. III §3'
                 );
             }
         }
@@ -379,6 +404,33 @@ class OversightService
                 'jurisdiction_id' => (string) $legislature->jurisdiction_id,
                 'via_workflow'    => 'F-LEG-022',
             ]);
+        }
+
+        // Phase D (design §B.4): an executive member's removal closes their
+        // EXECUTIVE seat only (the legislative seat is untouched — expelling
+        // the legislator is a separate F-LEG-022). Delegated committees that
+        // drop below their act-fixed size top up by the SAME selection math;
+        // an individual principal's removal triggers advisor succession.
+        if ($resolved === RemovalProceeding::OUTCOME_REMOVED
+            && $proceeding->subject_type === 'executive_members') {
+            $member = \App\Models\ExecutiveMember::query()->find((string) $proceeding->subject_id);
+
+            if ($member !== null && $member->status === \App\Models\ExecutiveMember::STATUS_SEATED) {
+                $member->forceFill([
+                    'status'  => \App\Models\ExecutiveMember::STATUS_REMOVED,
+                    'left_at' => now()->toDateString(),
+                ])->save();
+
+                $executive = \App\Models\Executive::query()->findOrFail((string) $member->executive_id);
+                $formation = app(\App\Services\Executive\ExecutiveFormationService::class);
+
+                if ($member->selection === \App\Models\ExecutiveMember::SELECTION_DELEGATED_PROPORTIONAL) {
+                    $formation->topUpDelegated($executive);
+                } elseif ($executive->type === \App\Models\Executive::TYPE_INDIVIDUAL
+                    && $member->role === \App\Models\ExecutiveMember::ROLE_PRINCIPAL) {
+                    $formation->succeedPrincipal($executive);
+                }
+            }
         }
     }
 }

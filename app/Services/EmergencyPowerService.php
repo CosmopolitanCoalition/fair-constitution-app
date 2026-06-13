@@ -427,9 +427,10 @@ class EmergencyPowerService
             ],
         );
 
-        // Phase D hook (documented in the design): department_rules rows
-        // with enabling_type='emergency_power' expire in this same job —
-        // the cascade lands with D's table.
+        // Phase D (PHASE_D_DESIGN_executive §A D-5): department rules
+        // enabled by the dead power EXPIRE with it — the CLK-03 cascade.
+        app(\App\Services\Executive\DepartmentService::class)
+            ->expireRulesForEmergencyPower((string) $fresh->id);
 
         return true;
     }

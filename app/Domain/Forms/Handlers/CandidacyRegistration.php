@@ -67,15 +67,21 @@ class CandidacyRegistration implements FormHandler
             );
         }
 
-        if (($payload['residency_attested'] ?? false) !== true) {
+        $election = Election::query()->find($payload['election_id'] ?? null);
+
+        // The residency attestation belongs to PUBLIC-office races (Art. I).
+        // Org-board races (Phase D) gate on class membership instead — a
+        // residency demand there would be the forbidden extra condition.
+        $isOrgElection = $election !== null
+            && in_array($election->kind, [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER], true);
+
+        if (! $isOrgElection && ($payload['residency_attested'] ?? false) !== true) {
             throw new ConstitutionalViolation(
                 'Candidacy registration requires the residency attestation checkbox — the only '
                 . 'attestation that may exist.',
                 'Art. I'
             );
         }
-
-        $election = Election::query()->find($payload['election_id'] ?? null);
 
         if ($election === null) {
             throw new ConstitutionalViolation(
@@ -93,20 +99,44 @@ class CandidacyRegistration implements FormHandler
 
         $userId = (string) $actor->getKey();
 
-        // Office ∈ association chain: an active confirmation on the
-        // election's jurisdiction (ancestor sweep covers nesting).
-        $associated = DB::table('residency_confirmations')
-            ->where('user_id', $userId)
-            ->where('jurisdiction_id', (string) $election->jurisdiction_id)
-            ->where('is_active', true)
-            ->exists();
+        // Phase D (PHASE_D_DESIGN_organizations §C.1): org-board races are
+        // Art. III §6 BOARD STRUCTURE, not Art. I public office — the
+        // CLASS check replaces the association check (the single
+        // permissible ground mirrors 'no_residency_association' as
+        // 'no_class_membership'), and no I-ELB sits in the loop: the
+        // candidacy auto-validates against the election's race.
+        $orgRace = in_array($election->kind, [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER], true)
+            ? \App\Models\ElectionRace::query()->where('election_id', $election->id)->orderBy('created_at')->first()
+            : null;
 
-        if (! $associated) {
-            throw new ConstitutionalViolation(
-                "The election's jurisdiction is not in your association chain — candidacy follows "
-                . 'jurisdictional residency (and nothing else).',
-                'Art. I'
-            );
+        if ($orgRace !== null) {
+            $eligible = app(\App\Services\Organizations\OrgElectorateService::class)->isEligible($userId, $orgRace);
+
+            if (! $eligible) {
+                throw new ConstitutionalViolation(
+                    'no_class_membership — this board race belongs to the '
+                    . ($orgRace->electorate_type === 'workers' ? 'worker' : 'owner')
+                    . ' class; the class check is the only permissible ground (residency and identity '
+                    . 'conditions remain forbidden on org races).',
+                    'Art. III §6'
+                );
+            }
+        } else {
+            // Office ∈ association chain: an active confirmation on the
+            // election's jurisdiction (ancestor sweep covers nesting).
+            $associated = DB::table('residency_confirmations')
+                ->where('user_id', $userId)
+                ->where('jurisdiction_id', (string) $election->jurisdiction_id)
+                ->where('is_active', true)
+                ->exists();
+
+            if (! $associated) {
+                throw new ConstitutionalViolation(
+                    "The election's jurisdiction is not in your association chain — candidacy follows "
+                    . 'jurisdictional residency (and nothing else).',
+                    'Art. I'
+                );
+            }
         }
 
         $existing = Candidacy::query()
@@ -123,11 +153,15 @@ class CandidacyRegistration implements FormHandler
 
         $candidacy = Candidacy::query()->create([
             'election_id'           => (string) $election->id,
+            // Org races auto-validate in-handler (no I-ELB in the loop —
+            // the class check IS the validation, §C.2).
+            'race_id'               => $orgRace?->id,
             'user_id'               => $userId,
-            'status'                => Candidacy::STATUS_REGISTERED,
+            'status'                => $orgRace !== null ? Candidacy::STATUS_VALIDATED : Candidacy::STATUS_REGISTERED,
+            'validated_at'          => $orgRace !== null ? now() : null,
             'platform_statement'    => isset($payload['platform_statement']) ? (string) $payload['platform_statement'] : null,
             'position_tags'         => CampaignProfileSetup::cleanTags($payload['position_tags'] ?? []),
-            'residency_attested_at' => now(),
+            'residency_attested_at' => $orgRace !== null ? null : now(),
         ]);
 
         // R-06 derives from this row — flush the request cache.

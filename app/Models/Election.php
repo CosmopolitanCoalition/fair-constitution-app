@@ -72,6 +72,10 @@ class Election extends Model
         'triggered_by_timer_id',
         'vacancy_id',
         'ballot_key_wrapped',
+        // Phase D (D-O8): the governed board for org_board_* kinds.
+        'board_id',
+        // Phase D (D-1): the office an `executive`-kind election fills.
+        'executive_id',
     ];
 
     /** The wrapped ballot key must never serialize (design §B.5.2). */
@@ -105,6 +109,18 @@ class Election extends Model
     public function board(): BelongsTo
     {
         return $this->belongsTo(ElectionBoard::class, 'election_board_id');
+    }
+
+    /** Phase D: the governance board an org_board_* election fills. */
+    public function governedBoard(): BelongsTo
+    {
+        return $this->belongsTo(Board::class, 'board_id');
+    }
+
+    /** Phase D (D-1): the executive office an executive election fills. */
+    public function executive(): BelongsTo
+    {
+        return $this->belongsTo(Executive::class, 'executive_id');
     }
 
     public function races(): HasMany
