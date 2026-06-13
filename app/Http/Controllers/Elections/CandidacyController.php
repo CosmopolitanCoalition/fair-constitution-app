@@ -42,8 +42,7 @@ class CandidacyController extends Controller
         private readonly ConstitutionalEngine $engine,
         private readonly ApprovalService $approvals,
         private readonly RoleService $roles,
-    ) {
-    }
+    ) {}
 
     /** ESM-06 happy path (PHP-owned machine — §B conventions). */
     public static function machine(): array
@@ -70,11 +69,11 @@ class CandidacyController extends Controller
         $happy = self::machine();
 
         $branch = match ($status) {
-            Candidacy::STATUS_REJECTED     => 1, // registered → rejected
-            Candidacy::STATUS_WITHDRAWN    => 3, // … in_pool → withdrawn
+            Candidacy::STATUS_REJECTED => 1, // registered → rejected
+            Candidacy::STATUS_WITHDRAWN => 3, // … in_pool → withdrawn
             Candidacy::STATUS_NON_FINALIST => 3, // … in_pool → non_finalist (write-in eligible)
-            Candidacy::STATUS_DEFEATED     => 4, // … finalist → defeated
-            default                        => null,
+            Candidacy::STATUS_DEFEATED => 4, // … finalist → defeated
+            default => null,
         };
 
         return [
@@ -87,11 +86,23 @@ class CandidacyController extends Controller
     // GET /elections/{election}/candidacy — F-IND-011 (§B.2)
     // =========================================================================
 
-    public function create(Request $request, string $election): Response
+    public function create(Request $request, string $election): Response|RedirectResponse
     {
         $model = Election::query()
             ->with(['jurisdiction', 'races.jurisdiction', 'races.district'])
             ->findOrFail($election);
+
+        // Org board candidacy is class-gated (worker/owner membership) and
+        // belongs to the Organizations board-elections surface — NOT this
+        // public "Right to Stand" page (F-IND-011, Art. I). Bounce a stray
+        // link back to the legislative candidacy entry.
+        if (in_array($model->kind, [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER], true)) {
+            return redirect()->route('elections.entry.candidacy')->with(
+                'status',
+                'Board seats are stood for from the organization\'s board-elections page — the worker or owner class '
+                .'decides eligibility there, not the open right to stand for public office (Art. III §6).'
+            );
+        }
 
         $user = $request->user();
 
@@ -102,26 +113,26 @@ class CandidacyController extends Controller
             ->first();
 
         return Inertia::render('Elections/CandidacyRegistration', [
-            'surface'          => SurfaceMeta::for('elections/candidacy-registration'),
-            'election'         => [
-                'id'                 => (string) $model->id,
-                'jurisdiction_name'  => $model->jurisdiction?->name,
+            'surface' => SurfaceMeta::for('elections/candidacy-registration'),
+            'election' => [
+                'id' => (string) $model->id,
+                'jurisdiction_name' => $model->jurisdiction?->name,
                 'finalist_cutoff_at' => $model->finalist_cutoff_at?->toIso8601String(),
             ],
-            'phase'            => ElectionController::phase($model->status),
+            'phase' => ElectionController::phase($model->status),
             // CLK-18: registration is open exactly while the approval phase is.
             'registrationOpen' => $model->status === Election::STATUS_APPROVAL_OPEN,
-            'offices'          => $this->officesFor($user, $model),
-            'tagVocabulary'    => config('cga.position_tag_vocabulary', []),
-            'machine'          => self::machine(),
+            'offices' => $this->officesFor($user, $model),
+            'tagVocabulary' => config('cga.position_tag_vocabulary', []),
+            'machine' => self::machine(),
             'viewerAssociated' => in_array('R-03', $this->roles->rolesFor($user), true),
-            'myCandidacy'      => $mine === null ? null : [
-                'id'               => (string) $mine->id,
-                'status'           => $mine->status,
-                'office_label'     => $mine->race !== null
+            'myCandidacy' => $mine === null ? null : [
+                'id' => (string) $mine->id,
+                'status' => $mine->status,
+                'office_label' => $mine->race !== null
                     ? ElectionController::raceLabel($mine->race)
                     : 'Awaiting race binding (F-ELB-002)',
-                'validated_at'     => $mine->validated_at?->toIso8601String(),
+                'validated_at' => $mine->validated_at?->toIso8601String(),
                 'rejection_reason' => $mine->rejection_reason,
             ],
         ]);
@@ -136,19 +147,19 @@ class CandidacyController extends Controller
             // The office select is presentational (race binding is the
             // board's F-ELB-002 act); it must still be a race of THIS
             // election so the form cannot point elsewhere.
-            'race_id'            => ['required', 'uuid',
+            'race_id' => ['required', 'uuid',
                 Rule::exists('election_races', 'id')->where('election_id', $model->id)],
             'platform_statement' => ['nullable', 'string', 'max:10000'],
-            'position_tags'      => ['sometimes', 'array', 'max:20'],
-            'position_tags.*'    => ['string', Rule::in(config('cga.position_tag_vocabulary', []))],
+            'position_tags' => ['sometimes', 'array', 'max:20'],
+            'position_tags.*' => ['string', Rule::in(config('cga.position_tag_vocabulary', []))],
             'residency_attested' => ['required', 'accepted'],
         ]);
 
         $this->engine->file('F-IND-011', $request->user(), [
-            'election_id'        => (string) $model->id,
-            'jurisdiction_id'    => (string) $model->jurisdiction_id,
+            'election_id' => (string) $model->id,
+            'jurisdiction_id' => (string) $model->jurisdiction_id,
             'platform_statement' => $validated['platform_statement'] ?? null,
-            'position_tags'      => array_values($validated['position_tags'] ?? []),
+            'position_tags' => array_values($validated['position_tags'] ?? []),
             'residency_attested' => true,
         ]);
 
@@ -165,41 +176,41 @@ class CandidacyController extends Controller
             ->with(['user', 'election.jurisdiction', 'race.jurisdiction', 'race.district'])
             ->findOrFail($candidacy);
 
-        $user     = $request->user();
+        $user = $request->user();
         $election = $model->election;
-        $race     = $model->race;
-        $phase    = ElectionController::phase($election->status);
-        $isOwner  = $user !== null && (string) $user->getKey() === (string) $model->user_id;
+        $race = $model->race;
+        $phase = ElectionController::phase($election->status);
+        $isOwner = $user !== null && (string) $user->getKey() === (string) $model->user_id;
 
         ['machine' => $machine, 'current' => $current] = self::machineFor($model->status);
 
         return Inertia::render('Elections/CandidateProfile', [
-            'surface'   => SurfaceMeta::for('elections/candidate-profile'),
+            'surface' => SurfaceMeta::for('elections/candidate-profile'),
             'candidacy' => [
-                'id'            => (string) $model->id,
-                'name'          => $model->user?->display_name ?? $model->user?->name ?? 'Candidate',
-                'statement'     => $model->platform_statement,
+                'id' => (string) $model->id,
+                'name' => $model->user?->display_name ?? $model->user?->name ?? 'Candidate',
+                'statement' => $model->platform_statement,
                 'position_tags' => $model->position_tags ?? [],
-                'status'        => $model->status,
-                'withdrawn'     => $model->status === Candidacy::STATUS_WITHDRAWN,
-                'incumbent'     => $this->isIncumbent($model),
-                'race'          => $race === null ? null : [
-                    'id'             => (string) $race->id,
-                    'election_id'    => (string) $election->id,
-                    'label'          => ElectionController::raceLabel($race),
-                    'seats'          => (int) $race->seats,
+                'status' => $model->status,
+                'withdrawn' => $model->status === Candidacy::STATUS_WITHDRAWN,
+                'incumbent' => $this->isIncumbent($model),
+                'race' => $race === null ? null : [
+                    'id' => (string) $race->id,
+                    'election_id' => (string) $election->id,
+                    'label' => ElectionController::raceLabel($race),
+                    'seats' => (int) $race->seats,
                     'finalist_count' => (int) $race->finalist_count,
-                    'phase'          => $phase,
+                    'phase' => $phase,
                 ],
             ],
-            'standing'     => $race === null ? null : $this->standingFor($model, $race, $phase),
-            'machine'      => $machine,
+            'standing' => $race === null ? null : $this->standingFor($model, $race, $phase),
+            'machine' => $machine,
             'currentState' => $current,
             'endorsements' => $this->endorsementsFor($model),
-            'requests'     => $isOwner ? $this->requestsFor($model) : [],
+            'requests' => $isOwner ? $this->requestsFor($model) : [],
             'publicRecord' => $this->publicRecordFor($model),
-            'isOwner'      => $isOwner,
-            'can'          => [
+            'isOwner' => $isOwner,
+            'can' => [
                 // Ballot lock (CLK-21): withdrawal closes at the finalist
                 // cutoff — mirrored client-side as disabled-with-citation,
                 // enforced server-side by the F-CAN-003 handler.
@@ -232,8 +243,8 @@ class CandidacyController extends Controller
 
         $validated = $request->validate([
             'platform_statement' => ['nullable', 'string', 'max:10000'],
-            'position_tags'      => ['sometimes', 'array', 'max:20'],
-            'position_tags.*'    => ['string', Rule::in(config('cga.position_tag_vocabulary', []))],
+            'position_tags' => ['sometimes', 'array', 'max:20'],
+            'position_tags.*' => ['string', Rule::in(config('cga.position_tag_vocabulary', []))],
         ]);
 
         $payload = ['candidacy_id' => (string) $model->id, 'jurisdiction_id' => (string) $model->election?->jurisdiction_id];
@@ -256,7 +267,7 @@ class CandidacyController extends Controller
         $model = Candidacy::query()->findOrFail($candidacy);
 
         $this->engine->file('F-CAN-003', $request->user(), [
-            'candidacy_id'    => (string) $model->id,
+            'candidacy_id' => (string) $model->id,
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
@@ -270,13 +281,13 @@ class CandidacyController extends Controller
 
         $validated = $request->validate([
             'organization_id' => ['required', 'uuid'],
-            'message'         => ['nullable', 'string', 'max:2000'],
+            'message' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $this->engine->file('F-CAN-002', $request->user(), [
-            'candidacy_id'    => (string) $model->id,
+            'candidacy_id' => (string) $model->id,
             'organization_id' => $validated['organization_id'],
-            'message'         => $validated['message'] ?? null,
+            'message' => $validated['message'] ?? null,
             'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
         ]);
 
@@ -318,9 +329,9 @@ class CandidacyController extends Controller
             ->values()
             ->map(fn (ElectionRace $r) => [
                 'election_id' => (string) $election->id,
-                'race_id'     => (string) $r->id,
-                'label'       => ElectionController::raceLabel($r),
-                'seats'       => (int) $r->seats,
+                'race_id' => (string) $r->id,
+                'label' => ElectionController::raceLabel($r),
+                'seats' => (int) $r->seats,
             ])
             ->all();
     }
@@ -353,14 +364,14 @@ class CandidacyController extends Controller
             : in_array($candidacy->status, [Candidacy::STATUS_FINALIST, Candidacy::STATUS_ELECTED, Candidacy::STATUS_DEFEATED], true);
 
         return [
-            'rank'          => (int) $mine->rank,
-            'of'            => $standings->count(),
-            'approvals'     => (int) $mine->approvals_count,
-            'isFinalist'    => $isFinalist,
+            'rank' => (int) $mine->rank,
+            'of' => $standings->count(),
+            'approvals' => (int) $mine->approvals_count,
+            'isFinalist' => $isFinalist,
             'lineApprovals' => (int) ($lineRow?->approvals_count ?? 0),
-            'topApprovals'  => (int) ($standings->firstWhere('rank', 1)?->approvals_count ?? $mine->approvals_count),
-            'frozen'        => (bool) $mine->is_frozen,
-            'asOf'          => $mine->as_of_date?->toDateString(),
+            'topApprovals' => (int) ($standings->firstWhere('rank', 1)?->approvals_count ?? $mine->approvals_count),
+            'frozen' => (bool) $mine->is_frozen,
+            'asOf' => $mine->as_of_date?->toDateString(),
         ];
     }
 
@@ -410,14 +421,14 @@ class CandidacyController extends Controller
                 ->map(fn ($id) => (string) $id);
 
             $publicWeb = $users->map(fn (User $u) => [
-                'name'          => $u->display_name ?? $u->name,
-                'user_id'       => (string) $u->id,
+                'name' => $u->display_name ?? $u->name,
+                'user_id' => (string) $u->id,
                 'alsoCandidate' => $candidateUserIds->contains((string) $u->id),
-                'endorses'      => $webRows
+                'endorses' => $webRows
                     ->where('endorser_id', $u->id)
                     ->map(fn ($row) => [
                         'candidacy_id' => (string) $row->candidacy_id,
-                        'name'         => $row->candidate_display_name ?? $row->candidate_name,
+                        'name' => $row->candidate_display_name ?? $row->candidate_name,
                     ])
                     ->values()
                     ->all(),
@@ -426,14 +437,14 @@ class CandidacyController extends Controller
 
         return [
             'orgs' => $orgRows->map(fn ($row) => [
-                'id'         => (string) $row->id,
-                'name'       => $row->name,
-                'type'       => $row->type,
+                'id' => (string) $row->id,
+                'name' => $row->name,
+                'type' => $row->type,
                 'granted_at' => $row->endorsed_at,
             ])->all(),
             'individual' => [
-                'total'   => $individuals->count(),
-                'public'  => $publicIds->count(),
+                'total' => $individuals->count(),
+                'public' => $publicIds->count(),
                 'private' => $individuals->count() - $publicIds->count(),
             ],
             'publicWeb' => $publicWeb,
@@ -449,9 +460,9 @@ class CandidacyController extends Controller
             ->orderByDesc('requested_at')
             ->get()
             ->map(fn (EndorsementRequest $r) => [
-                'org_name'     => $r->organization?->name,
+                'org_name' => $r->organization?->name,
                 'requested_at' => $r->requested_at?->toIso8601String(),
-                'status'       => $r->status,
+                'status' => $r->status,
             ])
             ->all();
     }
@@ -477,15 +488,15 @@ class CandidacyController extends Controller
             ->limit(20)
             ->get()
             ->map(fn (AuditEntry $entry) => [
-                'seq'   => $entry->seq,
-                'date'  => $entry->occurred_at?->toIso8601String(),
-                'label' => $entry->event . ($entry->ref !== null ? " · {$entry->ref}" : ''),
+                'seq' => $entry->seq,
+                'date' => $entry->occurred_at?->toIso8601String(),
+                'label' => $entry->event.($entry->ref !== null ? " · {$entry->ref}" : ''),
             ])
             ->all();
 
         return [
-            'votes'      => [],
-            'actions'    => $actions,
+            'votes' => [],
+            'actions' => $actions,
             'statements' => [],
         ];
     }

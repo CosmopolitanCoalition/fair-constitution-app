@@ -45,8 +45,7 @@ class ElectionController extends Controller
         private readonly ElectionLifecycleService $lifecycle,
         private readonly SettingsResolver $settings,
         private readonly RoleService $roles,
-    ) {
-    }
+    ) {}
 
     // =========================================================================
     // Shared phase vocabulary (used by Candidacy/Approval controllers too)
@@ -66,8 +65,8 @@ class ElectionController extends Controller
             Election::STATUS_SCHEDULED,
             Election::STATUS_APPROVAL_OPEN,
             Election::STATUS_FINALIST_CUTOFF => 'approval',
-            Election::STATUS_RANKED_OPEN     => 'ranked',
-            default                          => 'certifying',
+            Election::STATUS_RANKED_OPEN => 'ranked',
+            default => 'certifying',
         };
     }
 
@@ -76,11 +75,11 @@ class ElectionController extends Controller
     {
         return match ($status) {
             Election::STATUS_VOTING_CLOSED,
-            Election::STATUS_TABULATING  => 'tabulating',
+            Election::STATUS_TABULATING => 'tabulating',
             Election::STATUS_CERTIFIED,
-            Election::STATUS_FINAL       => 'certified',
+            Election::STATUS_FINAL => 'certified',
             Election::STATUS_AUDIT_RERUN => 'recount',
-            default                      => null,
+            default => null,
         };
     }
 
@@ -104,8 +103,8 @@ class ElectionController extends Controller
     {
         return match ($status) {
             Election::STATUS_AUDIT_RERUN => Election::STATUS_CERTIFIED,
-            Election::STATUS_CANCELLED   => null,
-            default                      => $status,
+            Election::STATUS_CANCELLED => null,
+            default => $status,
         };
     }
 
@@ -137,11 +136,11 @@ class ElectionController extends Controller
             ->pluck('j.name');
 
         $suffix = $members->count() === 5 ? '…' : '';
-        $label  = $number !== null ? "District {$number}" : 'District';
+        $label = $number !== null ? "District {$number}" : 'District';
 
         return $members->isEmpty()
             ? $label
-            : "{$label} · " . $members->implode(', ') . $suffix;
+            : "{$label} · ".$members->implode(', ').$suffix;
     }
 
     // =========================================================================
@@ -169,11 +168,11 @@ class ElectionController extends Controller
         }
 
         return match ($target) {
-            'open-ballot'   => redirect()->route('elections.open-ballot', $election->id),
-            'candidacy'     => redirect()->route('elections.candidacy.create', $election->id),
+            'open-ballot' => redirect()->route('elections.open-ballot', $election->id),
+            'candidacy' => redirect()->route('elections.candidacy.create', $election->id),
             'ranked-ballot' => redirect()->route('elections.ranked-ballot', $election->id),
-            'results'       => redirect()->route('elections.results', $election->id),
-            default         => redirect()->route('elections.show', $election->id),
+            'results' => redirect()->route('elections.results', $election->id),
+            default => redirect()->route('elections.show', $election->id),
         };
     }
 
@@ -187,7 +186,7 @@ class ElectionController extends Controller
             ->with(['jurisdiction', 'legislature', 'races.jurisdiction', 'races.district'])
             ->findOrFail($election);
 
-        $user  = $request->user();
+        $user = $request->user();
         $phase = self::phase($model->status);
 
         $races = $model->races
@@ -234,62 +233,62 @@ class ElectionController extends Controller
         $boardMember = $this->isBoardMember($user, $model);
 
         return Inertia::render('Elections/ElectionDetail', [
-            'surface'  => SurfaceMeta::for('elections/detail'),
+            'surface' => SurfaceMeta::for('elections/detail'),
             'election' => [
-                'id'             => (string) $model->id,
-                'kind'           => $model->kind,
-                'status'         => $model->status,
-                'phase'          => $phase,
-                'certSubStep'    => self::certSubStep($model->status),
+                'id' => (string) $model->id,
+                'kind' => $model->kind,
+                'status' => $model->status,
+                'phase' => $phase,
+                'certSubStep' => self::certSubStep($model->status),
                 'legislature_id' => $model->legislature_id !== null ? (string) $model->legislature_id : null,
-                'jurisdiction'   => [
-                    'id'        => $jid,
-                    'name'      => $model->jurisdiction?->name,
+                'jurisdiction' => [
+                    'id' => $jid,
+                    'name' => $model->jurisdiction?->name,
                     'adm_level' => (int) ($model->jurisdiction?->adm_level ?? 0),
                 ],
-                'schedule'           => $this->scheduleRows($model),
-                'interval'           => [
-                    'value'      => $this->settings->resolveInt($jid, 'election_interval_months', 60),
-                    'unit'       => 'months',
+                'schedule' => $this->scheduleRows($model),
+                'interval' => [
+                    'value' => $this->settings->resolveInt($jid, 'election_interval_months', 60),
+                    'unit' => 'months',
                     'settingKey' => 'election_interval_months',
-                    'citation'   => 'Art. II §2 · five-year default · CLK-01',
+                    'citation' => 'Art. II §2 · five-year default · CLK-01',
                 ],
                 'finalistMultiplier' => [
-                    'value'      => max(1, $this->settings->resolveInt($jid, 'finalist_multiplier', 3)),
+                    'value' => max(1, $this->settings->resolveInt($jid, 'finalist_multiplier', 3)),
                     'settingKey' => 'finalist_multiplier',
-                    'clock'      => 'CLK-21',
+                    'clock' => 'CLK-21',
                 ],
-                'schedulingOrder'    => $order === null ? null : [
-                    'issued_at'  => $order->occurred_at?->toIso8601String(),
+                'schedulingOrder' => $order === null ? null : [
+                    'issued_at' => $order->occurred_at?->toIso8601String(),
                     'board_name' => $this->boardName($model),
                 ],
             ],
-            'machine'      => self::machine(),
+            'machine' => self::machine(),
             'currentState' => self::machineNode($model->status),
-            'stats'        => [
-                'seats'               => (int) $races->sum('seats'),
-                'finalistPlaces'      => (int) $races->sum('finalist_count'),
+            'stats' => [
+                'seats' => (int) $races->sum('seats'),
+                'finalistPlaces' => (int) $races->sum('finalist_count'),
                 'validatedCandidates' => $validatedCandidates,
-                'stage'               => $phase,
+                'stage' => $phase,
             ],
             'races' => $races->map(fn (ElectionRace $r) => [
-                'id'              => (string) $r->id,
-                'label'           => self::raceLabel($r),
-                'seats'           => (int) $r->seats,
-                'finalist_count'  => (int) $r->finalist_count,
+                'id' => (string) $r->id,
+                'label' => self::raceLabel($r),
+                'seats' => (int) $r->seats,
+                'finalist_count' => (int) $r->finalist_count,
                 'candidate_count' => (int) ($candidateCounts[$r->id] ?? 0),
-                'district_id'     => $r->district_id !== null ? (string) $r->district_id : null,
-                'at_large'        => $r->district_id === null,
+                'district_id' => $r->district_id !== null ? (string) $r->district_id : null,
+                'at_large' => $r->district_id === null,
             ])->all(),
-            'blockers'      => $this->blockers($model),
-            'others'        => $this->otherElections($model),
-            'can'           => [
+            'blockers' => $this->blockers($model),
+            'others' => $this->otherElections($model),
+            'can' => [
                 'certify' => $boardMember,
                 'recount' => $boardMember,
             ],
             'certification' => $certRow === null ? null : [
                 'certified_at' => $certRow->certified_at?->toIso8601String(),
-                'by'           => $certRow->certifiedBy?->user?->display_name
+                'by' => $certRow->certifiedBy?->user?->display_name
                     ?? $certRow->certifiedBy?->user?->name
                     ?? 'bootstrap election board (system)',
             ],
@@ -310,6 +309,12 @@ class ElectionController extends Controller
     {
         $open = Election::query()
             ->whereNotIn('status', [Election::STATUS_FINAL, Election::STATUS_CANCELLED])
+            // Org board elections (org_board_owner/org_board_worker) are
+            // org-INTERNAL — a worker/owner electorate + class-gated candidacy,
+            // reached via the Organizations board-elections surface. They are
+            // NOT public "Right to Stand" races (Art. I), so the general
+            // election entry resolver never routes a resident to one.
+            ->whereNotIn('kind', [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER])
             ->orderByDesc('created_at');
 
         if ($user !== null) {
@@ -354,18 +359,18 @@ class ElectionController extends Controller
         }
 
         return Inertia::render('Elections/ElectionDetail', [
-            'surface'      => SurfaceMeta::for('elections/detail'),
-            'election'     => null,
-            'machine'      => self::machine(),
+            'surface' => SurfaceMeta::for('elections/detail'),
+            'election' => null,
+            'machine' => self::machine(),
             'currentState' => null,
-            'stats'        => null,
-            'races'        => [],
-            'blockers'     => [],
-            'others'       => $this->otherElections(null),
-            'can'          => ['certify' => false, 'recount' => false],
+            'stats' => null,
+            'races' => [],
+            'blockers' => [],
+            'others' => $this->otherElections(null),
+            'can' => ['certify' => false, 'recount' => false],
             'certification' => null,
-            'empty'        => [
-                'interval'   => $jid !== null
+            'empty' => [
+                'interval' => $jid !== null
                     ? $this->settings->resolveInt((string) $jid, 'election_interval_months', 60)
                     : 60,
                 'clk01DueAt' => $timer?->fires_at?->toIso8601String(),
@@ -382,13 +387,13 @@ class ElectionController extends Controller
     private function scheduleRows(Election $election): array
     {
         $ordinal = match ($election->status) {
-            Election::STATUS_SCHEDULED       => 0,
-            Election::STATUS_APPROVAL_OPEN   => 1,
+            Election::STATUS_SCHEDULED => 0,
+            Election::STATUS_APPROVAL_OPEN => 1,
             Election::STATUS_FINALIST_CUTOFF => 2,
-            Election::STATUS_RANKED_OPEN     => 3,
+            Election::STATUS_RANKED_OPEN => 3,
             Election::STATUS_VOTING_CLOSED,
-            Election::STATUS_TABULATING      => 5,
-            default                          => 6, // certified / audit_rerun / final
+            Election::STATUS_TABULATING => 5,
+            default => 6, // certified / audit_rerun / final
         };
 
         $rows = [
@@ -400,9 +405,9 @@ class ElectionController extends Controller
         ];
 
         return array_map(fn (array $row) => [
-            'stage'  => $row['stage'],
-            'at'     => $row['at']?->toIso8601String(),
-            'key'    => $row['key'],
+            'stage' => $row['stage'],
+            'at' => $row['at']?->toIso8601String(),
+            'key' => $row['key'],
             'status' => $row['ordinal'] < $ordinal ? 'done' : ($row['ordinal'] === $ordinal ? 'current' : 'upcoming'),
         ], $rows);
     }
@@ -434,7 +439,7 @@ class ElectionController extends Controller
         return collect($plan['kinds'])
             ->filter(fn (array $spec) => $spec['mode'] === 'blocked')
             ->map(fn (array $spec, string $kind) => [
-                'kind'   => 'subdivision_required',
+                'kind' => 'subdivision_required',
                 'detail' => "{$kind}: {$spec['reason']} · {$spec['citation']}",
             ])
             ->values()
@@ -447,17 +452,20 @@ class ElectionController extends Controller
         return Election::query()
             ->with(['jurisdiction', 'races'])
             ->whereNotIn('status', [Election::STATUS_CANCELLED])
+            // Public population elections only — org board races live on the
+            // Organizations board-elections surface, not the general list.
+            ->whereNotIn('kind', [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER])
             ->when($current !== null, fn ($q) => $q->whereKeyNot($current->id))
             ->orderByDesc('created_at')
             ->limit(10)
             ->get()
             ->map(fn (Election $e) => [
-                'election_id'       => (string) $e->id,
+                'election_id' => (string) $e->id,
                 'jurisdiction_name' => $e->jurisdiction?->name,
-                'kind'              => $e->kind,
-                'seats'             => (int) $e->races->sum('seats'),
-                'finalist_count'    => (int) $e->races->sum('finalist_count'),
-                'phase'             => self::phase($e->status),
+                'kind' => $e->kind,
+                'seats' => (int) $e->races->sum('seats'),
+                'finalist_count' => (int) $e->races->sum('finalist_count'),
+                'phase' => self::phase($e->status),
             ])
             ->all();
     }
@@ -499,7 +507,7 @@ class ElectionController extends Controller
     private function boardName(Election $election): string
     {
         $board = $election->board;
-        $name  = $election->jurisdiction?->name ?? 'jurisdiction';
+        $name = $election->jurisdiction?->name ?? 'jurisdiction';
 
         return $board !== null && $board->is_bootstrap
             ? "{$name} bootstrap election board (system)"
