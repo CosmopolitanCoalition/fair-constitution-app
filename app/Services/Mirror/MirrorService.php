@@ -196,7 +196,43 @@ class MirrorService
             throw new RuntimeException("Adoption refused by {$hostUrl} (HTTP {$response->status()}).");
         }
 
-        $body = (array) $response->json();
+        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_JOIN_KEY);
+    }
+
+    /**
+     * MIRROR side, keyless (G3): request adoption from a host. Returns the live
+     * membership if the host has ALREADY vouched us (200), or null when the
+     * request is queued for the host operator (202). Re-poll until admitted.
+     */
+    public function requestJoin(string $hostUrl): ?ClusterMembership
+    {
+        $this->identity->ensureIdentity();
+
+        $response = $this->client->post($hostUrl, '/api/federation/adopt', [
+            'public_key' => $this->identity->publicKey(),
+            'nonce' => bin2hex(random_bytes(16)),
+            'url' => config('cga.federation_self_url'),
+        ]);
+
+        if ($response->status() === 202) {
+            return null; // queued — the host operator must approve
+        }
+        if (! $response->successful()) {
+            throw new RuntimeException("Adoption request refused by {$hostUrl} (HTTP {$response->status()}).");
+        }
+
+        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_REQUEST);
+    }
+
+    /**
+     * MIRROR side: finalize an admitted adoption — pin the host, backfill its
+     * corpus in bounded signed pages, and flip into read-only-mirror mode on
+     * catch-up. Shared by the keyed (joinHost) and keyless (requestJoin) paths.
+     *
+     * @param  array<string,mixed>  $body
+     */
+    private function finalizeAdmission(array $body, string $hostUrl, string $admissionMethod): ClusterMembership
+    {
         $hostServerId = (string) ($body['host_server_id'] ?? '');
         $hostPublicKey = (string) ($body['host_public_key'] ?? '');
         $scope = $body['scope_jurisdiction_id'] ?? null;
@@ -207,7 +243,7 @@ class MirrorService
 
         $host = $this->pinHost($hostServerId, $hostPublicKey, ['url' => $hostUrl]);
 
-        $membership = $this->openMirrorMembership($host, ClusterMembership::ADMISSION_JOIN_KEY, is_string($scope) ? $scope : null);
+        $membership = $this->openMirrorMembership($host, $admissionMethod, is_string($scope) ? $scope : null);
         $membership->update(['state' => ClusterMembership::STATE_SYNCING]);
 
         // Pull the host's full public corpus (chunked, resumable, signed pages).
@@ -218,6 +254,108 @@ class MirrorService
         }
 
         return $membership->refresh();
+    }
+
+    /**
+     * HOST side, keyless (G3): find-or-create a PENDING adoption request for an
+     * applicant (idempotent — repeated polls return the same row). The operator
+     * later approves or rejects it from the review queue.
+     */
+    public function requestAdoption(string $applicantServerId, string $applicantPublicKey, ?string $applicantUrl = null): ClusterAdoptionRequest
+    {
+        if ($applicantServerId === '' || $applicantPublicKey === '') {
+            throw new AdoptionRejected('incomplete_adoption_request', 422);
+        }
+        if ($applicantServerId === $this->identity->serverId()) {
+            throw new AdoptionRejected('refuse_self', 422);
+        }
+
+        $existing = ClusterAdoptionRequest::query()
+            ->where('applicant_server_id', $applicantServerId)
+            ->whereIn('status', [ClusterAdoptionRequest::STATUS_PENDING, ClusterAdoptionRequest::STATUS_ADMITTED])
+            ->orderByDesc('created_at')->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $request = ClusterAdoptionRequest::create([
+            'applicant_server_id' => $applicantServerId,
+            'applicant_public_key' => $applicantPublicKey,
+            'nonce' => bin2hex(random_bytes(16)),
+            'admission_method' => ClusterMembership::ADMISSION_REQUEST,
+            'status' => ClusterAdoptionRequest::STATUS_PENDING,
+        ]);
+
+        $this->audit->append('mirror', 'mirror.adoption_requested',
+            ['mirror_server_id' => $applicantServerId, 'request_id' => $request->id], 'WF-JUR-06');
+
+        return $request;
+    }
+
+    /**
+     * HOST side: operator approves a pending request — pin the applicant as our
+     * mirror (relation=mirror) and host it. Idempotent on an already-admitted
+     * request; refuses an already-rejected one.
+     */
+    public function approveRequest(string $requestId): ClusterMembership
+    {
+        $request = ClusterAdoptionRequest::query()->findOrFail($requestId);
+
+        if ($request->status === ClusterAdoptionRequest::STATUS_ADMITTED && $request->cluster_membership_id !== null) {
+            return ClusterMembership::query()->findOrFail($request->cluster_membership_id);
+        }
+        if ($request->status === ClusterAdoptionRequest::STATUS_REJECTED) {
+            throw new AdoptionRejected('request_already_rejected', 409);
+        }
+
+        return DB::transaction(function () use ($request): ClusterMembership {
+            $peer = $this->peers->upsertTrustedPeer(
+                $request->applicant_server_id, $request->applicant_public_key, [],
+                FederationPeer::RELATION_MIRROR, 'mirror_vouched'
+            );
+            $membership = $this->openHostMembership($peer, ClusterMembership::ADMISSION_REQUEST, null);
+
+            $request->update([
+                'status' => ClusterAdoptionRequest::STATUS_ADMITTED,
+                'cluster_membership_id' => $membership->id,
+            ]);
+
+            $this->audit->append('mirror', 'mirror.request_approved', [
+                'mirror_server_id' => $request->applicant_server_id,
+                'request_id' => $request->id,
+                'membership_id' => $membership->id,
+            ], 'WF-JUR-06');
+
+            return $membership;
+        });
+    }
+
+    /** HOST side: operator rejects a pending request. Idempotent. */
+    public function rejectRequest(string $requestId): void
+    {
+        $request = ClusterAdoptionRequest::query()->findOrFail($requestId);
+
+        if ($request->status === ClusterAdoptionRequest::STATUS_REJECTED) {
+            return;
+        }
+
+        $request->update(['status' => ClusterAdoptionRequest::STATUS_REJECTED]);
+
+        $this->audit->append('mirror', 'mirror.request_rejected',
+            ['mirror_server_id' => $request->applicant_server_id, 'request_id' => $request->id], 'WF-JUR-06');
+    }
+
+    /**
+     * HOST side: the operator's pending-request review queue.
+     *
+     * @return \Illuminate\Support\Collection<int,ClusterAdoptionRequest>
+     */
+    public function pendingRequests(): \Illuminate\Support\Collection
+    {
+        return ClusterAdoptionRequest::query()
+            ->where('status', ClusterAdoptionRequest::STATUS_PENDING)
+            ->orderBy('created_at')->get();
     }
 
     /**

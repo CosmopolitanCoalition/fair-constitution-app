@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Federation;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClusterAdoptionRequest;
+use App\Models\ClusterMembership;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Mirror\AdoptionRejected;
 use App\Services\Mirror\MirrorService;
@@ -11,10 +13,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Join-key adoption (Phase G, G2). `POST /api/federation/adopt` — a would-be
- * mirror (never handshaked, so the `tofu` middleware verifies its signature
- * against the public_key carried in the body) presents a join key and is admitted
- * in one step. The admitted mirror is authoritative for nothing; we host it.
+ * Adoption (Phase G, G2 + G3). `POST /api/federation/adopt` — a would-be mirror
+ * (never handshaked, so the `tofu` middleware verifies its signature against the
+ * public_key carried in the body) is admitted. Two paths share the endpoint:
+ *   - WITH a join key (G2): immediate admission.
+ *   - WITHOUT a key (G3): a pending request the host operator vouches (202 until
+ *     approved, then 200 admitted on the next poll).
+ * Either way the admitted mirror is authoritative for nothing; we host it.
  */
 class AdoptionController extends Controller
 {
@@ -32,13 +37,36 @@ class AdoptionController extends Controller
         $body = json_decode((string) $request->getContent(), true) ?? [];
 
         $applicantServerId = (string) $request->header('X-Federation-Server-Id');
+        $key = (string) ($body['key'] ?? '');
 
+        // ── Keyless path (G3) — an operator-vouched request queue ─────────────
+        if ($key === '') {
+            try {
+                $req = $this->mirror->requestAdoption(
+                    $applicantServerId,
+                    (string) ($body['public_key'] ?? ''),
+                    isset($body['url']) ? (string) $body['url'] : null,
+                );
+            } catch (AdoptionRejected $e) {
+                return response()->json(['error' => $e->reason], $e->status);
+            }
+
+            if ($req->status !== ClusterAdoptionRequest::STATUS_ADMITTED) {
+                return response()->json(['status' => 'pending', 'request_id' => $req->id], 202);
+            }
+
+            $membership = ClusterMembership::find($req->cluster_membership_id);
+
+            return $this->admittedResponse($membership?->scope_jurisdiction_id, $membership?->id);
+        }
+
+        // ── Keyed path (G2) — immediate admission ─────────────────────────────
         try {
             $membership = $this->mirror->admitMirror(
                 $applicantServerId,
                 (string) ($body['public_key'] ?? ''),
                 (string) ($body['nonce'] ?? ''),
-                (string) ($body['key'] ?? ''),
+                $key,
                 isset($body['url']) ? (string) $body['url'] : null,
             );
         } catch (AdoptionRejected $e) {
@@ -48,12 +76,17 @@ class AdoptionController extends Controller
             return response()->json(['error' => 'replay_detected'], 409);
         }
 
+        return $this->admittedResponse($membership->scope_jurisdiction_id, $membership->id);
+    }
+
+    private function admittedResponse(?string $scope, ?string $membershipId): JsonResponse
+    {
         return response()->json([
             'admitted' => true,
             'host_server_id' => $this->identity->serverId(),
             'host_public_key' => $this->identity->publicKey(),
-            'scope_jurisdiction_id' => $membership->scope_jurisdiction_id,
-            'membership_id' => $membership->id,
+            'scope_jurisdiction_id' => $scope,
+            'membership_id' => $membershipId,
         ]);
     }
 }
