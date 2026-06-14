@@ -61,4 +61,37 @@ return [
         'parks', 'small-business', 'transit', 'water', 'zoning',
     ],
 
+    /*
+    | Federation schema version (Phase F). Exchanged at handshake and stamped
+    | on every synced payload; peers refuse Full-Faith-&-Credit sync across a
+    | schema-version mismatch (canonical-JSON shapes must agree byte-for-byte
+    | for cross-instance hash verification to hold). Bump when an
+    | audit/public-record payload shape changes in a non-back-compatible way.
+    */
+    'schema_version' => env('CGA_SCHEMA_VERSION', '1'),
+
+    /*
+    | Federation self-URL (Phase F). The externally-reachable base URL this
+    | instance advertises to peers at handshake so they can call back (sync
+    | pushes, heartbeats, authority flips). In the two-instance demo:
+    |   worktree (fcw)  → http://host.docker.internal:8081
+    |   main (fc)       → http://host.docker.internal:8080
+    | Null when federation is not deployed.
+    */
+    'federation_self_url' => env('FEDERATION_SELF_URL'),
+
+    /*
+    | Peer-signature replay window in seconds (Phase F). A signed peer request
+    | whose X-Federation-Timestamp is older/newer than this is rejected before
+    | the signature is even checked.
+    */
+    'federation_replay_window' => env('CGA_FEDERATION_REPLAY_WINDOW', 300),
+
+    /*
+    | CLK-20 federation heartbeat interval in minutes (Phase F). Each fire pings
+    | trusted peers, opportunistically pushes our FF&C tail, and re-arms for the
+    | next interval. Operational cadence, not constitutional.
+    */
+    'federation_heartbeat_minutes' => env('CGA_FEDERATION_HEARTBEAT_MINUTES', 5),
+
 ];

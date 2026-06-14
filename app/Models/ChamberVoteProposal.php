@@ -87,6 +87,19 @@ class ChamberVoteProposal extends Model
     // blast radius (the exec_delegation precedent).
     public const KIND_JUDICIARY_OVERRIDE = 'judiciary_override';
 
+    // Phase F — the four jurisdiction processes (resolved by the Jurisdictions
+    // services, delegated from ChamberActService::applyProposalAdoption):
+    // cultural-institution recognition (F-LEG-028, supermajority → a powerless
+    // row); union formation/join/exit (F-LEG-029, on adoption the dual-meter
+    // ratification OPENS — applicant referendum + constituent MJV); and
+    // disintermediation (F-LEG-030, on adoption the UNANIMITY constituent MJV
+    // opens). Same posture — the effect happens only on adoption.
+    public const KIND_CULTURAL_INSTITUTION = 'cultural_institution';
+
+    public const KIND_UNION = 'union';
+
+    public const KIND_DISINTERMEDIATION = 'disintermediation';
+
     public const STATUS_OPEN = 'open';
 
     public const STATUS_ADOPTED = 'adopted';

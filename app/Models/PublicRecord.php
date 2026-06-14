@@ -51,11 +51,12 @@ class PublicRecord extends Model
         'translations',
         'supersedes_record_id',
         'published_at',
+        'source_server_id',
     ];
 
     protected $casts = [
         'translations' => 'array',
         'published_at' => 'datetime',
-        'audit_seq'    => 'integer',
+        'audit_seq' => 'integer',
     ];
 }

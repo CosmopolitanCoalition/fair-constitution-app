@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InstanceSettings extends Model
 {
@@ -13,6 +13,7 @@ class InstanceSettings extends Model
     protected $table = 'instance_settings';
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -30,17 +31,33 @@ class InstanceSettings extends Model
         'apportionment_completed_at',
         'apportionment_log',
         'setup_districts_confirmed_at',
+        // Phase F — federation identity (federation:init mints these).
+        'server_id',
+        'public_key',
+        'private_key_encrypted',
+        'signing_key_generated_at',
+        'federation_enabled',
     ];
 
     protected $casts = [
-        'setup_step_completed'            => 'integer',
-        'time_scale_seconds_per_year'     => 'integer',
-        'setup_completed_at'              => 'datetime',
-        'setup_completion_notes'          => 'array',
+        'setup_step_completed' => 'integer',
+        'time_scale_seconds_per_year' => 'integer',
+        'setup_completed_at' => 'datetime',
+        'setup_completion_notes' => 'array',
         'pending_constitutional_defaults' => 'array',
-        'map_accepted_at'                 => 'datetime',
-        'apportionment_completed_at'      => 'datetime',
-        'setup_districts_confirmed_at'    => 'datetime',
+        'map_accepted_at' => 'datetime',
+        'apportionment_completed_at' => 'datetime',
+        'setup_districts_confirmed_at' => 'datetime',
+        'signing_key_generated_at' => 'datetime',
+        'federation_enabled' => 'boolean',
+    ];
+
+    /**
+     * The private key is encrypted at rest and must never serialize into an
+     * Inertia prop, an export bundle, or a log line.
+     */
+    protected $hidden = [
+        'private_key_encrypted',
     ];
 
     public function cosmicAddress(): BelongsTo
@@ -54,9 +71,9 @@ class InstanceSettings extends Model
     public static function current(): self
     {
         return static::firstOrCreate([], [
-            'instance_name'        => 'Unnamed Instance',
-            'map_mode'             => 'physical_earth',
-            'time_mode'            => 'real',
+            'instance_name' => 'Unnamed Instance',
+            'map_mode' => 'physical_earth',
+            'time_mode' => 'real',
             'setup_step_completed' => 0,
         ]);
     }

@@ -171,6 +171,67 @@ class ChamberActService
         );
     }
 
+    /**
+     * F-LEG-028 — Cultural Institution Recognition (Art. V §2, supermajority).
+     * On adoption a POWERLESS row is recorded.
+     */
+    public function proposeCulturalInstitution(Legislature $legislature, LegislatureMember $proposer, string $name, ?string $description): array
+    {
+        return $this->propose(
+            $legislature,
+            $proposer,
+            ChamberVoteProposal::KIND_CULTURAL_INSTITUTION,
+            ['name' => $name, 'description' => $description],
+            'cultural_institution',
+        );
+    }
+
+    /**
+     * F-LEG-029 — Union Formation/Join Vote (Art. V §7). The initiating chamber
+     * supermajority OPENS the dual-meter ratification on adoption (applicant
+     * referendum + constituent MJV). Supermajority class via the committee_create
+     * registry-gap key (the F-LEG-012 precedent).
+     *
+     * @param  list<string>  $applicantIds
+     * @param  list<string>  $constituentIds
+     */
+    public function proposeUnion(Legislature $legislature, LegislatureMember $proposer, string $kind, array $applicantIds, array $constituentIds, ?string $unionJurisdictionId): array
+    {
+        return $this->propose(
+            $legislature,
+            $proposer,
+            ChamberVoteProposal::KIND_UNION,
+            [
+                'kind' => $kind,
+                'applicant_ids' => array_values(array_map('strval', $applicantIds)),
+                'constituent_ids' => array_values(array_map('strval', $constituentIds)),
+                'union_jurisdiction_id' => $unionJurisdictionId,
+            ],
+            'committee_create',
+        );
+    }
+
+    /**
+     * F-LEG-030 — Disintermediation Vote (Art. V §8). The initiating chamber
+     * supermajority OPENS the UNANIMITY constituent MJV on adoption.
+     *
+     * @param  list<string>  $constituentIds
+     */
+    public function proposeDisintermediation(Legislature $legislature, LegislatureMember $proposer, string $intermediaryId, string $encompassingId, array $constituentIds): array
+    {
+        return $this->propose(
+            $legislature,
+            $proposer,
+            ChamberVoteProposal::KIND_DISINTERMEDIATION,
+            [
+                'intermediary_id' => $intermediaryId,
+                'encompassing_id' => $encompassingId,
+                'constituent_ids' => array_values(array_map('strval', $constituentIds)),
+            ],
+            'committee_create',
+        );
+    }
+
     // =========================================================================
     // Vote-close side-effects (ChamberVoteService dispatch — same txn)
     // =========================================================================
@@ -414,6 +475,16 @@ class ChamberActService
             // (Path 2). On adoption within CLK-11 the law stands UNCHANGED and
             // the challenge closes `overridden` (returns the result tuple). ──
             ChamberVoteProposal::KIND_JUDICIARY_OVERRIDE => array_values(app(\App\Services\Judiciary\JudiciaryOverrideService::class)->resolveOverrideAdoption($vote, $proposal)),
+
+            // ── Phase F — the four jurisdiction processes (resolved by the
+            // Jurisdictions services): F-LEG-028 recognizes a powerless cultural
+            // institution; F-LEG-029/030 OPEN the dual-meter / unanimity process
+            // on adoption (the constituent MJV + referendum then run). ─────────
+            ChamberVoteProposal::KIND_CULTURAL_INSTITUTION => app(\App\Services\Jurisdictions\CulturalInstitutionService::class)->adoptRecognition($proposal, $vote),
+
+            ChamberVoteProposal::KIND_UNION => app(\App\Services\Jurisdictions\UnionService::class)->adoptOpen($proposal, $vote),
+
+            ChamberVoteProposal::KIND_DISINTERMEDIATION => app(\App\Services\Jurisdictions\DisintermediationService::class)->adoptOpen($proposal, $vote),
 
             default => throw new ConstitutionalViolation(
                 "Unknown proposal kind [{$proposal->proposal_kind}].",

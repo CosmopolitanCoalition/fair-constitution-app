@@ -125,6 +125,16 @@ class FuturePhasePlaceholdersTest extends TestCase
             'PanelSizingTest.php',            // Art. IV §4 — judicial panels
             'CaseLifecycleTest.php',          // Art. IV §4 — case lifecycle
             'Art4Section5Test.php',           // Art. IV §5 — challenge & law (THE exit criterion)
+            // Phase F — federation & the four jurisdiction processes.
+            'SyncLogAppendOnlyTest.php',      // Art. V §2 — append-only sync ledgers + identity
+            'FederationChainIntegrityTest.php', // Art. V §2 — FF&C tamper rejection
+            'AuthoritativeWinsConflictTest.php', // Art. V §2 — authoritative-instance-wins
+            'AuthorityFlipTest.php',          // WF-JUR-08 — authority flip
+            'UnionDualSupermajorityTest.php', // Art. V §7 — union dual supermajority
+            'DisintermediationUnanimityTest.php', // Art. V §8 — disintermediation unanimity
+            'LawMergePreservesHistoryTest.php', // Art. V §8 — law-merge history preserved
+            'BorderAffectedAreaDenominatorTest.php', // Art. V §2 — affected-area denominator
+            'RestorationJudicialReviewTest.php', // Art. VI §2-3 — judicial review + tier order
         ] as $file) {
             $this->assertFileExists(
                 $base.$file,

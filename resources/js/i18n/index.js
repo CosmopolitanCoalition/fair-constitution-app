@@ -20,6 +20,25 @@ import ar from './ar.json';
 import zhHans from './zh-Hans.json';
 import hi from './hi.json';
 
+/* Phase F — per-namespace, per-locale message files (locales/<code>/<ns>.json)
+   merged ON TOP of the monolithic chrome dicts above. Page/body translations
+   live here (one file per surface namespace) so they extend without colliding
+   with the chrome files. The monolithic files remain the chrome base
+   (app/nav/header/footer/demo/common). */
+const NS_MODULES = import.meta.glob('./locales/*/*.json', { eager: true });
+
+function mergeNamespaces(base) {
+    const merged = { en: { ...base.en }, es: { ...base.es }, ar: { ...base.ar }, 'zh-Hans': { ...base['zh-Hans'] }, hi: { ...base.hi } };
+    for (const path in NS_MODULES) {
+        const m = path.match(/\.\/locales\/([^/]+)\/([^/]+)\.json$/);
+        if (!m) continue;
+        const [, code, ns] = m;
+        if (!merged[code]) merged[code] = {};
+        merged[code][ns] = { ...(merged[code][ns] || {}), ...(NS_MODULES[path].default ?? NS_MODULES[path]) };
+    }
+    return merged;
+}
+
 export const LOCALES = [
     { code: 'en', name: 'English', dir: 'ltr' },
     { code: 'es', name: 'Español', dir: 'ltr' },
@@ -66,11 +85,7 @@ export const i18n = createI18n({
        the postTranslation hook pseudo-localizes the resolved string. */
     fallbackLocale: { 'en-XA': ['en'], default: ['en'] },
     messages: {
-        en,
-        es,
-        ar,
-        'zh-Hans': zhHans,
-        hi,
+        ...mergeNamespaces({ en, es, ar, 'zh-Hans': zhHans, hi }),
         'en-XA': {},
     },
     missingWarn: false,

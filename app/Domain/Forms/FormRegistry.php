@@ -368,6 +368,17 @@ class FormRegistry
         'F-JDG-007' => Handlers\EmergencyPowersReview::class,
         'F-JDG-008' => Handlers\PetitionConstitutionalReview::class,
         'F-LEG-035' => Handlers\JudiciaryOverrideVote::class,
+
+        // ── Phase F — the four jurisdiction processes (Art. V §2/§7/§8). The
+        // three previously-dangling catalog forms now ride the chamber-act
+        // adoption lane: F-LEG-028 recognizes a powerless cultural institution
+        // on a supermajority; F-LEG-029 union (formation/join/exit) and F-LEG-030
+        // disintermediation OPEN their dual-meter / unanimity constituent process
+        // on adoption. Border settlement + restoration are services-with-audit
+        // (not catalog forms). ─────────────────────────────────────────────────
+        'F-LEG-028' => Handlers\CulturalInstitutionRecognitionVote::class,
+        'F-LEG-029' => Handlers\UnionFormationJoinVote::class,
+        'F-LEG-030' => Handlers\DisintermediationVote::class,
     ];
 
     /**

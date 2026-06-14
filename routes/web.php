@@ -8,9 +8,9 @@ use App\Http\Controllers\Civic\ResidencyController;
 use App\Http\Controllers\CosmicAddressController;
 use App\Http\Controllers\Dev\ElectoralKitController;
 use App\Http\Controllers\Dev\ExecutiveOrgKitController;
+use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\Dev\JudiciaryKitController;
 use App\Http\Controllers\Dev\LegislatureKitController;
-use App\Http\Controllers\Dev\ImpersonationController;
 use App\Http\Controllers\Dev\ResidencyGrantController;
 use App\Http\Controllers\Elections\ApprovalController;
 use App\Http\Controllers\Elections\BallotController;
@@ -76,17 +76,17 @@ Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'comple
 // clicks Continue (which fires apportionment). Reviewing after districting
 // would be too late: apportionment + districts already use the populations.
 // No autofix anywhere — operator records decisions, future remediation acts.
-Route::get('/api/setup/wizard/step2/review/population_gaps',           [SetupController::class, 'reviewPopulationGaps'])
+Route::get('/api/setup/wizard/step2/review/population_gaps', [SetupController::class, 'reviewPopulationGaps'])
     ->name('api.setup.step2.review.population_gaps');
 Route::get('/api/setup/wizard/step2/review/aggregation_discrepancies', [SetupController::class, 'reviewAggregationDiscrepancies'])
     ->name('api.setup.step2.review.aggregation_discrepancies');
-Route::get('/api/setup/wizard/step2/review/orphans',                   [SetupController::class, 'reviewOrphans'])
+Route::get('/api/setup/wizard/step2/review/orphans', [SetupController::class, 'reviewOrphans'])
     ->name('api.setup.step2.review.orphans');
-Route::get('/api/setup/wizard/step2/review/sovereign_territories',     [SetupController::class, 'reviewSovereignTerritories'])
+Route::get('/api/setup/wizard/step2/review/sovereign_territories', [SetupController::class, 'reviewSovereignTerritories'])
     ->name('api.setup.step2.review.sovereign_territories');
 
 // Phase JK assignment-audit drill endpoints
-Route::get('/api/setup/wizard/step2/review/parent_assignment_audit',     [SetupController::class, 'reviewParentAssignmentAudit'])
+Route::get('/api/setup/wizard/step2/review/parent_assignment_audit', [SetupController::class, 'reviewParentAssignmentAudit'])
     ->name('api.setup.step2.review.parent_assignment_audit');
 Route::get('/api/setup/wizard/step2/review/population_assignment_audit', [SetupController::class, 'reviewPopulationAssignmentAudit'])
     ->name('api.setup.step2.review.population_assignment_audit');
@@ -159,18 +159,18 @@ Route::post('/api/jurisdictions/accept-maps', [JurisdictionController::class, 'a
 // in the body rather than as bracketed query params.
 Route::match(['get', 'post'], '/api/export/jurisdictions', [JurisdictionController::class, 'exportMaps'])
     ->name('jurisdictions.export');
-Route::get('/api/export/jurisdictions/list',               [JurisdictionController::class, 'exportMapsList'])->name('jurisdictions.export.list');
-Route::get('/api/export/jurisdictions/tables',             [JurisdictionController::class, 'exportMapsTables'])->name('jurisdictions.export.tables');
-Route::get('/api/export/jurisdictions/download/{filename}',[JurisdictionController::class, 'exportMapsDownload'])
+Route::get('/api/export/jurisdictions/list', [JurisdictionController::class, 'exportMapsList'])->name('jurisdictions.export.list');
+Route::get('/api/export/jurisdictions/tables', [JurisdictionController::class, 'exportMapsTables'])->name('jurisdictions.export.tables');
+Route::get('/api/export/jurisdictions/download/{filename}', [JurisdictionController::class, 'exportMapsDownload'])
     ->where('filename', '[A-Za-z0-9._-]+\.tar\.gz')
     ->name('jurisdictions.export.download');
-Route::post('/api/export/jurisdictions/{exportId}/halt',   [JurisdictionController::class, 'exportMapsHalt'])
+Route::post('/api/export/jurisdictions/{exportId}/halt', [JurisdictionController::class, 'exportMapsHalt'])
     ->where('exportId', '[A-Za-z0-9._-]+')
     ->name('jurisdictions.export.halt');
-Route::delete('/api/export/jurisdictions/{exportId}',      [JurisdictionController::class, 'exportMapsDelete'])
+Route::delete('/api/export/jurisdictions/{exportId}', [JurisdictionController::class, 'exportMapsDelete'])
     ->where('exportId', '[A-Za-z0-9._-]+')
     ->name('jurisdictions.export.delete');
-Route::post('/api/import/jurisdictions',                   [JurisdictionController::class, 'importMaps'])->name('jurisdictions.import');
+Route::post('/api/import/jurisdictions', [JurisdictionController::class, 'importMaps'])->name('jurisdictions.import');
 
 // Legislature browser
 // WI-9: /legislatures is the multi-legislature index (the sidebar's entry
@@ -205,7 +205,7 @@ Route::post('/api/legislatures/{legislature_id}/maps', [LegislatureController::c
 Route::patch('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureController::class, 'updateMap'])->name('legislatures.maps.update');
 Route::delete('/api/legislatures/{legislature_id}/maps/{map_id}', [LegislatureController::class, 'deleteMap'])->name('legislatures.maps.delete');
 Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/activate', [LegislatureController::class, 'activateMap'])->name('legislatures.maps.activate');
-Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy',     [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
+Route::post('/api/legislatures/{legislature_id}/maps/{map_id}/copy', [LegislatureController::class, 'copyMap'])->name('legislatures.maps.copy');
 
 /*
 |--------------------------------------------------------------------------
@@ -232,10 +232,10 @@ Route::middleware('auth')->group(function () {
     // the CLK-01 empty state). The nav entry points below resolve the same
     // way, then forward to the election-scoped page.
     Route::get('/elections', [ElectionController::class, 'index'])->name('elections.index');
-    Route::get('/elections/open-ballot',   [ElectionController::class, 'entry'])->defaults('target', 'open-ballot')->name('elections.entry.open-ballot');
-    Route::get('/elections/candidacy',     [ElectionController::class, 'entry'])->defaults('target', 'candidacy')->name('elections.entry.candidacy');
+    Route::get('/elections/open-ballot', [ElectionController::class, 'entry'])->defaults('target', 'open-ballot')->name('elections.entry.open-ballot');
+    Route::get('/elections/candidacy', [ElectionController::class, 'entry'])->defaults('target', 'candidacy')->name('elections.entry.candidacy');
     Route::get('/elections/ranked-ballot', [ElectionController::class, 'entry'])->defaults('target', 'ranked-ballot')->name('elections.entry.ranked-ballot');
-    Route::get('/elections/results',       [ElectionController::class, 'entry'])->defaults('target', 'results')->name('elections.entry.results');
+    Route::get('/elections/results', [ElectionController::class, 'entry'])->defaults('target', 'results')->name('elections.entry.results');
     // nav.js points the R-08 section at /elections/board + /elections/countback;
     // the canonical surfaces live at /board (vacancy links render per-id).
     Route::redirect('/elections/board', '/board');
@@ -336,6 +336,11 @@ Route::post('/receipt-check', [BallotController::class, 'receiptCheck'])->name('
 | verbatim (errors.constitution).
 */
 Route::middleware('auth')->group(function () {
+    // ── FE-F — Federation console (Phase F, WF-JUR-06): peers, FF&C sync
+    // history, head checkpoints, authority claims. Public-read (Art. II §2).
+    Route::get('/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
+        ->name('federation.show');
+
     // The /legislature/* resolver prefix: nav hrefs stay literal while the
     // canonical surfaces are legislature-scoped (§B shared conventions).
     Route::get('/legislature/{sub?}', ChamberResolverController::class)

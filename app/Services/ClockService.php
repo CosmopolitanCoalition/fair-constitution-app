@@ -77,6 +77,11 @@ class ClockService
         // insert is the event-driven primary path; Phase C batch 2).
         'CLK-17' => EvaluatePetitionThresholdJob::class,
         'CLK-18' => FinalistCutoffJob::class,
+        // CLK-20 — Federation Sync Heartbeat (Phase F, WF-JUR-06): on fire,
+        // ping + opportunistically push our FF&C tail to every trusted peer,
+        // then re-arm for the next interval (recurring; armed by
+        // federation:init). No-op when federation is disabled.
+        'CLK-20' => \App\Jobs\Federation\FederationHeartbeatJob::class,
         // CLK-19 deliberately has NO timer — it is a validator gate
         // (ConstitutionalValidator rule referendum.shield, Art. II §6),
         // evaluated at filing time against

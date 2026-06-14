@@ -53,11 +53,11 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
-                    'id'           => $user->id,
-                    'name'         => $user->name,
+                    'id' => $user->id,
+                    'name' => $user->name,
                     'display_name' => $user->display_name,
-                    'email'        => $user->email,
-                    'locale'       => $user->locale,
+                    'email' => $user->email,
+                    'locale' => $user->locale,
                 ] : null,
                 'roles' => fn () => $user
                     ? app(ResolvesRoles::class)->rolesFor($user)
@@ -65,19 +65,19 @@ class HandleInertiaRequests extends Middleware
                 'impersonating' => fn () => $this->impersonationProps($request),
             ],
             'jurisdiction' => fn () => $this->jurisdictionProps($user),
-            'instance'     => fn () => $this->instanceProps(),
+            'instance' => fn () => $this->instanceProps(),
             // Live roadmap phases — the sidebar renders items from later
             // phases as "Planned · Phase X" until their phase ships here.
             // C flipped live with the final FE-C9/C10/C11 batch.
-            'app'          => [
-                'phasesLive' => ['A', 'B', 'C', 'D', 'E'],
+            'app' => [
+                'phasesLive' => ['A', 'B', 'C', 'D', 'E', 'F'],
                 // FE-C9 (§A.8): active emergency powers whose area covers
                 // the viewer's association chain — the AppShell renders
                 // the Art. II §7 banner on EVERY page from this prop.
                 'activeEmergencies' => fn () => $this->activeEmergencyProps($user),
             ],
-            'locale'       => fn () => app()->getLocale(),
-            'flash'        => [
+            'locale' => fn () => app()->getLocale(),
+            'flash' => [
                 'status' => fn () => $request->session()->get('status'),
                 // FE-B5 — the one-shot ballot receipt (§D.3): flashed by
                 // BallotController@store, rendered exactly once by the
@@ -104,7 +104,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         return [
-            'active'   => true,
+            'active' => true,
             'realName' => User::find($impersonatorId)?->name,
         ];
     }
@@ -118,7 +118,7 @@ class HandleInertiaRequests extends Middleware
     private function jurisdictionProps(?User $user): array
     {
         $current = null;
-        $chain   = [];
+        $chain = [];
 
         if ($user !== null && Schema::hasTable('residency_confirmations')) {
             // Deepest = depth 0 (the declared boundary); legacy rows without
@@ -134,9 +134,9 @@ class HandleInertiaRequests extends Middleware
 
             if ($row !== null) {
                 $current = [
-                    'id'        => (string) $row->id,
-                    'name'      => $row->name,
-                    'slug'      => $row->slug,
+                    'id' => (string) $row->id,
+                    'name' => $row->name,
+                    'slug' => $row->slug,
                     'adm_level' => (int) $row->adm_level,
                 ];
 
@@ -146,8 +146,8 @@ class HandleInertiaRequests extends Middleware
         }
 
         return [
-            'current'      => $current,
-            'chain'        => $chain,
+            'current' => $current,
+            'chain' => $chain,
             'cosmicPrefix' => $this->cosmicPrefix(),
         ];
     }
@@ -193,21 +193,21 @@ class HandleInertiaRequests extends Middleware
             ->orderBy('starts_at')
             ->get()
             ->map(function (EmergencyPower $power) {
-                $starts  = CarbonImmutable::parse($power->starts_at);
+                $starts = CarbonImmutable::parse($power->starts_at);
                 $expires = CarbonImmutable::parse($power->expires_at);
                 $maxDays = max(1, (int) $starts->diffInDays($expires));
 
                 return [
-                    'id'                => (string) $power->id,
-                    'label'             => $power->label,
-                    'cause'             => $power->cause,
+                    'id' => (string) $power->id,
+                    'label' => $power->label,
+                    'cause' => $power->cause,
                     'jurisdiction_name' => $power->areaJurisdiction?->name ?? 'this jurisdiction',
-                    'day'               => min($maxDays, max(1, (int) $starts->diffInDays(CarbonImmutable::now()) + 1)),
-                    'max_days'          => $maxDays,
-                    'expires_at'        => $expires->toIso8601String(),
-                    'declared_by_legislature' => ($power->legislature?->jurisdiction?->name ?? 'declaring') . ' legislature',
-                    'under_review'      => $power->status === EmergencyPower::STATUS_UNDER_REVIEW,
-                    'href'              => "/legislatures/{$power->legislature_id}/emergency-powers",
+                    'day' => min($maxDays, max(1, (int) $starts->diffInDays(CarbonImmutable::now()) + 1)),
+                    'max_days' => $maxDays,
+                    'expires_at' => $expires->toIso8601String(),
+                    'declared_by_legislature' => ($power->legislature?->jurisdiction?->name ?? 'declaring').' legislature',
+                    'under_review' => $power->status === EmergencyPower::STATUS_UNDER_REVIEW,
+                    'href' => "/legislatures/{$power->legislature_id}/emergency-powers",
                 ];
             })
             ->values()
@@ -255,7 +255,7 @@ class HandleInertiaRequests extends Middleware
     {
         if (! Schema::hasTable('instance_settings')) {
             return [
-                'name'          => config('app.name'),
+                'name' => config('app.name'),
                 'setupComplete' => false,
             ];
         }
@@ -263,7 +263,7 @@ class HandleInertiaRequests extends Middleware
         $settings = InstanceSettings::query()->first();
 
         return [
-            'name'          => $settings?->instance_name ?: config('app.name'),
+            'name' => $settings?->instance_name ?: config('app.name'),
             'setupComplete' => $settings?->isSetupComplete() ?? false,
         ];
     }

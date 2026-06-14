@@ -21,9 +21,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class CivicPopulation
 {
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public static function of(string $jurisdictionId): int
     {
@@ -31,5 +29,26 @@ final class CivicPopulation
             ->where('jurisdiction_id', $jurisdictionId)
             ->where('is_active', true)
             ->count();
+    }
+
+    /**
+     * Population of an AFFECTED AREA (Phase F border settlement, Art. V §2): the
+     * count of DISTINCT active residents associated with the affected
+     * sub-jurisdictions ONLY — never the whole of either bordering jurisdiction.
+     * Each resident is counted once even when associated with several of them.
+     *
+     * @param  list<string>  $affectedJurisdictionIds
+     */
+    public static function forArea(array $affectedJurisdictionIds): int
+    {
+        if ($affectedJurisdictionIds === []) {
+            return 0;
+        }
+
+        return (int) DB::table('residency_confirmations')
+            ->whereIn('jurisdiction_id', $affectedJurisdictionIds)
+            ->where('is_active', true)
+            ->distinct()
+            ->count('user_id');
     }
 }
