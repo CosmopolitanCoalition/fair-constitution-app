@@ -4,7 +4,9 @@ namespace App\Jobs\Federation;
 
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
+use App\Models\SyncCursor;
 use App\Services\ClockService;
+use App\Services\Federation\ColdSyncService;
 use App\Services\Federation\FederationSyncService;
 use App\Services\Federation\PeerService;
 use Illuminate\Bus\Queueable;
@@ -28,7 +30,7 @@ class FederationHeartbeatJob implements ShouldQueue
 
     public function __construct(public readonly ?string $timerId = null) {}
 
-    public function handle(PeerService $peers, FederationSyncService $sync, ClockService $clocks): void
+    public function handle(PeerService $peers, FederationSyncService $sync, ClockService $clocks, ColdSyncService $cold): void
     {
         if (! InstanceSettings::current()->federation_enabled) {
             return; // the fire itself is already chained
@@ -39,16 +41,32 @@ class FederationHeartbeatJob implements ShouldQueue
             ->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED)
             ->get();
 
+        $pagesPerTick = max(1, (int) config('cga.federation_cold_pages_per_tick', 5));
+
         foreach ($trusted as $peer) {
             try {
                 $peers->recordHeartbeat($peer);
                 $sync->pushTo($peer);
+
+                // Self-draining backfill — advance any open cold cursor a few pages.
+                if ($this->hasOpenColdCursor($peer)) {
+                    $cold->pull($peer, $pagesPerTick);
+                }
             } catch (\Throwable $e) {
                 report($e); // a dead peer must not break the heartbeat for the rest
             }
         }
 
         $this->rearm($clocks);
+    }
+
+    private function hasOpenColdCursor(FederationPeer $peer): bool
+    {
+        return SyncCursor::query()
+            ->where('peer_id', $peer->id)
+            ->where('mode', SyncCursor::MODE_COLD)
+            ->where('status', SyncCursor::STATUS_OPEN)
+            ->exists();
     }
 
     /** Re-arm the recurring heartbeat for the next interval. */

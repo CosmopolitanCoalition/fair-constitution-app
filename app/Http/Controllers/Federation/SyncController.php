@@ -16,12 +16,21 @@ class SyncController extends Controller
 {
     public function __construct(private readonly FederationSyncService $sync) {}
 
-    /** GET /api/federation/audit-tail?from_seq= — our signed tail for a puller. */
+    /**
+     * GET /api/federation/audit-tail?from_seq=&page_size=&to_seq= — a signed page
+     * of our tail for a puller (cold sync). ALWAYS server-capped so the response
+     * body is bounded — a fresh mirror pulls the whole corpus in pages, never one
+     * multi-MB body (the fix for the live-demo body-size failure).
+     */
     public function auditTail(Request $request): JsonResponse
     {
         $fromSeq = (int) $request->query('from_seq', 0);
+        $max = (int) config('cga.federation_sync_page_max', 1000);
+        $requested = (int) $request->query('page_size', 0);
+        $pageSize = $requested > 0 ? min($requested, $max) : $max;
+        $capTo = $request->query('to_seq') !== null ? (int) $request->query('to_seq') : null;
 
-        return response()->json($this->sync->buildAuditTail($fromSeq));
+        return response()->json($this->sync->buildAuditTail($fromSeq, $pageSize, $capTo));
     }
 
     /** POST /api/federation/sync — a peer pushes its tail; we verify + apply. */

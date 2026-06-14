@@ -43,15 +43,27 @@ class FederationSyncService
      *
      * @return array<string,mixed>
      */
-    public function buildAuditTail(int $fromSeq): array
+    public function buildAuditTail(int $fromSeq, int $limit = 0, ?int $capTo = null): array
     {
         $head = DB::selectOne('SELECT seq, hash FROM audit_log ORDER BY seq DESC LIMIT 1');
-        $toSeq = (int) $head->seq;
+        $headSeq = (int) $head->seq;
 
-        $entries = DB::table('audit_log')
+        // `capTo` is a chunked pull's FROZEN anchor (the host's head at pull start)
+        // — pages walk toward it even as the live head advances. It never exceeds
+        // the live head. `limit=0` + `capTo=null` ⇒ the full tail (byte-identical
+        // to the pre-chunking behaviour; the Phase F push path is unchanged).
+        $cap = $capTo !== null ? min($capTo, $headSeq) : $headSeq;
+
+        $entriesQuery = DB::table('audit_log')
             ->where('seq', '>', $fromSeq)
-            ->where('seq', '<=', $toSeq)
-            ->orderBy('seq')
+            ->where('seq', '<=', $cap)
+            ->orderBy('seq');
+
+        if ($limit > 0) {
+            $entriesQuery->limit($limit);
+        }
+
+        $entries = $entriesQuery
             ->get(['seq', 'prev_hash', 'hash', 'module', 'event', 'ref', 'jurisdiction_id', 'payload'])
             ->map(fn ($r) => [
                 'seq' => (int) $r->seq,
@@ -63,6 +75,18 @@ class FederationSyncService
                 'jurisdiction_id' => $r->jurisdiction_id,
                 'payload' => json_decode($r->payload, true) ?? [],
             ])->all();
+
+        // A page's head IS its last entry (so verifyForeignSegment/ingestTail work
+        // unchanged). An empty page makes no progress (to_seq=fromSeq) so the
+        // puller stops; an empty FULL tail keeps the head (today's behaviour).
+        if ($entries === []) {
+            $toSeq = $limit > 0 ? $fromSeq : $cap;
+            $headHash = $limit > 0 ? '' : (string) $head->hash;
+        } else {
+            $last = $entries[array_key_last($entries)];
+            $toSeq = (int) $last['seq'];
+            $headHash = (string) $last['hash'];
+        }
 
         $records = DB::table('public_records')
             ->whereNull('source_server_id')
@@ -94,7 +118,7 @@ class FederationSyncService
             'schema_version' => (string) config('cga.schema_version', '1'),
             'from_seq' => $fromSeq,
             'to_seq' => $toSeq,
-            'head_hash' => (string) $head->hash,
+            'head_hash' => $headHash,
             'entries' => $entries,
             'records' => $records,
         ];

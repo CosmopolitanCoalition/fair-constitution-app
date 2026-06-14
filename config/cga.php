@@ -94,4 +94,15 @@ return [
     */
     'federation_heartbeat_minutes' => env('CGA_FEDERATION_HEARTBEAT_MINUTES', 5),
 
+    /*
+    | Cold-sync paging (Phase G). A fresh mirror pulls a peer's full corpus in
+    | bounded, signed pages. `page_size` is the puller's per-request ask;
+    | `page_max` is the producer's hard cap (the GET /audit-tail body never
+    | exceeds this many entries — the body-size-failure fix).
+    */
+    'federation_sync_page_size' => env('CGA_FEDERATION_SYNC_PAGE_SIZE', 500),
+    'federation_sync_page_max' => env('CGA_FEDERATION_SYNC_PAGE_MAX', 1000),
+    // How many cold-sync pages CLK-20 drains per peer per heartbeat tick.
+    'federation_cold_pages_per_tick' => env('CGA_FEDERATION_COLD_PAGES_PER_TICK', 5),
+
 ];

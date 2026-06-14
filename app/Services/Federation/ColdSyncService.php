@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Services\Federation;
+
+use App\Models\FederationPeer;
+use App\Models\SyncCursor;
+use App\Models\SyncLogEntry;
+use RuntimeException;
+
+/**
+ * Cold sync (Phase G) — pull a peer's full corpus in bounded, resumable, signed
+ * PAGES. A page IS a tail (its head_hash is the last entry's hash), so each page
+ * is verified + applied by the UNCHANGED FederationSyncService::ingestTail. Two
+ * things ingestTail does NOT do that this layer adds:
+ *   1. CROSS-PAGE CONTINUITY — page N+1's first entry must chain from page N's
+ *      head (ingestTail only trusts the first entry's prev_hash WITHIN a page);
+ *      a spliced page aborts the cursor and applies nothing.
+ *   2. RESUMABLE progress — the SyncCursor persists the watermark so a crashed
+ *      or heartbeat-drained pull continues exactly where it stopped.
+ *
+ * PULL-ONLY (GET) — so it never round-trips the body-mutating inbound middleware.
+ */
+class ColdSyncService
+{
+    public function __construct(
+        private readonly FederationClient $client,
+        private readonly FederationSyncService $sync,
+    ) {}
+
+    /** Drain a peer's corpus, up to $maxPages (0 = until caught up or aborted). */
+    public function pull(FederationPeer $peer, int $maxPages = 0): SyncCursor
+    {
+        $cursor = $this->openCursor($peer);
+        $pages = 0;
+
+        while ($cursor->status === SyncCursor::STATUS_OPEN) {
+            if (! $this->pullOnePage($peer, $cursor)) {
+                break; // caught up or aborted
+            }
+            $pages++;
+            if ($maxPages > 0 && $pages >= $maxPages) {
+                break;
+            }
+        }
+
+        return $cursor->refresh();
+    }
+
+    /** Fetch + verify + apply one page; advance the cursor. Returns false when done/aborted. */
+    public function pullOnePage(FederationPeer $peer, SyncCursor $cursor): bool
+    {
+        $pageSize = (int) $cursor->page_size;
+        $from = (int) $cursor->next_from_seq;
+
+        $response = $this->client->get($peer->url, '/api/federation/audit-tail', [
+            'from_seq' => $from,
+            'page_size' => $pageSize,
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException("Cold-sync page fetch failed (HTTP {$response->status()}).");
+        }
+
+        $page = (array) $response->json();
+        $entries = (array) ($page['entries'] ?? []);
+
+        // (1) Cross-page continuity — the only check ingestTail can't make.
+        if ($cursor->last_page_hash !== null && $entries !== []
+            && (string) ($entries[0]['prev_hash'] ?? '') !== (string) $cursor->last_page_hash) {
+            $this->abort($cursor, 'continuity_break');
+
+            return false;
+        }
+
+        $toSeq = (int) ($page['to_seq'] ?? $from);
+        if ($toSeq <= $from) {
+            $this->complete($cursor); // no progress ⇒ caught up
+
+            return false;
+        }
+
+        $log = $this->sync->ingestTail($peer, $page);
+        if ($log->result === SyncLogEntry::RESULT_REJECTED_TAMPER) {
+            $this->abort($cursor, 'page_rejected');
+
+            return false;
+        }
+
+        $cursor->forceFill([
+            'from_seq' => $from,
+            'next_from_seq' => $toSeq,
+            'last_page_hash' => (string) ($page['head_hash'] ?? ''),
+            'pages_applied' => (int) $cursor->pages_applied + 1,
+            'records_applied' => (int) $cursor->records_applied + count($log->detail['applied'] ?? []),
+        ])->save();
+
+        if (count($entries) < $pageSize) {
+            $this->complete($cursor); // a short page ⇒ caught up to the head
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Resume the open cold cursor for a peer, or open one at the peer watermark. */
+    private function openCursor(FederationPeer $peer): SyncCursor
+    {
+        $cursor = SyncCursor::query()
+            ->where('peer_id', $peer->id)
+            ->where('direction', SyncCursor::DIRECTION_INBOUND)
+            ->where('mode', SyncCursor::MODE_COLD)
+            ->where('status', SyncCursor::STATUS_OPEN)
+            ->first();
+
+        if ($cursor !== null) {
+            return $cursor;
+        }
+
+        return SyncCursor::create([
+            'peer_id' => $peer->id,
+            'direction' => SyncCursor::DIRECTION_INBOUND,
+            'mode' => SyncCursor::MODE_COLD,
+            'from_seq' => (int) ($peer->peer_head_seq ?? 0),
+            'next_from_seq' => (int) ($peer->peer_head_seq ?? 0),
+            'page_size' => (int) config('cga.federation_sync_page_size', 500),
+            'status' => SyncCursor::STATUS_OPEN,
+        ]);
+    }
+
+    private function complete(SyncCursor $cursor): void
+    {
+        $cursor->forceFill(['status' => SyncCursor::STATUS_COMPLETE])->save();
+    }
+
+    private function abort(SyncCursor $cursor, string $reason): void
+    {
+        $cursor->forceFill(['status' => SyncCursor::STATUS_ABORTED, 'abort_reason' => $reason])->save();
+    }
+}
