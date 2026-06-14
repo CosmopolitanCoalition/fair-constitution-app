@@ -137,23 +137,49 @@ class PeerService
             throw new RuntimeException('Refusing to peer with self.');
         }
 
+        $this->upsertTrustedPeer($serverId, $publicKey, [
+            'name' => $payload['name'] ?? null,
+            'url' => $payload['url'] ?? null,
+            'schema_version' => $payload['schema_version'] ?? null,
+        ], FederationPeer::RELATION_SOVEREIGN, 'received');
+
+        return $this->identity->handshakePayload() + ['url' => config('cga.federation_self_url')];
+    }
+
+    /**
+     * Find-or-create a trusted peer and pin it (trust-on-first-use). The single
+     * source of truth for promoting a peer to trust_established — the sovereign
+     * handshake AND the mirror host/mirror edges (Phase G) all land here.
+     * `relation` discriminates the edge; the default `sovereign` keeps the Phase F
+     * handshake byte-identical (same row shape, same audit payload).
+     *
+     * @param  array<string,mixed>  $attrs  name / url / schema_version overrides
+     */
+    public function upsertTrustedPeer(
+        string $serverId,
+        string $publicKey,
+        array $attrs = [],
+        string $relation = FederationPeer::RELATION_SOVEREIGN,
+        string $direction = 'received',
+    ): FederationPeer {
         $peer = FederationPeer::query()->where('server_id', $serverId)->first()
             ?? new FederationPeer(['server_id' => $serverId]);
 
         $peer->fill([
-            'name' => $payload['name'] ?? $peer->name,
-            'url' => $payload['url'] ?? $peer->url ?? '',
+            'name' => $attrs['name'] ?? $peer->name,
+            'url' => $attrs['url'] ?? $peer->url ?? '',
             'public_key' => $publicKey,
+            'relation' => $relation,
             'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
             'trust_established_at' => now(),
-            'metadata' => ['schema_version' => $payload['schema_version'] ?? null],
+            'metadata' => ['schema_version' => $attrs['schema_version'] ?? null],
         ]);
         $peer->save();
 
         $this->audit->append('federation', 'peer.trust_established',
-            ['peer_server_id' => $serverId, 'direction' => 'received'], 'WF-JUR-06');
+            ['peer_server_id' => $serverId, 'direction' => $direction], 'WF-JUR-06');
 
-        return $this->identity->handshakePayload() + ['url' => config('cga.federation_self_url')];
+        return $peer;
     }
 
     public function recordHeartbeat(FederationPeer $peer): void

@@ -37,6 +37,15 @@ class FederationPeer extends Model
         self::STATUS_MERGED, self::STATUS_DEPARTED,
     ];
 
+    /** Phase G: the peer's role to us (orthogonal to ESM-20 status). */
+    public const RELATION_SOVEREIGN = 'sovereign';
+
+    public const RELATION_HOST = 'host';
+
+    public const RELATION_MIRROR = 'mirror';
+
+    public const RELATIONS = [self::RELATION_SOVEREIGN, self::RELATION_HOST, self::RELATION_MIRROR];
+
     protected $fillable = [
         'id',
         'server_id',
@@ -44,6 +53,7 @@ class FederationPeer extends Model
         'url',
         'public_key',
         'status',
+        'relation',
         'metadata',
         'last_heartbeat_at',
         'trust_established_at',
@@ -67,6 +77,16 @@ class FederationPeer extends Model
     public function partitionExports(): HasMany
     {
         return $this->hasMany(PartitionExport::class, 'peer_id');
+    }
+
+    public function clusterMemberships(): HasMany
+    {
+        return $this->hasMany(ClusterMembership::class, 'peer_id');
+    }
+
+    public function isSovereign(): bool
+    {
+        return ($this->relation ?? self::RELATION_SOVEREIGN) === self::RELATION_SOVEREIGN;
     }
 
     public function isTrusted(): bool

@@ -37,6 +37,9 @@ class InstanceSettings extends Model
         'private_key_encrypted',
         'signing_key_generated_at',
         'federation_enabled',
+        // Phase G — read-only mirror mode (G1).
+        'mirror_of_server_id',
+        'mirror_adopted_at',
     ];
 
     protected $casts = [
@@ -50,6 +53,7 @@ class InstanceSettings extends Model
         'setup_districts_confirmed_at' => 'datetime',
         'signing_key_generated_at' => 'datetime',
         'federation_enabled' => 'boolean',
+        'mirror_adopted_at' => 'datetime',
     ];
 
     /**
@@ -81,5 +85,15 @@ class InstanceSettings extends Model
     public function isSetupComplete(): bool
     {
         return $this->setup_completed_at !== null;
+    }
+
+    /**
+     * Phase G — is this instance a read-only mirror of a host? A mirror is
+     * authoritative for nothing; the ConstitutionalEngine write-guard (G2)
+     * refuses every constitutional write while this is true.
+     */
+    public function isMirror(): bool
+    {
+        return $this->mirror_of_server_id !== null;
     }
 }
