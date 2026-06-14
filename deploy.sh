@@ -91,6 +91,12 @@ art key:generate --force
 echo "→ Migrating…"
 art migrate --force
 
+# A fresh instance needs the constitutional clock registry (CLK-01…21) seeded —
+# the scheduler + federation:init's CLK-20 arming depend on it. (DatabaseSeeder
+# does NOT include it; it is its own seeder.)
+echo "→ Seeding the constitutional clock registry…"
+art db:seed --class=ClockRegistrySeeder --force
+
 # 3. Federation identity when this instance will federate. --rotate forces a fresh
 #    keypair: key:generate changed APP_KEY above, so any keypair carried in from a
 #    clone is no longer decryptable — re-key it (and the server_id) under the new key.

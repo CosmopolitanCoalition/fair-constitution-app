@@ -78,6 +78,12 @@ Invoke-Artisan key:generate --force
 Write-Host "-> Migrating..."
 Invoke-Artisan migrate --force
 
+# A fresh instance needs the constitutional clock registry (CLK-01..21) seeded —
+# the scheduler + federation:init's CLK-20 arming depend on it. (DatabaseSeeder
+# does NOT include it; it is its own seeder.)
+Write-Host "-> Seeding the constitutional clock registry..."
+Invoke-Artisan db:seed --class=ClockRegistrySeeder --force
+
 # 3. Federation identity when this instance will federate. -rotate forces a fresh
 #    keypair: key:generate changed APP_KEY above, so any keypair carried in from a
 #    clone is no longer decryptable — re-key it (and the server_id) under the new key.
