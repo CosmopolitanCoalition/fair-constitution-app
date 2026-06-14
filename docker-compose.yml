@@ -285,7 +285,7 @@ services:
     networks:
       - fc_network
 
-  # ─── Python ETL (geoBoundaries + WorldPop + SKATER) ──────────
+  # ─── Python ETL (geoBoundaries + WorldPop) ──────────
   etl:
     build:
       context: .

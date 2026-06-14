@@ -211,7 +211,6 @@ app/Models/Jurisdiction.php
 database/migrations/2026_01_01_000001_create_jurisdictions_table.php
 database/migrations/2026_01_01_000002_create_constitutional_settings_table.php
 database/migrations/2026_01_01_000005_create_elections_table.php
-scripts/etl/run_skater.py
 ```
 
 ---
