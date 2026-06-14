@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Federation\AdoptionController;
 use App\Http\Controllers\Federation\FlipController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\SyncController;
@@ -43,3 +44,7 @@ Route::get('/checkpoint', [SyncController::class, 'checkpoint'])
 // ── Authority flip (F3) — a peer hands us a partition subtree ─────────────
 Route::post('/flip', [FlipController::class, 'receive'])
     ->middleware('federation.signed');
+
+// ── Join-key adoption (G2) — a would-be mirror presents a join key (tofu) ──
+Route::post('/adopt', [AdoptionController::class, 'adopt'])
+    ->middleware('federation.signed:tofu');
