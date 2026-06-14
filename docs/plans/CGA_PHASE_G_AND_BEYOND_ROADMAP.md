@@ -30,7 +30,7 @@ document is the architecture plan for everything **still to build**.
 | **D (P4)** | Executive & Organizations — delegation/conversion, departments+BoG, executive orders, org module, co-determination, board elections, CGC IP register | ✅ COMPLETE |
 | **E (P5)** | Judiciary & Law — appointed/elected courts, cases/panels/juries/advocates, the Art. IV §5 three-path challenge → direct judicial law-editing | ✅ COMPLETE |
 | **F (P6a)** | Federation core + 4 jurisdiction processes + i18n machinery (chrome, 5 locales) | ✅ COMPLETE — `main @ 299dcee` |
-| **G (P6b)** | Federated adoption, earned autonomy, the social mesh | 🔨 **IN PROGRESS** — branch, cold-sync gate done (`60d9383`), G1 next |
+| **G (P6b)** | Federated adoption, earned autonomy, the social mesh | 🔨 **IN PROGRESS** — branch; cold-sync gate + G1 mirror model done; G2 next |
 | **H–O** | The eight explored phases below | 📋 Explored, not started |
 
 The constitutional test suite is green with **zero skips**; the 103-form ConstitutionalEngine, the
@@ -56,7 +56,7 @@ These are the spine of everything H→O:
 
 3. **The privacy actor-split** (the single most-repeated pattern). Two ledgers:
    - **public** — hash-chained, FF&C-synced (government money, public records, budgets, issuance,
-     reach aggregates, board-election *results*, public square posts, public-domain corpus).
+     reach aggregates, board-election results, public square posts, public-domain corpus).
    - **private-local** — **never globally chained, NEVER federated**, like ballots: raw locations,
      credentials, and now also tax filings, individual balances, market transactions, UBI receipts,
      DMs/private posts, education progress, member PII, follow/block lists, sub-k-anon reach counts.
@@ -77,14 +77,18 @@ These are the spine of everything H→O:
 ### Cross-phase contracts (the wiring between future phases)
 
 - **Districting → Demo gate:** the planetary first-draft map (Phase H) is the prerequisite for the
-  full-scale demo (Phase J). A demo cannot complete while childless-giant jurisdictions sit at the
+  full-scale demo (Phase O). A demo cannot complete while childless-giant jurisdictions sit at the
   `clampUnassignedLeafGiants` stub.
 - **Reach denominator, built once:** `LegitimacyService::reachRatio()` + `legitimacy_snapshots`
-  (Phase I) is the *single* canonical metric; the demo (Phase J) and the achievement gauge
-  (Phase M) **consume** it, never recompute it.
-- **Coalition authorship bridge:** the Cosmopolitan Coalition org (Phase K) is the in-app authoring
-  entity; its `authored_by_organization_id` / `ip_register_entry_id` bridge feeds the i18n corpus
-  (Phase L) and the education content (Phase M).
+  (Phase I) is the *single* canonical metric; the demo (Phase O) and the achievement gauge
+  (Phase K) **consume** it, never recompute it.
+- **Coalition authorship bridge:** the Cosmopolitan Coalition org (Phase J) is the in-app authoring
+  entity; its `authored_by_organization_id` / `ip_register_entry_id` bridge feeds the education
+  content (Phase K) and the i18n corpus (Phase N).
+- **Localize-then-showcase:** the full-scale demo (Phase O) is the **capstone** — it materializes
+  *every* built module, so it ships **after** Phase N (full i18n + accessibility), which localizes
+  everything H–M. The demo is the last thing built precisely so it can show the whole program,
+  translated into 77+ languages and WCAG-conformant.
 
 ---
 
@@ -96,16 +100,17 @@ records (anyone forks in, authoritative for nothing); **Prong 2** = government-v
 co-membership (earned by population, granted by the jurisdiction's own government); **cohesion** =
 peer-SSO via the G-ID attestation layer → infinite fork-ability at the social layer.
 
-- **Track A — volunteer mirror mesh** (Prong 1; FIRST): `cold-sync` ✅ → `G1` mirror model → `G2`
-  join-key adoption → `G3` request/vouch → `G3b` wizard → `G0b` deploy script.
+- **Track A — volunteer mirror mesh** (Prong 1; FIRST): `cold-sync` ✅ → `G1` mirror model ✅ →
+  `G2` join-key adoption → `G3` request/vouch → `G3b` wizard → `G0b` deploy script.
 - **Track B — earned autonomy + cohesion:** G-ID (parallel) → co-member clusters → write-routing →
   Patroni HA → ballot re-wrap (test-first) → operational seed → the autonomy vote.
 - **Track C — reach & clients:** transport (tailnet/Tor/sneakernet) → directory → **mobile** (G10,
   Capacitor + geofenced GPS; the operator's physical OnePlus/travel-router lab rig is on record).
 
-**Done:** the cold-sync gate (`buildAuditTail(limit, capTo)` byte-identical at `limit=0`,
-server-capped `/audit-tail`, `ColdSyncService` + `SyncCursor` + cross-page continuity guard).
-**Next:** `G1`.
+**Done:** the cold-sync gate (`60d9383`) and **G1 — the mirror membership model** (`7bdf1cf`:
+`cluster_memberships`, `federation_peers.relation`, `instance_settings.mirror_of_server_id`,
+`MirrorService`, the `upsertTrustedPeer` extraction; a mirror is authoritative for nothing).
+**Next:** `G2`.
 
 ---
 
@@ -113,10 +118,12 @@ server-capped `/audit-tail`, `ColdSyncService` + `SyncCursor` + cross-page conti
 
 > **Phase-letter reconciliation.** The exploration docs self-assigned colliding letters (Treasury
 > claimed *both* "Phase H" and "Phase I"; the others assigned none). The canonical numbering below
-> is this charter's; each section notes the doc's original self-label.
+> is this charter's. **Operator sequencing decision (2026-06-14):** the full-scale demo is the
+> **capstone (last)** and full i18n + accessibility is **second-to-last**, so every built module is
+> localized and accessible *before* the demo showcases it.
 
 ### Phase H — Districting Completion & Planetary Map Generation
-*Source: `districting-toolkit-recalibration.md` (self-labeled "Phase G-adjacent"). Gates Phase J.*
+*Source: `districting-toolkit-recalibration.md` (self-labeled "Phase G-adjacent"). Gates Phase O.*
 
 **Thesis.** The composite autoseed (`DistrictingService::runAutoCompositeForScope`) already districts
 any scope **with children** to political-science benchmarks. The one unsolved case is a **childless
@@ -124,7 +131,7 @@ leaf giant** (entitlement > ceiling, no children to compose from), today clamped
 district (`clampUnassignedLeafGiants`, audited `clamped_pending_subdivision_capability`) — gross
 under-representation. This phase closes three structural blockers, adds the two raster methods for
 the giant case **only**, wires the WorldPop raster substrate into PHP, and runs the planetary
-first-draft generation that Phase J materializes on.
+first-draft generation that the demo (Phase O) materializes on.
 
 **Constitutional grounding.** Art. II §2 (independent boards, split-on-exceed-nine, equal/contiguous/
 fair), Art. V §3 (5/9 band, *amendable*), Art. II §8 (uniform rep:population), Art. VII
@@ -156,7 +163,7 @@ jurisdictions with **no** clamp stubs remaining.
 
 ### Phase I — Activation Tiers & the Reach / Legitimacy Metric
 *Sources: `full-scale-demo.md` (the "activation tiers" line) + `achievements-legitimacy.md` (the
-"reach/legitimacy" half). "Smallest, safest, ship first." Gates Phase J's denominator.*
+"reach/legitimacy" half). "Smallest, safest, ship first." Provides Phase O's denominator.*
 
 **Thesis.** Two tightly-coupled measurement layers that share the WorldPop/CivicPopulation rails:
 (a) a **population-pegged activation tier** that gates when a jurisdiction's government may *boot*
@@ -172,7 +179,7 @@ tiers, the curve, the denominator → [POLICY], founder/legislature-authored, am
 **Key schema (additive).** `constitutional_settings` curve params at planet root
 (`activation_tier_enabled/k/exponent=3/floor=5/cap` — one amendable row, not 951k thresholds) ·
 `legitimacy_snapshots` (tamper-evident audit_log pattern; `ratio_micro`, `population_provenance`,
-`suppressed`; **the table Phase J consumes**).
+`suppressed`; **the table Phase O consumes**).
 
 **Key services.** `ActivationTierService::tierThreshold = clamp(ceil(k·pop^⅓), floor, cap)` (cube-root
 mirrors Taagepera; `tier(0|null)=floor`) · `LegitimacyService` (`reachRatio()` value object,
@@ -186,56 +193,20 @@ flag off.
 
 **Exit criterion.** A real instance resolves per-jurisdiction tiers through the settings cascade
 (dev still = 1), and nightly `legitimacy_snapshots` publish a k-anon-safe reach ratio with
-provenance — the denominator Phase J/M reuse.
+provenance — the denominator Phase K/O reuse.
 
 ---
 
-### Phase J — The Full-Scale Demo *(the flagship)*
-*Source: `full-scale-demo.md`. Gated on H (map) + I (tiers/reach).*
-
-**Thesis.** Resolve "chartered but empty world" with **two physically separate instances**:
-`earth.*` — **the Standard** (joinable multiplayer; every ~951k jurisdiction shows the cube-root
-chamber / district map / institution scaffolding it *could* attain, dormant until real consent
-activates it via Phase-I tiers); and `earth-demo.*` — **the Attained** (that same standard *broadly
-materialized* into a fully-operational ~8-billion-person world, flagged `scale_demo`, **federation
-disabled**, ephemeral single-player to every visitor). Physical separation is the cleanest
-constitutional answer: a demo has received no consent, so it is an *illustration, never a government*.
-
-**Constitutional grounding.** Preamble (no consent → not a government, CI-1), Art. II/III/IV reproduced
-verbatim by the generator. **SILENT:** demo data, the sandbox → [POLICY]. Only the seat arithmetic is
-non-policy (reused from the hardened engine).
-
-**Key schema (additive).** `instance_settings.instance_class` (`production|scale_demo`; scale_demo
-**forces** `federation_enabled=false`) · `demo_sessions` + `demo_overlays` (per-session copy-on-write
-deltas, TTL-evicted) · `demo_generation_runs` (resumable cursor) · reserved synthetic-identity
-namespace (`*@demo.invalid`). Materialized governments **reuse** existing institution tables — safe
-**only** because the instance is isolated + federation-off + ephemeral.
-
-**Key services.** `DemoPopulateService` (deterministic seed = `hash(jurisdiction_id)+version`, **drives
-engine statics**) · `DemoSandboxService` (jurisdiction-grain CoW; read-only demo is the MVP fallback,
-the overlay is "the hardest, most novel piece — its own roadmap line"). **Zero new forms/clocks.**
-
-**Hard rails.** CI-2 boot-assertion refuses to serve a `scale_demo` instance with federation on; CI-5
-hardened math holds in synthetic data (5–9 seats, Droop-clearing winners, 2/3 supermajority, ≥5
-judges) **because the generator runs the engine, not a copy**; PI-2 clamp honesty (no childless-giant
-single-district dressed up as fully districted — hence the H gate).
-
-**Exit criterion.** A visitor anywhere on `earth-demo.*` browses their own jurisdiction's fully
-materialized government, plays in an ephemeral sandbox where **nothing persists**, and the real
-`earth.*` instance carries **zero** synthetic data.
-
----
-
-### Phase K — The Cosmopolitan Coalition as Organization
+### Phase J — The Cosmopolitan Coalition as Organization
 *Source: `coalition-as-organization.md` (self-labeled "Exploration ⑥", no letter). Small, additive,
-enabling. Ships on the built Phase-D org module.*
+enabling. Ships on the built Phase-D org module; the authoring entity for K and N.*
 
 **Thesis.** Model the Coalition's real structure into the app so it supersedes the website's bespoke
 org features. Two nonprofits — **Cosmopolitan Party Foundation** (legal parent) and **Cosmopolitan
 Coalition of United Earth** (operating/authoring child) — both `type='nonprofit'`, linked by the
 existing `organizations.parent_organization_id`, registered at Earth (ADM0). Becomes the in-app
-**authoring entity** for the i18n corpus (L) and education content (M), behind a strict
-civil-society/government firewall (Article-I levers only; zero Leg/Exec/Jud/CGC power).
+**authoring entity** for the education content (Phase K) and the i18n corpus (Phase N), behind a
+strict civil-society/government firewall (Article-I levers only; zero Leg/Exec/Jud/CGC power).
 
 **Constitutional grounding.** Article I (a nonprofit is a "pure Article-I creature" — assembly,
 association, expression), Art. III §6 co-determination if ≥100 contracted workers, Art. V §6 optional
@@ -246,7 +217,7 @@ mandates public-domain only for CGCs (Art. III §5, untouched).
 **Key schema (additive, tiny).** `organizations.public_domain_charter` (one-way false→true) ·
 `cgc_ip_register.dedication_basis` (`constitutional_mandate|voluntary_charter`) · optional
 `org_memberships.is_public` · the **Δ4 bridge contract** (`authored_by_organization_id` /
-`authored_by_user_id` / `ip_register_entry_id`) **owned by L/M, not created here**. No delta for the
+`authored_by_user_id` / `ip_register_entry_id`) **owned by K/N, not created here**. No delta for the
 two-org link.
 
 **Decisions locked.** `type='nonprofit'` settled (not CGC, not informal); app stores **no** US tax
@@ -255,51 +226,14 @@ category; `cgc_ip_register` kept (not renamed); CGC Art. III §5 branch byte-for
 
 **Exit criterion.** `institutions:demo-coalition --fresh` seeds both nonprofits at Earth with a
 member-elected co-determined board and a public-domain corpus; the firewall pins stay green; the Δ4
-contract is handed to L/M.
+contract is handed to K/N.
 
 ---
 
-### Phase L — Full i18n, Accessibility & Media
-*Source: `i18n-full-scale.md` (no letter). Builds on Phase-F machinery; consumes K's authorship.*
-
-**Thesis.** Phase F shipped the i18n machinery (loader, glossary, pseudo-locale, 5-locale *chrome*);
-~90% of *body* copy across 64 pages + ~48 components is still hardcoded English. This phase (1)
-extracts every body string into the per-namespace JSON catalog with a CI gate, (2) builds an
-invokable Original-Text→All-Languages pipeline scaling to **115 registered locales / 77+ languages**
-via a hybrid **local-NLLB + Claude-Haiku** router (replacing the paid media service), (3) brings every
-surface to **WCAG 2.2 AA + selected AAA + EN 301 549**, and (4) adds a video→translated-video pipeline
-+ multi-track player — all **presentation-only**, never touching the hardened layer.
-
-**Constitutional grounding.** WF-SYS-03 (the *only* explicit translation mandate: public records
-publish *with translations* — a backfill into the existing `public_records.translations` jsonb), Art. I
-(access to information → accessibility derived as faithful-implementation, **not** a new right).
-**SILENT:** no official-language article, no disability article, no RTL mandate → all [POLICY].
-
-**Key schema.** Build-time path = **zero new tables** (catalog files in Git + generated config). New
-tables **only** in the *deferred* dynamic layer: `translation_cache` (with the privacy rail
-`CHECK (NOT (is_private AND provider LIKE 'cloud-%'))`) + `translation_string_status`.
-
-**Key services.** `scripts/i18n/extract.mjs` + `check.mjs` (AST extractor + CI gate) ·
-`scripts/etl/translate_catalog.py` driven by the existing `supervisor.py` · `TranslationProvider`
-router (NLLB tail / Haiku tier-1 + sensitive / human for constitutional namespaces) ·
-`MultiTrackPlayer.vue` (silent master + per-locale audio/VTT) · the single `languages.py` registry
-generating `config/locales.php` + JS registry (**kills the PHP↔JS drift**). **F-SYS-LOC-PUBLISH** +
-**F-SYS-TR-REVIEW**. Locales **auto-publish** on zero-error QA; human correction layers on after.
-
-**Hard rails.** Presentation-only (no locale ever alters a hardened computation); the 38 glossary
-terms + all ID tokens (R-/WF-/F-/CLK-) byte-identical across every locale incl. pseudo; private
-dynamic content translated **only** by a local provider (triple-railed). The top human task: seeding
-the 38 constitutional terms per new locale **before** prose MT.
-
-**Exit criterion.** Every page body is extractable and CI-gated; a fresh locale auto-publishes from
-clean QA across 77+ languages; axe-core passes in CI; WF-SYS-03 public records carry translations.
-
----
-
-### Phase M — The Public Square, Civic Education & Achievement Surfaces
+### Phase K — The Public Square, Civic Education & Achievement Surfaces
 *Sources: `education-social-layer.md` (no letter; social-first) + the *achievements* half of
 `achievements-legitimacy.md`. Single-instance social rides Phase-A residency; cross-instance Path B
-rides Phase G; education rides K's content; the legitimacy gauge rides Phase I.*
+rides Phase G; education rides J's content; the legitimacy gauge rides Phase I.*
 
 **Thesis.** A per-jurisdiction **public square** (open resident discourse) + **halls of governance**
 (deliberation tied to bills/referendums/petitions/committees/candidacies), **point-of-use civic
@@ -346,7 +280,7 @@ public square.
 
 ---
 
-### Phase N — Public Finance
+### Phase L — Public Finance
 *Source: `treasury-economics.md` §8 (self-labeled "Phase H — Public Finance"). Builds on the Phase-D
 fiscal stub + org module + Phase-F privacy points (all built). Largely independent — re-orderable.*
 
@@ -385,8 +319,8 @@ an act.
 
 ---
 
-### Phase O — Market Economy
-*Source: `treasury-economics.md` §8 (self-labeled "Phase I — Market Economy"). Gated on N.*
+### Phase M — Market Economy
+*Source: `treasury-economics.md` §8 (self-labeled "Phase I — Market Economy"). Gated on L.*
 
 **Thesis.** The **market layer** riding the existing organizations module: a labor/work board,
 a goods marketplace, mutual aid, and a **UBI** that bootstraps participation and serves as a governed
@@ -407,7 +341,7 @@ user/org PRIVATE) · `market_transactions` (PRIVATE, like ballots) · `work_post
 
 **Key forms.** **F-TRE-004** UBI Run (system-triggered, `systemOnly()`) · **F-IND-018..023**
 (tax-filing, work, assistance, marketplace listing/order, funds transfer) · **F-ORG-008** Org Market
-Participation. (F-ORG-008 is free — Phase K deferred its claim on that code.)
+Participation. (F-ORG-008 is free — Phase J deferred its claim on that code.)
 
 **Hard rails.** **UBI eligibility = active residency association ONLY** (same absolute-rights gate as
 voting — no added condition); individual balances/transactions/receipts are **private-local, never
@@ -421,56 +355,120 @@ the marketplace, and a labor-board hire auto-triggers co-determination.
 
 ---
 
+### Phase N — Full i18n, Accessibility & Media *(second-to-last — localizes everything above)*
+*Source: `i18n-full-scale.md` (no letter). Builds on Phase-F machinery; consumes J's authorship.
+Placed second-to-last so it localizes every built module (H–M) before the demo showcases them.*
+
+**Thesis.** Phase F shipped the i18n machinery (loader, glossary, pseudo-locale, 5-locale *chrome*);
+~90% of *body* copy across 64 pages + ~48 components is still hardcoded English. This phase (1)
+extracts every body string into the per-namespace JSON catalog with a CI gate, (2) builds an
+invokable Original-Text→All-Languages pipeline scaling to **115 registered locales / 77+ languages**
+via a hybrid **local-NLLB + Claude-Haiku** router (replacing the paid media service), (3) brings every
+surface to **WCAG 2.2 AA + selected AAA + EN 301 549**, and (4) adds a video→translated-video pipeline
++ multi-track player — all **presentation-only**, never touching the hardened layer. Because it runs
+after the content phases (J–M), it localizes treasury, market, social, education, and coalition
+surfaces too — not just the A–G chrome.
+
+**Constitutional grounding.** WF-SYS-03 (the *only* explicit translation mandate: public records
+publish *with translations* — a backfill into the existing `public_records.translations` jsonb), Art. I
+(access to information → accessibility derived as faithful-implementation, **not** a new right).
+**SILENT:** no official-language article, no disability article, no RTL mandate → all [POLICY].
+
+**Key schema.** Build-time path = **zero new tables** (catalog files in Git + generated config). New
+tables **only** in the *deferred* dynamic layer: `translation_cache` (with the privacy rail
+`CHECK (NOT (is_private AND provider LIKE 'cloud-%'))`) + `translation_string_status`.
+
+**Key services.** `scripts/i18n/extract.mjs` + `check.mjs` (AST extractor + CI gate) ·
+`scripts/etl/translate_catalog.py` driven by the existing `supervisor.py` · `TranslationProvider`
+router (NLLB tail / Haiku tier-1 + sensitive / human for constitutional namespaces) ·
+`MultiTrackPlayer.vue` (silent master + per-locale audio/VTT) · the single `languages.py` registry
+generating `config/locales.php` + JS registry (**kills the PHP↔JS drift**). **F-SYS-LOC-PUBLISH** +
+**F-SYS-TR-REVIEW**. Locales **auto-publish** on zero-error QA; human correction layers on after.
+
+**Hard rails.** Presentation-only (no locale ever alters a hardened computation); the 38 glossary
+terms + all ID tokens (R-/WF-/F-/CLK-) byte-identical across every locale incl. pseudo; private
+dynamic content translated **only** by a local provider (triple-railed). The top human task: seeding
+the 38 constitutional terms per new locale **before** prose MT.
+
+**Exit criterion.** Every page body across A–M is extractable and CI-gated; a fresh locale
+auto-publishes from clean QA across 77+ languages; axe-core passes in CI; WF-SYS-03 public records
+carry translations.
+
+---
+
+### Phase O — The Full-Scale Demo *(the capstone — last)*
+*Source: `full-scale-demo.md`. Gated on H (map) + I (reach) + N (localization); materializes EVERY
+built module. Last so it showcases the whole program, localized and accessible.*
+
+**Thesis.** Resolve "chartered but empty world" with **two physically separate instances**:
+`earth.*` — **the Standard** (joinable multiplayer; every ~951k jurisdiction shows the cube-root
+chamber / district map / institution scaffolding it *could* attain, dormant until real consent
+activates it via Phase-I tiers); and `earth-demo.*` — **the Attained** (that same standard *broadly
+materialized* into a fully-operational ~8-billion-person world, flagged `scale_demo`, **federation
+disabled**, ephemeral single-player to every visitor). Physical separation is the cleanest
+constitutional answer: a demo has received no consent, so it is an *illustration, never a government*.
+
+**Constitutional grounding.** Preamble (no consent → not a government, CI-1), Art. II/III/IV reproduced
+verbatim by the generator. **SILENT:** demo data, the sandbox → [POLICY]. Only the seat arithmetic is
+non-policy (reused from the hardened engine).
+
+**Key schema (additive).** `instance_settings.instance_class` (`production|scale_demo`; scale_demo
+**forces** `federation_enabled=false`) · `demo_sessions` + `demo_overlays` (per-session copy-on-write
+deltas, TTL-evicted) · `demo_generation_runs` (resumable cursor) · reserved synthetic-identity
+namespace (`*@demo.invalid`). Materialized governments **reuse** existing institution tables — safe
+**only** because the instance is isolated + federation-off + ephemeral.
+
+**Key services.** `DemoPopulateService` (deterministic seed = `hash(jurisdiction_id)+version`, **drives
+engine statics**) · `DemoSandboxService` (jurisdiction-grain CoW; read-only demo is the MVP fallback,
+the overlay is "the hardest, most novel piece — its own roadmap line"). **Zero new forms/clocks.**
+
+**Hard rails.** CI-2 boot-assertion refuses to serve a `scale_demo` instance with federation on; CI-5
+hardened math holds in synthetic data (5–9 seats, Droop-clearing winners, 2/3 supermajority, ≥5
+judges) **because the generator runs the engine, not a copy**; PI-2 clamp honesty (no childless-giant
+single-district dressed up as fully districted — hence the H gate).
+
+**Exit criterion.** A visitor anywhere on `earth-demo.*` browses their own jurisdiction's fully
+materialized government — every institution, **in their own language, accessibly** — plays in an
+ephemeral sandbox where **nothing persists**, and the real `earth.*` instance carries **zero**
+synthetic data.
+
+---
+
 ## 5. Dependency graph & critical path
 
 ```
-            ┌─────────────────────────────────────────────────────────────┐
-            │  Built substrate: Phases A–F (engine, elections, legislature, │
-            │  executive/orgs, judiciary, federation core, i18n machinery)  │
-            └─────────────────────────────────────────────────────────────┘
-                                      │
-                              ┌───────┴────────┐
-                              ▼                ▼
-                   ┌──────────────────┐   (independent of G:
-                   │ PHASE G (mesh)   │    can build any time
-                   │ Track A→B→C      │    on built substrate)
-                   └──────┬───────────┘        │
-        ┌────────────────┐│                    │
-        │ peer-SSO / G-ID ││                    │
-        └───────┬────────┘│                    │
-   ┌────────────┘         │                    │
-   ▼                      ▼                    ▼
-[Phase M Path B]   ┌─────────────┐      ┌──────────────┐    ┌──────────────┐
-(cross-instance    │   PHASE H   │      │  PHASE K     │    │  PHASE N     │
- social)           │ districting │      │ coalition org│    │ public       │
-                   │ + planetary │      └──────┬───────┘    │ finance      │
-                   │ map gen     │             │            └──────┬───────┘
-                   └──────┬──────┘             │ authorship         │
-                          │                    │ bridge (Δ4)        ▼
-                   ┌──────▼──────┐             ├──────────►  ┌──────────────┐
-                   │   PHASE I   │             │            │  PHASE O     │
-                   │ tiers +     │             ▼            │ market econ  │
-                   │ reach metric│        ┌──────────┐      │ (UBI ↔ G-ID) │
-                   └──────┬──────┘        │ PHASE L  │      └──────────────┘
-                          │  reach        │ i18n +   │
-                          │  denominator  │ a11y +   │
-                          ▼               │ media    │
-                   ┌─────────────┐        └────┬─────┘
-                   │   PHASE J   │             │ content translation
-                   │ full-scale  │             ▼
-                   │ demo        │        ┌──────────┐
-                   │ (flagship)  │◄───────│ PHASE M  │ (reach gauge ← I,
-                   └─────────────┘ materi-│ square + │  achievement chrome,
-                          ▲        alizes │ education │  education ← K)
-                          │ live   modules│ + achieve│
-                          └───────────────└──────────┘
+   Built substrate A–F  →  PHASE G (mesh, in progress)
+                                   │
+        ┌──────────────┬──────────┴───┬───────────────┬───────────────┐
+        ▼              ▼              ▼               ▼               ▼
+   PHASE H        PHASE I        PHASE J         PHASE L         (G-ID, Track B)
+   districting    tiers +        coalition       public
+   + planetary    reach metric   org             finance
+   map gen        │              │               │
+        │         │              ▼               ▼
+        │         │          PHASE K          PHASE M
+        │         │          public square    market econ
+        │         │          + education      (UBI ↔ G-ID)
+        │         │          + achievements
+        │         │          (gauge ← I, content ← J)
+        │         │              │               │
+        └─────────┴──────┬───────┴───────────────┘
+                         ▼
+                   PHASE N — Full i18n + accessibility + media
+                   (localizes EVERY built module H–M; authorship ← J)
+                         │
+                         ▼
+                   PHASE O — The Full-Scale Demo   ◀── CAPSTONE
+                   (materializes ALL modules, localized + accessible;
+                    map ← H, reach ← I, localization ← N)
 ```
 
-**The one hard critical path:** `G → H → I → J`. Districting (H) gates the demo's map; tiers + reach
-(I) gate the demo's denominator; J is the flagship. **Independent / re-orderable** (need only built
-substrate): **K** (coalition org — small, do early), **L** (i18n), **N→O** (finance→economy). **M** is
-gated by G (Path B), K (education content), and I (reach gauge). The **achievement chrome** (⑦ part 2)
-rides M; the **reach metric** (⑦ part 1) is folded into I.
+**Critical path to the flagship:** `G → H → I → J → K → L → M → N → O`. The demo (O) is the **capstone
+that consumes everything**: its hard technical gates are **H** (the planetary map), **I** (the reach
+denominator), and **N** (full localization + accessibility). The content modules **J, K, L, M** all
+feed **N** (which localizes them) and **O** (which materializes them). **H and I are early,
+parallelizable infrastructure** — they gate the demo but not each other, and `H` is the natural first
+build after Phase G. **G-ID** (Phase G Track B) runs in parallel and gates Phase M's UBI sybil-defense.
 
 ---
 
@@ -480,12 +478,12 @@ rides M; the **reach metric** (⑦ part 1) is folded into I.
 |---|---|
 | **H** | `district_subdivisions`, `districting_exemplars`, `districting_calibrations`; SQL fn `population_within_multi`; `+subdivision_id` on `legislature_district_jurisdictions` |
 | **I** | `legitimacy_snapshots`; curve-param **keys** in `constitutional_settings` |
-| **J** | `demo_sessions`, `demo_overlays`, `demo_generation_runs`; `instance_settings.instance_class` |
-| **K** | `organizations.public_domain_charter`, `cgc_ip_register.dedication_basis`, (opt) `org_memberships.is_public`; Δ4 bridge cols (owned by L/M) |
-| **L** | build-time = **none**; deferred dynamic layer: `translation_cache`, `translation_string_status` |
-| **M** | `social_profiles/spaces/subforums/threads/posts/reactions/follows/memberships`, `education_tracks/modules/questions/progress`, `achievements` |
-| **N** | `treasury_accounts`, `ledger_entries`, `revenue_streams`, `levies`, `tax_filings`, `budgets`, `budget_lines`, `borrowings`, `currencies`, `issuance_events`; monetary **keys** in settings |
-| **O** | `economic_accounts`, `market_transactions`, `work_postings/applications`, `marketplace_listings/orders`, `assistance_requests`, `ubi_disbursements`, `ubi_receipts` |
+| **J** | `organizations.public_domain_charter`, `cgc_ip_register.dedication_basis`, (opt) `org_memberships.is_public`; Δ4 bridge cols (owned by K/N) |
+| **K** | `social_profiles/spaces/subforums/threads/posts/reactions/follows/memberships`, `education_tracks/modules/questions/progress`, `achievements` |
+| **L** | `treasury_accounts`, `ledger_entries`, `revenue_streams`, `levies`, `tax_filings`, `budgets`, `budget_lines`, `borrowings`, `currencies`, `issuance_events`; monetary **keys** in settings |
+| **M** | `economic_accounts`, `market_transactions`, `work_postings/applications`, `marketplace_listings/orders`, `assistance_requests`, `ubi_disbursements`, `ubi_receipts` |
+| **N** | build-time = **none**; deferred dynamic layer: `translation_cache`, `translation_string_status` |
+| **O** | `demo_sessions`, `demo_overlays`, `demo_generation_runs`; `instance_settings.instance_class` |
 
 `audit_log.module` (app-validated string, no migration) gains: `treasury`, `economy`, `social`,
 `education`, `cluster`, `mirror`, … per phase. **`achievements` deliberately does NOT get a module** —
@@ -501,12 +499,12 @@ it reuses `records`.
 - **The protected triad never federates:** ballots, raw location pings, credentials — extended each
   phase (tax filings, market txns, UBI receipts, DMs/private posts, education progress, member PII,
   sub-k-anon reach). `FORBIDDEN_SUBJECT_TYPES` + the four Phase-F export filters are the enforcement.
-- **No paywall, no pay-to-win, no social credit:** no fee gates a civic right (N's `NO_FEE_FORMS`); no
-  badge/score/balance affects any governance act (M/I's CI-1); no per-person composite score ever
-  exists (M's PI-6 non-existence pin).
+- **No paywall, no pay-to-win, no social credit:** no fee gates a civic right (L's `NO_FEE_FORMS`); no
+  badge/score/balance affects any governance act (K/I's CI-1); no per-person composite score ever
+  exists (K's PI-6 non-existence pin).
 - **Authority ≠ leadership** (G) holds across all phases; no authority path reads cluster state.
 - **Additive-only:** `jurisdictions`, `ballots`, `audit_log` migrations never edited.
-- **Generators run the engine** (H/J): hardened math is verified *by reproduction*, not reimplemented.
+- **Generators run the engine** (H/O): hardened math is verified *by reproduction*, not reimplemented.
 
 ---
 
@@ -515,8 +513,8 @@ it reuses `records`.
 - **Per sub-phase:** named constitutional / property / idempotency pins green under the live-pg
   guarded-connection, rolled-back harness (`tests/Concerns/LivePgConnection` + `FederationSyncSupport`).
   A pin that breaks means the *edit* is wrong, not the test.
-- **Standing demos:** each phase ships an idempotent `--fresh` seed (`institutions:demo-treasury`,
-  `social:demo`, `education:demo`, `institutions:demo-coalition`, the `earth-demo.*` generator) in the
+- **Standing demos:** each phase ships an idempotent `--fresh` seed (`institutions:demo-coalition`,
+  `social:demo`, `education:demo`, `institutions:demo-treasury`, the `earth-demo.*` generator) in the
   vein of `institutions:demo-e` / `elections:demo`; `phasesLive` advances.
 - **The discipline that gave A–G zero post-hoc bugs:** build backend sequentially with wiring + tests
   in-flight; commit in reviewable batches; fast-forward the branch to `main` only when the operator
@@ -526,20 +524,21 @@ it reuses `records`.
 
 ## 9. Recommended resume point
 
-**Resume Phase G at `G1` (the mirror membership model) and finish Phase G.** It is the in-flight
-phase, it is the active branch, and it is the *substrate* the rest depends on — Phase M's cross-
-instance public square (Path B), the peer-SSO/G-ID identity that Phase O's UBI leans on for sybil
-defense, and the whole mirror/co-membership trust model all require G's primitives. Finishing it
-honors the A–F discipline of completing one phase before opening the next.
+**Resume Phase G at `G2` (join-key adoption) and finish Phase G.** It is the in-flight phase, it is
+the active branch, and it is the *substrate* the rest depends on — Phase K's cross-instance public
+square (Path B), the peer-SSO/G-ID identity that Phase M's UBI leans on for sybil defense, and the
+whole mirror/co-membership trust model all require G's primitives. Finishing it honors the A–F
+discipline of completing one phase before opening the next. (G1, the mirror membership model, is done.)
 
 **On deck after G: Phase H (Districting Completion).** It is self-contained, needs nothing from the
-explorations, directly unblocks the flagship demo (J), and is the work the operator has already
-sharpened three times — the natural first post-G build.
+explorations, and produces the planetary map the capstone demo (Phase O) materializes — the work the
+operator has already sharpened three times, and the natural first post-G build.
 
 **Independent fillers** that can be pulled forward whenever convenient (they need only the built
-A–F substrate): **Phase K** (Coalition org — small, and it unblocks content authorship for L and M),
-and **Phase L** (i18n — large but parallelizable, and it makes the eventual public demo readable
-worldwide).
+A–F substrate): **Phase J** (Coalition org — small, and it unblocks content authorship for K and N).
+**The full-scale demo (Phase O) is deliberately last**, and **full i18n + accessibility (Phase N)
+second-to-last**, so the demo showcases every built module already translated into 77+ languages and
+WCAG-conformant.
 
 ---
 
