@@ -30,7 +30,14 @@ class SyncController extends Controller
         /** @var FederationPeer $peer */
         $peer = $request->attributes->get('peer');
 
-        $log = $this->sync->ingestTail($peer, $request->json()->all());
+        // Parse the tail from the RAW signed bytes (the peer signature is over
+        // getContent()). NOT $request->json(): the global TrimStrings /
+        // ConvertEmptyStringsToNull middleware mutate the parsed input (empty
+        // strings → null, trimmed whitespace), which would break the tail's own
+        // signature over its canonical form.
+        $tail = json_decode((string) $request->getContent(), true) ?? [];
+
+        $log = $this->sync->ingestTail($peer, $tail);
 
         return response()->json([
             'result' => $log->result,

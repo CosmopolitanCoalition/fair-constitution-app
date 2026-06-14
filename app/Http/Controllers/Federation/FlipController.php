@@ -22,13 +22,18 @@ class FlipController extends Controller
         /** @var FederationPeer $peer */
         $peer = $request->attributes->get('peer');
 
-        $data = $request->validate([
-            'manifest' => ['required', 'array'],
-            'manifest.root_jurisdiction_id' => ['required', 'uuid'],
-            'signature' => ['required', 'string'],
-        ]);
+        // Parse from the RAW signed bytes (the manifest signature is over its
+        // canonical form) — NOT validated input, which TrimStrings /
+        // ConvertEmptyStringsToNull would mutate and invalidate.
+        $data = json_decode((string) $request->getContent(), true) ?? [];
+        $manifest = $data['manifest'] ?? null;
+        $signature = (string) ($data['signature'] ?? '');
 
-        $export = $this->flips->importFlip($data['manifest'], $data['signature'], $peer);
+        if (! is_array($manifest) || ($manifest['root_jurisdiction_id'] ?? null) === null || $signature === '') {
+            return response()->json(['error' => 'malformed partition bundle'], 422);
+        }
+
+        $export = $this->flips->importFlip($manifest, $signature, $peer);
 
         return response()->json([
             'status' => $export->status,
