@@ -5,6 +5,7 @@ namespace App\Domain\Engine;
 use App\Domain\Engine\Contracts\ResolvesRoles;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\FormRegistry;
+use App\Models\InstanceSettings;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\ConstitutionalValidator;
@@ -59,34 +60,47 @@ class ConstitutionalEngine
         private readonly AuditService $audit,
         private readonly ConstitutionalValidator $validator,
         private readonly ResolvesRoles $roles,
-    ) {
-    }
+    ) {}
 
     /**
      * File a constitutional form.
      *
-     * @param  string     $formId   canonical or aliased form ID
-     * @param  User|null  $actor    null = system filing (jobs, clocks)
-     * @param  array      $payload  form input; `jurisdiction_id` (when
-     *                              present and a UUID) scopes the audit row
+     * @param  string  $formId  canonical or aliased form ID
+     * @param  User|null  $actor  null = system filing (jobs, clocks)
+     * @param  array  $payload  form input; `jurisdiction_id` (when
+     *                          present and a UUID) scopes the audit row
      *
      * @throws \InvalidArgumentException for unknown form IDs (not a constitutional matter)
-     * @throws ConstitutionalViolation   on any constitutional denial (after recording it)
-     * @throws RuntimeException          when the form has no Phase A handler yet
+     * @throws ConstitutionalViolation on any constitutional denial (after recording it)
+     * @throws RuntimeException when the form has no Phase A handler yet
      */
     public function file(string $formId, ?User $actor, array $payload): EngineResult
     {
         $canonical = FormRegistry::canonical($formId);
-        $handler   = $this->resolveHandler($canonical);
+        $handler = $this->resolveHandler($canonical);
 
         // audit_log.actor_user_id is uuid. Until the WI-3 users rebuild
         // lands, user PKs are still bigint and cannot be recorded there —
         // defensively record only UUID keys (from WI-3 on, always true).
-        $actorKey       = $actor?->getKey();
-        $actorId        = $actorKey !== null && Str::isUuid((string) $actorKey) ? (string) $actorKey : null;
+        $actorKey = $actor?->getKey();
+        $actorId = $actorKey !== null && Str::isUuid((string) $actorKey) ? (string) $actorKey : null;
         $jurisdictionId = $this->jurisdictionIdFrom($payload);
 
         try {
+            // Mirror write-guard (Phase G, G2). A read-only mirror is
+            // authoritative for NOTHING: it refuses EVERY constitutional filing —
+            // HTTP, queue, or clock — and records the refusal as a rejected edge
+            // on its OWN local chain. (Mirrored host records live in
+            // public_records with audit_seq=null, NEVER in audit_log, so this
+            // edge cannot fork the replicated chain.) The write surface is
+            // indistinguishable from absent.
+            if (InstanceSettings::current()->isMirror()) {
+                throw new ConstitutionalViolation(
+                    'This instance is a read-only mirror; it is authoritative for nothing and accepts no constitutional filings.',
+                    'A Fair Constitution — a mirror replicates public records, it does not legislate'
+                );
+            }
+
             $this->authorize($handler, $canonical, $actor);
 
             $this->validator->check($canonical, $payload);
@@ -121,17 +135,17 @@ class ConstitutionalEngine
             // rejection itself is recorded in a fresh transaction.
             $this->audit->append(
                 module: $handler->module(),
-                event: $handler->event() . '.rejected',
+                event: $handler->event().'.rejected',
                 payload: [
-                    'form_id'  => $canonical,
+                    'form_id' => $canonical,
                     'citation' => $violation->citation,
-                    'payload'  => $this->sanitize($payload),
+                    'payload' => $this->sanitize($payload),
                 ],
                 ref: $canonical,
                 actorId: $actorId,
                 jurisdictionId: $jurisdictionId,
                 rejected: true,
-                blockedReason: $violation->getMessage() . ' (' . $violation->citation . ')',
+                blockedReason: $violation->getMessage().' ('.$violation->citation.')',
             );
 
             throw $violation;
@@ -146,7 +160,7 @@ class ConstitutionalEngine
 
         if ($class === null) {
             throw new RuntimeException(
-                "Form [{$canonical}] has no handler yet — Phase A implements " . count(FormRegistry::HANDLERS) . ' forms.'
+                "Form [{$canonical}] has no handler yet — Phase A implements ".count(FormRegistry::HANDLERS).' forms.'
             );
         }
 
@@ -207,6 +221,7 @@ class ConstitutionalEngine
         foreach ($payload as $key => $value) {
             if (in_array(strtolower((string) $key), self::SENSITIVE_KEYS, true)) {
                 unset($payload[$key]);
+
                 continue;
             }
 
