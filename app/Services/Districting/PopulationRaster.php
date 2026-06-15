@@ -3,6 +3,7 @@
 namespace App\Services\Districting;
 
 use App\Services\ConstitutionalDefaults;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -49,6 +50,64 @@ class PopulationRaster
         );
 
         return (int) ($row->pop ?? 0);
+    }
+
+    /**
+     * The giant's WorldPop pixels as a flat [[lng, lat, people], ...] grid,
+     * clipped to its boundary and de-duplicated across border rasters — computed
+     * ONCE and cached. This is what makes the split-line tools interactive: every
+     * candidate cut (manual line OR an automatic shortest-split-line sweep) is
+     * then an O(pixels) blade-side sum in PHP instead of a fresh PostGIS raster
+     * scan per cut. Aggregate-only (100 m pixel sums) — never individual records.
+     *
+     * Sized for the childless-giant case (a castello/county = a few thousand
+     * pixels). Earth-class giants would use the queued path (not this).
+     */
+    public function pixelGrid(string $scopeId, int $year = 2023): array
+    {
+        return Cache::rememberForever("districting.pixelgrid.{$scopeId}.{$year}", function () use ($scopeId, $year) {
+            // Per-tile clip + pixel-centroids of the giant's OWN country raster —
+            // NO ST_Union (unioning border-overlapping tiles is ~500× slower). A
+            // childless leaf giant sits inside one country, so iso_code suffices;
+            // ~1.5k pixels for a castello, ~0.4s once, then cached. (A rare
+            // cross-border giant would need the multi path — out of scope here.)
+            $rows = DB::select(
+                "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
+                 SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
+                   FROM worldpop_rasters r
+                   CROSS JOIN g
+                   CROSS JOIN LATERAL ST_PixelAsCentroids(ST_Clip(r.rast, g.geom, TRUE), 1) AS pc
+                  WHERE r.iso_code = g.iso_code
+                    AND r.year = ?::smallint
+                    AND ST_Intersects(r.rast, g.geom)
+                    AND pc.val > 0",
+                [$scopeId, $year]
+            );
+
+            return array_map(fn ($r) => [(float) $r->x, (float) $r->y, (float) $r->val], $rows);
+        });
+    }
+
+    /**
+     * Split a pixel grid by a directed blade A→B: returns [popLeft, popRight] by
+     * the sign of the cross product (which side of the line each pixel sits on).
+     * O(pixels), no database — the hot path of every split evaluation.
+     */
+    public static function splitByBlade(array $grid, float $ax, float $ay, float $bx, float $by): array
+    {
+        $dirx = $bx - $ax;
+        $diry = $by - $ay;
+        $left = 0.0;
+        $right = 0.0;
+        foreach ($grid as [$x, $y, $v]) {
+            if ($dirx * ($y - $ay) - $diry * ($x - $ax) >= 0) {
+                $left += $v;
+            } else {
+                $right += $v;
+            }
+        }
+
+        return [$left, $right];
     }
 
     /**

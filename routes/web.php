@@ -197,6 +197,9 @@ Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureContro
 // read-only live readout behind the draw tool; draw files F-ELB-008 (audited).
 Route::post('/api/legislatures/{legislature_id}/population-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'probe'])->name('legislatures.population-probe');
 Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'draw'])->name('legislatures.subdivisions.draw');
+// Split-line bisection: draw a line, see the population each side, commit both districts.
+Route::post('/api/legislatures/{legislature_id}/split-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitProbe'])->name('legislatures.split-probe');
+Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit');
 
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
 // giant_threshold-aware). Returns { steps: [{ scope_id, scope_name }, ...],

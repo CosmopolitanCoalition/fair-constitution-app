@@ -158,6 +158,64 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_split_probe_partitions_the_giant_population_into_two_sides(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+            $req = \Illuminate\Http\Request::create('/sp', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'line'     => $ctx['bisect_line'],
+            ]);
+            $resp = $controller->splitProbe($req, $ctx['legislature_id']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+
+            $this->assertCount(2, $data['sides'], 'a bisecting line yields exactly two sides');
+            $this->assertGreaterThan(0, $data['sides'][0]['population']);
+            $this->assertGreaterThan(0, $data['sides'][1]['population']);
+            // The two sides partition the giant — their populations sum to ~its total
+            // (small clip error tolerated), proving the split + raster sum are sound.
+            $sum = $data['sides'][0]['population'] + $data['sides'][1]['population'];
+            $this->assertEqualsWithDelta($ctx['giant_population'], $sum, $ctx['giant_population'] * 0.05,
+                'the two sides sum to the giant population');
+        });
+    }
+
+    public function test_split_commit_creates_two_districts_when_both_sides_are_in_band(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+            $probe = json_decode($controller->splitProbe(
+                \Illuminate\Http\Request::create('/sp', 'POST', ['scope_id' => $ctx['giant_id'], 'line' => $ctx['bisect_line']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+
+            $resp = $controller->splitCommit(
+                \Illuminate\Http\Request::create('/sc', 'POST', [
+                    'scope_id' => $ctx['giant_id'],
+                    'map_id'   => $ctx['map_id'],
+                    'line'     => $ctx['bisect_line'],
+                ]),
+                $ctx['legislature_id']
+            );
+
+            if ($probe['both_in_band']) {
+                $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+                $data = json_decode($resp->getContent(), true);
+                $this->assertCount(2, $data['districts']);
+                $this->assertSame(2, (int) DB::table('district_subdivisions')
+                    ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                    ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count());
+            } else {
+                // Out-of-band cut must be refused atomically — neither side persisted.
+                $this->assertSame(422, $resp->getStatusCode());
+                $this->assertSame(0, (int) DB::table('district_subdivisions')
+                    ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                    ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count());
+            }
+        });
+    }
+
     // -------------------------------------------------------------------------
 
     private function engine(): ConstitutionalEngine
@@ -291,15 +349,23 @@ class ManualDistrictDrawTest extends TestCase
             ]],
         ]);
 
+        // A bisecting line: vertical through the giant centroid, top to bottom.
+        $bisectLine = json_encode([
+            'type' => 'LineString',
+            'coordinates' => [[$cx, $giant->ymin - 0.001], [$cx, $giant->ymax + 0.001]],
+        ]);
+
         return [
             'legislature_id'      => $leg->id,
             'leg_jurisdiction_id' => $leg->jurisdiction_id,
             'giant_id'            => $giant->id,
+            'giant_population'    => (int) $giant->population,
             'map_id'              => $mapId,
             'inband_geojson'      => $inband->gj,
             'tiny_geojson'        => $tiny,
             'multipart_geojson'   => $multipart,
             'offshore_geojson'    => $offshore,
+            'bisect_line'         => $bisectLine,
         ];
     }
 }

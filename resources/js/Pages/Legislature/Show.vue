@@ -791,33 +791,68 @@
                             </div>
                         </template>
                         <template v-else>
-                            <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="text-amber-300 font-medium">Draw a district with the ▢ tool (top-left, under zoom)</span>
-                                <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <div class="inline-flex rounded overflow-hidden border border-amber-800 text-[11px]">
+                                    <button class="px-2 py-0.5"
+                                            :class="drawMethod === 'split' ? 'bg-amber-600 text-white' : 'text-amber-300 hover:bg-amber-900/40'"
+                                            @click="setDrawMethod('split')">📏 Split line</button>
+                                    <button class="px-2 py-0.5"
+                                            :class="drawMethod === 'polygon' ? 'bg-amber-600 text-white' : 'text-amber-300 hover:bg-amber-900/40'"
+                                            @click="setDrawMethod('polygon')">✏️ Polygon</button>
+                                </div>
+                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
                             </div>
-                            <div v-if="drawProbe" class="space-y-1 mt-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-gray-400">Population</span>
-                                    <span class="tabular-nums text-gray-200">{{ formatPop(drawProbe.population) }}</span>
+
+                            <!-- Split-line: click two points, see population each side. -->
+                            <template v-if="drawMethod === 'split'">
+                                <div class="text-amber-300/80 mb-1">Click two points to cut a line across {{ scope.name }}.</div>
+                                <div v-if="splitSides" class="space-y-1">
+                                    <div v-for="(s, i) in splitSides.sides" :key="i"
+                                         class="flex items-center justify-between gap-2 px-1.5 py-0.5 rounded"
+                                         :class="s.in_band ? 'bg-emerald-950/40' : 'bg-red-950/40'">
+                                        <span class="text-gray-400">Side {{ i === 0 ? 'A' : 'B' }}</span>
+                                        <span class="tabular-nums text-gray-200">{{ formatPop(s.population) }}</span>
+                                        <span class="tabular-nums shrink-0" :class="s.in_band ? 'text-emerald-400' : 'text-red-400'">
+                                            {{ s.implied_seats }} seat{{ s.implied_seats === 1 ? '' : 's' }}
+                                            <span class="text-gray-600">({{ s.implied_fractional_seats }})</span>
+                                        </span>
+                                    </div>
+                                    <button class="w-full mt-1 px-2 py-1 rounded text-white"
+                                            :class="(splitCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!splitCommitReady || drawBusy"
+                                            @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit both districts' : 'A side is out of band — move the line') }}</button>
                                 </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-gray-400">Implied seats</span>
-                                    <span class="tabular-nums" :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">
-                                        {{ drawProbe.implied_seats }}
-                                        <span class="text-gray-600">({{ drawProbe.implied_fractional_seats }})</span>
-                                    </span>
+                                <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
+                            </template>
+
+                            <!-- Freeform polygon (secondary). -->
+                            <template v-else>
+                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                                <div v-if="drawProbe" class="space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-400">Population</span>
+                                        <span class="tabular-nums text-gray-200">{{ formatPop(drawProbe.population) }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-400">Implied seats</span>
+                                        <span class="tabular-nums" :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">
+                                            {{ drawProbe.implied_seats }}
+                                            <span class="text-gray-600">({{ drawProbe.implied_fractional_seats }})</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.in_band ? '✓ in band' : '✕ out of band' }}</span>
+                                        <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
+                                        <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                                    </div>
+                                    <button class="w-full mt-1 px-2 py-1 rounded text-white"
+                                            :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!drawCommitReady || drawBusy"
+                                            @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
                                 </div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.in_band ? '✓ in band' : '✕ out of band' }}</span>
-                                    <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
-                                    <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
-                                </div>
-                                <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                        :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                        :disabled="!drawCommitReady || drawBusy"
-                                        @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
-                            </div>
-                            <div v-else-if="drawBusy" class="text-gray-500 mt-1">Measuring…</div>
+                                <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
+                            </template>
+
                             <div v-if="drawError" class="text-red-400 mt-1">{{ drawError }}</div>
                         </template>
                     </div>
@@ -1629,14 +1664,20 @@ const isLeafGiantScope = computed(() =>
 )
 // Drawing writes into a DRAFT plan (F-ELB-008 refuses a non-draft).
 const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 'draft')
-const drawMode  = ref(false)
-const drawProbe = ref(null)    // { population, implied_seats, in_band, contiguous, within_giant, ... }
-const drawBusy  = ref(false)
-const drawError = ref('')
+const drawMode   = ref(false)
+const drawMethod = ref('split')  // 'split' (line bisection) | 'polygon' (freeform)
+const drawProbe  = ref(null)     // polygon mode: { population, implied_seats, in_band, contiguous, within_giant }
+const splitSides = ref(null)     // split mode: { sides:[{population,implied_seats,in_band}], both_in_band, total }
+const drawBusy   = ref(false)
+const drawError  = ref('')
 let _drawControl = null
 let _drawnItems  = null
 let _drawnLayer  = null
 let _probeSeq    = 0
+// Split-line interaction (custom 2-click — no modal, pan/zoom keep working).
+let _splitPts     = []           // [L.latLng, L.latLng]
+let _splitLine    = null         // L.polyline blade
+let _splitMarkers = []           // endpoint dots
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
@@ -3351,19 +3392,60 @@ function wizardStepUp() {
 
 // ── District CRUD API calls ───────────────────────────────────────────────────
 
-// ── Phase H — manual draw mode ──────────────────────────────────────────────
+// ── Phase H — manual draw mode (split-line bisection OR freeform polygon) ─────
 function enterDrawMode() {
     if (!_map || !isLeafGiantScope.value) return
     drawMode.value = true
     drawError.value = ''
-    if (!_drawnItems) {
-        _drawnItems = new L.FeatureGroup().addTo(_map)
+    if (drawMethod.value === 'polygon') startPolygonTool()
+    else                                startSplitTool()
+}
+
+function setDrawMethod(m) {
+    if (drawMethod.value === m) return
+    drawMethod.value = m
+    drawProbe.value = null
+    splitSides.value = null
+    drawError.value = ''
+    if (drawMode.value) enterDrawMode()   // re-arm with the chosen tool
+}
+
+function exitDrawMode() {
+    drawMode.value = false
+    drawProbe.value = null
+    splitSides.value = null
+    drawError.value = ''
+    teardownPolygonTool()
+    teardownSplitTool()
+}
+
+// Split-line — a custom 2-click interaction. Clicks place the two ends; a drag
+// still pans and the wheel still zooms (Leaflet separates click from drag), so
+// there is no modal tool to fight. A third click starts a fresh line.
+function startSplitTool() {
+    teardownPolygonTool()
+    resetSplit()
+    if (_map && !_map.__splitClickBound) {
+        _map.on('click', onSplitClick)
+        _map.__splitClickBound = true
     }
+}
+
+function teardownSplitTool() {
+    if (_map && _map.__splitClickBound) {
+        _map.off('click', onSplitClick)
+        _map.__splitClickBound = false
+    }
+    resetSplit()
+}
+
+// Freeform polygon — kept as a secondary method (Leaflet.draw, top-left).
+function startPolygonTool() {
+    teardownSplitTool()
+    if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
     if (!_drawControl) {
         _drawControl = new L.Control.Draw({
-            // top-LEFT (under the zoom control) — top-right is occupied by the
-            // legend toggles (Seats/Pop/Names/Jurs/Stats/Raster).
-            position: 'topleft',
+            position: 'topleft',   // top-right is the legend toggles
             draw: {
                 polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#fbbf24', weight: 2 } },
                 polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false,
@@ -3376,12 +3458,9 @@ function enterDrawMode() {
     }
 }
 
-function exitDrawMode() {
-    drawMode.value = false
-    drawProbe.value = null
-    drawError.value = ''
+function teardownPolygonTool() {
     _drawnLayer = null
-    if (_drawnItems) { _drawnItems.clearLayers() }
+    if (_drawnItems) _drawnItems.clearLayers()
     if (_drawControl && _map) {
         _map.removeControl(_drawControl)
         _map.off(L.Draw.Event.CREATED, onDrawCreated)
@@ -3458,6 +3537,83 @@ async function commitDraw() {
         if (_drawnItems) _drawnItems.clearLayers()
         _drawnLayer = null
         drawProbe.value = null
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        drawError.value = 'Commit failed.'
+    } finally {
+        drawBusy.value = false
+    }
+}
+
+function resetSplit() {
+    _splitPts = []
+    splitSides.value = null
+    if (_splitLine && _map) { _map.removeLayer(_splitLine); _splitLine = null }
+    for (const m of _splitMarkers) { if (_map) _map.removeLayer(m) }
+    _splitMarkers = []
+}
+
+function onSplitClick(e) {
+    if (drawMethod.value !== 'split' || !drawMode.value) return
+    if (_splitPts.length >= 2) resetSplit()       // third click starts a new line
+    _splitPts.push(e.latlng)
+    _splitMarkers.push(
+        L.circleMarker(e.latlng, { radius: 5, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }).addTo(_map)
+    )
+    if (_splitPts.length === 2) {
+        _splitLine = L.polyline(_splitPts, { color: '#fbbf24', weight: 3, dashArray: '6 4' }).addTo(_map)
+        probeSplit()
+    }
+}
+
+async function probeSplit() {
+    if (_splitPts.length !== 2) return
+    const seq = ++_probeSeq
+    drawBusy.value = true
+    drawError.value = ''
+    try {
+        const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-probe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, line }),
+        })
+        if (seq !== _probeSeq) return
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = err.error ?? 'Probe failed.'
+            splitSides.value = null
+            return
+        }
+        splitSides.value = await resp.json()
+    } catch (e) {
+        if (seq === _probeSeq) { drawError.value = 'Probe failed.'; splitSides.value = null }
+    } finally {
+        if (seq === _probeSeq) drawBusy.value = false
+    }
+}
+
+const splitCommitReady = computed(() => !!splitSides.value && splitSides.value.both_in_band)
+
+async function commitSplit() {
+    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value) return
+    if (!drawTargetIsDraft.value) { drawError.value = 'Create a draft plan to draw into.'; return }
+    drawBusy.value = true
+    drawError.value = ''
+    try {
+        const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-commit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, line }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = (err.citation ? `[${err.citation}] ` : '') + (err.error ?? 'Commit failed.')
+            return
+        }
+        resetSplit()
         await reinitMapLayers()
         router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
     } catch (e) {
