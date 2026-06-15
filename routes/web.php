@@ -193,6 +193,11 @@ Route::get('/api/legislatures/{legislature_id}/mass-status', [LegislatureControl
 Route::post('/api/legislatures/{legislature_id}/mass-halt', [LegislatureController::class, 'massHalt'])->name('legislatures.mass-halt');
 Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureController::class, 'districtsAt'])->name('legislatures.districts-at');
 
+// Phase H — manual district drawing for a childless leaf giant. probe is the
+// read-only live readout behind the draw tool; draw files F-ELB-008 (audited).
+Route::post('/api/legislatures/{legislature_id}/population-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'probe'])->name('legislatures.population-probe');
+Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'draw'])->name('legislatures.subdivisions.draw');
+
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
 // giant_threshold-aware). Returns { steps: [{ scope_id, scope_name }, ...],
 // current_index } so the District Mapper can step through every drillable

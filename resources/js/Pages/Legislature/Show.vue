@@ -775,6 +775,50 @@
                         <span>All compositable jurisdictions assigned — expand subdivisions in the sidebar to continue.</span>
                     </div>
 
+                    <!-- Phase H — manual draw panel: a childless leaf giant is subdivided by hand. -->
+                    <div v-if="isLeafGiantScope"
+                         class="px-3 py-2 border-b border-amber-800 bg-amber-950/40 text-xs shrink-0">
+                        <template v-if="!drawMode">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
+                                <button v-if="drawTargetIsDraft"
+                                        class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white shrink-0"
+                                        @click="enterDrawMode">✏️ Draw</button>
+                                <span v-else class="text-gray-500 shrink-0">Create a draft plan to draw</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-amber-300 font-medium">Draw a district with the ▢ tool (top-right of the map)</span>
+                                <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
+                            </div>
+                            <div v-if="drawProbe" class="space-y-1 mt-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Population</span>
+                                    <span class="tabular-nums text-gray-200">{{ formatPop(drawProbe.population) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Implied seats</span>
+                                    <span class="tabular-nums" :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">
+                                        {{ drawProbe.implied_seats }}
+                                        <span class="text-gray-600">({{ drawProbe.implied_fractional_seats }})</span>
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span :class="drawProbe.in_band ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.in_band ? '✓ in band' : '✕ out of band' }}</span>
+                                    <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
+                                    <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                                </div>
+                                <button class="w-full mt-1 px-2 py-1 rounded text-white"
+                                        :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                        :disabled="!drawCommitReady || drawBusy"
+                                        @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
+                            </div>
+                            <div v-else-if="drawBusy" class="text-gray-500 mt-1">Measuring…</div>
+                            <div v-if="drawError" class="text-red-400 mt-1">{{ drawError }}</div>
+                        </template>
+                    </div>
+
                     <!-- Sort header -->
                     <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
                         <span class="w-3 shrink-0"></span><!-- dot spacer -->
@@ -1320,6 +1364,8 @@ import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-draw'
+import 'leaflet-draw/dist/leaflet.draw.css'
 
 // Map tool: full chrome + flush main (the Leaflet sizing contract — flex
 // column, no padding, overflow hidden; the setup banner stays shrink-0 and
@@ -1568,6 +1614,27 @@ watch(wizardAutoStep, v => {
 // Set of parent jurisdiction IDs whose sub-districts are shown on the map
 // (the parent polygon is hidden; the sub-district polygons are shown instead)
 const brokenGiantIds  = ref(new Set())
+
+// ── Phase H — manual district drawing for a childless leaf giant ────────────
+// The current scope is a childless leaf giant when it is NOT the legislature
+// root (the giant-guard only lets giants reach a non-root scope) and it has no
+// child jurisdictions to compose from — the one case the autoseed cannot touch.
+const isLeafGiantScope = computed(() =>
+    !!props.scope?.id
+    && props.scope.id !== props.legislature?.root_jurisdiction_id
+    && (props.children?.length ?? 0) === 0
+)
+// Drawing writes into a DRAFT plan (F-ELB-008 refuses a non-draft).
+const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 'draft')
+const drawMode  = ref(false)
+const drawProbe = ref(null)    // { population, implied_seats, in_band, contiguous, within_giant, ... }
+const drawBusy  = ref(false)
+const drawError = ref('')
+let _drawControl = null
+let _drawnItems  = null
+let _drawnLayer  = null
+let _probeSeq    = 0
+
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
 const massToolRunning = ref(false)
@@ -3280,6 +3347,120 @@ function wizardStepUp() {
 }
 
 // ── District CRUD API calls ───────────────────────────────────────────────────
+
+// ── Phase H — manual draw mode ──────────────────────────────────────────────
+function enterDrawMode() {
+    if (!_map || !isLeafGiantScope.value) return
+    drawMode.value = true
+    drawError.value = ''
+    if (!_drawnItems) {
+        _drawnItems = new L.FeatureGroup().addTo(_map)
+    }
+    if (!_drawControl) {
+        _drawControl = new L.Control.Draw({
+            position: 'topright',
+            draw: {
+                polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#fbbf24', weight: 2 } },
+                polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false,
+            },
+            edit: { featureGroup: _drawnItems, remove: true },
+        })
+        _map.addControl(_drawControl)
+        _map.on(L.Draw.Event.CREATED, onDrawCreated)
+        _map.on(L.Draw.Event.EDITED, onDrawEdited)
+    }
+}
+
+function exitDrawMode() {
+    drawMode.value = false
+    drawProbe.value = null
+    drawError.value = ''
+    _drawnLayer = null
+    if (_drawnItems) { _drawnItems.clearLayers() }
+    if (_drawControl && _map) {
+        _map.removeControl(_drawControl)
+        _map.off(L.Draw.Event.CREATED, onDrawCreated)
+        _map.off(L.Draw.Event.EDITED, onDrawEdited)
+        _drawControl = null
+    }
+}
+
+function onDrawCreated(e) {
+    // One pending piece at a time — a new draw replaces the previous.
+    if (_drawnItems) { _drawnItems.clearLayers() }
+    _drawnLayer = e.layer
+    _drawnItems.addLayer(_drawnLayer)
+    probeDrawnLayer()
+}
+
+function onDrawEdited() {
+    probeDrawnLayer()
+}
+
+async function probeDrawnLayer() {
+    if (!_drawnLayer) return
+    const seq = ++_probeSeq
+    drawBusy.value = true
+    drawError.value = ''
+    try {
+        const geom = _drawnLayer.toGeoJSON().geometry
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/population-probe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, geojson: geom }),
+        })
+        if (seq !== _probeSeq) return   // a newer probe superseded this one
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = err.error ?? 'Probe failed.'
+            drawProbe.value = null
+            return
+        }
+        drawProbe.value = await resp.json()
+    } catch (e) {
+        if (seq === _probeSeq) { drawError.value = 'Probe failed.'; drawProbe.value = null }
+    } finally {
+        if (seq === _probeSeq) drawBusy.value = false
+    }
+}
+
+const drawCommitReady = computed(() =>
+    !!drawProbe.value && drawProbe.value.in_band && drawProbe.value.contiguous && drawProbe.value.within_giant
+)
+
+async function commitDraw() {
+    if (!_drawnLayer || !drawCommitReady.value || drawBusy.value) return
+    if (!drawTargetIsDraft.value) {
+        drawError.value = 'Select or create a DRAFT plan to draw into.'
+        return
+    }
+    drawBusy.value = true
+    drawError.value = ''
+    try {
+        const geom = _drawnLayer.toGeoJSON().geometry
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/subdivisions/draw`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, geojson: geom }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = (err.citation ? `[${err.citation}] ` : '') + (err.error ?? 'Commit failed.')
+            return
+        }
+        // Persisted: clear the pending piece, repaint the revealed layer (now
+        // includes the new sub-district), and refresh the sidebar counts.
+        if (_drawnItems) _drawnItems.clearLayers()
+        _drawnLayer = null
+        drawProbe.value = null
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        drawError.value = 'Commit failed.'
+    } finally {
+        drawBusy.value = false
+    }
+}
 
 async function createDistrictFromPending() {
     if (pendingAdd.value.size === 0 || savingEdit.value || !pendingValid.value) return

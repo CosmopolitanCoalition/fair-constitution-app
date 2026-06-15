@@ -87,6 +87,7 @@ class FormRegistry
         'F-ELB-004' => ['name' => 'Election Results Certification',             'roles' => ['R-08']],
         'F-ELB-005' => ['name' => 'Petition Signature Audit',                   'roles' => ['R-08']],
         'F-ELB-006' => ['name' => 'Recount/Audit Order',                        'roles' => ['R-08']],
+        'F-ELB-008' => ['name' => 'Manual District Draw',                       'roles' => ['R-08']],
 
         // ── F-LEG — Legislative Representative Forms (36) ───────────────────
         'F-LEG-001' => ['name' => 'Oath of Office / Seating Acceptance',        'roles' => ['R-09']],
@@ -227,6 +228,7 @@ class FormRegistry
         'F-ELB-001' => Handlers\ElectionSchedulingOrder::class,
         'F-ELB-002' => Handlers\CandidateValidation::class,
         'F-ELB-003' => Handlers\SubdivisionBoundaryDrawing::class,
+        'F-ELB-008' => Handlers\ManualDistrictDraw::class,
         'F-ELB-004' => Handlers\ElectionResultsCertification::class,
         'F-ELB-006' => Handlers\RecountAuditOrder::class,
         'F-IND-007' => Handlers\BallotSubmission::class,

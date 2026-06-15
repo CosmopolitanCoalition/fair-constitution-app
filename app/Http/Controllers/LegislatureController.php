@@ -1493,7 +1493,10 @@ class LegislatureController extends Controller
         $revMapId   = $this->getMapId($legislature_id, $request->query('map'));
         $revMapFilt = $revMapId !== null ? 'AND ld.map_id = :map_id'  : '';
         $revMapFil2 = $revMapId !== null ? 'AND ld.map_id = :map_id2' : '';
-        $revMapBind = $revMapId !== null ? ['map_id' => $revMapId, 'map_id2' => $revMapId] : [];
+        $revMapFil3 = $revMapId !== null ? 'AND ld.map_id = :map_id3' : '';
+        $revMapBind = $revMapId !== null
+            ? ['map_id' => $revMapId, 'map_id2' => $revMapId, 'map_id3' => $revMapId]
+            : [];
 
         // Root pop + total seats — used to enforce the giant threshold
         // (>= constitutional giant_threshold frac seats) on both depth branches
@@ -1527,7 +1530,7 @@ class LegislatureController extends Controller
         // (flushRevealedCache) or a giants-reconfig / ETL flush fires. The heavy
         // cold build (~90s at Earth scope) is then paid once, by the prewarm job.
         $payload = Cache::tags([$cacheTag, "revealed.{$legislature_id}"])->rememberForever($cacheKey, function () use (
-            $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapBind,
+            $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapFil3, $revMapBind,
             $revRootPop, $revTotalSeats, $giantThreshold, $tol
         ) {
 
@@ -1655,6 +1658,55 @@ class LegislatureController extends Controller
             WHERE ld.legislature_id = :leg_id2
               AND ld.deleted_at IS NULL
               {$revMapFil2}
+
+            UNION ALL
+
+            -- Branch 3 (Phase H): drawn/split DISTRICT_SUBDIVISIONS of a CHILDLESS
+            -- LEAF GIANT. These render only when the scope IS the giant itself
+            -- (ld.jurisdiction_id = scope) — drilling into Serravalle shows its
+            -- hand-drawn pieces, each carried by a polymorphic subdivision_id
+            -- membership rather than a whole jurisdiction. The piece's own geometry
+            -- is authoritative (composites derive geometry from members; a drawn
+            -- piece IS the geometry). scope_pop = the piece's population so the
+            -- has_integrity check reads it as an in-band sub-district, not a giant.
+            SELECT
+                ld.id,
+                ld.seats,
+                ld.floor_override,
+                j_giant.id,
+                j_giant.name,
+                ld.district_number,
+                j_giant.iso_code,
+                j_giant.adm_level,
+                j_gp3.iso_code,
+                j_gp3.adm_level,
+                j_gp3.name,
+                (j_gp3.parent_id IS NULL),
+                j_giant.id,
+                ld.actual_population,
+                ld.fractional_seats,
+                ld.convex_hull_ratio,
+                ld.is_contiguous,
+                ds.id,
+                ds.label,
+                j_giant.iso_code,
+                (j_giant.adm_level + 1),
+                ST_AsGeoJSON(ST_Simplify(ds.geom, {$tol})),
+                ds.population,
+                0
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+                AND ds.geom IS NOT NULL
+            JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
+                AND j_giant.deleted_at IS NULL
+            LEFT JOIN jurisdictions j_gp3 ON j_gp3.id = j_giant.parent_id
+            WHERE ld.legislature_id = :leg_id3
+              AND ld.deleted_at IS NULL
+              AND ld.jurisdiction_id = :scope_id3
+              {$revMapFil3}
         ", array_merge([
             'leg_id'           => $legislature_id,
             'scope_id'         => $scopeId,
@@ -1666,6 +1718,8 @@ class LegislatureController extends Controller
             'total_seats2'     => $revTotalSeats,
             'root_pop2'        => $revRootPop,
             'giant_threshold2' => $giantThreshold,
+            'leg_id3'          => $legislature_id,
+            'scope_id3'        => $scopeId,
         ], $revMapBind));
 
         // Adjacency-aware greedy 7-coloring over the WHOLE legislature/map.
