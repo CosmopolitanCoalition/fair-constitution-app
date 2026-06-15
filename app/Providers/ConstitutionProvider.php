@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Domain\Engine\ConstitutionalEngine;
+use App\Domain\Engine\Contracts\ResolvesForwardedActor;
 use App\Domain\Engine\Contracts\ResolvesRoles;
+use App\Domain\Engine\SystemOnlyForwardedActor;
 use App\Services\Identity\AttestationGate;
 use App\Domain\Forms\Contracts\BallotBoxDelegate;
 use App\Domain\Forms\Contracts\CertificationPipeline;
@@ -50,6 +52,12 @@ class ConstitutionProvider extends ServiceProvider
         // (Art. I — never a stored snapshot). Zero behaviour change; the attested
         // path activates only on forwarded-write requests (G4).
         $this->app->bind(ResolvesRoles::class, fn ($app) => $app->make(AttestationGate::class));
+
+        // G4 forwarded-actor dual-stack: SystemOnlyForwardedActor admits only
+        // system-scoped forwards now (a citizen-actor claim is refused until a
+        // verifiable G-ID attestation exists). The AttestedForwardedActor swap is
+        // this one binding line — mirrors the ResolvesRoles → AttestationGate seam.
+        $this->app->bind(ResolvesForwardedActor::class, fn ($app) => $app->make(SystemOnlyForwardedActor::class));
 
         $this->app->singleton(ResidencyService::class);
         $this->app->bind(ResidencyHandlerDelegate::class, fn ($app) => $app->make(ResidencyService::class));

@@ -30,6 +30,7 @@ class FederationSyncService
         private readonly InstanceIdentityService $identity,
         private readonly FederationClient $client,
         private readonly AuditService $audit,
+        private readonly AuthorityResolver $authority,
     ) {}
 
     // ──────────────────────────────────────────────────────────────────────
@@ -329,26 +330,20 @@ class FederationSyncService
      *                        peer is authoritative for → mirror it.
      *   conflict           — a jurisdiction WE are authoritative for → keep ours.
      *   non_authoritative  — a jurisdiction a THIRD party owns → refuse.
+     *
+     * The authority lookup is delegated to AuthorityResolver — the single source
+     * of truth this also shares with WriteRouterService (G4). It reads only
+     * `authoritative_server_id`, never leadership/cluster state, so this remains
+     * an authority-path file clean of the cardinal grep pin.
      */
     private function authorityDisposition(?string $jurisdictionId, FederationPeer $peer): string
     {
-        if ($jurisdictionId === null) {
-            return 'apply';
-        }
-
-        $row = DB::table('jurisdictions')->where('id', $jurisdictionId)->first(['authoritative_server_id']);
-
-        if ($row === null) {
-            return 'apply'; // a jurisdiction we don't track — the peer's own
-        }
-        if ($row->authoritative_server_id === null) {
-            return 'conflict'; // we are authoritative — our copy wins
-        }
-        if ((string) $row->authoritative_server_id === (string) $peer->server_id) {
-            return 'apply'; // the peer is authoritative for it
-        }
-
-        return 'non_authoritative';
+        return match ($this->authority->authorityFor($jurisdictionId)) {
+            AuthorityResolver::UNTRACKED => 'apply',          // global / a jurisdiction we don't track
+            AuthorityResolver::OURS => 'conflict',            // we are authoritative — our copy wins
+            (string) $peer->server_id => 'apply',             // the peer is authoritative for it
+            default => 'non_authoritative',                   // a third party owns it
+        };
     }
 
     /**

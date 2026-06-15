@@ -4,6 +4,7 @@ use App\Http\Controllers\Federation\AdoptionController;
 use App\Http\Controllers\Federation\FlipController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\SyncController;
+use App\Http\Controllers\Federation\WriteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,3 +49,8 @@ Route::post('/flip', [FlipController::class, 'receive'])
 // ── Join-key adoption (G2) — a would-be mirror presents a join key (tofu) ──
 Route::post('/adopt', [AdoptionController::class, 'adopt'])
     ->middleware('federation.signed:tofu');
+
+// ── Forwarded write (G4) — a pinned peer forwards a write we are authoritative
+// for; executed through the NORMAL ConstitutionalEngine, recorded exactly-once.
+Route::post('/write', [WriteController::class, 'write'])
+    ->middleware('federation.signed');
