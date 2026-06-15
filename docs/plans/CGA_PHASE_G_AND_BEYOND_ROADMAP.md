@@ -29,12 +29,19 @@ document is the architecture plan for everything **still to build**.
 | **C (P3)** | Legislature — chamber votes, bicameral dual-agreement, speaker, committees, bills→versioned laws, referendums, petitions, emergency powers | ✅ COMPLETE |
 | **D (P4)** | Executive & Organizations — delegation/conversion, departments+BoG, executive orders, org module, co-determination, board elections, CGC IP register | ✅ COMPLETE |
 | **E (P5)** | Judiciary & Law — appointed/elected courts, cases/panels/juries/advocates, the Art. IV §5 three-path challenge → direct judicial law-editing | ✅ COMPLETE |
-| **F (P6a)** | Federation core + 4 jurisdiction processes + i18n machinery (chrome, 5 locales) | ✅ COMPLETE — `main @ 299dcee` |
-| **G (P6b)** | Federated adoption, earned autonomy, the social mesh | 🔨 **IN PROGRESS** — branch; cold-sync gate + G1 mirror model done; G2 next |
-| **H–O** | The eight explored phases below | 📋 Explored, not started |
+| **F (P6a)** | Federation core + 4 jurisdiction processes + i18n machinery (chrome, 5 locales) | ✅ COMPLETE |
+| **G (P6b)** | Federated adoption, earned autonomy, the social mesh, the G-ID identity layer | ✅ **CODE COMPLETE & MERGED** — `main @ 823e752` (322 constitutional pins, 0 skips). **NOT yet RESOLVED:** two real-world verification gates require the operator's physical lab rig — see §3.1. |
+| **H–O** | The eight explored phases below | 📋 **H–M are buildable + testable NOW on the dev stack — no physical rig needed** (exactly as every G code increment was). N localizes H–M; O (capstone) consumes H's planetary map and needs the rig for full scale. |
 
 The constitutional test suite is green with **zero skips**; the 103-form ConstitutionalEngine, the
 PROTECTED hardened layer, and the hash-chained audit log span every built phase.
+
+> **Operator pivot (current).** Phase G's *code* is complete and on `main`, but Phase G is not
+> *resolved* until its two real-world gates (real mobile app + on-device test; real cross-machine
+> peer pull/onboarding) are verified — and those need the physical lab (Ubuntu boxes, firewall/
+> port-forwarding, DNS, certs), which is not available right now. Those two gates are **PARKED** until
+> the rig is back home. In the meantime we flip to the **fully-buildable, fully-testable** unbuilt
+> phases (H–M), which need only the dev stack.
 
 ---
 
@@ -92,7 +99,7 @@ These are the spine of everything H→O:
 
 ---
 
-## 3. Phase G — Federated Adoption, Earned Autonomy & the Social Mesh *(in progress)*
+## 3. Phase G — Federated Adoption, Earned Autonomy & the Social Mesh *(code complete & merged; 2 real-world gates pending)*
 
 The charter and 708-line build manual are committed (`docs/plans/institutions/PHASE_G_*`,
 `25d3b2e`). The two-pronged trust model: **Prong 1** = permissionless read-only mirror of public
@@ -100,17 +107,42 @@ records (anyone forks in, authoritative for nothing); **Prong 2** = government-v
 co-membership (earned by population, granted by the jurisdiction's own government); **cohesion** =
 peer-SSO via the G-ID attestation layer → infinite fork-ability at the social layer.
 
-- **Track A — volunteer mirror mesh** (Prong 1; FIRST): `cold-sync` ✅ → `G1` mirror model ✅ →
-  `G2` join-key adoption → `G3` request/vouch → `G3b` wizard → `G0b` deploy script.
-- **Track B — earned autonomy + cohesion:** G-ID (parallel) → co-member clusters → write-routing →
-  Patroni HA → ballot re-wrap (test-first) → operational seed → the autonomy vote.
-- **Track C — reach & clients:** transport (tailnet/Tor/sneakernet) → directory → **mobile** (G10,
-  Capacitor + geofenced GPS; the operator's physical OnePlus/travel-router lab rig is on record).
+- **Track A — volunteer mirror mesh** (Prong 1): `cold-sync` ✅ → `G1` mirror model ✅ →
+  `G2` join-key adoption ✅ → `G3` request/vouch ✅ → `G3b` wizard ✅ → `G0b` deploy script ✅.
+- **Track B — earned autonomy + cohesion:** G-ID (core + keystone + HTTP surface) ✅ → co-member
+  clusters ✅ → write-routing ✅ → Patroni HA (LeaderProbe + runnable etcd/Patroni/HAProxy lab) ✅ →
+  ballot re-wrap (test-first, fail-closed) ✅ → operational seed (sealed bundle) ✅ → autonomy vote ✅.
+- **Track C — reach & clients:** transport seam (tailnet/Tor/sneakernet) ✅ → directory ✅ →
+  **mobile (G10)** ⏳ *(parked — see §3.1)*.
 
-**Done:** the cold-sync gate (`60d9383`) and **G1 — the mirror membership model** (`7bdf1cf`:
-`cluster_memberships`, `federation_peers.relation`, `instance_settings.mirror_of_server_id`,
-`MirrorService`, the `upsertTrustedPeer` extraction; a mirror is authoritative for nothing).
-**Next:** `G2`.
+All of the above is **built, constitutionally pinned (322/0-skip), and merged** to `main @ 823e752`.
+The cardinal invariants held throughout: **authority ≠ leadership** (grep-pinned), the privacy
+boundary (ballots/keys move only sealed, point-to-point, on a governed flip), and the ballot re-wrap
+fails closed.
+
+### 3.1 Phase G's two real-world verification gates (PARKED — need the physical rig)
+
+Phase G is **code-complete** but not **resolved**. Two end-to-end realizations can only be proven on
+the operator's physical lab (Ubuntu boxes, firewall/port-forwarding, DNS, TLS certs), which is not
+available right now. They are parked until the rig is back home:
+
+- **G-V1 — a REAL mobile app + on-device test.** The web app already runs in a phone browser over the
+  LAN, but **browser geolocation requires a secure context (HTTPS)**, which plain LAN HTTP is not — so
+  the device-GPS sensor is browser-blocked. The *correct* resolution is the **native Capacitor wrap**
+  (native GPS, no HTTPS gate; background geofenced pinging into the UNCHANGED `location_pings` →
+  ancestor-sweep → `residency_confirmations` pipeline; on-device signing rides the now-live G-ID).
+  Build + sideload + on-device walk/mock-locate test all need the device + (for any HTTPS path) the
+  rig's DNS/cert. **Do NOT build the wrap blind** — build it with the device in the loop so it is
+  tested correctly.
+- **G-V2 — a REAL cross-machine peer onboarding.** A fresh instance on a *separate* Ubuntu machine
+  pulls the code from GitHub, runs `deploy.sh`, and joins the existing server as a peer over the real
+  network. The code path is built + proven in a resource-light same-box simulation; the *real*
+  multi-machine, cross-network proof needs ≥2 lab boxes + firewall ports + (for a public peer) DNS.
+
+These are **verification/realization** gates, not code gates — no further Phase G code is required to
+attempt them once the rig exists. The runbooks live in
+`docs/plans/institutions/PHASE_G_PATRONI_HA_RUNBOOK.md` (HA failover) and `[[project-mobile-test-rig]]`
+(the device lab); the deploy path is `deploy.sh` / `deploy.ps1`.
 
 ---
 
