@@ -42,6 +42,8 @@ class InstanceSettings extends Model
         'mirror_adopted_at',
         // Phase G — G-ID attestation authority (ships dark).
         'attestation_authority_enabled',
+        // Phase G — co-member cluster home.
+        'home_cluster_id',
     ];
 
     protected $casts = [
