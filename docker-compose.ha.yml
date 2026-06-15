@@ -1,0 +1,92 @@
+# Phase G — Patroni HA data tier (the LEADERSHIP axis).
+#
+# A drop-in REPLACEMENT for the single `postgres` service: etcd (the DCS) + two
+# Patroni-managed PostGIS nodes + HAProxy. The app is UNCHANGED — it points
+# DB_HOST at haproxy and always reaches the current primary (writes :5432, reads
+# :5433). Patroni decides leadership; the app only OBSERVES it (LeaderProbe).
+#
+# Run it standalone on a lab box (the Ubuntu desktops are ideal — spread the two
+# Patroni nodes across machines for a genuine failover test):
+#   docker compose -f docker-compose.ha.yml up --build
+# then run the failover sim from docs/plans/institutions/PHASE_G_PATRONI_HA_RUNBOOK.md
+#
+# Lab note: ONE etcd node (no quorum) is fine for a failover demo. Production
+# needs THREE etcd nodes so the DCS itself survives a node loss — see the runbook.
+
+services:
+  etcd:
+    image: gcr.io/etcd-development/etcd:v3.5.13
+    container_name: cga_ha_etcd
+    command:
+      - etcd
+      - --name=etcd0
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --initial-cluster=etcd0=http://etcd:2380
+      - --initial-cluster-state=new
+      - --initial-cluster-token=cga-etcd
+    volumes:
+      - ha_etcd:/etcd-data
+    networks: [ha]
+
+  patroni1:
+    build:
+      context: .
+      dockerfile: docker/patroni/Dockerfile
+    container_name: cga_ha_patroni1
+    environment:
+      NODE_NAME: patroni1
+      NODE_HOST: patroni1
+      ETCD_HOSTS: http://etcd:2379
+      PG_SUPERUSER: ${DB_USERNAME:-fc_user}
+      PG_PASSWORD: ${DB_PASSWORD:-fc_password}
+      PG_REPL_USER: replicator
+      PG_REPL_PASSWORD: ${REPL_PASSWORD:-replicator_password}
+      PG_DB: ${DB_DATABASE:-fair_constitution}
+    volumes:
+      - ha_pg1:/var/lib/postgresql/data
+    depends_on: [etcd]
+    networks: [ha]
+
+  patroni2:
+    build:
+      context: .
+      dockerfile: docker/patroni/Dockerfile
+    container_name: cga_ha_patroni2
+    environment:
+      NODE_NAME: patroni2
+      NODE_HOST: patroni2
+      ETCD_HOSTS: http://etcd:2379
+      PG_SUPERUSER: ${DB_USERNAME:-fc_user}
+      PG_PASSWORD: ${DB_PASSWORD:-fc_password}
+      PG_REPL_USER: replicator
+      PG_REPL_PASSWORD: ${REPL_PASSWORD:-replicator_password}
+      PG_DB: ${DB_DATABASE:-fair_constitution}
+    volumes:
+      - ha_pg2:/var/lib/postgresql/data
+    depends_on: [etcd]
+    networks: [ha]
+
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: cga_ha_haproxy
+    volumes:
+      - ./docker/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "${HA_PG_WRITE_PORT:-5440}:5432" # app write endpoint (current primary)
+      - "${HA_PG_READ_PORT:-5441}:5433"  # app read endpoint (hot standbys)
+      - "${HA_STATS_PORT:-7000}:7000"    # HAProxy stats dashboard
+    depends_on: [patroni1, patroni2]
+    networks: [ha]
+
+volumes:
+  ha_etcd:
+  ha_pg1:
+  ha_pg2:
+
+networks:
+  ha:
+    driver: bridge

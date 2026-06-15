@@ -7,6 +7,7 @@ use App\Jobs\Clocks\EvaluatePetitionThresholdJob;
 use App\Jobs\Clocks\EvaluateResidencyThresholdsJob;
 use App\Models\ClockTimer;
 use App\Services\ClockService;
+use App\Services\Cluster\LeaderProbe;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -40,6 +41,16 @@ class EvaluateClocksJob implements ShouldQueue
 
     public function handle(ClockService $clocks): void
     {
+        // HA (Phase G, Patroni): fire clocks on the WRITE-LEADER only. A demoted
+        // replica (reached here mid-failover by a stale connection) is read-only —
+        // skip cleanly rather than error; the next sweep runs on the promoted
+        // primary. routes/console.php's onOneServer() already ensures exactly one
+        // node DISPATCHES the sweep; this is defense in depth at execution. On a
+        // single-node dev primary isPrimary() is true, so behaviour is unchanged.
+        if (! app(LeaderProbe::class)->isPrimary()) {
+            return;
+        }
+
         $due = ClockTimer::query()
             ->due()
             ->orderBy('fires_at')
