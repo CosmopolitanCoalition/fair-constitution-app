@@ -40,6 +40,8 @@ class InstanceSettings extends Model
         // Phase G — read-only mirror mode (G1).
         'mirror_of_server_id',
         'mirror_adopted_at',
+        // Phase G — G-ID attestation authority (ships dark).
+        'attestation_authority_enabled',
     ];
 
     protected $casts = [
@@ -54,6 +56,7 @@ class InstanceSettings extends Model
         'signing_key_generated_at' => 'datetime',
         'federation_enabled' => 'boolean',
         'mirror_adopted_at' => 'datetime',
+        'attestation_authority_enabled' => 'boolean',
     ];
 
     /**
