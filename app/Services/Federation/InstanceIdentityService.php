@@ -110,6 +110,62 @@ class InstanceIdentityService
     }
 
     /**
+     * Seal a message TO a peer (Phase G, G5) so ONLY that peer can open it —
+     * anonymous public-key encryption (libsodium sealed box). The peer's Ed25519
+     * public key (the half we pinned) is converted to its X25519 counterpart;
+     * `crypto_box_seal` then encrypts to it. No secret of ours is involved (anyone
+     * can seal to a public key), and the ciphertext leaks nothing about its
+     * contents — this is how the operational flip bundle (k_e + private rows) rides
+     * an autonomy flip without ever travelling in the clear.
+     *
+     * @param  string  $recipientPublicKeyB64  the recipient's base64 Ed25519 public key
+     */
+    public static function sealTo(string $recipientPublicKeyB64, string $message): string
+    {
+        $ed25519Pub = sodium_base642bin($recipientPublicKeyB64, SODIUM_BASE64_VARIANT_ORIGINAL);
+
+        if (strlen($ed25519Pub) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+            throw new RuntimeException('Recipient public key is not a valid Ed25519 key.');
+        }
+
+        $x25519Pub = sodium_crypto_sign_ed25519_pk_to_curve25519($ed25519Pub);
+
+        return sodium_bin2base64(sodium_crypto_box_seal($message, $x25519Pub), SODIUM_BASE64_VARIANT_ORIGINAL);
+    }
+
+    /**
+     * Open a sealed bundle addressed to US (Phase G, G5). Our Ed25519 secret is
+     * converted to its X25519 counterpart to build the box keypair; only this
+     * instance can open what was sealed to its public key. Throws on a bundle not
+     * sealed to us (or a corrupted one).
+     */
+    public function openSealed(string $sealedB64): string
+    {
+        $settings = $this->ensureIdentity();
+
+        $ed25519Secret = sodium_base642bin(
+            Crypt::decryptString((string) $settings->private_key_encrypted),
+            SODIUM_BASE64_VARIANT_ORIGINAL
+        );
+
+        $x25519Secret = sodium_crypto_sign_ed25519_sk_to_curve25519($ed25519Secret);
+        $x25519Pub = sodium_crypto_box_publickey_from_secretkey($x25519Secret);
+        $boxKeypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($x25519Secret, $x25519Pub);
+
+        $sealed = sodium_base642bin($sealedB64, SODIUM_BASE64_VARIANT_ORIGINAL);
+        $plain = sodium_crypto_box_seal_open($sealed, $boxKeypair);
+
+        sodium_memzero($ed25519Secret);
+        sodium_memzero($x25519Secret);
+
+        if ($plain === false) {
+            throw new RuntimeException('Sealed bundle could not be opened — not addressed to this instance, or corrupted.');
+        }
+
+        return $plain;
+    }
+
+    /**
      * The identity payload shared at handshake (server_id + public_key +
      * instance metadata). Signed by the caller before transmission.
      *
