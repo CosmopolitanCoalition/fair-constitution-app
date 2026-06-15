@@ -340,6 +340,11 @@ Route::middleware('auth')->group(function () {
     // history, head checkpoints, authority claims. Public-read (Art. II §2).
     Route::get('/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
         ->name('federation.show');
+    // G3b — "Join a cluster": adopt this instance as a read-only mirror, or leave.
+    Route::post('/federation/cluster/join', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'join'])
+        ->name('federation.cluster.join');
+    Route::post('/federation/cluster/leave', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'leave'])
+        ->name('federation.cluster.leave');
 
     // The /legislature/* resolver prefix: nav hrefs stay literal while the
     // canonical surfaces are legislature-scoped (§B shared conventions).

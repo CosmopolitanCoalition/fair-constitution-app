@@ -5,23 +5,38 @@ namespace App\Http\Controllers\Federation;
 use App\Http\Controllers\Controller;
 use App\Models\AuditCheckpoint;
 use App\Models\AuthorityClaim;
+use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\SyncLogEntry;
+use App\Services\Mirror\MirrorService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * FE-F — the federation console (Phase F, WF-JUR-06). A PURE READER of the
- * federation substrate: this instance's identity, its peers (ESM-20 status), the
- * Full-Faith-&-Credit sync ledger, the signed head checkpoints, and the
- * authority claims. Public read — the mesh state is public record (Art. II §2).
+ * FE-F — the federation console (Phase F, WF-JUR-06). A reader of the federation
+ * substrate: this instance's identity, its peers (ESM-20 status), the
+ * Full-Faith-&-Credit sync ledger, the signed head checkpoints, and the authority
+ * claims. Public read — the mesh state is public record (Art. II §2).
+ *
+ * Phase G (G3b) adds the "Join a cluster" actions: an operator can adopt THIS
+ * instance into an existing cluster as a read-only MIRROR (the browser counterpart
+ * to the `cluster:join` / `cluster:request-adoption` CLI — one shared MirrorService
+ * path). A mirror is authoritative for nothing.
  */
 class FederationConsoleController extends Controller
 {
-    public function show(): Response
+    public function show(MirrorService $mirror): Response
     {
         $settings = InstanceSettings::current();
+
+        $mirrorMembership = ClusterMembership::query()
+            ->where('role', ClusterMembership::ROLE_MIRROR)
+            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
+            ->latest('updated_at')
+            ->first();
 
         return Inertia::render('Jurisdictions/Federation', [
             'instance' => [
@@ -32,6 +47,12 @@ class FederationConsoleController extends Controller
                 'public_key_fp' => $settings->public_key
                     ? implode(':', str_split(substr(hash('sha256', (string) $settings->public_key), 0, 16), 4))
                     : null,
+            ],
+            'mirror' => [
+                'is_mirror' => $mirror->isMirror(),
+                'host_server_id' => $settings->mirror_of_server_id,
+                'adopted_at' => $settings->mirror_adopted_at?->toIso8601String(),
+                'membership_state' => $mirrorMembership?->state,
             ],
             'peers' => FederationPeer::query()->whereNull('deleted_at')
                 ->orderByDesc('updated_at')->limit(50)->get()
@@ -71,5 +92,53 @@ class FederationConsoleController extends Controller
                     'flipped_at' => $a->authority_flipped_at?->toIso8601String(),
                 ])->values(),
         ]);
+    }
+
+    /**
+     * G3b — adopt THIS instance into a cluster as a read-only mirror. With a join
+     * key it is admitted in one step; without one, a request is queued for the host
+     * operator to vouch (re-submit to poll). One shared MirrorService path with the
+     * CLI; a mirror is authoritative for nothing.
+     */
+    public function join(Request $request, MirrorService $mirror): RedirectResponse
+    {
+        $validated = $request->validate([
+            'host_url' => ['required', 'url', 'max:255'],
+            'join_key' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if ($mirror->isMirror()) {
+            return back()->withErrors(['host_url' => 'This instance is already a mirror — leave the current cluster first.']);
+        }
+
+        try {
+            if (! empty($validated['join_key'])) {
+                $membership = $mirror->joinHost($validated['host_url'], (string) $validated['join_key']);
+                $status = $membership->state === ClusterMembership::STATE_LIVE
+                    ? 'Joined — this instance is now a read-only mirror.'
+                    : "Adoption accepted; backfilling the host's corpus (state: {$membership->state}).";
+            } else {
+                $membership = $mirror->requestJoin($validated['host_url']);
+                $status = $membership === null
+                    ? 'Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.'
+                    : "Vouched and joined — this instance is now a read-only mirror (state: {$membership->state}).";
+            }
+        } catch (\Throwable $e) {
+            return back()->withErrors(['host_url' => $e->getMessage()]);
+        }
+
+        return back()->with('status', $status);
+    }
+
+    /** G3b — leave the cluster: stop being a read-only mirror (the write-guard switches off). */
+    public function leave(MirrorService $mirror): RedirectResponse
+    {
+        if (! $mirror->isMirror()) {
+            return back()->withErrors(['host_url' => 'This instance is not a mirror.']);
+        }
+
+        $mirror->leave();
+
+        return back()->with('status', 'Left the cluster — this instance is no longer a mirror.');
     }
 }

@@ -1,13 +1,29 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps({
     instance: { type: Object, required: true },
+    mirror: { type: Object, default: () => ({ is_mirror: false }) },
     peers: { type: Array, default: () => [] },
     sync: { type: Array, default: () => [] },
     checkpoints: { type: Array, default: () => [] },
     claims: { type: Array, default: () => [] },
 });
+
+const page = usePage();
+const flash = computed(() => page.props.flash?.status ?? null);
+
+// G3b — "Join a cluster": adopt this instance as a read-only mirror.
+const joinForm = useForm({ host_url: '', join_key: '' });
+
+const join = () => joinForm.post('/federation/cluster/join', { preserveScroll: true });
+
+const leave = () => {
+    if (window.confirm('Leave the cluster? This instance will stop being a read-only mirror.')) {
+        router.post('/federation/cluster/leave', {}, { preserveScroll: true });
+    }
+};
 
 const statusClass = (status) => ({
     trust_established: 'bg-emerald-100 text-emerald-800',
@@ -68,6 +84,59 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     </dd>
                 </div>
             </dl>
+        </section>
+
+        <!-- G3b — Cluster membership: join as a read-only mirror, or leave -->
+        <section class="rounded-lg border border-slate-200 bg-white p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Cluster membership</h2>
+
+            <p v-if="flash" class="mt-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                {{ flash }}
+            </p>
+
+            <!-- Already a read-only mirror -->
+            <div v-if="mirror.is_mirror" class="mt-3 space-y-3">
+                <div class="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-800">
+                    This instance is a <strong>read-only mirror</strong> of host
+                    <span class="font-mono">{{ shortId(mirror.host_server_id) }}</span>
+                    <span v-if="mirror.membership_state"> (state: {{ mirror.membership_state }})</span>.
+                    It is authoritative for nothing and accepts no constitutional filings.
+                    <span v-if="mirror.adopted_at" class="block text-xs text-sky-600">
+                        Adopted {{ new Date(mirror.adopted_at).toLocaleString() }}.
+                    </span>
+                </div>
+                <button type="button" @click="leave"
+                        class="rounded border border-rose-300 bg-white px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-50">
+                    Leave the cluster
+                </button>
+            </div>
+
+            <!-- Not a mirror — offer to join one -->
+            <form v-else class="mt-3 space-y-3" @submit.prevent="join">
+                <p class="max-w-2xl text-sm text-slate-600">
+                    Adopt this instance into an existing cluster as a <strong>read-only mirror</strong> of its public
+                    records. A mirror copies the host and is authoritative for nothing. With a join key it is admitted
+                    at once; without one, a request is queued for the host operator to vouch.
+                </p>
+
+                <label class="block text-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Host URL</span>
+                    <input v-model="joinForm.host_url" type="url" required placeholder="https://host.example"
+                           class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
+                    <span v-if="joinForm.errors.host_url" class="mt-1 block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
+                </label>
+
+                <label class="block text-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Join key <span class="font-normal normal-case text-slate-400">(optional — leave blank to request a vouch)</span></span>
+                    <input v-model="joinForm.join_key" type="text" placeholder="handle.secret"
+                           class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-sm focus:border-sky-400 focus:outline-none" />
+                </label>
+
+                <button type="submit" :disabled="joinForm.processing"
+                        class="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">
+                    {{ joinForm.processing ? 'Joining…' : 'Join a cluster' }}
+                </button>
+            </form>
         </section>
 
         <!-- Peers -->
