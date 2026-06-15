@@ -43,5 +43,10 @@ Schedule::job(new \App\Jobs\Executive\DepartmentReportSweepJob)->dailyAt('00:20'
 // org-board election auto-certify backstop.
 Schedule::job(new \App\Jobs\Organizations\EvaluateCoDeterminationJob)->dailyAt('00:25')->withoutOverlapping()->onOneServer();
 
+// ── Phase G (G-ID): prune lapsed standing attestations ──────────────────
+// They already fail closed on expiry; this keeps the table bounded (minted per
+// device, per hour). onOneServer + the write-leader posture as elsewhere.
+Schedule::job(new \App\Jobs\Identity\ExpireStandingAttestationsJob)->hourly()->withoutOverlapping()->onOneServer();
+
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();

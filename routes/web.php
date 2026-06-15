@@ -637,6 +637,12 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/residency/confirm', [ResidencyController::class, 'confirm'])->name('residency.confirm');
     Route::post('/residency/redeclare', [ResidencyController::class, 'redeclare'])->name('residency.redeclare');
     Route::post('/pings', [PingController::class, 'store'])->name('pings.store');
+
+    // G-ID (Phase G) — the person manages their own device signing keys and mints
+    // the short-lived attestation a client attaches to a forwarded write. Acts on
+    // the authenticated user only.
+    Route::post('/actor/devices', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'enrollDevice'])->name('actor.devices.enroll');
+    Route::post('/actor/attestations', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'issueAttestation'])->name('actor.attestations.issue');
 });
 
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain
