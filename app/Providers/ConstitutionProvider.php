@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\Contracts\ResolvesRoles;
+use App\Services\Identity\AttestationGate;
 use App\Domain\Forms\Contracts\BallotBoxDelegate;
 use App\Domain\Forms\Contracts\CertificationPipeline;
 use App\Domain\Forms\Contracts\ElectionSchedulingDelegate;
@@ -22,7 +23,7 @@ use Illuminate\Support\ServiceProvider;
  * Wires the constitutional engine (WI-2 skeleton; WI-5 real bindings).
  *
  * WI-5 replaced the Phase A stubs without touching the engine:
- *  - ResolvesRoles → RoleService              (was StubRoleResolver)
+ *  - ResolvesRoles → AttestationGate → RoleService (G-ID dual-stack; was StubRoleResolver)
  *  - ResidencyHandlerDelegate → ResidencyService (was NoopResidencyDelegate)
  *
  * Phase B (WI-B4) added the election-handler seams; all three now carry
@@ -44,7 +45,11 @@ class ConstitutionProvider extends ServiceProvider
         $this->app->singleton(ConstitutionalEngine::class);
 
         $this->app->singleton(RoleService::class);
-        $this->app->bind(ResolvesRoles::class, fn ($app) => $app->make(RoleService::class));
+        // G-ID dual-stack: AttestationGate IS the ResolvesRoles, but for local
+        // session users it delegates straight to the live RoleService derivation
+        // (Art. I — never a stored snapshot). Zero behaviour change; the attested
+        // path activates only on forwarded-write requests (G4).
+        $this->app->bind(ResolvesRoles::class, fn ($app) => $app->make(AttestationGate::class));
 
         $this->app->singleton(ResidencyService::class);
         $this->app->bind(ResidencyHandlerDelegate::class, fn ($app) => $app->make(ResidencyService::class));
