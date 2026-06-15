@@ -20,11 +20,27 @@ use App\Services\RoleService;
  */
 class AttestationGate implements ResolvesRoles
 {
-    public function __construct(private readonly RoleService $roles) {}
+    public function __construct(
+        private readonly RoleService $roles,
+        private readonly AttestedActorContext $context,
+    ) {}
 
-    /** Local users: derive live — never the attestation, never a stored snapshot. */
+    /**
+     * Local users: derive live — never the attestation, never a stored snapshot.
+     * The ONE exception is a verified FORWARDED-write subject: the leader does not
+     * hold their residency facts, so it authorizes that single write against the
+     * attested role snapshot AttestedForwardedActor placed in the request context.
+     */
     public function rolesFor(?User $user): array
     {
+        if ($user !== null) {
+            $attested = $this->context->attestedRolesFor($user);
+
+            if ($attested !== null) {
+                return $attested;
+            }
+        }
+
         return $this->roles->rolesFor($user);
     }
 

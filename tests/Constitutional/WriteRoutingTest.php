@@ -144,7 +144,7 @@ class WriteRoutingTest extends TestCase
         });
     }
 
-    public function test_a_forwarded_citizen_actor_claim_is_refused_pre_gid(): void
+    public function test_a_forwarded_unverifiable_actor_claim_is_refused(): void
     {
         $this->onLivePg(function () {
             $router = app(WriteRouterService::class);
@@ -154,16 +154,19 @@ class WriteRoutingTest extends TestCase
             $envelope = [
                 'form_id' => 'F-LEG-003',
                 'payload' => ['note' => 'forwarded with an unverifiable actor'],
-                'actor' => ['user_id' => (string) Str::uuid()], // a claim we cannot verify without G-ID
+                // A bare claim with no G-ID attestation block — citizen forwarding
+                // requires a verifiable attestation (G-ID), so this is refused as
+                // malformed; nothing reaches the engine.
+                'actor' => ['user_id' => (string) Str::uuid()],
                 'origin_server_id' => $peer->server_id,
                 'idempotency_key' => $key,
             ];
 
             try {
                 $router->executeForwarded($envelope, $peer);
-                $this->fail('a citizen-actor claim must be refused before G-ID lands');
+                $this->fail('an unverifiable citizen-actor claim must be refused');
             } catch (ForwardedWriteRefused $e) {
-                $this->assertSame(403, $e->status);
+                $this->assertSame(422, $e->status, 'a forward whose actor block carries no attestation is malformed');
             }
 
             // Refused before the engine — nothing claimed, nothing filed.

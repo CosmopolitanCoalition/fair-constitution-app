@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
+use App\Domain\Engine\AttestedForwardedActor;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\Contracts\ResolvesForwardedActor;
 use App\Domain\Engine\Contracts\ResolvesRoles;
-use App\Domain\Engine\SystemOnlyForwardedActor;
 use App\Services\Identity\AttestationGate;
+use App\Services\Identity\AttestedActorContext;
 use App\Domain\Forms\Contracts\BallotBoxDelegate;
 use App\Domain\Forms\Contracts\CertificationPipeline;
 use App\Domain\Forms\Contracts\ElectionSchedulingDelegate;
@@ -53,11 +54,17 @@ class ConstitutionProvider extends ServiceProvider
         // path activates only on forwarded-write requests (G4).
         $this->app->bind(ResolvesRoles::class, fn ($app) => $app->make(AttestationGate::class));
 
-        // G4 forwarded-actor dual-stack: SystemOnlyForwardedActor admits only
-        // system-scoped forwards now (a citizen-actor claim is refused until a
-        // verifiable G-ID attestation exists). The AttestedForwardedActor swap is
-        // this one binding line — mirrors the ResolvesRoles → AttestationGate seam.
-        $this->app->bind(ResolvesForwardedActor::class, fn ($app) => $app->make(SystemOnlyForwardedActor::class));
+        // The request-scoped bridge that carries a verified forwarded actor's
+        // attested roles to the engine. Singleton (one filing at a time per
+        // request; WriteRouterService clears it after each forwarded write).
+        $this->app->singleton(AttestedActorContext::class);
+
+        // G-ID forwarded-actor dual-stack — NOW ATTESTED: a forward carrying a
+        // verified G-ID attestation + device action signature files as that
+        // citizen (AttestedForwardedActor); a bare system forward still resolves to
+        // null exactly as before (strict superset of SystemOnlyForwardedActor). This
+        // one binding line turns G4 citizen write-forwarding on.
+        $this->app->bind(ResolvesForwardedActor::class, fn ($app) => $app->make(AttestedForwardedActor::class));
 
         $this->app->singleton(ResidencyService::class);
         $this->app->bind(ResidencyHandlerDelegate::class, fn ($app) => $app->make(ResidencyService::class));

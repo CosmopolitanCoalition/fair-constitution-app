@@ -9,6 +9,7 @@ use App\Models\FederationPeer;
 use App\Models\ForwardedWrite;
 use App\Models\User;
 use App\Services\AuditService;
+use App\Services\Identity\AttestedActorContext;
 use Illuminate\Support\Str;
 
 /**
@@ -33,6 +34,7 @@ class WriteRouterService
         private readonly ConstitutionalEngine $engine,
         private readonly ResolvesForwardedActor $forwardedActor,
         private readonly InstanceIdentityService $identity,
+        private readonly AttestedActorContext $attestedActor,
     ) {}
 
     /** The peer server_id a write for this payload routes to, or null = local. */
@@ -143,37 +145,45 @@ class WriteRouterService
             return $existing->outcome();
         }
 
-        // Resolve the actor — throws ForwardedWriteRefused to refuse a citizen
-        // claim pre-G-ID; null = system filing.
+        // Resolve the actor — throws ForwardedWriteRefused to refuse an
+        // unverifiable claim; null = system filing; a VERIFIED G-ID attestation
+        // (AttestedForwardedActor) also places the attested roles in the request
+        // context, which the engine authorizes against and we clear below.
         $actor = $this->forwardedActor->resolve($envelope);
 
-        // Claim the key (the unique index blocks a concurrent duplicate). A prior
-        // PENDING row (a crash mid-execution) is re-driven rather than re-claimed.
-        $row = $existing ?? ForwardedWrite::create([
-            'origin_server_id' => $origin,
-            'idempotency_key' => $key,
-            'form_id' => $formId,
-            'jurisdiction_id' => $jid,
-            'status' => ForwardedWrite::STATUS_PENDING,
-        ]);
-
         try {
-            $result = $this->engine->file($formId, $actor, $payload); // NORMAL path — no bypass
-            $row->update([
-                'status' => ForwardedWrite::STATUS_EXECUTED,
-                'audit_seq' => $result->entry->seq,
-                'result_hash' => $result->entry->hash,
+            // Claim the key (the unique index blocks a concurrent duplicate). A prior
+            // PENDING row (a crash mid-execution) is re-driven rather than re-claimed.
+            $row = $existing ?? ForwardedWrite::create([
+                'origin_server_id' => $origin,
+                'idempotency_key' => $key,
+                'form_id' => $formId,
+                'jurisdiction_id' => $jid,
+                'status' => ForwardedWrite::STATUS_PENDING,
             ]);
-        } catch (ConstitutionalViolation $violation) {
-            // A valid denial — the engine already chained the rejected edge on our
-            // own log. Record it idempotently so a replay returns the same refusal.
-            $row->update([
-                'status' => ForwardedWrite::STATUS_REJECTED,
-                'citation' => $violation->citation,
-            ]);
-        }
 
-        return $row->refresh()->outcome();
+            try {
+                $result = $this->engine->file($formId, $actor, $payload); // NORMAL path — no bypass
+                $row->update([
+                    'status' => ForwardedWrite::STATUS_EXECUTED,
+                    'audit_seq' => $result->entry->seq,
+                    'result_hash' => $result->entry->hash,
+                ]);
+            } catch (ConstitutionalViolation $violation) {
+                // A valid denial — the engine already chained the rejected edge on our
+                // own log. Record it idempotently so a replay returns the same refusal.
+                $row->update([
+                    'status' => ForwardedWrite::STATUS_REJECTED,
+                    'citation' => $violation->citation,
+                ]);
+            }
+
+            return $row->refresh()->outcome();
+        } finally {
+            // The attested context authorizes EXACTLY this one forwarded filing —
+            // never the next request, never a local user.
+            $this->attestedActor->clear();
+        }
     }
 
     private function jurisdictionIdOf(array $payload): ?string
