@@ -1,0 +1,57 @@
+# Headscale coordinator config for the CGA Phase G G-V2 tailnet test.
+# Headscale is the self-hosted Tailscale control server: it coordinates the
+# WireGuard mesh between the CGA instances so they peer over private 100.64/10
+# addresses (encrypted in flight) with NO inbound ports opened on your netgate.
+#
+# This config targets Headscale 0.23.x. Config KEYS have changed across versions
+# (older builds used `ip_prefixes`/`dns_config`); if `headscale serve` rejects a
+# key, check `headscale configtest` against your image's version and adjust.
+#
+# Substitute <YOUR_DOMAIN> with the Cloudflare zone you mentioned
+# (e.g. headscale.worldofstatecraft.com). server_url MUST be the HTTPS URL the
+# Tailscale clients reach the control plane on (Cloudflare Tunnel fronts it).
+
+server_url: https://headscale.<YOUR_DOMAIN>
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 127.0.0.1:9090
+grpc_listen_addr: 127.0.0.1:50443
+grpc_allow_insecure: false
+
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+# The tailnet address pools the CGA instances draw their stable IPs from.
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  allocation: sequential
+
+# Use Tailscale's public DERP relays for NAT traversal — so neither box needs an
+# inbound WireGuard port. (Direct peer-to-peer is used when the network allows.)
+derp:
+  server:
+    enabled: false
+  urls:
+    - https://controlplane.tailscale.com/derpmap/default
+  auto_update_enabled: true
+  update_frequency: 24h
+
+disable_check_updates: true
+ephemeral_node_inactivity_timeout: 30m
+
+database:
+  type: sqlite
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+
+dns:
+  magic_dns: true
+  base_domain: cga.tailnet
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 8.8.8.8
+
+log:
+  level: info
+  format: text

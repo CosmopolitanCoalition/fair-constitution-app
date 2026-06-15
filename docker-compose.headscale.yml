@@ -1,0 +1,28 @@
+# Headscale coordinator for the CGA Phase G G-V2 tailnet test.
+#
+# Run this on ONE always-on host (instance A's box is fine — it is independent of
+# the CGA app stack). It stands up the Headscale control server; Cloudflare Tunnel
+# (run separately, with YOUR token) fronts it over HTTPS at headscale.<YOUR_DOMAIN>.
+#
+#   docker compose -f docker-compose.headscale.yml up -d
+#   docker compose -f docker-compose.headscale.yml exec headscale headscale users create cga
+#   docker compose -f docker-compose.headscale.yml exec headscale \
+#       headscale preauthkeys create --user cga --reusable --expiration 24h
+#
+# The control plane listens on :8080 (HTTP) — do NOT expose :8080 to the internet
+# directly; put Cloudflare Tunnel (or a TLS reverse proxy) in front so the clients
+# reach it as https://headscale.<YOUR_DOMAIN>.
+services:
+  headscale:
+    image: headscale/headscale:0.23.0
+    container_name: cga_headscale
+    restart: unless-stopped
+    command: serve
+    volumes:
+      - ./docker/headscale/config.yaml:/etc/headscale/config.yaml:ro
+      - headscale_data:/var/lib/headscale
+    ports:
+      - "127.0.0.1:8080:8080"   # bind to loopback; Cloudflare Tunnel reaches it here
+
+volumes:
+  headscale_data:
