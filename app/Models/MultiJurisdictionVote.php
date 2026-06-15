@@ -38,6 +38,9 @@ class MultiJurisdictionVote extends Model
         // constituent-consent leg of a dual-door setting amendment
         // (DUAL_DOOR_KEYS, e.g. judiciary_is_elected, Art. IV §3).
         'setting_amendment',
+        // Phase G (G6) — the parent (current authoritative government) consent
+        // leg of an earned-autonomy promotion.
+        'local_autonomy',
     ];
 
     protected $fillable = [
