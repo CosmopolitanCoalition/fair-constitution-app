@@ -805,7 +805,7 @@
 
                             <!-- Split-line: click two points, see population each side. -->
                             <template v-if="drawMethod === 'split'">
-                                <div class="text-amber-300/80 mb-1">Click two points to cut a line across {{ scope.name }}.</div>
+                                <div class="text-amber-300/80 mb-1">Press and drag across {{ scope.name }} to cut a line; both sides update live.</div>
                                 <div v-if="splitSides" class="space-y-1">
                                     <div v-for="(s, i) in splitSides.sides" :key="i"
                                          class="flex items-center justify-between gap-2 px-1.5 py-0.5 rounded"
@@ -1294,6 +1294,13 @@
                 <div class="lm-mapside flex-1 relative flex flex-col min-w-0 overflow-hidden">
 
                 <div id="legislature-map" class="w-full flex-1"></div>
+                <!-- Phase H — split-line draw hint (on the map, where the action is). -->
+                <div v-if="drawMode && drawMethod === 'split'"
+                     class="absolute top-3 left-1/2 -translate-x-1/2 z-[900] pointer-events-none">
+                    <div class="px-3 py-1.5 rounded-full bg-amber-600/95 text-white text-xs font-medium shadow-lg whitespace-nowrap">
+                        ✂️ {{ splitHint }}
+                    </div>
+                </div>
                 <!-- Rubber-band selection overlay (drag-select mode) -->
                 <div ref="rubberBandEl"
                      class="rubber-band"
@@ -1674,10 +1681,13 @@ let _drawControl = null
 let _drawnItems  = null
 let _drawnLayer  = null
 let _probeSeq    = 0
-// Split-line interaction (custom 2-click — no modal, pan/zoom keep working).
-let _splitPts     = []           // [L.latLng, L.latLng]
-let _splitLine    = null         // L.polyline blade
-let _splitMarkers = []           // endpoint dots
+// Split-line interaction (press-drag-release — one gesture, pan suspended only
+// while the cut is being dragged).
+let _splitPts      = []          // [L.latLng, L.latLng] once a cut is set
+let _splitStart    = null        // gesture start latlng
+let _splitDragging = false
+let _splitLine     = null        // L.polyline blade
+let _splitMarkers  = []          // endpoint dots
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
@@ -3425,17 +3435,25 @@ function exitDrawMode() {
 function startSplitTool() {
     teardownPolygonTool()
     resetSplit()
-    if (_map && !_map.__splitClickBound) {
-        _map.on('click', onSplitClick)
-        _map.__splitClickBound = true
+    if (_map && !_map.__splitBound) {
+        _map.on('mousedown', onSplitDown)
+        _map.on('mousemove', onSplitMove)
+        _map.on('mouseup', onSplitUp)
+        _map.getContainer().style.cursor = 'crosshair'
+        _map.__splitBound = true
     }
 }
 
 function teardownSplitTool() {
-    if (_map && _map.__splitClickBound) {
-        _map.off('click', onSplitClick)
-        _map.__splitClickBound = false
+    if (_map && _map.__splitBound) {
+        _map.off('mousedown', onSplitDown)
+        _map.off('mousemove', onSplitMove)
+        _map.off('mouseup', onSplitUp)
+        _map.getContainer().style.cursor = ''
+        if (_map.dragging) _map.dragging.enable()
+        _map.__splitBound = false
     }
+    _splitDragging = false
     resetSplit()
 }
 
@@ -3548,23 +3566,45 @@ async function commitDraw() {
 
 function resetSplit() {
     _splitPts = []
+    _splitStart = null
     splitSides.value = null
     if (_splitLine && _map) { _map.removeLayer(_splitLine); _splitLine = null }
     for (const m of _splitMarkers) { if (_map) _map.removeLayer(m) }
     _splitMarkers = []
 }
 
-function onSplitClick(e) {
+function _splitDot(latlng) {
+    return L.circleMarker(latlng, { radius: 5, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }).addTo(_map)
+}
+
+// Press where the cut starts, drag to its end, release. Map panning is suspended
+// only for the duration of this one gesture, so a normal drag would otherwise
+// pan — here it draws.
+function onSplitDown(e) {
     if (drawMethod.value !== 'split' || !drawMode.value) return
-    if (_splitPts.length >= 2) resetSplit()       // third click starts a new line
-    _splitPts.push(e.latlng)
-    _splitMarkers.push(
-        L.circleMarker(e.latlng, { radius: 5, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }).addTo(_map)
-    )
-    if (_splitPts.length === 2) {
-        _splitLine = L.polyline(_splitPts, { color: '#fbbf24', weight: 3, dashArray: '6 4' }).addTo(_map)
-        probeSplit()
-    }
+    resetSplit()
+    _splitStart = e.latlng
+    _splitDragging = true
+    if (_map.dragging) _map.dragging.disable()
+    _splitMarkers.push(_splitDot(e.latlng))
+    _splitLine = L.polyline([e.latlng, e.latlng], { color: '#fbbf24', weight: 3, dashArray: '6 4' }).addTo(_map)
+}
+
+function onSplitMove(e) {
+    if (!_splitDragging || !_splitLine) return
+    _splitLine.setLatLngs([_splitStart, e.latlng])
+}
+
+function onSplitUp(e) {
+    if (!_splitDragging) return
+    _splitDragging = false
+    if (_map.dragging) _map.dragging.enable()
+    const end = e.latlng
+    if (!_splitStart || _splitStart.distanceTo(end) < 15) { resetSplit(); return }  // a stray click — ignore
+    _splitPts = [_splitStart, end]
+    _splitMarkers.push(_splitDot(end))
+    _splitLine.setLatLngs([_splitStart, end])
+    probeSplit()
 }
 
 async function probeSplit() {
@@ -3595,6 +3635,11 @@ async function probeSplit() {
 }
 
 const splitCommitReady = computed(() => !!splitSides.value && splitSides.value.both_in_band)
+const splitHint = computed(() =>
+    splitSides.value
+        ? 'Drag again to redraw the cut — then Commit in the sidebar'
+        : 'Press and drag across the map to cut a line'
+)
 
 async function commitSplit() {
     if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value) return
