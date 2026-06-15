@@ -792,7 +792,7 @@
                         </template>
                         <template v-else>
                             <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="text-amber-300 font-medium">Draw a district with the ▢ tool (top-right of the map)</span>
+                                <span class="text-amber-300 font-medium">Draw a district with the ▢ tool (top-left, under zoom)</span>
                                 <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
                             </div>
                             <div v-if="drawProbe" class="space-y-1 mt-1">
@@ -3361,7 +3361,9 @@ function enterDrawMode() {
     }
     if (!_drawControl) {
         _drawControl = new L.Control.Draw({
-            position: 'topright',
+            // top-LEFT (under the zoom control) — top-right is occupied by the
+            // legend toggles (Seats/Pop/Names/Jurs/Stats/Raster).
+            position: 'topleft',
             draw: {
                 polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#fbbf24', weight: 2 } },
                 polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false,
