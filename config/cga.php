@@ -105,4 +105,14 @@ return [
     // How many cold-sync pages CLK-20 drains per peer per heartbeat tick.
     'federation_cold_pages_per_tick' => env('CGA_FEDERATION_COLD_PAGES_PER_TICK', 5),
 
+    /*
+    | Transport (Phase G, G8). The SAME SIGNED bytes travel over any channel —
+    | https, a Headscale tailnet, a Tor .onion, or sneakernet. A `.onion` endpoint
+    | routes through `federation_socks_proxy` (a local Tor daemon, e.g.
+    | socks5h://127.0.0.1:9050); everything else is reached directly unless a global
+    | `federation_proxy` is set. Both null by default — existing behaviour unchanged.
+    */
+    'federation_socks_proxy' => env('CGA_FEDERATION_SOCKS_PROXY'),
+    'federation_proxy' => env('CGA_FEDERATION_PROXY'),
+
 ];

@@ -44,6 +44,27 @@ class FederationClient
         return strtoupper($method)."\n".$requestTarget."\n".$timestamp."\n".hash('sha256', $body);
     }
 
+    /**
+     * The transport seam (Phase G, G8): the SAME signed bytes travel over any
+     * channel. A `.onion` base URL is dialled through the configured SOCKS proxy
+     * (a local Tor daemon); everything else (https, a tailnet address) is reached
+     * directly unless a global proxy is set. Null = direct (the default).
+     */
+    public function proxyFor(string $url): ?string
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        if ($host !== '' && str_ends_with($host, '.onion')) {
+            $socks = config('cga.federation_socks_proxy');
+
+            return $socks !== null && $socks !== '' ? (string) $socks : null;
+        }
+
+        $proxy = config('cga.federation_proxy');
+
+        return $proxy !== null && $proxy !== '' ? (string) $proxy : null;
+    }
+
     private function send(string $method, string $baseUrl, string $requestTarget, string $body): Response
     {
         $timestamp = now()->timestamp;
@@ -58,6 +79,13 @@ class FederationClient
         $url = rtrim($baseUrl, '/').$requestTarget;
 
         $request = Http::withHeaders($headers)->timeout(20)->acceptJson();
+
+        // Route .onion (and any globally-proxied) traffic through the SOCKS seam.
+        // Default config is null → no proxy option → existing calls are unchanged.
+        $proxy = $this->proxyFor($url);
+        if ($proxy !== null) {
+            $request = $request->withOptions(['proxy' => $proxy]);
+        }
 
         if ($method === 'GET') {
             return $request->get($url);
