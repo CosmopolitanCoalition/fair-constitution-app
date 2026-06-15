@@ -784,7 +784,10 @@
                                 <button v-if="drawTargetIsDraft"
                                         class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white shrink-0"
                                         @click="enterDrawMode">✏️ Draw</button>
-                                <span v-else class="text-gray-500 shrink-0">Create a draft plan to draw</span>
+                                <button v-else
+                                        class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white shrink-0 disabled:opacity-60"
+                                        :disabled="creatingMap"
+                                        @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
                             </div>
                         </template>
                         <template v-else>
@@ -3462,6 +3465,28 @@ async function commitDraw() {
     }
 }
 
+// Create a draft plan and stay on THIS scope (so the operator can draw straight
+// away), rather than submitNewMap()'s jump to the auto-seed wizard.
+async function createDraftHere() {
+    if (creatingMap.value) return
+    creatingMap.value = true
+    drawError.value = ''
+    try {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body:    JSON.stringify({ name: 'Manual draft' }),
+        })
+        const data = await resp.json()
+        if (!resp.ok) { drawError.value = data.error ?? 'Failed to create a draft plan.'; return }
+        router.visit(mapUrl(props.scope.id, data.id))   // reload this scope with the draft selected
+    } catch (e) {
+        drawError.value = 'Network error creating the draft plan.'
+    } finally {
+        creatingMap.value = false
+    }
+}
+
 async function createDistrictFromPending() {
     if (pendingAdd.value.size === 0 || savingEdit.value || !pendingValid.value) return
     savingEdit.value = true
@@ -3896,7 +3921,11 @@ async function reinitMapLayers() {
                 : 0   // indeterminate until both Content-Length headers are known
         }
 
-        const [gj, revGj] = await Promise.all([
+        // A childless leaf giant has no children to fill the map — fetch its OWN
+        // boundary so there is a canvas to hand-draw within (else the map is blank
+        // and never fits bounds).
+        const needSelf = isLeafGiantScope.value
+        const [gj, revGj, selfGj] = await Promise.all([
             fetchJsonXhr(
                 `/api/jurisdictions/${props.scope.id}/children.geojson?zoom=${z}`,
                 (b, t) => { childBytes = b; childTotal = t; updateProgress() }
@@ -3906,6 +3935,9 @@ async function reinitMapLayers() {
                 (b, t) => { revBytes = b; revTotal = t; updateProgress() },
                 0   // no client timeout — cold PostGIS query can take >45s; nginx allows 300s
             ).catch(() => ({ features: [] })),
+            needSelf
+                ? fetchJsonXhr(`/api/jurisdictions/${props.scope.id}/self.geojson?zoom=${z}`, () => {}).catch(() => null)
+                : Promise.resolve(null),
         ])
 
         // Guard: if the user navigated to a different scope/map while our fetches were in flight,
@@ -4033,8 +4065,10 @@ async function reinitMapLayers() {
                         return
                     }
 
-                    // Browse mode
-                    if (isGiant && c.child_count > 0) {
+                    // Browse mode. Every giant is drillable: a child-bearing giant
+                    // drills to compose its children; a CHILDLESS leaf giant drills
+                    // to the hand-draw scope (which renders the giant's own boundary).
+                    if (isGiant) {
                         drillTo(jid)
                     } else if (c.district_id) {
                         toggleSelectDistrict(c.district_id, /* fromMap */ true)
@@ -4063,6 +4097,20 @@ async function reinitMapLayers() {
 
         if (gj.features.length > 0) {
             _map.fitBounds(childLayer.getBounds(), { padding: [30, 30] })
+        } else if (selfGj && (selfGj.features?.length ?? 0) > 0) {
+            // Leaf giant — render its OWN boundary as the drawing canvas (faint,
+            // non-interactive so map clicks and the draw tool pass through) and fit
+            // to it so the basemap + raster center on the giant.
+            const giantOutline = L.geoJSON(selfGj, {
+                interactive: false,
+                style: { color: '#fbbf24', weight: 2, fill: false, dashArray: '4 3' },
+            }).addTo(_map)
+            const gb = giantOutline.getBounds()
+            if (gb.isValid()) _map.fitBounds(gb, { padding: [40, 40] })
+        } else if (props.scope.bbox) {
+            // Last resort: fit to the scope bbox so the map is never blank.
+            const [s, w, n, e] = props.scope.bbox
+            _map.fitBounds(L.latLngBounds([[Math.max(s, -85), w], [Math.min(n, 85), e]]), { padding: [40, 40] })
         }
 
         // ── District label layers (combined badge per district, toggled via buttons) ──
