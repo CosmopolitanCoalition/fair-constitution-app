@@ -28,7 +28,7 @@ services:
       # scans this folder to pick the most recent YYYYMMDD.pmtiles file.
       # Matches the nginx mount so the same files are reachable via both
       # the Laravel API (scan) and the HTTP /maps/protomaps/ path (serve).
-      - ${PROTOMAPS_DIR:-D:/fair-constitution-map-files/protomaps_pmtiles}:/var/www/html/public/maps/protomaps:ro
+      - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -57,7 +57,7 @@ services:
       # directory; the /api/maps/latest-pmtiles backend endpoint scans the
       # directory and tells the frontend which one to load. Override the
       # host path via PROTOMAPS_DIR in .env when needed.
-      - ${PROTOMAPS_DIR:-D:/fair-constitution-map-files/protomaps_pmtiles}:/var/www/html/public/maps/protomaps:ro
+      - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
     depends_on:
       app:
         condition: service_started
