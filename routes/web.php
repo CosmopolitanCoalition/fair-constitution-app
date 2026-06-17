@@ -715,6 +715,8 @@ Route::middleware('auth:operator')->group(function () {
         ->name('federation.host.requests.approve');
     Route::post('/federation/host/requests/{id}/reject', [\App\Http\Controllers\Federation\FederationHostController::class, 'rejectRequest'])
         ->name('federation.host.requests.reject');
+    Route::post('/federation/host/rw/{id}/deny', [\App\Http\Controllers\Federation\FederationHostController::class, 'denyReadWrite'])
+        ->name('federation.host.rw.deny');
 });
 
 // Session auth — register / login / logout (WI-3).

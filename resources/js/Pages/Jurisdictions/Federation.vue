@@ -38,6 +38,7 @@ const revokeKey = (handle) => {
 };
 const approveReq = (id) => router.post(`/federation/host/requests/${id}/approve`, {}, { preserveScroll: true });
 const rejectReq = (id) => router.post(`/federation/host/requests/${id}/reject`, {}, { preserveScroll: true });
+const denyRw = (id) => router.post(`/federation/host/rw/${id}/deny`, {}, { preserveScroll: true });
 
 const statusClass = (status) => ({
     trust_established: 'bg-emerald-100 text-emerald-800',
@@ -231,9 +232,28 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     </ul>
                 </div>
 
+                <!-- Read-write petitions (G3c intake; the GRANT is the governed flow) -->
+                <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Read-write petitions</h3>
+                    <p v-if="!host.rw_requests || host.rw_requests.length === 0" class="mt-1 text-sm text-slate-500">No read-write petitions.</p>
+                    <ul v-else class="mt-2 space-y-2 text-sm">
+                        <li v-for="r in host.rw_requests" :key="r.id" class="flex items-center justify-between border-t border-slate-100 pt-2">
+                            <span>
+                                <span class="font-mono text-slate-600">{{ r.applicant_server_id }}…</span>
+                                <span class="text-slate-500"> wants read-write over </span>
+                                <span class="font-mono text-slate-600">{{ r.root_jurisdiction_id }}…</span>
+                                <span v-if="r.note" class="block text-xs text-slate-400">{{ r.note }}</span>
+                            </span>
+                            <button type="button" @click="denyRw(r.id)"
+                                    class="rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Deny</button>
+                        </li>
+                    </ul>
+                </div>
+
                 <p class="text-xs text-slate-400">
-                    Approving admits a <strong>read-only mirror</strong> (authoritative for nothing). Read-write is a
-                    separate governed request, decided by the jurisdiction's government (Art. V §7).
+                    Approving an adoption admits a <strong>read-only mirror</strong> (authoritative for nothing).
+                    Read-write is a separate <strong>governed</strong> grant — decided by the jurisdiction's standing
+                    government (Art. V §7) or, where there is none, the de-facto operator board — not a console click.
                 </p>
             </div>
         </section>

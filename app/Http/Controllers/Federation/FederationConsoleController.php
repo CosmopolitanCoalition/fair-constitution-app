@@ -10,6 +10,7 @@ use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\SyncLogEntry;
+use App\Services\Federation\ReadWriteRequestService;
 use App\Services\Mirror\MirrorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ use Inertia\Response;
  */
 class FederationConsoleController extends Controller
 {
-    public function show(MirrorService $mirror): Response
+    public function show(MirrorService $mirror, ReadWriteRequestService $rw): Response
     {
         $settings = InstanceSettings::current();
 
@@ -114,6 +115,14 @@ class FederationConsoleController extends Controller
                             'id' => (string) $r->id,
                             'applicant_server_id' => substr((string) $r->applicant_server_id, 0, 8),
                             'created_at' => $r->created_at?->toIso8601String(),
+                        ])->values(),
+                    'rw_requests' => $rw->pending()
+                        ->map(fn ($r) => [
+                            'id' => (string) $r->id,
+                            'applicant_server_id' => substr((string) $r->applicant_server_id, 0, 8),
+                            'root_jurisdiction_id' => substr((string) $r->root_jurisdiction_id, 0, 8),
+                            'note' => $r->note,
+                            'submitted_at' => $r->submitted_at?->toIso8601String(),
                         ])->values(),
                 ]
                 : ['authed' => false],

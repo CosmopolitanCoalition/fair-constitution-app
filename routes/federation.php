@@ -4,6 +4,7 @@ use App\Http\Controllers\Federation\AdoptionController;
 use App\Http\Controllers\Federation\FlipController;
 use App\Http\Controllers\Federation\MeshOperatorController;
 use App\Http\Controllers\Federation\PeerController;
+use App\Http\Controllers\Federation\ReadWriteController;
 use App\Http\Controllers\Federation\SyncController;
 use App\Http\Controllers\Federation\WriteController;
 use Illuminate\Support\Facades\Route;
@@ -60,4 +61,10 @@ Route::post('/write', [WriteController::class, 'write'])
 // identity + its signed device-key bindings; we ingest what we can authenticate
 // against each binding's bound-by server's pinned key.
 Route::post('/operator/announce', [MeshOperatorController::class, 'announce'])
+    ->middleware('federation.signed');
+
+// ── Read-write petition (G3c) — a pinned mirror asks to become a read-write peer
+// for a jurisdiction subtree. Recorded as an intake; granting is the governed
+// flow (G6 / G-VER), never this endpoint.
+Route::post('/request-read-write', [ReadWriteController::class, 'request'])
     ->middleware('federation.signed');

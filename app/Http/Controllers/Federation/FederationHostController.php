@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Federation;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReadWriteRequest;
+use App\Services\Federation\ReadWriteRequestService;
 use App\Services\Mirror\MirrorJoinKeyService;
 use App\Services\Mirror\MirrorService;
 use Illuminate\Http\RedirectResponse;
@@ -69,5 +71,23 @@ class FederationHostController extends Controller
         }
 
         return back()->with('status', 'Rejected the adoption request.');
+    }
+
+    /**
+     * POST /federation/host/rw/{id}/deny — deny a read-write petition. The one
+     * resolution the host console owns; GRANTING is the governed flow (Art. V §7
+     * via G6 / the de-facto operator board via G-VER), not a console click.
+     */
+    public function denyReadWrite(string $id, ReadWriteRequestService $rw): RedirectResponse
+    {
+        $request = ReadWriteRequest::query()->find($id);
+
+        if ($request === null) {
+            return back()->withErrors(['rw' => 'Read-write petition not found.']);
+        }
+
+        $rw->deny($request);
+
+        return back()->with('status', 'Read-write petition denied.');
     }
 }
