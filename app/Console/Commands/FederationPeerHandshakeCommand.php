@@ -25,8 +25,7 @@ class FederationPeerHandshakeCommand extends Command
         $needle = (string) $this->argument('peer');
 
         $peer = FederationPeer::query()
-            ->where('server_id', $needle)
-            ->orWhere('url', rtrim($needle, '/'))
+            ->matchingNeedle($needle)
             ->first();
 
         if ($peer === null) {

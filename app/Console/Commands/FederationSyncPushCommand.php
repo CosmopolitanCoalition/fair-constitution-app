@@ -26,8 +26,7 @@ class FederationSyncPushCommand extends Command
 
         $peers = FederationPeer::query()
             ->whereNull('deleted_at')
-            ->when($needle !== null, fn ($q) => $q->where(fn ($w) => $w
-                ->where('server_id', $needle)->orWhere('url', rtrim((string) $needle, '/'))))
+            ->when($needle !== null, fn ($q) => $q->matchingNeedle((string) $needle))
             ->when($needle === null, fn ($q) => $q->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED))
             ->get();
 

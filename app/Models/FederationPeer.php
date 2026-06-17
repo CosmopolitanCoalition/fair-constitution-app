@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * A peer instance in the federation mesh (Phase F, WF-JUR-06). Status walks
@@ -95,5 +97,24 @@ class FederationPeer extends Model
             self::STATUS_TRUST_ESTABLISHED, self::STATUS_SYNCING,
             self::STATUS_CONFLICT_RESOLUTION, self::STATUS_BORDER_SETTLED,
         ], true);
+    }
+
+    /**
+     * Resolve a peer from a CLI "{peer}" argument that may be either a server_id
+     * (uuid) or a URL. server_id is a uuid column, so comparing a URL against it
+     * makes Postgres throw 22P02 ("invalid input syntax for type uuid") — the OR
+     * branch the four federation commands used never saved it (the cast fails
+     * before the OR is reached), so `federation:cold-sync <host-url>` fataled.
+     * Branch on the needle's shape instead: a uuid matches server_id; anything
+     * else matches url (trailing slash trimmed, matching how the rest of the
+     * federation code stores urls).
+     */
+    public function scopeMatchingNeedle(Builder $query, ?string $needle): Builder
+    {
+        $needle = trim((string) $needle);
+
+        return Str::isUuid($needle)
+            ? $query->where('server_id', $needle)
+            : $query->where('url', rtrim($needle, '/'));
     }
 }

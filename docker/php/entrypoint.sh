@@ -117,5 +117,18 @@ esac
 # on Docker Desktop (Win/macOS) mounts, which already present files as writable.
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
+# .env must also be readable by the FPM user. On a host with a restrictive
+# umask (e.g. 077) deploy.sh's `cp .env.example .env` yields mode 600 owned by
+# the host uid, so www-data can't read it → MissingAppKeyException + a silent
+# fallback to the sqlite default → 500 on every web route. (Latent until the
+# worker restart forces FPM to re-read .env on a fresh deploy.) Group-read it
+# for www-data while keeping the host uid as owner+writer, so deploy.sh's
+# idempotent set_env can still edit it; never world-readable — it holds the
+# APP_KEY + DB credentials.
+if [ -f /var/www/html/.env ]; then
+    chgrp www-data /var/www/html/.env 2>/dev/null || true
+    chmod 640      /var/www/html/.env 2>/dev/null || true
+fi
+
 # Hand off to the upstream php image's entrypoint, which exec's CMD.
 exec docker-php-entrypoint "$@"
