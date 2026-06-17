@@ -722,6 +722,11 @@ Route::middleware('auth:operator')->group(function () {
     // front door to the governed Art. V §7 flip). Operator-grade; grants nothing.
     Route::post('/federation/cluster/request-read-write', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'requestReadWrite'])
         ->name('federation.cluster.rw-request');
+
+    // G-OP / G3c — Flow B: link THIS operator account to an existing mesh identity
+    // by device-possession proof (the proof string targets POST /operator/link).
+    Route::post('/operator/link', [\App\Http\Controllers\Federation\OperatorLinkController::class, 'link'])
+        ->name('operator.link');
 });
 
 // Session auth — register / login / logout (WI-3).
