@@ -113,9 +113,19 @@ esac
 # First render then 500s — Blade can't write the compiled view, and Laravel
 # can't even write the error to storage/logs/laravel.log ("could not be opened
 # in append mode"). The composer install above also writes bootstrap/cache as
-# root. Re-own both for the FPM user on every boot. Guarded + a harmless no-op
-# on Docker Desktop (Win/macOS) mounts, which already present files as writable.
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+# root.
+#
+# PROBE before chowning: only re-own when www-data genuinely CAN'T write. A
+# `chown -R` over a large storage tree (a long-lived dev box accumulates ~500k
+# cached tiles) on a Docker Desktop bind mount is pathologically slow and —
+# running before `exec` — STALLS php-fpm startup for many minutes → nginx 502.
+# On Docker Desktop www-data can already write, so the probe passes and we skip
+# the chown entirely (fast boot); on a fresh native-Linux deploy the probe fails
+# and the chown runs once over a small fresh tree.
+if ! su -s /bin/sh www-data -c 'test -w /var/www/html/storage/logs && test -w /var/www/html/storage/framework && test -w /var/www/html/bootstrap/cache' 2>/dev/null; then
+    echo "[entrypoint] storage not writable by www-data — chowning (one-time, native-Linux deploy)" >&2
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+fi
 
 # .env must also be readable by the FPM user. On a host with a restrictive
 # umask (e.g. 077) deploy.sh's `cp .env.example .env` yields mode 600 owned by
