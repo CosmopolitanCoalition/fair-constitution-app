@@ -220,9 +220,10 @@ database/migrations/2026_01_01_000005_create_elections_table.php
 **Phases 0–5 COMPLETE** (Foundation → Judiciary & Law). All live, constitutionally
 tested (suite green, zero skips), each with standing browsable demo data
 (`elections:demo`, `institutions:demo-d`, `institutions:demo-e`). Detailed phase
-plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 103-form
-ConstitutionalEngine, the PROTECTED hardened layer, and the hash-chained audit
-log span every phase.
+plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 104-form
+ConstitutionalEngine (103 through Phase 5 + F-ELB-008 Manual District Draw from
+Phase H), the PROTECTED hardened layer, and the hash-chained audit log span every
+phase.
 
 - [x] **Phase 0 — Foundation**: Docker stack · Laravel 12 + Vue 3 + Inertia ·
   constitutional migrations · ConstitutionalEngine + hash-chained `audit_log` ·

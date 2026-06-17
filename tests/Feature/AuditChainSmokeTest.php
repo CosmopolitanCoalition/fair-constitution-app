@@ -23,7 +23,7 @@ use Tests\TestCase;
  *  - canonical_json determinism (recursive key sort, list order kept)
  *  - chain hash construction hash(n) = sha256(hash(n-1) || payload(n))
  *    including a simulated 5-link chain with a tampered middle link
- *  - FormRegistry: 103 canonical IDs, alias resolution, drift safety
+ *  - FormRegistry: 104 canonical IDs, alias resolution, drift safety
  *  - ConstitutionalValidator: supermajority/quorum math, settings bounds
  *    (out-of-range → ConstitutionalViolation citing Art. II §2),
  *    rights.automatic guard
@@ -114,10 +114,12 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_103_canonical_forms(): void
+    public function test_registry_holds_exactly_104_canonical_forms(): void
     {
-        $this->assertCount(103, FormRegistry::FORMS);
-        $this->assertCount(103, FormRegistry::ids());
+        // 103 Template forms + F-ELB-008 (Manual District Draw), added when
+        // Phase H (H1) landed the childless-leaf-giant district drawer.
+        $this->assertCount(104, FormRegistry::FORMS);
+        $this->assertCount(104, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void
