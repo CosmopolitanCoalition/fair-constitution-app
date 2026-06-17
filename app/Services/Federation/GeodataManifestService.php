@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\FederationPeer;
 use App\Models\GeodataDatasetManifest;
 use App\Services\AuditService;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
  * Phase G (G3c — decision N3) — the GEODATA_ORIGIN signed-dataset MANIFEST channel.
@@ -46,21 +47,10 @@ class GeodataManifestService
         $origin = $this->identity->serverId();
         $signature = $this->identity->sign($this->canonical($dataset, $version, $sha256, $license, $sizeBytes, $origin));
 
-        $manifest = GeodataDatasetManifest::query()->firstOrNew([
-            'dataset'          => $dataset,
-            'version'          => $version,
-            'origin_server_id' => $origin,
-        ]);
-        $manifest->fill([
-            'sha256'     => $sha256,
-            'license'    => $license,
-            'size_bytes' => $sizeBytes,
-            'signature'  => $signature,
-            'fetched_at' => null, // self-published, not fetched
-        ]);
-        $manifest->save();
-
-        return $manifest;
+        return $this->upsertManifest(
+            ['dataset' => $dataset, 'version' => $version, 'origin_server_id' => $origin],
+            ['sha256' => $sha256, 'license' => $license, 'size_bytes' => $sizeBytes, 'signature' => $signature, 'fetched_at' => null],
+        );
     }
 
     /**
@@ -141,21 +131,36 @@ class GeodataManifestService
             return null; // tampered, or not actually signed by the named origin
         }
 
-        $manifest = GeodataDatasetManifest::query()->firstOrNew([
-            'dataset'          => $dataset,
-            'version'          => $version,
-            'origin_server_id' => $origin,
-        ]);
-        $manifest->fill([
-            'sha256'     => $sha256,
-            'license'    => $license,
-            'size_bytes' => $sizeBytes,
-            'signature'  => $signature,
-            'fetched_at' => now(),
-        ]);
-        $manifest->save();
+        return $this->upsertManifest(
+            ['dataset' => $dataset, 'version' => $version, 'origin_server_id' => $origin],
+            ['sha256' => $sha256, 'license' => $license, 'size_bytes' => $sizeBytes, 'signature' => $signature, 'fetched_at' => now()],
+        );
+    }
 
-        return $manifest;
+    /**
+     * Upsert a manifest by its identity (dataset, version, origin_server_id),
+     * surviving a concurrent insert of the SAME identity: the loser of the
+     * unique-index race re-resolves the winner's row and updates it rather than
+     * throwing — preserving the documented idempotency (the GeodataDatasetManifest
+     * analogue of ingestAnnounce's id-preservation discipline).
+     *
+     * @param  array<string,string>  $identity
+     * @param  array<string,mixed>  $attributes
+     */
+    private function upsertManifest(array $identity, array $attributes): GeodataDatasetManifest
+    {
+        try {
+            $manifest = GeodataDatasetManifest::query()->where($identity)->first() ?? new GeodataDatasetManifest();
+            $manifest->fill(array_merge($identity, $attributes))->save();
+
+            return $manifest;
+        } catch (UniqueConstraintViolationException) {
+            // A concurrent caller won the insert for this identity — update its row.
+            $manifest = GeodataDatasetManifest::query()->where($identity)->firstOrFail();
+            $manifest->fill($attributes)->save();
+
+            return $manifest;
+        }
     }
 
     /** Resolve the public key for the server that signed a manifest (self / relayer / pinned peer). */
