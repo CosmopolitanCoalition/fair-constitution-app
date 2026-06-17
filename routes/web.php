@@ -699,5 +699,23 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
     });
 }
 
+// ── Phase G (G3c) — the OPERATOR plane: session login on the auth:operator guard
+// (separate from the citizen `web` guard) + the host adoption console actions
+// (mint/approve invite keys in the browser, no hand-passed handle.secret).
+Route::get('/operator/login', [\App\Http\Controllers\Auth\OperatorSessionController::class, 'create'])->name('operator.login');
+Route::post('/operator/login', [\App\Http\Controllers\Auth\OperatorSessionController::class, 'store']);
+Route::middleware('auth:operator')->group(function () {
+    Route::post('/operator/logout', [\App\Http\Controllers\Auth\OperatorSessionController::class, 'destroy'])->name('operator.logout');
+
+    Route::post('/federation/host/keys', [\App\Http\Controllers\Federation\FederationHostController::class, 'mintKey'])
+        ->name('federation.host.keys.mint');
+    Route::post('/federation/host/keys/revoke', [\App\Http\Controllers\Federation\FederationHostController::class, 'revokeKey'])
+        ->name('federation.host.keys.revoke');
+    Route::post('/federation/host/requests/{id}/approve', [\App\Http\Controllers\Federation\FederationHostController::class, 'approveRequest'])
+        ->name('federation.host.requests.approve');
+    Route::post('/federation/host/requests/{id}/reject', [\App\Http\Controllers\Federation\FederationHostController::class, 'rejectRequest'])
+        ->name('federation.host.requests.reject');
+});
+
 // Session auth — register / login / logout (WI-3).
 require __DIR__.'/auth.php';

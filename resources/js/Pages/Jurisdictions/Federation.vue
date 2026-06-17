@@ -9,6 +9,7 @@ defineProps({
     sync: { type: Array, default: () => [] },
     checkpoints: { type: Array, default: () => [] },
     claims: { type: Array, default: () => [] },
+    host: { type: Object, default: () => ({ authed: false }) },
 });
 
 const page = usePage();
@@ -24,6 +25,19 @@ const leave = () => {
         router.post('/federation/cluster/leave', {}, { preserveScroll: true });
     }
 };
+
+// G3c — host adoption console (operator-gated). The minted key is a ONE-SHOT
+// flash, gone on reload — it is shown only once.
+const mintedKey = computed(() => page.props.flash?.minted_key ?? null);
+const mintForm = useForm({ max_uses: 1, expires_in_days: null });
+const mint = () => mintForm.post('/federation/host/keys', { preserveScroll: true });
+const revokeKey = (handle) => {
+    if (window.confirm(`Revoke invite key ${handle}? Mirrors that already joined are unaffected.`)) {
+        router.post('/federation/host/keys/revoke', { handle }, { preserveScroll: true });
+    }
+};
+const approveReq = (id) => router.post(`/federation/host/requests/${id}/approve`, {}, { preserveScroll: true });
+const rejectReq = (id) => router.post(`/federation/host/requests/${id}/reject`, {}, { preserveScroll: true });
 
 const statusClass = (status) => ({
     trust_established: 'bg-emerald-100 text-emerald-800',
@@ -137,6 +151,91 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     {{ joinForm.processing ? 'Joining…' : 'Join a cluster' }}
                 </button>
             </form>
+        </section>
+
+        <!-- G3c — Host adoption console (operator-gated): mint/approve invite keys in the browser -->
+        <section class="rounded-lg border border-slate-200 bg-white p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Host adoption console</h2>
+
+            <!-- Not signed in as an operator -->
+            <p v-if="!host.authed" class="mt-3 text-sm text-slate-600">
+                Minting and approving invite keys is an operator action.
+                <a href="/operator/login" class="font-medium text-sky-700 hover:underline">Sign in as an operator →</a>
+            </p>
+
+            <div v-else class="mt-3 space-y-5">
+                <!-- The minted key, shown ONCE (one-shot flash) -->
+                <div v-if="mintedKey" class="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm">
+                    <p class="font-semibold text-amber-900">Copy this invite key now — it is shown only once:</p>
+                    <code class="mt-1 block break-all rounded bg-white px-2 py-1 font-mono text-xs text-slate-800">{{ mintedKey }}</code>
+                </div>
+
+                <!-- Mint -->
+                <form class="flex flex-wrap items-end gap-3" @submit.prevent="mint">
+                    <label class="text-sm">
+                        <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Max uses</span>
+                        <input v-model.number="mintForm.max_uses" type="number" min="1" max="100"
+                               class="mt-1 w-24 rounded border border-slate-300 px-2 py-1 text-sm" />
+                    </label>
+                    <label class="text-sm">
+                        <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Expires in (days)</span>
+                        <input v-model.number="mintForm.expires_in_days" type="number" min="1" max="365" placeholder="never"
+                               class="mt-1 w-28 rounded border border-slate-300 px-2 py-1 text-sm" />
+                    </label>
+                    <button type="submit" :disabled="mintForm.processing"
+                            class="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">
+                        {{ mintForm.processing ? 'Minting…' : 'Mint invite key' }}
+                    </button>
+                </form>
+
+                <!-- Invite keys -->
+                <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Invite keys</h3>
+                    <p v-if="!host.keys || host.keys.length === 0" class="mt-1 text-sm text-slate-500">No keys minted yet.</p>
+                    <table v-else class="mt-2 w-full text-left text-sm">
+                        <thead class="text-xs uppercase tracking-wide text-slate-500">
+                            <tr><th class="py-1">Handle</th><th>Uses</th><th>State</th><th>Expires</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="k in host.keys" :key="k.handle" class="border-t border-slate-100">
+                                <td class="py-1.5 font-mono text-slate-700">{{ k.handle }}</td>
+                                <td class="text-slate-600">{{ k.uses }}/{{ k.max_uses }}</td>
+                                <td>
+                                    <span :class="k.live ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'"
+                                          class="rounded px-2 py-0.5 text-xs font-medium">{{ k.revoked_at ? 'revoked' : (k.live ? 'live' : 'dead') }}</span>
+                                </td>
+                                <td class="text-slate-500">{{ k.expires_at ? new Date(k.expires_at).toLocaleString() : '—' }}</td>
+                                <td class="text-right">
+                                    <button v-if="k.live" type="button" @click="revokeKey(k.handle)"
+                                            class="rounded border border-rose-300 px-2 py-0.5 text-xs font-medium text-rose-700 hover:bg-rose-50">Revoke</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pending adoption requests -->
+                <div>
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pending adoption requests</h3>
+                    <p v-if="!host.requests || host.requests.length === 0" class="mt-1 text-sm text-slate-500">No pending requests.</p>
+                    <ul v-else class="mt-2 space-y-2 text-sm">
+                        <li v-for="r in host.requests" :key="r.id" class="flex items-center justify-between border-t border-slate-100 pt-2">
+                            <span class="font-mono text-slate-600">{{ r.applicant_server_id }}…</span>
+                            <span class="flex gap-2">
+                                <button type="button" @click="approveReq(r.id)"
+                                        class="rounded bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-emerald-700">Approve</button>
+                                <button type="button" @click="rejectReq(r.id)"
+                                        class="rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-50">Reject</button>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="text-xs text-slate-400">
+                    Approving admits a <strong>read-only mirror</strong> (authoritative for nothing). Read-write is a
+                    separate governed request, decided by the jurisdiction's government (Art. V §7).
+                </p>
+            </div>
         </section>
 
         <!-- Peers -->

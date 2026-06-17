@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Federation;
 use App\Http\Controllers\Controller;
 use App\Models\AuditCheckpoint;
 use App\Models\AuthorityClaim;
+use App\Models\ClusterJoinKey;
 use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
@@ -12,6 +13,7 @@ use App\Models\SyncLogEntry;
 use App\Services\Mirror\MirrorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -91,6 +93,30 @@ class FederationConsoleController extends Controller
                     'authority' => $a->claimed_by_peer_id === null ? 'this instance' : ($a->peer?->name ?? 'a peer'),
                     'flipped_at' => $a->authority_flipped_at?->toIso8601String(),
                 ])->values(),
+            // G3c — the HOST adoption console, populated ONLY for an authenticated
+            // operator (the auth:operator plane). Keys map explicit safe fields —
+            // NEVER key_hash. The console page itself stays citizen-public (Art. II §2).
+            'host' => Auth::guard('operator')->check()
+                ? [
+                    'authed' => true,
+                    'operator' => Auth::guard('operator')->user()?->username,
+                    'keys' => ClusterJoinKey::query()->orderByDesc('created_at')->limit(50)->get()
+                        ->map(fn (ClusterJoinKey $k) => [
+                            'handle' => $k->handle,
+                            'uses' => (int) $k->uses,
+                            'max_uses' => (int) $k->max_uses,
+                            'expires_at' => $k->expires_at?->toIso8601String(),
+                            'revoked_at' => $k->revoked_at?->toIso8601String(),
+                            'live' => $k->isLive(),
+                        ])->values(),
+                    'requests' => $mirror->pendingRequests()
+                        ->map(fn ($r) => [
+                            'id' => (string) $r->id,
+                            'applicant_server_id' => substr((string) $r->applicant_server_id, 0, 8),
+                            'created_at' => $r->created_at?->toIso8601String(),
+                        ])->values(),
+                ]
+                : ['authed' => false],
         ]);
     }
 
