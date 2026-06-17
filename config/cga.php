@@ -115,4 +115,17 @@ return [
     'federation_socks_proxy' => env('CGA_FEDERATION_SOCKS_PROXY'),
     'federation_proxy' => env('CGA_FEDERATION_PROXY'),
 
+    /*
+    | Geodata origin (Phase G, G3c — decision N3). The upstream that serves the
+    | signed geospatial-dataset MANIFEST channel (WorldPop rasters + geoBoundaries
+    | — large + license-bound, so deliberately OFF the audit-tail sync a mirror
+    | pulls). 'self' = this instance publishes its own manifests from the ETL
+    | archive; a URL = pull manifests from that upstream; null (default) = no
+    | geodata channel (a fresh mirror ingests no geodata, choosing its posture at
+    | adoption). The manifest records dataset/version/sha256/license/size + an
+    | ORIGIN signature; the raster BYTES transport lands with Phase H (the first
+    | runtime raster consumer).
+    */
+    'geodata_origin' => env('CGA_GEODATA_ORIGIN'),
+
 ];

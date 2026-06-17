@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Federation\AdoptionController;
 use App\Http\Controllers\Federation\FlipController;
+use App\Http\Controllers\Federation\GeodataController;
 use App\Http\Controllers\Federation\MeshOperatorController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\ReadWriteController;
@@ -67,4 +68,10 @@ Route::post('/operator/announce', [MeshOperatorController::class, 'announce'])
 // for a jurisdiction subtree. Recorded as an intake; granting is the governed
 // flow (G6 / G-VER), never this endpoint.
 Route::post('/request-read-write', [ReadWriteController::class, 'request'])
+    ->middleware('federation.signed');
+
+// ── Geodata manifest (G3c, N3) — a pinned peer pulls our signed dataset manifest.
+// Large/license-bound rasters ride this SEPARATE channel, never the audit tail;
+// each manifest is signed by its origin (verified against the origin's pinned key).
+Route::get('/geodata/manifest', [GeodataController::class, 'manifest'])
     ->middleware('federation.signed');
