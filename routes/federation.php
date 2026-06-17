@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Federation\AdoptionController;
 use App\Http\Controllers\Federation\FlipController;
+use App\Http\Controllers\Federation\MeshOperatorController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\SyncController;
 use App\Http\Controllers\Federation\WriteController;
@@ -53,4 +54,10 @@ Route::post('/adopt', [AdoptionController::class, 'adopt'])
 // ── Forwarded write (G4) — a pinned peer forwards a write we are authoritative
 // for; executed through the NORMAL ConstitutionalEngine, recorded exactly-once.
 Route::post('/write', [WriteController::class, 'write'])
+    ->middleware('federation.signed');
+
+// ── Operator-identity gossip (G-OP-2) — a pinned peer announces a mesh operator
+// identity + its signed device-key bindings; we ingest what we can authenticate
+// against each binding's bound-by server's pinned key.
+Route::post('/operator/announce', [MeshOperatorController::class, 'announce'])
     ->middleware('federation.signed');

@@ -161,7 +161,14 @@ class MeshOperatorService
         }
 
         return DB::transaction(function () use ($wire, $from, $meshOperatorId, $genesis) {
-            $mesh = MeshOperatorIdentity::query()->firstOrNew(['id' => $meshOperatorId]);
+            // Preserve the peer's mesh_operator_id as the PK. `id` is not fillable,
+            // so set it explicitly on a new row — otherwise HasUuids would mint a
+            // fresh id and orphan the bindings (which reference $meshOperatorId).
+            $mesh = MeshOperatorIdentity::query()->find($meshOperatorId);
+            if ($mesh === null) {
+                $mesh = new MeshOperatorIdentity();
+                $mesh->id = $meshOperatorId;
+            }
             $mesh->display_handle = (string) ($wire['display_handle'] ?? $mesh->display_handle ?? '');
             $mesh->genesis_server_id = $genesis;
             $mesh->save();
