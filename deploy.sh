@@ -100,13 +100,17 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
-# The app entrypoint runs `composer install` on first boot (minutes on a Pi). The
-# artisan chain below needs vendor/autoload.php — wait for it (up to ~15 min)
-# before firing artisan, else it dies "vendor/autoload.php missing". (The same
-# file is the app healthcheck, so nginx also waits on it → no startup 502.)
+# The app entrypoint runs `composer install` on first boot (minutes on a Pi) and
+# writes vendor/.installed-hash as its DONE marker. Wait for that STAMP — NOT
+# vendor/autoload.php: on a from-scratch (`down -v`) in-container install the
+# autoloader file appears BEFORE the framework is fully extracted, so gating on
+# it fires the artisan chain against an incomplete vendor/ → a "class not found"
+# fatal in key:generate, and nothing after it runs. The stamp is written only
+# after `composer install` returns (docker/php/entrypoint.sh), so it reliably
+# means "vendor is complete". ~20 min ceiling for a slow Pi cold install.
 echo "→ Waiting for the app (composer install)…"
-for _ in $(seq 1 180); do
-  if "${DC[@]}" exec -T app test -f vendor/autoload.php 2>/dev/null; then break; fi
+for _ in $(seq 1 240); do
+  if "${DC[@]}" exec -T app test -f vendor/.installed-hash 2>/dev/null; then break; fi
   sleep 5
 done
 
