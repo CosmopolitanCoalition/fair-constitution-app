@@ -150,6 +150,17 @@ echo "→ Building production front-end assets (one-shot — minutes on a Pi)…
 "${DC[@]}" run --rm --build --no-deps --entrypoint sh vite -c "npm install --no-audit --no-fund && npm run build"
 rm -f public/hot
 
+# 7. Reload the long-lived workers with the FINAL APP_KEY. php-fpm, horizon and
+#    scheduler booted in step 1 BEFORE `key:generate` rewrote APP_KEY, so they
+#    still hold the OLD key in memory. `federation:init --rotate` then wrote the
+#    instance signing keypair to instance_settings.private_key_encrypted under
+#    the NEW key — so every web/worker `Crypt::decryptString()` of it throws
+#    "MAC is invalid", 500ing the UI and POST /api/federation/sync, while CLI
+#    (fresh process = new key) worked the whole time (migrate/init/join). Bounce
+#    them so they reload .env before nginx serves a single request.
+echo "→ Reloading workers with the final APP_KEY…"
+"${DC[@]}" restart app horizon scheduler
+
 # nginx LAST — the app is healthy and public/build exists, so it comes up serving
 # the built assets with no startup 502 and nothing to wait on.
 echo "→ Starting nginx…"

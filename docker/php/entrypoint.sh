@@ -106,5 +106,16 @@ case "$*" in
     ;;
 esac
 
+# ── Storage / cache writability on native-Linux bind mounts ───────────────
+# The `.:/var/www/html` bind mount preserves the HOST uid (e.g. 1000) on a
+# native-Linux host, so php-fpm's worker user (www-data, uid 33) can't write
+# storage/ (Blade-compiled views, framework cache, logs) or bootstrap/cache.
+# First render then 500s — Blade can't write the compiled view, and Laravel
+# can't even write the error to storage/logs/laravel.log ("could not be opened
+# in append mode"). The composer install above also writes bootstrap/cache as
+# root. Re-own both for the FPM user on every boot. Guarded + a harmless no-op
+# on Docker Desktop (Win/macOS) mounts, which already present files as writable.
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+
 # Hand off to the upstream php image's entrypoint, which exec's CMD.
 exec docker-php-entrypoint "$@"
