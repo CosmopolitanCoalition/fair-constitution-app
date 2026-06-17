@@ -111,6 +111,7 @@ class MirrorService
         string $nonce,
         string $plaintextKey,
         ?string $applicantUrl = null,
+        array $negotiation = [],
     ): ClusterMembership {
         if ($applicantServerId === '' || $applicantPublicKey === '' || $nonce === '' || $plaintextKey === '') {
             throw new AdoptionRejected('incomplete_adoption_request', 422);
@@ -119,15 +120,15 @@ class MirrorService
             throw new AdoptionRejected('refuse_self', 422);
         }
 
-        return DB::transaction(function () use ($applicantServerId, $applicantPublicKey, $nonce, $plaintextKey, $applicantUrl): ClusterMembership {
+        return DB::transaction(function () use ($applicantServerId, $applicantPublicKey, $nonce, $plaintextKey, $applicantUrl, $negotiation): ClusterMembership {
             // Anti-replay: a duplicate (applicant, nonce) raises the unique index.
-            $request = ClusterAdoptionRequest::create([
+            $request = ClusterAdoptionRequest::create(array_merge([
                 'applicant_server_id' => $applicantServerId,
                 'applicant_public_key' => $applicantPublicKey,
                 'nonce' => $nonce,
                 'admission_method' => ClusterMembership::ADMISSION_JOIN_KEY,
                 'status' => ClusterAdoptionRequest::STATUS_PENDING,
-            ]);
+            ], $this->negotiationColumns($negotiation, $applicantUrl)));
 
             $key = $this->keys->verify($plaintextKey);
             if ($key === null || ! $this->keys->consume($key)) {
@@ -180,17 +181,17 @@ class MirrorService
      * identity + the join key, pin the host, backfill its full corpus in bounded
      * signed pages, then flip into read-only-mirror mode. Throws on refusal.
      */
-    public function joinHost(string $hostUrl, string $plaintextKey): ClusterMembership
+    public function joinHost(string $hostUrl, string $plaintextKey, array $negotiation = []): ClusterMembership
     {
         $this->identity->ensureIdentity();
         $nonce = bin2hex(random_bytes(16));
 
-        $response = $this->client->post($hostUrl, '/api/federation/adopt', [
+        $response = $this->client->post($hostUrl, '/api/federation/adopt', array_merge([
             'public_key' => $this->identity->publicKey(),
             'key' => $plaintextKey,
             'nonce' => $nonce,
             'url' => config('cga.federation_self_url'),
-        ]);
+        ], $this->negotiationBody($negotiation)));
 
         if (! $response->successful()) {
             throw new RuntimeException("Adoption refused by {$hostUrl} (HTTP {$response->status()}).");
@@ -204,15 +205,15 @@ class MirrorService
      * membership if the host has ALREADY vouched us (200), or null when the
      * request is queued for the host operator (202). Re-poll until admitted.
      */
-    public function requestJoin(string $hostUrl): ?ClusterMembership
+    public function requestJoin(string $hostUrl, array $negotiation = []): ?ClusterMembership
     {
         $this->identity->ensureIdentity();
 
-        $response = $this->client->post($hostUrl, '/api/federation/adopt', [
+        $response = $this->client->post($hostUrl, '/api/federation/adopt', array_merge([
             'public_key' => $this->identity->publicKey(),
             'nonce' => bin2hex(random_bytes(16)),
             'url' => config('cga.federation_self_url'),
-        ]);
+        ], $this->negotiationBody($negotiation)));
 
         if ($response->status() === 202) {
             return null; // queued — the host operator must approve
@@ -313,7 +314,7 @@ class MirrorService
      * applicant (idempotent — repeated polls return the same row). The operator
      * later approves or rejects it from the review queue.
      */
-    public function requestAdoption(string $applicantServerId, string $applicantPublicKey, ?string $applicantUrl = null): ClusterAdoptionRequest
+    public function requestAdoption(string $applicantServerId, string $applicantPublicKey, ?string $applicantUrl = null, array $negotiation = []): ClusterAdoptionRequest
     {
         if ($applicantServerId === '' || $applicantPublicKey === '') {
             throw new AdoptionRejected('incomplete_adoption_request', 422);
@@ -331,13 +332,13 @@ class MirrorService
             return $existing;
         }
 
-        $request = ClusterAdoptionRequest::create([
+        $request = ClusterAdoptionRequest::create(array_merge([
             'applicant_server_id' => $applicantServerId,
             'applicant_public_key' => $applicantPublicKey,
             'nonce' => bin2hex(random_bytes(16)),
             'admission_method' => ClusterMembership::ADMISSION_REQUEST,
             'status' => ClusterAdoptionRequest::STATUS_PENDING,
-        ]);
+        ], $this->negotiationColumns($negotiation, $applicantUrl)));
 
         $this->audit->append('mirror', 'mirror.adoption_requested',
             ['mirror_server_id' => $applicantServerId, 'request_id' => $request->id], 'WF-JUR-06');
@@ -428,5 +429,45 @@ class MirrorService
             ->update(['state' => ClusterMembership::STATE_DEPARTED]);
 
         $this->audit->append('mirror', 'mirror.left', ['host_server_id' => $hostServerId], 'WF-JUR-06');
+    }
+
+    /**
+     * G3c — the negotiation fields the MIRROR sends in its /adopt body. `co_member`
+     * is ADVISORY: the host operator sees the applicant intends the governed flip,
+     * but admission still produces a plain read-only mirror. The applicant labels
+     * itself with its instance name unless a label is supplied.
+     *
+     * @param  array<string,mixed>  $negotiation
+     * @return array<string,mixed>
+     */
+    private function negotiationBody(array $negotiation): array
+    {
+        return [
+            'applicant_name' => ($negotiation['applicant_name'] ?? null) ?: InstanceSettings::current()->instance_name,
+            'requested_relation' => $negotiation['requested_relation'] ?? null,
+            'requested_scope_jurisdiction_id' => $negotiation['requested_scope_jurisdiction_id'] ?? null,
+            'note' => $negotiation['note'] ?? null,
+        ];
+    }
+
+    /**
+     * G3c — the negotiation columns the HOST persists on the adoption request. The
+     * relation is sanitized to the advisory enum (anything else → null) so a peer
+     * cannot poison the CHECK constraint.
+     *
+     * @param  array<string,mixed>  $negotiation
+     * @return array<string,mixed>
+     */
+    private function negotiationColumns(array $negotiation, ?string $applicantUrl): array
+    {
+        $relation = $negotiation['requested_relation'] ?? null;
+
+        return [
+            'requested_relation' => in_array($relation, ['mirror', 'co_member'], true) ? $relation : null,
+            'requested_scope_jurisdiction_id' => ($negotiation['requested_scope_jurisdiction_id'] ?? null) ?: null,
+            'applicant_name' => ($negotiation['applicant_name'] ?? null) ?: null,
+            'applicant_url' => $applicantUrl ?: null,
+            'note' => ($negotiation['note'] ?? null) ?: null,
+        ];
     }
 }

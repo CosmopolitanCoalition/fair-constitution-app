@@ -59,6 +59,7 @@
         "publicDocket": "Public docket",
         "system": "System",
         "setupWizard": "Instance setup",
+        "federation": "Federation",
         "publicRecords": "Public records",
         "auditChain": "Audit chain",
         "clocks": "Clocks & triggers",

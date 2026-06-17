@@ -39,6 +39,15 @@ class AdoptionController extends Controller
         $applicantServerId = (string) $request->header('X-Federation-Server-Id');
         $key = (string) ($body['key'] ?? '');
 
+        // G3c — the join-wizard negotiation rides the same raw signed body. Advisory
+        // at adoption (co_member never auto-grants R/W); persisted for the operator.
+        $negotiation = [
+            'requested_relation' => isset($body['requested_relation']) ? (string) $body['requested_relation'] : null,
+            'requested_scope_jurisdiction_id' => isset($body['requested_scope_jurisdiction_id']) ? (string) $body['requested_scope_jurisdiction_id'] : null,
+            'applicant_name' => isset($body['applicant_name']) ? (string) $body['applicant_name'] : null,
+            'note' => isset($body['note']) ? (string) $body['note'] : null,
+        ];
+
         // ── Keyless path (G3) — an operator-vouched request queue ─────────────
         if ($key === '') {
             try {
@@ -46,6 +55,7 @@ class AdoptionController extends Controller
                     $applicantServerId,
                     (string) ($body['public_key'] ?? ''),
                     isset($body['url']) ? (string) $body['url'] : null,
+                    $negotiation,
                 );
             } catch (AdoptionRejected $e) {
                 return response()->json(['error' => $e->reason], $e->status);
@@ -68,6 +78,7 @@ class AdoptionController extends Controller
                 (string) ($body['nonce'] ?? ''),
                 $key,
                 isset($body['url']) ? (string) $body['url'] : null,
+                $negotiation,
             );
         } catch (AdoptionRejected $e) {
             return response()->json(['error' => $e->reason], $e->status);

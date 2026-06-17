@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -16,10 +16,32 @@ const props = defineProps({
 const page = usePage();
 const flash = computed(() => page.props.flash?.status ?? null);
 
-// G3b — "Join a cluster": adopt this instance as a read-only mirror.
-const joinForm = useForm({ host_url: '', join_key: '' });
+// G3b/G3c — "Join a cluster": a stepped wizard that adopts this instance as a
+// read-only mirror and composes the adoption negotiation (what to pull, the
+// relationship, instance options). co_member is ADVISORY — read-write is never
+// granted by joining; it is a separate governed request (Art. V §7).
+const joinForm = useForm({
+    host_url: '',
+    join_key: '',
+    requested_relation: 'mirror',
+    requested_scope_jurisdiction_id: '',
+    note: '',
+    geodata_posture: 'already_have',
+});
+const joinStep = ref(1);
+const joinScopeMode = ref('whole'); // 'whole' (whole corpus) | 'subtree'
 
-const join = () => joinForm.post('/federation/cluster/join', { preserveScroll: true });
+const join = () => {
+    joinForm
+        .transform((data) => ({
+            ...data,
+            requested_scope_jurisdiction_id:
+                joinScopeMode.value === 'subtree' && data.requested_scope_jurisdiction_id
+                    ? data.requested_scope_jurisdiction_id
+                    : null,
+        }))
+        .post('/federation/cluster/join', { preserveScroll: true });
+};
 
 const leave = () => {
     if (window.confirm('Leave the cluster? This instance will stop being a read-only mirror.')) {
@@ -165,32 +187,125 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                 </div>
             </div>
 
-            <!-- Not a mirror — offer to join one -->
-            <form v-else class="mt-3 space-y-3" @submit.prevent="join">
-                <p class="max-w-2xl text-sm text-slate-600">
-                    Adopt this instance into an existing cluster as a <strong>read-only mirror</strong> of its public
-                    records. A mirror copies the host and is authoritative for nothing. With a join key it is admitted
-                    at once; without one, a request is queued for the host operator to vouch.
-                </p>
+            <!-- Not a mirror — the stepped join wizard (G3c) -->
+            <div v-else class="mt-3">
+                <!-- Step indicator -->
+                <ol class="mb-4 flex flex-wrap gap-2 text-xs">
+                    <li v-for="(label, i) in ['Host & key', 'What to pull', 'Relationship', 'Review']" :key="i"
+                        :class="joinStep === i + 1 ? 'bg-sky-600 text-white' : (joinStep > i + 1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500')"
+                        class="rounded-full px-3 py-1 font-medium">
+                        {{ i + 1 }}. {{ label }}
+                    </li>
+                </ol>
 
-                <label class="block text-sm">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Host URL</span>
-                    <input v-model="joinForm.host_url" type="url" required placeholder="https://host.example"
-                           class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
-                    <span v-if="joinForm.errors.host_url" class="mt-1 block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
-                </label>
+                <!-- Step 1 — host & credential -->
+                <div v-if="joinStep === 1" class="space-y-3">
+                    <p class="max-w-2xl text-sm text-slate-600">
+                        Adopt this instance into an existing cluster as a <strong>read-only mirror</strong> of its public
+                        records — authoritative for nothing. With a join key it is admitted at once; without one, a
+                        request is queued for the host operator to vouch.
+                    </p>
+                    <label class="block text-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Host URL</span>
+                        <input v-model="joinForm.host_url" type="url" required placeholder="https://host.example"
+                               class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
+                        <span v-if="joinForm.errors.host_url" class="mt-1 block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
+                    </label>
+                    <label class="block text-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Join key <span class="font-normal normal-case text-slate-400">(optional — leave blank to request a vouch)</span></span>
+                        <input v-model="joinForm.join_key" type="text" placeholder="handle.secret"
+                               class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-sm focus:border-sky-400 focus:outline-none" />
+                    </label>
+                </div>
 
-                <label class="block text-sm">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Join key <span class="font-normal normal-case text-slate-400">(optional — leave blank to request a vouch)</span></span>
-                    <input v-model="joinForm.join_key" type="text" placeholder="handle.secret"
-                           class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-sm focus:border-sky-400 focus:outline-none" />
-                </label>
+                <!-- Step 2 — what to pull -->
+                <div v-else-if="joinStep === 2" class="space-y-4">
+                    <div class="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+                        <label class="flex items-center gap-2 text-slate-700">
+                            <input type="checkbox" checked disabled class="rounded" />
+                            <span>The host's <strong>public records</strong> — always pulled (this is what mirroring means).</span>
+                        </label>
+                    </div>
 
-                <button type="submit" :disabled="joinForm.processing"
-                        class="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">
-                    {{ joinForm.processing ? 'Joining…' : 'Join a cluster' }}
-                </button>
-            </form>
+                    <fieldset class="text-sm">
+                        <legend class="text-xs font-semibold uppercase tracking-wide text-slate-500">Scope</legend>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="whole" v-model="joinScopeMode" /> Whole corpus
+                        </label>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="subtree" v-model="joinScopeMode" /> A specific jurisdiction subtree
+                        </label>
+                        <input v-if="joinScopeMode === 'subtree'" v-model="joinForm.requested_scope_jurisdiction_id"
+                               type="text" placeholder="jurisdiction UUID"
+                               class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 font-mono text-xs focus:border-sky-400 focus:outline-none" />
+                    </fieldset>
+
+                    <fieldset class="text-sm">
+                        <legend class="text-xs font-semibold uppercase tracking-wide text-slate-500">Geodata</legend>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="already_have" v-model="joinForm.geodata_posture" /> I already have the map archive
+                        </label>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="pull_from_origin" v-model="joinForm.geodata_posture" />
+                            Pull geodata from the origin <span class="text-xs text-slate-400">(CC BY 4.0; rasters delivered in Phase H)</span>
+                        </label>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="skip" v-model="joinForm.geodata_posture" /> Skip — text-only mirror
+                        </label>
+                    </fieldset>
+                </div>
+
+                <!-- Step 3 — relationship & instance options -->
+                <div v-else-if="joinStep === 3" class="space-y-3">
+                    <fieldset class="text-sm">
+                        <legend class="text-xs font-semibold uppercase tracking-wide text-slate-500">Relationship</legend>
+                        <label class="mt-1 flex items-center gap-2 text-slate-700">
+                            <input type="radio" value="mirror" v-model="joinForm.requested_relation" /> Read-only mirror
+                        </label>
+                        <label class="mt-1 flex items-center gap-2 text-amber-800">
+                            <input type="radio" value="co_member" v-model="joinForm.requested_relation" />
+                            Read-only mirror, <em>and</em> I intend to request read-write
+                        </label>
+                    </fieldset>
+
+                    <div v-if="joinForm.requested_relation === 'co_member'"
+                         class="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                        Read-write is <strong>not granted by joining</strong>. After you are a mirror, you submit a
+                        read-write request; the host's government must approve it by a supermajority of your
+                        jurisdiction's residents and a supermajority of constituent jurisdictions (Art. V §7). Only then
+                        does authority flip and the sealed operational bundle transfer.
+                    </div>
+
+                    <label class="block text-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Note to the host operator <span class="font-normal normal-case text-slate-400">(optional)</span></span>
+                        <input v-model="joinForm.note" type="text" maxlength="1000" placeholder="why we want to mirror"
+                               class="mt-1 w-full rounded border border-slate-300 px-3 py-1.5 text-sm focus:border-sky-400 focus:outline-none" />
+                    </label>
+                </div>
+
+                <!-- Step 4 — review & submit -->
+                <div v-else class="space-y-2 text-sm text-slate-700">
+                    <p>You will become a <strong>read-only mirror</strong> of
+                        <span class="font-mono">{{ joinForm.host_url || '—' }}</span>, pulling its public records<span v-if="joinScopeMode === 'subtree'"> (scoped to <span class="font-mono">{{ joinForm.requested_scope_jurisdiction_id || '—' }}</span>)</span>.</p>
+                    <p>Geodata: <strong>{{ { already_have: 'already have the archive', pull_from_origin: 'pull from the origin', skip: 'skip (text-only)' }[joinForm.geodata_posture] }}</strong>.</p>
+                    <p>Admission: <strong>{{ joinForm.join_key ? 'one-step (join key supplied)' : 'request a vouch' }}</strong>.</p>
+                    <p>You <strong>{{ joinForm.requested_relation === 'co_member' ? 'will' : 'will not' }}</strong> pursue read-write afterward.</p>
+                    <span v-if="joinForm.errors.host_url" class="block text-xs text-rose-600">{{ joinForm.errors.host_url }}</span>
+                    <span v-if="joinForm.errors.requested_scope_jurisdiction_id" class="block text-xs text-rose-600">{{ joinForm.errors.requested_scope_jurisdiction_id }}</span>
+                </div>
+
+                <!-- Wizard nav -->
+                <div class="mt-4 flex items-center gap-2">
+                    <button v-if="joinStep > 1" type="button" @click="joinStep--"
+                            class="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50">Back</button>
+                    <button v-if="joinStep < 4" type="button" @click="joinStep++" :disabled="joinStep === 1 && !joinForm.host_url"
+                            class="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">Next</button>
+                    <button v-else type="button" @click="join" :disabled="joinForm.processing"
+                            class="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50">
+                        {{ joinForm.processing ? 'Joining…' : 'Join a cluster' }}
+                    </button>
+                </div>
+            </div>
         </section>
 
         <!-- G3c — Host adoption console (operator-gated): mint/approve invite keys in the browser -->
@@ -259,9 +374,20 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pending adoption requests</h3>
                     <p v-if="!host.requests || host.requests.length === 0" class="mt-1 text-sm text-slate-500">No pending requests.</p>
                     <ul v-else class="mt-2 space-y-2 text-sm">
-                        <li v-for="r in host.requests" :key="r.id" class="flex items-center justify-between border-t border-slate-100 pt-2">
-                            <span class="font-mono text-slate-600">{{ r.applicant_server_id }}…</span>
-                            <span class="flex gap-2">
+                        <li v-for="r in host.requests" :key="r.id" class="flex items-start justify-between gap-3 border-t border-slate-100 pt-2">
+                            <span class="min-w-0">
+                                <span class="text-slate-700">{{ r.applicant_name || 'Unnamed applicant' }}</span>
+                                <span class="font-mono text-slate-400"> · {{ r.applicant_server_id }}…</span>
+                                <span v-if="r.requested_relation === 'co_member'"
+                                      class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">intends read-write</span>
+                                <span v-else class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">mirror</span>
+                                <span v-if="r.requested_scope" class="block text-xs text-slate-500">scope: <span class="font-mono">{{ r.requested_scope }}…</span></span>
+                                <span v-if="r.note" class="block text-xs text-slate-400">{{ r.note }}</span>
+                                <span v-if="r.requested_relation === 'co_member'" class="block text-xs text-amber-700">
+                                    Approving admits a read-only mirror only — read-write is the jurisdiction's government's call (Art. V §7).
+                                </span>
+                            </span>
+                            <span class="flex shrink-0 gap-2">
                                 <button type="button" @click="approveReq(r.id)"
                                         class="rounded bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-emerald-700">Approve</button>
                                 <button type="button" @click="rejectReq(r.id)"

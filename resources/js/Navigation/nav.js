@@ -109,6 +109,10 @@ export const NAV = [
     ] },
     { key: 'system', titleKey: 'nav.system', visibility: 'all', items: [
         { id: 'setup-wizard', labelKey: 'nav.setupWizard', icon: 'globe', href: '/setup', phase: 'A' },
+        /* FE-F / G3c: the federation console (peers, FF&C sync, the host adoption
+           console + join wizard). Was URL-only; surfaced here so both consoles are
+           discoverable. Public-read (Art. II §2); host actions are operator-gated. */
+        { id: 'federation', labelKey: 'nav.federation', icon: 'share-2', href: '/federation', phase: 'F' },
         { id: 'public-records', labelKey: 'nav.publicRecords', icon: 'file-text', href: '/system/public-records', phase: 'C' },
         { id: 'audit-chain', labelKey: 'nav.auditChain', icon: 'lock', href: '/system/audit-chain', phase: 'A' },
         /* No /system/clocks route exists — the clocks browser is not one of

@@ -16,6 +16,7 @@ use App\Services\Mirror\MirrorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -120,6 +121,12 @@ class FederationConsoleController extends Controller
                         ->map(fn ($r) => [
                             'id' => (string) $r->id,
                             'applicant_server_id' => substr((string) $r->applicant_server_id, 0, 8),
+                            'applicant_name' => $r->applicant_name,
+                            'requested_relation' => $r->requested_relation,
+                            'requested_scope' => $r->requested_scope_jurisdiction_id
+                                ? substr((string) $r->requested_scope_jurisdiction_id, 0, 8)
+                                : null,
+                            'note' => $r->note,
                             'created_at' => $r->created_at?->toIso8601String(),
                         ])->values(),
                     'rw_requests' => $rw->pending()
@@ -146,20 +153,39 @@ class FederationConsoleController extends Controller
         $validated = $request->validate([
             'host_url' => ['required', 'url', 'max:255'],
             'join_key' => ['nullable', 'string', 'max:255'],
+            // G3c negotiation (the stepped wizard). co_member is advisory only.
+            'requested_relation' => ['nullable', Rule::in(['mirror', 'co_member'])],
+            'requested_scope_jurisdiction_id' => ['nullable', 'uuid'],
+            'note' => ['nullable', 'string', 'max:1000'],
+            'geodata_posture' => ['nullable', Rule::in(['already_have', 'pull_from_origin', 'skip'])],
         ]);
 
         if ($mirror->isMirror()) {
             return back()->withErrors(['host_url' => 'This instance is already a mirror — leave the current cluster first.']);
         }
 
+        // Record the instance's geodata posture (the signed GEODATA_ORIGIN channel,
+        // G3c N3; the raster bytes land with Phase H). Local choice, not federated.
+        if (! empty($validated['geodata_posture'])) {
+            $settings = InstanceSettings::current();
+            $settings->geodata_posture = $validated['geodata_posture'];
+            $settings->save();
+        }
+
+        $negotiation = [
+            'requested_relation' => $validated['requested_relation'] ?? 'mirror',
+            'requested_scope_jurisdiction_id' => $validated['requested_scope_jurisdiction_id'] ?? null,
+            'note' => $validated['note'] ?? null,
+        ];
+
         try {
             if (! empty($validated['join_key'])) {
-                $membership = $mirror->joinHost($validated['host_url'], (string) $validated['join_key']);
+                $membership = $mirror->joinHost($validated['host_url'], (string) $validated['join_key'], $negotiation);
                 $status = $membership->state === ClusterMembership::STATE_LIVE
                     ? 'Joined — this instance is now a read-only mirror.'
                     : "Adoption accepted; backfilling the host's corpus (state: {$membership->state}).";
             } else {
-                $membership = $mirror->requestJoin($validated['host_url']);
+                $membership = $mirror->requestJoin($validated['host_url'], $negotiation);
                 $status = $membership === null
                     ? 'Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.'
                     : "Vouched and joined — this instance is now a read-only mirror (state: {$membership->state}).";

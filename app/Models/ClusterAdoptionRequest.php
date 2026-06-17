@@ -31,5 +31,11 @@ class ClusterAdoptionRequest extends Model
         'status',
         'join_key_handle',
         'cluster_membership_id',
+        // G3c — join-wizard negotiation (advisory; co_member never auto-grants R/W).
+        'requested_relation',
+        'requested_scope_jurisdiction_id',
+        'applicant_name',
+        'applicant_url',
+        'note',
     ];
 }

@@ -44,6 +44,8 @@ class InstanceSettings extends Model
         'attestation_authority_enabled',
         // Phase G — co-member cluster home.
         'home_cluster_id',
+        // Phase G (G3c) — geodata posture chosen at adoption (already_have|pull_from_origin|skip).
+        'geodata_posture',
     ];
 
     protected $casts = [
