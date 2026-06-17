@@ -32,16 +32,29 @@ The operator's vision is not one new phase — it **completes Phase G** and
 
 ---
 
+## Decisions locked (2026-06-17)
+
+- **N1 → Phase K-3.** The social layer is a sub-phase of the existing Phase K
+  ("The Mesh Commons"), not a new letter.
+- **N2 → operator_accounts plane FIRST.** The full operator↔mesh identity layer
+  (G-OP) is built *before* G3c and gates the host console — not the `is_operator`
+  shortcut. This **resequences the build: G-OP precedes G3c.**
+- **N3 → GEODATA_ORIGIN in G3c.** G3c includes the signed geospatial-dataset
+  distribution channel, not just posture recording.
+
 ## Sequenced build plan
 
 **A. Complete Phase G (dev-stack-buildable now, no rig):**
-1. **G3c — GUI adoption (both sides).** ← FIRST (operator's pick). Host console
-   (mint/approve), join-wizard negotiation, read-write request as a *governed*
-   front door. Service layer already exists; this is controller + routes + Vue.
-2. **G-OP — Operator mesh identity.** Local operator account ↔ mesh identity
-   (key-possession auth, never federates passwords). Underpins G-VER consent +
-   traveler routing. Two-plane firewall: operator identity never touches
-   `RoleService`.
+1. **G-OP — Operator mesh identity.** ← FIRST (per N2). Local operator account ↔
+   mesh-wide identity (key-possession auth, never federates passwords), the
+   two-plane firewall (operator identity never touches `RoleService`), founder
+   gets an operator account at setup. Gates the G3c host console + underpins
+   G-VER consent + traveler routing.
+2. **G3c — GUI adoption (both sides).** Host console (mint/approve) gated by the
+   G-OP operator plane, join-wizard negotiation, read-write request as a
+   *governed* front door — **plus the GEODATA_ORIGIN signed-dataset pull** (per
+   N3). Service layer already exists; this is controller + routes + Vue + the
+   geodata channel.
 3. **G-VER — Legitimacy-gated versioning (core).** Peer version tracking +
    operator-board / seated-legislature / peer-mesh agreement + the game-in-progress
    freeze (election-version pinning). Reach-tier added when Phase I lands.
