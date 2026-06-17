@@ -717,6 +717,11 @@ Route::middleware('auth:operator')->group(function () {
         ->name('federation.host.requests.reject');
     Route::post('/federation/host/rw/{id}/deny', [\App\Http\Controllers\Federation\FederationHostController::class, 'denyReadWrite'])
         ->name('federation.host.rw.deny');
+
+    // G3c — MIRROR side: petition the host for read-write authority (the GUI
+    // front door to the governed Art. V §7 flip). Operator-grade; grants nothing.
+    Route::post('/federation/cluster/request-read-write', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'requestReadWrite'])
+        ->name('federation.cluster.rw-request');
 });
 
 // Session auth — register / login / logout (WI-3).

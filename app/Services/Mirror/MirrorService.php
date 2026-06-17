@@ -257,6 +257,58 @@ class MirrorService
     }
 
     /**
+     * MIRROR side (G3c): petition our host for read-write authority over a
+     * jurisdiction subtree. Composes + sends a signed S2S request to the host's
+     * read-write intake (federation.signed:pinned — the host already pinned our
+     * key when it admitted us). The host RECORDS the petition; its government
+     * decides (Art. V §7). This grants NOTHING locally — a mirror stays
+     * authoritative for nothing until a governed authority-flip commits. Returns
+     * the host's intake acknowledgement; throws if this instance is not a mirror
+     * or the host refuses.
+     *
+     * @return array{request_id:?string,state:?string}
+     */
+    public function petitionReadWrite(string $rootJurisdictionId, ?string $note = null): array
+    {
+        if ($rootJurisdictionId === '') {
+            throw new RuntimeException('A jurisdiction is required for a read-write petition.');
+        }
+        if (! $this->isMirror()) {
+            throw new RuntimeException('This instance is not a mirror — join a cluster before requesting read-write authority.');
+        }
+
+        $membership = ClusterMembership::query()
+            ->where('role', ClusterMembership::ROLE_MIRROR)
+            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
+            ->latest('updated_at')
+            ->first();
+
+        $hostUrl = $membership?->peer?->url;
+
+        if ($hostUrl === null || $hostUrl === '') {
+            throw new RuntimeException('The cluster host URL is unknown — cannot reach the host.');
+        }
+
+        $this->identity->ensureIdentity();
+
+        $response = $this->client->post($hostUrl, '/api/federation/request-read-write', [
+            'root_jurisdiction_id' => $rootJurisdictionId,
+            'note' => $note,
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException("The host refused the read-write petition (HTTP {$response->status()}).");
+        }
+
+        $body = (array) $response->json();
+
+        return [
+            'request_id' => isset($body['request_id']) ? (string) $body['request_id'] : null,
+            'state'      => isset($body['state']) ? (string) $body['state'] : null,
+        ];
+    }
+
+    /**
      * HOST side, keyless (G3): find-or-create a PENDING adoption request for an
      * applicant (idempotent — repeated polls return the same row). The operator
      * later approves or rejects it from the review queue.

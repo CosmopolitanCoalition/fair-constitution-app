@@ -9,6 +9,7 @@ use App\Models\ClusterJoinKey;
 use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
+use App\Models\Jurisdiction;
 use App\Models\SyncLogEntry;
 use App\Services\Federation\ReadWriteRequestService;
 use App\Services\Mirror\MirrorService;
@@ -57,6 +58,11 @@ class FederationConsoleController extends Controller
                 'adopted_at' => $settings->mirror_adopted_at?->toIso8601String(),
                 'membership_state' => $mirrorMembership?->state,
             ],
+            // G3c — root jurisdictions for the mirror-side read-write petition
+            // picker. Public info (jurisdiction names, Art. II §2); tiny list.
+            'roots' => Jurisdiction::query()->whereNull('parent_id')->whereNull('deleted_at')
+                ->orderBy('name')->limit(50)->get(['id', 'name'])
+                ->map(fn (Jurisdiction $j) => ['id' => (string) $j->id, 'name' => $j->name])->values(),
             'peers' => FederationPeer::query()->whereNull('deleted_at')
                 ->orderByDesc('updated_at')->limit(50)->get()
                 ->map(fn (FederationPeer $p) => [
@@ -175,5 +181,27 @@ class FederationConsoleController extends Controller
         $mirror->leave();
 
         return back()->with('status', 'Left the cluster — this instance is no longer a mirror.');
+    }
+
+    /**
+     * G3c — MIRROR side: petition the host for read-write authority over a
+     * jurisdiction subtree (the GUI front door to the governed flip). Operator-
+     * grade (auth:operator route). It only COMPOSES + SENDS the petition; it
+     * grants nothing locally — the host's government decides (Art. V §7).
+     */
+    public function requestReadWrite(Request $request, MirrorService $mirror): RedirectResponse
+    {
+        $validated = $request->validate([
+            'root_jurisdiction_id' => ['required', 'uuid'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $ack = $mirror->petitionReadWrite($validated['root_jurisdiction_id'], $validated['note'] ?? null);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['rw_request' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Read-write petition sent to the host (state: {$ack['state']}) — its government decides by supermajority (Art. V §7). A mirror stays authoritative for nothing until authority flips.");
     }
 }

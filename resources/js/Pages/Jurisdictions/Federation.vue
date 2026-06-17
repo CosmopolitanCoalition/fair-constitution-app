@@ -2,9 +2,10 @@
 import { computed } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     instance: { type: Object, required: true },
     mirror: { type: Object, default: () => ({ is_mirror: false }) },
+    roots: { type: Array, default: () => [] },
     peers: { type: Array, default: () => [] },
     sync: { type: Array, default: () => [] },
     checkpoints: { type: Array, default: () => [] },
@@ -25,6 +26,12 @@ const leave = () => {
         router.post('/federation/cluster/leave', {}, { preserveScroll: true });
     }
 };
+
+// G3c — mirror-side: petition the host for read-write authority over a subtree.
+// Operator-grade; it only composes + sends the request (the host's government
+// decides, Art. V §7). It grants nothing locally.
+const rwForm = useForm({ root_jurisdiction_id: props.roots?.[0]?.id ?? '', note: '' });
+const requestRw = () => rwForm.post('/federation/cluster/request-read-write', { preserveScroll: true });
 
 // G3c — host adoption console (operator-gated). The minted key is a ONE-SHOT
 // flash, gone on reload — it is shown only once.
@@ -124,6 +131,38 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                         class="rounded border border-rose-300 bg-white px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-50">
                     Leave the cluster
                 </button>
+
+                <!-- G3c — operator-grade: petition the host for read-write authority.
+                     Composes + sends the request only; the grant is the governed flow. -->
+                <div v-if="host.authed" class="rounded border border-amber-200 bg-amber-50 px-3 py-3">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-amber-800">Request read-write authority</h3>
+                    <p class="mt-1 max-w-2xl text-xs text-amber-700">
+                        Read-write is <strong>not granted by joining</strong>. This sends a petition to the host; its
+                        government must approve it by a supermajority of your jurisdiction's residents and a supermajority
+                        of constituent jurisdictions (Art. V §7). Only then does authority flip and the sealed operational
+                        bundle transfer. This instance stays authoritative for nothing until then.
+                    </p>
+                    <form class="mt-2 flex flex-wrap items-end gap-3" @submit.prevent="requestRw">
+                        <label class="text-sm">
+                            <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Jurisdiction subtree</span>
+                            <select v-model="rwForm.root_jurisdiction_id"
+                                    class="mt-1 rounded border border-slate-300 px-2 py-1 text-sm">
+                                <option v-for="j in roots" :key="j.id" :value="j.id">{{ j.name }}</option>
+                            </select>
+                        </label>
+                        <label class="grow text-sm">
+                            <span class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Note <span class="font-normal normal-case text-slate-400">(optional)</span></span>
+                            <input v-model="rwForm.note" type="text" maxlength="1000" placeholder="why we run a vetted node here"
+                                   class="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+                        </label>
+                        <button type="submit" :disabled="rwForm.processing || !rwForm.root_jurisdiction_id"
+                                class="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50">
+                            {{ rwForm.processing ? 'Sending…' : 'Request read-write authority' }}
+                        </button>
+                    </form>
+                    <p v-if="rwForm.errors.rw_request" class="mt-1 text-xs text-rose-600">{{ rwForm.errors.rw_request }}</p>
+                    <p v-if="rwForm.errors.root_jurisdiction_id" class="mt-1 text-xs text-rose-600">{{ rwForm.errors.root_jurisdiction_id }}</p>
+                </div>
             </div>
 
             <!-- Not a mirror — offer to join one -->
