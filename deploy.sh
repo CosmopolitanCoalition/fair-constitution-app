@@ -75,13 +75,39 @@ set_env VITE_HOST_PORT     "$VITE_PORT"
 set_env FEDERATION_SELF_URL "$SELF_URL"
 set_env APP_URL            "http://localhost:${NGINX_PORT}"
 
+# Architecture: the official postgis image is amd64-only; on arm64 (Pi, ARM
+# servers, Apple Silicon) use the multi-arch rebuild. amd64 keeps the default.
+case "$(uname -m)" in aarch64|arm64) set_env POSTGIS_IMAGE imresamu/postgis:17-3.5 ;; esac
+
+# Deployed posture: production + debug off. deploy.sh produces a built-asset
+# instance (no Vite/HMR) viewable from any machine on the network; a dev box uses
+# `docker compose up` (local + HMR) instead — these .env values only steer the
+# stack deploy.sh brings up.
+set_env APP_ENV   production
+set_env APP_DEBUG false
+
 echo "→ Bringing up the stack (project=${PROJECT}, prefix=${PREFIX}, nginx :${NGINX_PORT})…"
-"${DC[@]}" up -d --build
+# Explicit service list: omit `etl` (heavy geospatial Python — no arm64 wheels,
+# and a mirror ingests no geodata) and `vite` (dev HMR server — a deployed box
+# serves the built assets produced at the end of this script). nginx is started
+# LAST (after the app is healthy + assets built) — bringing it up here would make
+# compose abort the `up` while waiting on a php-fpm still mid composer-install.
+"${DC[@]}" up -d --build app postgres redis horizon scheduler
 
 echo "→ Waiting for PostgreSQL…"
 for _ in $(seq 1 60); do
   if "${DC[@]}" exec -T postgres pg_isready -U fc_user -d fair_constitution >/dev/null 2>&1; then break; fi
   sleep 2
+done
+
+# The app entrypoint runs `composer install` on first boot (minutes on a Pi). The
+# artisan chain below needs vendor/autoload.php — wait for it (up to ~15 min)
+# before firing artisan, else it dies "vendor/autoload.php missing". (The same
+# file is the app healthcheck, so nginx also waits on it → no startup 502.)
+echo "→ Waiting for the app (composer install)…"
+for _ in $(seq 1 180); do
+  if "${DC[@]}" exec -T app test -f vendor/autoload.php 2>/dev/null; then break; fi
+  sleep 5
 done
 
 # 2. A FRESH APP_KEY — clone-identity-safe (never reuse the repo's shared dev key).
@@ -115,4 +141,18 @@ if [[ -n "$JOIN_URL" ]]; then
   art cluster:join "$JOIN_URL" --key "$JOIN_KEY"
 fi
 
-echo "✓ Instance up — http://localhost:${NGINX_PORT}"
+# 6. Production front-end assets — build ONCE (no Vite at runtime), so the UI
+#    renders from any machine on the network (`localhost`-pinned HMR assets would
+#    break when opened from another box). A one-shot run of the vite image (node
+#    toolchain) writes public/build; removing public/hot makes Laravel resolve
+#    assets from that manifest. A dev box uses `docker compose up` → Vite/HMR.
+echo "→ Building production front-end assets (one-shot — minutes on a Pi)…"
+"${DC[@]}" run --rm --build --no-deps --entrypoint sh vite -c "npm install --no-audit --no-fund && npm run build"
+rm -f public/hot
+
+# nginx LAST — the app is healthy and public/build exists, so it comes up serving
+# the built assets with no startup 502 and nothing to wait on.
+echo "→ Starting nginx…"
+"${DC[@]}" up -d nginx
+
+echo "✓ Instance up (production assets) — http://localhost:${NGINX_PORT}"

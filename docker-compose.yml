@@ -30,9 +30,22 @@ services:
       # the Laravel API (scan) and the HTTP /maps/protomaps/ path (serve).
       - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
+      # Default to dev (local + debug) so Box A's `docker compose up` is unchanged;
+      # deploy.sh sets APP_ENV=production / APP_DEBUG=false in .env for a deployed box.
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
       PHP_OPCACHE_ENABLE: 0                # disable opcache in dev for live changes
+    healthcheck:
+      # vendor/autoload.php exists once the entrypoint's composer install finishes —
+      # at which point php-fpm is listening. The generous window (start_period +
+      # 90×10s) covers a slow first `composer install` on a Raspberry Pi. nginx
+      # waits on this (service_healthy) so it never proxies to a not-yet-up fpm,
+      # and deploy.sh polls the same file before firing artisan.
+      test: ["CMD-SHELL", "test -f /var/www/html/vendor/autoload.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,23 +73,24 @@ services:
       - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
     depends_on:
       app:
-        condition: service_started
-      # nginx must wait for vite to be HEALTHY (assets warm) before accepting
-      # browser connections. Without this, the operator's browser hits nginx
-      # the moment containers come up, loads HTML, and fires module-script
-      # requests at a still-cold Vite. Vite's first compile of Tailwind +
-      # @vite/client takes a few seconds; Chromium aborts the script requests
-      # mid-flight with no console error, leaving the page silently blank
-      # forever. The vite healthcheck below only passes once Vite is actually
-      # serving its hot-path assets, so by the time nginx is up, Vite is warm.
-      vite:
         condition: service_healthy
+      # nginx waits for the app to be HEALTHY (composer done, php-fpm listening) so
+      # a fresh deploy never serves a 502 from a not-yet-ready upstream.
+      #
+      # nginx no longer hard-waits for vite. In DEV (`docker compose up`) vite still
+      # starts and HMR works — nginx just doesn't block on it (a cold Vite briefly
+      # serves nothing, then warms). In a deploy.sh PRODUCTION run vite isn't started
+      # at all; nginx serves the built assets from public/build statically (the
+      # `location ~* \.(js|css|woff2?|…)$` block), so there is nothing to wait for.
     networks:
       - fc_network
 
   # ─── PostgreSQL 17 + PostGIS 3.5 ─────────────────────────────
   postgres:
-    image: postgis/postgis:17-3.5
+    # Default is the official image (amd64-only). On arm64 (Raspberry Pi, ARM
+    # servers, Apple Silicon) set POSTGIS_IMAGE=imresamu/postgis:17-3.5 in .env —
+    # a faithful multi-arch rebuild of the same Postgres 17 + PostGIS 3.5.
+    image: ${POSTGIS_IMAGE:-postgis/postgis:17-3.5}
     container_name: ${CONTAINER_PREFIX:-fc}_postgres
     restart: unless-stopped
     # P.1.2: bump stop grace period from Docker's 10 s default to 120 s.
