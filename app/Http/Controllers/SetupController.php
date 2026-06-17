@@ -259,13 +259,24 @@ class SetupController extends Controller
         // The founder is the operator account and accepts the terms by
         // creating the instance (WI-3 users schema: terms_accepted_at is
         // NOT NULL, is_operator unlocks dev tooling like impersonation).
-        $user = User::create([
-            'name'              => $data['name'],
-            'email'             => $data['email'],
-            'password'          => Hash::make($data['password']),
-            'terms_accepted_at' => now(),
-            'is_operator'       => true,
-        ]);
+        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+            $founder = User::create([
+                'name'              => $data['name'],
+                'email'             => $data['email'],
+                'password'          => Hash::make($data['password']),
+                'terms_accepted_at' => now(),
+                'is_operator'       => true,
+            ]);
+
+            // G-OP: the founder is ALSO the first OPERATOR — a separate plane (no
+            // FK to `users`, its own auth:operator guard). Reuses the founder's
+            // email + password for the local operator login; mesh-linking is
+            // opt-in later. Created in the same transaction as the citizen row.
+            app(\App\Services\Identity\OperatorIdentityService::class)
+                ->register($data['email'], $data['password']);
+
+            return $founder;
+        });
 
         Auth::login($user);
         $request->session()->regenerate();

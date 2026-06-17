@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Phase G (G-OP): the OPERATOR plane — a separate session principal from
+        // the citizen `web` guard, so the two planes never share a logged-in
+        // identity. Operator login is by username/password (local only).
+        'operator' => [
+            'driver' => 'session',
+            'provider' => 'operators',
+        ],
     ],
 
     /*
@@ -65,10 +73,12 @@ return [
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Phase G (G-OP): the operator plane is its own Eloquent provider over
+        // `operator_accounts` — no relationship to the `users` table.
+        'operators' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\OperatorAccount::class,
+        ],
     ],
 
     /*
