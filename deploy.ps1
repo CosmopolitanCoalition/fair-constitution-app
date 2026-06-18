@@ -61,6 +61,12 @@ Set-EnvVar "VITE_HOST_PORT"      "$VitePort"
 Set-EnvVar "FEDERATION_SELF_URL" $SelfUrl
 Set-EnvVar "APP_URL"             "http://localhost:$NginxPort"
 
+# Architecture parity with deploy.sh: the official postgis image is amd64-only; on
+# arm64 (Windows-on-ARM / an arm64 Docker host) use the multi-arch rebuild. amd64
+# keeps the default. PROCESSOR_ARCHITECTURE is the host CPU under pwsh.
+$arch = $env:PROCESSOR_ARCHITECTURE
+if ($arch -match 'ARM64') { Set-EnvVar "POSTGIS_IMAGE" "imresamu/postgis:17-3.5" }
+
 Write-Host "-> Bringing up the stack (project=$Project, prefix=$Prefix, nginx :$NginxPort)..."
 docker @dc up -d --build
 

@@ -1,0 +1,69 @@
+{
+  "_comment": "Phase G (G8b / C7) — the SINGLE source of truth for the survival-mesh transports. The three OS front-ends (bootstrap.sh, bootstrap.command, bootstrap.ps1) read THIS file so transport facts are never hardcoded in three places (the same drift lesson as languages.py generating both PHP and JS locale registries). Each transport key matches App\\Models\\FederationTransport::TRANSPORTS exactly. `self_advert` is a template the operator fills in; `env` is the .env key the transport needs (null = none). `needs_host_daemon` flags the channels whose install modifies the host OS — those are certified on the physical rig, never on amd64/Docker-Desktop alone.",
+  "schema": 1,
+  "transports": {
+    "https": {
+      "label": "Clearnet HTTPS",
+      "censorship": "low",
+      "needs_host_daemon": false,
+      "install": { "linux": null, "macos": null, "windows": null },
+      "configure": "Expose the nginx port publicly (reverse proxy / port-forward / tunnel) and advertise the reachable https URL.",
+      "self_advert": "https://<public-host>:<port>",
+      "env": null
+    },
+    "tailnet": {
+      "label": "Private tailnet (Headscale / Tailscale)",
+      "censorship": "medium",
+      "needs_host_daemon": true,
+      "install": {
+        "linux": "curl -fsSL https://tailscale.com/install.sh | sh",
+        "macos": "brew install tailscale",
+        "windows": "winget install --id Tailscale.Tailscale -e"
+      },
+      "configure": "tailscale up --login-server <headscale-url> --authkey <preauth-key>  (then read the 100.64.x.x address)",
+      "self_advert": "http://<tailnet-ip>:<port>",
+      "env": null
+    },
+    "onion": {
+      "label": "Tor hidden service (censorship-resistant)",
+      "censorship": "high",
+      "needs_host_daemon": true,
+      "install": {
+        "linux": "sudo apt-get install -y tor   # or: sudo dnf install -y tor",
+        "macos": "brew install tor",
+        "windows": "winget install --id TorProject.Tor -e"
+      },
+      "configure": "Add a HiddenServiceDir + HiddenServicePort 80 127.0.0.1:<nginx-port> to torrc, restart tor, read hostname; the SOCKS proxy is the env value below.",
+      "self_advert": "http://<onion-host>.onion",
+      "env": { "CGA_FEDERATION_SOCKS_PROXY": "socks5h://127.0.0.1:9050" }
+    },
+    "yggdrasil": {
+      "label": "Yggdrasil overlay (self-routing IPv6, no DNS / no static IP)",
+      "censorship": "high",
+      "needs_host_daemon": true,
+      "install": {
+        "linux": "sudo apt-get install -y yggdrasil",
+        "macos": "brew install yggdrasil",
+        "windows": "winget install --id Yggdrasil.Yggdrasil -e"
+      },
+      "configure": "Generate a config, add public peers (https://github.com/yggdrasil-network/public-peers), start the daemon, read the [200::]/7 address; routes directly (no SOCKS).",
+      "self_advert": "http://[<ygg-ipv6>]:<port>",
+      "env": null
+    },
+    "sneakernet": {
+      "label": "Offline bundle (USB / air-gap export-import)",
+      "censorship": "max",
+      "needs_host_daemon": false,
+      "install": { "linux": null, "macos": null, "windows": null },
+      "configure": "No live channel — partition export/import bundles are carried by hand. Advertise nothing; this transport is recorded for provenance only.",
+      "self_advert": null,
+      "env": null
+    }
+  },
+  "recommend": {
+    "volunteer-home": ["tailnet", "https"],
+    "censored-region": ["onion", "yggdrasil"],
+    "air-gapped": ["sneakernet"],
+    "public-anchor-node": ["https", "tailnet", "onion", "yggdrasil"]
+  }
+}
