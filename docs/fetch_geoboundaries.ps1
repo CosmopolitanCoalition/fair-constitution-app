@@ -3,9 +3,18 @@
 # downloaded.
 #
 # Files included (per country/ADM directory):
-#   geoBoundaries-{ISO3}-ADM{N}.geojson   primary boundary file (~1.4 MB each)
+#   geoBoundaries-{ISO3}-ADM{N}.geojson   primary boundary file (full-resolution;
+#                                          size varies widely — most are well under
+#                                          1 MB, but high-detail boundaries such as
+#                                          complex coastlines run to tens or even
+#                                          >100 MB, e.g. NZL ADM0 ~ 106 MB)
 #   geoBoundaries-{ISO3}-ADM{N}.shp/.dbf/.shx/.prj  shapefile fallback set
 #   releaseData/geoBoundariesOpen-meta.csv supplementary metadata (UNSDG region etc.)
+#
+# IMPORTANT: the entire releaseData/gbOpen/ tree is stored in Git LFS
+# (releaseData/gbOpen/** filter=lfs in the upstream .gitattributes), so git-lfs MUST be
+# installed or the clone yields tiny pointer files instead of real GeoJSON and the import
+# fails later with an opaque parse error. This script preflights for it below.
 #
 # Files excluded (never read by the importer — ~68% of each ADM directory):
 #   *-simplified.geojson/shp/topojson/dbf/shx/prj   simplified geometry variants
@@ -18,7 +27,10 @@
 # Usage (from repo root):
 #   powershell -ExecutionPolicy Bypass -File docs\fetch_geoboundaries.ps1
 #
-# Requirements: git >= 2.26 (for --no-cone sparse-checkout support)
+# Requirements:
+#   git >= 2.26 (for --no-cone sparse-checkout support)
+#   git-lfs     (the gbOpen boundary tree is LFS-tracked — see note above)
+#     Windows: bundled with Git for Windows, or `winget install GitHub.GitLFS`
 
 $ErrorActionPreference = "Stop"
 
@@ -44,6 +56,23 @@ if ($gitMajor -lt 2 -or ($gitMajor -eq 2 -and $gitMinor -lt 26)) {
     Write-Warning "git $gitVersionRaw detected. Sparse checkout --no-cone requires git >= 2.26."
     Write-Warning "Proceeding anyway — upgrade git if the sparse-checkout step fails."
 }
+
+# ─── Verify git-lfs (HARD requirement) ────────────────────────────────────────
+# The upstream .gitattributes marks releaseData/gbOpen/** as filter=lfs, so every
+# GeoJSON/shapefile is an LFS object. Without the git-lfs smudge filter active, the
+# checkout writes tiny pointer text files in place of the real geometry and the import
+# later fails with an opaque JSON parse error. Fail fast here instead, with the fix.
+$lfsOk = $false
+try { git lfs version *> $null; if ($LASTEXITCODE -eq 0) { $lfsOk = $true } } catch { }
+if (-not $lfsOk) {
+    Write-Host "ERROR  git-lfs is required but not installed." -ForegroundColor Red
+    Write-Host "  The geoBoundaries gbOpen tree is stored in Git LFS — without git-lfs the clone" -ForegroundColor Red
+    Write-Host "  produces pointer files instead of real boundary data and the ETL import fails." -ForegroundColor Red
+    Write-Host "  Windows: reinstall Git for Windows (bundles git-lfs), or 'winget install GitHub.GitLFS'" -ForegroundColor Red
+    exit 1
+}
+# Ensure the global smudge/clean filters are wired (idempotent; a no-op if already done).
+git lfs install *> $null
 
 # ─── Clone or update ─────────────────────────────────────────────────────────
 $gitDir = Join-Path $Dest ".git"

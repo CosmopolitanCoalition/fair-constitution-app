@@ -43,18 +43,26 @@ bash docs/fetch_geoboundaries.sh
 powershell -ExecutionPolicy Bypass -File docs\fetch_geoboundaries.ps1
 ```
 
+> **git-lfs is required.** The entire `releaseData/gbOpen/` tree is stored in Git LFS
+> (`releaseData/gbOpen/** filter=lfs` in geoBoundaries' `.gitattributes`). Without git-lfs
+> installed, the clone writes tiny **pointer files** instead of the real GeoJSON, and the
+> ETL import later fails with an opaque JSON parse error. Install it first — Ubuntu/Debian:
+> `sudo apt-get install git-lfs`; macOS: `brew install git-lfs`; Windows: it ships with
+> Git for Windows (or `winget install GitHub.GitLFS`). The fetch scripts preflight for it
+> and run `git lfs install` (wiring the smudge filter) for you.
+
 Both scripts use `git clone --depth 1 --filter=blob:none --sparse` and apply file-level
 sparse checkout patterns to include only the files `import_geoboundaries.py` actually reads:
 
 | Included | Excluded (~68% of each ADM directory) |
 |---|---|
-| `geoBoundaries-*-ADM[0-9].geojson` — primary boundary (~1.4 MB each) | `*-simplified.geojson/shp/topojson/dbf/shx/prj` |
+| `geoBoundaries-*-ADM[0-9].geojson` — primary boundary (full-resolution; size varies widely — most under 1 MB, but high-detail boundaries reach tens or >100 MB, e.g. NZL ADM0 ≈ 106 MB) | `*-simplified.geojson/shp/topojson/dbf/shx/prj` |
 | `geoBoundaries-*-ADM[0-9].shp/.dbf/.shx/.prj` — shapefile fallback | `*.topojson` + `*-simplified.topojson` |
 | `geoBoundariesOpen-meta.csv` — supplementary metadata | `*-all.zip` (redundant archive of the same files) |
 | | `*-metaData.json/.txt`, `*-PREVIEW.png`, citation files |
 | | `releaseData/gbHumanitarian/`, `gbAuthoritative/` |
 
-**Requirements:** git ≥ 2.26 (ships with macOS Ventura+, Ubuntu 22.04+, Windows Git 2.26+)
+**Requirements:** git ≥ 2.26 (ships with macOS Ventura+, Ubuntu 22.04+, Windows Git 2.26+) **and git-lfs** (the gbOpen tree is LFS-tracked — see the note above)
 **Expected size:** ~300–600 MB (file-level filtered, vs ~1–2 GB directory-level, vs ~3–5 GB full clone)
 **Expected time:** 5–15 minutes depending on connection speed
 **Version used:** 6.0.0 (September 2023)

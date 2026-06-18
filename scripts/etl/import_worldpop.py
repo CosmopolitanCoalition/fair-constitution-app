@@ -126,12 +126,41 @@ NATURAL_LABEL_PLURAL = {
 
 def _tif_path(iso3: str) -> Path:
     """
-    Build the expected WorldPop .tif path for a given ISO3 country code.
+    The CANONICAL expected WorldPop .tif path for a given ISO3 country code.
 
     Pattern: /docs/worldpop_100m_latest/{iso3_lower}/{iso3_lower}_pop_2023_CN_100m_R2025A_v1.tif
+
+    This is "where it ought to live"; the on-disk LOOKUP goes through
+    find_worldpop_tif(), which is case-tolerant (see _resolve_iso_dir).
     """
     iso_lower = iso3.lower()
     return WORLDPOP_ROOT / iso_lower / f"{iso_lower}_pop_2023_CN_100m_R2025A_v1.tif"
+
+
+def _resolve_iso_dir(iso3: str) -> Path | None:
+    """
+    Return the on-disk WorldPop directory for an ISO3 code, tolerant of case.
+
+    The fetch scripts (docs/fetch_worldpop.{sh,ps1}) write the per-country dir
+    using the UPPERCASE ISO3 they read from geoBoundaries' gbOpen/{ISO3}/ layout
+    — e.g. worldpop_100m_latest/NZL/ — but this reader historically only looked
+    for the lowercase form (nzl/). On a case-INSENSITIVE filesystem
+    (Windows / default macOS) those are the same path, so the mismatch was
+    invisible; on a case-SENSITIVE one (Linux, Raspberry Pi) the lowercase-only
+    lookup silently missed the raster and the country's population stayed 0.
+    Probe the lower/upper forms first (cheap, common cases), then fall back to a
+    case-insensitive directory scan so any staging resolves regardless of host OS.
+    """
+    for name in (iso3.lower(), iso3.upper()):
+        d = WORLDPOP_ROOT / name
+        if d.is_dir():
+            return d
+    if WORLDPOP_ROOT.is_dir():
+        target = iso3.lower()
+        for child in sorted(WORLDPOP_ROOT.iterdir()):
+            if child.is_dir() and child.name.lower() == target:
+                return child
+    return None
 
 
 def find_worldpop_tif(iso3: str) -> Path | None:
@@ -145,19 +174,21 @@ def find_worldpop_tif(iso3: str) -> Path | None:
     rasters via ST_Intersects automatically — VAT gets ITA's tiles,
     XKX gets ALB / MKD / MNE / SRB tiles, etc. — without any curated
     fallback dict.
+
+    Case-tolerant: resolves the iso directory regardless of casing (see
+    _resolve_iso_dir), then prefers the canonical filename and otherwise
+    returns the first *.tif in deterministic (sorted) order.
     """
-    primary = _tif_path(iso3)
-    if primary.exists():
-        return primary
+    iso_dir = _resolve_iso_dir(iso3)
+    if iso_dir is None:
+        return None
 
-    iso_lower = iso3.lower()
-    parent = WORLDPOP_ROOT / iso_lower
-    if parent.is_dir():
-        tifs = list(parent.glob("*.tif"))
-        if tifs:
-            return tifs[0]
+    canonical = iso_dir / f"{iso3.lower()}_pop_2023_CN_100m_R2025A_v1.tif"
+    if canonical.exists():
+        return canonical
 
-    return None
+    tifs = sorted(iso_dir.glob("*.tif"))
+    return tifs[0] if tifs else None
 
 
 # ─── Jurisdiction fetch helpers ──────────────────────────────────────────────
