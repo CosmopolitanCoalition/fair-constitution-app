@@ -11,6 +11,7 @@ use App\Models\ElectionAudit;
 use App\Models\ElectionCertification;
 use App\Models\Tabulation;
 use App\Models\User;
+use App\Services\ConstitutionalVersionService;
 
 /**
  * F-ELB-004 — Election Results Certification (R-08).
@@ -79,6 +80,23 @@ class ElectionResultsCertification implements FormHandler
                 "Election [{$election->id}] is not certifiable (status: {$election->status}; "
                 . 'requires tabulating or audit_rerun).',
                 'CGA Forms Catalog (F-ELB-004)'
+            );
+        }
+
+        // G-VER — the count is sealed under the constitutional_version pinned when
+        // the election opened, never the deployed one. The freeze (Art. II §7) should
+        // make a mid-contest bump impossible; this is the belt-and-suspenders at the
+        // certification boundary — if the version moved under a live count, REFUSE
+        // rather than seal a result re-ruled by code that arrived mid-game. Elections
+        // that predate version-pinning (null) are grandfathered.
+        $pinned = $election->constitutional_version;
+
+        if ($pinned !== null && $pinned !== app(ConstitutionalVersionService::class)->derive()) {
+            throw new ConstitutionalViolation(
+                "Election [{$election->id}] opened under constitutional_version [{$pinned}] but the deployed "
+                . 'version has changed — certifying would seal a count under rules that moved mid-contest. '
+                . 'A constitutional-version upgrade cannot disrupt an electoral process in flight.',
+                'Art. II §7'
             );
         }
 

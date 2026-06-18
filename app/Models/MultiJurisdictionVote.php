@@ -41,6 +41,9 @@ class MultiJurisdictionVote extends Model
         // Phase G (G6) — the parent (current authoritative government) consent
         // leg of an earned-autonomy promotion.
         'local_autonomy',
+        // Phase G (G-VER) — the seated-institution consent leg (Meter B) of a
+        // constitutional-version upgrade agreement.
+        'peer_upgrade',
     ];
 
     protected $fillable = [
