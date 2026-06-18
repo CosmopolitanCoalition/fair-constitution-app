@@ -1,5 +1,17 @@
 # Cosmopolitan Governance App (CGA)
 
+> # ⚠️ Early development — experimental and UNVERIFIED
+>
+> **This is pre-alpha software under active development. It is NOT production-ready, has NOT
+> been security-audited, and has NOT been validated in real-world use.** Features — including
+> the federation / two-way mesh — are exercised only by an automated test suite on a developer
+> stack; they are **not certified** on real hardware or networks, and the data model, APIs, and
+> on-disk formats can change at any time with no migration path.
+>
+> **Do not use it for real elections, real governance decisions, or with real personal data.**
+> It is for evaluation, development, and contribution only — **at your own risk, with no warranty
+> of any kind** (see the License). Treat anything a node produces as throwaway.
+
 We endeavor to answer the question: *For a given population, what are the Optimal Methods for distributing power between ALL entities, such that the most individuals would agree that the Methods selected are the fairest that can be implemented?* — or — **How do we get eight billion people to get along?**
 
 The CGA implements [A Fair Constitution (Cosmopolitan Template)](https://cosmopolitancoalition.org) as interactive, automatable software: residency, elections, legislatures, executives, judiciaries, organizations, and nested jurisdictions from neighborhood to planetary scale.
@@ -57,6 +69,11 @@ docker compose up -d          # first run builds images + installs deps — a fe
 
 > **Windows:** run these in PowerShell or Git Bash with Docker Desktop running. The commands
 > are identical (`cp` works in PowerShell 7; in older shells use `copy .env.example .env`).
+>
+> **Raspberry Pi / ARM64:** the bare `docker compose up` pulls an amd64-only PostgreSQL image.
+> On a Pi (or any ARM64 host) either set `POSTGIS_IMAGE=imresamu/postgis:17-3.5` in `.env`
+> before starting, **or** use `./deploy.sh` (Path 2), which auto-detects the architecture and
+> picks the ARM64 image for you.
 
 Then open **<http://localhost:8080/setup>** in your browser. (Defaults: app `:8080`,
 Vite HMR `:5173`, PostgreSQL `:5432` — change them in `.env` only if those ports are taken.)

@@ -1,5 +1,9 @@
 # Survival-Mesh Bootstrap (Phase G · G8b / C7)
 
+> ⚠️ **Pre-alpha / experimental.** Dev-stack tested only; the host-daemon + two-way overlay
+> steps are NOT yet certified on real hardware. Not production-ready, not audited — run for
+> evaluation only, at your own risk. See the repo root README for the full status.
+
 One downloadable setup that installs + configures the transports a node will offer, walks
 an interactive pick of which meshes it can support, brings the app layer up (via the
 existing `deploy.{sh,ps1}`), and registers the chosen transports + publishes the directory.
