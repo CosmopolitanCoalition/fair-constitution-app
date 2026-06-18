@@ -129,12 +129,28 @@ for t in "${CHOSEN[@]}"; do
 done
 
 # 4. Hand off to deploy.sh for the app layer (unchanged contract, hardened across rounds).
+# The handshake callback URL (FEDERATION_SELF_URL) must be an address a REMOTE peer can
+# reach — prefer an overlay self-advert (yggdrasil/tailnet/onion) over the LAN https one.
+# Skip if the operator already passed --self-url.
+SELF_ARG=()
+if ! printf '%s\n' "${PASSTHRU[@]:-}" | grep -qx -- '--self-url'; then
+  for t in yggdrasil tailnet onion https; do
+    if [[ -n "${ADVERT[$t]:-}" ]]; then SELF_ARG=(--self-url "${ADVERT[$t]}"); break; fi
+  done
+fi
 echo "→ Handing off to deploy.sh for the app layer…"
-"$ROOT/deploy.sh" "${PASSTHRU[@]}"
+"$ROOT/deploy.sh" "${PASSTHRU[@]:-}" "${SELF_ARG[@]:-}"
 
-# 5. Post-up: register each chosen transport, then publish the directory.
+# 5. Post-up: enable federation, register each chosen transport, publish the directory.
 DC=(docker compose -p "$PREFIX")
 art() { "${DC[@]}" exec -T app php artisan "$@"; }
+
+# federation:init mints the identity AND opens the mesh endpoints (federation_enabled) —
+# without it /api/federation/identity is refused and the anchor is undiscoverable. deploy.sh
+# only runs it on --join, so a public-anchor needs it here. Idempotent (no --rotate).
+echo "→ Enabling federation (mint identity + open the mesh endpoints)…"
+art federation:init || echo "  WARN: federation:init failed — the mesh endpoints stay closed"
+
 echo "→ Registering transports…"
 for t in "${CHOSEN[@]}"; do
   addr="${ADVERT[$t]:-}"
@@ -144,4 +160,10 @@ done
 echo "→ Publishing the directory for jurisdictions this node is authoritative for…"
 art directory:publish || echo "  (no explicit-authority jurisdiction yet — run directory:publish <id> later)"
 
+# 6. Honest reachability report (NOT a blind checkmark): dials our advertised transports
+#    and prints what to verify two-way. Non-fatal — the overlay daemon may not be up yet.
+echo "→ Mesh self-check:"
+art mesh:doctor || true
+
 echo "✓ Survival-mesh setup complete. Transports: ${CHOSEN[*]}"
+echo "  Two-way check: once BOTH boxes are up, run 'php artisan mesh:doctor <other-box-url>' on each."

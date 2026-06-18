@@ -81,7 +81,13 @@ foreach ($t in $transportNames) {
     Write-Host "     configure: $($spec.configure)"
     if ($installCmd -and -not $NonInteractive) {
       $run = Ask "     run the install command now? (y/n) [n]:" "n"
-      if ($run -match '^[Yy]') { Write-Host "     running..."; Invoke-Expression $installCmd }
+      if ($run -match '^[Yy]') {
+        if ($installCmd -match '\bwinget\b' -and -not (Get-Command winget -ErrorAction SilentlyContinue)) {
+          Write-Host "     winget not found — install $t manually per the catalog, then re-run."
+        } else {
+          Write-Host "     running..."; Invoke-Expression $installCmd
+        }
+      }
     }
   }
 
@@ -95,23 +101,43 @@ if ($chosen.Count -eq 0) { Write-Host "No transports chosen - nothing to set up.
 # 2. Write transport .env (e.g. the Tor SOCKS proxy) BEFORE the stack comes up.
 if (-not (Test-Path (Join-Path $Root ".env"))) { Copy-Item (Join-Path $Root ".env.example") (Join-Path $Root ".env") }
 function Set-EnvVar([string]$Key, [string]$Value) {
+  # Wildcard match + literal rewrite (NOT regex) so a key/value with regex metachars can
+  # never mis-match or mangle the replacement.
   $envPath = Join-Path $Root ".env"
-  $lines = Get-Content $envPath
-  if ($lines -match "^$Key=") { $lines = $lines -replace "^$Key=.*", "$Key=$Value"; Set-Content -Path $envPath -Value $lines }
-  else { Add-Content -Path $envPath -Value "$Key=$Value" }
+  $lines = @(Get-Content $envPath)
+  $found = $false
+  $out = foreach ($line in $lines) {
+    if ($line -like "$Key=*") { $found = $true; "$Key=$Value" } else { $line }
+  }
+  if (-not $found) { $out = @($out) + "$Key=$Value" }
+  Set-Content -Path $envPath -Value $out
 }
 foreach ($t in $chosen) {
   $env = $Catalog.transports.$t.env
   if ($env) { foreach ($p in $env.PSObject.Properties) { Set-EnvVar $p.Name $p.Value } }
 }
 
-# 3. Hand off to deploy.ps1 for the app layer.
+# 3. Hand off to deploy.ps1 for the app layer. The handshake callback URL must be an
+#    address a REMOTE peer can reach — prefer an overlay self-advert over the LAN https one.
+#    Skip if the operator already passed -SelfUrl.
+$selfUrl = $null
+foreach ($t in @('yggdrasil', 'tailnet', 'onion', 'https')) {
+  if ($advert.ContainsKey($t)) { $selfUrl = $advert[$t]; break }
+}
+$selfArgs = @()
+if ($selfUrl -and -not ($PassThru -contains '-SelfUrl')) { $selfArgs = @('-SelfUrl', $selfUrl) }
 Write-Host "-> Handing off to deploy.ps1 for the app layer..."
-& (Join-Path $Root "deploy.ps1") -Prefix $Prefix -NginxPort $NginxPort @PassThru
+& (Join-Path $Root "deploy.ps1") -Prefix $Prefix -NginxPort $NginxPort @PassThru @selfArgs
 
-# 4. Post-up: register each chosen transport, then publish the directory.
+# 4. Post-up: enable federation, register transports, publish the directory.
 $dc = @("compose", "-p", $Prefix)
 function Invoke-Artisan { docker @dc exec -T app php artisan @args }
+
+# federation:init mints the identity AND opens the mesh endpoints (federation_enabled) —
+# without it /api/federation/identity is refused and the anchor is undiscoverable.
+Write-Host "-> Enabling federation (mint identity + open the mesh endpoints)..."
+try { Invoke-Artisan federation:init } catch { Write-Host "  WARN: federation:init failed - the mesh endpoints stay closed" }
+
 Write-Host "-> Registering transports..."
 foreach ($t in $chosen) {
   if (-not $advert.ContainsKey($t)) { Write-Host "  (skipping $t - no live address)"; continue }
@@ -120,4 +146,10 @@ foreach ($t in $chosen) {
 Write-Host "-> Publishing the directory..."
 try { Invoke-Artisan directory:publish } catch { Write-Host "  (no explicit-authority jurisdiction yet - run directory:publish <id> later)" }
 
+# 5. Honest reachability report instead of a blind checkmark. Non-fatal — the overlay
+#    daemon may not be up yet.
+Write-Host "-> Mesh self-check:"
+try { Invoke-Artisan mesh:doctor } catch {}
+
 Write-Host "OK Survival-mesh setup complete. Transports: $($chosen -join ', ')"
+Write-Host "  Two-way check: once BOTH boxes are up, run 'php artisan mesh:doctor <other-box-url>' on each."

@@ -35,7 +35,9 @@ overlay is the mechanism that carries S2S in both directions.
 #   read the [200::]/7 address and give it as the yggdrasil self-advert.
 ```
 
-- Found the instance (operator + genesis) through the setup wizard / `federation:init`.
+- Bootstrap now runs `federation:init` for you (mints the identity + opens the mesh
+  endpoints). Separately, found the instance (operator + genesis) via the setup wizard so
+  there is a jurisdiction to govern and publish into the directory.
 - Confirm the transports registered: `docker compose -p fc exec app php artisan transport:list`
   → expect `https` + `yggdrasil`, both enabled.
 - Note Box B's `server_id` (`GET /api/federation/identity`) and its yggdrasil URL
@@ -53,8 +55,12 @@ overlay is the mechanism that carries S2S in both directions.
 ## 3. Establish two-way reachability (the load-bearing step)
 
 1. Peer the two Yggdrasil daemons (add each other, or a shared public peer) until each can
-   ping the other's `200::/7` address — **from both directions**.
-2. Triage with the read-only diagnostic before any handshake:
+   ping the other's `200::/7` address — **from both directions**. Wiring the route from the
+   app *container* to the *host* overlay daemon is per
+   [G8b-OVERLAY-EGRESS.md](G8b-OVERLAY-EGRESS.md) (Tailscale is the lower-friction option for
+   a Windows↔Linux pair; Yggdrasil needs the relay/IPv6 step there).
+2. Triage with the read-only diagnostic before any handshake (`mesh:doctor <url>` does the
+   same probe over a peer's whole transport ladder, and bootstrap runs it automatically):
    ```bash
    # on Box A, dialling Box B over the overlay:
    docker compose -p fc exec app php artisan federation:peer:check 'http://[<box-B-ygg>]:8080'
@@ -66,7 +72,8 @@ overlay is the mechanism that carries S2S in both directions.
 
 ## 4. Peer → handshake → trust (both directions)
 
-- From Box A: `federation:peer discover http://[<box-B-ygg>]:8080` then handshake (or the
+- From Box A: `federation:peer:discover http://[<box-B-ygg>]:8080` then
+  `federation:peer:handshake http://[<box-B-ygg>]:8080` (or the
   /federation console). The handshake now **advertises + learns transports** (C3), so Box A
   learns Box B's https + yggdrasil and vice-versa — the multiplex ladder is populated on both
   sides before any clearnet failure.

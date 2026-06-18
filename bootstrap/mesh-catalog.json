@@ -33,9 +33,9 @@
         "macos": "brew install tor",
         "windows": "winget install --id TorProject.Tor -e"
       },
-      "configure": "Add a HiddenServiceDir + HiddenServicePort 80 127.0.0.1:<nginx-port> to torrc, restart tor, read hostname; the SOCKS proxy is the env value below.",
+      "configure": "Add a HiddenServiceDir + HiddenServicePort 80 127.0.0.1:<nginx-port> to torrc, restart tor, read hostname; the SOCKS proxy is the env value below. The Tor daemon runs on the HOST, so the app container reaches it via host.docker.internal (the extra_hosts host-gateway entry), NOT 127.0.0.1 (that is the container's own loopback).",
       "self_advert": "http://<onion-host>.onion",
-      "env": { "CGA_FEDERATION_SOCKS_PROXY": "socks5h://127.0.0.1:9050" }
+      "env": { "CGA_FEDERATION_SOCKS_PROXY": "socks5h://host.docker.internal:9050" }
     },
     "yggdrasil": {
       "label": "Yggdrasil overlay (self-routing IPv6, no DNS / no static IP)",

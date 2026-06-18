@@ -7,6 +7,12 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_app
     restart: unless-stopped
+    # G8b: reach host-resident daemons (a Tor SOCKS proxy, or a host-bound overlay relay)
+    # from inside the container — federation egress originates here. Docker Desktop provides
+    # this automatically; on Linux it makes host.docker.internal resolve to the host gateway.
+    # Harmless when unused. See docs/plans/phase-g-continuation/G8b-OVERLAY-EGRESS.md.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     working_dir: /var/www/html
     # -R lets php-fpm run its pool as root in dev. Windows bind mounts show
     # every file as root-owned, so running PHP as www-data causes permission
@@ -254,6 +260,10 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_horizon
     restart: unless-stopped
+    # G8b: the federation heartbeat (CLK-20 push + cold-sync + probe) runs here, so it
+    # needs the same host-daemon reachability as the app. See G8b-OVERLAY-EGRESS.md.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -282,6 +292,9 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_scheduler
     restart: unless-stopped
+    # G8b: parity with app/horizon for host-daemon reachability. See G8b-OVERLAY-EGRESS.md.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html

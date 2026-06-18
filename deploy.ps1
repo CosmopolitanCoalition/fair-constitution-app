@@ -45,13 +45,15 @@ function Invoke-Artisan { docker @dc exec -T app php artisan @args }
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 function Set-EnvVar([string]$Key, [string]$Value) {
-  $lines = Get-Content .env
-  if ($lines -match "^$Key=") {
-    $lines = $lines -replace "^$Key=.*", "$Key=$Value"
-    Set-Content -Path .env -Value $lines
-  } else {
-    Add-Content -Path .env -Value "$Key=$Value"
+  # Wildcard match + literal rewrite (NOT regex) so a key/value with regex metachars can
+  # never mis-match or mangle the replacement.
+  $lines = @(Get-Content .env)
+  $found = $false
+  $out = foreach ($line in $lines) {
+    if ($line -like "$Key=*") { $found = $true; "$Key=$Value" } else { $line }
   }
+  if (-not $found) { $out = @($out) + "$Key=$Value" }
+  Set-Content -Path .env -Value $out
 }
 
 Set-EnvVar "CONTAINER_PREFIX"    $Prefix
@@ -67,14 +69,35 @@ Set-EnvVar "APP_URL"             "http://localhost:$NginxPort"
 $arch = $env:PROCESSOR_ARCHITECTURE
 if ($arch -match 'ARM64') { Set-EnvVar "POSTGIS_IMAGE" "imresamu/postgis:17-3.5" }
 
+# Deployed posture: production + debug off (parity with deploy.sh). deploy.ps1 stands up a
+# built-asset instance; a dev box uses `docker compose up` (local + HMR) instead.
+Set-EnvVar "APP_ENV"   "production"
+Set-EnvVar "APP_DEBUG" "false"
+
+# Explicit service list (parity with deploy.sh): omit `etl` (heavy geospatial Python a
+# federation node never uses) and `vite` (dev HMR — a deployed box serves the built assets
+# produced at the end). nginx starts LAST so compose never aborts the up waiting on a
+# php-fpm still mid composer-install.
 Write-Host "-> Bringing up the stack (project=$Project, prefix=$Prefix, nginx :$NginxPort)..."
-docker @dc up -d --build
+docker @dc up -d --build app postgres redis horizon scheduler
 
 Write-Host "-> Waiting for PostgreSQL..."
 for ($i = 0; $i -lt 60; $i++) {
   docker @dc exec -T postgres pg_isready -U fc_user -d fair_constitution *> $null
   if ($LASTEXITCODE -eq 0) { break }
   Start-Sleep -Seconds 2
+}
+
+# The app entrypoint runs `composer install` on first boot (minutes on a fresh clone) and
+# writes vendor/.installed-hash as its DONE marker. Wait for that STAMP before firing
+# artisan — gating on vendor/autoload.php races (it appears before the framework is fully
+# extracted → 'class not found' in key:generate). The vendor named volume starts EMPTY on a
+# fresh checkout, so without this the first deploy fatals. (Parity with deploy.sh.)
+Write-Host "-> Waiting for the app (composer install)..."
+for ($i = 0; $i -lt 240; $i++) {
+  docker @dc exec -T app test -f vendor/.installed-hash *> $null
+  if ($LASTEXITCODE -eq 0) { break }
+  Start-Sleep -Seconds 5
 }
 
 # 2. A FRESH APP_KEY — clone-identity-safe (never reuse the repo's shared dev key).
@@ -108,4 +131,25 @@ if ($Join) {
   Invoke-Artisan cluster:join $Join --key $Key
 }
 
-Write-Host "OK Instance up — http://localhost:$NginxPort"
+# 6. Production front-end assets — build ONCE (no Vite at runtime) so the UI renders from
+#    any machine on the network (localhost-pinned HMR assets break when opened elsewhere).
+#    A one-shot run of the vite image writes public/build; removing public/hot makes Laravel
+#    resolve assets from that manifest. (Parity with deploy.sh.)
+Write-Host "-> Building production front-end assets (one-shot)..."
+docker @dc run --rm --build --no-deps --entrypoint sh vite -c "npm install --no-audit --no-fund && npm run build"
+Remove-Item -Path (Join-Path $PSScriptRoot 'public/hot') -ErrorAction SilentlyContinue
+
+# 7. Reload the long-lived workers with the FINAL APP_KEY. app/horizon/scheduler booted
+#    BEFORE key:generate rewrote APP_KEY, so they still hold the OLD key; federation:init
+#    --rotate then wrote the signing keypair under the NEW key, so every web/worker
+#    Crypt::decryptString() of it throws 'MAC is invalid' (500 on the UI + POST
+#    /api/federation/sync) until they reload. (Parity with deploy.sh.)
+Write-Host "-> Reloading workers with the final APP_KEY..."
+docker @dc restart app horizon scheduler
+
+# nginx LAST — the app is healthy and public/build exists, so it serves built assets with
+# no startup 502 and nothing to wait on.
+Write-Host "-> Starting nginx..."
+docker @dc up -d nginx
+
+Write-Host "OK Instance up (production assets) — http://localhost:$NginxPort"

@@ -38,30 +38,33 @@ still toggle each transport.
 
 ## Verify before you run (no `curl | sh`)
 
-A governance tool must be verifiable before execution. The website hosts the three scripts
-+ `mesh-catalog.json`, a `SHA256SUMS` manifest, and an Ed25519 **detached signature** of
-that manifest (the same self-authenticating-artifact discipline as G9 directory entries).
-Download, then:
+A governance tool must be verifiable before execution. `SHA256SUMS` (committed here and
+published on the website) lists the checksums of the four downloadable artifacts; the
+website additionally publishes a detached Ed25519 signature (`SHA256SUMS.minisig`) + the
+release public key when a release is signed (the same self-authenticating-artifact
+discipline as G9 directory entries). Download the files + `SHA256SUMS`, then:
 
 ```bash
-# 1. checksums match what the site published
+# 1. checksums match what the publisher shipped (always available)
 sha256sum -c SHA256SUMS
 
-# 2. the manifest is signed by the project's release key (public key from the website)
-#    (openssl pkeyutl or minisign, depending on the published key format)
+# 2. IF the site published a signature: confirm SHA256SUMS was signed by the release key
+#    (download SHA256SUMS.minisig + the published pubkey first)
 minisign -Vm SHA256SUMS -P "$(cat cga-release.pub)"
 
 # 3. only then run
 chmod +x bootstrap/bootstrap.sh && ./bootstrap/bootstrap.sh
 ```
 
-Maintainer side — regenerate the manifest after any change to a bootstrap file:
+Maintainer side — regenerate `SHA256SUMS` after editing ANY bootstrap file (and sign at
+release on the offline key host):
 
 ```bash
-cd bootstrap
-sha256sum bootstrap.sh bootstrap.command bootstrap.ps1 mesh-catalog.json > SHA256SUMS
-minisign -Sm SHA256SUMS          # signs with the release secret key (offline)
+./bootstrap/make-manifest.sh          # rewrites SHA256SUMS; signs if CGA_RELEASE_SECKEY + minisign are present
 ```
+
+The release secret key is **operator-held and never committed**; `make-manifest.sh` only
+signs when `CGA_RELEASE_SECKEY` points at it.
 
 ## What it does NOT do silently
 
