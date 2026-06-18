@@ -147,6 +147,12 @@ class ColdSyncService
 
                 $last = "HTTP {$response->status()}";
             } catch (NoSurvivingTransport $e) {
+                // A peer with NO dialable rung at all is a permanent misconfiguration
+                // (e.g. onion-only with no SOCKS proxy), not a transient blip — fail fast
+                // instead of sleeping through the whole backoff budget for nothing.
+                if ($e->undialable) {
+                    throw new RuntimeException("Cold-sync page fetch: {$e->getMessage()}");
+                }
                 $last = 'no surviving transport: '.$e->getMessage();
             }
 

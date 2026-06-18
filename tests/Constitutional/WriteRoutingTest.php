@@ -8,7 +8,9 @@ use App\Services\Federation\AuthorityResolver;
 use App\Services\Federation\FederationSyncService;
 use App\Services\Federation\ForwardedWriteRefused;
 use App\Services\Federation\WriteRouterService;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use ReflectionMethod;
 use Tests\Concerns\LivePgConnection;
@@ -200,6 +202,52 @@ class WriteRoutingTest extends TestCase
             }
 
             $this->assertSame(0, ForwardedWrite::where('idempotency_key', $key)->count());
+        });
+    }
+
+    public function test_forward_dispatches_the_byte_correct_envelope_over_the_multiplex_ladder(): void
+    {
+        $this->onLivePg(function () {
+            $router = app(WriteRouterService::class);
+            $peer = $this->makePeer((string) Str::uuid()); // url https://peer.test → a one-rung ladder
+            [, $owned] = $this->twoOwnJurisdictions();
+            DB::table('jurisdictions')->where('id', $owned)->update(['authoritative_server_id' => $peer->server_id]);
+
+            Http::fake(['*peer.test*' => Http::response(['status' => 'executed'], 200)]);
+
+            $out = $router->forward('F-LEG-003', ['jurisdiction_id' => $owned, 'note' => 'fwd']);
+
+            $this->assertSame(200, $out['status_code']);
+            $this->assertSame((string) $peer->server_id, $out['leader']);
+            // The SAME forwarded write travelled the ladder to /api/federation/write,
+            // body intact — the multiplex only chose the base URL.
+            Http::assertSent(fn ($r) => $r->method() === 'POST'
+                && str_contains($r->url(), 'peer.test/api/federation/write')
+                && $r['form_id'] === 'F-LEG-003'
+                && ($r['payload']['jurisdiction_id'] ?? null) === $owned
+                && ! empty($r['idempotency_key']));
+        });
+    }
+
+    public function test_forward_maps_all_transports_down_to_a_no_route_refusal(): void
+    {
+        $this->onLivePg(function () {
+            $router = app(WriteRouterService::class);
+            $peer = $this->makePeer((string) Str::uuid());
+            [, $owned] = $this->twoOwnJurisdictions();
+            DB::table('jurisdictions')->where('id', $owned)->update(['authoritative_server_id' => $peer->server_id]);
+
+            // Every rung connection-fails → NoSurvivingTransport, which forward() maps to
+            // the same 421 no_route an unreachable single url produced before G8b.
+            Http::fake(['*peer.test*' => fn () => throw new ConnectionException('all down')]);
+
+            try {
+                $router->forward('F-LEG-003', ['jurisdiction_id' => $owned]);
+                $this->fail('a peer unreachable over every transport must be a no_route refusal');
+            } catch (ForwardedWriteRefused $e) {
+                $this->assertSame(421, $e->status);
+                $this->assertStringContainsString('no_route', $e->getMessage());
+            }
         });
     }
 

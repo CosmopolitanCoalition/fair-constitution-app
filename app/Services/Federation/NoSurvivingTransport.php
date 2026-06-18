@@ -12,8 +12,17 @@ use RuntimeException;
  */
 class NoSurvivingTransport extends RuntimeException
 {
-    public function __construct(public readonly string $serverId)
+    /**
+     * @param  bool  $undialable  true when the ladder had ZERO locally-dialable rungs (a
+     *   permanent misconfiguration — e.g. an onion-only peer with no SOCKS proxy — NOT a
+     *   transient WAN blip, so a retrying caller should fail fast rather than back off).
+     */
+    public function __construct(public readonly string $serverId, public readonly bool $undialable = false)
     {
-        parent::__construct("No surviving federation transport to reach server [{$serverId}].");
+        parent::__construct(
+            $undialable
+                ? "No locally-dialable federation transport to reach server [{$serverId}] (check SOCKS proxy / registered transports)."
+                : "No surviving federation transport to reach server [{$serverId}]."
+        );
     }
 }

@@ -91,6 +91,13 @@ class PeerService
      */
     public function initiateHandshake(FederationPeer $peer): FederationPeer
     {
+        // The multiplex resolves the ladder by server_id, so the peer must be discovered
+        // first (discover() pins the remote server_id + learns its transports). Guard with
+        // a clear message rather than letting an empty ladder surface as NoSurvivingTransport.
+        if ((string) $peer->server_id === '') {
+            throw new RuntimeException('Cannot handshake a peer with no server_id — discover it first.');
+        }
+
         $payload = $this->identity->handshakePayload();
         $payload['url'] = config('cga.federation_self_url');
         $payload['transports'] = $this->transports->selfEndpoints();

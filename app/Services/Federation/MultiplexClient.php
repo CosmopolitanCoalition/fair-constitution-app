@@ -71,30 +71,38 @@ class MultiplexClient
             }
         }
 
-        throw new NoSurvivingTransport($serverId);
+        // No dialable rung at all is a permanent local misconfiguration (e.g. onion-only
+        // with no SOCKS proxy), not a transient blip — flag it so a retrying caller can
+        // fail fast instead of burning its backoff budget.
+        throw new NoSurvivingTransport($serverId, undialable: $dialable === []);
     }
 
     /**
-     * CLK-20 maintenance probe — re-learn a peer's NOT-healthy transports so a degraded
-     * channel is rediscovered even when a healthy sibling is carrying all the traffic.
-     * Without this the multiplex would MASK a real outage: the preferred channel could
-     * stay down indefinitely because reach() keeps succeeding over a fallback and never
-     * retries the dead one. Dials a cheap GET /identity over each open/half-open rung,
-     * recording the outcome; healthy rungs are left alone. Returns the number probed.
+     * CLK-20 maintenance probe — re-learn a peer's recovered transports so a degraded
+     * channel is rediscovered even when a healthy sibling is carrying all the traffic
+     * (otherwise the multiplex would MASK a real outage: the preferred channel could stay
+     * down indefinitely because reach() keeps succeeding over a fallback). Probes ONLY a
+     * cooled-open (HALF_OPEN) rung — exactly the set reach()'s pass 1 would attempt — so a
+     * still-hot dead endpoint is NOT re-dialed every tick (the cooldown rate-limits
+     * re-probing, matching reach()'s discipline). Uses a SHORT timeout so even several
+     * cooled-dead rungs can't stall the heartbeat for minutes. Returns the number probed.
      */
     public function probeUnhealthy(string $serverId): int
     {
         $probed = 0;
+        $timeout = max(1, (int) config('cga.federation_probe_timeout_seconds', 5));
 
         foreach ($this->endpoints->forPeer($serverId) as $cand) {
-            if ($cand['circuit'] === FederationTransportHealth::CIRCUIT_CLOSED) {
-                continue; // healthy — nothing to re-learn
+            // Closed = healthy (skip); still-hot OPEN = within cooldown, don't hammer it
+            // (skip). Only a HALF_OPEN (cooled) rung is eligible for a re-learn probe.
+            if ($cand['circuit'] !== FederationTransportHealth::CIRCUIT_HALF_OPEN) {
+                continue;
             }
             if (! $this->transportLocallyAvailable($cand['transport'])) {
                 continue;
             }
 
-            $this->dial($serverId, $cand, 'GET', '/api/federation/identity', []);
+            $this->dial($serverId, $cand, 'GET', '/api/federation/identity', [], $timeout);
             $probed++;
         }
 
@@ -103,15 +111,16 @@ class MultiplexClient
 
     /**
      * Dial ONE candidate. Returns the Response on delivery (any HTTP status), or null
-     * on a transport-level failure (already recorded as a circuit failure).
+     * on a transport-level failure (already recorded as a circuit failure). A non-null
+     * $timeoutSeconds applies a shorter per-dial timeout (the cheap maintenance probe).
      */
-    private function dial(string $serverId, array $cand, string $method, string $path, array $payload): ?Response
+    private function dial(string $serverId, array $cand, string $method, string $path, array $payload, ?int $timeoutSeconds = null): ?Response
     {
         $startedNs = hrtime(true);
 
         try {
             $resp = strtoupper($method) === 'GET'
-                ? $this->client->get($cand['url'], $path, $payload)
+                ? $this->client->get($cand['url'], $path, $payload, $timeoutSeconds)
                 : $this->client->post($cand['url'], $path, $payload);
 
             $this->markHealthy($serverId, $cand['transport'], $cand['url'], (int) round((hrtime(true) - $startedNs) / 1e6));

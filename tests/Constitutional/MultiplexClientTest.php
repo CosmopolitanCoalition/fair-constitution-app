@@ -74,6 +74,10 @@ class MultiplexClientTest extends TestCase
             $resp = app(MultiplexClient::class)->reach($peerId, 'POST', '/api/federation/write', []);
 
             $this->assertSame(200, $resp->status(), 'the surviving transport answered');
+            // Same signed bytes after a transport SWAP: the survivor got the SAME method,
+            // path, and body — the multiplex only changed the base URL.
+            Http::assertSent(fn ($r) => $r->method() === 'POST'
+                && str_contains($r->url(), '100.64.0.5:8081/api/federation/write'));
             $this->assertSame(1, (int) $this->health($peerId, 'https')->consecutive_failures, 'the dead transport took a failure');
             $survivor = $this->health($peerId, 'tailnet');
             $this->assertSame(FederationTransportHealth::CIRCUIT_CLOSED, $survivor->circuit_state, 'the survivor is healthy');
@@ -378,20 +382,23 @@ class MultiplexClientTest extends TestCase
         });
     }
 
-    public function test_clk20_probe_recovers_a_degraded_transport(): void
+    public function test_clk20_probe_recovers_a_cooled_degraded_transport(): void
     {
         $this->onLivePg(function () {
+            config(['cga.federation_transport_circuit_cooldown_seconds' => 60]);
             $peerId = $this->trustedPeer('https://probe.test'); // legacy https rung
+            // OPEN but COOLED (last fail > cooldown ago) → the ladder surfaces it HALF_OPEN,
+            // the only state the probe re-dials (a still-hot OPEN is left alone).
             FederationTransportHealth::create([
                 'server_id' => $peerId, 'transport' => 'https', 'url' => 'https://probe.test',
                 'circuit_state' => FederationTransportHealth::CIRCUIT_OPEN,
-                'consecutive_failures' => 3, 'last_fail_at' => now(),
+                'consecutive_failures' => 3, 'last_fail_at' => now()->subSeconds(61),
             ]);
             Http::fake(['*probe.test*' => Http::response(['server_id' => $peerId], 200)]);
 
             $probed = app(MultiplexClient::class)->probeUnhealthy($peerId);
 
-            $this->assertSame(1, $probed, 'the one degraded rung was probed');
+            $this->assertSame(1, $probed, 'the one cooled rung was probed');
             $this->assertSame(
                 FederationTransportHealth::CIRCUIT_CLOSED,
                 $this->health($peerId, 'https', 'https://probe.test')->circuit_state,
@@ -400,31 +407,45 @@ class MultiplexClientTest extends TestCase
         });
     }
 
-    public function test_clk20_probe_leaves_a_dead_transport_open_and_skips_healthy_ones(): void
+    public function test_clk20_probe_dials_a_cooled_dead_rung_and_skips_healthy_and_still_hot_ones(): void
     {
         $this->onLivePg(function () {
-            config(['cga.federation_transport_failure_threshold' => 3]);
-            $peerId = $this->trustedPeer('https://dead.test'); // legacy https rung (still dead)
+            config([
+                'cga.federation_transport_failure_threshold' => 3,
+                'cga.federation_transport_circuit_cooldown_seconds' => 60,
+            ]);
+            $peerId = $this->trustedPeer('https://dead.test');        // legacy https rung — cooled, still dead
             $this->transport($peerId, 'tailnet', 'http://100.64.0.60:8081', 100); // healthy, never probed
+            $this->transport($peerId, 'onion', 'http://hot.onion', 90);           // still-hot OPEN, NOT probed
             FederationTransportHealth::create([
                 'server_id' => $peerId, 'transport' => 'https', 'url' => 'https://dead.test',
                 'circuit_state' => FederationTransportHealth::CIRCUIT_OPEN,
-                'consecutive_failures' => 3, 'last_fail_at' => now(),
+                'consecutive_failures' => 3, 'last_fail_at' => now()->subSeconds(61), // cooled → HALF_OPEN
             ]);
+            FederationTransportHealth::create([
+                'server_id' => $peerId, 'transport' => 'onion', 'url' => 'http://hot.onion',
+                'circuit_state' => FederationTransportHealth::CIRCUIT_OPEN,
+                'consecutive_failures' => 3, 'last_fail_at' => now(), // still hot → must NOT be re-dialed
+            ]);
+            config(['cga.federation_socks_proxy' => 'socks5h://127.0.0.1:9050']); // make onion dialable
             Http::fake([
                 '*dead.test*' => fn () => throw new ConnectionException('still down'),
+                '*hot.onion*' => fn () => throw new ConnectionException('should not be dialed'),
                 '*100.64.0.60*' => Http::response([], 200),
             ]);
 
             $probed = app(MultiplexClient::class)->probeUnhealthy($peerId);
 
-            $this->assertSame(1, $probed, 'only the unhealthy rung is probed; the healthy tailnet is left alone');
-            $this->assertSame(FederationTransportHealth::CIRCUIT_OPEN, $this->health($peerId, 'https', 'https://dead.test')->circuit_state);
-            $this->assertSame(
-                0,
-                FederationTransportHealth::query()->where('server_id', $peerId)->where('transport', 'tailnet')->count(),
-                'a healthy transport is not probed (no wasted dial)',
-            );
+            $this->assertSame(1, $probed, 'only the COOLED rung is probed — healthy + still-hot rungs are skipped');
+            // The probe actually DIALED the cooled dead rung: its failure was recorded (3 → 4),
+            // and it stays OPEN. (A no-op probe would leave it at 3.)
+            $dead = $this->health($peerId, 'https', 'https://dead.test');
+            $this->assertSame(FederationTransportHealth::CIRCUIT_OPEN, $dead->circuit_state);
+            $this->assertSame(4, (int) $dead->consecutive_failures, 'the cooled rung was actually dialed');
+            // The still-hot onion was NOT re-dialed (its failure count is unchanged at 3).
+            $this->assertSame(3, (int) $this->health($peerId, 'onion', 'http://hot.onion')->consecutive_failures);
+            // The healthy tailnet was never probed (no health row created).
+            $this->assertSame(0, FederationTransportHealth::query()->where('server_id', $peerId)->where('transport', 'tailnet')->count());
         });
     }
 

@@ -53,14 +53,18 @@ class NearestNodeRoutingTest extends TestCase
             $this->directoryEntry((string) $j2->id, $far, 'https://far.test');
 
             $pingsBefore = DB::table('location_pings')->count();
+            $auditBefore = (int) DB::table('audit_log')->max('seq');
 
             $resp = $this->getJson('/api/mesh/nearest?lat='.$j1->lat.'&lng='.$j1->lng);
 
             $resp->assertOk()->assertJsonPath('nodes.0.server_id', $near);
             $this->assertStringContainsString('no-store', (string) $resp->headers->get('Cache-Control'));
 
-            // PRIVACY: the coordinate is never written anywhere — no residency ping.
+            // PRIVACY: the coordinate is never written ANYWHERE — no residency ping AND
+            // no audit-chain row (so a future "observability" append of the lat/lng would
+            // trip this, not just a location_pings write).
             $this->assertSame($pingsBefore, DB::table('location_pings')->count(), 'no location_pings written');
+            $this->assertSame($auditBefore, (int) DB::table('audit_log')->max('seq'), 'no audit row written for a lookup');
         });
     }
 
@@ -80,6 +84,56 @@ class NearestNodeRoutingTest extends TestCase
 
             $resp->assertOk()->assertJsonPath('nodes.0.server_id', $server);
             $resp->assertJsonPath('nodes.0.transport', 'https');
+            $this->assertStringContainsString('no-store', (string) $resp->headers->get('Cache-Control'), 'the pick path is also no-store');
+        });
+    }
+
+    public function test_empty_result_expired_entries_limit_clamp_and_censorship_floor(): void
+    {
+        $this->onLivePg(function () {
+            DB::table('directory_entries')->delete();
+
+            $j = DB::selectOne('SELECT id, ST_Y(ST_PointOnSurface(geom)) AS lat, ST_X(ST_PointOnSurface(geom)) AS lng '
+                .'FROM jurisdictions WHERE geom IS NOT NULL AND deleted_at IS NULL LIMIT 1');
+            if ($j === null) {
+                $this->markTestSkipped('no jurisdiction with geom in this DB');
+            }
+
+            // (a) Empty result is a 200 with nodes:[], not an error.
+            $this->getJson('/api/mesh/nearest?lat='.$j->lat.'&lng='.$j->lng)
+                ->assertOk()->assertExactJson(['nodes' => []]);
+
+            // (b) An EXPIRED directory entry is never returned (the freshness rail).
+            DirectoryEntry::create([
+                'jurisdiction_id' => (string) $j->id, 'server_id' => (string) Str::uuid(),
+                'endpoints' => [['transport' => 'https', 'url' => 'https://stale.test']],
+                'priority' => 100, 'signature' => 'x',
+                'published_at' => now()->subDay(), 'expires_at' => now()->subHour(),
+            ]);
+            $this->getJson('/api/mesh/nearest?lat='.$j->lat.'&lng='.$j->lng)
+                ->assertOk()->assertExactJson(['nodes' => []]);
+
+            // (c) A live entry with both a resistant and a clearnet endpoint: limit clamps
+            // and, under a censored posture, the resistant transport is the first hop.
+            DB::table('directory_entries')->delete();
+            DirectoryEntry::create([
+                'jurisdiction_id' => (string) $j->id, 'server_id' => (string) Str::uuid(),
+                'endpoints' => [
+                    ['transport' => 'https', 'url' => 'https://anchor.test'],
+                    ['transport' => 'onion', 'url' => 'http://anchor.onion'],
+                ],
+                'priority' => 100, 'signature' => 'x', 'published_at' => now(),
+            ]);
+
+            // limit clamp: a huge limit never errors and never exceeds the cap of 10.
+            $big = $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id.'&limit=999')->assertOk();
+            $this->assertLessThanOrEqual(10, count($big->json('nodes')));
+            // limit=0 clamps up to >=1 (still a 200).
+            $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id.'&limit=0')->assertOk();
+
+            config(['cga.federation_censorship_floor_first' => true]);
+            $censored = $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id)->assertOk();
+            $this->assertSame('onion', $censored->json('nodes.0.transport'), 'censored posture floats the resistant transport first');
         });
     }
 

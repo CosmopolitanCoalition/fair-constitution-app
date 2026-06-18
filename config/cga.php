@@ -154,6 +154,10 @@ return [
     'federation_transport_failure_threshold' => env('CGA_FEDERATION_TRANSPORT_FAILURE_THRESHOLD', 3),
     'federation_transport_circuit_cooldown_seconds' => env('CGA_FEDERATION_TRANSPORT_CIRCUIT_COOLDOWN_SECONDS', 60),
     'federation_censorship_floor_first' => env('CGA_FEDERATION_CENSORSHIP_FLOOR_FIRST', false),
+    // CLK-20 maintenance probe (a cheap GET /identity over a cooled circuit) uses a
+    // SHORT timeout — it must never spend the 60s tail-delivery budget, so even many
+    // dead rungs across peers cannot stall the heartbeat for minutes.
+    'federation_probe_timeout_seconds' => env('CGA_FEDERATION_PROBE_TIMEOUT_SECONDS', 5),
 
     /*
     | Geodata origin (Phase G, G3c — decision N3). The upstream that serves the

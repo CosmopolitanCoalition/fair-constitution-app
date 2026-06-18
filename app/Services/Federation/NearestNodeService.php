@@ -22,24 +22,67 @@ use Illuminate\Support\Facades\DB;
  */
 class NearestNodeService
 {
-    /** Coarse grid for an opt-in coordinate (~0.1° ≈ 11 km) — defense in depth. */
-    private const GRID_DEGREES = 1; // round() precision in decimal places
+    /** round() decimal places for the opt-in coordinate grid (1 ⇒ ~0.1° ≈ 11 km). */
+    private const GRID_PRECISION = 1;
 
     private const RESISTANT = ['onion', 'yggdrasil'];
 
     /**
-     * Nearest serving nodes to a (rounded) point. The coordinate is never stored.
+     * Nearest serving nodes to an OPT-IN user coordinate. The coordinate is ROUNDED to
+     * the coarse grid (privacy defense in depth) and NEVER stored.
      *
      * @return list<array{server_id:string,jurisdiction_id:string,transport:string,url:string,distance_km:float}>
      */
     public function nearestToPoint(float $lat, float $lng, int $limit = 5): array
     {
-        $lat = round($lat, self::GRID_DEGREES);
-        $lng = round($lng, self::GRID_DEGREES);
+        // Rounding belongs ONLY here — to the user-supplied coordinate (there is a caller
+        // location to protect). The jurisdiction-pick path below is a public centroid, so
+        // it must NOT be snapped (that would lose accuracy for no privacy gain).
+        return $this->queryNearest(round($lat, self::GRID_PRECISION), round($lng, self::GRID_PRECISION), $limit);
+    }
+
+    /**
+     * Nearest serving nodes to a named jurisdiction's representative interior point (the
+     * no-coordinate path — a visitor picks their jurisdiction; nothing about them is
+     * stored, so no rounding). Uses ST_PointOnSurface, which is GUARANTEED to lie within
+     * the footprint — unlike ST_Centroid, whose area-weighted center can fall outside a
+     * concave / multipolygon jurisdiction (a country with offshore islands, an
+     * antimeridian span) and pick the wrong nearest node. Matches the codebase convention
+     * (JurisdictionController / ResidencyService).
+     *
+     * @return list<array{server_id:string,jurisdiction_id:string,transport:string,url:string,distance_km:float}>
+     */
+    public function nearestToJurisdiction(string $jurisdictionId, int $limit = 5): array
+    {
+        $point = DB::selectOne(
+            'SELECT ST_Y(ST_PointOnSurface(geom)) AS lat, ST_X(ST_PointOnSurface(geom)) AS lng '
+            .'FROM jurisdictions WHERE id = ? AND geom IS NOT NULL AND deleted_at IS NULL',
+            [$jurisdictionId],
+        );
+
+        if ($point === null) {
+            return [];
+        }
+
+        return $this->queryNearest((float) $point->lat, (float) $point->lng, $limit);
+    }
+
+    /**
+     * The shared nearest query (NO rounding — callers round when there is a coordinate to
+     * protect). Reads ONLY the public, advisory directory entries joined to
+     * jurisdictions.geom; persists nothing. Enumeration of served nodes via repeated calls
+     * is an ACCEPTED property — directory entries are public-by-design routing hints
+     * (signed-by-origin, meant to be relayed) and confer no authority.
+     *
+     * @return list<array{server_id:string,jurisdiction_id:string,transport:string,url:string,distance_km:float}>
+     */
+    private function queryNearest(float $lat, float $lng, int $limit): array
+    {
         $limit = max(1, min(10, $limit));
 
         // Over-fetch a few directory entries (each may carry several endpoints), then
         // flatten + cap. Only non-expired entries for jurisdictions with a footprint.
+        // ST_MakePoint takes (x=lng, y=lat); SRID 4326; ::geography → metres.
         $rows = DB::select(
             'SELECT de.server_id, de.jurisdiction_id, de.endpoints, '
             .'ST_Distance(j.geom::geography, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) AS dist '
@@ -52,27 +95,6 @@ class NearestNodeService
         );
 
         return $this->flatten($rows, $limit);
-    }
-
-    /**
-     * Nearest serving nodes to a named jurisdiction's centroid (the no-coordinate
-     * path — a visitor picks their jurisdiction; nothing about them is stored).
-     *
-     * @return list<array{server_id:string,jurisdiction_id:string,transport:string,url:string,distance_km:float}>
-     */
-    public function nearestToJurisdiction(string $jurisdictionId, int $limit = 5): array
-    {
-        $centroid = DB::selectOne(
-            'SELECT ST_Y(ST_Centroid(geom)) AS lat, ST_X(ST_Centroid(geom)) AS lng '
-            .'FROM jurisdictions WHERE id = ? AND geom IS NOT NULL AND deleted_at IS NULL',
-            [$jurisdictionId],
-        );
-
-        if ($centroid === null) {
-            return [];
-        }
-
-        return $this->nearestToPoint((float) $centroid->lat, (float) $centroid->lng, $limit);
     }
 
     /**

@@ -21,11 +21,11 @@ class FederationClient
 {
     public function __construct(private readonly InstanceIdentityService $identity) {}
 
-    public function get(string $baseUrl, string $path, array $query = []): Response
+    public function get(string $baseUrl, string $path, array $query = [], ?int $timeoutSeconds = null): Response
     {
         $target = $path.($query !== [] ? '?'.http_build_query($query) : '');
 
-        return $this->send('GET', $baseUrl, $target, '');
+        return $this->send('GET', $baseUrl, $target, '', $timeoutSeconds);
     }
 
     public function post(string $baseUrl, string $path, array $payload = []): Response
@@ -65,7 +65,7 @@ class FederationClient
         return $proxy !== null && $proxy !== '' ? (string) $proxy : null;
     }
 
-    private function send(string $method, string $baseUrl, string $requestTarget, string $body): Response
+    private function send(string $method, string $baseUrl, string $requestTarget, string $body, ?int $timeoutSeconds = null): Response
     {
         $timestamp = now()->timestamp;
         $signature = $this->identity->sign(self::signingString($method, $requestTarget, $timestamp, $body));
@@ -79,8 +79,10 @@ class FederationClient
         $url = rtrim($baseUrl, '/').$requestTarget;
 
         // WAN-tunable (Phase G, G8b): a real cross-NAT link needs more than the LAN
-        // 20s. The signing seam is unchanged — only how long we wait for the survivor.
-        $timeout = max(1, (int) config('cga.federation_http_timeout_seconds', 60));
+        // 20s. An explicit override lets a cheap maintenance probe use a SHORT timeout
+        // (CLK-20) so a dead rung never spends the full tail budget. The signing seam is
+        // unchanged either way — only how long we wait for the survivor.
+        $timeout = max(1, $timeoutSeconds ?? (int) config('cga.federation_http_timeout_seconds', 60));
         $request = Http::withHeaders($headers)->timeout($timeout)->acceptJson();
 
         // Route .onion (and any globally-proxied) traffic through the SOCKS seam.
