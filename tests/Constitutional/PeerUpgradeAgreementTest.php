@@ -5,12 +5,17 @@ namespace Tests\Constitutional;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Handlers\ElectionResultsCertification;
 use App\Models\Election;
+use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\Jurisdiction;
 use App\Models\Legislature;
 use App\Models\MultiJurisdictionVote;
 use App\Models\OperatorAccount;
 use App\Models\PeerUpgradeProposal;
+use App\Models\SyncCursor;
+use App\Models\SyncLogEntry;
+use App\Services\Federation\ColdSyncService;
+use App\Services\Federation\FederationSyncService;
 use App\Services\PeerUpgradeAgreementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -210,6 +215,117 @@ class PeerUpgradeAgreementTest extends TestCase
         });
     }
 
+    public function test_meter_c_requires_every_co_affected_peer_to_consent(): void
+    {
+        $this->onLivePg(function () {
+            $svc = app(PeerUpgradeAgreementService::class);
+
+            $root = $this->jurisdiction(null, 5); // unseated → Meter A is the consent leg
+            $child = $this->jurisdiction($root->id, 6);
+
+            // A peer is authoritative for the child → it is co-affected by the bump.
+            $peer = $this->trustedPeer();
+            DB::table('jurisdictions')->where('id', $child->id)
+                ->update(['authoritative_server_id' => $peer->server_id]);
+
+            $this->assertSame([$peer->server_id], $svc->coAffectedPeerServerIds($root->id));
+
+            $operator = $this->operator();
+            $proposal = $svc->propose(PeerUpgradeProposal::KIND_CONSTITUTIONAL_BUMP, $root->id, 'cv1.meterctarget');
+            $svc->recordOperatorConsent($proposal, $operator, true); // Meter A satisfied
+
+            // Meter A passes but Meter C does not — the mesh has not agreed.
+            try {
+                $svc->ratify($proposal);
+                $this->fail('a co-affected peer must consent before the mesh resumes cross-counting');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertSame('Art. VII', $e->citation);
+            }
+
+            $svc->recordPeerConsent($proposal, $peer->server_id, true);
+            $this->assertTrue($svc->meterCPassed($proposal->refresh()));
+
+            $this->assertSame(
+                PeerUpgradeProposal::STATUS_RATIFIED,
+                $svc->ratify($proposal)->status,
+            );
+        });
+    }
+
+    public function test_pushto_pauses_ffc_to_a_version_divergent_peer(): void
+    {
+        $this->onLivePg(function () {
+            $sync = app(FederationSyncService::class);
+            $ourCv = InstanceSettings::current()->constitutionalVersion();
+
+            // A trust-established peer counting under a DIFFERENT hardened version.
+            $peer = $this->trustedPeer(['constitutional_version' => 'cv1.divergent-peer']);
+            $this->assertNotSame($ourCv, $peer->constitutional_version);
+
+            // pushTo short-circuits BEFORE any network call (url is unreachable) —
+            // proof the FF&C push paused fail-closed, not that the HTTP failed.
+            $log = $sync->pushTo($peer);
+
+            $this->assertSame(SyncLogEntry::DIRECTION_OUTBOUND, $log->direction);
+            $this->assertSame(SyncLogEntry::RESULT_REJECTED_TAMPER, $log->result);
+            $this->assertSame('constitutional_version_mismatch', $log->detail['reason']);
+            $this->assertNull($peer->fresh()->last_synced_seq);
+
+            // Exactly ONE outbound row for this tick — the skip replaces the normal
+            // push entry, so divergence adds no net sync_log/chain growth per tick.
+            $this->assertSame(1, SyncLogEntry::query()
+                ->where('peer_id', $peer->id)
+                ->where('direction', SyncLogEntry::DIRECTION_OUTBOUND)
+                ->count());
+        });
+    }
+
+    public function test_cold_sync_aborts_fast_against_a_version_divergent_peer(): void
+    {
+        $this->onLivePg(function () {
+            $cold = app(ColdSyncService::class);
+            $ourCv = InstanceSettings::current()->constitutionalVersion();
+
+            // A divergent peer whose URL is unreachable — if the pre-check did NOT
+            // fire, pullOnePage would attempt the HTTP fetch and throw. It aborts
+            // instead, naming the precise reason, before any network call.
+            $peer = $this->trustedPeer(['constitutional_version' => 'cv1.divergent-cold']);
+            $this->assertNotSame($ourCv, $peer->constitutional_version);
+
+            $cursor = $cold->pull($peer);
+
+            $this->assertSame(SyncCursor::STATUS_ABORTED, $cursor->status);
+            $this->assertSame('constitutional_version_mismatch', $cursor->abort_reason);
+            $this->assertSame(0, (int) $cursor->pages_applied);
+        });
+    }
+
+    public function test_ingesttail_refuses_a_version_divergent_tail_but_accepts_a_matching_one(): void
+    {
+        $this->onLivePg(function ($conn) {
+            $sync = app(FederationSyncService::class);
+            $peer = $this->makeTrustedPeer(); // sets $this->peerSecret + pins its key
+
+            // A validly SIGNED tail that declares a divergent constitutional_version is
+            // refused at the authenticated-version gate (fail-closed FF&C pause).
+            $divergent = $this->signTail(array_merge(
+                $this->craftTail($conn, $peer, [$this->record(null)]),
+                ['constitutional_version' => 'cv1.divergent-tail'],
+            ));
+            $rejected = $sync->ingestTail($peer, $divergent);
+            $this->assertSame(SyncLogEntry::RESULT_REJECTED_TAMPER, $rejected->result);
+            $this->assertSame('constitutional_version_mismatch', $rejected->detail['reason']);
+
+            // The SAME tail declaring OUR version clears the gate and applies.
+            $matching = $this->signTail(array_merge(
+                $this->craftTail($conn, $peer, [$this->record(null)]),
+                ['constitutional_version' => InstanceSettings::current()->constitutionalVersion()],
+            ));
+            $applied = $sync->ingestTail($peer, $matching);
+            $this->assertSame(SyncLogEntry::RESULT_APPLIED, $applied->result);
+        });
+    }
+
     // -------------------------------------------------------------------------
     // fixtures
     // -------------------------------------------------------------------------
@@ -252,6 +368,18 @@ class PeerUpgradeAgreementTest extends TestCase
         ]);
     }
 
+    /** A trust-established peer (no keypair needed — used by the consent + push-skip pins). */
+    private function trustedPeer(array $attrs = []): FederationPeer
+    {
+        return FederationPeer::create(array_merge([
+            'server_id' => (string) Str::uuid(),
+            'name' => 'Peer '.Str::random(5),
+            'url' => 'http://peer-'.Str::lower(Str::random(8)).'.invalid',
+            'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
+            'trust_established_at' => now(),
+        ], $attrs));
+    }
+
     private function onLivePg(callable $body): void
     {
         $conn = $this->livePg('pgsql_upgrade');
@@ -260,7 +388,7 @@ class PeerUpgradeAgreementTest extends TestCase
         $conn->beginTransaction();
 
         try {
-            $body();
+            $body($conn);
         } finally {
             while ($conn->transactionLevel() > 0) {
                 $conn->rollBack();

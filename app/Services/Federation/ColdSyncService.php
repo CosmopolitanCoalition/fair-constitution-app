@@ -4,6 +4,7 @@ namespace App\Services\Federation;
 
 use App\Models\AuditChainReconciliation;
 use App\Models\FederationPeer;
+use App\Models\InstanceSettings;
 use App\Models\SyncCursor;
 use App\Models\SyncLogEntry;
 use RuntimeException;
@@ -50,6 +51,18 @@ class ColdSyncService
     /** Fetch + verify + apply one page; advance the cursor. Returns false when done/aborted. */
     public function pullOnePage(FederationPeer $peer, SyncCursor $cursor): bool
     {
+        // G-VER (Meter C / fail-closed): never pull counted pages from a peer counting
+        // under a DIFFERENT constitutional_version. ingestTail's gate 2b would reject
+        // every page anyway; aborting BEFORE the fetch fails fast and names the precise
+        // reason (vs. the generic 'page_rejected'), symmetric with pushTo's skip. A
+        // peer that declares no version (pre-G-VER) is grandfathered.
+        if ($peer->constitutional_version !== null
+            && $peer->constitutional_version !== InstanceSettings::current()->constitutionalVersion()) {
+            $this->abort($cursor, 'constitutional_version_mismatch');
+
+            return false;
+        }
+
         $pageSize = (int) $cursor->page_size;
         $from = (int) $cursor->next_from_seq;
 

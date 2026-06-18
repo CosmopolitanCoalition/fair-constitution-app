@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\Legislature;
 use App\Models\MultiJurisdictionVote;
@@ -295,6 +296,64 @@ class PeerUpgradeAgreementService
     }
 
     // -------------------------------------------------------------------------
+    // Meter C — peer-mesh agreement (federation safety)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Record one co-affected peer's mesh consent (Meter C). The peer must be a
+     * trust-established peer authoritative for a jurisdiction in the affected subtree
+     * — a peer with no stake in this subtree has no standing to consent. The peer's
+     * decision rides the mesh as a signed S2S message in a live deployment; this is
+     * the recording + evaluation surface (dev-stack testable; cross-instance delivery
+     * reuses the existing Phase F S2S transport, like the rest of the mesh).
+     */
+    public function recordPeerConsent(
+        PeerUpgradeProposal $proposal,
+        string $peerServerId,
+        bool $consented,
+        ?string $signature = null,
+    ): PeerUpgradeConsent {
+        $proposal = $proposal->refresh();
+
+        if (! $proposal->isOpen()) {
+            throw new ConstitutionalViolation('The upgrade proposal is not open.', 'Art. II §2 · as implemented');
+        }
+
+        if (! in_array($peerServerId, $this->coAffectedPeerServerIds($proposal->affected_root_jurisdiction_id), true)) {
+            throw new ConstitutionalViolation(
+                'Only a trust-established peer authoritative for a co-affected subtree records mesh consent (Meter C).',
+                'Art. VII',
+            );
+        }
+
+        return DB::transaction(function () use ($proposal, $peerServerId, $consented, $signature): PeerUpgradeConsent {
+            $consent = PeerUpgradeConsent::query()->firstOrNew([
+                'proposal_id' => (string) $proposal->id,
+                'peer_server_id' => $peerServerId,
+                'meter' => PeerUpgradeConsent::METER_PEER,
+            ]);
+
+            if ($consent->exists && $consent->result !== PeerUpgradeConsent::RESULT_PENDING) {
+                throw new ConstitutionalViolation('This peer has already recorded its mesh consent.', 'Art. VII · as implemented');
+            }
+
+            $consent->fill([
+                'result' => $consented ? PeerUpgradeConsent::RESULT_YES : PeerUpgradeConsent::RESULT_NO,
+                'signature' => $signature,
+                'decided_at' => now(),
+            ])->save();
+
+            $this->audit->append('federation', 'upgrade.peer_consent', [
+                'proposal_id' => (string) $proposal->id,
+                'peer_server_id' => $peerServerId,
+                'result' => $consent->result,
+            ], 'G-VER', null, $proposal->affected_root_jurisdiction_id);
+
+            return $consent;
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // ratify — the LocalAutonomyService::finalize discipline
     // -------------------------------------------------------------------------
 
@@ -339,7 +398,18 @@ class PeerUpgradeAgreementService
                 );
             }
 
-            // [Meter C — peer-mesh consent over co-affected subtrees — G-VER 4.]
+            // Meter C — peer-mesh agreement: every trust-established peer authoritative
+            // for a co-affected subtree must consent before divergent instances resume
+            // cross-counting (fail-closed). Auto-passes when no such peer exists — a
+            // lone instance, or a subtree we are wholly authoritative for.
+            if (! $this->meterCPassed($proposal)) {
+                throw new ConstitutionalViolation(
+                    'A constitutional-version upgrade affecting a subtree a peer is authoritative for requires '
+                    .'that peer\'s mesh consent (Meter C) before the mesh resumes cross-counting — it has not '
+                    .'been recorded for every co-affected peer.',
+                    'Art. VII',
+                );
+            }
         }
 
         return DB::transaction(function () use ($proposal): PeerUpgradeProposal {
@@ -419,6 +489,84 @@ class PeerUpgradeAgreementService
         $mjv = MultiJurisdictionVote::query()->find($proposal->seated_process_id);
 
         return $mjv !== null && $mjv->status === MultiJurisdictionVote::STATUS_PASSED;
+    }
+
+    /**
+     * Meter C passed: every co-affected peer recorded a 'yes' (unanimity — each peer
+     * is sovereign over its own subtree, so none may be overruled). Auto-passes when
+     * there are no co-affected peers (nothing to consult).
+     */
+    public function meterCPassed(PeerUpgradeProposal $proposal): bool
+    {
+        $coAffected = $this->coAffectedPeerServerIds($proposal->affected_root_jurisdiction_id);
+
+        if ($coAffected === []) {
+            return true; // no peer holds a co-affected subtree — N/A
+        }
+
+        $consented = PeerUpgradeConsent::query()
+            ->where('proposal_id', (string) $proposal->id)
+            ->where('meter', PeerUpgradeConsent::METER_PEER)
+            ->where('result', PeerUpgradeConsent::RESULT_YES)
+            ->whereIn('peer_server_id', $coAffected)
+            ->distinct()
+            ->pluck('peer_server_id')
+            ->map(fn ($i) => (string) $i)
+            ->all();
+
+        return count($consented) >= count($coAffected);
+    }
+
+    /**
+     * Trust-established peers authoritative for any jurisdiction in the affected
+     * subtree (root + descendants). These are the instances that would otherwise
+     * cross-count under a divergent version — the Meter C electorate.
+     *
+     * @return list<string>
+     */
+    public function coAffectedPeerServerIds(string $rootJurisdictionId): array
+    {
+        $subtree = $this->descendantIds($rootJurisdictionId);
+
+        if ($subtree === []) {
+            return [];
+        }
+
+        $authServerIds = DB::table('jurisdictions')
+            ->whereIn('id', $subtree)
+            ->whereNotNull('authoritative_server_id')
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->pluck('authoritative_server_id')
+            ->map(fn ($i) => (string) $i)
+            ->all();
+
+        if ($authServerIds === []) {
+            return [];
+        }
+
+        return FederationPeer::query()
+            ->whereIn('server_id', $authServerIds)
+            ->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED)
+            ->whereNull('deleted_at')
+            ->pluck('server_id')
+            ->map(fn ($i) => (string) $i)
+            ->all();
+    }
+
+    /** Root + all descendants (recursive; soft-deletes excluded). */
+    private function descendantIds(string $root): array
+    {
+        $rows = DB::select(
+            'WITH RECURSIVE jh AS ('
+            .'   SELECT id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL'
+            .'   UNION ALL'
+            .'   SELECT j.id FROM jurisdictions j JOIN jh ON j.parent_id = jh.id WHERE j.deleted_at IS NULL'
+            .' ) SELECT id FROM jh',
+            [$root]
+        );
+
+        return array_map(fn ($r) => (string) $r->id, $rows);
     }
 
     /** The seated legislature governing the affected root (null = bootstrap mode). */

@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\AuditChainReconciliation;
 use App\Models\AuditCheckpoint;
 use App\Models\FederationPeer;
+use App\Models\InstanceSettings;
 use App\Models\PublicRecord;
 use App\Models\SyncLogEntry;
 use App\Services\AuditService;
@@ -118,6 +119,10 @@ class FederationSyncService
         $tail = [
             'server_id' => $this->identity->serverId(),
             'schema_version' => (string) config('cga.schema_version', '1'),
+            // G-VER (Meter C) — the hardened-compute version this tail was counted
+            // under. Part of the SIGNED canonical form, so the receiver gates counted
+            // sync on an AUTHENTICATED version claim, never a forgeable one.
+            'constitutional_version' => InstanceSettings::current()->constitutionalVersion(),
             'from_seq' => $fromSeq,
             'to_seq' => $toSeq,
             'head_hash' => $headHash,
@@ -164,6 +169,42 @@ class FederationSyncService
     /** Build our tail and push it to a peer's /sync; record the outbound result. */
     public function pushTo(FederationPeer $peer): SyncLogEntry
     {
+        // G-VER (Meter C / fail-closed): a peer counting under a DIFFERENT
+        // constitutional_version no longer counts identically — PAUSE FF&C of counted
+        // records to it (the heartbeat liveness ping, recorded by the caller BEFORE
+        // pushTo, keeps flowing; only the counted tail pauses). schema_version /
+        // app_release are unaffected. A peer that declares no version (pre-G-VER) is
+        // grandfathered. This adds no net chain growth — one entry per tick either
+        // way, exactly as the unconditional push did.
+        $ourCv = InstanceSettings::current()->constitutionalVersion();
+
+        if ($peer->constitutional_version !== null && $peer->constitutional_version !== $ourCv) {
+            return DB::transaction(function () use ($peer, $ourCv) {
+                $audit = $this->audit->append('federation', 'sync.push_skipped', [
+                    'peer_server_id' => $peer->server_id,
+                    'reason' => 'constitutional_version_mismatch',
+                    'peer' => $peer->constitutional_version,
+                    'ours' => $ourCv,
+                ], 'WF-JUR-06');
+
+                return SyncLogEntry::create([
+                    'peer_id' => $peer->id,
+                    'direction' => SyncLogEntry::DIRECTION_OUTBOUND,
+                    'payload_hash' => hash('sha256', 'constitutional_version_mismatch|'.$peer->server_id),
+                    'peer_head_hash' => null,
+                    'from_seq' => null,
+                    'to_seq' => null,
+                    'result' => SyncLogEntry::RESULT_REJECTED_TAMPER,
+                    'audit_seq' => $audit->seq,
+                    'detail' => [
+                        'reason' => 'constitutional_version_mismatch',
+                        'peer' => $peer->constitutional_version,
+                        'ours' => $ourCv,
+                    ],
+                ]);
+            });
+        }
+
         $fromSeq = (int) ($peer->last_synced_seq ?? 0);
         $tail = $this->buildAuditTail($fromSeq);
 
@@ -229,6 +270,17 @@ class FederationSyncService
             || ! InstanceIdentityService::verify((string) $peer->public_key, self::tailCanonical($tail), $signature)) {
             return $this->recordSync($peer, SyncLogEntry::RESULT_REJECTED_TAMPER, $headHash, $fromSeq, $toSeq, $payloadHash,
                 ['reason' => 'signature_invalid']);
+        }
+
+        // 2b. Constitutional-version agreement (G-VER, Meter C / fail-closed): a peer
+        // counting under a DIFFERENT hardened version no longer counts identically —
+        // refuse its counted records until the mesh agrees (acts on the AUTHENTICATED
+        // version inside the now-verified signed tail). A peer that declares none
+        // (pre-G-VER) is grandfathered to the schema_version gate above.
+        $peerCv = (string) ($tail['constitutional_version'] ?? '');
+        if ($peerCv !== '' && $peerCv !== InstanceSettings::current()->constitutionalVersion()) {
+            return $this->recordSync($peer, SyncLogEntry::RESULT_REJECTED_TAMPER, $headHash, $fromSeq, $toSeq, $payloadHash,
+                ['reason' => 'constitutional_version_mismatch', 'peer' => $peerCv]);
         }
 
         // 3. Foreign chain integrity — recompute the segment independently.
