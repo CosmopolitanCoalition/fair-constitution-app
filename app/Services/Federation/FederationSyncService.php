@@ -2,6 +2,7 @@
 
 namespace App\Services\Federation;
 
+use App\Models\AuditChainReconciliation;
 use App\Models\AuditCheckpoint;
 use App\Models\FederationPeer;
 use App\Models\PublicRecord;
@@ -306,10 +307,15 @@ class FederationSyncService
             return true;
         }
 
+        // A constitutionally-acknowledged break re-grounds the segment (same rule as
+        // verifyChain): the verifying instance only blesses a break it has itself
+        // recorded a reconciliation for, so a peer can never force one on us.
+        $blessed = AuditChainReconciliation::blessedMap();
         $expectedPrev = (string) ($entries[0]['prev_hash'] ?? '');
 
         foreach ($entries as $e) {
-            if ((string) ($e['prev_hash'] ?? '') !== $expectedPrev) {
+            if ((string) ($e['prev_hash'] ?? '') !== $expectedPrev
+                && ($blessed[(int) ($e['seq'] ?? 0)] ?? null) !== (string) ($e['prev_hash'] ?? '')) {
                 return false;
             }
 

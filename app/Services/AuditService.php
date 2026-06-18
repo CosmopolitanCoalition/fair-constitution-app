@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AuditChainReconciliation;
 use App\Models\AuditEntry;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -32,6 +33,13 @@ class AuditService
     public const GENESIS_PREV_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
 
     /**
+     * Transaction-scoped advisory-lock key that serializes EVERY append
+     * (= the bytes of "AUDIT", 0x4155444954). One global appender at a time →
+     * the head read is always current → the chain cannot fork.
+     */
+    public const APPEND_LOCK_KEY = 0x4155444954;
+
+    /**
      * Append one entry to the chain.
      *
      * Runs inside the caller's DB transaction when one is open (the
@@ -40,9 +48,17 @@ class AuditService
      * transaction is open, one is created so the head-row lock is held
      * for the duration of the insert.
      *
-     * The chain head is serialized with
-     *   SELECT ... ORDER BY seq DESC LIMIT 1 FOR UPDATE
-     * so concurrent appends cannot fork the chain.
+     * Every append is serialized on a transaction-scoped advisory lock
+     * (pg_advisory_xact_lock) so the chain cannot fork under concurrency.
+     * A FOR UPDATE on the head row is NOT sufficient: a second appender that
+     * blocks on the old head re-reads that (now-stale) row after the first
+     * commits and anchors a SIBLING — two rows sharing one parent, a fork
+     * (observed on the live multi-worker stack: scheduler + Horizon racing).
+     * The advisory lock serializes appends regardless of which row is head,
+     * so the head read below is always the true latest head. Genuine breaks
+     * that predate this fix are healed not by rewriting (the chain is
+     * append-only + tamper-evident) but by a recorded constitutional
+     * acknowledgement — see ChainReconciliationService + verifyChain.
      */
     public function append(
         string $module,
@@ -57,7 +73,10 @@ class AuditService
         $insert = function () use (
             $module, $event, $payload, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
         ): AuditEntry {
-            $head = DB::selectOne('SELECT seq, hash FROM audit_log ORDER BY seq DESC LIMIT 1 FOR UPDATE');
+            // Serialize every appender so no two can anchor on the same head.
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+
+            $head = DB::selectOne('SELECT seq, hash FROM audit_log ORDER BY seq DESC LIMIT 1');
 
             if ($head === null) {
                 throw new RuntimeException('audit_log genesis row missing — run migrations.');
@@ -97,6 +116,14 @@ class AuditService
     {
         $expectedPrev = self::GENESIS_PREV_HASH;
 
+        // Constitutionally-acknowledged breaks re-ground the chain: at these seqs a
+        // legitimate authority recorded WHY the link is broken (a government office,
+        // or the de-facto operator collective — see ChainReconciliationService), so
+        // the walk re-anchors instead of failing. An UNacknowledged break still
+        // fails, and a row whose own hash is wrong fails regardless — the chain
+        // stays tamper-evident; only a signed, reasoned acknowledgement grounds it.
+        $blessed = AuditChainReconciliation::blessedMap();
+
         $query = DB::table('audit_log')
             ->select(['seq', 'payload', 'prev_hash', 'hash'])
             ->orderBy('seq');
@@ -116,14 +143,15 @@ class AuditService
         }
 
         foreach ($query->cursor() as $row) {
-            if ($row->prev_hash !== $expectedPrev) {
-                return (int) $row->seq;
+            if ($row->prev_hash !== $expectedPrev
+                && ($blessed[(int) $row->seq] ?? null) !== $row->prev_hash) {
+                return (int) $row->seq; // an unacknowledged discontinuity
             }
 
             $canonical = self::canonicalJson(json_decode($row->payload, true) ?? []);
 
             if (self::chainHash($row->prev_hash, $canonical) !== $row->hash) {
-                return (int) $row->seq;
+                return (int) $row->seq; // the row's own hash is wrong — never blessable
             }
 
             $expectedPrev = $row->hash;

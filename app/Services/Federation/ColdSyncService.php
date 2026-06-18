@@ -2,6 +2,7 @@
 
 namespace App\Services\Federation;
 
+use App\Models\AuditChainReconciliation;
 use App\Models\FederationPeer;
 use App\Models\SyncCursor;
 use App\Models\SyncLogEntry;
@@ -64,9 +65,12 @@ class ColdSyncService
         $page = (array) $response->json();
         $entries = (array) ($page['entries'] ?? []);
 
-        // (1) Cross-page continuity — the only check ingestTail can't make.
+        // (1) Cross-page continuity — the only check ingestTail can't make. A break
+        // that lands on a page boundary is tolerated ONLY when we hold a matching
+        // constitutional acknowledgement for it (else it aborts, as before).
         if ($cursor->last_page_hash !== null && $entries !== []
-            && (string) ($entries[0]['prev_hash'] ?? '') !== (string) $cursor->last_page_hash) {
+            && (string) ($entries[0]['prev_hash'] ?? '') !== (string) $cursor->last_page_hash
+            && (AuditChainReconciliation::blessedMap()[(int) ($entries[0]['seq'] ?? 0)] ?? null) !== (string) ($entries[0]['prev_hash'] ?? '')) {
             $this->abort($cursor, 'continuity_break');
 
             return false;
