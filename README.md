@@ -38,59 +38,92 @@ Python yourself — only Docker and Git.
 
 ---
 
-## Prerequisites (per OS)
+## 🚀 Start here — choose your operating system
 
-You need exactly two things on the host, plus disk space:
+**You do not need to be technical.** You install two free programs, copy a few lines, and open a
+web page. Pick your system below and follow it top to bottom. (Plan on ~20 GB free disk and
+leaving the computer on for the first run.)
 
-| | Windows 10/11 | macOS | Linux |
-|---|---|---|---|
-| **Container runtime** | [Docker Desktop](https://www.docker.com/products/docker-desktop/) (WSL2 backend) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Docker Engine + the Compose v2 plugin (`docker compose`) |
-| **Git** | [Git for Windows](https://git-scm.com/download/win) | `xcode-select --install` or Homebrew | your package manager (`apt/dnf/...`) |
-| **Disk / RAM** | ~20 GB free + 8 GB RAM | same | same |
-| **(only for the deploy/join scripts)** | PowerShell 7+ (`winget install Microsoft.PowerShell`) + `winget` | bash (built in) | bash + `jq` (`apt install jq`) |
+Why two programs: the app runs inside **Docker** — a free tool that runs everything (database,
+web server, the lot) in a self-contained box, so you don't install any of that by hand. The
+second thing is just **the code** from this page.
 
-> The ~20 GB is mostly the optional world geospatial dataset — you can scope it to one country
-> in the wizard and need far less to start. Start Docker Desktop (Windows/macOS) and make sure
-> `docker version` works before you begin.
+<details open>
+<summary><b>🪟  Windows 10 / 11</b></summary>
 
----
+1. **Install Docker Desktop.** Download from <https://www.docker.com/products/docker-desktop/>,
+   run the installer (say yes if it offers *WSL2*), then **open Docker Desktop and wait** until
+   the bottom-left says **Engine running**.
+2. **Get the code.** On this GitHub page click the green **`<> Code`** button → **Download ZIP**,
+   then unzip it somewhere easy, like your Desktop. *(If you already have Git, you can instead run
+   `git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git`.)*
+3. **Open PowerShell.** Click **Start**, type **PowerShell**, press **Enter**.
+4. **Start the app.** Paste these one line at a time. A ZIP usually unzips to a folder named
+   `fair-constitution-app-main` — adjust the path if yours differs:
+   ```powershell
+   cd "$HOME\Desktop\fair-constitution-app-main"
+   copy .env.example .env
+   docker compose up -d
+   ```
+   The first run takes a few minutes while it downloads and builds.
+5. **Open it.** In your browser go to **<http://localhost:8080/setup>**.
 
-## Path 1 — Try it locally, from scratch (any OS)
+</details>
 
-Clone the repo, start the stack, and walk the setup wizard. No manual migrations, no
-`php artisan` ceremony — the wizard does it all.
+<details>
+<summary><b>🍎  macOS</b></summary>
 
-```bash
-git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git
-cd fair-constitution-app
-cp .env.example .env          # ships with a working dev key; no edits needed to start
-docker compose up -d          # first run builds images + installs deps — a few minutes
-```
+1. **Install Docker Desktop** from <https://www.docker.com/products/docker-desktop/>, open it, and
+   wait until it says **Engine running**.
+2. **Get the code.** Green **`<> Code`** button → **Download ZIP**, unzip it (e.g. to your Desktop).
+3. **Open Terminal.** Press **⌘ + Space**, type **Terminal**, press **Enter**.
+4. **Start the app** (adjust the path to where you unzipped):
+   ```bash
+   cd ~/Desktop/fair-constitution-app-main
+   cp .env.example .env
+   docker compose up -d
+   ```
+5. **Open it.** Go to **<http://localhost:8080/setup>**.
 
-> **Windows:** run these in PowerShell or Git Bash with Docker Desktop running. The commands
-> are identical (`cp` works in PowerShell 7; in older shells use `copy .env.example .env`).
->
-> **Raspberry Pi / ARM64:** the bare `docker compose up` pulls an amd64-only PostgreSQL image.
-> On a Pi (or any ARM64 host) either set `POSTGIS_IMAGE=imresamu/postgis:17-3.5` in `.env`
-> before starting, **or** use `./deploy.sh` (Path 2), which auto-detects the architecture and
-> picks the ARM64 image for you.
+</details>
 
-Then open **<http://localhost:8080/setup>** in your browser. (Defaults: app `:8080`,
-Vite HMR `:5173`, PostgreSQL `:5432` — change them in `.env` only if those ports are taken.)
+<details>
+<summary><b>🐧  Linux  ·  🍓  Raspberry Pi</b></summary>
 
-### First paint — the setup wizard
+1. **Open your terminal** and install Docker + Git:
+   ```bash
+   sudo apt update && sudo apt install -y git
+   curl -fsSL https://get.docker.com | sh
+   sudo usermod -aG docker $USER      # then log out and back in so 'docker' works
+   ```
+2. **Get the code:**
+   ```bash
+   git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git
+   cd fair-constitution-app
+   ```
+3. **Start the app:**
+   - On a normal PC: `cp .env.example .env && docker compose up -d`
+   - **On a Raspberry Pi** (or any ARM device): run **`./deploy.sh`** instead — it auto-picks the
+     Pi-compatible database image. (The plain `docker compose up` uses an Intel-only one.)
+4. **Open it.** From the same machine: **<http://localhost:8080/setup>**. From another device on
+   your network: `http://<the-computer's-IP-address>:8080/setup`.
 
-On an empty database the wizard detects the blank schema and walks you through, one button at a time:
+</details>
 
-1. **Database setup** — apply the schema migrations from the UI.
-2. **Cosmic address** — which jurisdiction is this instance running (neighborhood → planet)?
-3. **Constitutional defaults** — author the constitutional values for it.
-4. **Map data** — kick off the ETL (loads geoBoundaries + WorldPop; scope to a country for a fast first run).
-5. **Districts** — auto-apportion and build the districts.
-6. **Confirm + seat institutions** — finalize and register your **founder account**.
+### What you'll see — the setup wizard ("first paint")
 
-After seating, sign in as the founder and you land on the civic dashboard — a live instance you
-can run elections, legislatures, and courts in.
+The first page detects the empty database and walks you through, one button at a time:
+
+1. **Database setup** — click to apply the schema.
+2. **Cosmic address** — which place is this instance for (a neighborhood, a city, a country… up to the whole planet)?
+3. **Constitutional defaults** — set the rules.
+4. **Map data** — load the maps + population (pick one country for a quick first run).
+5. **Districts** — it draws them automatically.
+6. **Confirm + seat institutions** — finish, and it creates your **founder login**.
+
+Sign in as the founder and you're in — a live instance where you can run elections, legislatures,
+and courts. **Didn't open?** Make sure Docker is running, wait a couple more minutes on the very
+first launch (it's still building), then reload the page.
 
 ---
 
@@ -120,7 +153,8 @@ mirror in one step, e.g. `./deploy.sh --prefix fcm --nginx-port 8082 --join http
 To make a node part of the mesh — discoverable, syncing, and reachable over redundant secure
 transports (a private tailnet, a Tor hidden service, the Yggdrasil overlay, or plain HTTPS) —
 use the universal bootstrap, which installs/configures the transports you pick, brings the app
-up, registers them, and runs a readiness check:
+up, registers them, and runs a readiness check. *(Linux/Pi needs `jq` first:
+`sudo apt install -y jq`. Windows needs PowerShell 7.)*
 
 ```bash
 # Linux / macOS
