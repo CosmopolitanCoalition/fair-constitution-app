@@ -124,6 +124,33 @@ class DirectoryService
             ->all();
     }
 
+    /**
+     * The advisory endpoints a NAMED server is reachable at, best first (priority
+     * then freshness, expired entries dropped). The multiplex ladder's directory
+     * source (Phase G, G8b): "where might I reach server S?" — independent of which
+     * jurisdiction it serves. Still powerless — a route hint, never authority. Each
+     * endpoint carries its entry's priority so the ladder can rank across sources.
+     *
+     * @return list<array{transport:string,url:string,priority:int}>
+     */
+    public function endpointsForServer(string $serverId): array
+    {
+        return DirectoryEntry::query()
+            ->where('server_id', $serverId)
+            ->orderByDesc('priority')
+            ->orderByDesc('published_at')
+            ->get()
+            ->reject(fn (DirectoryEntry $e) => $e->isExpired())
+            ->flatMap(fn (DirectoryEntry $e) => collect($e->endpoints ?? [])->map(fn ($ep) => [
+                'transport' => (string) ($ep['transport'] ?? ''),
+                'url' => (string) ($ep['url'] ?? ''),
+                'priority' => (int) $e->priority,
+            ]))
+            ->filter(fn (array $ep) => $ep['transport'] !== '' && $ep['url'] !== '')
+            ->values()
+            ->all();
+    }
+
     /** The byte-stable canonical the publisher signs and a verifier reconstructs. */
     public function canonical(DirectoryEntry $entry): string
     {
