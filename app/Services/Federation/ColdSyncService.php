@@ -7,6 +7,8 @@ use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\SyncCursor;
 use App\Models\SyncLogEntry;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use RuntimeException;
 
 /**
@@ -66,14 +68,7 @@ class ColdSyncService
         $pageSize = (int) $cursor->page_size;
         $from = (int) $cursor->next_from_seq;
 
-        $response = $this->client->get($peer->url, '/api/federation/audit-tail', [
-            'from_seq' => $from,
-            'page_size' => $pageSize,
-        ]);
-
-        if (! $response->successful()) {
-            throw new RuntimeException("Cold-sync page fetch failed (HTTP {$response->status()}).");
-        }
+        $response = $this->fetchPageWithRetry($peer, $from, $pageSize);
 
         $page = (array) $response->json();
         $entries = (array) ($page['entries'] ?? []);
@@ -118,6 +113,48 @@ class ColdSyncService
         }
 
         return true;
+    }
+
+    /**
+     * Fetch one page (idempotent GET), retrying transient WAN failures — connection
+     * resets/timeouts and 5xx — with exponential backoff before giving up (Phase G,
+     * G8b). A 4xx is a definitive answer (misconfig/auth) and is never retried. A
+     * brief blip on a real WAN link must not abort a multi-hour backfill.
+     */
+    private function fetchPageWithRetry(FederationPeer $peer, int $from, int $pageSize): Response
+    {
+        $attempts = max(1, (int) config('cga.federation_cold_retry_attempts', 3));
+        $backoffMs = max(0, (int) config('cga.federation_cold_retry_backoff_ms', 500));
+        $last = 'no attempt';
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            try {
+                $response = $this->client->get($peer->url, '/api/federation/audit-tail', [
+                    'from_seq' => $from,
+                    'page_size' => $pageSize,
+                ]);
+
+                if ($response->successful()) {
+                    return $response;
+                }
+
+                // A 4xx is a real answer (misconfig / auth / not-trusted) — retrying
+                // cannot help; fail immediately, as the pre-G8b code did.
+                if ($response->status() < 500) {
+                    throw new RuntimeException("Cold-sync page fetch refused (HTTP {$response->status()}).");
+                }
+
+                $last = "HTTP {$response->status()}";
+            } catch (ConnectionException $e) {
+                $last = 'connection error: '.$e->getMessage();
+            }
+
+            if ($attempt < $attempts && $backoffMs > 0) {
+                usleep($backoffMs * (2 ** ($attempt - 1)) * 1000);
+            }
+        }
+
+        throw new RuntimeException("Cold-sync page fetch failed after {$attempts} attempt(s) (last: {$last}).");
     }
 
     /** Resume the open cold cursor for a peer, or open one at the peer watermark. */

@@ -191,6 +191,65 @@ class ColdSyncChunkingTest extends TestCase
         }
     }
 
+    public function test_a_transient_5xx_page_fetch_is_retried_then_succeeds(): void
+    {
+        $conn = $this->livePg(self::LIVE_CONNECTION);
+
+        $originalDefault = DB::getDefaultConnection();
+        DB::setDefaultConnection(self::LIVE_CONNECTION);
+        $conn->beginTransaction();
+
+        try {
+            $identity = app(InstanceIdentityService::class);
+            $identity->ensureIdentity();
+            config([
+                'cga.federation_sync_page_size' => 20,
+                'cga.federation_cold_retry_attempts' => 3,
+                'cga.federation_cold_retry_backoff_ms' => 0, // no sleep in tests
+            ]);
+
+            $start = (int) (DB::table('audit_log')->orderByDesc('seq')->offset(60)->limit(1)->value('seq') ?? 0);
+            $peer = FederationPeer::create([
+                'server_id' => (string) Str::uuid(),
+                'name' => 'Flaky-WAN host',
+                'url' => 'http://host.docker.internal:9992',
+                'public_key' => $identity->publicKey(),
+                'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
+                'trust_established_at' => now(),
+                'peer_head_seq' => $start,
+            ]);
+
+            $cold = app(ColdSyncService::class);
+            $sync = app(FederationSyncService::class);
+
+            // The first page fetch fails with a transient 503; the retry succeeds.
+            $calls = 0;
+            Http::fake([
+                '*/api/federation/audit-tail*' => function ($request) use ($sync, &$calls) {
+                    $calls++;
+                    if ($calls === 1) {
+                        return Http::response('upstream blip', 503);
+                    }
+                    parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $q);
+
+                    return Http::response($sync->buildAuditTail((int) ($q['from_seq'] ?? 0), (int) ($q['page_size'] ?? 500)), 200);
+                },
+            ]);
+
+            $cursor = $cold->pull($peer, 1);
+
+            $this->assertGreaterThanOrEqual(2, $calls, 'the transient 503 was retried, not surfaced');
+            $this->assertNotSame(SyncCursor::STATUS_ABORTED, $cursor->status, 'a transient blip never aborts the backfill');
+            $this->assertSame(1, (int) $cursor->pages_applied, 'the retried fetch applied its page');
+            $this->assertGreaterThan($start, (int) $cursor->next_from_seq, 'the cursor advanced past the blip');
+        } finally {
+            while ($conn->transactionLevel() > 0) {
+                $conn->rollBack();
+            }
+            DB::setDefaultConnection($originalDefault);
+        }
+    }
+
     /** Fake the host's GET /audit-tail to return real signed pages from our chain. */
     private function fakeHost(FederationSyncService $sync, int $spliceAfterPage = 0): void
     {

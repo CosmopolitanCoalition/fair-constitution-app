@@ -114,6 +114,21 @@ return [
     'federation_cold_pages_per_tick' => env('CGA_FEDERATION_COLD_PAGES_PER_TICK', 5),
 
     /*
+    | WAN resilience (Phase G, G8b). LAN tolerates a 20s S2S timeout; a real WAN
+    | link (mobile uplink, tunnel jitter, a slow onion hop) needs more — so the
+    | per-request timeout is configurable. Cold-sync page fetches (idempotent GETs)
+    | additionally RETRY transient failures (connection resets, 5xx) with exponential
+    | backoff before propagating, so a brief blip never aborts a multi-hour backfill.
+    | A 4xx is a definitive answer and is never retried. Operators on high-latency
+    | links should also lower federation_cold_pages_per_tick (a WAN page round-trip is
+    | seconds, not milliseconds) and may raise federation_replay_window if a node's
+    | clock is badly skewed.
+    */
+    'federation_http_timeout_seconds' => env('CGA_FEDERATION_HTTP_TIMEOUT_SECONDS', 60),
+    'federation_cold_retry_attempts' => env('CGA_FEDERATION_COLD_RETRY_ATTEMPTS', 3),
+    'federation_cold_retry_backoff_ms' => env('CGA_FEDERATION_COLD_RETRY_BACKOFF_MS', 500),
+
+    /*
     | Transport (Phase G, G8). The SAME SIGNED bytes travel over any channel —
     | https, a Headscale tailnet, a Tor .onion, or sneakernet. A `.onion` endpoint
     | routes through `federation_socks_proxy` (a local Tor daemon, e.g.

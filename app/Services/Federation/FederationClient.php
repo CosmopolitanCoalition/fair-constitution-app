@@ -78,7 +78,10 @@ class FederationClient
 
         $url = rtrim($baseUrl, '/').$requestTarget;
 
-        $request = Http::withHeaders($headers)->timeout(20)->acceptJson();
+        // WAN-tunable (Phase G, G8b): a real cross-NAT link needs more than the LAN
+        // 20s. The signing seam is unchanged — only how long we wait for the survivor.
+        $timeout = max(1, (int) config('cga.federation_http_timeout_seconds', 60));
+        $request = Http::withHeaders($headers)->timeout($timeout)->acceptJson();
 
         // Route .onion (and any globally-proxied) traffic through the SOCKS seam.
         // Default config is null → no proxy option → existing calls are unchanged.

@@ -41,6 +41,7 @@ class TransportSeamTest extends TestCase
         $this->assertSame('socks5h://127.0.0.1:9050', $client->proxyFor('http://abc123.onion/api'));
         $this->assertNull($client->proxyFor('https://peer.test/api'), 'https dials direct');
         $this->assertNull($client->proxyFor('http://node.tailnet/api'), 'a tailnet address dials direct');
+        $this->assertNull($client->proxyFor('http://[200:abcd::1]:8081/api'), 'a yggdrasil overlay address dials direct (G8b)');
 
         config(['cga.federation_socks_proxy' => null]);
     }
@@ -53,14 +54,17 @@ class TransportSeamTest extends TestCase
 
             $svc->registerSelf('https', 'https://us.test', 200);
             $svc->registerSelf('onion', 'http://usxyz.onion', 100);
+            // G8b — the yggdrasil overlay is a first-class fifth transport.
+            $svc->registerSelf('yggdrasil', 'http://[200:abcd::1]:8081', 150);
 
             $endpoints = $svc->selfEndpoints();
             $this->assertSame('https://us.test', $endpoints[0]['url'], 'higher priority first');
+            $this->assertSame('yggdrasil', $endpoints[1]['transport'], 'yggdrasil sits by priority (150)');
             $this->assertContains('onion', array_column($endpoints, 'transport'));
 
             // Idempotent update (no duplicate row per (server, transport)).
             $svc->registerSelf('https', 'https://us-new.test', 200);
-            $this->assertSame(2, FederationTransport::query()
+            $this->assertSame(3, FederationTransport::query()
                 ->where('server_id', app(InstanceIdentityService::class)->serverId())->count());
 
             $threw = false;
