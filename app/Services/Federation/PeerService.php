@@ -67,6 +67,8 @@ class PeerService
             'url' => $url,
             'public_key' => $publicKey,
             'metadata' => ['schema_version' => $remote['schema_version'] ?? null],
+            'constitutional_version' => $remote['constitutional_version'] ?? null,
+            'app_release' => $remote['app_release'] ?? null,
         ]);
         $peer->status ??= FederationPeer::STATUS_DISCOVERED;
         $peer->save();
@@ -109,6 +111,8 @@ class PeerService
             'name' => $remote['name'] ?? $peer->name,
             'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
             'trust_established_at' => now(),
+            'constitutional_version' => $remote['constitutional_version'] ?? $peer->constitutional_version,
+            'app_release' => $remote['app_release'] ?? $peer->app_release,
         ]);
         $peer->save();
 
@@ -141,6 +145,8 @@ class PeerService
             'name' => $payload['name'] ?? null,
             'url' => $payload['url'] ?? null,
             'schema_version' => $payload['schema_version'] ?? null,
+            'constitutional_version' => $payload['constitutional_version'] ?? null,
+            'app_release' => $payload['app_release'] ?? null,
         ], FederationPeer::RELATION_SOVEREIGN, 'received');
 
         return $this->identity->handshakePayload() + ['url' => config('cga.federation_self_url')];
@@ -173,6 +179,9 @@ class PeerService
             'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
             'trust_established_at' => now(),
             'metadata' => ['schema_version' => $attrs['schema_version'] ?? null],
+            // G-VER — pin the peer's tracked versions (gate counted sync, provenance).
+            'constitutional_version' => $attrs['constitutional_version'] ?? $peer->constitutional_version,
+            'app_release' => $attrs['app_release'] ?? $peer->app_release,
         ]);
         $peer->save();
 

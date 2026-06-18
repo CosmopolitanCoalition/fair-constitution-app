@@ -169,7 +169,7 @@ class InstanceIdentityService
      * The identity payload shared at handshake (server_id + public_key +
      * instance metadata). Signed by the caller before transmission.
      *
-     * @return array{server_id: string, public_key: string, name: string, schema_version: string}
+     * @return array{server_id: string, public_key: string, name: string, schema_version: string, constitutional_version: string, app_release: ?string}
      */
     public function handshakePayload(): array
     {
@@ -180,6 +180,10 @@ class InstanceIdentityService
             'public_key' => (string) $settings->public_key,
             'name' => (string) $settings->instance_name,
             'schema_version' => config('cga.schema_version', '1'),
+            // G-VER — the hardened-compute version peers gate counted sync on, and
+            // the human-readable deploy tag (provenance only).
+            'constitutional_version' => $settings->constitutionalVersion(),
+            'app_release' => config('cga.app_release'),
         ];
     }
 

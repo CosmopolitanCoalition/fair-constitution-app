@@ -37,6 +37,8 @@ class PeerController extends Controller
             'name' => ['nullable', 'string'],
             'url' => ['nullable', 'string'],
             'schema_version' => ['nullable', 'string'],
+            'constitutional_version' => ['nullable', 'string'],
+            'app_release' => ['nullable', 'string'],
         ]);
 
         return response()->json($this->peers->receiveHandshake($payload));

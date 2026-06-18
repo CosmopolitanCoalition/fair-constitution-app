@@ -71,6 +71,14 @@ return [
     'schema_version' => env('CGA_SCHEMA_VERSION', '1'),
 
     /*
+    | App release tag (Phase G, G-VER). Human-readable deploy/provenance string
+    | (e.g. a `git describe` output) — which CODE a jurisdiction's elections ran
+    | under, exchanged at handshake. PROVENANCE ONLY; it never gates counting (the
+    | derived constitutional_version does). Null when unset.
+    */
+    'app_release' => env('CGA_APP_RELEASE'),
+
+    /*
     | Federation self-URL (Phase F). The externally-reachable base URL this
     | instance advertises to peers at handshake so they can call back (sync
     | pushes, heartbeats, authority flips). In the two-instance demo:

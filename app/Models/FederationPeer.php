@@ -61,6 +61,9 @@ class FederationPeer extends Model
         'trust_established_at',
         'last_synced_seq',
         'peer_head_seq',
+        // Phase G (G-VER) — the peer's tracked versions (promoted out of metadata).
+        'constitutional_version',
+        'app_release',
     ];
 
     protected $casts = [

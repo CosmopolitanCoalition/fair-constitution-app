@@ -46,6 +46,10 @@ class InstanceSettings extends Model
         'home_cluster_id',
         // Phase G (G3c) — geodata posture chosen at adoption (already_have|pull_from_origin|skip).
         'geodata_posture',
+        // Phase G (G-VER) — the three version axes.
+        'constitutional_version',
+        'app_release',
+        'version_pinned_at',
     ];
 
     protected $casts = [
@@ -61,6 +65,7 @@ class InstanceSettings extends Model
         'federation_enabled' => 'boolean',
         'mirror_adopted_at' => 'datetime',
         'attestation_authority_enabled' => 'boolean',
+        'version_pinned_at' => 'datetime',
     ];
 
     /**
@@ -102,5 +107,24 @@ class InstanceSettings extends Model
     public function isMirror(): bool
     {
         return $this->mirror_of_server_id !== null;
+    }
+
+    /**
+     * G-VER — the constitutional_version this instance operates under: the AGREED
+     * (pinned) value, or the DERIVED hardened-compute hash when none is pinned yet
+     * (genesis / a fresh instance). The derived value is what the code actually is.
+     */
+    public function constitutionalVersion(): string
+    {
+        return $this->constitutional_version
+            ?: app(\App\Services\ConstitutionalVersionService::class)->derive();
+    }
+
+    /** Pin the agreed constitutional_version (defaults to the derived current code). */
+    public function pinConstitutionalVersion(?string $version = null): void
+    {
+        $this->constitutional_version = $version ?? app(\App\Services\ConstitutionalVersionService::class)->derive();
+        $this->version_pinned_at = now();
+        $this->save();
     }
 }
