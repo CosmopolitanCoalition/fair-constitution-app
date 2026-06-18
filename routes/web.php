@@ -723,6 +723,15 @@ Route::middleware('auth:operator')->group(function () {
     Route::post('/federation/cluster/request-read-write', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'requestReadWrite'])
         ->name('federation.cluster.rw-request');
 
+    // G8b — the operator's two-way mesh setup + verification actions (the GUI front doors
+    // to federation:peer:discover / :handshake + mesh:doctor). Operator-grade.
+    Route::post('/federation/mesh/discover', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'discoverPeer'])
+        ->name('federation.mesh.discover');
+    Route::post('/federation/mesh/handshake', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'handshakePeer'])
+        ->name('federation.mesh.handshake');
+    Route::post('/federation/mesh/probe', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'probePeer'])
+        ->name('federation.mesh.probe');
+
     // G-OP / G3c — Flow B: link THIS operator account to an existing mesh identity
     // by device-possession proof (the proof string targets POST /operator/link).
     Route::post('/operator/link', [\App\Http\Controllers\Federation\OperatorLinkController::class, 'link'])

@@ -11,7 +11,11 @@ use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\Jurisdiction;
 use App\Models\SyncLogEntry;
+use App\Services\Federation\MeshGateService;
+use App\Services\Federation\MeshProbeService;
+use App\Services\Federation\PeerService;
 use App\Services\Federation\ReadWriteRequestService;
+use App\Services\Federation\TransportService;
 use App\Services\Mirror\MirrorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,7 +37,7 @@ use Inertia\Response;
  */
 class FederationConsoleController extends Controller
 {
-    public function show(MirrorService $mirror, ReadWriteRequestService $rw): Response
+    public function show(MirrorService $mirror, ReadWriteRequestService $rw, MeshGateService $gates, TransportService $transports): Response
     {
         $settings = InstanceSettings::current();
 
@@ -52,6 +56,16 @@ class FederationConsoleController extends Controller
                 'public_key_fp' => $settings->public_key
                     ? implode(':', str_split(substr(hash('sha256', (string) $settings->public_key), 0, 16), 4))
                     : null,
+            ],
+            // G8b — the operator's "run the gates, get greens" panel: node-readiness
+            // gates (always shown), what we advertise, and the last per-peer probe result
+            // flashed by probePeer(). The mesh ACTIONS (discover/handshake/probe) are
+            // operator-authed routes; this read is harmless public mesh state (Art. II §2).
+            'mesh' => [
+                'gates' => $gates->evaluate(),
+                'transports' => $transports->selfEndpoints(),
+                'self_url' => config('cga.federation_self_url'),
+                'probe' => session('mesh_probe'),
             ],
             'mirror' => [
                 'is_mirror' => $mirror->isMirror(),
@@ -229,5 +243,60 @@ class FederationConsoleController extends Controller
         }
 
         return back()->with('status', "Read-write petition sent to the host (state: {$ack['state']}) — its government decides by supermajority (Art. V §7). A mirror stays authoritative for nothing until authority flips.");
+    }
+
+    /**
+     * G8b — operator: discover a peer by URL (read its public identity + learn its
+     * transports). The GUI front door to `federation:peer:discover`.
+     */
+    public function discoverPeer(Request $request, PeerService $peers): RedirectResponse
+    {
+        $validated = $request->validate(['url' => ['required', 'url', 'max:255']]);
+
+        try {
+            $peer = $peers->discover($validated['url']);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['mesh' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Discovered {$peer->name} ({$peer->server_id}). Handshake it to establish trust.");
+    }
+
+    /**
+     * G8b — operator: handshake a discovered peer (mutual identity pin + transport
+     * learning → trust_established). The GUI front door to `federation:peer:handshake`.
+     */
+    public function handshakePeer(Request $request, PeerService $peers): RedirectResponse
+    {
+        $validated = $request->validate(['peer' => ['required', 'string', 'max:255']]);
+
+        $peer = FederationPeer::query()->matchingNeedle($validated['peer'])->whereNull('deleted_at')->first();
+
+        if ($peer === null) {
+            return back()->withErrors(['mesh' => 'No such peer — discover it first.']);
+        }
+
+        try {
+            $peers->initiateHandshake($peer);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['mesh' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Handshake complete — {$peer->name} is trust_established.");
+    }
+
+    /**
+     * G8b — operator: probe a peer over every known transport FROM INSIDE the container
+     * (the GUI's mesh:doctor). Flashes the per-transport result; persists nothing.
+     */
+    public function probePeer(Request $request, MeshProbeService $probe): RedirectResponse
+    {
+        $validated = $request->validate(['target' => ['required', 'string', 'max:255']]);
+
+        $result = $probe->probe($validated['target']);
+
+        return back()
+            ->with('mesh_probe', $result)
+            ->with('status', "Probe: {$result['reached']}/{$result['total']} transport(s) reached {$result['target']}.");
     }
 }

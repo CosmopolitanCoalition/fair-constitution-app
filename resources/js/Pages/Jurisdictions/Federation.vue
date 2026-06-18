@@ -11,6 +11,7 @@ const props = defineProps({
     checkpoints: { type: Array, default: () => [] },
     claims: { type: Array, default: () => [] },
     host: { type: Object, default: () => ({ authed: false }) },
+    mesh: { type: Object, default: () => ({ gates: [], transports: [], self_url: null, probe: null }) },
 });
 
 const page = usePage();
@@ -68,6 +69,21 @@ const revokeKey = (handle) => {
 const approveReq = (id) => router.post(`/federation/host/requests/${id}/approve`, {}, { preserveScroll: true });
 const rejectReq = (id) => router.post(`/federation/host/requests/${id}/reject`, {}, { preserveScroll: true });
 const denyRw = (id) => router.post(`/federation/host/rw/${id}/deny`, {}, { preserveScroll: true });
+
+// G8b — the operator's two-way mesh setup + verification gates. discover/handshake/probe
+// are the GUI front doors to federation:peer:discover/:handshake + mesh:doctor; the gates
+// checklist is the operator's "run the tests, get the greens." The probe result is read
+// from props.mesh.probe (the controller flashes it back into the prop).
+const discoverForm = useForm({ url: '' });
+const discover = () => discoverForm.post('/federation/mesh/discover', { preserveScroll: true });
+const handshakeForm = useForm({ peer: '' });
+const handshake = () => handshakeForm.post('/federation/mesh/handshake', { preserveScroll: true });
+const probeForm = useForm({ target: '' });
+const probe = () => probeForm.post('/federation/mesh/probe', { preserveScroll: true });
+const recheckGates = () => router.reload({ only: ['mesh'], preserveScroll: true });
+const meshProbe = computed(() => props.mesh?.probe ?? null);
+const gateClass = (status) => ({ pass: 'bg-emerald-100 text-emerald-800', warn: 'bg-amber-100 text-amber-800', fail: 'bg-rose-100 text-rose-700' }[status] || 'bg-slate-100 text-slate-700');
+const gateMark = (status) => ({ pass: '✓', warn: '⚠', fail: '✗' }[status] || '•');
 
 const statusClass = (status) => ({
     trust_established: 'bg-emerald-100 text-emerald-800',
@@ -128,6 +144,104 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     </dd>
                 </div>
             </dl>
+        </section>
+
+        <!-- G8b — Two-way mesh: setup + verification gates (the operator's "run the gates") -->
+        <section class="rounded-lg border border-slate-200 bg-white p-5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-900">Two-way mesh — setup &amp; gates</h2>
+                <button type="button" @click="recheckGates"
+                        class="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                    Re-check
+                </button>
+            </div>
+            <p class="mt-1 max-w-2xl text-xs text-slate-600">
+                The operator's readiness checklist — green is ready, amber a step not yet done, red a hard blocker.
+                Pair with a peer probe (below) to prove the two-way datapath before the rig's certification gates.
+            </p>
+
+            <!-- gates checklist -->
+            <ul class="mt-3 space-y-1.5">
+                <li v-for="g in mesh.gates" :key="g.key" class="flex items-start gap-2 text-sm">
+                    <span :class="gateClass(g.status)"
+                          class="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                        {{ gateMark(g.status) }}
+                    </span>
+                    <span class="text-slate-800">
+                        {{ g.label }}
+                        <span class="block text-xs text-slate-500">{{ g.detail }}</span>
+                    </span>
+                </li>
+            </ul>
+
+            <div class="mt-3 text-xs text-slate-600">
+                <span class="font-semibold uppercase tracking-wide text-slate-500">Advertised:</span>
+                <span v-if="mesh.transports.length" class="ml-1 font-mono">{{ mesh.transports.map((t) => t.transport).join(', ') }}</span>
+                <span v-else class="ml-1 italic">none — run transport:register</span>
+            </div>
+
+            <!-- operator actions -->
+            <div v-if="host.authed" class="mt-4 space-y-4 border-t border-slate-100 pt-4">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <form @submit.prevent="discover" class="space-y-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Discover a peer (URL)</label>
+                        <div class="flex gap-2">
+                            <input v-model="discoverForm.url" type="text" placeholder="http://[200:…]:8080"
+                                   class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+                            <button type="submit" :disabled="discoverForm.processing"
+                                    class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+                                Discover
+                            </button>
+                        </div>
+                    </form>
+                    <form @submit.prevent="handshake" class="space-y-1">
+                        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Handshake (server_id or URL)</label>
+                        <div class="flex gap-2">
+                            <input v-model="handshakeForm.peer" type="text" placeholder="server_id or url"
+                                   class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+                            <button type="submit" :disabled="handshakeForm.processing"
+                                    class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+                                Handshake
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <form @submit.prevent="probe" class="space-y-1">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Probe a peer over every transport (mesh:doctor)</label>
+                    <div class="flex gap-2">
+                        <input v-model="probeForm.target" type="text" placeholder="server_id or url"
+                               class="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+                        <button type="submit" :disabled="probeForm.processing"
+                                class="rounded bg-sky-700 px-3 py-1 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-50">
+                            Probe
+                        </button>
+                    </div>
+                </form>
+
+                <div v-if="meshProbe" class="rounded border border-slate-200 bg-slate-50 p-3 text-sm">
+                    <p class="text-xs font-semibold text-slate-700">
+                        {{ meshProbe.reached }}/{{ meshProbe.total }} transport(s) reached {{ meshProbe.target }}
+                    </p>
+                    <ul class="mt-1 space-y-1">
+                        <li v-for="(r, i) in meshProbe.rungs" :key="i" class="flex flex-wrap items-center gap-2 font-mono text-xs">
+                            <span :class="r.reachable ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'"
+                                  class="rounded px-1.5 py-0.5 font-bold">{{ r.reachable ? 'OK' : '✗' }}</span>
+                            <span class="text-slate-700">[{{ r.transport }}] {{ r.url }}</span>
+                            <span class="text-slate-500">—
+                                <template v-if="r.error">{{ r.error }}</template>
+                                <template v-else-if="r.reachable">{{ (r.latency_ms ?? '?') }}ms · {{ r.version === '' ? 'no version' : (r.version_match ? 'version match' : 'version MISMATCH') }}</template>
+                                <template v-else>HTTP {{ r.http_status ?? '?' }}</template>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <p v-else class="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                <a href="/operator/login" class="text-sky-700 underline">Sign in as operator</a> to discover, handshake, and
+                probe peers — or use the terminal: <code class="font-mono">php artisan mesh:gates</code>,
+                <code class="font-mono">mesh:doctor &lt;peer&gt;</code>.
+            </p>
         </section>
 
         <!-- G3b — Cluster membership: join as a read-only mirror, or leave -->

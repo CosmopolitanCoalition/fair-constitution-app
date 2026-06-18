@@ -3,12 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\InstanceSettings;
-use App\Services\Federation\FederationClient;
 use App\Services\Federation\InstanceIdentityService;
-use App\Services\Federation\TransportEndpoints;
+use App\Services\Federation\MeshProbeService;
 use App\Services\Federation\TransportService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 /**
  * mesh:doctor [target] — the survival-mesh reachability self-test (Phase G, G8b).
@@ -18,8 +16,8 @@ use Illuminate\Support\Str;
  * transport address can be advertised yet be unroutable from where it actually matters.
  * This command surfaces that truth instead of a blind "✓ done": it prints what THIS node
  * advertises, and — given a peer — dials every known transport for it FROM THE CONTAINER
- * and reports which rungs are actually live (and whether the constitutional_version agrees,
- * since a mismatch makes Meter C refuse sync).
+ * (via the shared MeshProbeService, the same probe the federation-console GUI runs) and
+ * reports which rungs are live + whether the constitutional_version agrees.
  *
  *   php artisan mesh:doctor                                   # what do we advertise?
  *   php artisan mesh:doctor http://[200:abcd::1]:8081         # probe a URL directly
@@ -33,9 +31,8 @@ class MeshDoctorCommand extends Command
 
     public function handle(
         TransportService $transports,
-        TransportEndpoints $endpoints,
-        FederationClient $client,
         InstanceIdentityService $identity,
+        MeshProbeService $probe,
     ): int {
         $settings = InstanceSettings::current();
         $self = $transports->selfEndpoints();
@@ -58,57 +55,33 @@ class MeshDoctorCommand extends Command
             return self::SUCCESS;
         }
 
-        // Resolve the (transport, url) rungs to probe.
-        if (Str::isUuid($target)) {
-            $rungs = array_map(
-                fn ($r) => ['transport' => $r['transport'], 'url' => $r['url']],
-                $endpoints->forPeer($target),
-            );
-            if ($rungs === []) {
-                $this->warn("No known transport for server_id {$target} — discover + handshake it first, or pass a URL.");
+        $result = $probe->probe($target);
 
-                return self::FAILURE;
-            }
-        } else {
-            $rungs = [['transport' => '(direct)', 'url' => rtrim($target, '/')]];
+        if ($result['total'] === 0) {
+            $this->warn("No known transport for server_id {$target} — discover + handshake it first, or pass a URL.");
+
+            return self::FAILURE;
         }
 
         $this->newLine();
-        $this->line('Probing '.$target.' over '.count($rungs).' transport(s) FROM INSIDE the container:');
+        $this->line('Probing '.$target.' over '.$result['total'].' transport(s) FROM INSIDE the container:');
 
-        $timeout = max(1, (int) config('cga.federation_probe_timeout_seconds', 5));
-        $reached = 0;
-
-        foreach ($rungs as $rung) {
-            $startedMs = (int) (microtime(true) * 1000);
-
-            try {
-                $resp = $client->get($rung['url'], '/api/federation/identity', [], $timeout);
-            } catch (\Throwable $e) {
-                $this->line(sprintf('  [%-10s] %-44s UNREACHABLE — %s', $rung['transport'], $rung['url'], $e->getMessage()));
-
-                continue;
+        foreach ($result['rungs'] as $r) {
+            if ($r['error'] !== null) {
+                $this->line(sprintf('  [%-10s] %-44s UNREACHABLE — %s', $r['transport'], $r['url'], $r['error']));
+            } elseif (! $r['reachable']) {
+                $this->line(sprintf('  [%-10s] %-44s HTTP %d (%dms)', $r['transport'], $r['url'], $r['http_status'], $r['latency_ms']));
+            } else {
+                $vNote = $r['version'] === ''
+                    ? 'no version advertised'
+                    : ($r['version_match'] ? 'version MATCH' : 'version MISMATCH — sync will refuse');
+                $this->line(sprintf('  [%-10s] %-44s OK %dms — %s', $r['transport'], $r['url'], $r['latency_ms'], $vNote));
             }
-
-            $ms = (int) (microtime(true) * 1000) - $startedMs;
-
-            if (! $resp->successful()) {
-                $this->line(sprintf('  [%-10s] %-44s HTTP %d (%dms)', $rung['transport'], $rung['url'], $resp->status(), $ms));
-
-                continue;
-            }
-
-            $reached++;
-            $peerCv = (string) (((array) $resp->json())['constitutional_version'] ?? '');
-            $vNote = $peerCv === ''
-                ? 'no version advertised'
-                : ($peerCv === $settings->constitutionalVersion() ? 'version MATCH' : 'version MISMATCH — sync will refuse');
-            $this->line(sprintf('  [%-10s] %-44s OK %dms — %s', $rung['transport'], $rung['url'], $ms, $vNote));
         }
 
         $this->newLine();
-        $this->line($reached.'/'.count($rungs).' transport(s) reached '.$target.'.');
+        $this->line($result['reached'].'/'.$result['total'].' transport(s) reached '.$target.'.');
 
-        return $reached > 0 ? self::SUCCESS : self::FAILURE;
+        return $result['reached'] > 0 ? self::SUCCESS : self::FAILURE;
     }
 }
