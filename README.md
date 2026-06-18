@@ -103,8 +103,9 @@ second thing is just **the code** from this page.
    ```
 3. **Start the app:**
    - On a normal PC: `cp .env.example .env && docker compose up -d`
-   - **On a Raspberry Pi** (or any ARM device): run **`./deploy.sh`** instead — it auto-picks the
-     Pi-compatible database image. (The plain `docker compose up` uses an Intel-only one.)
+   - **On a Raspberry Pi** (or any ARM device): run **`./deploy.sh --with-etl`** instead — it
+     auto-picks the Pi-compatible database image **and** starts the map-data importer (both now
+     build on ARM). The plain `docker compose up` uses an Intel-only database image.
 4. **Open it.** From the same machine: **<http://localhost:8080/setup>**. From another device on
    your network: `http://<the-computer's-IP-address>:8080/setup`.
 
@@ -117,7 +118,9 @@ The first page detects the empty database and walks you through, one button at a
 1. **Database setup** — click to apply the schema.
 2. **Cosmic address** — which place is this instance for (a neighborhood, a city, a country… up to the whole planet)?
 3. **Constitutional defaults** — set the rules.
-4. **Map data** — load the maps + population (pick one country for a quick first run).
+4. **Map data** — load the maps + population. You stage the geoBoundaries + WorldPop files
+   first (see [docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md)); scope to **one country** to
+   keep it small instead of the full ~14 GB world.
 5. **Districts** — it draws them automatically.
 6. **Confirm + seat institutions** — finish, and it creates your **founder login**.
 

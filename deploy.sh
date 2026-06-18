@@ -13,6 +13,7 @@
 #
 # Examples:
 #   ./deploy.sh                                    # default ports (8080/5432/5173)
+#   ./deploy.sh --with-etl                         # a FOUNDER node that will import map data (incl. Raspberry Pi)
 #   ./deploy.sh --prefix fcm --nginx-port 8082 --pg-port 5434 --vite-port 5175 \
 #               --join http://host.docker.internal:8081 --key handle.secret
 #
@@ -27,6 +28,7 @@ PROJECT=""
 SEED=""
 JOIN_URL=""
 JOIN_KEY=""
+WITH_ETL=""
 
 usage() {
   sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
@@ -43,6 +45,7 @@ while [[ $# -gt 0 ]]; do
     --seed)        SEED="1"; shift;;
     --join)        JOIN_URL="$2"; shift 2;;
     --key)         JOIN_KEY="$2"; shift 2;;
+    --with-etl)    WITH_ETL="1"; shift;;
     -h|--help)     usage; exit 0;;
     *) echo "Unknown option: $1" >&2; usage; exit 1;;
   esac
@@ -87,12 +90,15 @@ set_env APP_ENV   production
 set_env APP_DEBUG false
 
 echo "→ Bringing up the stack (project=${PROJECT}, prefix=${PREFIX}, nginx :${NGINX_PORT})…"
-# Explicit service list: omit `etl` (heavy geospatial Python — no arm64 wheels,
-# and a mirror ingests no geodata) and `vite` (dev HMR server — a deployed box
-# serves the built assets produced at the end of this script). nginx is started
-# LAST (after the app is healthy + assets built) — bringing it up here would make
-# compose abort the `up` while waiting on a php-fpm still mid composer-install.
-"${DC[@]}" up -d --build app postgres redis horizon scheduler
+# Explicit service list. Always omit `vite` (dev HMR — a deployed box serves the built
+# assets produced at the end). `etl` (the geoBoundaries+WorldPop loader) is OPT-IN via
+# --with-etl: a FOUNDING node that will import map data needs it (its image now builds on
+# amd64 AND arm64/Raspberry Pi); a mirror ingests no geodata and skips it. nginx starts
+# LAST (after the app is healthy + assets built) so compose never aborts the `up` waiting
+# on a php-fpm still mid composer-install.
+SERVICES=(app postgres redis horizon scheduler)
+[[ -n "$WITH_ETL" ]] && SERVICES+=(etl)
+"${DC[@]}" up -d --build "${SERVICES[@]}"
 
 echo "→ Waiting for PostgreSQL…"
 for _ in $(seq 1 60); do

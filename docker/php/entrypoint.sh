@@ -127,6 +127,17 @@ if ! su -s /bin/sh www-data -c 'test -w /var/www/html/storage/logs && test -w /v
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 fi
 
+# ── ETL control dir writability (same native-Linux bind-mount class) ──────
+# The setup wizard's Map Data step writes scripts/etl/control/request.json for the etl
+# supervisor to pick up. That dir is gitignored (runtime-only), so on a fresh clone it
+# doesn't exist; on a native-Linux/Pi bind mount the parent is host-owned, so the www-data
+# FPM worker can neither create nor write it → the wizard 500s ("Could not create ETL
+# control directory"). Ensure it exists and is group-writable by www-data (the etl
+# container shares the same dir at /etl/control). Idempotent; cheap (one small dir).
+mkdir -p /var/www/html/scripts/etl/control 2>/dev/null || true
+chgrp -R www-data /var/www/html/scripts/etl/control 2>/dev/null || true
+chmod -R 0775     /var/www/html/scripts/etl/control 2>/dev/null || true
+
 # .env must also be readable by the FPM user. On a host with a restrictive
 # umask (e.g. 077) deploy.sh's `cp .env.example .env` yields mode 600 owned by
 # the host uid, so www-data can't read it → MissingAppKeyException + a silent

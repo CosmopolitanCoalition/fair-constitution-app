@@ -28,6 +28,7 @@ param(
   [string]$SelfUrl   = "",
   [string]$Project   = "",
   [switch]$Seed,
+  [switch]$WithEtl,
   [string]$Join      = "",
   [string]$Key       = ""
 )
@@ -79,7 +80,12 @@ Set-EnvVar "APP_DEBUG" "false"
 # produced at the end). nginx starts LAST so compose never aborts the up waiting on a
 # php-fpm still mid composer-install.
 Write-Host "-> Bringing up the stack (project=$Project, prefix=$Prefix, nginx :$NginxPort)..."
-docker @dc up -d --build app postgres redis horizon scheduler
+# `etl` (geoBoundaries+WorldPop loader) is OPT-IN via -WithEtl: a FOUNDING node that will
+# import map data needs it (builds on amd64 AND arm64); a mirror skips it. vite is omitted
+# (a deployed box serves built assets).
+$services = @("app", "postgres", "redis", "horizon", "scheduler")
+if ($WithEtl) { $services += "etl" }
+docker @dc up -d --build @services
 
 Write-Host "-> Waiting for PostgreSQL..."
 for ($i = 0; $i -lt 60; $i++) {
