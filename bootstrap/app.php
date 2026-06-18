@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::prefix('api/federation')
                 ->middleware('throttle:300,1')
                 ->group(__DIR__.'/../routes/federation.php');
+
+            // Phase G (G8b / C5) — public nearest-node routing, also OUTSIDE the web
+            // group (stateless: no session, no CSRF, no cookie). Tighter throttle than
+            // S2S as an anti-enumeration backstop; never persists a supplied coordinate.
+            Route::prefix('api/mesh')
+                ->middleware('throttle:60,1')
+                ->group(__DIR__.'/../routes/mesh.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
