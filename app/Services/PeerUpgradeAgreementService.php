@@ -11,7 +11,9 @@ use App\Models\OperatorAccount;
 use App\Models\PeerUpgradeConsent;
 use App\Models\PeerUpgradeProposal;
 use App\Services\Federation\InstanceIdentityService;
+use App\Services\Federation\MultiplexClient;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -55,6 +57,7 @@ class PeerUpgradeAgreementService
         private readonly InstanceIdentityService $identity,
         private readonly UpgradeFreezeService $freeze,
         private readonly ConstitutionalVersionService $version,
+        private readonly MultiplexClient $multiplex,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -351,6 +354,30 @@ class PeerUpgradeAgreementService
 
             return $consent;
         });
+    }
+
+    /**
+     * Deliver OUR mesh consent to the PROPOSER over the survival mesh (Meter C, A2).
+     * The co-affected peer side: having learned of a proposal (it rides the synced
+     * audit tail), we sign our decision and reach the proposer's
+     * /api/federation/upgrade/consent over the multiplex ladder. The request itself is
+     * peer-signed (the middleware authenticates us); the body signature is recorded as
+     * at-rest provenance. The proposer records it via recordPeerConsent, which
+     * re-verifies our co-affected standing — no trust is conferred by delivery alone.
+     */
+    public function deliverConsent(string $proposalId, string $proposerServerId, bool $consented): Response
+    {
+        $canonical = AuditService::canonicalJson([
+            'proposal_id' => $proposalId,
+            'peer_server_id' => $this->identity->serverId(),
+            'result' => $consented ? 'yes' : 'no',
+        ]);
+
+        return $this->multiplex->reach($proposerServerId, 'POST', '/api/federation/upgrade/consent', [
+            'proposal_id' => $proposalId,
+            'consented' => $consented,
+            'signature' => $this->identity->sign($canonical),
+        ]);
     }
 
     // -------------------------------------------------------------------------

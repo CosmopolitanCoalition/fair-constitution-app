@@ -7,6 +7,7 @@ use App\Http\Controllers\Federation\MeshOperatorController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\ReadWriteController;
 use App\Http\Controllers\Federation\SyncController;
+use App\Http\Controllers\Federation\UpgradeConsentController;
 use App\Http\Controllers\Federation\WriteController;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +69,12 @@ Route::post('/operator/announce', [MeshOperatorController::class, 'announce'])
 // for a jurisdiction subtree. Recorded as an intake; granting is the governed
 // flow (G6 / G-VER), never this endpoint.
 Route::post('/request-read-write', [ReadWriteController::class, 'request'])
+    ->middleware('federation.signed');
+
+// ── Upgrade consent (G-VER / A2) — a co-affected pinned peer delivers its Meter C
+// mesh consent for one of our open upgrade proposals. Standing (authoritative for a
+// jurisdiction in the affected subtree) is enforced by the service, not the route.
+Route::post('/upgrade/consent', [UpgradeConsentController::class, 'store'])
     ->middleware('federation.signed');
 
 // ── Geodata manifest (G3c, N3) — a pinned peer pulls our signed dataset manifest.
