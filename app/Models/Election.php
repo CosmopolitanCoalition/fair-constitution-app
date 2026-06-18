@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ConstitutionalVersionService;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -78,6 +79,9 @@ class Election extends Model
         'executive_id',
         // Phase E (E-1): the judiciary a `judicial`-kind election fills.
         'judiciary_id',
+        // Phase G (G-VER): the constitutional_version pinned at creation — the
+        // count + countback run under THESE rules (Art. II §7).
+        'constitutional_version',
     ];
 
     /** The wrapped ballot key must never serialize (design §B.5.2). */
@@ -92,6 +96,19 @@ class Election extends Model
         'ranked_closes_at'   => 'datetime',
         'certified_at'       => 'datetime',
     ];
+
+    /**
+     * G-VER — pin the then-current constitutional_version when an election is
+     * created, so its count + any countback run under THOSE hardened rules; a
+     * mid-count redeploy cannot re-rule a contest already in flight (Art. II §7).
+     * Derived (memoized), so this is cheap; an explicitly-set value is respected.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $election): void {
+            $election->constitutional_version ??= app(ConstitutionalVersionService::class)->derive();
+        });
+    }
 
     public function jurisdiction(): BelongsTo
     {
