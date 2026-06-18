@@ -94,7 +94,7 @@ Self-advert / `FEDERATION_SELF_URL` = `http://[200::<this-box>]:8080` (or the re
 
 ---
 
-## Onion (censorship-resistant, either pair)
+## Onion (hardened / private, either pair)
 
 `mesh-catalog.json` sets `CGA_FEDERATION_SOCKS_PROXY=socks5h://host.docker.internal:9050` —
 the Tor daemon runs on the **host**, and the container reaches it via the host-gateway entry

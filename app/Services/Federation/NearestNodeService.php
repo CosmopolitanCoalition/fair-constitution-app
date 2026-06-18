@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
  *     touches nothing private (no location_pings, no residency, no user data);
  *   • a supplied coordinate is ROUNDED to a coarse grid and NEVER persisted — there
  *     is no table this writes to and no log of the point;
- *   • results are capped (anti-enumeration) and a censored posture floats
- *     censorship-resistant transports first.
+ *   • results are capped (anti-enumeration) and a secure posture floats the hardened
+ *     (private) transports first.
  *
  * It is a HINT: the node it names re-checks authority on any write (AuthorityResolver),
  * so a stale/hostile entry can at worst mis-route to a node that rejects the request.
@@ -25,7 +25,7 @@ class NearestNodeService
     /** round() decimal places for the opt-in coordinate grid (1 ⇒ ~0.1° ≈ 11 km). */
     private const GRID_PRECISION = 1;
 
-    private const RESISTANT = ['onion', 'yggdrasil'];
+    private const SECURE_TRANSPORTS = ['onion', 'yggdrasil'];
 
     /**
      * Nearest serving nodes to an OPT-IN user coordinate. The coordinate is ROUNDED to
@@ -123,9 +123,9 @@ class NearestNodeService
             }
         }
 
-        // Censored posture: a resistant transport is the first hop, so a blocked
+        // Secure posture: a hardened transport is the first hop, so a blocked/surveilled
         // clearnet endpoint is never the visible front (stable within distance order).
-        if ((bool) config('cga.federation_censorship_floor_first', false)) {
+        if ((bool) config('cga.federation_secure_transport_first', false)) {
             usort($out, fn (array $a, array $b) => $this->floorRank($a) <=> $this->floorRank($b));
         }
 
@@ -134,6 +134,6 @@ class NearestNodeService
 
     private function floorRank(array $endpoint): int
     {
-        return in_array($endpoint['transport'], self::RESISTANT, true) ? 0 : 1;
+        return in_array($endpoint['transport'], self::SECURE_TRANSPORTS, true) ? 0 : 1;
     }
 }

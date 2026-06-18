@@ -4,7 +4,7 @@
   "transports": {
     "https": {
       "label": "Clearnet HTTPS",
-      "censorship": "low",
+      "security": "standard",
       "needs_host_daemon": false,
       "install": { "linux": null, "macos": null, "windows": null },
       "configure": "Expose the nginx port publicly (reverse proxy / port-forward / tunnel) and advertise the reachable https URL.",
@@ -13,7 +13,7 @@
     },
     "tailnet": {
       "label": "Private tailnet (Headscale / Tailscale)",
-      "censorship": "medium",
+      "security": "private",
       "needs_host_daemon": true,
       "install": {
         "linux": "curl -fsSL https://tailscale.com/install.sh | sh",
@@ -25,8 +25,8 @@
       "env": null
     },
     "onion": {
-      "label": "Tor hidden service (censorship-resistant)",
-      "censorship": "high",
+      "label": "Tor hidden service (hardened / private)",
+      "security": "strong",
       "needs_host_daemon": true,
       "install": {
         "linux": "sudo apt-get install -y tor   # or: sudo dnf install -y tor",
@@ -39,7 +39,7 @@
     },
     "yggdrasil": {
       "label": "Yggdrasil overlay (self-routing IPv6, no DNS / no static IP)",
-      "censorship": "high",
+      "security": "strong",
       "needs_host_daemon": true,
       "install": {
         "linux": "sudo apt-get install -y yggdrasil",
@@ -52,7 +52,7 @@
     },
     "sneakernet": {
       "label": "Offline bundle (USB / air-gap export-import)",
-      "censorship": "max",
+      "security": "airgap",
       "needs_host_daemon": false,
       "install": { "linux": null, "macos": null, "windows": null },
       "configure": "No live channel — partition export/import bundles are carried by hand. Advertise nothing; this transport is recorded for provenance only.",
@@ -62,7 +62,7 @@
   },
   "recommend": {
     "volunteer-home": ["tailnet", "https"],
-    "censored-region": ["onion", "yggdrasil"],
+    "secure-default": ["onion", "yggdrasil"],
     "air-gapped": ["sneakernet"],
     "public-anchor-node": ["https", "tailnet", "onion", "yggdrasil"]
   }

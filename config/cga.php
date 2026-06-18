@@ -148,12 +148,13 @@ return [
     | re-closes it. An HTTP RESPONSE of any status (even a 4xx refusal) means
     | the channel delivered bytes and is healthy — only a transport-level failure
     | counts against the circuit. All operational state, never constitutional.
-    | censorship_floor_first makes onion/yggdrasil sort ABOVE clearnet so a blocked
-    | https endpoint is never even the first hop (a censored-network posture).
+    | secure_transport_first makes the hardened overlays (onion/yggdrasil) sort ABOVE
+    | clearnet — the DEFAULT secure/private path for redundancy + integrity, so a blocked
+    | or surveilled https endpoint is never even the first hop.
     */
     'federation_transport_failure_threshold' => env('CGA_FEDERATION_TRANSPORT_FAILURE_THRESHOLD', 3),
     'federation_transport_circuit_cooldown_seconds' => env('CGA_FEDERATION_TRANSPORT_CIRCUIT_COOLDOWN_SECONDS', 60),
-    'federation_censorship_floor_first' => env('CGA_FEDERATION_CENSORSHIP_FLOOR_FIRST', false),
+    'federation_secure_transport_first' => env('CGA_FEDERATION_SECURE_TRANSPORT_FIRST', false),
     // CLK-20 maintenance probe (a cheap GET /identity over a cooled circuit) uses a
     // SHORT timeout — it must never spend the 60s tail-delivery budget, so even many
     // dead rungs across peers cannot stall the heartbeat for minutes.

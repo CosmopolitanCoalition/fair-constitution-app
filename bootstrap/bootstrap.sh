@@ -67,10 +67,10 @@ echo "Reading transports from $(basename "$CATALOG")."
 if [[ -z "$PROFILE" ]]; then
   echo "What is this node?  [a] volunteer mirror  [b] my jurisdiction's server  [c] public anchor"
   node_kind="$(ask "  choice [a]:" "a")"
-  echo "Where is it?        [a] open internet  [b] censored/monitored  [c] air-gapped"
+  echo "Where is it?        [a] open internet  [b] untrusted/public network  [c] air-gapped"
   net_kind="$(ask "  choice [a]:" "a")"
   case "${node_kind}-${net_kind}" in
-    *-b) PROFILE="censored-region";;
+    *-b) PROFILE="secure-default";;
     *-c) PROFILE="air-gapped";;
     c-*) PROFILE="public-anchor-node";;
     *)   PROFILE="volunteer-home";;

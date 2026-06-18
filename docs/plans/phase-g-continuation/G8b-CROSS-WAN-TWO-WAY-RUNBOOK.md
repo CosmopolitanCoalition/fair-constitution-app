@@ -46,7 +46,7 @@ overlay is the mechanism that carries S2S in both directions.
 ## 2. Box A — the mobile node (on the hotspot)
 
 ```bash
-./bootstrap/bootstrap.sh --profile censored-region --prefix fc --nginx-port 8080
+./bootstrap/bootstrap.sh --profile secure-default --prefix fc --nginx-port 8080
 #   include yggdrasil (the double-NAT survivor); optionally https (will only work LAN-side).
 ```
 

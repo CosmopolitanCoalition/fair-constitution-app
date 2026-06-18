@@ -51,10 +51,10 @@ Write-Host "Reading transports from $(Split-Path $CatalogPath -Leaf)."
 if (-not $Profile) {
   Write-Host "What is this node?  [a] volunteer mirror  [b] my jurisdiction's server  [c] public anchor"
   $node = Ask "  choice [a]:" "a"
-  Write-Host "Where is it?        [a] open internet  [b] censored/monitored  [c] air-gapped"
+  Write-Host "Where is it?        [a] open internet  [b] untrusted/public network  [c] air-gapped"
   $net = Ask "  choice [a]:" "a"
   $Profile = switch -Regex ("$node-$net") {
-    '-b$'  { "censored-region"; break }
+    '-b$'  { "secure-default"; break }
     '-c$'  { "air-gapped"; break }
     '^c-'  { "public-anchor-node"; break }
     default { "volunteer-home" }

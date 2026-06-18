@@ -32,7 +32,7 @@ them.
 ./bootstrap/bootstrap.ps1 -Profile public-anchor-node -Prefix fc -NginxPort 8080
 ```
 
-Profiles (from `mesh-catalog.json` → `recommend`): `volunteer-home`, `censored-region`,
+Profiles (from `mesh-catalog.json` → `recommend`): `volunteer-home`, `secure-default`,
 `air-gapped`, `public-anchor-node`. The posture questions preselect one; the operator can
 still toggle each transport.
 

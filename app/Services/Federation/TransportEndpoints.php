@@ -23,8 +23,8 @@ use App\Models\FederationTransportHealth;
  */
 class TransportEndpoints
 {
-    /** Transports that survive a censored uplink — sorted first under censorship_floor_first. */
-    private const CENSORSHIP_RESISTANT = ['onion', 'yggdrasil'];
+    /** The hardened overlay transports — sorted first under secure_transport_first (the default secure path). */
+    private const SECURE_TRANSPORTS = ['onion', 'yggdrasil'];
 
     public function __construct(private readonly DirectoryService $directory) {}
 
@@ -125,12 +125,12 @@ class TransportEndpoints
             ->all();
     }
 
-    /** Sort: censorship floor (if posture set) → health → priority → latency. */
+    /** Sort: secure-transport floor (if posture set) → health → priority → latency. */
     private function compare(array $a, array $b): int
     {
-        if ((bool) config('cga.federation_censorship_floor_first', false)) {
-            $fa = in_array($a['transport'], self::CENSORSHIP_RESISTANT, true) ? 0 : 1;
-            $fb = in_array($b['transport'], self::CENSORSHIP_RESISTANT, true) ? 0 : 1;
+        if ((bool) config('cga.federation_secure_transport_first', false)) {
+            $fa = in_array($a['transport'], self::SECURE_TRANSPORTS, true) ? 0 : 1;
+            $fb = in_array($b['transport'], self::SECURE_TRANSPORTS, true) ? 0 : 1;
             if ($fa !== $fb) {
                 return $fa <=> $fb;
             }

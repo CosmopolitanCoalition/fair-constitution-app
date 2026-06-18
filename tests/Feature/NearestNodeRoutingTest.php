@@ -88,7 +88,7 @@ class NearestNodeRoutingTest extends TestCase
         });
     }
 
-    public function test_empty_result_expired_entries_limit_clamp_and_censorship_floor(): void
+    public function test_empty_result_expired_entries_limit_clamp_and_secure_floor(): void
     {
         $this->onLivePg(function () {
             DB::table('directory_entries')->delete();
@@ -113,8 +113,8 @@ class NearestNodeRoutingTest extends TestCase
             $this->getJson('/api/mesh/nearest?lat='.$j->lat.'&lng='.$j->lng)
                 ->assertOk()->assertExactJson(['nodes' => []]);
 
-            // (c) A live entry with both a resistant and a clearnet endpoint: limit clamps
-            // and, under a censored posture, the resistant transport is the first hop.
+            // (c) A live entry with both a hardened and a clearnet endpoint: limit clamps
+            // and, under a secure posture, the hardened transport is the first hop.
             DB::table('directory_entries')->delete();
             DirectoryEntry::create([
                 'jurisdiction_id' => (string) $j->id, 'server_id' => (string) Str::uuid(),
@@ -131,9 +131,9 @@ class NearestNodeRoutingTest extends TestCase
             // limit=0 clamps up to >=1 (still a 200).
             $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id.'&limit=0')->assertOk();
 
-            config(['cga.federation_censorship_floor_first' => true]);
-            $censored = $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id)->assertOk();
-            $this->assertSame('onion', $censored->json('nodes.0.transport'), 'censored posture floats the resistant transport first');
+            config(['cga.federation_secure_transport_first' => true]);
+            $secured = $this->getJson('/api/mesh/nearest?jurisdiction='.$j->id)->assertOk();
+            $this->assertSame('onion', $secured->json('nodes.0.transport'), 'secure posture floats the hardened transport first');
         });
     }
 

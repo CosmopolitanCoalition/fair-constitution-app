@@ -174,20 +174,20 @@ class MultiplexClientTest extends TestCase
         });
     }
 
-    public function test_censorship_floor_first_sorts_resistant_transports_above_clearnet(): void
+    public function test_secure_transport_first_sorts_hardened_above_clearnet(): void
     {
         $this->onLivePg(function () {
             $peerId = $this->trustedPeer('https://anchor.test');
             $this->transport($peerId, 'https', 'https://anchor.test', 200);   // higher priority
             $this->transport($peerId, 'onion', 'http://anchor.onion', 50);    // lower priority
 
-            config(['cga.federation_censorship_floor_first' => false]);
+            config(['cga.federation_secure_transport_first' => false]);
             $open = app(TransportEndpoints::class)->forPeer($peerId);
             $this->assertSame('https', $open[0]['transport'], 'open posture: priority wins');
 
-            config(['cga.federation_censorship_floor_first' => true]);
-            $censored = app(TransportEndpoints::class)->forPeer($peerId);
-            $this->assertSame('onion', $censored[0]['transport'], 'censored posture: a resistant transport is the first hop');
+            config(['cga.federation_secure_transport_first' => true]);
+            $secured = app(TransportEndpoints::class)->forPeer($peerId);
+            $this->assertSame('onion', $secured[0]['transport'], 'secure posture: a hardened transport is the first hop');
         });
     }
 
@@ -341,15 +341,15 @@ class MultiplexClientTest extends TestCase
         });
     }
 
-    public function test_censorship_floor_outranks_health(): void
+    public function test_secure_transport_floor_outranks_health(): void
     {
         $this->onLivePg(function () {
-            config(['cga.federation_censorship_floor_first' => true]);
+            config(['cga.federation_secure_transport_first' => true]);
             $peerId = $this->trustedPeer('https://anchor.test');
             $this->transport($peerId, 'https', 'https://anchor.test', 200);
             $this->transport($peerId, 'onion', 'http://anchor.onion', 50);
             // The resistant transport is UNHEALTHY (tripped, within cooldown); clearnet is
-            // healthy. Censored posture STILL ranks onion first so a blocked clearnet
+            // healthy. Secure posture STILL ranks onion first so a blocked clearnet
             // endpoint is never the visible first hop.
             FederationTransportHealth::create([
                 'server_id' => $peerId, 'transport' => 'onion', 'url' => 'http://anchor.onion',
