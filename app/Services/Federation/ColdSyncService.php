@@ -7,7 +7,6 @@ use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\SyncCursor;
 use App\Models\SyncLogEntry;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use RuntimeException;
 
@@ -27,7 +26,7 @@ use RuntimeException;
 class ColdSyncService
 {
     public function __construct(
-        private readonly FederationClient $client,
+        private readonly MultiplexClient $multiplex,
         private readonly FederationSyncService $sync,
     ) {}
 
@@ -116,10 +115,12 @@ class ColdSyncService
     }
 
     /**
-     * Fetch one page (idempotent GET), retrying transient WAN failures — connection
-     * resets/timeouts and 5xx — with exponential backoff before giving up (Phase G,
-     * G8b). A 4xx is a definitive answer (misconfig/auth) and is never retried. A
-     * brief blip on a real WAN link must not abort a multi-hour backfill.
+     * Fetch one page (idempotent GET) over the multiplex ladder (G8b), retrying
+     * transient WAN failures — every transport down (NoSurvivingTransport) or a 5xx —
+     * with exponential backoff before giving up. The multiplex itself fails over across
+     * a peer's transports per attempt; this loop adds the cross-attempt retry for a
+     * brief total blip so it never aborts a multi-hour backfill. A 4xx is a definitive
+     * answer (misconfig/auth) and is never retried.
      */
     private function fetchPageWithRetry(FederationPeer $peer, int $from, int $pageSize): Response
     {
@@ -129,7 +130,7 @@ class ColdSyncService
 
         for ($attempt = 1; $attempt <= $attempts; $attempt++) {
             try {
-                $response = $this->client->get($peer->url, '/api/federation/audit-tail', [
+                $response = $this->multiplex->reach((string) $peer->server_id, 'GET', '/api/federation/audit-tail', [
                     'from_seq' => $from,
                     'page_size' => $pageSize,
                 ]);
@@ -145,8 +146,8 @@ class ColdSyncService
                 }
 
                 $last = "HTTP {$response->status()}";
-            } catch (ConnectionException $e) {
-                $last = 'connection error: '.$e->getMessage();
+            } catch (NoSurvivingTransport $e) {
+                $last = 'no surviving transport: '.$e->getMessage();
             }
 
             if ($attempt < $attempts && $backoffMs > 0) {

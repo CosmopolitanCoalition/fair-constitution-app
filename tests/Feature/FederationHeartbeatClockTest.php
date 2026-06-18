@@ -74,6 +74,7 @@ class FederationHeartbeatClockTest extends TestCase
                 app(FederationSyncService::class),
                 app(ClockService::class),
                 app(\App\Services\Federation\ColdSyncService::class),
+                app(\App\Services\Federation\MultiplexClient::class),
             );
 
             $this->assertNotNull($peer->refresh()->last_heartbeat_at, 'the trusted peer was pinged');

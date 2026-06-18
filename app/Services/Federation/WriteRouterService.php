@@ -30,7 +30,7 @@ class WriteRouterService
 {
     public function __construct(
         private readonly AuthorityResolver $authority,
-        private readonly FederationClient $client,
+        private readonly MultiplexClient $multiplex,
         private readonly ConstitutionalEngine $engine,
         private readonly ResolvesForwardedActor $forwardedActor,
         private readonly InstanceIdentityService $identity,
@@ -90,17 +90,24 @@ class WriteRouterService
 
         $peer = FederationPeer::query()->where('server_id', $serverId)->first();
 
-        if ($peer === null || ! $peer->url) {
+        if ($peer === null) {
             throw new ForwardedWriteRefused('no_route_to_authoritative_leader', 421);
         }
 
-        $response = $this->client->post($peer->url, '/api/federation/write', [
-            'form_id' => $formId,
-            'payload' => $payload,
-            'actor' => $actorEnvelope,
-            'origin_server_id' => $this->identity->serverId(),
-            'idempotency_key' => $idempotencyKey ?? $this->contentKey($formId, $payload),
-        ]);
+        // The SAME signed write travels the multiplex ladder until one transport
+        // delivers (G8b); a peer unreachable over EVERY channel is a no-route refusal,
+        // exactly as an unreachable single url was before.
+        try {
+            $response = $this->multiplex->reach($serverId, 'POST', '/api/federation/write', [
+                'form_id' => $formId,
+                'payload' => $payload,
+                'actor' => $actorEnvelope,
+                'origin_server_id' => $this->identity->serverId(),
+                'idempotency_key' => $idempotencyKey ?? $this->contentKey($formId, $payload),
+            ]);
+        } catch (NoSurvivingTransport) {
+            throw new ForwardedWriteRefused('no_route_to_authoritative_leader', 421);
+        }
 
         return ['status_code' => $response->status(), 'leader' => $serverId, 'body' => $response->json()];
     }

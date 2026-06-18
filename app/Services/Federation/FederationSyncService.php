@@ -30,7 +30,7 @@ class FederationSyncService
 {
     public function __construct(
         private readonly InstanceIdentityService $identity,
-        private readonly FederationClient $client,
+        private readonly MultiplexClient $multiplex,
         private readonly AuditService $audit,
         private readonly AuthorityResolver $authority,
     ) {}
@@ -208,7 +208,10 @@ class FederationSyncService
         $fromSeq = (int) ($peer->last_synced_seq ?? 0);
         $tail = $this->buildAuditTail($fromSeq);
 
-        $response = $this->client->post($peer->url, '/api/federation/sync', $tail);
+        // The SAME signed tail travels the multiplex ladder (G8b); a peer unreachable
+        // over every channel raises NoSurvivingTransport, which the heartbeat catches
+        // per-peer exactly as it caught a single-url ConnectionException before.
+        $response = $this->multiplex->reach((string) $peer->server_id, 'POST', '/api/federation/sync', $tail);
         $ok = $response->successful();
 
         $log = DB::transaction(function () use ($peer, $tail, $ok, $response) {

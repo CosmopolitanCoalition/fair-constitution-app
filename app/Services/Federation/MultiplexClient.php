@@ -75,6 +75,33 @@ class MultiplexClient
     }
 
     /**
+     * CLK-20 maintenance probe — re-learn a peer's NOT-healthy transports so a degraded
+     * channel is rediscovered even when a healthy sibling is carrying all the traffic.
+     * Without this the multiplex would MASK a real outage: the preferred channel could
+     * stay down indefinitely because reach() keeps succeeding over a fallback and never
+     * retries the dead one. Dials a cheap GET /identity over each open/half-open rung,
+     * recording the outcome; healthy rungs are left alone. Returns the number probed.
+     */
+    public function probeUnhealthy(string $serverId): int
+    {
+        $probed = 0;
+
+        foreach ($this->endpoints->forPeer($serverId) as $cand) {
+            if ($cand['circuit'] === FederationTransportHealth::CIRCUIT_CLOSED) {
+                continue; // healthy — nothing to re-learn
+            }
+            if (! $this->transportLocallyAvailable($cand['transport'])) {
+                continue;
+            }
+
+            $this->dial($serverId, $cand, 'GET', '/api/federation/identity', []);
+            $probed++;
+        }
+
+        return $probed;
+    }
+
+    /**
      * Dial ONE candidate. Returns the Response on delivery (any HTTP status), or null
      * on a transport-level failure (already recorded as a circuit failure).
      */

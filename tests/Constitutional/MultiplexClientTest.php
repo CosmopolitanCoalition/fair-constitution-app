@@ -378,6 +378,56 @@ class MultiplexClientTest extends TestCase
         });
     }
 
+    public function test_clk20_probe_recovers_a_degraded_transport(): void
+    {
+        $this->onLivePg(function () {
+            $peerId = $this->trustedPeer('https://probe.test'); // legacy https rung
+            FederationTransportHealth::create([
+                'server_id' => $peerId, 'transport' => 'https', 'url' => 'https://probe.test',
+                'circuit_state' => FederationTransportHealth::CIRCUIT_OPEN,
+                'consecutive_failures' => 3, 'last_fail_at' => now(),
+            ]);
+            Http::fake(['*probe.test*' => Http::response(['server_id' => $peerId], 200)]);
+
+            $probed = app(MultiplexClient::class)->probeUnhealthy($peerId);
+
+            $this->assertSame(1, $probed, 'the one degraded rung was probed');
+            $this->assertSame(
+                FederationTransportHealth::CIRCUIT_CLOSED,
+                $this->health($peerId, 'https', 'https://probe.test')->circuit_state,
+                'a recovered transport is re-learned even with no traffic flowing to it',
+            );
+        });
+    }
+
+    public function test_clk20_probe_leaves_a_dead_transport_open_and_skips_healthy_ones(): void
+    {
+        $this->onLivePg(function () {
+            config(['cga.federation_transport_failure_threshold' => 3]);
+            $peerId = $this->trustedPeer('https://dead.test'); // legacy https rung (still dead)
+            $this->transport($peerId, 'tailnet', 'http://100.64.0.60:8081', 100); // healthy, never probed
+            FederationTransportHealth::create([
+                'server_id' => $peerId, 'transport' => 'https', 'url' => 'https://dead.test',
+                'circuit_state' => FederationTransportHealth::CIRCUIT_OPEN,
+                'consecutive_failures' => 3, 'last_fail_at' => now(),
+            ]);
+            Http::fake([
+                '*dead.test*' => fn () => throw new ConnectionException('still down'),
+                '*100.64.0.60*' => Http::response([], 200),
+            ]);
+
+            $probed = app(MultiplexClient::class)->probeUnhealthy($peerId);
+
+            $this->assertSame(1, $probed, 'only the unhealthy rung is probed; the healthy tailnet is left alone');
+            $this->assertSame(FederationTransportHealth::CIRCUIT_OPEN, $this->health($peerId, 'https', 'https://dead.test')->circuit_state);
+            $this->assertSame(
+                0,
+                FederationTransportHealth::query()->where('server_id', $peerId)->where('transport', 'tailnet')->count(),
+                'a healthy transport is not probed (no wasted dial)',
+            );
+        });
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private function trustedPeer(string $url): string

@@ -8,6 +8,7 @@ use App\Models\SyncCursor;
 use App\Services\ClockService;
 use App\Services\Federation\ColdSyncService;
 use App\Services\Federation\FederationSyncService;
+use App\Services\Federation\MultiplexClient;
 use App\Services\Federation\PeerService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,7 +31,7 @@ class FederationHeartbeatJob implements ShouldQueue
 
     public function __construct(public readonly ?string $timerId = null) {}
 
-    public function handle(PeerService $peers, FederationSyncService $sync, ClockService $clocks, ColdSyncService $cold): void
+    public function handle(PeerService $peers, FederationSyncService $sync, ClockService $clocks, ColdSyncService $cold, MultiplexClient $multiplex): void
     {
         if (! InstanceSettings::current()->federation_enabled) {
             return; // the fire itself is already chained
@@ -52,6 +53,11 @@ class FederationHeartbeatJob implements ShouldQueue
                 if ($this->hasOpenColdCursor($peer)) {
                     $cold->pull($peer, $pagesPerTick);
                 }
+
+                // CLK-20 maintenance (G8b): re-probe this peer's degraded transports so a
+                // dead channel is rediscovered even though pushTo succeeded over a healthy
+                // sibling — the multiplex must not silently mask a real outage.
+                $multiplex->probeUnhealthy((string) $peer->server_id);
             } catch (\Throwable $e) {
                 report($e); // a dead peer must not break the heartbeat for the rest
             }

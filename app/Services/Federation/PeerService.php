@@ -32,6 +32,7 @@ class PeerService
         private readonly FederationClient $client,
         private readonly AuditService $audit,
         private readonly TransportService $transports,
+        private readonly MultiplexClient $multiplex,
     ) {}
 
     /**
@@ -94,7 +95,9 @@ class PeerService
         $payload['url'] = config('cga.federation_self_url');
         $payload['transports'] = $this->transports->selfEndpoints();
 
-        $response = $this->client->post($peer->url, '/api/federation/handshake', $payload);
+        // Handshake over the multiplex ladder (G8b) — the peer's transports learned at
+        // discovery are already in the ladder, so a handshake survives a down clearnet.
+        $response = $this->multiplex->reach((string) $peer->server_id, 'POST', '/api/federation/handshake', $payload);
 
         if (! $response->successful()) {
             throw new RuntimeException("Handshake with {$peer->url} failed (HTTP {$response->status()}).");
