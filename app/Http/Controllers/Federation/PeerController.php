@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FederationPeer;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
+use App\Services\Federation\TransportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,13 +19,19 @@ class PeerController extends Controller
     public function __construct(
         private readonly InstanceIdentityService $identity,
         private readonly PeerService $peers,
+        private readonly TransportService $transports,
     ) {}
 
-    /** GET /api/federation/identity (public) — our advertised identity. */
+    /** GET /api/federation/identity (public) — our advertised identity + transports. */
     public function identity(): JsonResponse
     {
         return response()->json(
-            $this->identity->handshakePayload() + ['url' => config('cga.federation_self_url')]
+            $this->identity->handshakePayload() + [
+                'url' => config('cga.federation_self_url'),
+                // G8b — every channel we are reachable over, so a discoverer populates
+                // its failover ladder up front (not just our single legacy url).
+                'transports' => $this->transports->selfEndpoints(),
+            ]
         );
     }
 
@@ -39,6 +46,11 @@ class PeerController extends Controller
             'schema_version' => ['nullable', 'string'],
             'constitutional_version' => ['nullable', 'string'],
             'app_release' => ['nullable', 'string'],
+            // G8b — the peer's reachable channels (learned into the ladder).
+            'transports' => ['nullable', 'array'],
+            'transports.*.transport' => ['nullable', 'string'],
+            'transports.*.url' => ['nullable', 'string'],
+            'transports.*.priority' => ['nullable', 'integer'],
         ]);
 
         return response()->json($this->peers->receiveHandshake($payload));

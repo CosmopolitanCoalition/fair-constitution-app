@@ -31,6 +31,7 @@ class PeerService
         private readonly InstanceIdentityService $identity,
         private readonly FederationClient $client,
         private readonly AuditService $audit,
+        private readonly TransportService $transports,
     ) {}
 
     /**
@@ -73,6 +74,10 @@ class PeerService
         $peer->status ??= FederationPeer::STATUS_DISCOVERED;
         $peer->save();
 
+        // Learn every channel the peer advertises (G8b) — the multiplex ladder's
+        // primary source. Pre-G8b peers advertise no transports → ladder = legacy url.
+        $this->transports->recordPeerTransports($serverId, (array) ($remote['transports'] ?? []));
+
         $this->audit->append('federation', 'peer.discovered',
             ['peer_server_id' => $serverId, 'url' => $url], 'WF-JUR-06');
 
@@ -87,6 +92,7 @@ class PeerService
     {
         $payload = $this->identity->handshakePayload();
         $payload['url'] = config('cga.federation_self_url');
+        $payload['transports'] = $this->transports->selfEndpoints();
 
         $response = $this->client->post($peer->url, '/api/federation/handshake', $payload);
 
@@ -115,6 +121,9 @@ class PeerService
             'app_release' => $remote['app_release'] ?? $peer->app_release,
         ]);
         $peer->save();
+
+        // Learn the peer's full transport set from its handshake response (G8b).
+        $this->transports->recordPeerTransports($remoteServerId, (array) ($remote['transports'] ?? []));
 
         $this->audit->append('federation', 'peer.trust_established',
             ['peer_server_id' => $remoteServerId, 'url' => $peer->url, 'direction' => 'initiated'], 'WF-JUR-06');
@@ -149,7 +158,14 @@ class PeerService
             'app_release' => $payload['app_release'] ?? null,
         ], FederationPeer::RELATION_SOVEREIGN, 'received');
 
-        return $this->identity->handshakePayload() + ['url' => config('cga.federation_self_url')];
+        // Learn the introducing peer's transports (G8b), and advertise ours back so
+        // the initiator's ladder is populated symmetrically.
+        $this->transports->recordPeerTransports($serverId, (array) ($payload['transports'] ?? []));
+
+        return $this->identity->handshakePayload() + [
+            'url' => config('cga.federation_self_url'),
+            'transports' => $this->transports->selfEndpoints(),
+        ];
     }
 
     /**
