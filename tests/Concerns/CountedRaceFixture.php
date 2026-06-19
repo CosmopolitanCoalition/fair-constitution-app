@@ -28,11 +28,13 @@ use Illuminate\Support\Str;
 trait CountedRaceFixture
 {
     /**
+     * @param  string|null  $jurisdictionId  build the race in this specific (board-free)
+     *                                        jurisdiction; null = pick any board-free one.
      * @return array{0: Election, 1: ElectionRace, 2: string} [election, race, certified record_hash]
      */
-    protected function buildCountedRace(): array
+    protected function buildCountedRace(?string $jurisdictionId = null): array
     {
-        $jurisdictionId = $this->boardFreeJurisdiction();
+        $jurisdictionId = $jurisdictionId ?? $this->boardFreeJurisdiction();
 
         $board = ElectionBoard::create([
             'jurisdiction_id' => $jurisdictionId,

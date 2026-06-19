@@ -138,8 +138,16 @@ class OperationalBundleService
                     $rawKe = base64_decode((string) ($entry['k_e'] ?? ''), true);
                     $election = $electionId !== '' ? Election::query()->find($electionId) : null;
 
-                    if ($election === null || $rawKe === false) {
-                        // A malformed/unknown entry fails the whole atomic apply.
+                    // A malformed/unknown entry — or a k_e that is not exactly
+                    // secretbox-key-length — fails the whole atomic apply CLOSED. The
+                    // length guard matters: a wrong-length k_e would otherwise throw an
+                    // uncaught InvalidArgumentException from BallotCrypto::wrapDataKey
+                    // BEFORE adopt()'s transaction, surfacing as a 500 with no ledger row
+                    // instead of a clean fail-closed 422 + FAILED inbound row like every
+                    // other corrupt-bundle case.
+                    if ($election === null
+                        || $rawKe === false
+                        || strlen($rawKe) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
                         throw new BallotRewrapFailed($electionId, null, 'bundle entry references an unknown election or a malformed key');
                     }
 

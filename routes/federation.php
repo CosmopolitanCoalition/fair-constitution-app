@@ -50,6 +50,13 @@ Route::get('/checkpoint', [SyncController::class, 'checkpoint'])
 Route::post('/flip', [FlipController::class, 'receive'])
     ->middleware('federation.signed');
 
+// ── Operational bundle (G5/G5a) — the DATA half of a governed authority flip: a
+// pinned peer delivers the subtree's per-election keys SEALED to us; we open them
+// (only we can) and re-wrap each under our KEK, fail-closed. The manifest half
+// rides /flip; this carries what must never touch the routine sync tail.
+Route::post('/flip/operational', [FlipController::class, 'receiveOperational'])
+    ->middleware('federation.signed');
+
 // ── Join-key adoption (G2) — a would-be mirror presents a join key (tofu) ──
 Route::post('/adopt', [AdoptionController::class, 'adopt'])
     ->middleware('federation.signed:tofu');

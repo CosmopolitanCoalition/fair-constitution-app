@@ -3,11 +3,14 @@
 namespace App\Services\Jurisdictions;
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\Election;
+use App\Models\FederationPeer;
 use App\Models\Legislature;
 use App\Models\LocalAutonomyProcess;
 use App\Models\MultiJurisdictionVote;
 use App\Services\AuditService;
 use App\Services\ConstitutionalValidator;
+use App\Services\Federation\OperationalBundleService;
 use App\Services\Federation\PartitionExportService;
 use App\Services\MultiJurisdictionVoteService;
 use App\Support\CivicPopulation;
@@ -36,6 +39,7 @@ class LocalAutonomyService
         private readonly MultiJurisdictionVoteService $mjv,
         private readonly PartitionExportService $partition,
         private readonly AuditService $audit,
+        private readonly OperationalBundleService $operationalBundle,
     ) {}
 
     /**
@@ -122,8 +126,16 @@ class LocalAutonomyService
      * Finalize: requires BOTH the promoting supermajority AND the parent MJV passed.
      * On dual passage the subtree's authority flips to the gaining cluster. On a
      * missing meter it FAILS and flips nothing — earned autonomy is never unilateral.
+     *
+     * On a successful flip the subtree's per-election ballot keys are SEALED to the
+     * gaining cluster (G5) so its elections stay re-countable after authority moves
+     * (the operator-locked decision #1) — election keys must travel WITH authority,
+     * not be stranded on the relinquishing instance. The returned
+     * {@see AutonomyFlipResult} carries that sealed bundle for the transport to
+     * deliver to the gaining side's /api/federation/flip/operational endpoint, where
+     * G5a re-wraps each key fail-closed. The bundle is never persisted in the clear.
      */
-    public function finalize(LocalAutonomyProcess $process): LocalAutonomyProcess
+    public function finalize(LocalAutonomyProcess $process): AutonomyFlipResult
     {
         $process = $process->refresh();
         $mjv = MultiJurisdictionVote::query()->find($process->parent_process_id);
@@ -142,11 +154,10 @@ class LocalAutonomyService
             );
         }
 
-        return DB::transaction(function () use ($process): LocalAutonomyProcess {
+        return DB::transaction(function () use ($process): AutonomyFlipResult {
             // THE AUTHORITY FLIP — the subtree's authoritative_server_id moves to the
             // gaining cluster, relinquishing authority from the current (parent)
-            // authoritative instance. Leadership (Patroni) is untouched. The
-            // operational bundle (G5) + fail-closed re-wrap (G5a) deliver the keys.
+            // authoritative instance. Leadership (Patroni) is untouched.
             $subtree = array_values(array_unique(array_merge(
                 [(string) $process->promoting_jurisdiction_id],
                 $this->partition->descendants((string) $process->promoting_jurisdiction_id),
@@ -170,7 +181,45 @@ class LocalAutonomyService
                 'subtree_size'              => count($subtree),
             ], 'F-LEG-036', null, (string) $process->promoting_jurisdiction_id);
 
-            return $process->refresh();
+            // G5/G5a — seal the subtree's per-election keys to the gaining cluster so
+            // its sealed elections stay re-countable once authority has moved. Only
+            // when the subtree actually holds sealed elections AND the gaining cluster
+            // is a pinned co-member (it must be, to receive a sealed box). If keys
+            // exist but the gaining peer isn't pinned yet, the handover is AUDITED as
+            // deferred rather than silently dropped — the keys must never be stranded.
+            $sealed = null;
+            $bundleExport = null;
+
+            $subtreeHasSealedElections = Election::query()
+                ->whereIn('jurisdiction_id', $subtree)
+                ->whereNotNull('ballot_key_wrapped')
+                ->exists();
+
+            if ($subtreeHasSealedElections) {
+                $gainingPeer = FederationPeer::query()
+                    ->where('server_id', (string) $process->gaining_server_id)
+                    ->whereNull('deleted_at')
+                    ->first();
+
+                if ($gainingPeer !== null && $gainingPeer->public_key !== null) {
+                    $bundle = $this->operationalBundle->buildSealedFor(
+                        (string) $process->promoting_jurisdiction_id,
+                        $gainingPeer,
+                    );
+                    $sealed = $bundle['sealed'];
+                    $bundleExport = $bundle['export'];
+                } else {
+                    $this->audit->append('legislature', 'local_autonomy.operational_bundle_deferred', [
+                        'process_id'        => (string) $process->id,
+                        'gaining_server_id' => (string) $process->gaining_server_id,
+                        'reason'            => $gainingPeer === null
+                            ? 'the gaining cluster is not yet a pinned co-member — election keys cannot be sealed to it'
+                            : 'the gaining peer has no pinned public key — election keys cannot be sealed to it',
+                    ], 'F-LEG-036', null, (string) $process->promoting_jurisdiction_id);
+                }
+            }
+
+            return new AutonomyFlipResult($process->refresh(), $sealed, $bundleExport);
         });
     }
 }

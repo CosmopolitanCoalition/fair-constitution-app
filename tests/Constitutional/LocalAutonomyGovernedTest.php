@@ -95,7 +95,7 @@ class LocalAutonomyGovernedTest extends TestCase
             $svc->markPromotingSupermajority($process, 3); // population 3 → supermajority 2 → met
             $this->consentParent($process);                 // parent MJV passes (supermajority of 1 = 1)
 
-            $passed = $svc->finalize($process);
+            $passed = $svc->finalize($process)->process;
 
             $this->assertSame(LocalAutonomyProcess::STATUS_PASSED, $passed->status);
             $this->assertSame($gaining, $passed->resulting_authoritative_server_id);
