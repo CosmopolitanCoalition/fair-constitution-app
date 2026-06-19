@@ -38,7 +38,13 @@ class MatrixRoomCreationService
         $existing = MatrixRoom::query()
             ->where('entity_type', $entityType)
             ->where('entity_id', $entityId)
-            ->where('space_type', $spaceType)
+            // space_type is null for a Space — `where(…, null)` never matches NULL, so a re-run
+            // would miss the existing row and hit the (NULLS NOT DISTINCT) unique. Use whereNull.
+            ->when(
+                $spaceType === null,
+                fn ($q) => $q->whereNull('space_type'),
+                fn ($q) => $q->where('space_type', $spaceType),
+            )
             ->whereNull('tombstoned_at')
             ->whereNotNull('matrix_room_id')
             ->first();
@@ -57,7 +63,9 @@ class MatrixRoomCreationService
             );
         }
 
-        $created = $this->client->createRoom($this->buildCommonsRoomBody($title, $alias));
+        $created = $this->client->createRoom(
+            $this->buildCommonsRoomBody($title, $alias, $roomType === MatrixRoom::ROOM_SPACE)
+        );
 
         return MatrixRoom::query()->create([
             'matrix_room_id' => $created['room_id'],
@@ -78,7 +86,7 @@ class MatrixRoomCreationService
      * appservice in K3-G), and users = {} so the only power in the room is the v12 creator's implicit,
      * unencodable, infinite power held by the appservice. Public + world_readable + unencrypted.
      */
-    public function buildCommonsRoomBody(string $title, ?string $alias): array
+    public function buildCommonsRoomBody(string $title, ?string $alias, bool $isSpace = false): array
     {
         $body = [
             'room_version' => self::REQUIRED_VERSION,
@@ -112,6 +120,12 @@ class MatrixRoomCreationService
                 ['type' => 'm.room.guest_access', 'state_key' => '', 'content' => ['guest_access' => 'forbidden']],
             ],
         ];
+
+        // A jurisdiction Space (m.space) is also a v12 appservice-sole-creator room — the power-clamp
+        // applies identically; only the create-event type differs.
+        if ($isSpace) {
+            $body['creation_content'] = ['type' => 'm.space'];
+        }
 
         if ($alias !== null) {
             $body['room_alias_name'] = $alias;

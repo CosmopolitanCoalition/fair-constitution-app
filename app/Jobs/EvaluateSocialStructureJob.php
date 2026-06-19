@@ -4,12 +4,14 @@ namespace App\Jobs;
 
 use App\Models\Legislature;
 use App\Models\SocialSpace;
+use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Social\SubforumReconciler;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Phase K-1 — the social-structure sweep. For each civically-active jurisdiction it ensures the
@@ -29,7 +31,7 @@ class EvaluateSocialStructureJob implements ShouldQueue
 
     public function __construct(public readonly ?string $jurisdictionId = null) {}
 
-    public function handle(SubforumReconciler $reconciler): void
+    public function handle(SubforumReconciler $reconciler, SocialTopologyReconcilerService $topology): void
     {
         $jurisdictionIds = $this->jurisdictionId !== null
             ? [$this->jurisdictionId]
@@ -47,6 +49,19 @@ class EvaluateSocialStructureJob implements ShouldQueue
             );
 
             $reconciler->reconcile($halls, $reconciler->gatherLiveObjects($jurisdictionId));
+
+            // Phase K-3 — mirror the jurisdiction topology into Matrix (Plane B). Bridged, NOT merged:
+            // a down/unreachable homeserver must NEVER fail the Plane A sweep above, so this is
+            // best-effort. #halls is gated on a seated legislature (the FLIP-ON-SEATEDNESS gate).
+            try {
+                $isSeated = Legislature::query()
+                    ->where('jurisdiction_id', $jurisdictionId)
+                    ->where('status', Legislature::STATUS_ACTIVE)
+                    ->exists();
+                $topology->reconcileJurisdiction($jurisdictionId, $isSeated);
+            } catch (\Throwable $e) {
+                Log::warning('Matrix topology reconcile skipped for jurisdiction '.$jurisdictionId.': '.$e->getMessage());
+            }
         }
     }
 
