@@ -209,6 +209,7 @@ services:
       - matrix_data:/data
       - ./docker/matrix/conf.d:/data/conf.d:ro
       - ./docker/matrix/entrypoint.sh:/cga-matrix-entrypoint.sh:ro
+      - ./docker/matrix/appservice/registration.yaml:/data/appservice-registration.yaml:ro
     healthcheck:
       # python is guaranteed in the image (Synapse is Python); curl is not.
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8008/_matrix/client/versions')\" || exit 1"]

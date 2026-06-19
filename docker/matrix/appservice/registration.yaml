@@ -1,0 +1,41 @@
+# Phase K-3 — the CGA appservice registration (Synapse ↔ the in-Laravel appservice).
+#
+# The appservice owns the @u-* pseudonymous user namespace + the civic room/alias namespaces, and
+# authenticates to Synapse with as_token (it sends) / hs_token (Synapse sends). This is a Synapse-level
+# construct INDEPENDENT of MAS — MAS handles human login; the appservice drives room governance via the
+# as_token. `url` is where Synapse pushes transactions: the CGA nginx, which routes /_matrix/app/ → the
+# Laravel AS routes (a more-specific location than the /_matrix/ → Synapse proxy).
+#
+# DEV tokens (same risk class as the repo's dev APP_KEY / MAS secret); `php artisan matrix:setup`
+# regenerates fresh tokens + rewrites this file for any real deployment.
+id: cga
+url: http://nginx
+as_token: cga_dev_as_token_3f9a1c7e5b2d4860a1f6c8e02b7d9043
+hs_token: cga_dev_hs_token_8d2e4b6a0c1f3957e84a2d6b09c5f718
+sender_localpart: cga-appservice
+# Receive ephemeral EDUs (typing/receipts) — harmless, useful for the live client later.
+de.sorunome.msc2409.push_ephemeral: true
+namespaces:
+  users:
+    - exclusive: true
+      regex: "@u-.*"            # CGA pseudonymous residents (@u-<handle>)
+    - exclusive: true
+      regex: "@cga-appservice"  # the appservice's own sender
+  aliases:
+    - exclusive: false
+      regex: "#square-.*"
+    - exclusive: false
+      regex: "#halls-.*"
+    - exclusive: false
+      regex: "#bill-.*"
+    - exclusive: false
+      regex: "#petition-.*"
+    - exclusive: false
+      regex: "#ref-.*"
+    - exclusive: false
+      regex: "#committee-.*"
+    - exclusive: false
+      regex: "#org-.*"
+    - exclusive: false
+      regex: "#space-.*"
+  rooms: []

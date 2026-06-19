@@ -32,12 +32,15 @@ return [
         'client_base_url' => env('APP_URL', 'http://localhost:8080'),
     ],
 
-    // The appservice registration (tokens minted by `php artisan matrix:setup`, K3-D).
+    // The appservice registration. as_token = the appservice→Synapse credential; hs_token = what
+    // Synapse sends TO the appservice (verified by VerifyMatrixAppService). These DEV defaults MUST
+    // match docker/matrix/appservice/registration.yaml; `php artisan matrix:setup` regenerates both
+    // in sync for a real deployment (same dev-secret pattern as the repo's APP_KEY).
     'appservice' => [
         'id'               => 'cga',
         'sender_localpart' => 'cga-appservice',
-        'as_token'         => env('MATRIX_AS_TOKEN'),
-        'hs_token'         => env('MATRIX_HS_TOKEN'),
+        'as_token'         => env('MATRIX_AS_TOKEN', 'cga_dev_as_token_3f9a1c7e5b2d4860a1f6c8e02b7d9043'),
+        'hs_token'         => env('MATRIX_HS_TOKEN', 'cga_dev_hs_token_8d2e4b6a0c1f3957e84a2d6b09c5f718'),
     ],
 
     // MAS (Matrix Authentication Service) — the OIDC provider Synapse delegates auth to (K3-C).

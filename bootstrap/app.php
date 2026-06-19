@@ -26,6 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::prefix('api/mesh')
                 ->middleware('throttle:60,1')
                 ->group(__DIR__.'/../routes/mesh.php');
+
+            // Phase K-3 — the CGA appservice AS-API (Synapse → Laravel), OUTSIDE the web group (no
+            // session/CSRF); authenticated by the hs_token (VerifyMatrixAppService). nginx routes
+            // /_matrix/app/ here. Generous throttle — Synapse batches up to 100 events per transaction.
+            Route::middleware(['throttle:600,1', 'matrix.appservice'])
+                ->group(__DIR__.'/../routes/matrix.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -48,6 +54,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // Phase F — Ed25519 peer-signature auth for /api/federation/*
             // (modes: public|tofu|pinned). NOT user/session auth.
             'federation.signed' => \App\Http\Middleware\VerifyPeerSignature::class,
+            // Phase K-3 — hs_token auth for the appservice AS-API (Synapse → Laravel). NOT user auth.
+            'matrix.appservice' => \App\Http\Middleware\VerifyMatrixAppService::class,
         ]);
 
         // WI-4: the dev-tools 404 gate must run BEFORE 'auth' (whose

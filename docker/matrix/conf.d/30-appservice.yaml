@@ -1,0 +1,6 @@
+# Phase K-3 — register the CGA appservice with Synapse. The appservice owns the @u-* user namespace
+# + the civic room aliases and drives all room governance (creation, posting-as-residents, carve-out
+# redactions) via its as_token — independent of MAS (which handles human login). Mounted read-only
+# from docker/matrix/appservice/registration.yaml.
+app_service_config_files:
+  - /data/appservice-registration.yaml
