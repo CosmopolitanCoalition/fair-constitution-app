@@ -394,6 +394,7 @@ class FormRegistry
         // → PublicRecordService::publish) registers in K1-C; F-SOC-003 (the carve-out
         // removal, judicial-office-gated) in K1-E.
         'F-SOC-001' => Handlers\SocialThreadPost::class,
+        'F-SOC-002' => Handlers\SocialTestimonyFiling::class,
     ];
 
     /**
