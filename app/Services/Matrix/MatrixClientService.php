@@ -41,6 +41,15 @@ class MatrixClientService
         return $this->http()->get('/_matrix/client/v3/capabilities')->throw()->json();
     }
 
+    /** Fetch a single event (its REAL sender + content + origin_server_ts) — the testimony bridge's
+     *  ground truth: the snapshot + the own-post check are made against this, not a caller's claim. */
+    public function getEvent(string $roomId, string $eventId): array
+    {
+        $path = '/_matrix/client/v3/rooms/'.rawurlencode($roomId).'/event/'.rawurlencode($eventId);
+
+        return $this->http()->get($path)->throw()->json();
+    }
+
     /** The homeserver's supported room versions + default, queried LIVE (never hardcode — K3-E gate). */
     public function roomVersions(): array
     {

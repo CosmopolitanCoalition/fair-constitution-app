@@ -4,6 +4,7 @@ namespace App\Domain\Forms\Handlers;
 
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
+use App\Models\MatrixEventSnapshot;
 use App\Models\SocialPost;
 use App\Models\SocialSpace;
 use App\Models\SocialSubforum;
@@ -49,6 +50,13 @@ class SocialTestimonyFiling implements FormHandler
     {
         if ($actor === null) {
             throw new ConstitutionalViolation('Testimony is filed by a resident.', 'Art. I');
+        }
+
+        // Phase K-3 — a testimony filed from a live Matrix message (Plane B → Plane A). The own-post +
+        // halls gates were checked by TestimonyBridgeService against the REAL event; here we seal the
+        // snapshot into the SAME append-only register and record the matrix_event_snapshots back-pointer.
+        if (isset($payload['matrix_event_id'])) {
+            return $this->handleMatrixOrigin($actor, $payload);
         }
 
         $post = SocialPost::query()->find($payload['post_id'] ?? null);
@@ -98,6 +106,44 @@ class SocialTestimonyFiling implements FormHandler
             'post_id'             => (string) $post->id,
             'published_record_id' => (string) $record->id,
             'jurisdiction_id'     => (string) $space->jurisdiction_id,
+        ];
+    }
+
+    /** Seal a Matrix-origin testimony snapshot into public_records (same chain seal as the social path). */
+    private function handleMatrixOrigin(User $actor, array $payload): array
+    {
+        $record = $this->records->publish(
+            kind: 'testimony',
+            title: 'Testimony (halls)',
+            body: (string) ($payload['body_snapshot'] ?? ''),
+            attrs: [
+                'actor_user_id'   => (string) $actor->getKey(),
+                'actor_display'   => (string) ($payload['actor_display'] ?? ''),   // pseudonym — never name/email
+                'jurisdiction_id' => (string) ($payload['jurisdiction_id'] ?? ''),
+                'legislature_id'  => null,
+                'via_form'        => 'F-SOC-002',
+                // The Matrix-event link is the matrix_event_snapshots row below, NOT the record's
+                // subject (subject_id is a UUID column; a Matrix event id is not one). General testimony.
+                'subject_type'    => null,
+                'subject_id'      => null,
+            ],
+        );
+
+        MatrixEventSnapshot::query()->create([
+            'matrix_event_id'     => (string) $payload['matrix_event_id'],
+            'matrix_room_id'      => (string) ($payload['matrix_room_id'] ?? ''),
+            'published_record_id' => $record->id,                    // THE back-pointer (uuid, not seq)
+            'actor_display'       => (string) ($payload['actor_display'] ?? ''),
+            'origin_server_ts'    => $payload['origin_server_ts'] ?? null,
+            'body_snapshot'       => (string) ($payload['body_snapshot'] ?? ''),
+        ]);
+
+        return [
+            'record_seq'          => (int) $record->seq,
+            'record_id'           => (string) $record->id,
+            'published_record_id' => (string) $record->id,
+            'matrix_event_id'     => (string) $payload['matrix_event_id'],
+            'jurisdiction_id'     => (string) ($payload['jurisdiction_id'] ?? ''),
         ];
     }
 }
