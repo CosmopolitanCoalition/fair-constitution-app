@@ -222,6 +222,27 @@ services:
     networks:
       - fc_network
 
+  # ─── Matrix Authentication Service (MAS — Phase K-3, OIDC for Matrix) ───
+  # MSC3861 OIDC provider fronting Synapse — the homeserver never sees a password; CGA login is the
+  # only credential (CGA-as-upstream-OIDC wired in K3-C provisioning). Rust, light. Its own
+  # matrix_auth DB (created in K3-A). Synapse delegates auth to it via the matrix_authentication_service
+  # conf.d block. On a fresh box `php artisan matrix:setup` (K3-D) generates the config + the secret it
+  # shares with Synapse; the dev config lives at docker/matrix/mas/config.yaml (gitignored — carries keys).
+  mas:
+    image: ${MAS_IMAGE:-ghcr.io/element-hq/matrix-authentication-service:latest}
+    container_name: ${CONTAINER_PREFIX:-fc}_mas
+    restart: unless-stopped
+    command: ["server", "--config", "/config/config.yaml"]
+    ports:
+      - "${MAS_HOST_PORT:-8090}:8080"
+    volumes:
+      - ./docker/matrix/mas/config.yaml:/config/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fc_network
+
   # ─── Redis 7 ─────────────────────────────────────────────────
   redis:
     image: redis:7.4-alpine

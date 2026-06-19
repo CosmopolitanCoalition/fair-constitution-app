@@ -89,6 +89,11 @@ case "$(uname -m)" in aarch64|arm64) set_env POSTGIS_IMAGE imresamu/postgis:17-3
 # is unverified there); until it passes, deploy pulls Synapse everywhere. Override to test Dendrite.
 set_env MATRIX_IMPL  synapse
 set_env MATRIX_IMAGE ghcr.io/element-hq/synapse:latest
+# MAS (the OIDC auth service fronting Synapse, Phase K-3). NOTE: a production deploy must run
+# `php artisan matrix:setup` (K3-D) to regenerate the MAS config + the Synapse-shared secret BEFORE
+# bringing MAS up — the committed docker/matrix/mas/config.yaml carries DEV-ONLY secrets. So this
+# only sets the image; the `mas` service is brought up by matrix:setup, not here.
+set_env MAS_IMAGE ghcr.io/element-hq/matrix-authentication-service:latest
 
 # Deployed posture: production + debug off. deploy.sh produces a built-asset
 # instance (no Vite/HMR) viewable from any machine on the network; a dev box uses

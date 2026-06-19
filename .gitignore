@@ -67,3 +67,7 @@ Thumbs.db
 # ~150 MB self-hostable base map; fetched via scripts/setup/fetch_protomaps.sh
 # at install time, never committed.
 public/maps/*.pmtiles
+
+# Phase K-3 — scratch output of `mas-cli config generate` (the committed dev config is config.yaml,
+# carrying DEV-ONLY secrets like the repo's dev APP_KEY; deploy.sh / matrix:setup regenerate for prod)
+docker/matrix/mas/config.generated.yaml

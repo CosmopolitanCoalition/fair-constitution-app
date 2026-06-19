@@ -33,9 +33,9 @@ class WellKnownController extends Controller
         return response()->json([
             'm.homeserver'      => ['base_url' => $base],
             'org.matrix.msc2965.authentication' => [
-                // The CGA-run OIDC provider (MAS) — CGA login is the only credential (K3-C).
-                'issuer'  => config('matrix.mas.base_url'),
-                'account' => rtrim((string) config('matrix.mas.base_url'), '/').'/account',
+                // The OIDC provider (MAS) Synapse delegates to — the public issuer clients reach.
+                'issuer'  => config('matrix.mas.issuer'),
+                'account' => rtrim((string) config('matrix.mas.issuer'), '/').'/account',
             ],
         ])->header('Access-Control-Allow-Origin', '*');
     }

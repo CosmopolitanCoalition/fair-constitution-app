@@ -40,9 +40,12 @@ return [
         'hs_token'         => env('MATRIX_HS_TOKEN'),
     ],
 
-    // MAS (Matrix Authentication Service) — the OIDC provider CGA login delegates to (K3-C).
+    // MAS (Matrix Authentication Service) — the OIDC provider Synapse delegates auth to (K3-C).
     'mas' => [
-        'base_url' => env('MATRIX_MAS_URL', 'http://mas:8080'),
+        // Public issuer — what browsers/clients reach (and what .well-known advertises).
+        'issuer'   => env('MATRIX_MAS_ISSUER', 'http://localhost:8090/'),
+        // Internal endpoint — how Synapse (and the appservice) reach MAS over the Docker network.
+        'endpoint' => env('MATRIX_MAS_URL', 'http://mas:8080/'),
     ],
 
     // LiveKit (Element Call SFU) for voice/video (K3-J). Dev-stack only; Pi A/V deferred to scaling.

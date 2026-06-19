@@ -75,6 +75,9 @@ if ($arch -match 'ARM64') { Set-EnvVar "POSTGIS_IMAGE" "imresamu/postgis:17-3.5"
 # Dendrite as the arm64/Pi default is deferred to the K3-N rig spike; until it passes, Synapse.
 Set-EnvVar "MATRIX_IMPL"  "synapse"
 Set-EnvVar "MATRIX_IMAGE" "ghcr.io/element-hq/synapse:latest"
+# MAS image (Phase K-3). A production deploy must run `php artisan matrix:setup` (K3-D) to regenerate
+# the MAS config + Synapse-shared secret before bringing MAS up (the committed config.yaml is DEV-only).
+Set-EnvVar "MAS_IMAGE" "ghcr.io/element-hq/matrix-authentication-service:latest"
 
 # Deployed posture: production + debug off (parity with deploy.sh). deploy.ps1 stands up a
 # built-asset instance; a dev box uses `docker compose up` (local + HMR) instead.

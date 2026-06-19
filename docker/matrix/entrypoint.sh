@@ -12,12 +12,15 @@ if [ ! -f /data/homeserver.yaml ]; then
   /start.py generate
 fi
 
-# Run synapse directly with BOTH the generated base config AND the CGA overrides explicitly
-# merged. The image's `run` does NOT auto-discover /data/conf.d, so without this the generated
-# sqlite/defaults win; passing the override as a later --config-path replaces the database block
-# (→ the shared postgres 'matrix' DB), the empty federation whitelist, and the no-policy-server
-# posture. Runs as root (the generated files are root-owned), so /data stays writable.
-exec python -m synapse.app.homeserver \
-  --config-path /data/homeserver.yaml \
-  --config-path /data/conf.d/10-cga.yaml
+# Run synapse with the generated base config + EVERY CGA override in /data/conf.d (sorted) merged
+# on top. The image's `run` does NOT auto-discover conf.d, so we pass each file explicitly as a
+# later --config-path (later wins): 10-cga.yaml swaps in postgres + the empty federation whitelist +
+# no policy server; 20-mas.yaml delegates auth to MAS. Globbing (not naming files) means a fresh box
+# with only 10-cga.yaml still boots, and new overrides drop in without editing this script. Runs as
+# root (the generated files are root-owned), so /data stays writable.
+EXTRA=""
+for f in /data/conf.d/*.yaml; do
+  [ -e "$f" ] && EXTRA="$EXTRA --config-path $f"
+done
+exec python -m synapse.app.homeserver --config-path /data/homeserver.yaml $EXTRA
 

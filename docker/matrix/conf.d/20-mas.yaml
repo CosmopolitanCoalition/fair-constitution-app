@@ -1,0 +1,17 @@
+# Phase K-3 — Synapse delegates authentication to MAS (MSC3861 / OIDC).
+#
+# With this enabled the homeserver NO LONGER does its own password login or registration — MAS is
+# the OIDC authority and the homeserver never sees a password (the whole point: CGA login is the only
+# credential, reached through MAS's upstream-OIDC, wired in the K3-C provisioning step).
+#
+# `secret` MUST equal matrix.secret in docker/matrix/mas/config.yaml. This is a DEV secret (same risk
+# class as the repo's dev APP_KEY in .env.example); deploy.sh / `php artisan matrix:setup` regenerate a
+# fresh matched pair for any real deployment.
+matrix_authentication_service:
+  enabled: true
+  endpoint: http://mas:8080/
+  secret: jrMzG1lUJWsj8PsQRzBwU2WScSbinZ4p
+
+# MAS owns login + registration now; make Synapse's local password auth explicitly inert.
+password_config:
+  enabled: false
