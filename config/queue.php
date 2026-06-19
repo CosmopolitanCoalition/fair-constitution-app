@@ -103,7 +103,10 @@ return [
     */
 
     'batching' => [
-        'database' => env('DB_CONNECTION', 'sqlite'),
+        // pgsql default (not the Laravel-skeleton 'sqlite') — same footgun class as
+        // config/database.php: this app is PostgreSQL-only, and a sqlite fall-through in
+        // an env-hiccup window targets a nonexistent database.sqlite.
+        'database' => env('DB_CONNECTION', 'pgsql'),
         'table' => 'job_batches',
     ],
 
@@ -122,7 +125,8 @@ return [
 
     'failed' => [
         'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
+        // pgsql default (not 'sqlite') for the same reason as config/database.php.
+        'database' => env('DB_CONNECTION', 'pgsql'),
         'table' => 'failed_jobs',
     ],
 

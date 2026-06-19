@@ -89,6 +89,13 @@ case "$(uname -m)" in aarch64|arm64) set_env POSTGIS_IMAGE imresamu/postgis:17-3
 set_env APP_ENV   production
 set_env APP_DEBUG false
 
+# The `database` cache store backstops the federation/mesh throttle limiter whenever
+# CACHE_STORE ever resolves to `database`. Pin its connection to pgsql so it can never fall
+# through to the sqlite default and 500 every /api/federation route. A fresh clone gets this
+# from .env.example; setting it here also covers an IN-PLACE upgrade whose pre-existing .env
+# predates the key (the cp .env.example above only runs when .env is absent).
+set_env DB_CACHE_CONNECTION pgsql
+
 echo "→ Bringing up the stack (project=${PROJECT}, prefix=${PREFIX}, nginx :${NGINX_PORT})…"
 # Explicit service list. Always omit `vite` (dev HMR — a deployed box serves the built
 # assets produced at the end). `etl` (the geoBoundaries+WorldPop loader) is OPT-IN via

@@ -75,6 +75,11 @@ if ($arch -match 'ARM64') { Set-EnvVar "POSTGIS_IMAGE" "imresamu/postgis:17-3.5"
 Set-EnvVar "APP_ENV"   "production"
 Set-EnvVar "APP_DEBUG" "false"
 
+# Pin the database cache store (federation/mesh throttle backstop) to pgsql so it can never
+# fall through to the sqlite default and 500 every /api/federation route. Fresh clones get
+# this from .env.example; this also covers an in-place upgrade whose .env predates the key.
+Set-EnvVar "DB_CACHE_CONNECTION" "pgsql"
+
 # Explicit service list (parity with deploy.sh): omit `etl` (heavy geospatial Python a
 # federation node never uses) and `vite` (dev HMR — a deployed box serves the built assets
 # produced at the end). nginx starts LAST so compose never aborts the up waiting on a

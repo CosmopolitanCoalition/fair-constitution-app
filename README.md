@@ -167,6 +167,14 @@ up, registers them, and runs a readiness check. *(Linux/Pi needs `jq` first:
 ./bootstrap/bootstrap.ps1
 ```
 
+> **Your node needs a peer-reachable address first.** A plain founder deploy (Path 1/2) sets
+> `FEDERATION_SELF_URL` to a container-local default (`host.docker.internal:8080`) that other
+> machines can't reach — so peers can't call you back. `bootstrap.sh` sets this for you, and
+> `deploy.sh --self-url http://<this-machine's-LAN-IP-or-public-host>:8080` (`-SelfUrl` on
+> Windows) does it on a deploy. If you deployed by hand, set `FEDERATION_SELF_URL` in `.env` to
+> an address peers can actually reach before joining. `php artisan mesh:gates` flags a still-local
+> address as the "callback URL is local-only" warning.
+
 Then, in the browser, open **`/federation`**, sign in as operator, and use the
 **"Two-way mesh — setup & gates"** panel to **Discover** a peer, **Handshake** it, and **Probe**
 the connection — with a green/amber/red readiness checklist (the operator's "run the tests, get

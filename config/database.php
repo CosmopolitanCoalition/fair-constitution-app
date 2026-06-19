@@ -16,7 +16,19 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    // This app is PostgreSQL + PostGIS ONLY — sqlite is never a valid backend
+    // (PostGIS geometry types, recursive district CTEs, etc.). Default to pgsql
+    // (not the Laravel-skeleton 'sqlite'): if env ever resolves to the default —
+    // a stale bootstrap/cache/config.php, a boot-window race, or a momentarily
+    // unreadable .env — the app, and in particular the `database` cache store
+    // that backstops the federation/mesh throttle:N,1 rate-limiter, lands on
+    // pgsql (which has the cache table) instead of a nonexistent database.sqlite.
+    // The sqlite fall-through 500s EVERY /api/federation route inbound (a peer
+    // can't discover/handshake/sync) — surfaced by the fresh-Pi mesh test and
+    // invisible on a dev box that happens to have a stray database.sqlite.
+    // Tests pin DB_CONNECTION=sqlite explicitly in phpunit.xml, so they are
+    // unaffected by this default.
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
