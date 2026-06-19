@@ -46,9 +46,11 @@ class MatrixClientService
     {
         $caps = $this->capabilities()['capabilities']['m.room_versions'] ?? [];
 
+        // Room versions are STRINGS ('11', '12') — but json_decode coerces the available map's
+        // numeric keys to PHP ints, so strval() them or a strict in_array('12', …, true) misses.
         return [
-            'default'   => $caps['default'] ?? null,
-            'available' => array_keys($caps['available'] ?? []),
+            'default'   => isset($caps['default']) ? (string) $caps['default'] : null,
+            'available' => array_map('strval', array_keys($caps['available'] ?? [])),
         ];
     }
 
