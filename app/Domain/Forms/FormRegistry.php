@@ -5,7 +5,9 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the 103 constitutional forms.
+ * Canonical registry of the constitutional forms — 107 total: the 103 Template forms +
+ * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
+ * F-SOC-001/002/003 (public square / halls testimony / carve-out removal).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -172,6 +174,11 @@ class FormRegistry
         'F-ADV-002' => ['name' => 'Motion Filing',                              'roles' => ['R-21']],
         'F-ADV-003' => ['name' => 'Evidence Submission',                        'roles' => ['R-21']],
         'F-ADV-004' => ['name' => 'Brief / Argument Filing',                    'roles' => ['R-21']],
+
+        // ── F-SOC — Social / Civic-Commons Forms (Phase K-1) ────────────────
+        'F-SOC-001' => ['name' => 'Social Thread / Post',                       'roles' => ['R-03']],
+        'F-SOC-002' => ['name' => 'File Testimony in Hall',                     'roles' => ['R-03']],
+        'F-SOC-003' => ['name' => 'Public-Square Removal (carve-out)',          'roles' => ['R-19', 'R-20']],
     ];
 
     /**
@@ -381,6 +388,12 @@ class FormRegistry
         'F-LEG-028' => Handlers\CulturalInstitutionRecognitionVote::class,
         'F-LEG-029' => Handlers\UnionFormationJoinVote::class,
         'F-LEG-030' => Handlers\DisintermediationVote::class,
+
+        // ── Phase K-1 — the civic record plane (public square + halls). F-SOC-001
+        // opens a thread/post (residency-only, uncensorable). F-SOC-002 (testimony
+        // → PublicRecordService::publish) registers in K1-C; F-SOC-003 (the carve-out
+        // removal, judicial-office-gated) in K1-E.
+        'F-SOC-001' => Handlers\SocialThreadPost::class,
     ];
 
     /**
