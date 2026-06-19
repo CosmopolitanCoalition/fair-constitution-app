@@ -42,6 +42,11 @@ Route::get('/', function (Request $request) {
         : Inertia::render('Home');
 });
 
+// Phase K-3 — Matrix .well-known delegation (public, no auth). Served dynamically so
+// MATRIX_DOMAIN/APP_URL resolve per instance (nginx cannot env-substitute a JSON body).
+Route::get('/.well-known/matrix/server', [\App\Http\Controllers\Matrix\WellKnownController::class, 'server']);
+Route::get('/.well-known/matrix/client', [\App\Http\Controllers\Matrix\WellKnownController::class, 'client']);
+
 // Setup wizard — WordPress-style install flow.
 Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::get('/setup/step/{n}', [SetupController::class, 'step'])

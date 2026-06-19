@@ -1,0 +1,41 @@
+# Phase K-3 — CGA overrides, merged OVER the generated /data/homeserver.yaml
+# (the Synapse image reads /data/conf.d/*.yaml after the base config; later top-level
+# keys replace earlier ones). The base config's per-instance secrets + signing key
+# (generated once into the /data volume on first boot) are left untouched.
+
+# The homeserver's database = a second logical 'matrix' DB on the SHARED fc_postgres
+# server (created with C collation, which Synapse requires — see docker/postgres/init.sql
+# + the deploy idempotent guard). Replaces the generated sqlite block.
+database:
+  name: psycopg2
+  args:
+    user: fc_user
+    password: fc_password
+    database: matrix
+    host: postgres
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+# Mesh-gated federation (design §6.4): an EMPTY whitelist federates with NO peer by
+# default. The appservice syncs the CGA federation_peers list in (K3-E); a scale_demo
+# instance keeps it empty (CI-2 — a demo has no consent to federate).
+federation_domain_whitelist: []
+
+# Single listener on 8008 behind the CGA nginx /_matrix/ proxy (x_forwarded so Synapse
+# trusts the proxy's X-Forwarded-* headers). client + federation resources on one port.
+listeners:
+  - port: 8008
+    type: http
+    tls: false
+    x_forwarded: true
+    bind_addresses: ['0.0.0.0']
+    resources:
+      - names: [client, federation]
+        compress: false
+
+# Identities are minted via the CGA OIDC/MAS surface (K3-C), never open registration.
+enable_registration: false
+# Public commons rooms are created v12 sole-creator by the appservice (K3-E); no policy
+# server is ever designated on a public room (Art. I — viewpoint prior-restraint forbidden).
+suppress_key_server_warning: true

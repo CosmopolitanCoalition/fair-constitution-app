@@ -182,6 +182,46 @@ services:
     networks:
       - fc_network
 
+  # ─── Matrix homeserver (Phase K-3 — the live commons, Plane B) ───
+  # Synapse (dev default; Dendrite is the Pi candidate via MATRIX_IMPL / MATRIX_IMAGE).
+  # ONE CGA instance = ONE homeserver, federating peer-to-peer like the federation_peers mesh;
+  # the in-Laravel CGA appservice is the only thing that talks to it. matrix-org/synapse was
+  # ARCHIVED Apr 2024 — development + the maintained image moved to element-hq (AGPLv3). On
+  # first boot the entrypoint generates config + signing key into the volume, then runs with the
+  # CGA conf.d overrides (postgres on the shared server, empty federation whitelist, no policy
+  # server) merged on top. The matrix DB is created by init.sql (fresh volume) / the deploy guard.
+  matrix:
+    image: ${MATRIX_IMAGE:-ghcr.io/element-hq/synapse:latest}
+    container_name: ${CONTAINER_PREFIX:-fc}_matrix
+    restart: unless-stopped
+    environment:
+      SYNAPSE_SERVER_NAME: ${MATRIX_DOMAIN:-localhost}
+      SYNAPSE_REPORT_STATS: "no"
+      SYNAPSE_CONFIG_DIR: /data
+      # Run as root so the root-owned named /data volume is writable (dev parity with php-fpm -R).
+      UID: "0"
+      GID: "0"
+    entrypoint: ["/bin/sh", "/cga-matrix-entrypoint.sh"]
+    command: ["run"]
+    ports:
+      - "${MATRIX_HOST_PORT:-8008}:8008"   # set MATRIX_HOST_PORT per checkout (parent 8008, worktrees bump)
+    volumes:
+      - matrix_data:/data
+      - ./docker/matrix/conf.d:/data/conf.d:ro
+      - ./docker/matrix/entrypoint.sh:/cga-matrix-entrypoint.sh:ro
+    healthcheck:
+      # python is guaranteed in the image (Synapse is Python); curl is not.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8008/_matrix/client/versions')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fc_network
+
   # ─── Redis 7 ─────────────────────────────────────────────────
   redis:
     image: redis:7.4-alpine
@@ -361,6 +401,8 @@ services:
 # ─── Named Volumes ────────────────────────────────────────────
 volumes:
   postgres_data:
+    driver: local
+  matrix_data:                 # Phase K-3 — Synapse config, signing key, media store
     driver: local
   redis_data:
     driver: local

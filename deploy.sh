@@ -82,6 +82,14 @@ set_env APP_URL            "http://localhost:${NGINX_PORT}"
 # servers, Apple Silicon) use the multi-arch rebuild. amd64 keeps the default.
 case "$(uname -m)" in aarch64|arm64) set_env POSTGIS_IMAGE imresamu/postgis:17-3.5 ;; esac
 
+# Matrix homeserver image (Phase K-3). Synapse is the verified default on EVERY arch
+# (feature-complete: v12 immutable-creator + appservice + MAS; matrix-org/synapse was archived
+# Apr 2024 → maintained image at element-hq, AGPLv3). The lighter Dendrite as the arm64/Pi
+# default is DEFERRED to the K3-N rig spike (its v12 / appservice-sole-creator / whitelist support
+# is unverified there); until it passes, deploy pulls Synapse everywhere. Override to test Dendrite.
+set_env MATRIX_IMPL  synapse
+set_env MATRIX_IMAGE ghcr.io/element-hq/synapse:latest
+
 # Deployed posture: production + debug off. deploy.sh produces a built-asset
 # instance (no Vite/HMR) viewable from any machine on the network; a dev box uses
 # `docker compose up` (local + HMR) instead — these .env values only steer the
@@ -112,6 +120,21 @@ for _ in $(seq 1 60); do
   if "${DC[@]}" exec -T postgres pg_isready -U fc_user -d fair_constitution >/dev/null 2>&1; then break; fi
   sleep 2
 done
+
+# Phase K-3: ensure the Matrix + MAS logical DBs exist before the homeserver boots. init.sql
+# CREATE DATABASE runs ONLY on a fresh postgres volume; an in-place upgrade with a warm volume
+# needs this idempotent guard. Synapse REQUIRES C collation (the server-wide --locale=C gives it).
+echo "→ Ensuring the Matrix logical databases…"
+for db in matrix matrix_auth; do
+  if ! "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1 FROM pg_database WHERE datname='${db}'" | grep -q 1; then
+    "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution -c \
+      "CREATE DATABASE ${db} WITH OWNER fc_user ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0"
+  fi
+done
+
+# Bring the homeserver up now that its DB exists (it crash-loops if it boots first).
+echo "→ Starting the Matrix homeserver…"
+"${DC[@]}" up -d matrix
 
 # The app entrypoint runs `composer install` on first boot (minutes on a Pi) and
 # writes vendor/.installed-hash as its DONE marker. Wait for that STAMP — NOT

@@ -70,6 +70,12 @@ Set-EnvVar "APP_URL"             "http://localhost:$NginxPort"
 $arch = $env:PROCESSOR_ARCHITECTURE
 if ($arch -match 'ARM64') { Set-EnvVar "POSTGIS_IMAGE" "imresamu/postgis:17-3.5" }
 
+# Matrix homeserver image (Phase K-3, parity with deploy.sh). Synapse is the verified default
+# on every arch (feature-complete; matrix-org/synapse archived Apr 2024 -> element-hq, AGPLv3).
+# Dendrite as the arm64/Pi default is deferred to the K3-N rig spike; until it passes, Synapse.
+Set-EnvVar "MATRIX_IMPL"  "synapse"
+Set-EnvVar "MATRIX_IMAGE" "ghcr.io/element-hq/synapse:latest"
+
 # Deployed posture: production + debug off (parity with deploy.sh). deploy.ps1 stands up a
 # built-asset instance; a dev box uses `docker compose up` (local + HMR) instead.
 Set-EnvVar "APP_ENV"   "production"
@@ -98,6 +104,21 @@ for ($i = 0; $i -lt 60; $i++) {
   if ($LASTEXITCODE -eq 0) { break }
   Start-Sleep -Seconds 2
 }
+
+# Phase K-3 (parity with deploy.sh): ensure the Matrix + MAS logical DBs exist before the
+# homeserver boots. init.sql CREATE DATABASE runs only on a fresh postgres volume; a warm
+# volume needs this idempotent guard. Synapse REQUIRES C collation (the server-wide --locale=C).
+Write-Host "-> Ensuring the Matrix logical databases..."
+foreach ($db in @("matrix", "matrix_auth")) {
+  $exists = docker @dc exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1 FROM pg_database WHERE datname='$db'"
+  if (-not ($exists -match '1')) {
+    docker @dc exec -T postgres psql -U fc_user -d fair_constitution -c "CREATE DATABASE $db WITH OWNER fc_user ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0"
+  }
+}
+
+# Bring the homeserver up now that its DB exists (it crash-loops if it boots first).
+Write-Host "-> Starting the Matrix homeserver..."
+docker @dc up -d matrix
 
 # The app entrypoint runs `composer install` on first boot (minutes on a fresh clone) and
 # writes vendor/.installed-hash as its DONE marker. Wait for that STAMP before firing
