@@ -490,6 +490,30 @@ return [
         'citation'  => 'Petitions face two kill-paths: failed audit, unconstitutional finding · Art. II §6',
     ],
 
+    // Phase K-1 — the civic record plane (public square + halls).
+    'civic/public-square' => [
+        'title'     => 'Public Square',
+        'module'    => 'civic',
+        'nav'       => 'public-square',
+        'roles'     => ['R-03'],
+        'forms'     => [
+            ['id' => 'F-SOC-001', 'citation' => 'Art. I — the public square cannot be censored'],
+        ],
+        'citation'  => 'Open resident discourse · residency-only · uncensorable · Art. I',
+    ],
+
+    'civic/halls' => [
+        'title'     => 'Halls of Governance',
+        'module'    => 'civic',
+        'nav'       => 'halls',
+        'roles'     => ['R-03'],
+        'forms'     => [
+            ['id' => 'F-SOC-001', 'citation' => 'Art. I'],
+            ['id' => 'F-SOC-002', 'citation' => 'Art. II §2 — filing testimony seals it into the append-only record'],
+        ],
+        'citation'  => 'Deliberation tied to bills/referendums/petitions/committees · append-only · Art. II §2',
+    ],
+
     'civic/relocation' => [
         'title'     => 'Relocation',
         'module'    => 'civic',

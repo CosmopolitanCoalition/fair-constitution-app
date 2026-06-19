@@ -656,6 +656,15 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // the authenticated user only.
     Route::post('/actor/devices', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'enrollDevice'])->name('actor.devices.enroll');
     Route::post('/actor/attestations', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'issueAttestation'])->name('actor.attestations.issue');
+
+    // Phase K-1 — the public square + halls (the civic record plane). Posting / testimony are
+    // engine-routed (F-SOC-001/002, residency-only, Art. I). There is NO removal route — the
+    // square is uncensorable; carve-out removals are the judicial F-SOC-003 path elsewhere.
+    Route::get('/square', [\App\Http\Controllers\Civic\PublicSquareController::class, 'index'])->name('square');
+    Route::post('/square', [\App\Http\Controllers\Civic\PublicSquareController::class, 'store'])->name('square.store');
+    Route::get('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'index'])->name('halls');
+    Route::post('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'store'])->name('halls.store');
+    Route::post('/halls/testimony', [\App\Http\Controllers\Civic\HallsController::class, 'fileTestimony'])->name('halls.testimony');
 });
 
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain

@@ -47,6 +47,13 @@ export const NAV = [
     { key: 'petitions', titleKey: 'nav.petitions', visibility: 'all', items: [
         { id: 'petitions', labelKey: 'nav.petitions', icon: 'file-text', href: '/civic/petitions', phase: 'C' },
     ] },
+    /* Phase K-1 — the civic record plane. Public square (open, uncensorable) + halls of
+       governance (deliberation → append-only testimony). ids match the `nav` values in
+       config/cga/surfaces.php (civic/public-square, civic/halls). */
+    { key: 'commons', titleKey: 'nav.commons', visibility: 'all', items: [
+        { id: 'public-square', labelKey: 'nav.publicSquare', icon: 'users', href: '/civic/square', phase: 'K' },
+        { id: 'halls', labelKey: 'nav.halls', icon: 'landmark', href: '/civic/halls', phase: 'K' },
+    ] },
     /* FE-E0 (PHASE_E_DESIGN_frontend.md §B nav integration): the `court`
        section below is role-gated (the officeholder's launchpad), but the
        docket + challenge tracker are PUBLIC RECORD (Art. II §2). This
