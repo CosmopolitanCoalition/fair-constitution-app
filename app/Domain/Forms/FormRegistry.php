@@ -395,6 +395,7 @@ class FormRegistry
         // removal, judicial-office-gated) in K1-E.
         'F-SOC-001' => Handlers\SocialThreadPost::class,
         'F-SOC-002' => Handlers\SocialTestimonyFiling::class,
+        'F-SOC-003' => Handlers\SocialRemoval::class,
     ];
 
     /**

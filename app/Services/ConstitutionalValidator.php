@@ -295,6 +295,11 @@ class ConstitutionalValidator
             // PRE-COMMIT (Art. II §8); the engine records the rejected=true
             // chain row. F-ADV-001 is the advocate's on-behalf case filing.
             'F-IND-017', 'F-ADV-001' => $this->checkCaseFiling($payload),
+            // Phase K-1 — the public-square removal carve-out gate (Art. I). A removal is
+            // legitimate ONLY under a logged carve-out (judicial order / rights protection);
+            // viewpoint or discretionary removal is refused. WHO may invoke (the derived
+            // R-19/R-20 judicial office) is the engine's role gate; this enforces the SHAPE.
+            'F-SOC-003' => $this->checkSocialRemoval($payload),
             default => null,
         };
     }
@@ -834,6 +839,42 @@ class ConstitutionalValidator
                 .'repeal it until the next general election certifies; the protection lapses there '
                 .'(CLK-19).',
                 'Art. II §6'
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // social.public-square removal carve-outs (Phase K-1, Art. I)
+    // -------------------------------------------------------------------------
+
+    /**
+     * F-SOC-003 — the ONLY way a public-square / hall post may be removed: a logged carve-out.
+     * The public square cannot be censored (Art. I). A removal must name a real carve-out
+     * (M-1 judicial order or M-2 rights protection) AND a justifying reference (a case/order
+     * id) — viewpoint, "violates our values", or a removal with no order is refused. WHO may
+     * invoke is the engine's role gate (R-19/R-20 judicial office); this enforces the carve-out
+     * SHAPE, so a discretionary removal is structurally unrepresentable.
+     */
+    private function checkSocialRemoval(array $payload): void
+    {
+        $allowed = ['judicial_order', 'rights_protection'];
+        $carveOut = is_string($payload['carve_out'] ?? null) ? $payload['carve_out'] : null;
+
+        if ($carveOut === null || ! in_array($carveOut, $allowed, true)) {
+            throw new ConstitutionalViolation(
+                'The public square cannot be censored — a post may be removed ONLY under a logged '
+                .'carve-out (a judicial order, or protecting another\'s rights), never on viewpoint '
+                .'or discretion.',
+                'Art. I'
+            );
+        }
+
+        $reference = trim((string) ($payload['reference'] ?? ''));
+        if ($reference === '') {
+            throw new ConstitutionalViolation(
+                'A carve-out removal must cite its justifying order/case reference — a removal with '
+                .'no logged order is structurally impossible.',
+                'Art. I'
             );
         }
     }

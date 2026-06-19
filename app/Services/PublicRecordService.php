@@ -36,6 +36,12 @@ class PublicRecordService
         'ballot_envelope',
         'location_ping',
         'residency_claim_pings',
+        // Phase K-1 — the local-only social graph never reaches the public register / chain
+        // (a tripwire; the real boundary is that these are plain inserts that never publish()).
+        'social_reaction',
+        'social_follow',
+        'social_membership',
+        // (Phase K-2 adds 'education_progress'.)
     ];
 
     public function __construct(
