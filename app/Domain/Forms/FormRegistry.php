@@ -460,7 +460,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 103 canonical form IDs. */
+    /** @return list<string> all 107 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);

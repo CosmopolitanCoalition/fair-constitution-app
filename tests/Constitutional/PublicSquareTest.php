@@ -5,6 +5,7 @@ namespace Tests\Constitutional;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\SocialPost;
+use App\Models\SocialProfile;
 use App\Models\SocialThread;
 use App\Models\User;
 use App\Services\RoleService;
@@ -53,6 +54,33 @@ class PublicSquareTest extends TestCase
             $this->assertArrayNotHasKey('email', $rec);
             $this->assertArrayNotHasKey('name', $rec);
             $this->assertArrayHasKey('author_display', $rec);
+            // Pseudonymity (Art. I): author_display is NEVER the legal name. With no pseudonym
+            // profile set it is the generated, non-PII pseudonym — not users.name.
+            $this->assertNotSame($resident->name, $rec['author_display'], 'author_display must never be the legal name');
+            $this->assertStringStartsWith('Resident-', (string) $rec['author_display']);
+        });
+    }
+
+    public function test_author_display_uses_the_pseudonym_profile_never_the_legal_name(): void
+    {
+        $this->onLivePg(function () {
+            $jurisdictionId = $this->aJurisdiction();
+            $resident = $this->resident($jurisdictionId);
+
+            // The resident sets a dedicated pseudonym profile (display_name); name/email stay private.
+            SocialProfile::query()->create([
+                'user_id'      => (string) $resident->getKey(),
+                'display_name' => 'PlazaFan',
+            ]);
+
+            $rec = app(ConstitutionalEngine::class)->file('F-SOC-001', $resident, [
+                'jurisdiction_id' => $jurisdictionId,
+                'title'           => 'Hello under my handle',
+                'body'            => 'Posting pseudonymously.',
+            ])->recorded;
+
+            $this->assertSame('PlazaFan', $rec['author_display'], 'the chosen pseudonym is used');
+            $this->assertNotSame($resident->name, $rec['author_display']);
         });
     }
 

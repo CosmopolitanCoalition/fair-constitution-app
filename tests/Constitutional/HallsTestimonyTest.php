@@ -66,9 +66,13 @@ class HallsTestimonyTest extends TestCase
             $this->assertNotNull($record->audit_seq, 'the record is sealed to the chain');
             $this->assertSame($body, $record->body);
 
-            // Pseudonymity: a display, never an email.
+            // Pseudonymity (Art. I): the IMMUTABLE sealed record carries a pseudonym — never the
+            // legal name, never an email. With no pseudonym profile set it is the generated,
+            // non-PII pseudonym. (This record is uncorrectable, so a name leak here is forever.)
             $this->assertNotNull($record->actor_display);
             $this->assertStringNotContainsString('@', (string) $record->actor_display);
+            $this->assertNotSame($resident->name, (string) $record->actor_display, 'the sealed record must never carry the legal name');
+            $this->assertStringStartsWith('Resident-', (string) $record->actor_display);
         });
     }
 

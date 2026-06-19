@@ -4,6 +4,7 @@ namespace App\Services\Social;
 
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\SocialPost;
+use App\Models\SocialProfile;
 use App\Models\SocialSpace;
 use App\Models\SocialSubforum;
 use App\Models\SocialThread;
@@ -44,7 +45,7 @@ class SocialSpaceService
             throw new ConstitutionalViolation('A post needs a body.', 'Art. I');
         }
 
-        $display = (string) ($actor->display_name ?? $actor->name);
+        $display = $this->displayFor($actor);
 
         $space = SocialSpace::query()->firstOrCreate(
             ['jurisdiction_id' => $jurisdictionId, 'space_type' => $spaceType, 'is_private' => false],
@@ -67,6 +68,27 @@ class SocialSpaceService
         ]);
 
         return ['space' => $space, 'subforum' => $subforum, 'thread' => $thread, 'post' => $post];
+    }
+
+    /**
+     * The pseudonym to snapshot onto a post/thread — and, via F-SOC-002, into the IMMUTABLE
+     * public register. NEVER the legal name (users.name): Art. I pseudonymity. Prefer the
+     * dedicated pseudonym (social_profiles.display_name / handle); otherwise a stable, non-PII
+     * pseudonym derived from the user id. (social_profiles' own docblock: name/email never appear there.)
+     */
+    private function displayFor(User $actor): string
+    {
+        $profile = SocialProfile::query()->where('user_id', (string) $actor->getKey())->first();
+
+        if (! empty($profile?->display_name)) {
+            return (string) $profile->display_name;
+        }
+
+        if (! empty($profile?->handle)) {
+            return '@'.$profile->handle;
+        }
+
+        return 'Resident-'.substr(hash('sha256', (string) $actor->getKey()), 0, 8);
     }
 
     private function resolveSubforum(SocialSpace $space, array $payload): SocialSubforum
