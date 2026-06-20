@@ -23,6 +23,9 @@ class PublicRecord extends Model
         'registration', 'residency', 'participation', 'statement', 'vote',
         'bill', 'act', 'minutes', 'opinion', 'certification', 'testimony',
         'violation', 'correction', 'other',
+        // Phase K-3: the legitimacy-flip log + M-5 legal-compliance removal (counted separately
+        // from the judicial/viewpoint 'violation' kind — a spike in legal removals is itself a flag).
+        'moderation_flip', 'legal_compliance_removal',
     ];
 
     protected $table = 'public_records';

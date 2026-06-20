@@ -22,10 +22,14 @@ class MatrixCarveoutLog extends Model
     public const CARVE_M1_JUDICIAL = 'm1_judicial';
     public const CARVE_M2_RIGHTS   = 'm2_rights';
     public const CARVE_M4_ANTISPAM = 'm4_antispam';
+    // M-5 is the PHYSICAL-LAW legal-compliance removal — operator-plane (attestation_id IS NULL), NOT a
+    // constitutional carve-out. It may NEVER write a server ACL (matrix_server_acls stays m1/m4 only).
+    public const CARVE_M5_LEGAL    = 'm5_legal';
 
     public const ACTION_SOFT_FAIL   = 'soft_fail';   // M-4 + reversible M-1 (suppress relay/display)
     public const ACTION_HARD_REDACT = 'hard_redact'; // M-2 only (content-stripping)
     public const ACTION_SERVER_ACL  = 'server_acl';
+    public const ACTION_PURGE       = 'purge';       // M-5 csam_hashmatch ONLY — DELETEs the local bytes
 
     protected $fillable = [
         'id',
