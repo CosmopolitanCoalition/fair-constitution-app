@@ -40,6 +40,12 @@ Doing these now means fewer interruptions later. Have them ready before the AIs 
   - Synapse **admin token** on each box (for K M-5 byte-purge, LEG K5).
   - 2–3 Ubuntu boxes (for Patroni HA, LEG G4).
   - The Android phone, no-SIM (for G-V1 mobile, LEG G6 — *build-gated, see Appendix*).
+- **P0.6 Box C — the LAMP broker box (for PHASE 2.5, the roles/channels leg).** Stand up the
+  `mesh-cert-broker` on the Azure LAMP host: docroot → `services/mesh-cert-broker/public`, drop the
+  **Cloudflare token** + Box A's **pinned authority key** into `config/domains.php`, install `lego`,
+  run `php bin/selftest.php` (offline acceptance → 10/0), report ready. *(Needs the **MESH-ROLES-AND-
+  CHANNELS-OF-TRUST.md ★1–★12** code on Box A/B first — see PHASE 2.5; if that isn't built yet, skip
+  PHASE 2.5 today and run the mesh + Matrix legs, which are ready now.)*
 - **🛑 When P0.1–P0.4 are done, tell BOTH AIs: "pre-flight ready, LAN IPs are A=⟨…⟩ B=⟨…⟩".**
 
 ---
@@ -66,6 +72,28 @@ K's message propagation needs Matrix S2S. Establish both now.
 | 2.2 | 💻 + 🤖 | Run handshake BOTH directions; `php artisan mesh:doctor` + `mesh:gates`; confirm both `federation_peers` rows = `trust_established`, `constitutional_version` MATCH, transports learned symmetrically. | **📋 REPORT per box.** ⛔ **GATE 2a — two-way CGA trust green.** |
 | 2.3 | 👤 OPERATOR | Matrix S2S: ensure `:8448` is open both ways (P0.2) and the `.well-known/matrix/server` of each box resolves to the other (the choice from P0.3). | 🛑 **NEED OPERATOR** to confirm DNS/cert/port per P0.3; resume when you reply "S2S path ready". |
 | 2.4 | 💻 + 🤖 | Verify Matrix federation: from a MAS-logged-in client on Box B, join/peek a room on Box A (e.g. the one `matrix:demo` creates). | **📋 REPORT.** ⛔ **GATE 2b — Matrix S2S reachable (a Box-A message appears on Box B, pseudonymously).** This is the load-bearing two-box step; K-legs 2-4 depend on it. |
+
+---
+
+## PHASE 2.5 — Roles & Channels of Trust (the qualify→request→approve→join leg)
+
+> Full spec: **`MESH-ROLES-AND-CHANNELS-OF-TRUST.md`**. **Gated on the ★1–★12 build** (the manifest +
+> lifecycle + in-mesh broker adapter + `mesh:request-cert` + `mesh:role` CLI). If ★1–★12 isn't built,
+> **skip this phase today** and run PHASE 3 (mesh + Matrix gates are ready now); add 2.5 once it lands.
+> Three-actor protocol unchanged; Box C steps are 👤 OPERATOR; RELAY now also carries channel artifacts
+> (a signed grant A→C, the returned FQDN+cert C→A).
+
+For EACH governed channel (`broker.dns`/`broker.tls` first — they unlock real TLS), run one cycle:
+
+| # | Owner | Step | Handoff |
+|---|---|---|---|
+| 2.5.1 | 👤 OPERATOR | **QUALIFY** — drop the channel's token/key (CF token → Box C `config/domains.php`; Synapse admin token → A/B). | 🛑 **NEED OPERATOR**: drop the token; resume when "qualified". 💻 runs `mesh:role:qualify broker.dns` (prober hits CF live → green). |
+| 2.5.2 | 🤖 ASSISTANT | **REQUEST** — `mesh:role:request broker.tls` on the graduating box (the Pi). Emits an auditable request row. | ▶ then **📋 REPORT** "requested". |
+| 2.5.3 | 💻 + 🤖 | **APPROVE** — the dual-meter consent. No seated test gov on the rig → **Meter A** (active operator board; 1⇒1 single-box / unanimity-of-the-pair). Cross-box `authority.grant`/peer-zone legs add **Meter C** unanimity. | 🔁 **RELAY** the co-affected peer's consent when Meter C applies. ⛔ **HALT** until the meter passes. |
+| 2.5.4 | 💻 + 🤖 | **JOIN** — on ratify an `authority.grant` box mints the grant; the box's advert gains the channel; it runs `mesh:request-cert` with the minted grant → installs the cert (closes the broker loop end-to-end). | **📋 REPORT.** ⛔ **GATE 2.5b** (below). |
+
+- **⛔ GATE 2.5a — role-set integrity.** `mesh:roles` lists a box's channels and **refuses to advertise an un-approved governed channel** (advertised-claim ≠ governed-role).
+- **⛔ GATE 2.5b — the broker channel, live.** A promotion-approved box gets a **real trusted `*.<domain>` cert** (LE staging→prod, two explicit REPORTs to spare prod rate limits) — *only because approved*; a browser goes green. **Negative gate:** a non-approved box's identical request is **REFUSED** by `GrantVerifier` (already proven offline by `bin/selftest.php` 10/0). **De-promotion leg:** de-promote the box → next renewal's meter check fails → the broker refuses re-issue → the cert lapses.
 
 ---
 
