@@ -53,6 +53,9 @@ export const NAV = [
     { key: 'commons', titleKey: 'nav.commons', visibility: 'all', items: [
         { id: 'public-square', labelKey: 'nav.publicSquare', icon: 'users', href: '/civic/square', phase: 'K' },
         { id: 'halls', labelKey: 'nav.halls', icon: 'landmark', href: '/civic/halls', phase: 'K' },
+        // Phase K-3 (K3-L) — the live commons over the Matrix mesh (Plane B).
+        { id: 'commons-square', labelKey: 'nav.liveSquare', icon: 'message-circle', href: '/civic/commons/square', phase: 'K' },
+        { id: 'commons-halls', labelKey: 'nav.liveHalls', icon: 'radio', href: '/civic/commons/halls', phase: 'K' },
     ] },
     /* FE-E0 (PHASE_E_DESIGN_frontend.md §B nav integration): the `court`
        section below is role-gated (the officeholder's launchpad), but the

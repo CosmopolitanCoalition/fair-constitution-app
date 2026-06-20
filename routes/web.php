@@ -671,6 +671,14 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'store'])->name('halls.store');
     Route::post('/halls/testimony', [\App\Http\Controllers\Civic\HallsController::class, 'fileTestimony'])->name('halls.testimony');
 
+    // Phase K-3 (K3-L) — the embedded LIVE commons over the Matrix mesh (Plane B). Reads are
+    // appservice-backed + degrade to empty when the homeserver is down; posting/testimony are the
+    // same residency-only engine paths as the Plane-A views.
+    Route::get('/commons/square', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'square'])->name('commons.square');
+    Route::get('/commons/halls', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'halls'])->name('commons.halls');
+    Route::post('/commons/post', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'post'])->name('commons.post');
+    Route::post('/commons/testimony', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'fileTestimony'])->name('commons.testimony');
+
     // Phase K-3 (K3-K) — server-side in-conversation translation. The TranslationGate PRIVACY RAIL is
     // enforced here regardless of client: a private room is never cloud-translated (fail-closed).
     Route::post('/matrix/translate', \App\Http\Controllers\Matrix\MatrixTranslationController::class)->name('matrix.translate');

@@ -514,6 +514,28 @@ return [
         'citation'  => 'Deliberation tied to bills/referendums/petitions/committees · append-only · Art. II §2',
     ],
 
+    // Phase K-3 (K3-L) — the LIVE commons over the Matrix mesh (Plane B), distinct from the Plane-A
+    // record views above. Same residency-only gate; pseudonymous; a down homeserver degrades to empty.
+    'civic/commons-square' => [
+        'title'     => 'Live Square (Matrix)',
+        'module'    => 'civic',
+        'nav'       => 'commons-square',
+        'roles'     => ['R-03'],
+        'forms'     => [],
+        'citation'  => 'The live public square over the Matrix mesh (Plane B) · residency-only · Art. I',
+    ],
+
+    'civic/commons-halls' => [
+        'title'     => 'Live Halls (Matrix)',
+        'module'    => 'civic',
+        'nav'       => 'commons-halls',
+        'roles'     => ['R-03'],
+        'forms'     => [
+            ['id' => 'F-SOC-002', 'citation' => 'Art. II §2 — file a live message as testimony to seal it'],
+        ],
+        'citation'  => 'The live halls over the Matrix mesh (Plane B) · seated deliberation · Art. II §2',
+    ],
+
     'civic/relocation' => [
         'title'     => 'Relocation',
         'module'    => 'civic',

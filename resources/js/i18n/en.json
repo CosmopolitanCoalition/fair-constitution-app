@@ -27,6 +27,8 @@
         "commons": "Commons",
         "publicSquare": "Public square",
         "halls": "Halls of governance",
+        "liveSquare": "Live square (Matrix)",
+        "liveHalls": "Live halls (Matrix)",
         "organizations": "Organizations",
         "orgRegistry": "Registry",
         "coDetermination": "Co-determination",
