@@ -47,6 +47,7 @@ class MatrixRoom extends Model
         'entity_id',
         'space_type',
         'is_public',
+        'is_encrypted',
         'is_seated',
         'is_activated',
         'tombstoned_at',
@@ -54,6 +55,7 @@ class MatrixRoom extends Model
 
     protected $casts = [
         'is_public'     => 'boolean',
+        'is_encrypted'  => 'boolean',
         'is_seated'     => 'boolean',
         'is_activated'  => 'boolean',
         'tombstoned_at' => 'datetime',

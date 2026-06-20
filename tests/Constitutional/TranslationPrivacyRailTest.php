@@ -79,6 +79,12 @@ class TranslationPrivacyRailTest extends TestCase
         // The structural privacy predicate is correct for an org-private room (public flag alone isn't enough).
         $orgPrivate = new MatrixRoom(['is_public' => true, 'room_type' => MatrixRoom::ROOM_ORG_PRIVATE]);
         $this->assertTrue($gate->isPrivate($orgPrivate), 'an org-private room is private even if flagged public');
+
+        // ENCRYPTION ALONE forces the local-only provider — the rail can never fail open if an
+        // encrypted-but-public room ever exists (a future type / a federated mirror).
+        $encryptedPublic = new MatrixRoom(['is_public' => true, 'room_type' => MatrixRoom::ROOM_COMMONS, 'is_encrypted' => true]);
+        $this->assertTrue($gate->isPrivate($encryptedPublic), 'an encrypted room is private even if public');
+        $this->assertFalse($gate->translate($encryptedPublic, self::SECRET, 'es')->admitted, 'encryption alone refuses a cloud translator');
     }
 
     private function privateRoom(): MatrixRoom

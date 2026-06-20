@@ -17,14 +17,20 @@ class TranslationGate
 {
     public function __construct(private readonly TranslationProvider $provider) {}
 
-    /** A room is PRIVATE if it is not public OR an org-private room; unknown/tombstoned → private (fail-closed). */
+    /**
+     * A room is PRIVATE if it is ENCRYPTED, not public, or an org-private room; unknown/tombstoned →
+     * private (fail-closed). Encryption alone forces the local-only provider — so the rail can never
+     * fail OPEN if an encrypted-but-public room is ever introduced (a future type or a federated mirror).
+     */
     public function isPrivate(?MatrixRoom $room): bool
     {
         if ($room === null || $room->tombstoned_at !== null) {
             return true;
         }
 
-        return ! (bool) $room->is_public || $room->room_type === MatrixRoom::ROOM_ORG_PRIVATE;
+        return (bool) $room->is_encrypted
+            || ! (bool) $room->is_public
+            || $room->room_type === MatrixRoom::ROOM_ORG_PRIVATE;
     }
 
     public function translate(?MatrixRoom $room, string $text, string $targetLanguage): TranslationResult
