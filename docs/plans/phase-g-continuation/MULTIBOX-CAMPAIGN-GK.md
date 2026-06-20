@@ -40,12 +40,12 @@ Doing these now means fewer interruptions later. Have them ready before the AIs 
   - Synapse **admin token** on each box (for K M-5 byte-purge, LEG K5).
   - 2–3 Ubuntu boxes (for Patroni HA, LEG G4).
   - The Android phone, no-SIM (for G-V1 mobile, LEG G6 — *build-gated, see Appendix*).
-- **P0.6 Box C — the LAMP broker box (for PHASE 2.5, the roles/channels leg).** Stand up the
-  `mesh-cert-broker` on the Azure LAMP host: docroot → `services/mesh-cert-broker/public`, drop the
-  **Cloudflare token** + Box A's **pinned authority key** into `config/domains.php`, install `lego`,
-  run `php bin/selftest.php` (offline acceptance → 10/0), report ready. *(Needs the **MESH-ROLES-AND-
-  CHANNELS-OF-TRUST.md ★1–★12** code on Box A/B first — see PHASE 2.5; if that isn't built yet, skip
-  PHASE 2.5 today and run the mesh + Matrix legs, which are ready now.)*
+- **P0.6 Box C — SKIP for A↔B (forfeited 2026-06-20).** The broker is now an **in-mesh role on Box A**
+  (★1–★17 + A/B built): Box A runs the same `Broker::issue()` core, drops the Cloudflare token through its
+  console, and issues its own + Box B's peer certs — see PHASE 2.5. No standalone LAMP box is needed for
+  A↔B. *(A standalone Box C is still possible later — `mesh-cert-broker` on a LAMP host, token + Box A's
+  pinned authority key in `config/domains.php`, `lego`, `php bin/selftest.php` → 10/0 — but it is "Box C
+  through infinity," not part of this campaign.)*
 - **🛑 When P0.1–P0.4 are done, tell BOTH AIs: "pre-flight ready, LAN IPs are A=⟨…⟩ B=⟨…⟩".**
 
 ---
@@ -77,22 +77,26 @@ K's message propagation needs Matrix S2S. Establish both now.
 
 ## PHASE 2.5 — Roles & Channels of Trust (the qualify→request→approve→join leg)
 
-> Full spec: **`MESH-ROLES-AND-CHANNELS-OF-TRUST.md`**. **Gated on the ★1–★12 build** (the manifest +
-> lifecycle + in-mesh broker adapter + `mesh:request-cert` + `mesh:role` CLI). If ★1–★12 isn't built,
-> **skip this phase today** and run PHASE 3 (mesh + Matrix gates are ready now); add 2.5 once it lands.
-> Three-actor protocol unchanged; Box C steps are 👤 OPERATOR; RELAY now also carries channel artifacts
-> (a signed grant A→C, the returned FQDN+cert C→A).
+> Full spec: **`MESH-ROLES-AND-CHANNELS-OF-TRUST.md`**. **BUILT + audited — ★1–★17 + A/B, suite 578/0
+> (2026-06-20). No longer gated — run it.** **AS-BUILT (supersedes the original design below):** the broker
+> is an **IN-MESH ROLE on Box A — Box C is NOT needed** (forfeited for A↔B). Box A drops the **Cloudflare
+> token through the CONSOLE** (`/federation` → "Broker credentials" panel), stored encrypted + write-only
+> on Box A only — never `config/domains.php`, never federated. **`lego` is pre-baked into the image** —
+> nothing to install by hand. CLI is `mesh:role <action>` (space, not colon). On ratify of a broker channel
+> Box A auto-publishes the broker-routing fact and it gossips on the next handshake (each fact verified
+> against its authority's OWN pinned key; the cert-trust list is **locally rooted** — a gossiped peer fact
+> never bootstraps trust). Box B is a cert CLIENT (it requests certs from Box A's broker); it need not broker.
 
-For EACH governed channel (`broker.dns`/`broker.tls` first — they unlock real TLS), run one cycle:
+For the broker channel (`broker.dns` + `broker.tls` — they unlock real TLS), run one cycle on **Box A**:
 
 | # | Owner | Step | Handoff |
 |---|---|---|---|
-| 2.5.1 | 👤 OPERATOR | **QUALIFY** — drop the channel's token/key (CF token → Box C `config/domains.php`; Synapse admin token → A/B). | 🛑 **NEED OPERATOR**: drop the token; resume when "qualified". 💻 runs `mesh:role:qualify broker.dns` (prober hits CF live → green). |
-| 2.5.2 | 🤖 ASSISTANT | **REQUEST** — `mesh:role:request broker.tls` on the graduating box (the Pi). Emits an auditable request row. | ▶ then **📋 REPORT** "requested". |
-| 2.5.3 | 💻 + 🤖 | **APPROVE** — the dual-meter consent. No seated test gov on the rig → **Meter A** (active operator board; 1⇒1 single-box / unanimity-of-the-pair). Cross-box `authority.grant`/peer-zone legs add **Meter C** unanimity. | 🔁 **RELAY** the co-affected peer's consent when Meter C applies. ⛔ **HALT** until the meter passes. |
-| 2.5.4 | 💻 + 🤖 | **JOIN** — on ratify an `authority.grant` box mints the grant; the box's advert gains the channel; it runs `mesh:request-cert` with the minted grant → installs the cert (closes the broker loop end-to-end). | **📋 REPORT.** ⛔ **GATE 2.5b** (below). |
+| 2.5.1 | 👤 OPERATOR | **QUALIFY** — on Box A open `/federation` (signed in via `/operator/login`), use the **Broker credentials** panel to enter `domain` + `cloudflare_zone_id` + the **real CF DNS-edit token** (stored encrypted on Box A; never leaves it). | 🛑 **NEED OPERATOR**: drop the token in the panel; resume when "configured". 💻 runs `mesh:role qualify broker.dns` + `broker.tls` (prober sees the credential + `lego` → green). |
+| 2.5.2 | 💻 DESIGNER | **REQUEST** — `mesh:role request broker.tls` on Box A. Opens an auditable role-grant proposal; it shows in the console **Pending requests** panel with its live meters. | ▶ then **📋 REPORT** "requested". |
+| 2.5.3 | 💻 + 👤 | **APPROVE** — the dual-meter consent. No seated test gov on the rig → **Meter A** (active operator board; single box ⇒ 1 attestation). Approve in the console, or `mesh:role approve --proposal=<id>`. `broker.dns` is peer-subtree-affecting → **Meter C** auto-passes when no co-affected peer holds the subtree. | ⛔ **HALT** until the meter passes. |
+| 2.5.4 | 💻 + 🤖 | **JOIN + issue.** On ratify Box A mints the grant, flips the channel on, **publishes + gossips the routing fact**. Box A's own cert: `mesh:request-cert <domain> boxa --local` (or to itself). For a Box B peer cert: Box A (authority) mints a cert_grant for Box B's name → Box B runs `mesh:request-cert <domain> boxb --broker=<Box-A-server_id>` → installs. | **📋 REPORT.** ⛔ **GATE 2.5b** (below). |
 
-- **⛔ GATE 2.5a — role-set integrity.** `mesh:roles` lists a box's channels and **refuses to advertise an un-approved governed channel** (advertised-claim ≠ governed-role).
+- **⛔ GATE 2.5a — role-set integrity.** `mesh:role list` shows a box's established channels; the system **refuses to advertise an un-approved governed channel** (a governed channel can only be enabled by a verified grant, never self-asserted — `CapabilityService::registerSelf` throws on a governed slug).
 - **⛔ GATE 2.5b — the broker channel, live.** A promotion-approved box gets a **real trusted `*.<domain>` cert** (LE staging→prod, two explicit REPORTs to spare prod rate limits) — *only because approved*; a browser goes green. **Negative gate:** a non-approved box's identical request is **REFUSED** by `GrantVerifier` (already proven offline by `bin/selftest.php` 10/0). **De-promotion leg:** de-promote the box → next renewal's meter check fails → the broker refuses re-issue → the cert lapses.
 
 ---
