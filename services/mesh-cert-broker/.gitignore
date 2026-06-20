@@ -1,0 +1,5 @@
+# The real config carries the Cloudflare token + authority keys — NEVER commit it.
+config/domains.php
+config/domains.test.php
+# Local state (sqlite, lego work dirs).
+var/
