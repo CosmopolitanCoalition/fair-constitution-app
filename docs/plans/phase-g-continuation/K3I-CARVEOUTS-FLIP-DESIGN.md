@@ -86,17 +86,23 @@ the category set is a compiled enum, grown ONLY by code release per phase, never
 - `PublicRecord::KINDS` +`'moderation_flip'` +`'legal_compliance_removal'`.
 
 ## E. Sub-slice build order
-- **K3-I.1** — schema (the migration + LegalComplianceRemoval model + MatrixCarveoutLog consts +
-  PublicRecord KINDS) + a schema pin (m5_legal/purge in CHECKs; legal_compliance_removals + its enum;
-  server_acl carve_out STILL m1/m4 only). *← do first.*
-- **K3-I.2** — `ModerationFlipService` (the M-1..M-4 flip on STATUS_ACTIVE; logFlip moderation_flip) +
-  `ModerationFlipTest` (FLIP-ON-SEATEDNESS; power level never moves).
-- **K3-I.3** — `CarveoutEmitterService` (F-SOC-003 → redaction; M-1/M-4 soft-fail, M-2 hard) +
-  `ModerationCarveoutsTest` (CARVE-OUT-ONLY; M-3 never an appservice action; best-effort copy honesty).
-- **K3-I.4** — **F-SOC-004** legal-compliance handler (operator-authenticated, NO R-19/R-20 gate; M-5;
-  ACTION_PURGE for csam_hashmatch; the disclosure REFERRAL when seated) + `checkLegalComplianceRemoval`
-  validator + the media SCAN SEAM (PHP interface + admission gate + stub local list) + `LegalComplianceTest`
-  (all of §C as pins). Then the consolidated adversarial workflow review of the whole constitutional core.
+- **K3-I.1 — DONE (8de87c7).** schema (the migration + LegalComplianceRemoval model + MatrixCarveoutLog
+  consts + PublicRecord KINDS) + LegalComplianceSchemaTest (4 pins; m5_legal/purge in CHECKs;
+  legal_compliance_removals + its enum; server_acl carve_out STILL m1/m4 only).
+- **K3-I.2 — DONE (30d9019).** `ModerationFlipService` + `FlipDecision` (the M-1..M-4 flip on
+  STATUS_ACTIVE; bootstrap operator-relay vs seated R-19/R-20 attestation, fails closed; M-3 refused
+  client-side; logFlip → moderation_flip + matrix_carveout_log) + `ModerationFlipTest` (4 pins; the
+  service holds NO Matrix client → power level structurally never moves).
+- **K3-I.3 — DONE (4d287b1).** `CarveoutEmitterService` (reuses the F-SOC-003 SHAPE gate + the flip
+  AUTHORITY gate → m.room.redaction; M-1 soft-fail, M-2 hard, M-4 anti-spam content-neutral; seal-first
+  then best-effort redact) + `MatrixCarveoutEmitterTest` (6 pins; M-3 never an appservice action;
+  down-homeserver honesty).
+- **K3-I.4 — DONE.** `LegalComplianceRemoval` F-SOC-004 handler (systemOnly/operator-plane, NO R-codes;
+  M-5; ACTION_PURGE for csam; the disclosure REFERRAL when seated) + `LegalComplianceService` (operator
+  orchestrator + the purge/redact emit) + `checkLegalComplianceRemoval` validator + the media SCAN SEAM
+  (`MediaScanProvider` interface + `LocalHashListScanProvider` offline default + `MediaAdmissionGate` +
+  config `matrix.scan`) + `MatrixClientService::purgeEvent` seam + `LegalComplianceTest` (all 9 §C
+  guardrails as pins). **NEXT: the consolidated adversarial workflow review of the whole H+I core.**
 
 ## F. Dev-buildable now vs deferred
 - **Now (dev stack):** all of A–E above — the carve-out path, the flip, the M-5 path end-to-end, the scan

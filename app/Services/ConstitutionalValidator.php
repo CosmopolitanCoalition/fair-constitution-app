@@ -300,6 +300,10 @@ class ConstitutionalValidator
             // viewpoint or discretionary removal is refused. WHO may invoke (the derived
             // R-19/R-20 judicial office) is the engine's role gate; this enforces the SHAPE.
             'F-SOC-003' => $this->checkSocialRemoval($payload),
+            // Phase K-3 (K3-I.4) — the M-5 PHYSICAL-LAW legal-compliance floor (NOT a viewpoint carve-out).
+            // A closed legal_basis enum, per-item targeting, an active operator account, the byte-purge
+            // reserved to CSAM, and no hash/locator in the payload — all structural, code-hardened.
+            'F-SOC-004' => $this->checkLegalComplianceRemoval($payload),
             default => null,
         };
     }
@@ -876,6 +880,85 @@ class ConstitutionalValidator
                 .'no logged order is structurally impossible.',
                 'Art. I'
             );
+        }
+    }
+
+    /**
+     * F-SOC-004 — the M-5 PHYSICAL-LAW legal-compliance floor. This is content-NEUTRAL physical-law
+     * compliance, NOT a viewpoint carve-out: World of Statecraft is an idealised world, but physical law
+     * and the safety of operators take precedence. The basis set is a CLOSED, CODE-HARDENED enum (grown
+     * only by code release, never by an in-game act). Six structural guards, mirroring checkSocialRemoval:
+     *   (1) a closed legal_basis enum — a viewpoint/discretionary basis is unrepresentable;
+     *   (2) the byte-destroying purge is reserved to a CSAM hash-match;
+     *   (3) per-item only — a specific event is targeted, never a class / viewpoint / whole server;
+     *   (4) operator-authenticated — a real, ACTIVE operator account (operator plane), never an office;
+     *   (5) NO CSAM hash/locator carried in the payload (republishable harm) — list SOURCE only.
+     */
+    private function checkLegalComplianceRemoval(array $payload): void
+    {
+        $citation = 'A Fair Constitution — physical-law compliance floor (off-plane)';
+
+        // (1) closed legal_basis enum.
+        $allowed = ['csam_hashmatch', 'court_order_specific', 'true_threat'];
+        $basis = is_string($payload['legal_basis'] ?? null) ? $payload['legal_basis'] : null;
+        if ($basis === null || ! in_array($basis, $allowed, true)) {
+            throw new ConstitutionalViolation(
+                'A legal-compliance removal must cite a physical-law basis (a CSAM hash-match, a specific '
+                .'court order, or a true threat) — a viewpoint or discretionary basis is structurally '
+                .'impossible. Disagreement with a physical law belongs in the real-world legal system.',
+                $citation
+            );
+        }
+
+        // (2) ACTION_PURGE (irreversible local byte-DELETE) is reserved to a CSAM hash-match.
+        $action = is_string($payload['action'] ?? null) ? $payload['action'] : null;
+        if ($action === null || ! in_array($action, ['purge', 'soft_fail', 'hard_redact'], true)) {
+            throw new ConstitutionalViolation('A legal-compliance removal must name a valid action.', $citation);
+        }
+        if ($action === 'purge' && $basis !== 'csam_hashmatch') {
+            throw new ConstitutionalViolation(
+                'The byte-destroying purge is reserved to a CSAM hash-match — a court order or true threat '
+                .'uses reversible content redaction, never an irreversible local DELETE.',
+                $citation
+            );
+        }
+
+        // (3) per-item targeting only.
+        $eventId = trim((string) ($payload['matrix_event_id'] ?? ''));
+        if ($eventId === '') {
+            throw new ConstitutionalViolation(
+                'A legal-compliance removal targets a SPECIFIC item (a single event) — never a class, a '
+                .'viewpoint, or a whole server. The floor is content-neutral and per-item.',
+                $citation
+            );
+        }
+
+        // (4) operator-authenticated — a real, ACTIVE operator account on the operator plane.
+        $operatorId = is_string($payload['operator_account_id'] ?? null) ? $payload['operator_account_id'] : null;
+        $active = $operatorId !== null && \Illuminate\Support\Facades\DB::table('operator_accounts')
+            ->where('id', $operatorId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->exists();
+        if (! $active) {
+            throw new ConstitutionalViolation(
+                'The physical-law compliance floor is exercised on the OPERATOR plane (an active operator '
+                .'account authenticated by key-possession) — it is not a constitutional office and carries '
+                .'no role code; a forged or absent operator is refused.',
+                $citation
+            );
+        }
+
+        // (5) NO CSAM hash/locator may ride a filing or log — republishable harm. Transparency is the
+        //     count + the list SOURCE only; matched_list_source names WHICH list, never the hash itself.
+        foreach (['hash', 'media_hash', 'locator', 'url', 'sha1', 'sha256', 'md5', 'pdq', 'photodna'] as $forbidden) {
+            if (array_key_exists($forbidden, $payload)) {
+                throw new ConstitutionalViolation(
+                    'A CSAM hash or locator may NEVER be carried in a filing or published log (republishable '
+                    .'harm) — record the list SOURCE only.',
+                    $citation
+                );
+            }
         }
     }
 

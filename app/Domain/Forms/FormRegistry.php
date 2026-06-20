@@ -5,9 +5,10 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 107 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 108 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
- * F-SOC-001/002/003 (public square / halls testimony / carve-out removal).
+ * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
+ * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -179,6 +180,9 @@ class FormRegistry
         'F-SOC-001' => ['name' => 'Social Thread / Post',                       'roles' => ['R-03']],
         'F-SOC-002' => ['name' => 'File Testimony in Hall',                     'roles' => ['R-03']],
         'F-SOC-003' => ['name' => 'Public-Square Removal (carve-out)',          'roles' => ['R-19', 'R-20']],
+        // F-SOC-004 — the M-5 PHYSICAL-LAW legal-compliance removal. ZERO role codes: it is exercised on
+        // the OPERATOR plane (key-possession), not a constitutional office (the handler is systemOnly).
+        'F-SOC-004' => ['name' => 'Legal-Compliance Removal (physical law)',    'roles' => []],
     ];
 
     /**
@@ -396,6 +400,8 @@ class FormRegistry
         'F-SOC-001' => Handlers\SocialThreadPost::class,
         'F-SOC-002' => Handlers\SocialTestimonyFiling::class,
         'F-SOC-003' => Handlers\SocialRemoval::class,
+        // ── Phase K-3 (K3-I.4) — the M-5 physical-law legal-compliance floor (operator-plane, systemOnly).
+        'F-SOC-004' => Handlers\LegalComplianceRemoval::class,
     ];
 
     /**
@@ -460,7 +466,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 107 canonical form IDs. */
+    /** @return list<string> all 108 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);

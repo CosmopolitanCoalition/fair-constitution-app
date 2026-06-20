@@ -114,13 +114,14 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_107_canonical_forms(): void
+    public function test_registry_holds_exactly_108_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
-        // testimony / carve-out removal).
-        $this->assertCount(107, FormRegistry::FORMS);
-        $this->assertCount(107, FormRegistry::ids());
+        // testimony / carve-out removal) + the Phase K-3 F-SOC-004 (M-5 physical-law
+        // legal-compliance removal, operator-plane).
+        $this->assertCount(108, FormRegistry::FORMS);
+        $this->assertCount(108, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

@@ -5,6 +5,7 @@ namespace Tests\Constitutional;
 use App\Jobs\EvaluateSocialStructureJob;
 use App\Models\SocialSpace;
 use App\Models\SocialSubforum;
+use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Social\SubforumReconciler;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -78,13 +79,21 @@ class SubforumReconcilerTest extends TestCase
         $this->onLivePg(function () {
             $jurisdictionId = (string) Str::uuid();
 
-            (new EvaluateSocialStructureJob($jurisdictionId))->handle(app(SubforumReconciler::class));
+            // The K-3 Matrix topology mirror is best-effort + bridged-not-merged; this pin is about the
+            // Plane-A space provisioning, so stub the topology reconciler (no live homeserver side-effects).
+            $this->mock(SocialTopologyReconcilerService::class, function ($m) {
+                $m->shouldReceive('reconcileJurisdiction')->andReturnNull();
+            });
+            $reconciler = app(SubforumReconciler::class);
+            $topology = app(SocialTopologyReconcilerService::class);
+
+            (new EvaluateSocialStructureJob($jurisdictionId))->handle($reconciler, $topology);
 
             $this->assertSame(1, SocialSpace::query()->where('jurisdiction_id', $jurisdictionId)->where('space_type', 'public_square')->count());
             $this->assertSame(1, SocialSpace::query()->where('jurisdiction_id', $jurisdictionId)->where('space_type', 'halls')->count());
 
             // Idempotent — re-running provisions nothing new.
-            (new EvaluateSocialStructureJob($jurisdictionId))->handle(app(SubforumReconciler::class));
+            (new EvaluateSocialStructureJob($jurisdictionId))->handle($reconciler, $topology);
             $this->assertSame(1, SocialSpace::query()->where('jurisdiction_id', $jurisdictionId)->where('space_type', 'halls')->count());
         });
     }

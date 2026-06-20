@@ -92,4 +92,17 @@ class MatrixClientService
 
         return $this->http()->withQueryParameters($this->asUser($asUser))->put($path, ['reason' => $reason])->throw()->json();
     }
+
+    /**
+     * M-5 (K3-I.4) — the CSAM byte-DESTROY seam (quarantine KEEPS bytes; redaction RETAINS them; purge
+     * DELETEs them). The appservice-authorised half is the redaction performed here; the actual media
+     * file + thumbnail destruction is the Synapse admin API (DELETE /_synapse/admin/v1/media/<server>/
+     * <media_id>), which needs an OPERATOR-supplied admin token + media-id resolution — rig-gated /
+     * operator-config. This method is the single point the legal-compliance path calls so the M-5 flow
+     * is wired end-to-end on the dev stack today; the admin-media-DELETE lands at the rig.
+     */
+    public function purgeEvent(string $roomId, string $eventId, ?string $asUser = null): array
+    {
+        return $this->redact($roomId, $eventId, '[m5_legal] purged', $asUser);
+    }
 }

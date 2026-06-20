@@ -57,4 +57,18 @@ return [
         'api_key'    => env('LIVEKIT_API_KEY'),
         'api_secret' => env('LIVEKIT_API_SECRET'),
     ],
+
+    // M-S — the proactive, content-neutral media-scan admission floor (K3-I.4). The ONLY input is a
+    // configured known-illegal HASH list (+ the media's own hash); there is NO semantic / ML classifier
+    // in the admission path. The default list ships EMPTY (the privacy rail — no media leaves the box):
+    // the OPERATOR sideloads the actual access-controlled list under their own legal credentials, and
+    // matching is fully OFFLINE (works on a LAN / air-gapped box). Cloud scanners / IWF-NCMEC list
+    // integration are operator-config / rig-gated.
+    'scan' => [
+        // A comma-separated list of known-illegal media hashes (lowercased). Empty by default.
+        'local_hashes' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('MATRIX_SCAN_LOCAL_HASHES', ''))
+        ))),
+    ],
 ];
