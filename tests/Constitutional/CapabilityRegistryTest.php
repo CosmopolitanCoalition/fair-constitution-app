@@ -123,6 +123,34 @@ class CapabilityRegistryTest extends TestCase
         });
     }
 
+    public function test_the_manifest_rides_the_handshake_learned_and_advertised_back(): void
+    {
+        $this->onLivePg(function () {
+            app(InstanceIdentityService::class)->ensureIdentity();
+            $svc = app(CapabilityService::class);
+            $svc->registerSelf('mesh.member'); // we will advertise this back
+
+            $peerServerId = (string) Str::uuid();
+            $response = app(\App\Services\Federation\PeerService::class)->receiveHandshake([
+                'server_id'  => $peerServerId,
+                'public_key' => sodium_bin2base64(random_bytes(32), SODIUM_BASE64_VARIANT_ORIGINAL),
+                'name'       => 'Peer with roles',
+                'capabilities' => [
+                    ['capability' => 'matrix.homeserver', 'priority' => 90],
+                    ['capability' => 'mesh.member'],
+                ],
+            ]);
+
+            // We LEARNED the peer's advertised capabilities.
+            $this->assertTrue($svc->holds($peerServerId, 'matrix.homeserver'), 'the peer manifest is learned on handshake');
+
+            // We ADVERTISED ours back (symmetric), and it rides the same signed payload as transports.
+            $advertised = collect($response['capabilities'] ?? [])->pluck('capability')->all();
+            $this->assertContains('mesh.member', $advertised, 'our capability manifest is returned in the handshake');
+            $this->assertArrayHasKey('transports', $response, 'capabilities sit alongside transports on the signed payload');
+        });
+    }
+
     private function onLivePg(callable $body): void
     {
         $conn = $this->livePg(self::LIVE_CONNECTION);

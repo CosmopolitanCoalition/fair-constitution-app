@@ -33,6 +33,7 @@ class PeerService
         private readonly AuditService $audit,
         private readonly TransportService $transports,
         private readonly MultiplexClient $multiplex,
+        private readonly CapabilityService $capabilities,
     ) {}
 
     /**
@@ -78,6 +79,8 @@ class PeerService
         // Learn every channel the peer advertises (G8b) — the multiplex ladder's
         // primary source. Pre-G8b peers advertise no transports → ladder = legacy url.
         $this->transports->recordPeerTransports($serverId, (array) ($remote['transports'] ?? []));
+        // Mesh Roles ★4 — learn the peer's capability manifest alongside its transports.
+        $this->capabilities->recordPeerCapabilities($serverId, (array) ($remote['capabilities'] ?? []));
 
         $this->audit->append('federation', 'peer.discovered',
             ['peer_server_id' => $serverId, 'url' => $url], 'WF-JUR-06');
@@ -101,6 +104,7 @@ class PeerService
         $payload = $this->identity->handshakePayload();
         $payload['url'] = config('cga.federation_self_url');
         $payload['transports'] = $this->transports->selfEndpoints();
+        $payload['capabilities'] = $this->capabilities->selfCapabilities(); // ★4 — advertise our role set, signed with the payload
 
         // Handshake over the multiplex ladder (G8b) — the peer's transports learned at
         // discovery are already in the ladder, so a handshake survives a down clearnet.
@@ -132,8 +136,9 @@ class PeerService
         ]);
         $peer->save();
 
-        // Learn the peer's full transport set from its handshake response (G8b).
+        // Learn the peer's full transport set + capability manifest from its handshake response (G8b/★4).
         $this->transports->recordPeerTransports($remoteServerId, (array) ($remote['transports'] ?? []));
+        $this->capabilities->recordPeerCapabilities($remoteServerId, (array) ($remote['capabilities'] ?? []));
 
         $this->audit->append('federation', 'peer.trust_established',
             ['peer_server_id' => $remoteServerId, 'url' => $peer->url, 'direction' => 'initiated'], 'WF-JUR-06');
@@ -171,10 +176,12 @@ class PeerService
         // Learn the introducing peer's transports (G8b), and advertise ours back so
         // the initiator's ladder is populated symmetrically.
         $this->transports->recordPeerTransports($serverId, (array) ($payload['transports'] ?? []));
+        $this->capabilities->recordPeerCapabilities($serverId, (array) ($payload['capabilities'] ?? []));
 
         return $this->identity->handshakePayload() + [
             'url' => config('cga.federation_self_url'),
             'transports' => $this->transports->selfEndpoints(),
+            'capabilities' => $this->capabilities->selfCapabilities(), // ★4 — advertise our role set back, symmetrically
         ];
     }
 

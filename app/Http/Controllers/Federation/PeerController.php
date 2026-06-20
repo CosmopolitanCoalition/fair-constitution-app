@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Federation;
 
 use App\Http\Controllers\Controller;
 use App\Models\FederationPeer;
+use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\TransportService;
@@ -20,9 +21,10 @@ class PeerController extends Controller
         private readonly InstanceIdentityService $identity,
         private readonly PeerService $peers,
         private readonly TransportService $transports,
+        private readonly CapabilityService $capabilities,
     ) {}
 
-    /** GET /api/federation/identity (public) — our advertised identity + transports. */
+    /** GET /api/federation/identity (public) — our advertised identity + transports + capabilities. */
     public function identity(): JsonResponse
     {
         return response()->json(
@@ -31,6 +33,8 @@ class PeerController extends Controller
                 // G8b — every channel we are reachable over, so a discoverer populates
                 // its failover ladder up front (not just our single legacy url).
                 'transports' => $this->transports->selfEndpoints(),
+                // Mesh Roles ★4 — our capability manifest (the role set we offer), signed with this payload.
+                'capabilities' => $this->capabilities->selfCapabilities(),
             ]
         );
     }
@@ -51,6 +55,13 @@ class PeerController extends Controller
             'transports.*.transport' => ['nullable', 'string'],
             'transports.*.url' => ['nullable', 'string'],
             'transports.*.priority' => ['nullable', 'integer'],
+            // Mesh Roles ★4 — the peer's capability manifest (the role set it advertises).
+            'capabilities' => ['nullable', 'array'],
+            'capabilities.*.capability' => ['nullable', 'string'],
+            'capabilities.*.priority' => ['nullable', 'integer'],
+            'capabilities.*.granted_by_server_id' => ['nullable', 'string'],
+            'capabilities.*.grant_signature' => ['nullable', 'string'],
+            'capabilities.*.grant_expires_at' => ['nullable', 'integer'],
         ]);
 
         return response()->json($this->peers->receiveHandshake($payload));
