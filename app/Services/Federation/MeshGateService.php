@@ -3,7 +3,9 @@
 namespace App\Services\Federation;
 
 use App\Models\FederationPeer;
+use App\Models\InstanceCapability;
 use App\Models\InstanceSettings;
+use App\Models\PeerUpgradeProposal;
 use App\Models\SyncLogEntry;
 
 /**
@@ -29,7 +31,20 @@ class MeshGateService
 
     public const FAIL = 'fail';
 
-    public function __construct(private readonly TransportService $transports) {}
+    /** Role Board channel states (Mesh Roles ★13, design §6.1). */
+    public const STATE_ESTABLISHED = 'established';
+    public const STATE_QUALIFIABLE = 'qualifiable';
+    public const STATE_NEEDS_CONFIG = 'needs-config';
+    public const STATE_REQUESTED = 'requested';
+    public const STATE_LAPSED = 'lapsed';
+
+    public function __construct(
+        private readonly TransportService $transports,
+        private readonly CapabilityService $capabilities,
+        private readonly CapabilityProber $prober,
+        private readonly InstanceIdentityService $identity,
+        private readonly BrokerAuthorizationService $brokerAuth,
+    ) {}
 
     /**
      * @return list<array{key:string,label:string,status:string,detail:string}>
@@ -114,6 +129,115 @@ class MeshGateService
         }
 
         return true;
+    }
+
+    /**
+     * The Role Board (Mesh Roles ★13/★16, design §6.1) — the flat readiness view re-projected as
+     * channel-keyed clusters. A box's role is the SET of channels it has established; each channel renders
+     * its own state (established / qualifiable / needs-config / requested / lapsed) with a self-contained
+     * pass/warn/fail cluster. The flat evaluate() above is unchanged, so `mesh:gates` is identical.
+     *
+     * @return list<array{capability:string,label:string,what:string,kind:string,state:string,affects_peer_subtree:bool,gates:list<array{key:string,label:string,status:string,detail:string}>}>
+     */
+    public function channels(?string $scopeJurisdictionId = null): array
+    {
+        $serverId = $this->identity->serverId();
+        $catalog = (array) config('mesh_channels', []);
+        $out = [];
+
+        foreach (InstanceCapability::CHANNELS as $cap) {
+            $governed = InstanceCapability::isGoverned($cap);
+            $established = $this->capabilities->holds($serverId, $cap);
+            $lapsed = ! $established && InstanceCapability::query()
+                ->where('server_id', $serverId)->where('capability', $cap)
+                ->where('is_self', true)->where('enabled', false)->whereNull('deleted_at')->exists();
+            $requested = $governed && PeerUpgradeProposal::query()
+                ->where('kind', PeerUpgradeProposal::KIND_ROLE_GRANT)
+                ->where('capability', $cap)
+                ->where('proposed_by_server_id', $serverId)
+                ->where('status', PeerUpgradeProposal::STATUS_OPEN)
+                ->exists();
+
+            $probe = $this->prober->probe($cap, $scopeJurisdictionId);
+
+            $state = match (true) {
+                $established => self::STATE_ESTABLISHED,
+                $requested => self::STATE_REQUESTED,
+                $lapsed => self::STATE_LAPSED,
+                $probe['ok'] => self::STATE_QUALIFIABLE,
+                default => self::STATE_NEEDS_CONFIG,
+            };
+
+            // The cluster: the prober as the primary gate, plus broker-readiness gates for the broker.* channels.
+            $gates = [$this->gate(
+                $cap.'.qualify',
+                'Hostable on this box',
+                ($established || $probe['ok']) ? self::PASS : self::FAIL,
+                $established ? 'established' : $probe['detail'],
+            )];
+            if (in_array($cap, ['broker.dns', 'broker.tls'], true)) {
+                $gates = array_merge($gates, $this->brokerGates($cap));
+            }
+
+            $out[] = [
+                'capability' => $cap,
+                'label' => (string) ($catalog[$cap]['label'] ?? $cap),
+                'what' => (string) ($catalog[$cap]['what'] ?? ''),
+                'kind' => $governed ? 'governed' : 'self-asserted',
+                'state' => $state,
+                'affects_peer_subtree' => $this->prober->affectsPeerSubtree($cap),
+                'gates' => $gates,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Broker-readiness gates (Mesh Roles ★16) — folded into the broker.* channel clusters AND surfaced by
+     * mesh:doctor: is a naming root configured, is this box mesh-routable as a broker, has a cert issued.
+     *
+     * @return list<array{key:string,label:string,status:string,detail:string}>
+     */
+    public function brokerGates(string $cap): array
+    {
+        $gates = [];
+        $domains = array_keys((array) config('cga.broker.domains', []));
+
+        $gates[] = $this->gate(
+            $cap.'.domains',
+            'A naming root is configured',
+            $domains !== [] ? self::PASS : self::WARN,
+            $domains !== [] ? implode(', ', $domains) : 'none — set cga.broker.domains + drop the Cloudflare token',
+        );
+
+        if ($cap === 'broker.tls') {
+            $serverId = $this->identity->serverId();
+            $routable = false;
+            foreach ($domains as $d) {
+                if (in_array($serverId, $this->brokerAuth->brokersFor($d), true)) {
+                    $routable = true;
+                    break;
+                }
+            }
+            $gates[] = $this->gate(
+                'broker.tls.routable',
+                'Mesh-routable as a broker (broker_authorizations)',
+                $routable ? self::PASS : self::WARN,
+                $routable ? 'an authority has attested this box' : 'no broker_authorization yet — an authority must attest this box',
+            );
+
+            $certDir = (string) config('cga.broker.tls_path', storage_path('app/mesh-tls'));
+            $hasCert = is_dir($certDir) && ($g = glob($certDir.'/*.crt')) !== false && $g !== [];
+            $gates[] = $this->gate(
+                'broker.tls.cert',
+                'A TLS cert has been issued',
+                $hasCert ? self::PASS : self::WARN,
+                $hasCert ? 'cert present in '.$certDir : 'none yet — run mesh:request-cert',
+            );
+        }
+
+        return $gates;
     }
 
     /**

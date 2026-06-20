@@ -52,8 +52,9 @@ class MeshRoleCommand extends Command
             'qualify' => $this->qualify($prober),
             'request' => $this->request($caps, $grants),
             'approve' => $this->approve($grants, $agreement),
+            'deliver' => $this->deliver($grants),
             'revoke' => $this->revoke($grants),
-            default => $this->bail('Unknown action — use list|qualify|request|approve|revoke.'),
+            default => $this->bail('Unknown action — use list|qualify|request|approve|deliver|revoke.'),
         };
     }
 
@@ -150,6 +151,39 @@ class MeshRoleCommand extends Command
 
             return self::FAILURE;
         }
+    }
+
+    private function deliver(MeshRoleGrantService $grants): int
+    {
+        $proposalId = (string) $this->option('proposal');
+        $proposal = $proposalId !== '' ? PeerUpgradeProposal::query()->find($proposalId) : null;
+        if ($proposal === null || $proposal->kind !== PeerUpgradeProposal::KIND_ROLE_GRANT) {
+            $this->error('Pass --proposal=<id> of a ratified role-grant to deliver.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            $resp = $grants->deliverGrant($proposal);
+        } catch (Throwable $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        if ($resp === null) {
+            $this->info('Self-grant — already applied at ratify; nothing to deliver.');
+
+            return self::SUCCESS;
+        }
+        if (! $resp->successful()) {
+            $this->error("Grantee refused delivery (HTTP {$resp->status()}): ".(string) $resp->body());
+
+            return self::FAILURE;
+        }
+        $this->info('[DELIVERED] the grantee applied the capability grant.');
+
+        return self::SUCCESS;
     }
 
     private function revoke(MeshRoleGrantService $grants): int

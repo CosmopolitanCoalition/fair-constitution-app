@@ -8,6 +8,7 @@ use App\Http\Controllers\Federation\GeodataController;
 use App\Http\Controllers\Federation\MeshOperatorController;
 use App\Http\Controllers\Federation\PeerController;
 use App\Http\Controllers\Federation\ReadWriteController;
+use App\Http\Controllers\Federation\RoleGrantController;
 use App\Http\Controllers\Federation\SyncController;
 use App\Http\Controllers\Federation\UpgradeConsentController;
 use App\Http\Controllers\Federation\WriteController;
@@ -93,6 +94,10 @@ Route::post('/upgrade/consent', [UpgradeConsentController::class, 'store'])
 Route::post('/cert-request', [CertRequestController::class, 'certRequest'])
     ->middleware('federation.signed');
 Route::post('/cert-grant', [CertGrantController::class, 'receiveGrant'])
+    ->middleware('federation.signed');
+// Mesh Roles ★17 — cross-instance JOIN: an authority delivers a minted capability_grant to the
+// grantee; we apply it ONLY if it verifies against the authority's pinned key + names this box.
+Route::post('/role-grant', [RoleGrantController::class, 'receiveGrant'])
     ->middleware('federation.signed');
 
 // ── Geodata manifest (G3c, N3) — a pinned peer pulls our signed dataset manifest.

@@ -10,7 +10,9 @@ use App\Services\AuditService;
 use App\Services\Federation\CapabilityProber;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
+use App\Services\Federation\MultiplexClient;
 use App\Services\PeerUpgradeAgreementService;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,6 +40,7 @@ class MeshRoleGrantService
         private readonly CapabilityService $capabilities,
         private readonly InstanceIdentityService $identity,
         private readonly AuditService $audit,
+        private readonly MultiplexClient $multiplex,
     ) {}
 
     // -- QUALIFY + REQUEST ------------------------------------------------------------------------------
@@ -197,6 +200,35 @@ class MeshRoleGrantService
 
             return $proposal->refresh();
         });
+    }
+
+    // -- JOIN delivery (★17 — cross-instance) -----------------------------------------------------------
+
+    /**
+     * Deliver a ratified capability grant to a PEER grantee over the survival mesh (Mesh Roles ★17). The
+     * grantee's /api/federation/role-grant verifies it against OUR (the authority's) pinned key and applies
+     * it (grantSelf) — no trust is conferred by delivery alone. A self-grant was already applied at ratify,
+     * so there is nothing to deliver; returns null. The live cross-instance hop is the rig leg.
+     */
+    public function deliverGrant(PeerUpgradeProposal $proposal): ?Response
+    {
+        $proposal = $proposal->refresh();
+
+        if ($proposal->status !== PeerUpgradeProposal::STATUS_RATIFIED || ! is_array($proposal->grant_payload)) {
+            throw new ConstitutionalViolation('No ratified grant to deliver.', 'Mesh Roles & Channels of Trust');
+        }
+
+        $granteeServerId = (string) $proposal->proposed_by_server_id;
+        if ($granteeServerId === $this->identity->serverId()) {
+            return null; // self-grant already applied at ratify
+        }
+
+        $envelope = collect($proposal->grant_payload)->except('signature')->all();
+
+        return $this->multiplex->reach($granteeServerId, 'POST', '/api/federation/role-grant', [
+            'grant' => $envelope,
+            'grant_signature' => (string) ($proposal->grant_payload['signature'] ?? ''),
+        ]);
     }
 
     // -- REVOKE / LAPSE (de-promotion, always unilateral to STOP) ---------------------------------------

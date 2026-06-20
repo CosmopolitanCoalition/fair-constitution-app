@@ -244,7 +244,10 @@
       "Bash(git ls-tree *)",
       "Bash(awk '/public function completeStep4/,/^    }/' app/Http/Controllers/SetupController.php)",
       "Bash(awk '/private function generateInstitutionStubs/,/^    }$/' app/Http/Controllers/SetupController.php)",
-      "Bash(grep -nE \"^#{1,4} |^### A\\\\.|^\\\\| Decision\" \"C:/Users/JOSEPH~1/AppData/Local/Temp/claude/salvage/DESIGN_schema_engine.md\")"
+      "Bash(grep -nE \"^#{1,4} |^### A\\\\.|^\\\\| Decision\" \"C:/Users/JOSEPH~1/AppData/Local/Temp/claude/salvage/DESIGN_schema_engine.md\")",
+      "Bash(grep -nE \"PROTOMAPS_DIR|ARCHIVE|MAP_FILES|/archive|[A-Za-z]:[\\\\\\\\\\\\\\\\/]|: ?\\\\./|source:|device:\" docker-compose.yml)",
+      "Bash(grep -nE \"PROTOMAPS_DIR|ARCHIVE|MAP_FILES|_DIR=|[A-Za-z]:[\\\\\\\\\\\\\\\\/]|NGINX_HOST_PORT|POSTGRES_HOST_PORT|VITE_HOST_PORT\" .env.example)",
+      "Bash(docker manifest *)"
     ]
   }
 }

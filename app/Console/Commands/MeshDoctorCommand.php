@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\InstanceSettings;
 use App\Services\Federation\InstanceIdentityService;
+use App\Services\Federation\MeshGateService;
 use App\Services\Federation\MeshProbeService;
 use App\Services\Federation\TransportService;
 use Illuminate\Console\Command;
@@ -33,6 +34,7 @@ class MeshDoctorCommand extends Command
         TransportService $transports,
         InstanceIdentityService $identity,
         MeshProbeService $probe,
+        MeshGateService $gates,
     ): int {
         $settings = InstanceSettings::current();
         $self = $transports->selfEndpoints();
@@ -44,6 +46,22 @@ class MeshDoctorCommand extends Command
         $this->line('  advertised transports  : '.($self === []
             ? 'NONE — run transport:register'
             : implode(', ', array_map(fn ($e) => $e['transport'].'='.$e['url'], $self))));
+
+        // Broker channel readiness (Mesh Roles ★16) — only meaningful once a naming root is configured.
+        if (array_keys((array) config('cga.broker.domains', [])) !== []) {
+            $this->newLine();
+            $this->line('Broker channel:');
+            foreach (['broker.dns', 'broker.tls'] as $cap) {
+                foreach ($gates->brokerGates($cap) as $g) {
+                    $mark = match ($g['status']) {
+                        MeshGateService::PASS => 'OK',
+                        MeshGateService::WARN => '..',
+                        default => 'XX',
+                    };
+                    $this->line(sprintf('  [%s] %-40s %s', $mark, $g['label'].' ('.$cap.')', $g['detail']));
+                }
+            }
+        }
 
         $target = trim((string) $this->argument('target'));
 
