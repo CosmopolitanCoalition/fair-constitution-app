@@ -25,6 +25,8 @@ class PeerUpgradeProposal extends Model
     public const KIND_CONSTITUTIONAL_BUMP = 'constitutional_bump';
     public const KIND_SCHEMA_BUMP         = 'schema_bump';
     public const KIND_APP_RELEASE         = 'app_release';
+    // Mesh Roles ★7 — a capability grant flowing through the identical dual-meter consent.
+    public const KIND_ROLE_GRANT          = 'role_grant';
 
     public const STATUS_OPEN       = 'open';
     public const STATUS_RATIFIED   = 'ratified';
@@ -47,10 +49,14 @@ class PeerUpgradeProposal extends Model
         'status',
         'seated_process_id',
         'ratified_at',
+        // Mesh Roles ★7 — role_grant proposals only.
+        'capability',
+        'grant_payload',
     ];
 
     protected $casts = [
         'hardened_params' => 'array',
+        'grant_payload'   => 'array',
         'ratified_at'     => 'datetime',
     ];
 
