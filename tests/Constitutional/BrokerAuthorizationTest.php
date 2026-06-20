@@ -73,9 +73,12 @@ class BrokerAuthorizationTest extends TestCase
                 'signature' => $goodSig, 'issued_at' => $issuedAt,
             ];
 
-            // 1) Valid fact ⇒ accepted.
+            // 1) Valid fact ⇒ accepted for DISCOVERY (brokersFor), but NEVER for TRUST (authorityKeysFor).
+            // A gossiped peer self-attestation must not enter the cert-trust list — gossip distributes
+            // trust, it never bootstraps it. Otherwise any peer could self-authorize and forge cert grants.
             $this->assertSame(1, $svc->ingest([$fact], $from));
-            $this->assertContains($authPub, $svc->authorityKeysFor(self::DOMAIN));
+            $this->assertContains($brokerServerId, $svc->brokersFor(self::DOMAIN), 'gossip feeds discovery');
+            $this->assertNotContains($authPub, $svc->authorityKeysFor(self::DOMAIN), 'gossip never feeds the cert-trust list (no self-authorization)');
 
             // 2) Tampered signature ⇒ dropped.
             $this->assertSame(0, $svc->ingest([array_merge($fact, ['signature' => $goodSig, 'broker_server_id' => (string) Str::uuid()])], $from),
@@ -90,6 +93,41 @@ class BrokerAuthorizationTest extends TestCase
             $strangerServer = (string) Str::uuid();
             $this->assertSame(0, $svc->ingest([array_merge($fact, ['authority_server_id' => $strangerServer])], $from),
                 'an authority with no pinned key has no standing');
+        });
+    }
+
+    public function test_a_peer_cannot_self_authorize_into_the_cert_trust_list(): void
+    {
+        $this->onLivePg(function () {
+            $identity = app(InstanceIdentityService::class);
+            $identity->ensureIdentity();
+            $svc = app(BrokerAuthorizationService::class);
+
+            // WE legitimately attest ourselves (we hold the domain) — our key is a rooted authority.
+            $svc->attest(self::DOMAIN, $identity->serverId());
+
+            // A malicious peer gossips a SELF-attestation: authority_server_id == its own server, signed
+            // with its own key. It verifies (self-signed) and is stored for discovery — but it must NEVER
+            // enter the cert-trust list (the audit's domain-takeover vector).
+            $kp = sodium_crypto_sign_keypair();
+            $evilPub = sodium_bin2base64(sodium_crypto_sign_publickey($kp), SODIUM_BASE64_VARIANT_ORIGINAL);
+            $evilSecret = sodium_crypto_sign_secretkey($kp);
+            $evilServer = (string) Str::uuid();
+            $from = $this->peer($evilServer, $evilPub);
+            $issuedAt = now()->getTimestamp();
+            $evilFact = [
+                'domain' => self::DOMAIN, 'broker_server_id' => $evilServer,
+                'authority_server_id' => $evilServer, 'authority_pubkey' => $evilPub,
+                'signature' => sodium_bin2base64(sodium_crypto_sign_detached(
+                    $svc->canonicalFact(self::DOMAIN, $evilServer, $evilServer, $issuedAt), $evilSecret
+                ), SODIUM_BASE64_VARIANT_ORIGINAL),
+                'issued_at' => $issuedAt,
+            ];
+            $this->assertSame(1, $svc->ingest([$evilFact], $from), 'the self-signed fact verifies + stores (discovery)');
+
+            $keys = $svc->authorityKeysFor(self::DOMAIN);
+            $this->assertContains($identity->publicKey(), $keys, 'our own rooted attestation IS a trusted authority key');
+            $this->assertNotContains($evilPub, $keys, 'the peer self-attestation is NOT — no self-authorization, no domain takeover');
         });
     }
 

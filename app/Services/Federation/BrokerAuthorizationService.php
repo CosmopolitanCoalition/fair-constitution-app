@@ -142,20 +142,32 @@ class BrokerAuthorizationService
     }
 
     /**
-     * The authority public keys allowed to GRANT under $domain — exactly the `authority_keys` whitelist
-     * the GrantVerifier consumes. Distinct, live (unrevoked) rows only.
+     * The authority public keys allowed to GRANT under $domain — exactly the `authority_keys` whitelist the
+     * cert GrantVerifier consumes. THIS IS A TRUST DECISION, so it is LOCALLY ROOTED: gossip can DISTRIBUTE
+     * trust but must never BOOTSTRAP it. A gossiped peer self-attestation ("I am the authority for D",
+     * self-signed) would otherwise let any peer self-authorize and forge cert grants (a domain takeover).
+     * Roots, both local:
+     *   (1) OUR OWN attestations (authority_server_id == us) — we self-attest only on ratify of a broker
+     *       role, which already required the domain's token/credential, so it is genuinely rooted; and
+     *   (2) authority keys the operator EXPLICITLY pinned in config/domains (cga.broker.domains[D].authority_keys).
+     * Gossiped PEER attestations never enter this list — they are discovery-only (see brokersFor).
      *
      * @return list<string>
      */
     public function authorityKeysFor(string $domain): array
     {
-        return BrokerAuthorization::query()
+        $own = BrokerAuthorization::query()
             ->where('domain', $domain)
             ->whereNull('revoked_at')
+            ->where('authority_server_id', $this->identity->serverId()) // OUR attestations only — never gossiped peers
             ->distinct()
             ->pluck('authority_pubkey')
             ->map(fn ($k) => (string) $k)
             ->all();
+
+        $pinned = array_map('strval', (array) (config('cga.broker.domains')[$domain]['authority_keys'] ?? []));
+
+        return array_values(array_unique(array_merge($own, $pinned)));
     }
 
     /** @return list<string> broker_server_ids authorized to broker under $domain (discovery/routing). */
