@@ -52,10 +52,13 @@ return [
     ],
 
     // LiveKit (Element Call SFU) for voice/video (K3-J). Dev-stack only; Pi A/V deferred to scaling.
+    // The api_key/secret DEV defaults match docker/livekit dev config (the dev-secret pattern, like the
+    // appservice as_token); `php artisan matrix:setup` regenerates real secrets for a deployment. The
+    // appservice mints HS256 join tokens over api_secret — never expose the secret to a client.
     'livekit' => [
         'url'        => env('LIVEKIT_URL', 'http://livekit:7880'),
-        'api_key'    => env('LIVEKIT_API_KEY'),
-        'api_secret' => env('LIVEKIT_API_SECRET'),
+        'api_key'    => env('LIVEKIT_API_KEY', 'cga_dev_livekit_key'),
+        'api_secret' => env('LIVEKIT_API_SECRET', 'cga_dev_livekit_secret_5c1d8e3a9f47026b'),
     ],
 
     // M-S — the proactive, content-neutral media-scan admission floor (K3-I.4). The ONLY input is a

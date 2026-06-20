@@ -244,6 +244,26 @@ services:
     networks:
       - fc_network
 
+  # ─── LiveKit (Element Call SFU — Phase K-3 K3-J, voice/video) ───────────
+  # OPT-IN via the `voice` profile: `docker compose --profile voice up -d livekit` (the default stack
+  # stays lean; media needs UDP ports). The appservice mints residency-gated, room-scoped HS256 join
+  # tokens over the api_secret in docker/livekit/livekit.yaml (matches config/matrix.php dev defaults).
+  # Pi A/V is deferred to the scaling boxes; this is the dev-stack SFU only.
+  livekit:
+    image: ${LIVEKIT_IMAGE:-livekit/livekit-server:latest}
+    container_name: ${CONTAINER_PREFIX:-fc}_livekit
+    restart: unless-stopped
+    profiles: ["voice"]
+    command: ["--config", "/etc/livekit.yaml"]
+    ports:
+      - "${LIVEKIT_HOST_PORT:-7880}:7880"
+      - "7881:7881"
+      - "50000-50100:50000-50100/udp"
+    volumes:
+      - ./docker/livekit/livekit.yaml:/etc/livekit.yaml:ro
+    networks:
+      - fc_network
+
   # ─── Redis 7 ─────────────────────────────────────────────────
   redis:
     image: redis:7.4-alpine

@@ -674,6 +674,10 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // Phase K-3 (K3-K) — server-side in-conversation translation. The TranslationGate PRIVACY RAIL is
     // enforced here regardless of client: a private room is never cloud-translated (fail-closed).
     Route::post('/matrix/translate', \App\Http\Controllers\Matrix\MatrixTranslationController::class)->name('matrix.translate');
+
+    // Phase K-3 (K3-J) — request a residency-gated LiveKit (Element Call) join token. Residency is the
+    // ONLY gate (Art. I); the token is room-scoped, short-lived, pseudonymous, appservice-signed.
+    Route::post('/matrix/call-token', \App\Http\Controllers\Matrix\CallTokenController::class)->name('matrix.call-token');
 });
 
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain

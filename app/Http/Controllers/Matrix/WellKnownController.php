@@ -30,14 +30,25 @@ class WellKnownController extends Controller
     {
         $base = rtrim((string) config('matrix.well_known.client_base_url'), '/');
 
-        return response()->json([
+        $payload = [
             'm.homeserver'      => ['base_url' => $base],
             'org.matrix.msc2965.authentication' => [
                 // The OIDC provider (MAS) Synapse delegates to — the public issuer clients reach.
                 'issuer'  => config('matrix.mas.issuer'),
                 'account' => rtrim((string) config('matrix.mas.issuer'), '/').'/account',
             ],
-        ])->header('Access-Control-Allow-Origin', '*');
+        ];
+
+        // K3-J — advertise the MatrixRTC SFU (Element Call / LiveKit) focus when configured. Greenfield
+        // MSC — re-pin the key against the live Element Call version before relying on it in a client.
+        $livekitUrl = (string) config('matrix.livekit.url');
+        if ($livekitUrl !== '') {
+            $payload['org.matrix.msc4143.rtc_foci'] = [
+                ['type' => 'livekit', 'livekit_service_url' => $livekitUrl],
+            ];
+        }
+
+        return response()->json($payload)->header('Access-Control-Allow-Origin', '*');
     }
 
     /**
