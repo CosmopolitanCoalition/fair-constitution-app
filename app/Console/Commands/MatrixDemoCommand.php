@@ -122,6 +122,10 @@ class MatrixDemoCommand extends Command
                 $this->flip->logFlip($dOperator, '!k3demo-square:'.config('matrix.server_name'), '$k3demo-relay');
                 $this->line('Logged a BOOTSTRAP operator-relay carve-out (attestation_id NULL) — the flip, demonstrated.');
             }
+            // The carve-out log row stands on its own (no operator FK); the EPHEMERAL demo operator is
+            // force-deleted so it never inflates the global de-facto operator board (Meter A counts
+            // active operators — a stray demo operator would skew a real upgrade-consent threshold).
+            $operator->forceDelete();
         }
 
         $this->call('audit:verify');
@@ -189,10 +193,13 @@ class MatrixDemoCommand extends Command
 
     private function demoOperator(): OperatorAccount
     {
-        return OperatorAccount::query()->where('username', 'k3demo-operator')->first()
-            ?? OperatorAccount::create([
-                'server_id' => (string) Str::uuid(), 'username' => 'k3demo-operator',
-                'password' => Str::random(40), 'status' => OperatorAccount::STATUS_ACTIVE,
-            ]);
+        // Clear any leftover from a crashed prior run, then mint a FRESH active operator. It is
+        // EPHEMERAL — force-deleted right after the flip (see handle) so it never counts as board.
+        OperatorAccount::withTrashed()->where('username', 'k3demo-operator')->forceDelete();
+
+        return OperatorAccount::create([
+            'server_id' => (string) Str::uuid(), 'username' => 'k3demo-operator',
+            'password' => Str::random(40), 'status' => OperatorAccount::STATUS_ACTIVE,
+        ]);
     }
 }
