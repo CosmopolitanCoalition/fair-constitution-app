@@ -109,3 +109,33 @@ the category set is a compiled enum, grown ONLY by code release per phase, never
   SEAM (interface + admission gate + stub hash list), every CI-invariant test.
 - **Operator-config / rig / deferred:** real IWF/NCMEC/PhotoDNA hash-list integration (operator creds);
   live Synapse DELETE/quarantine/MCS wiring + cross-instance purge propagation (rig); NCMEC submission.
+
+## G. Adversarial-review outcome (3 independent reviewers, post-I.4)
+Structural invariants CONFIRMED airtight: viewpoint-impossibility (closed enums + shape gate), power-level
+-never-moves (no Matrix client on the flip service), the plane wall (RoleService never read for the operator),
+single-transaction atomicity (trail+log+record), systemOnly (no citizen files F-SOC-004), M-3-never-an-
+appservice-action, the form-count (108). Findings FIXED in the hardening pass (suite 26 K3-I pins green):
+- **must-fix — CSAM hash leak on the REJECTED path:** the validator refuses a hash-bearing filing, but the
+  engine sealed `sanitize(payload)` to the chain and `SENSITIVE_KEYS` didn't include the CSAM family →
+  *tripping* the guard leaked the hash. FIXED: added the hash/locator family + `operator_account_id` to
+  `ConstitutionalEngine::SENSITIVE_KEYS` (sanitize already lowercases + recurses). Pinned.
+- **must-fix — wrong-key attestation verify:** `ModerationFlipService` verified every attestation against
+  OUR key. FIXED: `issuerKeyFor()` resolves the CLAIMED issuer's pinned key (self → our key; peer →
+  `federation_peers.public_key`; unknown → null → FAIL CLOSED). Pinned (foreign-issuer refused).
+- **should-fix — free-text smuggling:** `matched_list_source` (→ public body) / `statutory_citation` (→ trail)
+  could carry a URL/hash. FIXED: validator rejects URL/hex/base64 shapes + length-caps both. Pinned.
+- **should-fix — recursive forbidden-key scan:** the validator's scan was top-level only. FIXED: recursive +
+  case-insensitive `payloadCarriesForbiddenKey`. Pinned (nested `evidence.SHA256` refused).
+- **should-fix — `emitAntispam` permitted-guard** added (fail closed if m4 ever becomes refusable).
+- **nit→done — DB CHECK** `matrix_carveout_log_attestation_seated_check (attestation_id IS NULL OR
+  is_seated_at_time)` (migration 000003): a forged "judicial order before there is a judge" is now
+  impossible at the DB layer.
+
+**Still deferred to K3-N (rig), documented not fixed:**
+- `MatrixClientService::purgeEvent` performs the appservice REDACTION but the media-byte DELETE
+  (`DELETE /_synapse/admin/v1/media/...`, admin token) is rig-gated — CSAM bytes persist on disk until the
+  rig wiring lands; the durable §2258A TRAIL is what the dev stack guarantees. A `physical_removal_status`
+  on the trail (deferred vs done) should accompany the rig wiring so nothing reports "purged" falsely.
+- Attestation↔jurisdiction SCOPE binding: a valid R-19/R-20 attestation proves "a judge" not "a judge of
+  THIS jurisdiction" (consistent with F-SOC-003's global role gate today). Bind to the governing
+  legislature when the rig peer-judge path is built.

@@ -2,6 +2,7 @@
 
 namespace App\Services\Matrix;
 
+use App\Models\FederationPeer;
 use App\Models\Legislature;
 use App\Models\MatrixCarveoutLog;
 use App\Models\OperatorAccount;
@@ -84,10 +85,14 @@ class ModerationFlipService
 
         if ($seated) {
             // POST-FLIP: only a live, valid R-19/R-20 judicial attestation. The operator is no longer
-            // honoured. verifyAttestation fails closed on expiry/revocation/forgery; the roles snapshot
-            // must actually carry the judicial office.
+            // honoured. The attestation is verified against ITS CLAIMED ISSUER's pinned key (self → our
+            // key; a peer → federation_peers.public_key), never blindly against our own — an attestation
+            // from an unknown / un-pinned issuer FAILS CLOSED. verifyAttestation additionally fails closed
+            // on expiry/revocation/forgery; the roles snapshot must actually carry the judicial office.
+            $issuerKey = $attestation !== null ? $this->issuerKeyFor($attestation) : null;
             if ($attestation === null
-                || ! $this->attestations->verifyAttestation($attestation, $this->identity->publicKey())
+                || $issuerKey === null
+                || ! $this->attestations->verifyAttestation($attestation, $issuerKey)
                 || ! $this->hasJudicialRole($attestation)) {
                 return FlipDecision::refused(
                     $jurisdictionId, $carveOut, $seated, 'refused',
@@ -178,4 +183,24 @@ class ModerationFlipService
 
         return in_array('R-19', $roles, true) || in_array('R-20', $roles, true);
     }
+
+    /**
+     * The PINNED public key of the attestation's CLAIMED issuer (the established serverKey pattern): self
+     * → our own key; a known peer → its pinned federation_peers.public_key. Null when the claimed issuer
+     * is unknown or carries no pinned key — the caller treats null as a refusal (fail closed): we never
+     * verify a stranger's signature against our own key.
+     */
+    private function issuerKeyFor(StandingAttestation $attestation): ?string
+    {
+        $issuer = (string) $attestation->issuer_server_id;
+
+        if ($issuer !== '' && $issuer === $this->identity->serverId()) {
+            return $this->identity->publicKey();
+        }
+
+        $peer = FederationPeer::query()->where('server_id', $issuer)->first();
+
+        return $peer?->public_key !== null ? (string) $peer->public_key : null;
+    }
 }
+

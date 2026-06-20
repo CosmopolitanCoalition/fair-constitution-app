@@ -146,6 +146,58 @@ class LegalComplianceTest extends TestCase
         });
     }
 
+    /** G5 (the rejection-path leak): tripping the hash guard must NOT seal the hash into the audit chain.
+     *  A refused filing records a sanitized payload; the CSAM forbidden-key family is sanitized out. */
+    public function test_a_rejected_filing_never_seals_a_hash_into_the_chain(): void
+    {
+        $this->onLivePg(function () {
+            $op = $this->operator();
+            $sentinel = 'csamsentinel0000deadbeefcafef00dba5e'; // a distinctive would-be hash value
+
+            // Top-level AND nested (sanitize lowercases + recurses), with a variant-case key.
+            $this->assertRefused(fn () => $this->fileRaw($op, [
+                'legal_basis' => 'csam_hashmatch', 'action' => 'purge', 'media_hash' => $sentinel,
+            ]));
+            $this->assertRefused(fn () => $this->fileRaw($op, [
+                'legal_basis' => 'csam_hashmatch', 'action' => 'purge', 'evidence' => ['SHA256' => $sentinel],
+            ]));
+
+            // The append-only audit chain holds the rejection rows — but NOT the hash value.
+            $leaked = DB::table('audit_log')
+                ->whereRaw('payload::text LIKE ?', ['%'.$sentinel.'%'])
+                ->count();
+            $this->assertSame(0, $leaked, 'a refused CSAM filing must never seal the hash into the chain');
+        });
+    }
+
+    /** G5 (free-text smuggling): the list-source / citation fields cannot carry a URL or hash-shaped value. */
+    public function test_a_list_source_or_citation_cannot_smuggle_a_locator(): void
+    {
+        $this->onLivePg(function () {
+            $op = $this->operator();
+            // matched_list_source flows to the PUBLIC body — a URL or hash there is republishable harm.
+            $this->assertRefused(fn () => $this->fileRaw($op, [
+                'legal_basis' => 'csam_hashmatch', 'action' => 'purge', 'matched_list_source' => 'https://evil/x',
+            ]));
+            $this->assertRefused(fn () => $this->fileRaw($op, [
+                'legal_basis' => 'csam_hashmatch', 'action' => 'purge',
+                'matched_list_source' => 'deadbeefdeadbeefdeadbeefdeadbeef', // a hex hash
+            ]));
+            // statutory_citation flows to the trail — same rule.
+            $this->assertRefused(fn () => $this->fileRaw($op, [
+                'legal_basis' => 'true_threat', 'action' => 'hard_redact', 'statutory_citation' => 'see https://x/y',
+            ]));
+            // A legitimate short label / real citation passes.
+            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn([]));
+            app(RoleService::class)->flush();
+            $ok = app(LegalComplianceService::class)->remove(
+                $op, self::ROOM, '$ok', LegalComplianceRemoval::BASIS_CSAM_HASHMATCH, $this->aJurisdiction(),
+                '18 U.S.C. § 2252A', 'NCMEC-industry-list'
+            );
+            $this->assertNotNull($ok['removal_id']);
+        });
+    }
+
     /** G4 (auth): a forged / absent / inactive operator is refused; and no CITIZEN may file F-SOC-004. */
     public function test_only_an_active_operator_on_its_own_plane_may_file(): void
     {

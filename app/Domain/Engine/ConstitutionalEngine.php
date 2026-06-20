@@ -54,6 +54,24 @@ class ConstitutionalEngine
         // Referendum ballot content (Art. II §6, Phase C F-IND-008): the
         // voter's yes/no must never reach the chain — same treatment.
         'choice',
+        // CSAM hash/locator (Phase K-3, F-SOC-004 M-5): a REJECTED legal-compliance
+        // filing must NEVER seal a known-illegal hash or locator into the immutable
+        // chain (republishable harm) — the validator refuses such a filing, and this
+        // guarantees the refusal itself cannot leak it. sanitize() lowercases keys and
+        // recurses, so nested / variant-case keys are stripped too. Mirrors the
+        // checkLegalComplianceRemoval forbidden-key set.
+        'hash',
+        'media_hash',
+        'locator',
+        'url',
+        'sha1',
+        'sha256',
+        'md5',
+        'pdq',
+        'photodna',
+        // The operator-plane identifier never crosses into the citizen chain on a
+        // rejection (the plane wall) — it is not needed for a rejection audit row.
+        'operator_account_id',
     ];
 
     public function __construct(

@@ -951,15 +951,57 @@ class ConstitutionalValidator
 
         // (5) NO CSAM hash/locator may ride a filing or log — republishable harm. Transparency is the
         //     count + the list SOURCE only; matched_list_source names WHICH list, never the hash itself.
-        foreach (['hash', 'media_hash', 'locator', 'url', 'sha1', 'sha256', 'md5', 'pdq', 'photodna'] as $forbidden) {
-            if (array_key_exists($forbidden, $payload)) {
+        //     Scanned recursively + case-insensitively so a nested / variant-case key cannot slip past
+        //     (the engine's SENSITIVE_KEYS additionally guarantees a rejection can't seal it into the chain).
+        $forbiddenKeys = ['hash', 'media_hash', 'locator', 'url', 'sha1', 'sha256', 'md5', 'pdq', 'photodna'];
+        if ($this->payloadCarriesForbiddenKey($payload, $forbiddenKeys)) {
+            throw new ConstitutionalViolation(
+                'A CSAM hash or locator may NEVER be carried in a filing or published log (republishable '
+                .'harm) — record the list SOURCE only.',
+                $citation
+            );
+        }
+
+        // (5b) The two free-text fields reach durable artifacts (matched_list_source → the PUBLIC
+        //     transparency body; statutory_citation → the trail). They may name a list / cite a statute
+        //     but must NEVER smuggle a locator past guard (5): reject a URL or a hash-shaped value, and
+        //     cap the length (a label/citation, not a payload).
+        foreach (['matched_list_source' => 120, 'statutory_citation' => 300] as $field => $max) {
+            $value = $payload[$field] ?? null;
+            if ($value === null) {
+                continue;
+            }
+            if (! is_string($value) || mb_strlen($value) > $max) {
                 throw new ConstitutionalViolation(
-                    'A CSAM hash or locator may NEVER be carried in a filing or published log (republishable '
-                    .'harm) — record the list SOURCE only.',
+                    "The {$field} is a short list label / statute citation, not a payload.",
+                    $citation
+                );
+            }
+            if (preg_match('#://#', $value)                          // a URL / locator
+                || preg_match('/[0-9a-f]{24,}/i', $value)            // a long hex hash (md5/sha1/sha256/pdq)
+                || preg_match('#[A-Za-z0-9+/]{40,}={0,2}#', $value)) { // a base64 hash blob (e.g. PhotoDNA)
+                throw new ConstitutionalViolation(
+                    "A {$field} must be a list SOURCE / statute citation only — never a hash, locator, or URL "
+                    .'(republishable harm).',
                     $citation
                 );
             }
         }
+    }
+
+    /** Recursive, case-insensitive scan for a forbidden key anywhere in a (possibly nested) payload. */
+    private function payloadCarriesForbiddenKey(array $payload, array $forbidden): bool
+    {
+        foreach ($payload as $key => $value) {
+            if (in_array(strtolower((string) $key), $forbidden, true)) {
+                return true;
+            }
+            if (is_array($value) && $this->payloadCarriesForbiddenKey($value, $forbidden)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

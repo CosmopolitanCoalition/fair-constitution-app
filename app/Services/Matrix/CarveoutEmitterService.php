@@ -83,6 +83,12 @@ class CarveoutEmitterService
     ): MatrixCarveoutLog {
         $decision = $this->flip->resolve($jurisdictionId, 'm4_antispam', null, $operator);
 
+        // Defence in depth: m4 currently always resolves permitted, but never redact on a refusal if a
+        // future condition (e.g. seated-legislature-owned knobs) makes it refusable — fail closed.
+        if (! $decision->permitted) {
+            throw new ConstitutionalViolation($decision->reason ?? 'Anti-spam action refused.', 'Art. II §3');
+        }
+
         return $this->sealThenRedact($decision, $roomId, $eventId, '[m4_antispam] content-neutral rate-limit');
     }
 

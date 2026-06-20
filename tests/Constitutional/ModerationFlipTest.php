@@ -115,6 +115,25 @@ class ModerationFlipTest extends TestCase
             $forged = $this->signedAttestation($user, ['R-01'], now()->addHour());
             $forged->roles = ['R-19']; // claim judicial without re-signing
             $this->assertFalse($svc->resolve($jur, 'm1_judicial', $forged, null)->permitted, 'forged ⇒ refused');
+
+            // (e) An attestation CLAIMING a foreign/unpinned issuer fails closed — it is NOT verified
+            // against our own key. (Signed with our key but stamped with a stranger's issuer_server_id:
+            // issuerKeyFor finds no pinned peer key → refused. This is the cross-mesh trust boundary.)
+            $foreign = new \App\Models\StandingAttestation([
+                'id'                => (string) Str::uuid(),
+                'subject_user_id'   => (string) $user->getKey(),
+                'device_public_key' => 'dpk-foreign',
+                'issuer_server_id'  => (string) Str::uuid(), // an unknown peer (no federation_peers row)
+                'roles'             => ['R-19'],
+                'issued_at'         => now(),
+                'expires_at'        => now()->addHour(),
+            ]);
+            $foreign->signature = app(InstanceIdentityService::class)->sign(
+                app(AttestationService::class)->attestationCanonical($foreign)
+            );
+            $foreign->save();
+            $this->assertFalse($svc->resolve($jur, 'm1_judicial', $foreign, null)->permitted,
+                'an attestation from an un-pinned issuer is never verified against our own key — fail closed');
         });
     }
 
