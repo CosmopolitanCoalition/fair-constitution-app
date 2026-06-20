@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    /*
+    | Cloudflare DNS-edit token for the broker channel (Mesh Roles & Channels of Trust).
+    | The shared default; per-domain tokens may override it in cga.broker.domains. Lives
+    | ONLY on the broker box (.env), NEVER federates, NEVER appears in a grant or response.
+    */
+    'cloudflare' => [
+        'dns_token' => env('CLOUDFLARE_DNS_TOKEN'),
+    ],
+
 ];

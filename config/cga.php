@@ -173,4 +173,29 @@ return [
     */
     'geodata_origin' => env('CGA_GEODATA_ORIGIN'),
 
+    /*
+    | Broker channel (Mesh Roles & Channels of Trust ★9-11). When a box adopts the
+    | broker.dns / broker.tls role, it runs the SAME cert-broker issuance core Box C
+    | (LAMP) runs — sourcing authority_keys from the gossiped broker_authorizations.
+    | The Cloudflare token lives ONLY here (per-domain or the shared services.cloudflare
+    | token); it never federates, never appears in a grant or response. 'domains' is the
+    | multi-domain map: each naming root carries its own zone (token defaults to the
+    | shared one). acme.provider: 'stub' = offline self-signed (wiring); 'lego' = real
+    | Let's Encrypt via DNS-01 (the rig leg). store_dsn defaults to this box's PostgreSQL.
+    */
+    'broker' => [
+        'domains' => [
+            // 'worldofstatecraft.org' => ['cloudflare_zone_id' => env('CGA_BROKER_ZONE_ID'), 'a_record_proxied' => false],
+        ],
+        'request_ttl' => env('CGA_BROKER_REQUEST_TTL', 120),
+        'store_dsn' => env('CGA_BROKER_STORE_DSN', ''),
+        'tls_path' => env('CGA_BROKER_TLS_PATH', storage_path('app/mesh-tls')),
+        'acme' => [
+            'provider' => env('CGA_BROKER_ACME_PROVIDER', 'stub'),
+            'email' => env('CGA_BROKER_ACME_EMAIL', ''),
+            'lego_bin' => env('CGA_BROKER_LEGO_BIN', 'lego'),
+            'staging' => env('CGA_BROKER_ACME_STAGING', true),
+        ],
+    ],
+
 ];

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Federation\AdoptionController;
+use App\Http\Controllers\Federation\CertGrantController;
+use App\Http\Controllers\Federation\CertRequestController;
 use App\Http\Controllers\Federation\FlipController;
 use App\Http\Controllers\Federation\GeodataController;
 use App\Http\Controllers\Federation\MeshOperatorController;
@@ -82,6 +84,15 @@ Route::post('/request-read-write', [ReadWriteController::class, 'request'])
 // mesh consent for one of our open upgrade proposals. Standing (authoritative for a
 // jurisdiction in the affected subtree) is enforced by the service, not the route.
 Route::post('/upgrade/consent', [UpgradeConsentController::class, 'store'])
+    ->middleware('federation.signed');
+
+// ── Broker channel (Mesh Roles ★9/★11) — a pinned peer asks an in-mesh broker for a
+// TLS cert (signed request → the same Broker::issue as Box C, authority_keys from the
+// gossiped broker_authorizations); /cert-grant delivers an authority's minted cert_grant
+// to the grantee (verified against the authority's OWN pinned key, never the relayer's).
+Route::post('/cert-request', [CertRequestController::class, 'certRequest'])
+    ->middleware('federation.signed');
+Route::post('/cert-grant', [CertGrantController::class, 'receiveGrant'])
     ->middleware('federation.signed');
 
 // ── Geodata manifest (G3c, N3) — a pinned peer pulls our signed dataset manifest.

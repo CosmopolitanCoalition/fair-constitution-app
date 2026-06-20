@@ -373,6 +373,14 @@ as a **sequence of channel grants** rather than an opaque deploy.
 
 > **MINIMAL (campaign-critical)** rows are marked ★. Everything else is the fuller build.
 
+> **STATUS (2026-06-20): ★1–★12 BUILT + tested green** (branch `claude/practical-payne-17d537`).
+> 28 constitutional pins across 4 live-pg files — `CapabilityRegistryTest` (7), `MeshRoleGrantTest` (4),
+> `BrokerAuthorizationTest` (2), `CertBrokerLoopTest` (2, the full mint→request→issue loop offline + an
+> unauthorized-authority refusal). The cert loop issues a real cert end-to-end in-mesh via the stub ACME.
+> Remaining = the **fuller build**: console Role Board UI (13–16), S2S grant delivery (17 = rig), live LE
+> issuance (20 = rig), plus op-config (18) + Box C (19). The campaign drives the lifecycle from the
+> `mesh:role` + `mesh:request-cert` CLI now; the Role Board UI is a convenience layer over it.
+
 | # | piece | where | dev-now / rig / op-config | enables (campaign leg) |
 |---|---|---|---|---|
 | ★1 | `instance_capabilities` migration (table §2.3, closed-vocab CHECK, unique partial index) | `database/migrations/..._create_instance_capabilities_table.php` | **dev-now** | role-set integrity (GATE 2.5a) |
