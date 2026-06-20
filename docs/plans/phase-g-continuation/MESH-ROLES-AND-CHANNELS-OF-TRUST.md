@@ -524,3 +524,40 @@ the larger G-OP follow-up (rows 13–16).
   channel/role vocabulary stays strictly on the operator plane** so it never collides with the
   constitutional role system. (The canonical names in §2.3 — `InstanceCapability`, `CapabilityService`,
   `MeshRoleGrantService` — deliberately say *capability*, not *role*, in code to avoid the collision.)
+
+---
+
+## 10. DECISIONS SETTLED — operator, 2026-06-20
+
+All nine settled. Build proceeds on these.
+
+- **A — agree.** `mesh.member` is both implicit AND a row (self-describing manifest); TOFU handshake
+  remains the bootstrap "join at all", grants layer on top.
+- **B — agree.** `broker.dns` and `broker.tls` stay **separate** channels (CF-token vs `lego` are
+  distinct legal/IT constraints).
+- **C — agree, with a refinement.** A box may hold `broker.tls` **independently** — a lighter,
+  meter-gated grant via `MeshRoleGrantService`, NOT the full G6 authority flip (no `authoritative_server_id`
+  change). **BUT the constitutional removal power persists:** the standing government can **de-pool a
+  broker** — revoke *just that capability* from the pool (not eject the node) as a GOVERNANCE act. In v1
+  (expiry-only revocation, decision E) this is the government **withholding the next grant** (de-authorize
+  in `broker_authorizations` → renewal's meter check fails → the channel lapses); an explicit
+  government-initiated revoke is the v2 CRL. So: *adoption is operational; removal is constitutional.*
+- **D — agree.** Reuse `PeerUpgradeProposal` + `KIND_ROLE_GRANT`; grant receipts on the
+  `instance_capabilities` row. No parallel request/grant tables.
+- **E — agree.** Expiry-only revocation for v1 (short TTL + renewal re-runs the meter); gossiped CRL = v2.
+- **F — confirmed.** The founder box **self-grants** its first capabilities at genesis (one operator,
+  Meter A 1⇒1, no seated gov). A single box federated to nothing stands alone as the first node of a new
+  mesh + bootstraps its own naming root.
+- **G — agree.** `authority.grant` is **multi-held**; the domain's authorized set (`authority_keys` /
+  `broker_authorizations`) is the source of truth.
+- **H — agree.** Manifest is **advisory** — a capability mismatch only changes which services a peer dials;
+  it NEVER refuses governance sync (unlike `constitutional_version` / Meter C).
+- **I — refined (the recommendation is CORRECTED).** The **code-level** plane wall holds: `capability`
+  (never `role`) in code, so `RoleService` citizen-role derivation is never contaminated. BUT operators
+  are **NOT** outside the constitution — **the physical operator is a constitutional actor with real
+  duties**: a duty to the in-game constitutional governance AND a duty to the physical law of where they
+  operate, and they **report to their own operator board and/or the standing governments they serve.**
+  This is the same operator-as-bridge the M-5 floor already encodes ([[project-phase-k3-illegal-content]]:
+  operator acts physically + discloses to seated constitutional actors). So the wall is a CODE-HYGIENE
+  measure (derivation isolation), not a denial that operators are duty-bearing participants. The operator
+  console (§6) should surface this reporting duty; the constitutional model recognizes the operator class.
