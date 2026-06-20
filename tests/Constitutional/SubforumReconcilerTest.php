@@ -5,6 +5,7 @@ namespace Tests\Constitutional;
 use App\Jobs\EvaluateSocialStructureJob;
 use App\Models\SocialSpace;
 use App\Models\SocialSubforum;
+use App\Models\User;
 use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Social\SubforumReconciler;
 use Illuminate\Support\Facades\DB;
@@ -96,6 +97,87 @@ class SubforumReconcilerTest extends TestCase
             (new EvaluateSocialStructureJob($jurisdictionId))->handle($reconciler, $topology);
             $this->assertSame(1, SocialSpace::query()->where('jurisdiction_id', $jurisdictionId)->where('space_type', 'halls')->count());
         });
+    }
+
+    public function test_the_join_path_seams_bind_live_objects_and_candidacy_stays_pseudonymous(): void
+    {
+        $this->onLivePg(function () {
+            $jur = DB::table('jurisdictions')->whereNull('deleted_at')->value('id');
+            if ($jur === null) {
+                $this->markTestSkipped('Live DB has no jurisdiction.');
+            }
+            $jur = (string) $jur;
+            $reconciler = app(SubforumReconciler::class);
+
+            // Committee meeting — bound via the committee→legislature→jurisdiction JOIN (no direct FK).
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $jur, 'term_number' => 1, 'status' => 'active',
+                'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $member = $this->user('member');
+            $memberId = (string) Str::uuid();
+            DB::table('legislature_members')->insert([
+                'id' => $memberId, 'legislature_id' => $legId, 'user_id' => $member->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $cmteId = (string) Str::uuid();
+            DB::table('committees')->insert([
+                'id' => $cmteId, 'legislature_id' => $legId, 'name' => 'Budget Committee', 'seats' => 3,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $meetingId = (string) Str::uuid();
+            DB::table('committee_meetings')->insert([
+                'id' => $meetingId, 'committee_id' => $cmteId, 'called_by_member_id' => $memberId,
+                'scheduled_for' => now(), 'status' => 'scheduled', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            // Candidacy — bound via election→jurisdiction JOIN; the title is the candidate's PSEUDONYM.
+            $electionId = (string) Str::uuid();
+            DB::table('elections')->insert([
+                'id' => $electionId, 'jurisdiction_id' => $jur, 'status' => 'scheduled',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $candidate = $this->user('Jane LEGALNAME Doe');   // a legal name that must NEVER appear in a title
+            $candidacyId = (string) Str::uuid();
+            DB::table('candidacies')->insert([
+                'id' => $candidacyId, 'election_id' => $electionId, 'user_id' => $candidate->id,
+                'residency_attested_at' => now(), 'status' => 'registered',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            $live = collect($reconciler->gatherLiveObjects($jur));
+
+            $meeting = $live->firstWhere('id', $meetingId);
+            $this->assertNotNull($meeting, 'a scheduled committee meeting binds via the legislature join');
+            $this->assertSame(SocialSubforum::OBJECT_COMMITTEE_MEETING, $meeting['type']);
+            $this->assertStringContainsString('Budget Committee', $meeting['title']);
+
+            $cand = $live->firstWhere('id', $candidacyId);
+            $this->assertNotNull($cand, 'a standing candidacy binds via the election join');
+            $this->assertSame(SocialSubforum::OBJECT_CANDIDACY, $cand['type']);
+            $this->assertStringNotContainsString('LEGALNAME', $cand['title'], 'Art. I — a candidacy title is NEVER the legal name');
+            $this->assertStringStartsWith('Candidacy — Resident-', $cand['title'], 'pseudonymous fallback');
+
+            // Terminal status drops an object out of the live set (→ the reconciler ARCHIVES its subforum).
+            DB::table('committee_meetings')->where('id', $meetingId)->update(['status' => 'adjourned']);
+            DB::table('candidacies')->where('id', $candidacyId)->update(['status' => 'withdrawn']);
+
+            $after = collect($reconciler->gatherLiveObjects($jur));
+            $this->assertNull($after->firstWhere('id', $meetingId), 'an adjourned meeting is no longer live');
+            $this->assertNull($after->firstWhere('id', $candidacyId), 'a withdrawn candidacy is no longer live');
+        });
+    }
+
+    private function user(string $name): User
+    {
+        return User::create([
+            'name'              => $name,
+            'email'             => 'recon-'.Str::uuid().'@test.invalid',
+            'password'          => Str::random(32),
+            'terms_accepted_at' => now(),
+        ]);
     }
 
     private function liveObjectSubforums(SocialSpace $space): int

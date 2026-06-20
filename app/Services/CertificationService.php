@@ -997,6 +997,13 @@ class CertificationService implements CertificationPipeline
             'term_starts_on' => $window['starts_on']->toDateString(),
             'term_ends_on'   => $window['ends_on']->toDateString(),
         ])->save();
+
+        // Phase K-1 (closeout): the instant a jurisdiction SEATS (STATUS_ACTIVE is the FLIP-ON-SEATEDNESS
+        // fact — #halls opens, moderation flips to judicial), provision its civic structure. ASYNC
+        // dispatch (never dispatchSync) so a slow/down Matrix homeserver can NEVER block certification —
+        // the job is best-effort per the EvaluateSocialStructureJob try/catch posture; the daily sweep
+        // in routes/console.php is the backstop.
+        \App\Jobs\EvaluateSocialStructureJob::dispatch((string) $legislature->jurisdiction_id);
     }
 
     private function resolveVacancy(?Vacancy $vacancy, array $winners): void

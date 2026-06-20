@@ -48,5 +48,15 @@ Schedule::job(new \App\Jobs\Organizations\EvaluateCoDeterminationJob)->dailyAt('
 // device, per hour). onOneServer + the write-leader posture as elsewhere.
 Schedule::job(new \App\Jobs\Identity\ExpireStandingAttestationsJob)->hourly()->withoutOverlapping()->onOneServer();
 
+// ── Phase K-1 (closeout): daily civic-structure sweep ───────────────────
+// Provisions each civically-active jurisdiction's public_square + halls and
+// (best-effort) the Matrix topology, and reconciles object subforums to the
+// currently-live governance objects. CHARTER cadence, not a constitutional
+// clock (the DepartmentReportSweepJob pattern). The on-seating dispatch in
+// CertificationService is the event-driven fast path; this is the backstop
+// sweep (null ctor arg = ALL STATUS_ACTIVE jurisdictions). A down homeserver
+// never fails the sweep — the job is best-effort per jurisdiction.
+Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->withoutOverlapping()->onOneServer();
+
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
