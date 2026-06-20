@@ -27,6 +27,11 @@ final class Broker
         // The cert is the deliverable — issue it first (DNS-01 uses a TXT record, not the A record).
         $cert = $this->acme->issueFromCsr($v['fqdn'], (string) $body['csr'], $v['domainCfg']);
 
+        // THE NET (defense in depth): inspect the ACTUAL issued cert in-process and refuse to deliver it
+        // unless it covers EXACTLY the granted name. This catches any name the CSR pre-filter could miss,
+        // including a SAN lego copied straight from the CSR — a mis-issued cert is never handed back.
+        self::assertCertCoversOnly($cert, $v['fqdn']);
+
         // Best-effort: point <fqdn> at the peer's address. A failure here does NOT void the cert — the
         // peer can set DNS itself; we report it so the operator sees an incomplete provision.
         $dns = 'skipped';
@@ -58,6 +63,34 @@ final class Broker
         ]);
 
         return ['fqdn' => $v['fqdn'], 'certificate' => $cert, 'issued_at' => time(), 'dns' => $dns];
+    }
+
+    /** Refuse to deliver a cert that names anything other than $fqdn (CN + every SAN, all types). */
+    private static function assertCertCoversOnly(string $certPem, string $fqdn): void
+    {
+        $parsed = @openssl_x509_parse($certPem);
+        if (! is_array($parsed)) {
+            throw new BrokerError('Issued certificate could not be verified.', 500);
+        }
+
+        $names = [];
+        $cn = $parsed['subject']['CN'] ?? null;
+        if (! empty($cn)) {
+            $names[] = strtolower((string) $cn);
+        }
+        foreach (explode(',', (string) ($parsed['extensions']['subjectAltName'] ?? '')) as $entry) {
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
+            }
+            $names[] = preg_match('/^DNS:(.+)$/i', $entry, $m)
+                ? strtolower(trim($m[1]))
+                : 'non-dns:'.strtolower(explode(':', $entry, 2)[0]);
+        }
+
+        if (array_values(array_unique($names)) !== [$fqdn]) {
+            throw new BrokerError('Issued certificate covers an unexpected name — refusing to deliver.', 500);
+        }
     }
 
     private static function uuid(): string

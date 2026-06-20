@@ -42,6 +42,15 @@ final class GrantVerifier
                 throw new BrokerError("Grant missing {$k}.", 400);
             }
         }
+        // Pin the grant kind + version — a grant the authority signed for some OTHER protocol must not
+        // double as a cert grant (cross-protocol confusion).
+        if (($grant['type'] ?? null) !== 'cert_grant' || ($grant['v'] ?? null) !== 1) {
+            throw new BrokerError('Not a v1 cert_grant.', 400);
+        }
+        // Timestamps are integers (same rigor as requested_at) so a malformed grant can't slip through.
+        if (! isset($grant['issued_at'], $grant['expires_at']) || ! is_int($grant['issued_at']) || ! is_int($grant['expires_at'])) {
+            throw new BrokerError('Grant timestamps must be integers.', 400);
+        }
 
         // ── 4. domain is in the ecosystem ──────────────────────────────────
         $domainCfg = $this->config->domain((string) $grant['domain']);
@@ -84,7 +93,8 @@ final class GrantVerifier
 
         // ── 4. name well-formedness ────────────────────────────────────────
         $subdomain = strtolower((string) $grant['subdomain']);
-        if (! preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/', $subdomain)) {
+        // /D so $ cannot match before a trailing newline (a "paris\n" label must not pass).
+        if (! preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/D', $subdomain)) {
             throw new BrokerError('Invalid subdomain label.', 400);
         }
         $fqdn = $subdomain.'.'.strtolower((string) $grant['domain']);
@@ -95,7 +105,14 @@ final class GrantVerifier
             throw new BrokerError('CSR must request exactly the granted name ('.$fqdn.') and no other.', 400);
         }
 
-        $target = isset($body['target']) && is_string($body['target']) ? $body['target'] : null;
+        // target (optional) — the A/AAAA content must be a BARE IP, never arbitrary text.
+        $target = null;
+        if (isset($body['target']) && $body['target'] !== '') {
+            if (! is_string($body['target']) || filter_var($body['target'], FILTER_VALIDATE_IP) === false) {
+                throw new BrokerError('target must be a bare IPv4/IPv6 address.', 400);
+            }
+            $target = $body['target'];
+        }
 
         return ['fqdn' => $fqdn, 'domain' => (string) $grant['domain'], 'domainCfg' => $domainCfg, 'target' => $target, 'grant' => $grant];
     }

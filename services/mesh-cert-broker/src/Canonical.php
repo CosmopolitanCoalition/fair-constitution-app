@@ -10,7 +10,7 @@ namespace MeshCertBroker;
  */
 final class Canonical
 {
-    /** Match AuditService::canonicalJson exactly. */
+    /** Byte-identical to AuditService::canonicalJson (recurse-first, ksort SORT_STRING, skip LISTS). */
     public static function json(array $payload): string
     {
         $normalized = json_decode(
@@ -18,19 +18,27 @@ final class Canonical
             true
         ) ?? [];
 
-        self::ksortRecursive($normalized);
-
-        return json_encode($normalized, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return json_encode(self::ksortRecursive($normalized), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
-    private static function ksortRecursive(array &$array): void
+    /** Verbatim copy of AuditService::ksortRecursive — only NON-list arrays are sorted, by SORT_STRING. */
+    private static function ksortRecursive(mixed $value): mixed
     {
-        ksort($array);
-        foreach ($array as &$value) {
-            if (is_array($value)) {
-                self::ksortRecursive($value);
-            }
+        if (! is_array($value)) {
+            return $value;
         }
+
+        $isList = array_is_list($value);
+
+        foreach ($value as $key => $item) {
+            $value[$key] = self::ksortRecursive($item);
+        }
+
+        if (! $isList) {
+            ksort($value, SORT_STRING);
+        }
+
+        return $value;
     }
 
     /** Verify a base64 detached signature over $message against a base64 Ed25519 public key. Fails closed. */

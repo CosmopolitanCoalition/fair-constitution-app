@@ -30,46 +30,48 @@ final class LegoAcmeProvider implements AcmeProvider
 
         $work = sys_get_temp_dir().'/cb-'.bin2hex(random_bytes(6));
         @mkdir($work, 0700, true);
-        $csrFile = $work.'/req.csr';
-        file_put_contents($csrFile, $csrPem);
 
-        $args = [
-            $bin, '--accept-tos', '--email', $email, '--dns', 'cloudflare',
-            '--csr', $csrFile, '--path', $work,
-        ];
-        if (! empty($this->acme['staging'])) {
-            $args[] = '--server';
-            $args[] = 'https://acme-staging-v02.api.letsencrypt.org/directory';
-        }
-        $args[] = 'run';
+        try {
+            $csrFile = $work.'/req.csr';
+            file_put_contents($csrFile, $csrPem);
 
-        $cmd = implode(' ', array_map('escapeshellarg', $args));
-        $env = ['CLOUDFLARE_DNS_API_TOKEN' => $token, 'PATH' => getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin'];
+            $args = [
+                $bin, '--accept-tos', '--email', $email, '--dns', 'cloudflare',
+                '--csr', $csrFile, '--path', $work,
+            ];
+            // Default to STAGING when unset — only an EXPLICIT staging=false talks to production Let's
+            // Encrypt, so a forgotten key can never silently burn the real per-domain rate limit.
+            if (($this->acme['staging'] ?? true) !== false) {
+                $args[] = '--server';
+                $args[] = 'https://acme-staging-v02.api.letsencrypt.org/directory';
+            }
+            $args[] = 'run';
 
-        $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-        $proc = proc_open($cmd, $descriptors, $pipes, $work, $env);
-        if (! is_resource($proc)) {
+            $cmd = implode(' ', array_map('escapeshellarg', $args));
+            $env = ['CLOUDFLARE_DNS_API_TOKEN' => $token, 'PATH' => getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin'];
+
+            $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+            $proc = proc_open($cmd, $descriptors, $pipes, $work, $env);
+            if (! is_resource($proc)) {
+                throw new BrokerError('Could not start the ACME client.', 500);
+            }
+            stream_get_contents($pipes[1]);
+            stream_get_contents($pipes[2]); // drain stderr but NEVER surface it (may carry the challenge)
+            foreach ($pipes as $p) {
+                fclose($p);
+            }
+            $rc = proc_close($proc);
+
+            // lego writes the issued cert to <work>/certificates/<fqdn>.crt
+            $certPath = $work.'/certificates/'.$fqdn.'.crt';
+            if ($rc !== 0 || ! is_file($certPath)) {
+                throw new BrokerError('ACME issuance failed for '.$fqdn.'.', 502);
+            }
+
+            return (string) file_get_contents($certPath);
+        } finally {
             $this->cleanup($work);
-            throw new BrokerError('Could not start the ACME client.', 500);
         }
-        stream_get_contents($pipes[1]);
-        $err = stream_get_contents($pipes[2]);
-        foreach ($pipes as $p) {
-            fclose($p);
-        }
-        $rc = proc_close($proc);
-
-        // lego writes the issued cert to <work>/certificates/<fqdn>.crt
-        $certPath = $work.'/certificates/'.$fqdn.'.crt';
-        if ($rc !== 0 || ! is_file($certPath)) {
-            $this->cleanup($work);
-            // Surface a SHORT reason; never echo the full lego output (it can contain the challenge/token).
-            throw new BrokerError('ACME issuance failed for '.$fqdn.'.', 502);
-        }
-        $cert = (string) file_get_contents($certPath);
-        $this->cleanup($work);
-
-        return $cert;
     }
 
     private function cleanup(string $dir): void

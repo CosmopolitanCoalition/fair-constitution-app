@@ -133,5 +133,54 @@ $check('a replayed nonce is refused the second time', function () use ($makeRequ
     } catch (BrokerError) { /* expected */ }
 });
 
+// A CSR carrying a SMUGGLED extra SAN must be refused (the domain-takeover vector the review found).
+$sanCsr = function (string $cn, array $sans) {
+    $cnf = "[req]\ndistinguished_name=dn\nreq_extensions=v3_req\n[dn]\n[v3_req]\nsubjectAltName=".implode(',', $sans)."\n";
+    $tmp = tempnam(sys_get_temp_dir(), 'cnf');
+    file_put_contents($tmp, $cnf);
+    $key = openssl_pkey_new(['private_key_bits' => 2048]);
+    $csr = openssl_csr_new(['commonName' => $cn], $key, ['config' => $tmp, 'req_extensions' => 'v3_req', 'digest_alg' => 'sha256']);
+    openssl_csr_export($csr, $pem);
+    @unlink($tmp);
+
+    return $pem;
+};
+$signFor = function (string $sub, string $csrPem) use ($authPub, $authSec, $peerPub, $peerSec, $sign) {
+    $now = time();
+    $grant = ['v' => 1, 'type' => 'cert_grant', 'domain' => 'wos.test', 'subdomain' => $sub,
+        'peer_pubkey' => $peerPub, 'peer_server_id' => 'p1', 'authority_pubkey' => $authPub,
+        'authority_server_id' => 'a1', 'issued_at' => $now, 'expires_at' => $now + 300];
+    $core = ['grant' => $grant, 'grant_signature' => $sign(Canonical::json($grant), $authSec), 'csr' => $csrPem,
+        'nonce' => bin2hex(random_bytes(16)), 'requested_at' => $now];
+    $core['request_signature'] = $sign(Canonical::json($core), $peerSec);
+
+    return $core;
+};
+
+$check('a CSR with a smuggled EXTRA DNS SAN is refused', function () use ($sanCsr, $signFor, $assertRefused) {
+    $csr = $sanCsr('madrid.wos.test', ['DNS:madrid.wos.test', 'DNS:evil.example']);
+    $assertRefused($signFor('madrid', $csr));
+});
+
+$check('a CSR with a non-DNS (IP) SAN is refused', function () use ($sanCsr, $signFor, $assertRefused) {
+    $csr = $sanCsr('lisbon.wos.test', ['DNS:lisbon.wos.test', 'IP:203.0.113.9']);
+    $assertRefused($signFor('lisbon', $csr));
+});
+
+$check('a non-IP target is refused', function () use ($makeRequest, $assertRefused, $authSec, $peerSec, $sign) {
+    $req = $makeRequest('oslo');
+    $req['target'] = 'not-an-ip; rm -rf';
+    // re-sign the peer signature over the mutated body so it fails at the target check, not the sig check
+    $core = $req; unset($core['request_signature']);
+    $req['request_signature'] = $sign(Canonical::json($core), $peerSec);
+    $assertRefused($req);
+});
+
+$check('a grant that is not a cert_grant is refused', function () use ($makeRequest, $assertRefused) {
+    $req = $makeRequest('athens');
+    $req['grant']['type'] = 'federation_handshake'; // breaks the sig too — refused either way
+    $assertRefused($req);
+});
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail === 0 ? 0 : 1);

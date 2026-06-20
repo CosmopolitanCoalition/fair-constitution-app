@@ -26,9 +26,16 @@ function broker_factory(): \MeshCertBroker\Broker
     $config = \MeshCertBroker\Config::load($configPath);
     $store = new \MeshCertBroker\Store($config->storeDsn(), $config->storeUser(), $config->storePass());
 
-    $acme = ($config->acme()['provider'] ?? 'stub') === 'lego'
-        ? new \MeshCertBroker\Acme\LegoAcmeProvider($config->acme())
-        : new \MeshCertBroker\Acme\StubAcmeProvider();
+    // Explicit + fail-closed: a typo'd or missing provider must NOT silently fall back to the self-signed
+    // stub (which would serve untrusted certs in production). The operator opts into 'stub' deliberately.
+    $provider = $config->acme()['provider'] ?? null;
+    $acme = match ($provider) {
+        'lego' => new \MeshCertBroker\Acme\LegoAcmeProvider($config->acme()),
+        'stub' => new \MeshCertBroker\Acme\StubAcmeProvider(),
+        default => throw new \RuntimeException(
+            "Unknown acme.provider — set it explicitly to 'lego' (production) or 'stub' (offline tests)."
+        ),
+    };
 
     return new \MeshCertBroker\Broker($config, $store, $acme);
 }
