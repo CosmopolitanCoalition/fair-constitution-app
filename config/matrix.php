@@ -21,6 +21,11 @@ return [
     // Internal URL the appservice uses to reach the homeserver's client/admin API (Docker DNS).
     'synapse_url' => env('MATRIX_SYNAPSE_URL', 'http://matrix:8008'),
 
+    // K3-N P1 — a Synapse ADMIN access token, supplied by the OPERATOR (rig). NULL on the dev stack, so
+    // the M-5 byte-DELETE is DEFERRED honestly (a redaction strips content but does NOT destroy media
+    // bytes — only the admin media-DELETE does). Never expose this token to a client.
+    'admin_token' => env('MATRIX_ADMIN_TOKEN'),
+
     // The host port Synapse is published on (dev convenience / curl checks). Behind nginx in prod.
     'host_port' => (int) env('MATRIX_HOST_PORT', 8008),
 

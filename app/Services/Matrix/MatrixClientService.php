@@ -110,15 +110,60 @@ class MatrixClientService
     }
 
     /**
-     * M-5 (K3-I.4) — the CSAM byte-DESTROY seam (quarantine KEEPS bytes; redaction RETAINS them; purge
-     * DELETEs them). The appservice-authorised half is the redaction performed here; the actual media
-     * file + thumbnail destruction is the Synapse admin API (DELETE /_synapse/admin/v1/media/<server>/
-     * <media_id>), which needs an OPERATOR-supplied admin token + media-id resolution — rig-gated /
-     * operator-config. This method is the single point the legal-compliance path calls so the M-5 flow
-     * is wired end-to-end on the dev stack today; the admin-media-DELETE lands at the rig.
+     * M-5 (K3-I.4 / K3-N P1) — the CSAM byte-DESTROY seam (quarantine KEEPS bytes; redaction RETAINS them;
+     * purge DELETEs them). Two halves: (1) the appservice-authorised redaction (strips event content,
+     * always attempted), and (2) the actual media file + thumbnail destruction via the Synapse admin API
+     * (DELETE /_synapse/admin/v1/media/<server>/<media_id>), which needs an OPERATOR-supplied admin token.
+     *
+     * Returns the HONEST physical-removal status — never claims the bytes are gone while they remain:
+     *   'deferred' — no admin token (dev), or a text event with no media to destroy
+     *   'done'     — the admin media-DELETE succeeded (bytes + thumbnails destroyed)
+     *   'failed'   — the admin DELETE errored
      */
-    public function purgeEvent(string $roomId, string $eventId, ?string $asUser = null): array
+    public function purgeEvent(string $roomId, string $eventId, ?string $asUser = null): string
     {
-        return $this->redact($roomId, $eventId, '[m5_legal] purged', $asUser);
+        // (1) the appservice-authorised redaction — best-effort (the byte-DELETE below is the real removal).
+        try {
+            $this->redact($roomId, $eventId, '[m5_legal] purged', $asUser);
+        } catch (\Throwable $e) {
+            // continue — a down homeserver does not change the byte-destruction status below.
+        }
+
+        // (2) the media byte-DELETE needs the operator admin token (rig). Without it, the bytes survive —
+        //     say so (DEFERRED), never 'done'.
+        $adminToken = (string) config('matrix.admin_token', '');
+        if ($adminToken === '') {
+            return 'deferred';
+        }
+
+        return $this->destroyEventMedia($roomId, $eventId, $adminToken);
+    }
+
+    /** Resolve the event's mxc media and DELETE it via the Synapse admin API (rig-verified at LEG 5). */
+    private function destroyEventMedia(string $roomId, string $eventId, string $adminToken): string
+    {
+        try {
+            $event = $this->getEvent($roomId, $eventId);
+            $content = (array) ($event['content'] ?? []);
+            $mxc = (string) ($content['url'] ?? ($content['info']['thumbnail_url'] ?? ''));
+
+            if (! str_starts_with($mxc, 'mxc://')) {
+                return 'deferred'; // a text event — the redaction was the removal; no bytes to destroy
+            }
+
+            [$server, $mediaId] = explode('/', substr($mxc, strlen('mxc://')), 2) + [1 => ''];
+            if ($server === '' || $mediaId === '') {
+                return 'failed';
+            }
+
+            Http::baseUrl(rtrim((string) config('matrix.synapse_url'), '/'))
+                ->withToken($adminToken)->acceptJson()->timeout(15)
+                ->delete('/_synapse/admin/v1/media/'.rawurlencode($server).'/'.rawurlencode($mediaId))
+                ->throw();
+
+            return 'done';
+        } catch (\Throwable $e) {
+            return 'failed';
+        }
     }
 }

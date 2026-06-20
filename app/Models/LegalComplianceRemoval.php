@@ -22,6 +22,11 @@ class LegalComplianceRemoval extends Model
     public const BASIS_COURT_ORDER         = 'court_order_specific';  // a cited specific external order
     public const BASIS_TRUE_THREAT         = 'true_threat';           // narrowly construed, cited basis
 
+    // The physical-removal honesty states (K3-N P1) — never report 'done' while the bytes remain.
+    public const PHYSICAL_DEFERRED = 'deferred'; // redaction landed; the byte-DELETE is not yet done
+    public const PHYSICAL_DONE     = 'done';     // homeserver physical action completed
+    public const PHYSICAL_FAILED   = 'failed';   // homeserver unreachable / admin DELETE errored
+
     protected $fillable = [
         'id',
         'matrix_event_id',
@@ -29,6 +34,7 @@ class LegalComplianceRemoval extends Model
         'operator_account_id',
         'legal_basis',
         'action',
+        'physical_removal_status',
         'statutory_citation',
         'matched_list_source',
         'public_records_id',

@@ -17,6 +17,7 @@ use App\Services\Matrix\Scan\LocalHashListScanProvider;
 use App\Services\Matrix\Scan\MediaAdmissionGate;
 use App\Services\RoleService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
@@ -46,7 +47,8 @@ class LegalComplianceTest extends TestCase
             $jur = $this->aJurisdiction();
             $op = $this->operator();
             $this->mock(MatrixClientService::class, function ($m) {
-                $m->shouldReceive('purgeEvent')->once()->andReturn(['event_id' => '$purged']); // G8: purge actually fires
+                // G8: purge actually fires; on dev there is no admin token, so it honestly reports DEFERRED.
+                $m->shouldReceive('purgeEvent')->once()->andReturn('deferred');
                 $m->shouldReceive('redact')->never();
             });
             app(RoleService::class)->flush();
@@ -60,6 +62,10 @@ class LegalComplianceTest extends TestCase
             $this->assertNotNull($removal);
             $this->assertSame('csam_hashmatch', $removal->legal_basis);
             $this->assertSame('purge', $removal->action);                       // G8
+
+            // P1 HONESTY: without an admin token the media bytes are NOT destroyed — the trail says so
+            // (DEFERRED), never 'done'. A spike in deferred purges is itself an operator-console flag.
+            $this->assertSame('deferred', $removal->physical_removal_status, 'never report purged while bytes remain');
             $this->assertSame((string) $op->getKey(), (string) $removal->operator_account_id);
             $this->assertSame('local-hash-list', $removal->matched_list_source);
 
@@ -88,7 +94,7 @@ class LegalComplianceTest extends TestCase
         $this->onLivePg(function () {
             $jur = $this->aJurisdiction();
             $op = $this->operator();
-            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn([]));
+            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn('deferred'));
             app(RoleService::class)->flush();
 
             app(LegalComplianceService::class)->remove(
@@ -188,7 +194,7 @@ class LegalComplianceTest extends TestCase
                 'legal_basis' => 'true_threat', 'action' => 'hard_redact', 'statutory_citation' => 'see https://x/y',
             ]));
             // A legitimate short label / real citation passes.
-            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn([]));
+            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn('deferred'));
             app(RoleService::class)->flush();
             $ok = app(LegalComplianceService::class)->remove(
                 $op, self::ROOM, '$ok', LegalComplianceRemoval::BASIS_CSAM_HASHMATCH, $this->aJurisdiction(),
@@ -246,7 +252,7 @@ class LegalComplianceTest extends TestCase
             $jur = $this->aJurisdiction();
             $this->seatLegislature($jur);                  // the flip
             $op = $this->operator();
-            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn([]));
+            $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('purgeEvent')->andReturn('deferred'));
             app(RoleService::class)->flush();
 
             // CSAM still removable when a government is seated — operator liability is non-negotiable.
@@ -282,7 +288,44 @@ class LegalComplianceTest extends TestCase
             $this->assertFalse((bool) $removal->is_seated_at_time);
             $this->assertNull($removal->referral_record_id, 'no seated bodies ⇒ no referral');
             $this->assertSame('hard_redact', $removal->action, 'a non-CSAM basis redacts, never purges');
+            // A redaction IS the complete physical action for a non-CSAM basis → 'done'.
+            $this->assertSame('done', $removal->physical_removal_status);
         });
+    }
+
+    /** P1: without an admin token the bytes are NOT destroyed — purgeEvent reports DEFERRED, never done. */
+    public function test_purge_event_is_deferred_without_an_admin_token(): void
+    {
+        config(['matrix.admin_token' => null]);
+        Http::fake(['*/redact/*' => Http::response([], 200)]);
+
+        $this->assertSame('deferred', app(MatrixClientService::class)->purgeEvent('!r:localhost', '$e'));
+    }
+
+    /** P1: with an admin token + a media event, the Synapse admin media-DELETE runs → DONE. */
+    public function test_purge_event_is_done_when_the_admin_media_delete_runs(): void
+    {
+        config(['matrix.admin_token' => 'admin-tok']);
+        Http::fake([
+            '*/redact/*'                  => Http::response([], 200),
+            '*/event/*'                   => Http::response(['content' => ['url' => 'mxc://localhost/abc123']], 200),
+            '*/_synapse/admin/v1/media/*' => Http::response(['deleted' => 1], 200),
+        ]);
+
+        $this->assertSame('done', app(MatrixClientService::class)->purgeEvent('!r:localhost', '$media'));
+        Http::assertSent(fn ($req) => str_contains($req->url(), '/_synapse/admin/v1/media/localhost/abc123') && $req->method() === 'DELETE');
+    }
+
+    /** P1: a text event has no media to destroy — the redaction was the removal → DEFERRED (not a false done). */
+    public function test_purge_event_with_no_media_is_deferred(): void
+    {
+        config(['matrix.admin_token' => 'admin-tok']);
+        Http::fake([
+            '*/redact/*' => Http::response([], 200),
+            '*/event/*'  => Http::response(['content' => ['body' => 'just text']], 200),
+        ]);
+
+        $this->assertSame('deferred', app(MatrixClientService::class)->purgeEvent('!r:localhost', '$text'));
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

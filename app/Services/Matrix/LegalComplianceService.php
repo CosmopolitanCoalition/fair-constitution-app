@@ -73,17 +73,26 @@ class LegalComplianceService
 
         // Best-effort physical removal — the SEALED trail is the durable artifact; a down homeserver
         // never voids the constitutional act (and the legal PRESERVE→REPORT→PURGE sequence + NCMEC
-        // submission live on the operator console with the operator's own credentials — rig-gated).
+        // submission live on the operator console with the operator's own credentials — rig-gated). The
+        // trail's physical_removal_status is then advanced to the HONEST outcome (never 'done' while the
+        // CSAM bytes remain — on dev there is no admin token, so a purge stays 'deferred').
+        $status = LegalComplianceRemoval::PHYSICAL_DEFERRED;
         try {
             if ($action === MatrixCarveoutLog::ACTION_PURGE) {
-                $this->client->purgeEvent($matrixRoomId, $matrixEventId);   // DELETE the bytes (CSAM)
+                $status = $this->client->purgeEvent($matrixRoomId, $matrixEventId);   // 'done'|'deferred'|'failed'
             } else {
                 $this->client->redact($matrixRoomId, $matrixEventId, '[m5_legal] '.$legalBasis);
+                $status = LegalComplianceRemoval::PHYSICAL_DONE;   // a redaction is the complete action for non-CSAM
             }
         } catch (Throwable $e) {
-            // ignore — the evidence trail + the operator's report obligation are the durable artifacts.
+            $status = LegalComplianceRemoval::PHYSICAL_FAILED;
         }
 
-        return $result->recorded;
+        // Advance the operational status on the trail (the sealed legal record is unchanged).
+        LegalComplianceRemoval::query()
+            ->whereKey($result->recorded['removal_id'])
+            ->update(['physical_removal_status' => $status]);
+
+        return array_merge($result->recorded, ['physical_removal_status' => $status]);
     }
 }

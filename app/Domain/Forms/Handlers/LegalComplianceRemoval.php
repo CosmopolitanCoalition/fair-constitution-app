@@ -111,18 +111,21 @@ class LegalComplianceRemoval implements FormHandler
         // (3) The immutable evidence trail (append-only; no soft-deletes). attestation_id is NOT a column
         //     here — M-5 is operator-plane; the operator_account_id is the signer.
         $removal = LegalComplianceRemovalModel::create([
-            'id'                  => (string) Str::uuid(),
-            'matrix_event_id'     => $eventId,
-            'matrix_room_id'      => $roomId,
-            'operator_account_id' => $operatorId,
-            'legal_basis'         => $legalBasis,
-            'action'              => $action,
-            'statutory_citation'  => $citation,
-            'matched_list_source' => $listSource,
-            'public_records_id'   => (string) $record->id,
-            'jurisdiction_id'     => $jurisdictionId,
-            'is_seated_at_time'   => $seated,
-            'referral_record_id'  => $referralRecordId,
+            'id'                      => (string) Str::uuid(),
+            'matrix_event_id'         => $eventId,
+            'matrix_room_id'          => $roomId,
+            'operator_account_id'     => $operatorId,
+            'legal_basis'             => $legalBasis,
+            'action'                  => $action,
+            // The physical removal has NOT happened yet at seal time — DEFERRED until the best-effort
+            // homeserver action returns (the service advances it). Never seal 'done' optimistically.
+            'physical_removal_status' => LegalComplianceRemovalModel::PHYSICAL_DEFERRED,
+            'statutory_citation'      => $citation,
+            'matched_list_source'     => $listSource,
+            'public_records_id'       => (string) $record->id,
+            'jurisdiction_id'         => $jurisdictionId,
+            'is_seated_at_time'       => $seated,
+            'referral_record_id'      => $referralRecordId,
         ]);
 
         // (4) The machine carve-out log — carve_out m5_legal, attestation_id ALWAYS NULL (the anti-forgery
@@ -142,15 +145,16 @@ class LegalComplianceRemoval implements FormHandler
         ]);
 
         return [
-            'removal_id'         => (string) $removal->id,
-            'legal_basis'       => $legalBasis,
-            'action'            => $action,
-            'matrix_event_id'   => $eventId,
-            'record_id'         => (string) $record->id,
-            'carveout_log_id'   => (string) $log->id,
-            'is_seated_at_time' => $seated,
-            'referral_record_id'=> $referralRecordId,
-            'jurisdiction_id'   => $jurisdictionId,
+            'removal_id'              => (string) $removal->id,
+            'legal_basis'            => $legalBasis,
+            'action'                 => $action,
+            'physical_removal_status' => LegalComplianceRemovalModel::PHYSICAL_DEFERRED,
+            'matrix_event_id'        => $eventId,
+            'record_id'              => (string) $record->id,
+            'carveout_log_id'        => (string) $log->id,
+            'is_seated_at_time'      => $seated,
+            'referral_record_id'     => $referralRecordId,
+            'jurisdiction_id'        => $jurisdictionId,
         ];
     }
 }
