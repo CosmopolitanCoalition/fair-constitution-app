@@ -77,6 +77,25 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# ─── lego (ACME client for the broker.tls role; DNS-01 via Cloudflare) ────────
+# Baked into the image so a volunteer who adopts the broker role never installs a
+# dependency by hand — `mesh:role qualify broker.tls` passes out of the box. A
+# prebuilt static Go binary, arch-matched (dpkg arch → lego asset) so the SAME
+# Dockerfile builds on amd64 and arm64 (the Pi). The build self-verifies (--version);
+# a release fetch that fails fails the build rather than shipping a broken broker.
+ARG LEGO_VERSION=4.17.4
+RUN arch="$(dpkg --print-architecture)" \
+    && case "$arch" in \
+        amd64) lego_arch=amd64 ;; \
+        arm64) lego_arch=arm64 ;; \
+        armhf) lego_arch=armv7 ;; \
+        *) lego_arch="$arch" ;; \
+    esac \
+    && curl -fsSL "https://github.com/go-acme/lego/releases/download/v${LEGO_VERSION}/lego_v${LEGO_VERSION}_linux_${lego_arch}.tar.gz" -o /tmp/lego.tar.gz \
+    && tar -xzf /tmp/lego.tar.gz -C /usr/local/bin lego \
+    && rm /tmp/lego.tar.gz \
+    && /usr/local/bin/lego --version
+
 # ─── Working directory ────────────────────────────────────────
 WORKDIR /var/www/html
 

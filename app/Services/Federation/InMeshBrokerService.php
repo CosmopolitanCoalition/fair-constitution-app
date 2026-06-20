@@ -23,7 +23,10 @@ use RuntimeException;
  */
 class InMeshBrokerService
 {
-    public function __construct(private readonly BrokerAuthorizationService $authz) {}
+    public function __construct(
+        private readonly BrokerAuthorizationService $authz,
+        private readonly BrokerCredentialService $credentials,
+    ) {}
 
     /** Issue a cert from a signed request — the same trust chain whether LAMP or in-mesh. */
     public function issue(array $body): array
@@ -41,9 +44,11 @@ class InMeshBrokerService
     {
         $domains = [];
         foreach ($this->servedDomains() as $domain => $cfg) {
+            // The operator-dropped credential store wins; static config is the fallback. The token is read
+            // here ONLY to hand to the broker's own Cloudflare calls — it never leaves this method's result.
             $domains[$domain] = [
-                'cloudflare_token' => (string) ($cfg['cloudflare_token'] ?? config('services.cloudflare.dns_token', '')),
-                'cloudflare_zone_id' => (string) ($cfg['cloudflare_zone_id'] ?? ''),
+                'cloudflare_token' => (string) ($this->credentials->tokenFor($domain) ?? ($cfg['cloudflare_token'] ?? config('services.cloudflare.dns_token', ''))),
+                'cloudflare_zone_id' => (string) ($this->credentials->zoneFor($domain) ?? ($cfg['cloudflare_zone_id'] ?? '')),
                 // THE JOIN: authority_keys are the live, gossiped, per-author-verified routing table.
                 'authority_keys' => $this->authz->authorityKeysFor($domain),
                 'a_record_proxied' => (bool) ($cfg['a_record_proxied'] ?? false),
@@ -67,10 +72,16 @@ class InMeshBrokerService
         ]);
     }
 
-    /** @return array<string,array<string,mixed>> domain => per-domain local config (token/zone live here). */
+    /** @return array<string,array<string,mixed>> domain => per-domain local config (operator credential store ∪ static config). */
     private function servedDomains(): array
     {
-        return (array) config('cga.broker.domains', []);
+        $static = (array) config('cga.broker.domains', []);
+        // Every domain the operator dropped a credential for is served, even if absent from static config.
+        foreach ($this->credentials->domains() as $domain) {
+            $static[$domain] = $static[$domain] ?? [];
+        }
+
+        return $static;
     }
 
     private function storeDsn(): string

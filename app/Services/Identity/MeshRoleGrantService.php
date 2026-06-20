@@ -7,6 +7,8 @@ use App\Models\FederationPeer;
 use App\Models\InstanceCapability;
 use App\Models\PeerUpgradeProposal;
 use App\Services\AuditService;
+use App\Services\Federation\BrokerAuthorizationService;
+use App\Services\Federation\BrokerCredentialService;
 use App\Services\Federation\CapabilityProber;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
@@ -41,6 +43,8 @@ class MeshRoleGrantService
         private readonly InstanceIdentityService $identity,
         private readonly AuditService $audit,
         private readonly MultiplexClient $multiplex,
+        private readonly BrokerAuthorizationService $brokerAuth,
+        private readonly BrokerCredentialService $brokerCredentials,
     ) {}
 
     // -- QUALIFY + REQUEST ------------------------------------------------------------------------------
@@ -171,7 +175,7 @@ class MeshRoleGrantService
 
         [$envelope, $signature] = $this->mintGrant($capability, $scope, $granteeServerId, $granteePubKey);
 
-        return DB::transaction(function () use ($proposal, $capability, $envelope, $signature, $granteeServerId): PeerUpgradeProposal {
+        $result = DB::transaction(function () use ($proposal, $capability, $envelope, $signature, $granteeServerId): PeerUpgradeProposal {
             // JOIN — write the grant receipt onto the grantee's instance_capabilities row, flip enabled.
             // Same-box grantee (the dev/bootstrap path): grant ourselves. A peer grantee receives the
             // grant over S2S (★11/★17) and grantSelf's on its own side; we record the envelope for delivery.
@@ -200,6 +204,28 @@ class MeshRoleGrantService
 
             return $proposal->refresh();
         });
+
+        // A1 — a ratified broker role PUBLISHES the broker-routing fact for each configured domain, so the
+        // box becomes mesh-routable as a broker AND its authority key populates the GrantVerifier's
+        // authority_keys (the missing link "role approved" → "broker usable"). Self-broker only (the box is
+        // both authority + broker); the fact then gossips to peers on the next handshake. A cross-box broker
+        // grant would carry the broker's domains on the request — out of scope for the A↔B campaign.
+        if (in_array($capability, ['broker.dns', 'broker.tls'], true) && $granteeServerId === $this->identity->serverId()) {
+            foreach ($this->configuredBrokerDomains() as $domain) {
+                $this->brokerAuth->attest($domain, $granteeServerId);
+            }
+        }
+
+        return $result;
+    }
+
+    /** Domains this box is configured to broker — the operator credential store ∪ static config. */
+    private function configuredBrokerDomains(): array
+    {
+        return array_values(array_unique(array_merge(
+            $this->brokerCredentials->domains(),
+            array_map('strval', array_keys((array) config('cga.broker.domains', []))),
+        )));
     }
 
     // -- JOIN delivery (★17 — cross-instance) -----------------------------------------------------------

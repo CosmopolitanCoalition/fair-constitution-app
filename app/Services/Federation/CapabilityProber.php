@@ -25,7 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class CapabilityProber
 {
-    public function __construct(private readonly InstanceIdentityService $identity) {}
+    public function __construct(
+        private readonly InstanceIdentityService $identity,
+        private readonly BrokerCredentialService $credentials,
+    ) {}
 
     /** Channels that, granted, let the box act under a PEER's subtree → add Meter C (§5). */
     private const PEER_SUBTREE_AFFECTING = ['broker.dns', 'authority.grant'];
@@ -102,12 +105,17 @@ class CapabilityProber
 
     private function probeBrokerDns(): array
     {
-        // The Cloudflare DNS-edit token — presence only, NEVER the value. Lives on the broker box.
+        // The Cloudflare DNS-edit token — PRESENCE only, NEVER the value. Lives on the broker box: the
+        // operator's credential store (dropped via the broker console) or the static config fallback.
+        $stored = $this->credentials->domains();
+        if ($stored !== []) {
+            return [true, 'Cloudflare credential configured for: '.implode(', ', $stored).' (the token value never federates)'];
+        }
         $token = (string) config('services.cloudflare.dns_token', '');
 
         return $token !== ''
-            ? [true, 'Cloudflare DNS token configured (presence only; the value never federates)']
-            : [false, 'no Cloudflare DNS token configured (services.cloudflare.dns_token)'];
+            ? [true, 'Cloudflare DNS token configured in env (the value never federates)']
+            : [false, 'no Cloudflare credential — drop one in the broker console (or set services.cloudflare.dns_token)'];
     }
 
     private function probeBrokerTls(): array

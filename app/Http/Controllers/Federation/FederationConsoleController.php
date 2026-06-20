@@ -8,15 +8,22 @@ use App\Models\AuthorityClaim;
 use App\Models\ClusterJoinKey;
 use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
+use App\Models\InstanceCapability;
 use App\Models\InstanceSettings;
 use App\Models\Jurisdiction;
+use App\Models\OperatorAccount;
+use App\Models\PeerUpgradeProposal;
 use App\Models\SyncLogEntry;
+use App\Services\Federation\BrokerCredentialService;
+use App\Services\Federation\CapabilityService;
 use App\Services\Federation\MeshGateService;
 use App\Services\Federation\MeshProbeService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\ReadWriteRequestService;
 use App\Services\Federation\TransportService;
+use App\Services\Identity\MeshRoleGrantService;
 use App\Services\Mirror\MirrorService;
+use App\Services\PeerUpgradeAgreementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,9 +44,36 @@ use Inertia\Response;
  */
 class FederationConsoleController extends Controller
 {
-    public function show(MirrorService $mirror, ReadWriteRequestService $rw, MeshGateService $gates, TransportService $transports): Response
+    public function show(MirrorService $mirror, ReadWriteRequestService $rw, MeshGateService $gates, TransportService $transports, PeerUpgradeAgreementService $upgrades, BrokerCredentialService $brokerCredentials): Response
     {
         $settings = InstanceSettings::current();
+
+        // Mesh Roles — the broker credential STATUS (operator-only). status() carries the domain + zone +
+        // configured flag; NEVER the token value (the token lives encrypted in storage, write-only from the UI).
+        $brokerCreds = Auth::guard('operator')->check() ? $brokerCredentials->status() : [];
+
+        // Mesh Roles ★14 — the Role Board (a box's role = the SET of channels it has established) + the
+        // PENDING REQUESTS panel (open role-grant requests + their LIVE dual-meter state, read straight off
+        // PeerUpgradeAgreementService — the console renders the meter, it never re-implements approval).
+        $rootId = (string) Jurisdiction::query()->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+        $pending = collect();
+        if (Auth::guard('operator')->check()) {
+            $pending = PeerUpgradeProposal::query()
+                ->where('kind', PeerUpgradeProposal::KIND_ROLE_GRANT)
+                ->where('status', PeerUpgradeProposal::STATUS_OPEN)
+                ->orderByDesc('created_at')->limit(50)->get()
+                ->map(fn (PeerUpgradeProposal $p) => [
+                    'id' => (string) $p->id,
+                    'capability' => (string) $p->capability,
+                    'scope' => substr((string) $p->affected_root_jurisdiction_id, 0, 8),
+                    'requested_by' => substr((string) $p->proposed_by_server_id, 0, 8),
+                    'consent_leg' => $upgrades->applicableConsentLeg($p->affected_root_jurisdiction_id),
+                    'meter_a' => $upgrades->meterAPassed($p),
+                    'meter_b' => $upgrades->meterBPassed($p),
+                    'meter_c' => $upgrades->meterCPassed($p),
+                    'created_at' => $p->created_at?->toIso8601String(),
+                ])->values();
+        }
 
         $mirrorMembership = ClusterMembership::query()
             ->where('role', ClusterMembership::ROLE_MIRROR)
@@ -66,6 +100,15 @@ class FederationConsoleController extends Controller
                 'transports' => $transports->selfEndpoints(),
                 'self_url' => config('cga.federation_self_url'),
                 'probe' => session('mesh_probe'),
+            ],
+            // Mesh Roles ★14 — the Role Board (public-readable mesh state, Art. II §2; the actionable
+            // controls below sit behind the operator guard) + pending role-grant requests (operator-only).
+            'roles' => [
+                'channels' => $gates->channels($rootId === '' ? null : $rootId),
+                'scope' => $rootId,
+                'pending' => $pending,
+                // Operator-only broker credential status (domains + zones, NEVER the token).
+                'broker_credentials' => $brokerCreds,
             ],
             'mirror' => [
                 'is_mirror' => $mirror->isMirror(),
@@ -298,5 +341,145 @@ class FederationConsoleController extends Controller
         return back()
             ->with('mesh_probe', $result)
             ->with('status', "Probe: {$result['reached']}/{$result['total']} transport(s) reached {$result['target']}.");
+    }
+
+    /**
+     * Mesh Roles ★15 — establish a SELF-ASSERTED channel (mesh.member/mirror/etl). The GUI front door to
+     * `mesh:role request` for the free channels; refuses a governed one (it needs a grant). Operator-grade.
+     */
+    public function establishChannel(Request $request, CapabilityService $capabilities): RedirectResponse
+    {
+        $validated = $request->validate(['capability' => ['required', Rule::in(InstanceCapability::SELF_ASSERTED)]]);
+
+        try {
+            $capabilities->registerSelf($validated['capability']);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['roles' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Established [{$validated['capability']}] (self-asserted — no consent needed).");
+    }
+
+    /**
+     * Mesh Roles ★15 — open a role-grant REQUEST for a GOVERNED channel (QUALIFY runs first; an unqualified
+     * channel never opens a proposal). The GUI front door to `mesh:role request`. Grants nothing — the
+     * dual-meter consent decides (the request appears in the PENDING REQUESTS panel).
+     */
+    public function requestChannel(Request $request, MeshRoleGrantService $grants): RedirectResponse
+    {
+        $validated = $request->validate([
+            'capability' => ['required', Rule::in(InstanceCapability::GOVERNED)],
+            'scope_jurisdiction_id' => ['required', 'uuid'],
+        ]);
+
+        try {
+            $proposal = $grants->request($validated['capability'], $validated['scope_jurisdiction_id']);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['roles' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Requested [{$validated['capability']}] — proposal ".substr((string) $proposal->id, 0, 8).". The dual-meter consent decides.");
+    }
+
+    /**
+     * Mesh Roles ★15 — approve a role-grant (the bootstrap operator-board path: record Meter A + ratify).
+     * A seated government approves through the MultiJurisdictionVote (Meter B), not this button. On all
+     * gates passing the channel is granted + enabled. Operator-grade.
+     */
+    public function approveChannel(Request $request, MeshRoleGrantService $grants, PeerUpgradeAgreementService $upgrades): RedirectResponse
+    {
+        $validated = $request->validate(['proposal_id' => ['required', 'uuid']]);
+
+        $proposal = PeerUpgradeProposal::query()
+            ->where('kind', PeerUpgradeProposal::KIND_ROLE_GRANT)
+            ->whereKey($validated['proposal_id'])->first();
+        if ($proposal === null) {
+            return back()->withErrors(['roles' => 'No such role-grant request.']);
+        }
+
+        try {
+            if ($upgrades->applicableConsentLeg($proposal->affected_root_jurisdiction_id) === 'operator') {
+                $operator = OperatorAccount::query()->whereKey(Auth::guard('operator')->id())->first();
+                if ($operator === null) {
+                    return back()->withErrors(['roles' => 'No operator account to attest as (Meter A).']);
+                }
+                $upgrades->recordOperatorConsent($proposal, $operator, true);
+            }
+            $ratified = $grants->ratify($proposal);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['roles' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Granted [{$ratified->capability}] — channel enabled, grant minted.");
+    }
+
+    /** Mesh Roles ★15 — drop one of our channels (always unilateral). The GUI front door to `mesh:role revoke`. */
+    public function revokeChannel(Request $request, MeshRoleGrantService $grants): RedirectResponse
+    {
+        $validated = $request->validate(['capability' => ['required', Rule::in(InstanceCapability::CHANNELS)]]);
+
+        $grants->revoke($validated['capability'], 'operator-revoked via console');
+
+        return back()->with('status', "Dropped [{$validated['capability']}].");
+    }
+
+    /**
+     * Mesh Roles ★15 — register / switch a transport (the operator's "switch method", today CLI-only via
+     * transport:register). The composable JOIN channel is the operator's own infra choice (no consent gate).
+     */
+    public function registerTransport(Request $request, TransportService $transports): RedirectResponse
+    {
+        $validated = $request->validate([
+            'transport' => ['required', Rule::in(\App\Models\FederationTransport::TRANSPORTS)],
+            'address' => ['required', 'string', 'max:255'],
+            'priority' => ['nullable', 'integer', 'min:0', 'max:1000'],
+        ]);
+
+        try {
+            $transports->registerSelf($validated['transport'], $validated['address'], (int) ($validated['priority'] ?? 100));
+        } catch (\Throwable $e) {
+            return back()->withErrors(['roles' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Advertised transport [{$validated['transport']}].");
+    }
+
+    /** Mesh Roles ★15 — stop advertising a transport (switch method / drop a dead rung). */
+    public function disableTransport(Request $request, TransportService $transports): RedirectResponse
+    {
+        $validated = $request->validate(['transport' => ['required', Rule::in(\App\Models\FederationTransport::TRANSPORTS)]]);
+
+        $transports->disableSelf($validated['transport']);
+
+        return back()->with('status', "Stopped advertising [{$validated['transport']}].");
+    }
+
+    /**
+     * Mesh Roles — drop a Cloudflare DNS-edit credential for a domain into THIS box's local broker store
+     * (the operator-UI token input you asked for). The token is encrypted at rest in storage (gitignored,
+     * never federated), WRITE-ONLY from the UI: it is never read back to a prop or response. Operator-grade.
+     * After this + `lego` on PATH, the box qualifies for broker.dns/broker.tls.
+     */
+    public function setBrokerCredential(Request $request, BrokerCredentialService $credentials): RedirectResponse
+    {
+        $validated = $request->validate([
+            'domain' => ['required', 'string', 'max:253', 'regex:/^[a-z0-9.-]+$/i'],
+            'zone_id' => ['required', 'string', 'max:64'],
+            'cloudflare_token' => ['required', 'string', 'max:512'],
+        ]);
+
+        $credentials->setCredential($validated['domain'], $validated['zone_id'], $validated['cloudflare_token']);
+
+        return back()->with('status', "Broker credential stored for {$validated['domain']} (encrypted on this box; it never federates). Qualify broker.tls once lego is installed.");
+    }
+
+    /** Mesh Roles — remove a stored broker credential for a domain (local only). Operator-grade. */
+    public function forgetBrokerCredential(Request $request, BrokerCredentialService $credentials): RedirectResponse
+    {
+        $validated = $request->validate(['domain' => ['required', 'string', 'max:253']]);
+
+        $credentials->forget($validated['domain']);
+
+        return back()->with('status', "Broker credential removed for {$validated['domain']}.");
     }
 }

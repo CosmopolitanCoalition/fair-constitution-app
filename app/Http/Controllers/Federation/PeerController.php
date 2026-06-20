@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Federation;
 
 use App\Http\Controllers\Controller;
 use App\Models\FederationPeer;
+use App\Services\Federation\BrokerAuthorizationService;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
@@ -22,6 +23,7 @@ class PeerController extends Controller
         private readonly PeerService $peers,
         private readonly TransportService $transports,
         private readonly CapabilityService $capabilities,
+        private readonly BrokerAuthorizationService $brokerAuth,
     ) {}
 
     /** GET /api/federation/identity (public) — our advertised identity + transports + capabilities. */
@@ -35,6 +37,9 @@ class PeerController extends Controller
                 'transports' => $this->transports->selfEndpoints(),
                 // Mesh Roles ★4 — our capability manifest (the role set we offer), signed with this payload.
                 'capabilities' => $this->capabilities->selfCapabilities(),
+                // Mesh Roles ★8/A1 — our broker-routing attestations, so a peer learns which boxes the mesh
+                // trusts to broker under each domain (each fact verified against its authority's pinned key).
+                'broker_authorizations' => $this->brokerAuth->wire(),
             ]
         );
     }
@@ -62,6 +67,14 @@ class PeerController extends Controller
             'capabilities.*.granted_by_server_id' => ['nullable', 'string'],
             'capabilities.*.grant_signature' => ['nullable', 'string'],
             'capabilities.*.grant_expires_at' => ['nullable', 'integer'],
+            // Mesh Roles ★8/A1 — the peer's broker-routing attestations (verified against each authority's key).
+            'broker_authorizations' => ['nullable', 'array'],
+            'broker_authorizations.*.domain' => ['nullable', 'string'],
+            'broker_authorizations.*.broker_server_id' => ['nullable', 'string'],
+            'broker_authorizations.*.authority_server_id' => ['nullable', 'string'],
+            'broker_authorizations.*.authority_pubkey' => ['nullable', 'string'],
+            'broker_authorizations.*.signature' => ['nullable', 'string'],
+            'broker_authorizations.*.issued_at' => ['nullable', 'integer'],
         ]);
 
         return response()->json($this->peers->receiveHandshake($payload));

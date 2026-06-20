@@ -7,6 +7,8 @@ use App\Models\FederationPeer;
 use App\Models\Jurisdiction;
 use App\Models\OperatorAccount;
 use App\Models\PeerUpgradeProposal;
+use App\Services\Federation\BrokerAuthorizationService;
+use App\Services\Federation\BrokerCredentialService;
 use App\Services\Federation\CapabilityProber;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
@@ -133,6 +135,32 @@ class MeshRoleGrantTest extends TestCase
             $this->assertSame(PeerUpgradeProposal::STATUS_RATIFIED, $svc->ratify($proposal)->status,
                 'with both Meter A and Meter C cleared, the peer-subtree grant ratifies');
         });
+    }
+
+    public function test_ratifying_a_broker_role_publishes_the_routing_fact(): void
+    {
+        @unlink(storage_path('app/broker/credentials.json'));
+        $this->onLivePg(function () {
+            $identity = app(InstanceIdentityService::class);
+            $identity->ensureIdentity();
+            app(BrokerCredentialService::class)->setCredential('a1-test.example', 'zone-1', 'tok'); // qualifies broker.dns
+
+            $svc = app(MeshRoleGrantService::class);
+            $agreement = app(PeerUpgradeAgreementService::class);
+            $scope = $this->jurisdiction(null); // ours, unseated ⇒ Meter A
+            $operator = $this->operator();
+
+            $proposal = $svc->request('broker.dns', $scope->id);
+            $agreement->recordOperatorConsent($proposal, $operator, true);
+            $svc->ratify($proposal);
+
+            // A1 — the missing link: ratify publishes the broker-routing fact, so the box is now an
+            // authorized authority for its domain (GrantVerifier authority_keys) AND a routable broker.
+            $authz = app(BrokerAuthorizationService::class);
+            $this->assertContains($identity->publicKey(), $authz->authorityKeysFor('a1-test.example'));
+            $this->assertContains($identity->serverId(), $authz->brokersFor('a1-test.example'));
+        });
+        @unlink(storage_path('app/broker/credentials.json'));
     }
 
     // -- fixtures ---------------------------------------------------------------------------------------

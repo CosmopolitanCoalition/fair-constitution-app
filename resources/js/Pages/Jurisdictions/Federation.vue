@@ -12,6 +12,7 @@ const props = defineProps({
     claims: { type: Array, default: () => [] },
     host: { type: Object, default: () => ({ authed: false }) },
     mesh: { type: Object, default: () => ({ gates: [], transports: [], self_url: null, probe: null }) },
+    roles: { type: Object, default: () => ({ channels: [], scope: null, pending: [] }) },
 });
 
 const page = usePage();
@@ -102,6 +103,42 @@ const resultClass = (result) => ({
 }[result] || 'bg-slate-100 text-slate-700');
 
 const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
+
+// Mesh Roles ★14/★15 — the Role Board. A box's role = the SET of channels it has established; each is
+// qualified → requested → approved → joined independently. Controls sit behind the operator guard.
+const channelStateClass = (s) => ({
+    established: 'bg-emerald-100 text-emerald-800',
+    qualifiable: 'bg-sky-100 text-sky-800',
+    requested: 'bg-amber-100 text-amber-800',
+    'needs-config': 'bg-slate-100 text-slate-600',
+    lapsed: 'bg-rose-100 text-rose-700',
+}[s] || 'bg-slate-100 text-slate-600');
+
+const establishChannel = (capability) => router.post('/federation/roles/establish', { capability }, { preserveScroll: true });
+const requestChannel = (capability) =>
+    router.post('/federation/roles/request', { capability, scope_jurisdiction_id: props.roles.scope }, { preserveScroll: true });
+const approveRole = (id) => router.post('/federation/roles/approve', { proposal_id: id }, { preserveScroll: true });
+const revokeChannel = (capability) => {
+    if (window.confirm(`Drop [${capability}]? Stopping a service is always unilateral — you can re-request it later.`)) {
+        router.post('/federation/roles/revoke', { capability }, { preserveScroll: true });
+    }
+};
+
+// Transport switcher (★15) — the operator's composable JOIN channels (no consent gate).
+const transportForm = useForm({ transport: 'tailnet', address: '', priority: 100 });
+const registerTransport = () => transportForm.post('/federation/transports/register', { preserveScroll: true });
+const disableTransport = (transport) => router.post('/federation/transports/disable', { transport }, { preserveScroll: true });
+
+// Broker credentials — the operator drops the Cloudflare token for a domain into this box's local,
+// encrypted store. Write-only: the token field is never pre-filled and the value never comes back.
+const brokerCredForm = useForm({ domain: '', zone_id: '', cloudflare_token: '' });
+const setBrokerCred = () =>
+    brokerCredForm.post('/federation/broker/credentials', { preserveScroll: true, onSuccess: () => brokerCredForm.reset() });
+const forgetBrokerCred = (domain) => {
+    if (window.confirm(`Remove the broker credential for ${domain}? (local only)`)) {
+        router.post('/federation/broker/credentials/forget', { domain }, { preserveScroll: true });
+    }
+};
 </script>
 
 <template>
@@ -144,6 +181,123 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                     </dd>
                 </div>
             </dl>
+        </section>
+
+        <!-- Mesh Roles ★14 — the Role Board: a box's role = the SET of channels it has established -->
+        <section class="rounded-lg border border-slate-200 bg-white p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Role board — capability channels</h2>
+            <p class="mt-1 max-w-2xl text-xs text-slate-600">
+                A box's role is the set of channels it has established — each qualified, requested, approved, and
+                joined independently. Self-asserted channels are the operator's own infra choice; governed
+                channels route through the mesh's dual-meter consent (the operator board, or a seated government).
+            </p>
+
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                <div v-for="c in roles.channels" :key="c.capability" class="rounded border border-slate-200 p-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold text-slate-800">{{ c.label }}</span>
+                        <span :class="channelStateClass(c.state)" class="rounded px-2 py-0.5 text-xs font-medium">{{ c.state }}</span>
+                    </div>
+                    <p class="mt-1 font-mono text-[11px] text-slate-400">{{ c.capability }}</p>
+                    <p class="mt-1 text-xs text-slate-600">{{ c.what }}</p>
+                    <p class="mt-1 text-[11px] uppercase tracking-wide text-slate-400">
+                        {{ c.kind }}<span v-if="c.affects_peer_subtree"> · co-affected peers consent</span>
+                    </p>
+
+                    <ul class="mt-2 space-y-1">
+                        <li v-for="g in c.gates" :key="g.key" class="flex items-start gap-1.5 text-xs">
+                            <span :class="gateClass(g.status)"
+                                  class="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
+                                {{ gateMark(g.status) }}
+                            </span>
+                            <span class="text-slate-600">{{ g.label }} <span class="text-slate-400">— {{ g.detail }}</span></span>
+                        </li>
+                    </ul>
+
+                    <div v-if="host.authed" class="mt-2 flex flex-wrap gap-2">
+                        <button v-if="c.kind === 'self-asserted' && c.state !== 'established'" type="button"
+                                @click="establishChannel(c.capability)"
+                                class="rounded bg-slate-800 px-2 py-1 text-xs font-medium text-white hover:bg-slate-700">Establish</button>
+                        <button v-if="c.kind === 'governed' && c.state === 'qualifiable'" type="button"
+                                @click="requestChannel(c.capability)"
+                                class="rounded bg-sky-700 px-2 py-1 text-xs font-medium text-white hover:bg-sky-600">Request</button>
+                        <span v-if="c.kind === 'governed' && c.state === 'needs-config'" class="text-[11px] italic text-slate-400">
+                            drop the required token/key to qualify
+                        </span>
+                        <span v-if="c.state === 'requested'" class="text-[11px] italic text-amber-600">awaiting consent (see Pending requests)</span>
+                        <button v-if="c.state === 'established'" type="button"
+                                @click="revokeChannel(c.capability)"
+                                class="rounded border border-rose-300 px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50">Drop</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mesh Roles ★14 — Pending role requests + their live dual-meter consent state (operator-only) -->
+        <section v-if="host.authed && roles.pending.length" class="rounded-lg border border-amber-200 bg-amber-50 p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Pending role requests</h2>
+            <p class="mt-1 max-w-2xl text-xs text-slate-600">
+                Each request's live consent state. <strong>Approve</strong> runs the bootstrap operator-board
+                attestation (Meter A) then ratifies; a seated government approves through its supermajority vote
+                (Meter B). Meter C is the co-affected peers' unanimity for a channel that acts under a peer's subtree.
+            </p>
+            <ul class="mt-3 space-y-2">
+                <li v-for="r in roles.pending" :key="r.id" class="rounded border border-amber-200 bg-white p-3 text-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="font-mono text-slate-800">{{ r.capability }}</span>
+                        <span class="text-xs text-slate-500">scope {{ r.scope }} · by {{ r.requested_by }} · leg: {{ r.consent_leg }}</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span :class="r.meter_a ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'" class="rounded px-1.5 py-0.5 font-medium">Meter A {{ r.meter_a ? '✓' : '·' }}</span>
+                        <span :class="r.meter_b ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'" class="rounded px-1.5 py-0.5 font-medium">Meter B {{ r.meter_b ? '✓' : '·' }}</span>
+                        <span :class="r.meter_c ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'" class="rounded px-1.5 py-0.5 font-medium">Meter C {{ r.meter_c ? '✓' : '·' }}</span>
+                        <button type="button" @click="approveRole(r.id)"
+                                class="ml-auto rounded bg-emerald-700 px-2 py-1 font-medium text-white hover:bg-emerald-600">Approve + ratify</button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Mesh Roles — Broker credentials (operator-only): drop the Cloudflare token for a domain locally -->
+        <section v-if="host.authed" class="rounded-lg border border-slate-200 bg-white p-5">
+            <h2 class="text-sm font-semibold text-slate-900">Broker credentials</h2>
+            <p class="mt-1 max-w-2xl text-xs text-slate-600">
+                To run the DNS/TLS broker role, drop a Cloudflare DNS-edit token for each domain you'll broker.
+                The token is stored <strong>encrypted on this box only</strong> — it never federates, never appears
+                in any response, and can't be read back here. After this (plus <code class="font-mono">lego</code>
+                on PATH), this box qualifies for <span class="font-mono">broker.dns</span> /
+                <span class="font-mono">broker.tls</span>.
+            </p>
+
+            <div v-if="roles.broker_credentials && roles.broker_credentials.length" class="mt-3 space-y-1">
+                <div v-for="b in roles.broker_credentials" :key="b.domain"
+                     class="flex items-center justify-between rounded border border-slate-200 px-3 py-1.5 text-sm">
+                    <span><span class="font-mono text-slate-800">{{ b.domain }}</span>
+                        <span class="ml-1 text-xs text-slate-500">zone {{ b.zone_id }}</span>
+                        <span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">configured</span>
+                    </span>
+                    <button type="button" @click="forgetBrokerCred(b.domain)" class="text-xs text-rose-600 hover:text-rose-800">Remove</button>
+                </div>
+            </div>
+
+            <form @submit.prevent="setBrokerCred" class="mt-3 grid gap-2 sm:grid-cols-2">
+                <input v-model="brokerCredForm.domain" type="text" placeholder="domain (e.g. worldofstatecraft.org)"
+                       class="rounded border border-slate-300 px-2 py-1 text-sm" />
+                <input v-model="brokerCredForm.zone_id" type="text" placeholder="Cloudflare zone id"
+                       class="rounded border border-slate-300 px-2 py-1 text-sm" />
+                <input v-model="brokerCredForm.cloudflare_token" type="password" autocomplete="off"
+                       placeholder="Cloudflare DNS-edit token (stored encrypted; never shown again)"
+                       class="rounded border border-slate-300 px-2 py-1 text-sm sm:col-span-2" />
+                <div class="sm:col-span-2">
+                    <button type="submit" :disabled="brokerCredForm.processing"
+                            class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">
+                        Store credential
+                    </button>
+                    <span v-if="brokerCredForm.errors.domain || brokerCredForm.errors.cloudflare_token" class="ml-2 text-xs text-rose-600">
+                        {{ brokerCredForm.errors.domain || brokerCredForm.errors.cloudflare_token }}
+                    </span>
+                </div>
+            </form>
         </section>
 
         <!-- G8b — Two-way mesh: setup + verification gates (the operator's "run the gates") -->
@@ -235,6 +389,31 @@ const shortId = (id) => (id ? String(id).slice(0, 8) : '—');
                             </span>
                         </li>
                     </ul>
+                </div>
+
+                <!-- Transport switcher (Mesh Roles ★15) — register / drop a JOIN channel (operator infra choice, no consent gate) -->
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Transports (switch method)</label>
+                    <div v-if="mesh.transports.length" class="mt-1 flex flex-wrap gap-2">
+                        <span v-for="t in mesh.transports" :key="t.transport"
+                              class="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+                            <span class="font-mono">{{ t.transport }}</span>
+                            <button type="button" @click="disableTransport(t.transport)" class="text-rose-600 hover:text-rose-800" title="Stop advertising">×</button>
+                        </span>
+                    </div>
+                    <form @submit.prevent="registerTransport" class="mt-2 flex flex-wrap items-end gap-2">
+                        <select v-model="transportForm.transport" class="rounded border border-slate-300 px-2 py-1 text-sm">
+                            <option value="https">https</option>
+                            <option value="tailnet">tailnet</option>
+                            <option value="onion">onion</option>
+                            <option value="yggdrasil">yggdrasil</option>
+                            <option value="sneakernet">sneakernet</option>
+                        </select>
+                        <input v-model="transportForm.address" type="text" placeholder="address / url"
+                               class="w-56 rounded border border-slate-300 px-2 py-1 text-sm" />
+                        <button type="submit" :disabled="transportForm.processing"
+                                class="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50">Advertise</button>
+                    </form>
                 </div>
             </div>
             <p v-else class="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">

@@ -762,6 +762,28 @@ Route::middleware('auth:operator')->group(function () {
     Route::post('/federation/mesh/probe', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'probePeer'])
         ->name('federation.mesh.probe');
 
+    // Mesh Roles ★15 — the capability lifecycle controls (the GUI front doors to mesh:role +
+    // transport:register). Operator-grade; a governed channel still routes through the dual-meter consent.
+    Route::post('/federation/roles/establish', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'establishChannel'])
+        ->name('federation.roles.establish');
+    Route::post('/federation/roles/request', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'requestChannel'])
+        ->name('federation.roles.request');
+    Route::post('/federation/roles/approve', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'approveChannel'])
+        ->name('federation.roles.approve');
+    Route::post('/federation/roles/revoke', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'revokeChannel'])
+        ->name('federation.roles.revoke');
+    Route::post('/federation/transports/register', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'registerTransport'])
+        ->name('federation.transports.register');
+    Route::post('/federation/transports/disable', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'disableTransport'])
+        ->name('federation.transports.disable');
+
+    // Mesh Roles — broker credential input (the operator drops the Cloudflare token for a domain into the
+    // local, encrypted, never-federated store). Write-only: the token is never read back to the UI.
+    Route::post('/federation/broker/credentials', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'setBrokerCredential'])
+        ->name('federation.broker.credentials.set');
+    Route::post('/federation/broker/credentials/forget', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'forgetBrokerCredential'])
+        ->name('federation.broker.credentials.forget');
+
     // G-OP / G3c — Flow B: link THIS operator account to an existing mesh identity
     // by device-possession proof (the proof string targets POST /operator/link).
     Route::post('/operator/link', [\App\Http\Controllers\Federation\OperatorLinkController::class, 'link'])

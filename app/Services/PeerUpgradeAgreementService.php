@@ -553,47 +553,45 @@ class PeerUpgradeAgreementService
      */
     public function coAffectedPeerServerIds(string $rootJurisdictionId): array
     {
-        $subtree = $this->descendantIds($rootJurisdictionId);
-
-        if ($subtree === []) {
-            return [];
-        }
-
-        $authServerIds = DB::table('jurisdictions')
-            ->whereIn('id', $subtree)
-            ->whereNotNull('authoritative_server_id')
-            ->whereNull('deleted_at')
-            ->distinct()
-            ->pluck('authoritative_server_id')
-            ->map(fn ($i) => (string) $i)
-            ->all();
-
-        if ($authServerIds === []) {
-            return [];
-        }
-
-        return FederationPeer::query()
-            ->whereIn('server_id', $authServerIds)
-            ->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED)
-            ->whereNull('deleted_at')
-            ->pluck('server_id')
-            ->map(fn ($i) => (string) $i)
-            ->all();
-    }
-
-    /** Root + all descendants (recursive; soft-deletes excluded). */
-    private function descendantIds(string $root): array
-    {
-        $rows = DB::select(
-            'WITH RECURSIVE jh AS ('
-            .'   SELECT id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL'
-            .'   UNION ALL'
-            .'   SELECT j.id FROM jurisdictions j JOIN jh ON j.parent_id = jh.id WHERE j.deleted_at IS NULL'
-            .' ) SELECT id FROM jh',
-            [$root]
+        // The authoritative jurisdictions are FEW (a peer must be authoritative for a node), so find them
+        // first, then confirm each sits in root's subtree by walking UP from it (O(depth)) — NEVER
+        // descending root's whole tree (a root like Earth has tens of thousands of descendants; that descend
+        // is slow and breaches the bind-param ceiling). Scales with the number of peer-held jurisdictions,
+        // not the subtree size. Behavior-preserving: trust-established peers authoritative for any node in
+        // root + descendants.
+        $candidates = DB::select(
+            'SELECT DISTINCT ja.id AS jid, fp.server_id AS server_id'
+            .' FROM jurisdictions ja'
+            .' JOIN federation_peers fp ON fp.server_id = ja.authoritative_server_id AND fp.status = ? AND fp.deleted_at IS NULL'
+            .' WHERE ja.authoritative_server_id IS NOT NULL AND ja.deleted_at IS NULL',
+            [FederationPeer::STATUS_TRUST_ESTABLISHED]
         );
 
-        return array_map(fn ($r) => (string) $r->id, $rows);
+        $result = [];
+        foreach ($candidates as $c) {
+            if ($this->isInSubtree((string) $c->jid, $rootJurisdictionId)) {
+                $result[(string) $c->server_id] = true;
+            }
+        }
+
+        return array_keys($result);
+    }
+
+    /** True when $jurisdictionId is $rootId or a descendant of it (ancestor-walk UP, O(depth)). */
+    private function isInSubtree(string $jurisdictionId, string $rootId): bool
+    {
+        if ($jurisdictionId === $rootId) {
+            return true;
+        }
+
+        return DB::select(
+            'WITH RECURSIVE anc AS ('
+            .'   SELECT id, parent_id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL'
+            .'   UNION ALL'
+            .'   SELECT j.id, j.parent_id FROM jurisdictions j JOIN anc ON j.id = anc.parent_id WHERE j.deleted_at IS NULL'
+            .' ) SELECT 1 FROM anc WHERE id = ? LIMIT 1',
+            [$jurisdictionId, $rootId]
+        ) !== [];
     }
 
     /** The seated legislature governing the affected root (null = bootstrap mode). */

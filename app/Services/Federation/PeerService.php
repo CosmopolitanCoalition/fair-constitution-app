@@ -34,6 +34,7 @@ class PeerService
         private readonly TransportService $transports,
         private readonly MultiplexClient $multiplex,
         private readonly CapabilityService $capabilities,
+        private readonly BrokerAuthorizationService $brokerAuth,
     ) {}
 
     /**
@@ -81,6 +82,8 @@ class PeerService
         $this->transports->recordPeerTransports($serverId, (array) ($remote['transports'] ?? []));
         // Mesh Roles ★4 — learn the peer's capability manifest alongside its transports.
         $this->capabilities->recordPeerCapabilities($serverId, (array) ($remote['capabilities'] ?? []));
+        // Mesh Roles ★8/A1 — learn the peer's broker-routing facts (each verified against its authority's key).
+        $this->brokerAuth->ingest((array) ($remote['broker_authorizations'] ?? []), $peer);
 
         $this->audit->append('federation', 'peer.discovered',
             ['peer_server_id' => $serverId, 'url' => $url], 'WF-JUR-06');
@@ -105,6 +108,7 @@ class PeerService
         $payload['url'] = config('cga.federation_self_url');
         $payload['transports'] = $this->transports->selfEndpoints();
         $payload['capabilities'] = $this->capabilities->selfCapabilities(); // ★4 — advertise our role set, signed with the payload
+        $payload['broker_authorizations'] = $this->brokerAuth->wire(); // ★8/A1 — advertise our broker-routing facts
 
         // Handshake over the multiplex ladder (G8b) — the peer's transports learned at
         // discovery are already in the ladder, so a handshake survives a down clearnet.
@@ -139,6 +143,7 @@ class PeerService
         // Learn the peer's full transport set + capability manifest from its handshake response (G8b/★4).
         $this->transports->recordPeerTransports($remoteServerId, (array) ($remote['transports'] ?? []));
         $this->capabilities->recordPeerCapabilities($remoteServerId, (array) ($remote['capabilities'] ?? []));
+        $this->brokerAuth->ingest((array) ($remote['broker_authorizations'] ?? []), $peer); // ★8/A1
 
         $this->audit->append('federation', 'peer.trust_established',
             ['peer_server_id' => $remoteServerId, 'url' => $peer->url, 'direction' => 'initiated'], 'WF-JUR-06');
@@ -177,11 +182,16 @@ class PeerService
         // the initiator's ladder is populated symmetrically.
         $this->transports->recordPeerTransports($serverId, (array) ($payload['transports'] ?? []));
         $this->capabilities->recordPeerCapabilities($serverId, (array) ($payload['capabilities'] ?? []));
+        $fromPeer = FederationPeer::query()->where('server_id', $serverId)->whereNull('deleted_at')->first();
+        if ($fromPeer !== null) {
+            $this->brokerAuth->ingest((array) ($payload['broker_authorizations'] ?? []), $fromPeer); // ★8/A1
+        }
 
         return $this->identity->handshakePayload() + [
             'url' => config('cga.federation_self_url'),
             'transports' => $this->transports->selfEndpoints(),
             'capabilities' => $this->capabilities->selfCapabilities(), // ★4 — advertise our role set back, symmetrically
+            'broker_authorizations' => $this->brokerAuth->wire(), // ★8/A1 — advertise our broker-routing facts back
         ];
     }
 
