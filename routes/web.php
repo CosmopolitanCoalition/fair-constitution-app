@@ -670,6 +670,10 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::get('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'index'])->name('halls');
     Route::post('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'store'])->name('halls.store');
     Route::post('/halls/testimony', [\App\Http\Controllers\Civic\HallsController::class, 'fileTestimony'])->name('halls.testimony');
+
+    // Phase K-3 (K3-K) — server-side in-conversation translation. The TranslationGate PRIVACY RAIL is
+    // enforced here regardless of client: a private room is never cloud-translated (fail-closed).
+    Route::post('/matrix/translate', \App\Http\Controllers\Matrix\MatrixTranslationController::class)->name('matrix.translate');
 });
 
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain

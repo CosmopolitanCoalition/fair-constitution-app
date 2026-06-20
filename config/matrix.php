@@ -71,4 +71,12 @@ return [
             explode(',', (string) env('MATRIX_SCAN_LOCAL_HASHES', ''))
         ))),
     ],
+
+    // K3-K — in-conversation translation. The DEFAULT provider is the fully-offline local stub
+    // (isCloud()=false). The TranslationGate's PRIVACY RAIL forbids a CLOUD provider on a PRIVATE room
+    // no matter what is configured here. The full NLLB-tail + Haiku-tier-1 hybrid router is Phase N.
+    'translation' => [
+        'provider'      => env('MATRIX_TRANSLATION_PROVIDER', 'local-stub'), // 'local-stub' | a cloud id (Phase N)
+        'default_target' => env('MATRIX_TRANSLATION_DEFAULT_TARGET', 'en'),
+    ],
 ];
