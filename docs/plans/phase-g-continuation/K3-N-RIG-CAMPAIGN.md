@@ -102,12 +102,14 @@ LEG 7 (voice/video LAN)  — independent; needs the `voice` compose profile
 - **HALT** if a divergent-version tail is APPLIED — that is a Meter-C regression (records counted under a
   different hardened surface must not cross until the mesh agrees).
 
-## LEG 5 — M-5 live byte-purge + report path (needs DEV-PREREQ **P1**)
+## LEG 5 — M-5 live byte-purge + report path (DEV-PREREQ **P1 = DONE**, commit 01616b6)
 - **Goal:** a CSAM-class removal actually DESTROYS the media bytes on the homeserver (not just redacts), and the
   PRESERVE→REPORT→PURGE sequence is wired to real operator credentials.
-- Prereq **P1** (assistant): wire `MatrixClientService::purgeEvent` to the Synapse admin media-DELETE
-  (`DELETE /_synapse/admin/v1/media/<server>/<media_id>` + room purge), behind an operator admin token; add a
-  `physical_removal_status` (deferred|done) to the trail so nothing reports "purged" while bytes remain.
+- ✅ **P1 LANDED:** `MatrixClientService::purgeEvent` redacts, then (when `config('matrix.admin_token')` is set)
+  resolves the event's mxc media and `DELETE /_synapse/admin/v1/media/<server>/<media_id>`. The trail's
+  `physical_removal_status` (deferred|done|failed) is HONEST — on dev (no token) a purge is `deferred`; it only
+  reports `done` after the admin DELETE actually runs. **The rig step is now ONLY: set `MATRIX_ADMIN_TOKEN`
+  (your Synapse admin token) and confirm the bytes 404 + the status flips to `done`.**
 - Operator supplies: a real known-illegal HASH list (IWF/NCMEC/PhotoDNA, access-controlled, their credentials)
   bound into `config('matrix.scan.local_hashes')` or a cloud `MediaScanProvider`; an operator Synapse admin token;
   NCMEC CyberTipline credentials.
@@ -139,8 +141,8 @@ LEG 7 (voice/video LAN)  — independent; needs the `voice` compose profile
 ---
 
 ## DEV prerequisites (assistant — land before the gated legs)
-- **P1 (LEG 5):** `purgeEvent` → real Synapse admin media-DELETE + `physical_removal_status` on the trail.
-  *(The only hard code gap; everything else is wiring/config the operator owns.)*
+- ~~**P1 (LEG 5):** `purgeEvent` → admin media-DELETE + `physical_removal_status`~~ ✅ **DONE (01616b6).**
+  LEG 5 now needs only the operator's `MATRIX_ADMIN_TOKEN` + lawful test fixtures.
 - Optional: a `matrix:mesh-doctor`-style command that asserts the Matrix S2S reachability + the moderation-record
   mirror in one shot (speeds LEG 1/2 triage).
 
