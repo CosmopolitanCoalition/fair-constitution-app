@@ -50,6 +50,22 @@ class MatrixClientService
         return $this->http()->get($path)->throw()->json();
     }
 
+    /**
+     * Fetch a page of a room's messages (the /messages endpoint) — the READ seam the embedded K3-L client
+     * renders. Read-only; the appservice acts as the room's governor (no ?user_id needed for a public room
+     * it created). Returns {chunk, start, end}; `from` pages backwards (dir='b') for the timeline.
+     */
+    public function getMessages(string $roomId, string $dir = 'b', ?string $from = null, int $limit = 50): array
+    {
+        $query = array_filter(
+            ['dir' => $dir, 'from' => $from, 'limit' => max(1, min(100, $limit))],
+            fn ($v) => $v !== null
+        );
+        $path = '/_matrix/client/v3/rooms/'.rawurlencode($roomId).'/messages';
+
+        return $this->http()->withQueryParameters($query)->get($path)->throw()->json();
+    }
+
     /** The homeserver's supported room versions + default, queried LIVE (never hardcode — K3-E gate). */
     public function roomVersions(): array
     {
