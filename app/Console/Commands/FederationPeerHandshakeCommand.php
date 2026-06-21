@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  * identity, pin theirs, and both reach trust_established.
  *
  *   php artisan federation:peer:handshake http://host.docker.internal:8080
- *   php artisan federation:peer:handshake 9c655a0a-...-a09cc5bbdc0e
+ *   php artisan federation:peer:handshake <their-server-id>
  */
 class FederationPeerHandshakeCommand extends Command
 {

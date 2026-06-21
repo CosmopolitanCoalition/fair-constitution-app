@@ -68,7 +68,7 @@ Near the top it prints **`server_id : ...`**. Copy that whole `server_id`.
 
 ## Part 2 — Join the mesh (after your operator gives you the other box's details)
 
-Your operator will tell you the other box's **address** (a URL like `http://192.168.1.202:8081`) and its
+Your operator will tell you the other box's **address** (a URL like `http://<their-LAN-IP>:8081`) and its
 **server_id**. Use the address as `<OTHER-URL>` below.
 
 **Step 6. Discover the other box.**
