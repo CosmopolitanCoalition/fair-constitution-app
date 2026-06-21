@@ -13,10 +13,13 @@ You do **not** need to understand the whole system. Just do each step.
 
 **Step 1. Erase any old state (start completely fresh).**
 ```
-docker compose down -v
+docker compose -p fc down -v
 ```
-This deletes the old database so you begin from zero. (Skip only if this is a brand-new machine that has
-never run the app.)
+This deletes the old database so you begin from zero. The **`-p fc` matters**: the app's containers and
+volumes live under the project name `fc`, so on a re-used box a plain `docker compose down -v` (before
+your first deploy writes the project name into `.env`) targets the wrong project and silently wipes
+**nothing** — the old database survives and "fresh" isn't fresh. (Skip only if this is a brand-new machine
+that has never run the app.)
 
 **Step 2. Get the latest code.**
 ```
@@ -120,6 +123,10 @@ docker compose exec app php artisan mesh:request-cert <DOMAIN> <YOUR-SUBDOMAIN> 
 ```
 You do not need a grant file — the broker already delivered the permission to your box, and this command
 finds it automatically. Success ends with **"Cert installed for ..."**.
+
+> Preconditions (already true if you got here): your box is federating (the deploy turned that on) and the
+> broker is a peer you've handshaked with (Part 2). A `transport: none` note is harmless when you pass
+> `--broker`. If it complains the federation is off or the broker isn't trusted, tell your operator.
 
 > ✋ **STOP — TELL YOUR OPERATOR:** "Cert installed." (Or copy the exact error if it failed.)
 

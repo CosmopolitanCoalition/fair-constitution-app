@@ -172,7 +172,11 @@ echo "→ Starting the Matrix Auth Service…"
 # means "vendor is complete". ~20 min ceiling for a slow Pi cold install.
 echo "→ Waiting for the app (composer install)…"
 for _ in $(seq 1 240); do
-  if "${DC[@]}" exec -T app test -f vendor/.installed-hash 2>/dev/null; then break; fi
+  # Redirect BOTH streams: while the container is mid-init `docker compose exec` prints a
+  # transient "FailedPrecondition: init process is not running" to STDOUT, which a lone
+  # `2>/dev/null` misses — it then leaks into the deploy log and trips the doc's "copy the
+  # error, tell your operator" guidance even though it self-clears on the next iteration.
+  if "${DC[@]}" exec -T app test -f vendor/.installed-hash >/dev/null 2>&1; then break; fi
   sleep 5
 done
 
@@ -189,12 +193,20 @@ art migrate --force
 echo "→ Seeding the constitutional clock registry…"
 art db:seed --class=ClockRegistrySeeder --force
 
-# 3. Federation identity when this instance will federate. --rotate forces a fresh
-#    keypair: key:generate changed APP_KEY above, so any keypair carried in from a
-#    clone is no longer decryptable — re-key it (and the server_id) under the new key.
+# 3. Federation identity. EVERY deployed node is federation-capable — the mesh is the
+#    point — so this runs UNCONDITIONALLY, not only on --join. A --self-url peer (the
+#    discover→handshake path in docs/FRESH-NODE-START.md, now that mirror-join is retired)
+#    needs it too: without it `federation_enabled` stays false, every /api/federation/*
+#    404s, and `mesh:gates` reports "not ready to federate" with no step that fixes it.
+#    `federation:init` is idempotent (reuses the existing server_id), mints the identity
+#    under the APP_KEY generated above, enables the mesh endpoints, and arms CLK-20.
+#    --rotate ONLY on --join: a clone that carried in a keypair encrypted under the OLD
+#    APP_KEY must re-key; a from-scratch peer has none, so a plain init is correct.
+echo "→ Minting the federation identity…"
 if [[ -n "$JOIN_URL" ]]; then
-  echo "→ Minting a fresh federation identity…"
   art federation:init --rotate
+else
+  art federation:init
 fi
 
 # 4. Optional standing demo data.

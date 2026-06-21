@@ -24,10 +24,15 @@ class FederationSyncPushCommand extends Command
     {
         $needle = $this->argument('peer');
 
+        // FF&C only ever flows to a TRUSTED peer — require trust_established in BOTH modes.
+        // A bare server_id/URL arg used to skip this filter (only the no-arg path applied it),
+        // so naming a merely-discovered or untrusted peer targeted it anyway and failed deep in
+        // pushTo with a confusing error instead of a clear "no trusted peer" message. Step 9 of
+        // FRESH-NODE-START.md runs AFTER the handshake, so the named peer is trusted by then.
         $peers = FederationPeer::query()
             ->whereNull('deleted_at')
+            ->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED)
             ->when($needle !== null, fn ($q) => $q->matchingNeedle((string) $needle))
-            ->when($needle === null, fn ($q) => $q->where('status', FederationPeer::STATUS_TRUST_ESTABLISHED))
             ->get();
 
         if ($peers->isEmpty()) {

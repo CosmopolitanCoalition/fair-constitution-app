@@ -166,12 +166,16 @@ Invoke-Artisan migrate --force
 Write-Host "-> Seeding the constitutional clock registry..."
 Invoke-Artisan db:seed --class=ClockRegistrySeeder --force
 
-# 3. Federation identity when this instance will federate. -rotate forces a fresh
-#    keypair: key:generate changed APP_KEY above, so any keypair carried in from a
-#    clone is no longer decryptable — re-key it (and the server_id) under the new key.
+# 3. Federation identity. Every deployed node is federation-capable, so this runs
+#    UNCONDITIONALLY (parity with deploy.sh) — a -SelfUrl peer (discover->handshake) needs
+#    it too, or federation_enabled stays false and mesh:gates reports "not ready to
+#    federate". federation:init is idempotent (reuses the existing server_id); -rotate ONLY
+#    on -Join (re-key a clone's carried-in keypair under the new APP_KEY).
+Write-Host "-> Minting the federation identity..."
 if ($Join) {
-  Write-Host "-> Minting a fresh federation identity..."
   Invoke-Artisan federation:init --rotate
+} else {
+  Invoke-Artisan federation:init
 }
 
 # 4. Optional standing demo data.
