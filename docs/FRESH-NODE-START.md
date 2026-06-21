@@ -49,9 +49,10 @@ anything by hand. If it stops with an error, **copy the exact error** and tell y
 ```
 docker compose exec app php artisan mesh:gates
 ```
-You want to see the checklist mostly green and the line **"ready to federate"** (or "Node is ready to
-federate"). An amber "no transport advertised" line is fine. A red line is not — if you see red, tell your
-operator the red line text.
+You want to see the line **"Node is ready to federate."** On a brand-new node a few **amber** `[warn]`
+lines are normal and fine — typically *no transport advertised*, *no trusted peer yet*, and *no sync yet*
+(you haven't joined anyone). Only a **red** `[FAIL]` line is a problem — if you see red, tell your operator
+the red line text.
 
 **Step 5. Get your box's identity.** Run:
 ```
