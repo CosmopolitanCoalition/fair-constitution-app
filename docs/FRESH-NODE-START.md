@@ -30,6 +30,14 @@ yours to keep, ask your operator before forcing anything.)
 - On a Linux box (e.g. a Raspberry Pi): `./deploy.sh`
 - On Windows: `./deploy.ps1`
 
+> **Two boxes on different machines on a network?** (Not both on the same computer.) Add your box's
+> address so the other box can reach you back:
+> - Linux: `./deploy.sh --self-url http://<YOUR-LAN-IP>:8080`
+> - Windows: `./deploy.ps1 -SelfUrl http://<YOUR-LAN-IP>:8080`
+>
+> Your operator can tell you your LAN IP — it looks like `192.168.1.50`. If both boxes are on the **same**
+> computer, ignore this and use the plain command above.
+
 This takes a while the first time (it downloads things and builds the database). Let it finish. It already
 waits for the database the right way and starts the chat service for you — you should not have to fix
 anything by hand. If it stops with an error, **copy the exact error** and tell your operator.

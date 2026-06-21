@@ -58,6 +58,11 @@ function Set-EnvVar([string]$Key, [string]$Value) {
 }
 
 Set-EnvVar "CONTAINER_PREFIX"    $Prefix
+# Pin the compose project so the plain `docker compose exec/down` commands in docs/FRESH-NODE-START.md
+# resolve to the SAME project this script brought up with `-p $Project`. Without it compose derives the
+# project from the directory name and the doc's bare commands miss the just-deployed containers.
+# (.env.example deliberately omits this so each git worktree still auto-derives its own per-dir project.)
+Set-EnvVar "COMPOSE_PROJECT_NAME" $Project
 Set-EnvVar "NGINX_HOST_PORT"     "$NginxPort"
 Set-EnvVar "POSTGRES_HOST_PORT"  "$PgPort"
 Set-EnvVar "VITE_HOST_PORT"      "$VitePort"
@@ -102,12 +107,15 @@ if ($WithEtl) { $services += "etl" }
 docker @dc up -d --build @services
 
 Write-Host "-> Waiting for PostgreSQL..."
-# Wait for a REAL query, not just pg_isready. On a fresh `down -v`, postgres runs initdb on a transient
-# temp-server (pg_isready clears) then RESTARTS into the real server (recovery); the next psql step would
-# race that restart and abort the deploy on a cold volume. SELECT 1 only succeeds once the real server is
-# up AND past recovery.
+# Probe over TCP (-h 127.0.0.1), NOT the Unix socket. On a fresh `down -v` the postgres image runs initdb
+# on a transient temp-server that listens on the local SOCKET ONLY (listen_addresses='') while it runs
+# init.sql (which CREATEs the matrix/matrix_auth DBs), THEN restarts into the real TCP server. A socket
+# probe clears on that temp-server before init.sql finishes, so the matrix-DB guard races it and
+# double-CREATEs `matrix` ("duplicate key ... datname=matrix already exists" -> aborts the cold deploy).
+# A TCP probe is invisible to the socket-only temp-server, so it clears only once the real server is up
+# and past recovery -- by which point init.sql has run and the matrix DBs exist. (Parity with deploy.sh.)
 for ($i = 0; $i -lt 90; $i++) {
-  docker @dc exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1" *> $null
+  docker @dc exec -T postgres pg_isready -h 127.0.0.1 -U fc_user -d fair_constitution *> $null
   if ($LASTEXITCODE -eq 0) { break }
   Start-Sleep -Seconds 2
 }

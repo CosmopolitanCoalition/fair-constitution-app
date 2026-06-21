@@ -72,6 +72,12 @@ set_env() {
 }
 
 set_env CONTAINER_PREFIX   "$PREFIX"
+# Pin the compose project so the plain `docker compose exec/down` commands in
+# docs/FRESH-NODE-START.md resolve to the SAME project this script brought up with `-p "$PROJECT"`.
+# Without it, compose derives the project from the directory name and the doc's bare commands miss
+# the just-deployed containers. (.env.example deliberately omits this so each git worktree still
+# auto-derives its own per-dir project and they never collide.)
+set_env COMPOSE_PROJECT_NAME "$PROJECT"
 set_env NGINX_HOST_PORT    "$NGINX_PORT"
 set_env POSTGRES_HOST_PORT "$PG_PORT"
 set_env VITE_HOST_PORT     "$VITE_PORT"
@@ -121,13 +127,16 @@ SERVICES=(app postgres redis horizon scheduler)
 "${DC[@]}" up -d --build "${SERVICES[@]}"
 
 echo "→ Waiting for PostgreSQL…"
-# Wait for a REAL query, not just pg_isready. On a fresh `down -v`, postgres runs initdb on a transient
-# temp-server (pg_isready clears) then RESTARTS into the real server (recovery). pg_isready can pass on the
-# temp-server, after which the next psql ("Ensuring the Matrix logical databases") races the restart and
-# hits "the database system is starting up" → set -e aborts the whole deploy on a cold volume. A SELECT 1
-# only succeeds once the real server is up AND past recovery, so it never proceeds into that race.
+# Probe over TCP (-h 127.0.0.1), NOT the Unix socket. On a fresh `down -v` the postgres image runs initdb
+# on a TRANSIENT temp-server that listens on the local SOCKET ONLY (listen_addresses='') while it runs
+# /docker-entrypoint-initdb.d/init.sql — which CREATEs the matrix/matrix_auth DBs — THEN restarts into the
+# real TCP server. A SOCKET probe (psql/pg_isready with no -h) clears on that temp-server BEFORE init.sql
+# finishes, so the next step's matrix-DB guard races init.sql and double-CREATEs `matrix` ("duplicate key
+# … datname=matrix already exists" → set -e aborts the cold deploy). A TCP probe is invisible to the
+# socket-only temp-server, so it clears only once the REAL server is up AND past recovery — by which point
+# init.sql has fully run and the matrix DBs already exist, so the guard below correctly skips them.
 for _ in $(seq 1 90); do
-  if "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1" >/dev/null 2>&1; then break; fi
+  if "${DC[@]}" exec -T postgres pg_isready -h 127.0.0.1 -U fc_user -d fair_constitution >/dev/null 2>&1; then break; fi
   sleep 2
 done
 
