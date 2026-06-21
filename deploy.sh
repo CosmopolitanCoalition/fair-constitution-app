@@ -209,6 +209,13 @@ else
   art federation:init
 fi
 
+# Deploy-side readiness assertion — the backstop the command-level guard can't fully cover.
+# mesh:gates exits non-zero on a hard FAIL (federation off / identity not minted), so `set -e`
+# aborts HERE rather than shipping a node that 404s every peer. WARN gates (no transport/peer
+# yet) do not abort. This is what makes "Step 4 green in one cold pass" enforced, not hoped for.
+echo "→ Verifying federation readiness…"
+art mesh:gates
+
 # 4. Optional standing demo data.
 [[ -n "$SEED" ]] && { echo "→ Seeding demo data…"; art institutions:demo-e || true; }
 

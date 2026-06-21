@@ -178,6 +178,13 @@ if ($Join) {
   Invoke-Artisan federation:init
 }
 
+# Deploy-side readiness assertion (parity with deploy.sh): mesh:gates exits non-zero on a hard FAIL
+# (federation off / identity not minted). PowerShell does not abort on a native non-zero exit, so
+# check $LASTEXITCODE explicitly and throw — don't ship a node that 404s every peer.
+Write-Host "-> Verifying federation readiness..."
+Invoke-Artisan mesh:gates
+if ($LASTEXITCODE -ne 0) { throw "Federation readiness gates FAILED — the node is not ready to federate (see the [FAIL] gates above)." }
+
 # 4. Optional standing demo data.
 if ($Seed) { Write-Host "-> Seeding demo data..."; Invoke-Artisan institutions:demo-e }
 

@@ -62,12 +62,14 @@ class FederationInitCommand extends Command
             $clocks->arm('CLK-20', firesAt: now()->addMinutes($minutes));
         }
 
-        // Enabling the mesh MUST leave a persisted identity. Refuse to exit SUCCESS in the
-        // enabled-but-unminted half-state: it clears the /api/federation/* 404 wall yet fails the
-        // readiness gate, so a cold deploy would silently land "not ready to federate". Failing
-        // loud (non-zero) makes deploy.sh's `set -e` abort with this exact line instead.
-        if ($enable && ($settings->server_id === null || $settings->public_key === null)) {
-            $this->error('federation:init enabled the mesh but no identity persisted (server_id/public_key NULL).');
+        // Validate what actually PERSISTED, not just the in-memory object — re-read the row from the
+        // DB. A save() that silently matched 0 rows (the null-id UPDATE class) leaves the in-memory
+        // model populated while the DB stayed empty, so an in-memory-only check would pass and exit
+        // SUCCESS not-ready. Enabling the mesh MUST leave a persisted, minted, ENABLED row (else
+        // /api/federation/* 404s while the readiness gate fails) — fail loud so the deploy aborts.
+        $settings->refresh();
+        if ($enable && ($settings->server_id === null || $settings->public_key === null || ! $settings->federation_enabled)) {
+            $this->error('federation:init did not persist a minted, enabled identity (server_id/public_key/enabled).');
 
             return self::FAILURE;
         }

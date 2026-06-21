@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InstanceSettings extends Model
 {
+    // HasUuids is LOAD-BEARING, not decorative: the id column has a gen_random_uuid() DB DEFAULT, so a
+    // create() WITHOUT this trait inserts a row whose generated id Eloquent never reads back — the
+    // in-memory model keeps id=NULL and every follow-up save() becomes `UPDATE … WHERE id IS NULL`,
+    // which silently matches 0 rows. That is exactly how a first-boot federation:init came up
+    // "enabled but unminted" (the writes vanished). HasUuids assigns the id BEFORE insert, so the
+    // mint()/setEnabled() saves land. (150/164 models carry it; this one was an outlier.)
+    use HasUuids;
     use SoftDeletes;
 
     protected $table = 'instance_settings';
@@ -82,25 +90,19 @@ class InstanceSettings extends Model
     }
 
     /**
-     * Singleton accessor — the one instance_settings row.
-     *
-     * DETERMINISTIC: always the OLDEST row, so every caller (ensureIdentity, mesh:gates, the
-     * federation console, …) converges on the SAME settings even if a duplicate singleton row
-     * was ever created. firstOrCreate() is not atomic, so two concurrent callers on an empty
-     * table can each insert one; without a stable ORDER BY, separate current() calls could then
-     * return DIFFERENT duplicate rows — which is how a cold-deploy `federation:init` minted the
-     * identity into one row but enabled another, leaving the enabled-but-unminted half-state that
-     * fails mesh:gates "identity minted" at Step 4. The order makes that divergence impossible.
+     * Singleton accessor — first-or-create the one instance_settings row. A partial unique index
+     * (on deleted_at IS NULL) enforces the singleton at the DB level, so there is never more than
+     * one live row. The HasUuids trait above is what makes the create() branch persist correctly
+     * on first boot — see the class-level note.
      */
     public static function current(): self
     {
-        return static::query()->orderBy('created_at')->orderBy('id')->first()
-            ?? static::create([
-                'instance_name' => 'Unnamed Instance',
-                'map_mode' => 'physical_earth',
-                'time_mode' => 'real',
-                'setup_step_completed' => 0,
-            ]);
+        return static::firstOrCreate([], [
+            'instance_name' => 'Unnamed Instance',
+            'map_mode' => 'physical_earth',
+            'time_mode' => 'real',
+            'setup_step_completed' => 0,
+        ]);
     }
 
     public function isSetupComplete(): bool
