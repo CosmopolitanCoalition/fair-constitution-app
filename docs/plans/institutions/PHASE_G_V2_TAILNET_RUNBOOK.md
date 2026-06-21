@@ -1,14 +1,23 @@
-# Phase G — G-V2 Runbook: real cross-machine peer onboarding over a Headscale tailnet
+# Phase G — Headscale / Tailscale tailnet: the overlay-transport runbook
 
-**Goal (the parked G-V2 gate):** a FRESH Ubuntu box (B) pulls this repo from GitHub,
-runs `deploy.sh`, joins a private Headscale/Tailscale overlay, and **onboards as a
-live federation peer** (read-only mirror) of an already-running instance (A) — peering
-over tailnet IPs (encrypted WireGuard), with **no inbound ports opened on the netgate**.
+> **Scope.** This is the **live overlay-transport substrate** for the mesh: it stands up a private
+> Headscale/Tailscale WireGuard overlay so two CGA boxes reach each other on `100.64.x.x` IPs with
+> **no inbound ports opened on the netgate**. G8b (transport-survival mesh, overlay egress) and the
+> rig campaign build on this and reference it as the canonical Headscale setup — it stays part of the
+> build.
+>
+> **Superseded — the round-1 mirror-join is gone from this runbook.** This file originally also drove a
+> read-only-**mirror** onboarding (`cluster:join` adoption — the "G-V2 gate"). That onboarding is
+> **replaced by the current multibox mesh-roles campaign**: once both boxes are on the tailnet (Parts
+> 1–3 below), you onboard them with the discover → handshake → sync flow in **`docs/FRESH-NODE-START.md`**,
+> not a mirror-join. The mirror-adoption steps have been removed here; only the transport setup remains.
+> (The read-only-mirror capability itself still lives in the codebase — `cluster:join`,
+> `app/Services/Mirror/*` — it is simply no longer the onboarding path.)
 
-**Who does what.** Claude owns this runbook + the config files in-repo. **You execute
-every step** — Headscale, the Tailscale clients, Cloudflare, and box B. **Never paste
-your Cloudflare API token (or any key) into the chat.** Keep it on your machines; the
-commands below use it locally and Claude never sees it. Run a step, paste the *output*
+**Who does what.** Claude owns this runbook + the config files in-repo (`docker-compose.headscale.yml`,
+`docker/headscale/config.yaml`). **You execute every step** — Headscale, the Tailscale clients,
+Cloudflare. **Never paste your Cloudflare API token (or any key) into the chat.** Keep it on your
+machines; the commands below use it locally and Claude never sees it. Run a step, paste the *output*
 back, and we iterate.
 
 ```
@@ -20,18 +29,17 @@ back, and we iterate.
         ┌─────────▼─────────┐         WireGuard mesh (DERP-relayed or direct)
         │  Headscale server  │  ◀───────────────────────────────────────┐
         └────────────────────┘                                          │
-   Box A (host, 100.64.0.1)                          Box B (mirror, 100.64.0.2)
-   ┌──────────────────────┐   /api/federation/adopt  ┌──────────────────────┐
-   │ CGA instance A        │◀────── signed HTTP ──────│ CGA instance B        │
-   │ nginx :8080           │   audit-tail / sync      │ nginx :8080           │
-   │ FEDERATION_SELF_URL=   │─────────────────────────▶│ FEDERATION_SELF_URL=  │
+   Box A (100.64.0.1)                                  Box B (100.64.0.2)
+   ┌──────────────────────┐     signed federation      ┌──────────────────────┐
+   │ CGA instance A        │◀──── HTTP over tailnet ───▶│ CGA instance B        │
+   │ nginx :8080           │  (discover/handshake/sync  │ nginx :8080           │
+   │ FEDERATION_SELF_URL=   │   per FRESH-NODE-START.md) │ FEDERATION_SELF_URL=  │
    │  http://100.64.0.1:8080│                          │  http://100.64.0.2:8080│
    └──────────────────────┘                          └──────────────────────┘
 ```
 
-All CGA commands below are verified against the source (`deploy.sh`,
-`app/Console/Commands/*`). The Headscale config targets 0.23.x; CLI/flags drift
-between versions — if a command errors, paste it back and we adjust.
+All commands below are verified against the source. The Headscale config targets 0.23.x; CLI/flags
+drift between versions — if a command errors, paste it back and we adjust.
 
 ---
 
@@ -101,118 +109,53 @@ ping -c2 100.64.0.1
 
 ---
 
-## Part 3 — Instance A (the host)
+## Part 3 — Deploy each box advertising its tailnet URL
+
+Deploy A and B from a clean clone, each advertising **its own tailnet IP** as its self-url so the
+other reaches it over WireGuard (no netgate ports):
 
 ```bash
 git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git
 cd fair-constitution-app
 
-# Deploy A, advertising its TAILNET url so B can reach it.
-./deploy.sh --prefix fc --nginx-port 8080 --pg-port 5432 --vite-port 5173 \
-            --self-url http://100.64.0.1:8080
-# (Has demo data already? add --seed to seed institutions:demo-e for a non-empty corpus.)
-
-art() { docker compose -p fc exec -T app php artisan "$@"; }
-
-# A is the HOST → it must enable the mesh itself (deploy.sh only runs federation:init
-# automatically when JOINING). This mints A's Ed25519 identity and arms CLK-20.
-art federation:init
-
-# Mint a one-use join key for B (PLAINTEXT shown ONCE — copy it).
-art cluster:keys:mint --max-uses=1 --expires="+24 hours"
-#   → handle.secret      (this is the --key value B will present)
-
-# Confirm A advertises over the tailnet:
-curl -fsS http://100.64.0.1:8080/api/federation/identity | tee /dev/stderr
-#   → {"server_id":"…","public_key":"…","schema_version":"1","url":"http://100.64.0.1:8080"}
+# On box A (100.64.0.1):
+./deploy.sh --self-url http://100.64.0.1:8080
+# On box B (100.64.0.2):
+./deploy.sh --self-url http://100.64.0.2:8080
 ```
 
----
-
-## Part 4 — Instance B (the fresh box → live mirror) ★ the G-V2 act
-
-On **box B**, from a clean clone:
+Then bring each box up and mint its identity by following **`docs/FRESH-NODE-START.md` Part 1**
+(`mesh:gates` → `mesh:doctor` prints the `server_id`). Once both have an identity, confirm each
+advertises over the tailnet (both return identity JSON):
 
 ```bash
-git clone https://github.com/CosmopolitanCoalition/fair-constitution-app.git
-cd fair-constitution-app
-
-# One command: build, fresh APP_KEY + Ed25519 identity, migrate, seed clocks,
-# then adopt A as a read-only mirror and cold-sync A's public corpus.
-./deploy.sh --prefix fc --nginx-port 8080 --pg-port 5432 --vite-port 5173 \
-            --self-url http://100.64.0.2:8080 \
-            --join     http://100.64.0.1:8080 \
-            --key      handle.secret
-```
-
-`deploy.sh` (verified, lines 88–116) on B: fresh `APP_KEY` (so B never shares A's
-ballot/identity keys) → `migrate` → seed `ClockRegistrySeeder` → `federation:init
---rotate` (B's own server_id + keypair) → `cluster:join http://100.64.0.1:8080
---key handle.secret`, which POSTs `/api/federation/adopt`, A pins B as a `mirror`,
-B pins A, B cold-syncs A's audit/public-records in signed pages, and B sets
-`mirror_of_server_id = A` → **its write-guard now refuses every constitutional filing.**
-
----
-
-## Part 5 — Verify the gate (G-V2 = green when all pass)
-
-```bash
-artA() { docker compose -p fc exec -T app php artisan "$@"; }   # on box A
-artB() { docker compose -p fc exec -T app php artisan "$@"; }   # on box B
-
-# 1. Mutual reachability over the tailnet (both return identity JSON):
 curl -fsS http://100.64.0.1:8080/api/federation/identity   # from B
 curl -fsS http://100.64.0.2:8080/api/federation/identity   # from A
-
-# 2. B is a LIVE mirror of A (the write-guard flag is set):
-docker compose -p fc exec -T postgres psql -U fc_user -d fair_constitution \
-  -c "SELECT mirror_of_server_id, mirror_adopted_at FROM instance_settings;"        # on B → A's id, a timestamp
-docker compose -p fc exec -T postgres psql -U fc_user -d fair_constitution \
-  -c "SELECT role,state,admission_method FROM cluster_memberships;"                 # on B → mirror|live|join_key
-
-# 3. Cold-sync drained to completion (no half-sync):
-docker compose -p fc exec -T postgres psql -U fc_user -d fair_constitution \
-  -c "SELECT status, pages_applied, records_applied FROM sync_cursors;"             # on B → complete, >0, >0
-
-# 4. The mirror is authoritative for NOTHING — a write is refused (the Prong-1 invariant):
-artB tinker --execute "try { app(App\Domain\Engine\ConstitutionalEngine::class)->file('F-LEG-001', null, []); echo 'WROTE — BUG'; } catch (\Throwable \$e) { echo 'refused: '.\$e->getMessage(); }"
-#   → 'refused: This instance is a read-only mirror…'
-
-# 5. A sees B as a trusted peer:
-docker compose -p fc exec -T postgres psql -U fc_user -d fair_constitution \
-  -c "SELECT name, url, status, relation FROM federation_peers;"                    # on A → B, trust_established, mirror
-
-# 6. CLK-20 keeps B synced as A writes (file something on A, wait ~1 heartbeat, see it on B):
-artA federation:sync:push                 # push A's tail now (or wait for the 5-min CLK-20 tick)
-#   then re-check B's sync_log/records.
+#   → {"server_id":"…","public_key":"…","schema_version":"1","url":"http://100.64.x.x:8080"}
 ```
 
-**Authority ≠ leadership invariant** still holds (it always did): a mirror's
-`authoritative_server_id` is untouched; this is the permissionless **Prong-1**
-read-only mirror, governed elevation to read/write co-membership is the separate
-Prong-2 path (`cluster:request-adoption` / governed flip) — out of scope for G-V2.
+> **Onboarding from here is the multibox campaign, not a mirror-join.** With both boxes reachable on
+> their `100.64.x.x` URLs, follow **`docs/FRESH-NODE-START.md` Part 2 onward** (discover → handshake →
+> sync). Use each box's tailnet URL wherever the guide says `<OTHER-URL>`.
 
 ---
-
-## Teardown / re-run
-
-```bash
-artB() { docker compose -p fc exec -T app php artisan "$@"; }
-artB cluster:leave                         # B stops being a mirror (write-guard clears)
-# Full reset of a box:  docker compose -p fc down -v   (drops its database)
-# New key on A:         artA cluster:keys:revoke <handle>  then  cluster:keys:mint again
-```
 
 ## Troubleshooting cues (paste the failing command's output back)
-- `/api/federation/*` returns **404** → that instance hasn't run `federation:init`
-  (the host A must; B's deploy did it via `--join`).
-- adopt returns **401** (timestamp window) → box clocks skewed > 5 min; `sudo timedatectl set-ntp true`.
-- adopt returns **403** (invalid/exhausted key) → the key was one-use and already spent, or expired → mint a new one.
-- B can't reach `100.64.0.1:8080` → tailnet not up (`tailscale status`) or A's nginx not bound (`curl` A locally first).
-- cold-sync `aborted / continuity_break` → A's corpus changed mid-pull; re-run `cluster:join` (idempotent) or `federation:cold-sync` to resume.
+- `/api/federation/*` returns **404** → that instance hasn't minted its identity yet
+  (run `mesh:gates` / `mesh:doctor` per FRESH-NODE-START.md Part 1; a `--join` deploy does it
+  automatically).
+- A box can't reach `100.64.0.1:8080` → tailnet not up (`tailscale status`) or the target's nginx not
+  bound (`curl` it locally first).
+- handshake **401** (timestamp window) → box clocks skewed > 5 min; `sudo timedatectl set-ntp true`.
+- cold-sync `aborted / continuity_break` → the source corpus changed mid-pull; re-run the sync step
+  (idempotent) to resume.
 
 ---
 
-### After G-V2 is green
-→ **G-V1** (phone GPS) reuses this tailnet + a Cloudflare HTTPS subdomain pointed at instance A,
-so the phone browser gets a secure context and on-device geofenced pinging works. Separate runbook.
+### Related
+- **Onboarding / sync (the current path):** `docs/FRESH-NODE-START.md` — discover → handshake → sync,
+  the multibox mesh-roles campaign.
+- **Transport mesh:** `docs/plans/phase-g-continuation/G8b-transport-survival-mesh.md`,
+  `G8b-OVERLAY-EGRESS.md` — this tailnet is one of the overlay substrates they select among.
+- **G-V1** (phone GPS) reuses this tailnet + a Cloudflare HTTPS subdomain pointed at an instance, so
+  the phone browser gets a secure context for on-device geofenced pinging. Separate runbook.
