@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>v2 coverage — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Design contract · v2</span>
+        <h1>v2 coverage</h1>
+        <p class="page-intro">Built live from the v2 manifest and fixtures. It proves the §13 definition of done as
+          stages land — at Stage 1 the keystone and its eight meeting types are green; the journeys and economy fill
+          in over Stages 2–5.</p>
+      </header>
+      <div id="cov-stats" class="grid-2"></div>
+      <section aria-labelledby="rooms-h" class="card"><h2 id="rooms-h">Live Civic Room — meeting types (§4)</h2><div id="cov-rooms" class="stack"></div></section>
+      <section aria-labelledby="classes-h" class="card"><h2 id="classes-h">Interaction classes (§7) — each has ≥1 journey</h2><div id="cov-classes" class="stack"></div></section>
+      <section aria-labelledby="journeys-h" class="card"><h2 id="journeys-h">Journeys (§8)</h2><div id="cov-journeys"></div></section>
+      <section aria-labelledby="mech-h" class="card"><h2 id="mech-h">Mechanics that must render (§9 social · §10 economic)</h2><div id="cov-mech" class="stack"></div></section>
+    </div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'shared/coverage', title: 'v2 coverage', module: 'shared', nav: 'coverage', citation: 'v2 coverage · built from the manifest', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+      var ROOM_BUILT = S.isBuiltV2('shared/live-room.html');
+
+      function stat(n, label, tone) {
+        return '<div class="card stat"><span class="stat-number"' + (tone ? ' style="color:var(--' + tone + ')"' : '') + '>' + n + '</span><span class="stat-label">' + esc(label) + '</span></div>';
+      }
+      var builtJ = V2.journeys.filter(function (j) { return j.status === 'built-layer'; }).length;
+      document.getElementById('cov-stats').innerHTML =
+        stat('8 / 8', 'Live Civic Room meeting types', 'status-success') +
+        stat('5 / 5', 'interaction classes, each with ≥1 journey', 'status-success') +
+        stat(builtJ + ' / ' + V2.journeys.length, 'journeys on built surfaces (rest = Planned)') +
+        stat((window.CGA_MANIFEST || []).length, 'v2 surfaces in the manifest');
+
+      var VARIANTS = [['committee', 'Committee hearing'], ['legislative', 'Legislative session'], ['exec', 'Executive committee'], ['board', 'Board meeting'], ['court', 'Court hearing'], ['forum', 'Candidate forum'], ['townhall', 'Referendum town hall'], ['group', 'Informal-group meeting']];
+      document.getElementById('cov-rooms').innerHTML = VARIANTS.map(function (v) {
+        return '<div class="cluster" style="justify-content:space-between"><span>' + S.icon('check', { size: 'sm' }) + ' ' + esc(v[1]) + '</span>' +
+          (ROOM_BUILT ? '<a class="pill pill--live" href="' + S.hrefV2('shared/live-room.html?variant=' + v[0]) + '">instantiates the keystone</a>' : '<span class="planned-flag">Planned</span>') + '</div>';
+      }).join('');
+
+      document.getElementById('cov-classes').innerHTML = V2.interactionClasses.map(function (c) {
+        return '<div class="cluster" style="justify-content:space-between"><span><strong style="color:var(--gov-fg)">' + c.n + '. ' + esc(c.title) + '</strong></span>' +
+          '<span class="citation">' + c.journeys.length + ' journey' + (c.journeys.length === 1 ? '' : 's') + ': ' + esc(c.journeys.join(', ')) + '</span></div>';
+      }).join('');
+
+      document.getElementById('cov-journeys').innerHTML = '<div class="table-wrap"><table class="table"><thead><tr><th>Journey</th><th>Class</th><th>Status</th><th>Live room(s)</th></tr></thead><tbody>' +
+        V2.journeys.map(function (j) {
+          var built = j.status === 'built-layer';
+          return '<tr><td>' + esc(j.title) + '</td><td class="mono">' + j.cls + '</td><td>' +
+            (built ? S.badge('success', 'Built-layer') : '<span class="pill pill--planned">Planned · ' + esc(j.phase || '') + '</span>') + '</td><td class="mono">' + esc((j.rooms || []).join(', ') || '—') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+
+      var MECH = [
+        ['Residency gates the floor, not the gallery (Art. I)', true],
+        ['Halls exist iff seated; subforums auto-bind to governance objects', true],
+        ['Public square uncensorable — four carve-outs only; no viewpoint-removal control', true],
+        ['Testimony bridge: a hall statement → a sealed append-only record', true],
+        ['Translation + the privacy rail (private rooms never sent to a cloud translator)', true],
+        ['Pseudonymity end to end (@u-… handles, never a legal name)', true],
+        ['The chair runs the room; the system runs the bureaucracy', true],
+        ['Civic rights are never paywalled (Art. II §8)', true],
+        ['UBI eligibility = residency only (Art. I)', 'Stage 4'],
+        ['Individual economic data is private and never federated', 'Stage 4'],
+        ['Two-sided market — Offer ↔ Request', 'Stage 4'],
+        ['A hire feeds co-determination', true],
+        ['CGCs trade on identical terms; IP public-domain', 'Stage 4'],
+        ['Currency root-reserved; monetary policy is a dual-door act', 'Stage 4'],
+        ['Units are abstract — no payment rails', 'Stage 4'],
+        ['Achievements carry no power; reach is display-only', 'Stage 5']
+      ];
+      document.getElementById('cov-mech').innerHTML = MECH.map(function (m) {
+        return '<div class="cluster" style="justify-content:space-between"><span>' + esc(m[0]) + '</span>' +
+          (m[1] === true ? S.badge('success', 'Renders in Stage 1') : '<span class="planned-flag">' + esc(m[1]) + '</span>') + '</div>';
+      }).join('');
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Civic Room — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div id="lr-root" class="lr">
+      <p class="gloss">Loading the room…</p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'shared/live-room', title: 'Live Civic Room', module: 'shared', nav: 'room-committee',
+      citation: 'The Live Civic Room — the form + the live social floor, fused', register: 'governance'
+    };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, F = window.CGA.fixtures, V2 = F.v2, BY = F.byId, esc = S.esc;
+
+    /* ---------- pick the variant from the URL (default committee) ---------- */
+    function variant() {
+      try { return new URLSearchParams(location.search).get('variant') || 'committee'; }
+      catch (e) { return 'committee'; }
+    }
+    var CFG = V2.rooms[variant()] || V2.rooms.committee;
+
+    /* mutable copy so the simulated interactions can mutate state in-page */
+    var st = JSON.parse(JSON.stringify(CFG));
+    var voteCalled = !!(st.vote && st.vote.tallies); /* legislative starts mid-vote */
+    var clockRunning = false, speakingLeft = st.clocks.speaking, clockTimer = null;
+
+    var root = document.getElementById('lr-root');
+
+    /* ---------- helpers ---------- */
+    var CHAIR_LABEL = { speaker: 'Speaker', chair: 'Chair', presiding_judge: 'Presiding judge', facilitator: 'Facilitator', moderator: 'Moderator' };
+    /* a pseudonymous Matrix id: always @u-<localpart>, never doubled */
+    function mxid(h) { return h && h.indexOf('u-') === 0 ? '@' + h : '@u-' + h; }
+    function nameOf(p) { return p.name || (p.handleName) || mxid(p.handle); }
+    function mmss(s) { var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
+    function activeIsChair() {
+      var persona = window.CGA.state.get('persona');
+      return st.chair.persona && st.chair.persona === persona;
+    }
+    function statusPill() {
+      var live = st.status.state === 'open';
+      return '<span class="pill pill--' + (live ? 'live' : 'closed') + '" title="' + esc(st.status.state) + '">' +
+        (live ? '<span class="dotlive" aria-hidden="true"></span>' : '') + esc(st.status.label) + '</span>';
+    }
+
+    /* ---------- header band + agenda ---------- */
+    function bandHtml() {
+      var jur = BY.jurisdictions[st.jurisdiction];
+      var lvl = jur ? Math.min(jur.admLevel, 5) : 3;
+      return '<div class="lr-band">' +
+        '<h1>' + esc(st.title) + '</h1>' +
+        '<span class="adm-chip adm-chip--' + lvl + '" title="Jurisdiction context">' + esc(jur ? jur.name : st.jurisdiction) + '</span>' +
+        statusPill() +
+        '<div class="lr-timers">' +
+        '<span class="lr-timer" title="Time on this agenda item">' + S.icon('clock', { size: 'sm' }) + ' Item ' + mmss(st.clocks.agendaItem) + '</span>' +
+        '<span class="lr-timer' + (clockRunning ? ' lr-timer--speaking' : '') + '" id="lr-speak-timer" title="Speaking clock">' + S.icon('clock', { size: 'sm' }) + ' Speaking <span id="lr-speak-val" aria-hidden="true">' + mmss(speakingLeft) + '</span></span>' +
+        '</div></div>';
+    }
+
+    function nowNextHtml() {
+      var holder = st.floorHolder ? findPresence(st.floorHolder) : null;
+      var part = activeIsChair()
+        ? 'You hold the gavel — recognize speakers, run the clock, take motions, and call the vote.'
+        : (st.residencyGated ? 'If you are a resident, raise your hand to speak; anyone may watch and follow along.' : 'Take part if you are a member; anyone may watch.');
+      return '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) +
+        '</div><div><strong style="color:var(--gov-fg)">Now:</strong> ' + esc(st.floor.title) + '. ' +
+        '<strong style="color:var(--gov-fg)">Your part:</strong> ' + esc(part) + ' ' +
+        '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(nextLabel()) + '</div></div>';
+    }
+    function nextLabel() {
+      var cur = st.agenda.filter(function (a) { return a.current; })[0];
+      var idx = cur ? st.agenda.indexOf(cur) : -1;
+      var nxt = idx >= 0 ? st.agenda[idx + 1] : null;
+      return nxt ? nxt.title : (st.vote ? 'the vote, then the record' : 'the record');
+    }
+
+    function agendaHtml() {
+      var KIND = { emergency_powers: 'Outstanding emergency powers', constitutional_matters: 'Constitutional matters', committee_report: 'Committee report', priority: 'Member priority', motion: 'Motions', statement: 'Statements', other: 'General' };
+      var STATUS = { pending: ['info', 'Pending'], in_progress: ['warning', 'In progress'], done: ['success', 'Done'], none: ['neutral', '—'] };
+      var lockGloss = 'Constitutional order — cannot be reordered or removed · Art. II §2; §7';
+      var items = st.agenda.map(function (a) {
+        var stt = STATUS[a.status] || STATUS.pending;
+        return '<li class="lr-agenda-item' + (a.locked ? ' ag--locked' : '') + (a.current ? ' ag--current' : '') + (a.status === 'none' ? ' ag--none' : '') + '">' +
+          '<span class="ag-n">' + a.position + '</span>' +
+          '<div class="ag-body"><span class="eyebrow">' + esc(KIND[a.kind] || a.kind) +
+          (a.locked ? ' ' + S.icon('lock', { size: 'sm', label: lockGloss }) : '') + '</span>' +
+          '<div class="ag-title">' + esc(a.title) + '</div></div>' +
+          S.badge(stt[0], stt[1]) +
+          '</li>';
+      }).join('');
+      var head = st.constitutionalOrder
+        ? '<p class="citation">slots 1–2 locked: outstanding emergency powers first, constitutional matters second — cannot be reordered · Art. II §2; §7 · hardened</p>'
+        : '<p class="citation">the chair sets the order; this is not a government, so there is no constitutional lock · the group/body’s own rules of order</p>';
+      return '<section class="card"><span class="eyebrow">Agenda — ' + (st.constitutionalOrder ? 'constitutional order' : 'order of business') + '</span>' +
+        head + '<ol class="lr-agenda" aria-label="Agenda">' + items + '</ol></section>';
+    }
+
+    /* ---------- the floor (center stage) ---------- */
+    function findPresence(handle) {
+      var m = st.presence.filter(function (p) { return p.handle === handle; })[0];
+      return m || null;
+    }
+    function floorHtml() {
+      var holder = st.floorHolder ? findPresence(st.floorHolder) : null;
+      var formChip = st.floor.form
+        ? '<span class="form-chip">' + esc(formTitle(st.floor.form)) + ' <span class="form-id">' + esc(st.floor.form) + '</span></span>'
+        : '';
+      var howto = '<details class="about-surface" style="margin-block-start:var(--space-3)"><summary>' +
+        S.icon('chevron-right', { size: 'sm' }) + ' How this works</summary><div class="about-surface-body">' +
+        '<p>' + esc(st.floor.body) + '</p>' +
+        (formChip ? '<p>The formal act here: ' + formChip + ' <span class="citation">' + esc(st.floor.citation) + '</span></p>' : '<p class="citation">' + esc(st.floor.citation) + '</p>') +
+        (st.floor.deepLink ? '<p><a class="btn btn--secondary btn--sm" href="' + S.hrefV1(st.floor.deepLink) + '">Open the formal screen ' + S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a></p>' : '') +
+        '</div></details>';
+      return '<section class="lr-floor"><span class="lr-floor-kind">On the floor · ' + esc(st.floor.kind.replace(/_/g, ' ')) + '</span>' +
+        '<h2>' + esc(st.floor.title) + '</h2>' +
+        (holder ? '<p><span class="lr-floor-holder">' + S.icon('user', { size: 'sm' }) + ' ' + esc(nameOf(holder)) + ' holds the floor</span></p>' : '') +
+        (st.composition ? compositionHtml() : '') +
+        howto + '</section>';
+    }
+    function compositionHtml() {
+      var c = st.composition;
+      var seats = '';
+      for (var i = 0; i < c.workerSeats; i++) seats += '<span class="comp-seat comp-seat--worker">' + S.icon('users', { size: 'sm' }) + ' worker</span>';
+      for (var j = 0; j < c.ownerSeats; j++) seats += '<span class="comp-seat comp-seat--owner">' + S.icon('building', { size: 'sm' }) + ' owner</span>';
+      return '<div style="margin-block-start:var(--space-2)"><span class="eyebrow">Co-determination composition</span>' +
+        '<div class="lr-composition" style="margin-block-start:var(--space-1)">' + seats + '</div>' +
+        '<p class="citation">' + c.workers.toLocaleString('en-US') + ' workers — above ' + c.threshold + ' (first seat), below ' + c.parity.toLocaleString('en-US') + ' (parity) · Art. III §6</p></div>';
+    }
+    function formTitle(id) {
+      var f = BY.forms[id];
+      return f ? f.name : id;
+    }
+
+    /* ---------- the vote tile ---------- */
+    function pct(n, max) { return max > 0 ? Math.min(Math.max(n / max * 100, 0), 100) : 0; }
+    function voteHtml() {
+      if (!st.vote) {
+        return '<section class="lr-vote"><span class="eyebrow">No vote in this room</span>' +
+          '<p class="lr-vote-method">' + esc(st.floor.kind === 'argument' ? 'A hearing decides by judgment and opinion, not a floor vote.' : st.variant === 'forum' ? 'A forum has no vote — approving candidates happens on the open ballot and is always secret.' : st.variant === 'townhall' ? 'A town hall is deliberation — the referendum is decided on the ballot, not here.' : st.variant === 'group' ? (st.decisionNote || 'This group chose a facilitated discussion — no binding vote.') : 'Deliberation only.') + '</p></section>';
+      }
+      var v = st.vote;
+      if (!voteCalled) {
+        return '<section class="lr-vote"><span class="eyebrow">The vote</span>' +
+          '<p class="lr-vote-q">' + esc(v.question) + '</p>' +
+          '<p class="lr-vote-method">' + esc(v.method.label) + ' <span class="citation">' + esc(v.method.citation) + '</span></p>' +
+          '<p class="gloss">' + esc(v.gloss || '') + '</p>' +
+          (activeIsChair()
+            ? '<div class="lr-cast"><button type="button" class="btn btn--primary btn--sm" data-act="call-vote">Call the vote</button></div>'
+            : '<p class="pill pill--wait">Waiting on the ' + esc(CHAIR_LABEL[st.chairRole].toLowerCase()) + ' to call the vote</p>') +
+          '</section>';
+      }
+      var t = v.tallies || { yes: 0, no: 0, abstain: 0 };
+      var quorumMet = v.quorum.present >= v.quorum.required;
+      var passed = t.yes >= v.requiredYes;
+      var decided = v.outcome === 'adopted' || v.outcome === 'failed';
+      var outcomePill = decided
+        ? (v.outcome === 'adopted' ? '<span class="pill pill--pass">' + S.icon('check', { size: 'sm' }) + ' Passed ' + t.yes + '–' + t.no + '</span>'
+                                   : '<span class="pill pill--closed">Failed ' + t.yes + '–' + t.no + '</span>')
+        : '<span class="pill pill--vote"><span class="dotlive" aria-hidden="true"></span> Vote in progress</span>';
+      return '<section class="lr-vote"><div class="cluster" style="justify-content:space-between"><span class="eyebrow">The vote</span>' + outcomePill + '</div>' +
+        '<p class="lr-vote-q">' + esc(v.question) + '</p>' +
+        '<p class="lr-vote-method">' + esc(v.method.label) + ' <span class="citation">' + esc(v.method.citation) + '</span></p>' +
+        /* quorum meter */
+        meterHtml(v.quorum.present, v.serving, v.quorum.required,
+          v.quorum.present + ' of ' + v.serving + ' serving present',
+          'peg quorum: ' + v.quorum.required + ' of ' + v.serving + ' serving', 'Quorum — present of all serving') +
+        /* votes-in-favor meter */
+        meterHtml(t.yes, v.serving, v.requiredYes,
+          t.yes + ' yes of ' + v.serving + ' (all serving)',
+          'needs ' + v.requiredYes + ' of ' + v.serving + (v.thresholdClass === 'supermajority' ? ' · Art. VII' : ' · Art. II §2'), 'Votes in favor — of all serving') +
+        '<p class="gloss">' + esc(v.gloss || 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.') + '</p>' +
+        (!decided && canCast()
+          ? '<div class="lr-cast"><span class="citation">cast as ' + esc(window.CGA.state.get('role')) + ':</span>' +
+            '<button type="button" class="btn btn--primary btn--sm" data-act="cast" data-v="yes">Vote yes</button>' +
+            '<button type="button" class="btn btn--danger btn--sm" data-act="cast" data-v="no">Vote no</button>' +
+            '<button type="button" class="btn btn--secondary btn--sm" data-act="cast" data-v="abstain">Abstain</button></div>'
+          : (decided ? '' : '<p class="pill pill--wait">Only seated members vote here</p>')) +
+        '<details style="margin-block-start:var(--space-2)"><summary class="citation" style="cursor:pointer">Why these numbers — the rules</summary>' +
+        '<p class="about-surface-body" style="padding-inline:0">Every number is an engine snapshot, never recomputed in the UI: <code class="cc-code">serving</code> is every seat that is filled; an absent or vacant seat counts the same as a no; the threshold line is drawn at <code class="cc-code">' + v.requiredYes + ' of ' + v.serving + '</code>. ' + (st.vote.deepLink ? 'Ranked and STV votes open the v1 count surface.' : '') + '</p></details>' +
+        '</section>';
+    }
+    function canCast() {
+      /* a seated member of this body may vote; the demo treats chair-as-non-voter for speaker/presiding roles */
+      if (st.chairRole === 'speaker' || st.chairRole === 'presiding_judge') return !activeIsChair();
+      return true;
+    }
+    function meterHtml(value, max, threshold, left, right, label) {
+      var fill = pct(value, max), tp = pct(threshold, max), met = value >= threshold;
+      return '<div class="meter-block"><div class="meter" role="meter" aria-valuemin="0" aria-valuemax="' + max + '" aria-valuenow="' + value + '" aria-label="' + esc(label) + '">' +
+        '<span class="meter-fill' + (met ? ' meter-fill--met' : '') + '" style="inline-size:' + fill + '%"></span>' +
+        '<span class="meter-threshold" style="inset-inline-start:' + tp + '%"></span></div>' +
+        '<div class="meter-caption"><span>' + esc(left) + '</span><span>' + esc(right) + '</span></div></div>';
+    }
+
+    /* ---------- chair controls ---------- */
+    function controlsHtml() {
+      var live = activeIsChair();
+      var buttons = st.chairControls.map(function (c) {
+        var act = '';
+        if (/recognize/i.test(c)) act = ' data-act="recognize"';
+        else if (/call the (floor )?vote|call the vote/i.test(c)) act = ' data-act="call-vote"';
+        else if (/speaking clock/i.test(c)) act = ' data-act="clock"';
+        return '<button type="button" class="btn btn--secondary btn--sm"' + (live ? act : ' disabled') + '>' + esc(c) + '</button>';
+      }).join('');
+      return '<section class="card"><div class="cluster" style="justify-content:space-between">' +
+        '<span class="eyebrow">' + esc(CHAIR_LABEL[st.chairRole]) + ' controls — ' + esc(nameOf(st.chair)) + '</span>' +
+        (live ? '<span class="pill pill--live">You hold the gavel</span>' : '<span class="pill pill--info" title="Switch persona to ' + esc(nameOf(st.chair)) + ' in the demo bar to run the room">Observing — assume the chair to run it</span>') +
+        '</div><div class="lr-controls' + (live ? '' : ' lr-controls--observed') + '" style="margin-block-start:var(--space-2)">' + buttons + '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">The chair runs the room (recognize, timers, call the question); quorum checks, tabulation, and record-sealing are automatic.</p></section>';
+    }
+
+    /* ---------- the speaker rail ---------- */
+    function railPanel(title, count, bodyHtml, openByDefault) {
+      var open = openByDefault === false ? '' : ' open';
+      return '<details class="lr-panel"' + open + '><summary>' + esc(title) +
+        (count != null ? '<span class="lr-panel-count">' + count + '</span>' : '') +
+        '<span class="lr-collapse-caret">' + S.icon('chevron-down', { size: 'sm' }) + '</span></summary>' +
+        '<div class="lr-panel-body">' + bodyHtml + '</div></details>';
+    }
+    function presenceHtml() {
+      return st.presence.map(function (p) {
+        var tags = [];
+        if (p.role === 'chair') tags.push(CHAIR_LABEL[st.chairRole]);
+        if (p.vacant) tags.push('vacant');
+        else if (p.candidate) tags.push('candidate');
+        else if (p.advocate) tags.push('advocate');
+        else if (p.seat) tags.push('seat ' + p.seat);
+        else if (p.role === 'gallery') tags.push('gallery');
+        return '<div class="presence-row' + (p.speaking ? ' presence-row--speaking' : '') + '">' +
+          '<span class="presence-dot' + (p.online ? '' : ' presence-dot--off') + '" aria-hidden="true"></span>' +
+          (p.role === 'chair' ? S.icon('landmark', { size: 'sm' }) : (p.speaking ? S.icon('vote', { size: 'sm' }) : '')) +
+          '<span class="presence-name">' + esc(nameOf(p)) + '</span>' +
+          '<span class="handle">' + esc(mxid(p.handle)) + '</span>' +
+          '<span class="presence-tag">' + esc(tags.join(' · ')) + (p.speaking ? ' · speaking' : '') + '</span></div>';
+      }).join('');
+    }
+    function queueHtml() {
+      if (!st.queue.length) return '<p class="queue-empty">No hands raised right now.</p>';
+      return st.queue.map(function (q, i) {
+        return '<div class="queue-row"><span class="q-n">' + (i + 1) + '</span>' +
+          '<span class="presence-name">' + esc(mxid(q.handle)) + '</span>' +
+          (q.reason ? '<span class="q-reason">' + esc(q.reason) + '</span>' : '') + '</div>';
+      }).join('') +
+      (st.residencyGated ? '' : '') +
+      (activeIsChair() ? '<button type="button" class="btn btn--primary btn--sm" data-act="recognize" style="margin-block-start:var(--space-1)">Recognize ' + esc(mxid(st.queue[0].handle)) + '</button>'
+        : (st.residencyGated ? '<button type="button" class="btn btn--secondary btn--sm" data-act="raise" style="margin-block-start:var(--space-1)">' + S.icon('user', { size: 'sm' }) + ' Raise my hand</button>' : ''));
+    }
+    function chatHtml() {
+      var list = st.chat.map(function (m) {
+        return '<div class="chat-msg"><div class="chat-head">' +
+          '<span class="chat-handle">' + esc(mxid(m.handle)) + '</span>' +
+          (m.seat ? '<span class="chat-seat" title="acting seat, computed live">' + esc(m.seat) + '</span>' : '') +
+          '</div><div class="chat-body">' + esc(m.body) + '</div>' +
+          (m.testimony ? '<span class="chat-testimony">' + S.icon('check', { size: 'sm' }) + ' filed as testimony → sealed to the record</span>' : '') +
+          '</div>';
+      }).join('');
+      var compose = st.residencyGated
+        ? '<form class="lr-compose" data-act="post"><input class="field-input" aria-label="Post to the room" placeholder="Speak in the room…" /><button type="submit" class="btn btn--secondary btn--sm">Post</button></form>'
+        : '<form class="lr-compose" data-act="post"><input class="field-input" aria-label="Post to the room" placeholder="Post to the group…" /><button type="submit" class="btn btn--secondary btn--sm">Post</button></form>';
+      return '<div class="lr-chat-list">' + list + '</div>' + compose +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Handles are pseudonymous (@u-…), never a legal name · Art. I' +
+        (st.variant === 'court' || st.constitutionalOrder || st.variant === 'committee' || st.variant === 'townhall' ? ' · in the halls you may file your own message as testimony' : '') + '</p>';
+    }
+    function voiceHtml() {
+      return '<div class="lr-voice">' + S.icon('users', { size: 'sm' }) +
+        '<span>Voice: ' + st.voice.participants.length + ' in the call</span>' +
+        '<button type="button" class="btn btn--secondary btn--sm">Join voice</button>' +
+        '<span class="lr-rail-flag">' + S.icon('shield', { size: 'sm' }) + (st.voice.residencyGated ? 'residents only on the floor; anyone may listen' : 'open to members') + '</span></div>';
+    }
+    function translateHtml() {
+      var blocked = st.translation.isPrivate;
+      return '<div class="lr-translate">' + S.icon('languages', { size: 'sm' }) +
+        '<label class="demo-control">Show in: <select aria-label="Translate this room"><option>' + esc(st.translation.to) + '</option><option>' + esc(st.translation.from) + '</option></select></label>' +
+        '<span class="lr-rail-flag' + (blocked ? ' lr-rail-flag--blocked' : '') + '">' + S.icon('lock', { size: 'sm' }) +
+        (blocked ? 'private room — never sent to a cloud translator (server-local only)' : 'translated on this server; private rooms are never sent to a cloud translator') + '</span></div>';
+    }
+    function moderationNote() {
+      if (st.residencyGated) {
+        return '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+          '<strong style="color:var(--gov-fg)">This room cannot be censored.</strong> No operator, legislator, or judge may remove a post on viewpoint. The only removals are four narrow, logged carve-outs — a judicial order, protecting another’s rights, a personal block, or content-neutral anti-spam — and every one is itself a public record. <span class="citation">Art. I · there is no “remove for content” control here</span></div></div>';
+      }
+      return '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">A private group may self-moderate.</strong> This space belongs to the group; its owner sets its house rules. It carries no constitutional force. <span class="citation">Art. I · freedom of association</span></div></div>';
+    }
+
+    function recordHtml() {
+      if (!st.record.length) {
+        return '<section class="lr-record"><span class="eyebrow">The record</span>' +
+          '<p class="gloss">' + (st.variant === 'group' ? 'A group meeting is not on the public record unless the group chooses to publish.' : 'Nothing sealed to the record yet.') + '</p></section>';
+      }
+      var SEAL = { recorded: ['recorded', 'check'], sealing: ['sealing…', 'clock'], live: ['live (not sealed)', 'info'] };
+      var rows = st.record.map(function (r) {
+        var s = SEAL[r.sealState] || SEAL.live;
+        return '<div class="record-row"><span class="rec-handle">' + esc(mxid(r.handle)) + '</span>' +
+          '<span class="rec-body">' + esc(r.body) + '</span>' +
+          '<span class="seal--' + r.sealState + '">' + S.icon(s[1], { size: 'sm' }) + ' ' + esc(s[0]) + '</span>' +
+          (r.recordHref ? ' <a class="citation" href="' + S.hrefV1(r.recordHref) + '">on the chain ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
+          '</div>';
+      }).join('');
+      return '<section class="lr-record"><div class="cluster" style="justify-content:space-between">' +
+        '<span class="eyebrow">The record — testimony bridge</span>' +
+        '<span class="never-federated" title="Plane B (Matrix) → Plane A (append-only public record)">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
+        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements in the halls are sealed into the append-only record · F-SOC-002 · Art. II §2 · pseudonymity preserved</p>' +
+        rows + '</section>';
+    }
+
+    function galleryHtml() {
+      return '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) + '</div><div>' + esc(st.galleryNote) + '</div></div>';
+    }
+
+    function howThisWorksHtml() {
+      var forms = (st.forms || []).map(function (id) {
+        return '<span class="form-chip">' + esc(formTitle(id)) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      }).join(' ');
+      var reuse = (st.reusesV1 || []).map(function (r) { return '<a class="citation" href="' + S.hrefV1(r) + '">' + esc(r) + ' <span class="v1-tag">v1</span></a>'; }).join(' · ');
+      var prod = (st.productionPages || []).map(function (p) { return '<code class="cc-code">' + esc(p) + '</code>'; }).join(' · ');
+      return '<details class="about-surface"><summary>' + S.icon('chevron-right', { size: 'sm' }) + ' The machinery behind this room</summary>' +
+        '<div class="about-surface-body">' +
+        '<p>The player-facing controls are plain buttons; each maps to a constitutional form filed by the engine. The forms in play here:</p>' +
+        '<p class="cluster" style="gap:var(--space-1)">' + (forms || '<span class="gloss">no constitutional forms — this room is deliberation only</span>') + '</p>' +
+        (reuse ? '<p><strong>Reuses v1:</strong> ' + reuse + '</p>' : '') +
+        (prod ? '<p><strong>Production surfaces:</strong> ' + prod + '</p>' : '') +
+        '<p class="citation">Speaker-queue recognition, timers, calling the question, and declaring results are human chair acts. Quorum checks, tabulation, threshold math, and record-sealing are automatic and shown as ambient.</p>' +
+        '</div></details>';
+    }
+
+    function nextStepsHtml() {
+      if (!st.nextSteps) return '';
+      return '<section class="card"><span class="eyebrow">Optional next steps</span>' +
+        '<p class="cc-small">' + (st.decisionNote || '') + ' If the group wants standing, it can — but never must:</p>' +
+        '<div class="cluster">' + st.nextSteps.map(function (n) {
+          var href = /organization/i.test(n) ? S.hrefV1('organizations/org-registry.html') : S.hrefV1('civic/petitions.html');
+          return '<a class="btn btn--secondary btn--sm" href="' + href + '">' + esc(n) + ' <span class="v1-tag">v1</span></a>';
+        }).join('') + '</div></section>';
+    }
+
+    /* ---------------------------- compose the page ---------------------------- */
+    function render() {
+      var rail =
+        railPanel('Who’s here', st.presence.filter(function (p) { return p.online; }).length, presenceHtml()) +
+        railPanel('Hands raised', st.queue.length, queueHtml()) +
+        railPanel('Conversation', st.chat.length, chatHtml()) +
+        '<div class="stack" style="gap:var(--space-2)">' + voiceHtml() + translateHtml() + '</div>' +
+        moderationNote();
+
+      root.innerHTML =
+        bandHtml() +
+        nowNextHtml() +
+        agendaHtml() +
+        '<div class="lr-body">' +
+          '<div class="lr-stage">' + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
+          '<div class="lr-rail">' + rail + '</div>' +
+        '</div>' +
+        galleryHtml() +
+        recordHtml() +
+        howThisWorksHtml();
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+      paintClock();
+    }
+
+    /* ---------------------------- interactions ---------------------------- */
+    function paintClock() {
+      var el = document.getElementById('lr-speak-val');
+      if (el) el.textContent = mmss(speakingLeft);
+    }
+    function startClock() {
+      if (clockRunning) { clockRunning = false; if (clockTimer) clearInterval(clockTimer); S.announce('Speaking clock paused at ' + mmss(speakingLeft)); render(); return; }
+      clockRunning = true;
+      S.announce('Speaking clock started — ' + mmss(speakingLeft));
+      render();
+      clockTimer = setInterval(function () {
+        speakingLeft = Math.max(0, speakingLeft - 1);
+        paintClock();
+        if (speakingLeft === 0) { clearInterval(clockTimer); clockRunning = false; S.announce('Speaking time is up'); render(); }
+      }, 1000);
+    }
+    function recognize() {
+      if (!st.queue.length) { S.announce('No hands are raised'); return; }
+      var next = st.queue.shift();
+      st.floorHolder = next.handle;
+      /* reflect speaking state on presence (best effort) */
+      st.presence.forEach(function (p) { p.speaking = (p.handle === next.handle); });
+      if (!findPresence(next.handle)) st.presence.push({ handle: next.handle, name: null, role: 'floor', online: true, speaking: true });
+      speakingLeft = st.clocks.speaking;
+      S.announce(mxid(next.handle) + ' now holds the floor');
+      render();
+    }
+    function callVote() {
+      if (!st.vote) return;
+      voteCalled = true;
+      if (!st.vote.tallies) st.vote.tallies = { yes: 0, no: 0, abstain: 0 };
+      st.vote.outcome = 'pending';
+      S.announce('The vote is called: ' + st.vote.question);
+      render();
+    }
+    function cast(v) {
+      if (!st.vote || !voteCalled) return;
+      st.vote.tallies[v] = (st.vote.tallies[v] || 0) + 1;
+      var t = st.vote.tallies;
+      if (t.yes >= st.vote.requiredYes) { st.vote.outcome = 'adopted'; S.announce('Vote result: adopted, ' + t.yes + ' to ' + t.no); }
+      else { S.announce('Vote recorded: ' + t.yes + ' yes, ' + t.no + ' no, ' + t.abstain + ' abstain — needs ' + st.vote.requiredYes); }
+      render();
+    }
+    function raiseHand() {
+      var h = S.activePersona ? (V2.handleFor(window.CGA.state.get('persona')) || 'you') : 'you';
+      if (st.queue.some(function (q) { return q.handle === h; })) { S.announce('Your hand is already raised'); return; }
+      st.queue.push({ handle: h, name: null, reason: 'To speak' });
+      S.announce('Your hand is raised — you are number ' + st.queue.length + ' in the queue');
+      render();
+    }
+    function post(form) {
+      var input = form.querySelector('input');
+      var body = (input && input.value || '').trim();
+      if (!body) return;
+      var h = V2.handleFor(window.CGA.state.get('persona')) || 'you';
+      st.chat.push({ handle: h, body: body });
+      S.announce('Posted to the room');
+      render();
+    }
+
+    root.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-act]') : null;
+      if (!b || b.tagName === 'FORM') return;
+      var act = b.getAttribute('data-act');
+      if (act === 'recognize') recognize();
+      else if (act === 'call-vote') callVote();
+      else if (act === 'clock') startClock();
+      else if (act === 'cast') cast(b.getAttribute('data-v'));
+      else if (act === 'raise') raiseHand();
+    });
+    root.addEventListener('submit', function (ev) {
+      var f = ev.target.closest ? ev.target.closest('[data-act="post"]') : null;
+      if (f) { ev.preventDefault(); post(f); }
+    });
+
+    /* re-render when persona/jurisdiction/locale change (chair controls flip live) */
+    document.addEventListener('cga:v2:rerender', function () { /* shell re-rendered chrome; keep room state */ });
+    window.CGA.state.subscribe(function (s, changed) {
+      if (changed.indexOf('persona') >= 0 || changed.indexOf('role') >= 0 || changed.indexOf('*') >= 0) render();
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

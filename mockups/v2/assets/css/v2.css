@@ -1,0 +1,284 @@
+/* ============================================================================
+   CGA MOCKUPS v2 — v2.css  (the game-layer component sheet)
+   Loads AFTER ../assets/css/mockup.css. Built ONLY from colors_and_type.css
+   tokens (var(--…)). Zero hex. CSS logical properties only. Governance
+   register everywhere; the live room uses a single calm "live" accent
+   (--status-success), never red unless something is wrong.
+   Reuses v1 classes (.card .badge .meter .citation .stack .cluster …); these
+   are v2-only additions.
+   ============================================================================ */
+
+/* ------------------------------------------------------------ wordmark tags */
+.wordmark-tag {
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--cc-gold-300); border: 1px solid var(--gov-border-strong);
+  border-radius: var(--radius-full); padding-block: 0; padding-inline: var(--space-2);
+}
+.v1-tag {
+  font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-sm); padding-inline: var(--space-1);
+  margin-inline-start: auto;
+}
+.demo-sep { color: var(--cc-purple-400); }
+
+/* ------------------------------------------------------------ plain pills
+   The operator-console pattern: a human label, the precise term in title. */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-size: var(--text-xs); line-height: 1.7;
+  border-radius: var(--radius-full); border: 1px solid; padding-block: 0; padding-inline: var(--space-2);
+  max-inline-size: 100%; overflow-wrap: anywhere; /* long-label pills wrap instead of overflowing at 320px */
+}
+.pill--live    { color: var(--status-success-fg); background: color-mix(in oklch, var(--status-success) 16%, var(--gov-bg)); border-color: color-mix(in oklch, var(--status-success) 50%, transparent); }
+.pill--wait    { color: var(--status-warning-fg); background: color-mix(in oklch, var(--status-warning) 14%, var(--gov-bg)); border-color: color-mix(in oklch, var(--status-warning) 45%, transparent); }
+.pill--vote    { color: var(--status-info-fg);    background: color-mix(in oklch, var(--status-info) 14%, var(--gov-bg));    border-color: color-mix(in oklch, var(--status-info) 45%, transparent); }
+.pill--pass    { color: var(--status-success-fg); background: color-mix(in oklch, var(--status-success) 16%, var(--gov-bg)); border-color: color-mix(in oklch, var(--status-success) 50%, transparent); }
+.pill--closed  { color: var(--gov-fg-muted); background: var(--gov-surface-2); border-color: var(--gov-border-strong); }
+.pill--info    { color: var(--gov-fg-strong); background: var(--gov-surface-2); border-color: var(--gov-border-strong); }
+.pill--planned { color: var(--cc-gold-300); background: color-mix(in oklch, var(--cc-gold-400) 8%, var(--gov-bg)); border-color: var(--cc-gold-600); border-style: dashed; }
+.pill .dotlive {
+  inline-size: .5rem; block-size: .5rem; border-radius: var(--radius-full);
+  background: var(--status-success); flex-shrink: 0;
+  animation: lr-pulse 2s var(--ease-standard) infinite;
+}
+@keyframes lr-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+.planned-flag {
+  display: inline-block; align-self: flex-start;
+  font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--cc-gold-300); border: 1px dashed var(--cc-gold-600);
+  border-radius: var(--radius-sm); padding-inline: var(--space-1);
+}
+
+/* ----------------------------------------------------------- v2 launchpad */
+.v2-hero {
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-radius: var(--radius-xl); padding: var(--space-8) var(--space-6);
+}
+.v2-hero .kosmopolites { font-family: var(--font-display); font-size: var(--text-xl); font-style: italic; color: var(--cc-gold-300); }
+.v2-hero h1 { margin-block: var(--space-2); }
+
+/* the five interaction-class cards */
+.class-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: var(--space-4); }
+.class-card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-inline-start: 3px solid var(--klass, var(--gov-border-strong));
+  border-radius: var(--radius-lg); padding: var(--space-5);
+  color: var(--gov-fg-muted); transition: border-color var(--dur) var(--ease-standard);
+}
+a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: none; }
+.class-card .class-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 1.75rem; block-size: 1.75rem; border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--klass, var(--gov-primary)) 30%, var(--gov-bg));
+  color: var(--gov-fg); font-weight: var(--weight-bold); font-size: var(--text-sm);
+}
+.class-card .class-head { display: flex; align-items: center; gap: var(--space-3); }
+.class-card .class-title { color: var(--gov-fg); font-weight: var(--weight-semibold); font-size: var(--text-lg); }
+.class-card .class-icon { color: var(--klass, var(--gov-link)); }
+.class-card .class-journeys { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-block-start: var(--space-1); }
+
+/* journey cards + the persistent progress rail */
+.journey-card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-radius: var(--radius-lg); padding: var(--space-4);
+}
+.journey-card .journey-now { color: var(--gov-fg-muted); font-size: var(--text-sm); }
+.journey-rail {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1);
+  list-style: none; margin: 0; padding: 0; font-size: var(--text-xs);
+}
+.journey-rail li {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-sm);
+  padding-block: 1px; padding-inline: var(--space-2); color: var(--gov-fg-subtle);
+  background: var(--gov-surface-2);
+}
+.journey-rail li.rail--current { border-color: var(--gov-primary); color: var(--gov-fg); background: color-mix(in oklch, var(--gov-primary) 26%, var(--gov-bg)); font-weight: var(--weight-medium); }
+.journey-rail .rail-arrow { color: var(--gov-fg-subtle); border: 0; background: none; padding: 0; }
+
+/* ============================================================ LIVE CIVIC ROOM */
+.lr { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* header band */
+.lr-band {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-radius: var(--radius-lg); padding: var(--space-4);
+}
+.lr-band h1 { font-size: var(--text-xl); margin: 0; flex: 1 1 16rem; min-inline-size: 0; }
+.lr-timers { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.lr-timer {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gov-fg-strong);
+  border: 1px solid var(--gov-border-strong); border-radius: var(--radius-md);
+  padding-block: var(--space-1); padding-inline: var(--space-2); background: var(--gov-surface-2);
+  font-variant-numeric: tabular-nums;
+}
+.lr-timer .icon { color: var(--gov-link); }
+.lr-timer--speaking { border-color: color-mix(in oklch, var(--status-success) 50%, transparent); color: var(--status-success-fg); }
+
+/* agenda strip */
+.lr-agenda { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.lr-agenda-item {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3); background: var(--gov-surface);
+}
+.lr-agenda-item .ag-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); min-inline-size: 1.25rem; }
+.lr-agenda-item.ag--locked { border-color: color-mix(in oklch, var(--cc-gold-400) 45%, transparent); background: color-mix(in oklch, var(--cc-gold-400) 6%, var(--gov-bg)); }
+.lr-agenda-item.ag--current { border-color: var(--gov-primary); background: color-mix(in oklch, var(--gov-primary) 18%, var(--gov-bg)); }
+.lr-agenda-item .ag-body { flex: 1 1 auto; min-inline-size: 0; }
+.lr-agenda-item .ag-title { color: var(--gov-fg-strong); }
+.lr-agenda-item.ag--none .ag-title { color: var(--gov-fg-subtle); font-style: italic; }
+
+/* the two-pane body: stage + speaker rail */
+.lr-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.lr-stage { display: flex; flex-direction: column; gap: var(--space-4); min-inline-size: 0; }
+.lr-rail  { display: flex; flex-direction: column; gap: var(--space-3); min-inline-size: 0; }
+
+/* the floor (center stage) */
+.lr-floor { background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); padding: var(--space-5); }
+.lr-floor-kind { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-link); }
+.lr-floor h2 { font-size: var(--text-lg); margin-block: var(--space-1) var(--space-2); }
+.lr-floor-holder {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--status-success-fg);
+  background: color-mix(in oklch, var(--status-success) 12%, var(--gov-bg));
+  border: 1px solid color-mix(in oklch, var(--status-success) 40%, transparent);
+  border-radius: var(--radius-full); padding-block: var(--space-1); padding-inline: var(--space-3);
+}
+
+/* the vote tile */
+.lr-vote { background: var(--gov-surface); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-lg); padding: var(--space-5); }
+.lr-vote-q { color: var(--gov-fg); font-weight: var(--weight-semibold); }
+.lr-vote-method { font-size: var(--text-sm); color: var(--gov-fg-muted); margin-block: var(--space-1) var(--space-3); }
+.lr-cast { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-3); }
+
+/* speaker rail panels — collapsible (native <details>) on narrow, open on wide */
+.lr-panel { border: 1px solid var(--gov-border); border-radius: var(--radius-lg); background: var(--gov-surface); }
+.lr-panel > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-4); color: var(--gov-fg-strong); font-weight: var(--weight-medium); font-size: var(--text-sm);
+}
+.lr-panel > summary::-webkit-details-marker { display: none; }
+.lr-panel > summary .lr-panel-count { margin-inline-start: auto; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.lr-panel-body { padding: var(--space-2) var(--space-4) var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* presence */
+.presence-row { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+.presence-dot { inline-size: .55rem; block-size: .55rem; border-radius: var(--radius-full); background: var(--status-success); flex-shrink: 0; }
+.presence-dot--off { background: var(--gov-border-strong); }
+.presence-name { color: var(--gov-fg-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.presence-row .handle { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.presence-tag { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); margin-inline-start: auto; }
+.presence-row .icon { color: var(--cc-gold-400); }
+.presence-row--speaking .presence-name { color: var(--status-success-fg); }
+
+/* speaker queue */
+.queue-row {
+  display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-2); background: var(--gov-surface-2);
+}
+.queue-row .q-n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.queue-row .q-reason { color: var(--gov-fg-subtle); font-size: var(--text-xs); margin-inline-start: auto; }
+.queue-empty { color: var(--gov-fg-subtle); font-size: var(--text-sm); }
+
+/* chat (the Matrix timeline) */
+.lr-chat-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.chat-msg { display: flex; flex-direction: column; gap: 2px; padding-block-end: var(--space-2); border-block-end: 1px solid var(--gov-border); }
+.chat-msg:last-child { border-block-end: 0; }
+.chat-head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.chat-handle { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-strong); }
+.chat-seat {
+  font-family: var(--font-mono); font-size: var(--text-xs); color: var(--cc-gold-300);
+  border: 1px solid var(--cc-gold-600); border-radius: var(--radius-sm); padding-inline: var(--space-1);
+}
+.chat-body { font-size: var(--text-sm); color: var(--gov-fg-muted); }
+.chat-testimony {
+  align-self: flex-start; font-family: var(--font-mono); font-size: var(--text-xs);
+  color: var(--status-success-fg); display: inline-flex; align-items: center; gap: var(--space-1);
+}
+.lr-compose { display: flex; gap: var(--space-2); margin-block-start: var(--space-2); }
+.lr-compose input { flex: 1 1 auto; min-inline-size: 0; }
+
+/* voice + translation rail */
+.lr-voice, .lr-translate {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--gov-fg-muted);
+  border: 1px dashed var(--gov-border-strong); border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+.lr-rail-flag { font-size: var(--text-xs); color: var(--gov-fg-subtle); display: inline-flex; align-items: center; gap: var(--space-1); }
+.lr-rail-flag .icon { color: var(--status-success); }
+.lr-rail-flag--blocked .icon { color: var(--status-warning); }
+
+/* record strip (testimony bridge) */
+.lr-record { background: color-mix(in oklch, var(--gov-surface) 70%, var(--gov-bg)); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.record-row {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-2); border-block-end: 1px solid var(--gov-border); font-size: var(--text-sm);
+}
+.record-row:last-child { border-block-end: 0; }
+.record-row .rec-handle { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.record-row .rec-body { color: var(--gov-fg-muted); flex: 1 1 14rem; min-inline-size: 0; }
+.seal--recorded { color: var(--status-success-fg); }
+.seal--sealing  { color: var(--status-warning-fg); }
+.seal--live     { color: var(--gov-fg-subtle); }
+
+/* gallery note + uncensorable note */
+.lr-note {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--gov-fg-muted);
+  background: color-mix(in oklch, var(--status-info) 8%, var(--gov-bg));
+  border: 1px solid color-mix(in oklch, var(--status-info) 35%, transparent);
+  border-radius: var(--radius-md); padding: var(--space-2) var(--space-3);
+}
+.lr-note .icon { color: var(--status-info); flex-shrink: 0; margin-block-start: .15em; }
+
+/* chair controls (live for the chair persona, observable otherwise) */
+.lr-controls { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.lr-controls .btn { flex: 0 0 auto; }
+.lr-controls--observed .btn { opacity: .6; }
+
+/* composition strip (board co-determination) */
+.lr-composition { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.comp-seat {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full);
+  padding-block: 0; padding-inline: var(--space-2); font-size: var(--text-xs);
+}
+.comp-seat--worker { border-color: color-mix(in oklch, var(--wong-skyblue) 55%, transparent); color: var(--status-info-fg); }
+.comp-seat--owner  { border-color: color-mix(in oklch, var(--wong-orange) 55%, transparent); color: var(--status-warning-fg); }
+
+/* responsive: rail stacks under the stage; panels become collapsible */
+.lr-panel > summary .lr-collapse-caret { display: none; }
+@media (min-width: 64rem) {
+  /* on wide screens the rail panels are always open and not collapsible */
+  .lr-panel[open] > summary, .lr-panel > summary { cursor: default; }
+}
+@media (max-width: 64rem) {
+  .lr-body { grid-template-columns: minmax(0, 1fr); }
+  .lr-panel > summary .lr-collapse-caret { display: inline-flex; margin-inline-start: var(--space-1); }
+}
+
+/* economy "Planned" wash — a subtle dashed frame around planned surfaces */
+.planned-surface { border: 1px dashed var(--cc-gold-600); border-radius: var(--radius-lg); padding: var(--space-1); }
+.planned-banner {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--cc-gold-300);
+  background: color-mix(in oklch, var(--cc-gold-400) 8%, var(--gov-bg));
+  border: 1px solid var(--cc-gold-600); border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+.never-federated {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-size: var(--text-xs); color: var(--status-info-fg);
+  background: color-mix(in oklch, var(--status-info) 10%, var(--gov-bg));
+  border: 1px solid color-mix(in oklch, var(--status-info) 40%, transparent);
+  border-radius: var(--radius-full); padding-block: 0; padding-inline: var(--space-2);
+}
+.never-federated .icon { color: var(--status-info); }

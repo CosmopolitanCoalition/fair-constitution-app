@@ -1,0 +1,42 @@
+[
+ {
+  "file": "index.html",
+  "title": "Launchpad — the five interaction classes + journey directory",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": ["index.html"],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 0,
+  "notes": "v2 entry point. The five interaction classes as cards, the journey directory with progress rails, the eight Live-Room variants, and handoff links. Governance register; reuses v1 tokens/shell foundation via fixtures-v2 + shell-v2."
+ },
+ {
+  "file": "shared/live-room.html",
+  "title": "Live Civic Room — the keystone (8 variants via ?variant=)",
+  "interactionClass": "all",
+  "journeys": ["election", "committee-session", "bill", "court-case", "budget", "start-org", "board-meeting", "form-a-group", "mutual-aid", "petition-to-referendum", "public-service", "stipend-and-tax", "two-governments"],
+  "reusesV1": ["legislature/session-console.html", "legislature/committee-detail.html", "judiciary/case-detail.html", "organizations/board-elections.html", "electoral/open-ballot.html", "legislature/referendums.html"],
+  "productionPages": ["resources/js/Pages/Legislature/SessionConsole.vue", "resources/js/Components/Legislature/VoteTally.vue", "resources/js/Components/Legislature/AgendaStrip.vue", "resources/js/Pages/Civic/MatrixCommons.vue", "resources/js/Pages/Judiciary/CaseDetail.vue", "resources/js/Pages/Organizations/BoardElections.vue"],
+  "matrix": ["social_spaces(halls)", "matrix_rooms", "LiveKitTokenService", "TestimonyBridgeService", "TranslationGate", "MatrixPostingGateService"],
+  "forms": ["F-SPK-001..009", "F-CHR-001..004", "F-LEG-002..007", "F-JDG-001..003", "F-ORG-003..004", "F-SOC-001..002"],
+  "status": "built-layer",
+  "stage": 1,
+  "configContract": "MANIFEST.md §Live-Room config contract",
+  "notes": "THE keystone. The fused form+social surface: header band + countdown clocks, locked/unlocked agenda, center-stage floor with How-this-works drawer + v1 deep-link, the vote tile (denominator always visible), the speaker rail (presence, hands-raised queue, Matrix chat with seat badges + testimony, voice, the translation privacy rail), the testimony-bridge record strip. Chair controls go live when you assume the chair persona; aria-live announces floor/vote/result. Eight variants: committee, legislative, exec, board, court, forum, townhall, group."
+ },
+ {
+  "file": "shared/coverage.html",
+  "title": "v2 coverage — meeting types × journeys × interaction classes × mechanics",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 1,
+  "notes": "Generated from the v2 manifest + fixtures.v2. Proves §13 definition-of-done as stages land."
+ }
+]

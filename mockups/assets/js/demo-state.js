@@ -29,7 +29,15 @@
       bicameral: false,
       countbackFailed: false,
       restoration: false,
-      unionDrill: false
+      unionDrill: false,
+      /* --- v2 game-layer scenarios (additive; the FROZEN vocabulary is
+         extended, never renamed). v1 pages ignore unknown flags; the v2
+         demo bar surfaces these. --- */
+      liveSession: false,     // a Live Civic Room is mid-session
+      marketplace: false,     // the marketplace has live listings
+      ubiRun: false,          // a civic-stipend run just posted
+      groupForming: false,    // an informal group is mid-formation
+      tradeTalk: false        // a cross-government trade talk is open
     }
   };
 
