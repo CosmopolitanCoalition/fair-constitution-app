@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Today — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading today…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'civic/today', title: 'Today', module: 'civic', nav: 'today', citation: 'Today — what is live in your jurisdictions · Art. I, Art. II §2', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+    var E = V2.economy;
+
+    /* Each row: icon, what + your part (one line), a status pill, and one entry link.
+       `to` is either a v2 deep-link (hrefV2) or a v1 deep-link (hrefV1, tagged v1).
+       `planned` rows carry an inline Planned badge. */
+    function rows() {
+      return [
+        {
+          icon: 'landmark',
+          title: 'Legislative session tonight',
+          what: 'The New York County floor takes the Novák response, then reads the Clean Air Act.',
+          part: 'Your part: watch from the gallery; residents may speak from the floor.',
+          pill: S.pill('live', 'Live now', 'Open · in session · peg quorum of all serving · Art. II §2'),
+          form: { name: 'Floor reading', id: 'F-LEG-004' },
+          to: S.hrefV2('shared/live-room.html?variant=legislative'),
+          cta: 'Enter the room'
+        },
+        {
+          icon: 'users',
+          title: 'Committee hearing — open testimony',
+          what: 'Environment & Infrastructure is hearing the Clean Air Act before referring it to the floor.',
+          part: 'Your part: testimony from residents enters the immutable public record.',
+          pill: S.pill('live', 'Live now', 'Open · in session · committee majority of all members · Art. II §4'),
+          form: { name: 'Public testimony', id: 'F-LEG-006' },
+          to: S.hrefV2('shared/live-room.html?variant=committee'),
+          cta: 'Watch the hearing'
+        },
+        {
+          icon: 'vote',
+          title: 'Manhattan approval race',
+          what: 'Candidates are gathering approvals on the open ballot — the finalist cutoff is ahead.',
+          part: 'Your part: approve as many candidates as you trust; every approval is secret.',
+          pill: S.pill('vote', 'Ballot open', 'Approval phase · voting and candidacy require nothing beyond residency · Art. I'),
+          form: null,
+          to: S.hrefV1('electoral/open-ballot.html'),
+          v1: true,
+          cta: 'Open the ballot'
+        },
+        {
+          icon: 'vote',
+          title: 'Candidate forum',
+          what: 'Manhattan finalists hold the floor in turn; residents ask the questions.',
+          part: 'Your part: watch and ask — your approvals stay on the ballot, never here.',
+          pill: S.pill('live', 'Forum in progress', 'Open · forum in progress · approvals remain secret · Art. I'),
+          form: null,
+          to: S.hrefV2('shared/live-room.html?variant=forum'),
+          cta: 'Join the forum'
+        },
+        {
+          icon: 'refresh-cw',
+          title: 'New civic-stipend run posted',
+          what: 'The residency floor plus a role differential cleared on the economic clock.',
+          part: 'Your part: your receipt is private — only the public aggregate federates.',
+          pill: S.pill('info', 'New run', 'Active residency only — no means test, no application · Art. I'),
+          form: { name: 'Stipend run', id: 'F-TRE-004' },
+          to: S.hrefV2('economy/stipend.html'),
+          planned: true,
+          cta: 'See the run'
+        },
+        {
+          icon: 'users',
+          title: 'Harbor Cleanup Crew — first meeting',
+          what: 'Neighbors picked a facilitated meeting to choose a first cleanup date.',
+          part: 'Your part: a voluntary group, on its own terms — no governance power conferred.',
+          pill: S.pill('info', 'Facilitated', 'Freedom of association — voluntary, no constitutional force · Art. I'),
+          form: null,
+          to: S.hrefV2('shared/live-room.html?variant=group'),
+          cta: 'Join the meeting'
+        },
+        {
+          icon: 'scale',
+          title: 'Novák challenge — veto window',
+          what: 'A constitutional finding on Curfew Ordinance §3 is in its legislative-response window.',
+          part: 'Your part: follow the three-path challenge; the legislature answers before any general business.',
+          pill: S.pill('wait', 'Window open', 'Art. IV §5 three-path challenge · finding precedes general business · Art. II §2'),
+          form: { name: 'Constitutional finding', id: 'F-JDG-003' },
+          to: S.hrefV1('judiciary/constitutional-challenge.html'),
+          v1: true,
+          cta: 'Read the challenge'
+        }
+      ];
+    }
+
+    function rowCard(r) {
+      var head =
+        '<div class="cluster" style="align-items:flex-start;gap:var(--space-3)">' +
+          '<span class="role-card-icon" aria-hidden="true">' + S.icon(r.icon) + '</span>' +
+          '<div class="stack" style="gap:var(--space-1);flex:1;min-inline-size:0">' +
+            '<div class="cluster" style="gap:var(--space-2);align-items:center">' +
+              '<strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' +
+              r.pill +
+              (r.planned ? S.badge('warning', 'Planned', 'info') : '') +
+            '</div>' +
+            '<span>' + esc(r.what) + '</span>' +
+            '<span class="gloss">' + esc(r.part) + '</span>' +
+            (r.form
+              ? '<span class="form-chip">' + esc(r.form.name) + ' <span class="form-id">' + esc(r.form.id) + '</span></span>'
+              : '') +
+          '</div>' +
+        '</div>';
+
+      var cta =
+        '<a class="btn btn--secondary btn--sm" href="' + r.to + '">' +
+          esc(r.cta) + ' ' + S.icon('arrow-right', { size: 'sm' }) +
+          (r.v1 ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '') +
+        '</a>';
+
+      return '<div class="card card--inset stack" style="gap:var(--space-3)">' + head +
+        '<div class="cluster" style="justify-content:flex-end">' + cta + '</div></div>';
+    }
+
+    function render() {
+      var liveCount = rows().filter(function (r) { return r.cta; }).length;
+
+      var header =
+        '<header><span class="eyebrow">Civic · your jurisdictions</span><h1>Today</h1>' +
+        '<p class="page-intro">Everything live in the places you reside, each one a tap away. ' +
+        '<strong style="color:var(--gov-fg)">Now</strong> — ' + liveCount + ' things are happening across your jurisdictions. ' +
+        '<strong style="color:var(--gov-fg)">Your part</strong> — watch, speak where you reside, vote where the ballot is open. ' +
+        '<strong style="color:var(--gov-fg)">Next</strong> — the floor reads the Clean Air Act after the constitutional response.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>';
+
+      var lead =
+        '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
+        '<div>This is a live snapshot — it rides surfaces that already exist. ' +
+        'Anyone may watch any public proceeding; speaking, testifying, and voting are gated only by residency, never by anything else · ' +
+        '<span class="citation">Art. I</span></div></div>';
+
+      var list =
+        '<section aria-labelledby="now-h" class="stack" style="gap:var(--space-3)">' +
+        '<h2 id="now-h">Live in your jurisdictions</h2>' +
+        rows().map(rowCard).join('') + '</section>';
+
+      var foot =
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">How today works</h2><ul>' +
+        '<li><strong>You watch everything; you act where you reside.</strong> Galleries are open to all — the floor, testimony, and the vote belong to residents · <span class="citation">Art. I · Art. II §2</span></li>' +
+        '<li><strong>Constitutional matters come first.</strong> A judicial finding is answered before any general business on the floor · <span class="citation">Art. II §2</span></li>' +
+        '<li><strong>The denominator never shrinks.</strong> Floor votes peg quorum to every serving seat — an absent member counts the same as a no · <span class="citation">Peg quorum · Art. II §2</span></li>' +
+        '<li><strong>Your money stays yours.</strong> A stipend receipt is private and never federates — only the public aggregate is shared.</li>' +
+        '<li><strong>Groups confer no power.</strong> A voluntary association binds only its own members · <span class="citation">Art. I</span></li>' +
+        '</ul><p class="citation">The economic items above are <strong>Planned</strong> (Phases L &amp; M) — abstract units, no payment rails.</p></section>';
+
+      document.getElementById('root').innerHTML = header + lead + list + foot;
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

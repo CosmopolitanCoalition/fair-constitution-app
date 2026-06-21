@@ -331,3 +331,91 @@ a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: no
   border-radius: var(--radius-full); padding-block: 0; padding-inline: var(--space-2);
 }
 .never-federated .icon { color: var(--status-info); }
+
+/* ============================================================ ECONOMY (the exchange)
+   A calm trading-floor feel — units are abstract; no real money. */
+.exchange-hero {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--gov-primary) 16%, var(--gov-surface)), var(--gov-surface));
+  border: 1px solid var(--gov-border); border-radius: var(--radius-xl); padding: var(--space-6);
+}
+.ticker {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4);
+  font-family: var(--font-mono); font-size: var(--text-sm); color: var(--gov-fg-muted);
+  border-block: 1px solid var(--gov-border); padding-block: var(--space-2); overflow: hidden;
+}
+.ticker .tick { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }
+.ticker .tick-up { color: var(--status-success); } .ticker .tick-down { color: var(--status-danger); }
+.unit-symbol { font-family: var(--font-mono); color: var(--cc-gold-300); }
+
+/* listing / offer cards */
+.offer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--space-3); }
+.offer-card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-lg);
+  padding: var(--space-4); min-inline-size: 0;
+}
+.offer-card .offer-price { color: var(--gov-fg); font-weight: var(--weight-bold); font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
+.offer-card .offer-seller { font-size: var(--text-sm); color: var(--gov-fg-muted); }
+.offer-card .offer-kind { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.cgc-badge { color: var(--status-info-fg); border: 1px solid color-mix(in oklch, var(--status-info) 45%, transparent); border-radius: var(--radius-full); padding-inline: var(--space-2); font-size: var(--text-xs); }
+
+/* offer <-> request toggle */
+.offer-request-switch { display: inline-flex; border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); overflow: hidden; }
+.offer-request-switch button { border: 0; background: var(--gov-surface-2); color: var(--gov-fg-muted); padding-block: var(--space-1); padding-inline: var(--space-4); font: inherit; font-size: var(--text-sm); cursor: pointer; min-block-size: 1.5rem; }
+.offer-request-switch button[aria-pressed="true"] { background: color-mix(in oklch, var(--gov-primary) 30%, var(--gov-bg)); color: var(--gov-fg); }
+
+/* wallet */
+.wallet-balance { font-size: var(--text-4xl); font-weight: var(--weight-bold); color: var(--gov-fg); font-variant-numeric: tabular-nums; }
+.wallet-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-3); padding-block: var(--space-2); border-block-end: 1px solid var(--gov-border); font-size: var(--text-sm); }
+.wallet-row:last-child { border-block-end: 0; }
+.wallet-amt { font-variant-numeric: tabular-nums; font-family: var(--font-mono); margin-inline-start: auto; }
+.wallet-amt--in { color: var(--status-success); } .wallet-amt--out { color: var(--status-danger); }
+
+/* unit subdivision display */
+.unit-stack { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.unit-chip { display: inline-flex; align-items: baseline; gap: var(--space-1); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-md); padding: var(--space-1) var(--space-3); background: var(--gov-surface-2); }
+.unit-chip .u-sym { font-family: var(--font-mono); color: var(--cc-gold-300); font-size: var(--text-lg); }
+.unit-chip .u-factor { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+
+/* monetary lever (dual-door) */
+.lever-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding-block: var(--space-3); border-block-end: 1px solid var(--gov-border); }
+.lever-row:last-child { border-block-end: 0; }
+.lever-key { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); inline-size: 14rem; max-inline-size: 100%; }
+.lever-val { color: var(--gov-fg); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.dual-door {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-size: var(--text-xs); color: var(--cc-gold-300);
+  border: 1px solid var(--cc-gold-600); border-radius: var(--radius-full); padding-inline: var(--space-2);
+}
+.dual-door .icon { color: var(--cc-gold-400); }
+
+/* stipend differential breakdown */
+.stipend-formula { font-family: var(--font-mono); font-size: var(--text-sm); background: var(--gov-surface-2); border: 1px dashed var(--gov-border-strong); border-radius: var(--radius-md); padding: var(--space-3); overflow-wrap: anywhere; }
+.stipend-class { display: flex; flex-direction: column; gap: var(--space-1); border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-3); background: var(--gov-surface); }
+.stipend-class .sc-bump { font-family: var(--font-mono); color: var(--cc-gold-300); font-weight: var(--weight-bold); }
+.stipend-example { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-3); padding-block: var(--space-2); border-block-end: 1px solid var(--gov-border); font-size: var(--text-sm); }
+.stipend-example:last-child { border-block-end: 0; }
+.stipend-example .se-amt { font-family: var(--font-mono); font-weight: var(--weight-bold); color: var(--gov-fg); margin-inline-start: auto; }
+
+/* joint ledger */
+.signer-chip { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); padding-inline: var(--space-2); font-size: var(--text-xs); }
+.signer-chip--approved { border-color: color-mix(in oklch, var(--status-success) 50%, transparent); color: var(--status-success-fg); }
+.signer-chip--pending { border-color: color-mix(in oklch, var(--status-warning) 50%, transparent); color: var(--status-warning-fg); }
+
+/* agreement */
+.agreement-parties { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.party-chip { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-sm); background: var(--gov-surface-2); }
+.party-role { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.agreement-floor { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-sm); color: var(--gov-fg-muted); border-inline-start: 3px solid var(--cc-gold-600); padding-inline-start: var(--space-3); }
+
+/* clock cycle */
+.econ-clock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.econ-clock .clock-dial { inline-size: 3rem; block-size: 3rem; border-radius: var(--radius-full); border: 3px solid var(--gov-primary); display: flex; align-items: center; justify-content: center; color: var(--gov-link); flex-shrink: 0; }
+
+/* profile */
+.profile-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.profile-avatar { inline-size: 4rem; block-size: 4rem; border-radius: var(--radius-full); background: var(--gov-primary); color: var(--gov-primary-fg); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); font-weight: var(--weight-bold); flex-shrink: 0; }
+.profile-stats { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.profile-stat { font-size: var(--text-sm); color: var(--gov-fg-subtle); }
+.profile-stat b { color: var(--gov-fg); font-variant-numeric: tabular-nums; }
+.achievement-chip { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px dashed var(--cc-gold-600); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-xs); color: var(--cc-gold-300); }

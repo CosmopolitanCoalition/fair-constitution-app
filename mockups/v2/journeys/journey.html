@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Journey — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the journey…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'journeys/journey', title: 'Journey', module: 'journeys', nav: 'journeys', citation: 'A guided civic journey · now / your part / next', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+
+    function jid() { try { return new URLSearchParams(location.search).get('id') || 'election'; } catch (e) { return 'election'; } }
+    var J = V2.byJourney[jid()] || V2.byJourney.election;
+    var cls = V2.byClass[J.cls];
+    var ROOM_LABEL = { committee: 'Committee hearing', legislative: 'Legislative session', exec: 'Executive committee', board: 'Board meeting', court: 'Court hearing', forum: 'Candidate forum', townhall: 'Referendum town hall', group: 'Group meeting' };
+    var ROOM_ICON = { committee: 'landmark', legislative: 'landmark', exec: 'briefcase', board: 'building', court: 'scale', forum: 'vote', townhall: 'users', group: 'users' };
+
+    function render() {
+      var built = J.status === 'built-layer';
+      var statusPill = built
+        ? '<span class="pill pill--live">Rides built surfaces</span>'
+        : '<span class="pill pill--planned" title="design-ahead of code">Planned · ' + esc(J.phase || '') + '</span>';
+
+      /* the progress rail */
+      var rail = '<ol class="journey-rail" aria-label="Progress through this journey">' + J.rail.map(function (step, i) {
+        return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +
+          '<li' + (i === 0 ? ' class="rail--current"' : '') + '>' + esc(step) + '</li>';
+      }).join('') + '</ol>';
+
+      /* the arc — each rail step as a card */
+      var arc = '<ol class="flow-steps">' + J.rail.map(function (step, i) {
+        return '<li class="flow-step' + (i === 0 ? ' flow-step--current' : '') + '">' +
+          '<div class="flow-step-head"><span class="flow-step-n">' + (i + 1) + '</span>' +
+          '<span class="flow-action" style="color:var(--gov-fg)">' + esc(step) + '</span></div></li>';
+      }).join('') + '</ol>';
+
+      /* the live rooms this journey passes through */
+      var rooms = (J.rooms || []).map(function (rv) {
+        return '<a class="role-card" href="' + S.hrefV2('shared/live-room.html?variant=' + rv) + '">' + S.icon(ROOM_ICON[rv] || 'landmark') +
+          '<span class="role-name">' + esc(ROOM_LABEL[rv] || rv) + '</span>' +
+          '<span>Step into the room where the people actually act.</span>' +
+          '<span class="enter-as">Open the room ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }).join('');
+
+      /* the formal steps deep-link into the v1 ops site */
+      var v1 = (J.reusesV1 || []).map(function (rel) {
+        var label = rel.replace(/^.*\//, '').replace(/\.html$/, '').replace(/-/g, ' ');
+        return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + ' <span class="v1-tag">v1</span></a>';
+      }).join(' ');
+
+      document.getElementById('root').innerHTML =
+        '<header><div class="cluster" style="justify-content:space-between">' +
+        '<div class="cluster">' + (J.flagship ? '<span class="pill pill--vote">Flagship</span>' : '') +
+        '<span class="eyebrow">' + esc(cls.title) + '</span></div>' + statusPill + '</div>' +
+        '<h1>' + esc(J.title) + '</h1></header>' +
+        /* now / your part / next */
+        '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">Now:</strong> ' + esc(J.now) + ' ' +
+        '<strong style="color:var(--gov-fg)">Your part:</strong> follow the arc below — watch from the gallery, or take the floor where you’re a resident. ' +
+        '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(J.rail[1] || J.rail[0]) + '.</div></div>' +
+        '<section class="card"><span class="eyebrow">The arc</span>' + rail + arc + '</section>' +
+        (rooms ? '<section aria-labelledby="rooms-h"><h2 id="rooms-h">Where you act — the Live Civic Room</h2>' +
+          '<p class="page-intro">Every journey passes through at least one live room, where the form, the vote, and the social floor are fused.</p>' +
+          '<div class="role-grid">' + rooms + '</div></section>' : '') +
+        (v1 ? '<section class="card"><span class="eyebrow">The formal moment</span>' +
+          '<p>The formal steps open the existing operations screen — v2 wraps them in this journey rather than re-mocking them.</p>' +
+          '<div class="cluster" style="gap:var(--space-1)">' + v1 + '</div></section>' : '') +
+        '<p><a href="' + S.hrefV2('index.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All journeys</a></p>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

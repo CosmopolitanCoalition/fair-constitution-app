@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listing — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the listing…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/listing-detail', title: 'Listing', module: 'economy', nav: 'marketplace', citation: 'A marketplace offer — Open Market · Art. III §5, Art. V §5', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+    function neverFederated() {
+      return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        'Your purchase is private — receipts and balance never federate, like a ballot.</span>';
+    }
+    function formChip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    function render() {
+      var L = E.marketplace[0]; // the repaired cargo bikes
+      var isCgc = !!L.cgc;
+      var c = E.currency;
+      var tags = (L.tags || []).map(function (tg) {
+        return '<span class="tag-chip">' + esc(tg) + '</span>';
+      }).join(' ');
+
+      // the order flow as a small stepper
+      var steps = [
+        { icon: 'check', title: 'Place your order', form: ['Place a market order', 'F-IND-022'],
+          body: 'You commit to buy at the listed price. A purchase intent is opened against the seller’s listing — quantity is held while both sides confirm.', state: 'now' },
+        { icon: 'file-text', title: 'An agreement is formed', form: ['Instrument of sale', 'F-IND-022'],
+          body: 'The order becomes a two-sided instrument of agreement. The engine refuses any single-sided contract, and no clause may waive a constitutional right.',
+          link: { rel: 'economy/agreements.html', label: 'See instruments of agreement' }, state: 'next' },
+        { icon: 'lock', title: 'Private settlement on your wallet', form: null,
+          body: 'On both signatures, the abstract units move on your private ledger — a debit to you, a credit to the seller. No payment rail, no custody.',
+          link: { rel: 'economy/wallet.html', label: 'Open my wallet' }, state: 'next' }
+      ];
+      var stepperHtml = steps.map(function (s, i) {
+        var head = '<div class="cluster" style="align-items:center;gap:var(--space-2)">' +
+          '<span class="form-id" aria-hidden="true">' + (i + 1) + '</span>' +
+          S.icon(s.icon, { size: 'sm' }) +
+          '<strong style="color:var(--gov-fg)">' + esc(s.title) + '</strong>' +
+          (s.state === 'now' ? ' ' + S.pill('vote', 'You are here', 'The next action on this listing')
+                             : ' ' + S.pill('info', 'Then', 'A later step in the order flow')) +
+          '</div>';
+        var form = s.form ? '<p style="margin-block:var(--space-1) 0">' + formChip(s.form[0], s.form[1]) + '</p>' : '';
+        var link = s.link ? '<p style="margin-block-start:var(--space-2)"><a class="btn btn--ghost btn--sm" href="' +
+          S.hrefV2(s.link.rel) + '">' + esc(s.link.label) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' : '';
+        return '<li class="card card--inset" style="list-style:none">' + head + form +
+          '<p style="margin-block:var(--space-2) 0">' + esc(s.body) + '</p>' + link + '</li>';
+      }).join('');
+
+      var cgcNote = isCgc
+        ? '<div class="lr-note">' + S.icon('info', { size: 'sm' }) +
+            '<div><strong>A common-good corporation sells on identical terms.</strong> ' + esc(L.note || ('A CGC sells on identical terms to any private seller · Art. III §5')) +
+            ' Its intellectual property stays perpetually public domain. <span class="citation">Art. III §5</span></div></div>'
+        : '';
+
+      var qtyLabel = (typeof L.qty === 'number') ? (L.qty + ' available') : esc(L.qty);
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the Open Market · a marketplace offer</span>' +
+        '<h1>' + esc(L.title) + '</h1>' +
+        '<p class="page-intro">One listing on the Open Market — what it is, who is selling it, and what happens when you order. ' +
+        'Priced in the <span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + ' (' + esc(c.code) + '), an abstract unit of account.</p>' +
+        '<p class="citation">A marketplace offer · Open Market · Art. III §5, Art. V §5</p></header>' +
+        plannedBanner() +
+
+        '<p><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/marketplace.html') + '">' +
+        S.icon('arrow-right', { size: 'sm' }) + ' Back to the marketplace</a></p>' +
+
+        '<section class="card" aria-labelledby="offer-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-3)">' +
+        '<div><h2 id="offer-h" style="margin-block:0">' + esc(L.title) + '</h2>' +
+        '<p class="offer-seller" style="margin-block:var(--space-1) 0">Sold by ' + esc(L.seller) +
+        ' ' + S.badge('neutral', L.sellerKind.replace(/_/g, ' '), 'building') +
+        (isCgc ? ' <span class="cgc-badge">CGC · public-domain IP</span>' : '') + '</p>' +
+        '<p class="offer-kind" style="margin-block-start:var(--space-1)">' + esc(L.kind) + '</p></div>' +
+        '<div style="text-align:end"><span class="offer-price">' + esc(L.price) + '</span><br />' +
+        '<span class="gloss">' + qtyLabel + '</span></div></div>' +
+        (tags ? '<p style="margin-block-start:var(--space-3)">' + tags + '</p>' : '') +
+        '<p style="margin-block-start:var(--space-3)">Repaired and roadworthy cargo bikes, reconditioned at the depot and resold across the five boroughs. ' +
+        'Each unit is checked, given a fresh chain and brakes, and listed at a flat price — buy one or the full lot. ' +
+        'The offer rides the same Open Market every other seller uses.</p>' +
+        '<p>' + formChip('Marketplace listing', L.form) + '</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3);gap:var(--space-2)">' +
+        '<button type="button" class="btn btn--primary" disabled>Place order ' + S.icon('check', { size: 'sm' }) + '</button>' +
+        '<span class="gloss">' + neverFederated() + '</span></div></section>' +
+
+        cgcNote +
+
+        '<section aria-labelledby="flow-h"><h2 id="flow-h">What happens when you order</h2>' +
+        '<p class="gloss">An order is a three-step path: you place it, an agreement is formed, and value settles privately on your wallet.</p>' +
+        '<ol class="stack" style="padding-inline-start:0;margin-block-start:var(--space-3)">' + stepperHtml + '</ol></section>' +
+
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails on every order</h2><ul>' +
+        '<li><strong>Both sides must sign.</strong> The engine rejects a single-sided contract — an order is only an agreement once buyer and seller both consent · <span class="citation">Art. I Supremacy of Rights</span></li>' +
+        '<li><strong>Identical terms for everyone.</strong> A CGC trades on the same Open Market as any private seller; its IP stays perpetually public domain · <span class="citation">Art. III §5</span></li>' +
+        '<li><strong>Your purchase is private.</strong> The receipt and the unit movement write only your local ledger — never federated, like a ballot.</li>' +
+        '<li><strong>No paywall on civic rights.</strong> Trading here can never become a cost attached to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '</ul></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

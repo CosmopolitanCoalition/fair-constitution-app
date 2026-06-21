@@ -16,8 +16,28 @@ spec `App Docs/CGA_Mockups_v2_Build_Instructions.md`.
 | Stage | What | State |
 |---|---|---|
 | 0 | Foundation + launchpad | **done** — `index.html`, `assets/js/shell-v2.js`, `assets/js/fixtures-v2.js`, `assets/css/v2.css`, `manifest.json`/`manifest.js`, `shared/coverage.html` |
-| 1 | **The Live Civic Room keystone** | **done** — `shared/live-room.html` + this config contract; all 8 meeting types instantiate it |
-| 2–6 | Journeys · groups/connective · economy · classes 4&5 · polish | **next** (each badged in the launchpad + coverage) |
+| 1 | **The Live Civic Room keystone** | **done** — `shared/live-room.html` + this config contract; all 8 meeting types instantiate it; the embodied chamber view (`assets/js/chamber-v2.js`) is the hero |
+| 1+ | Embodied chamber view | **done** — institution-accurate SVG seating (hemicycle / courtroom / board / committee / stage / round table / circle), active-speaker glow, move-to-floor, live vote-colouring |
+| 2 | Journeys | **done** — `journeys/journey.html` renders all 13 from `?id=`: progress rail, now/your-part/next, live rooms + v1 deep-links |
+| L/M | **The economy** | **done (Planned-badged)** — `economy/` exchange, marketplace (+detail), requests (+detail), wallet, joint-ledgers, units & monetary policy, civic stipend, treasury, agreements (+detail), org economics |
+| K | Profiles + social + rep↔citizen | **done** — `social/` profile, org-profile, rep, social-home |
+| 3 | Connective | **done** — `civic/today.html`, `civic/my-civic-life.html` |
+| 3,5,I | groups · legitimacy · classes 4&5 polish | **next** |
+
+### Economy + social build (this hand-off)
+The economic model is grounded in the constitution (see `CONSTITUTION-CURRENCY-OPS.md`) and the
+treasury / civic-stipend design docs. The data spine is `assets/js/fixtures-econ.js`
+(`CGA.fixtures.v2.econ`): currency + subdivisions (Art. V §5 measurement standards), the
+dual-door monetary levers (F-LEG-031), the economic clock (`ubi_period_days` sweep), the civic
+stipend as a **capped role differential** (operator / moderator / office-holder — never a
+salary), public/private accounts, **joint-controlled ledgers** (Art. V §2 + Art. I), the private
+wallet (never federated), marketplace ↔ request board, instruments of agreement (each with the
+Supremacy-of-Rights floor), treasury/budget/ledger, stock (Art. III §5), dues, taxes (Art. V §4,
+never on a civic right — Art. II §8), and the rep↔citizen data. Every economy surface badges
+itself **Planned** (Phases L/M are design-ahead; the forms F-LEG-037…040, F-IND-018…023,
+F-TRE-001…004, F-ORG-008 are reserved, not registered). All built via a fan-out against the
+reference page (`economy/economy-home.html`); `qa_scan.py` clean; every page one h1, no console
+errors, no 360 px overflow.
 
 Verified: launchpad (5 classes, 13 journeys, 8 room variants), all 8 room variants render
 (one h1 each, locked agenda on the legislative variant), interactions work (assume chair →

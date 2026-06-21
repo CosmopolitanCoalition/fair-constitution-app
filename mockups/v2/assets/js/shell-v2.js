@@ -129,8 +129,8 @@
 
     section('Start here');
     linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
-    linkV2('today', 'Today', 'home', 'civic/today.html', 'Stage 3');
-    linkV2('my-civic-life', 'My civic life', 'file-text', 'civic/my-civic-life.html', 'Stage 3');
+    linkV2('today', 'Today', 'home', 'civic/today.html');
+    linkV2('my-civic-life', 'My civic life', 'file-text', 'civic/my-civic-life.html');
     endSection();
 
     section('The Live Civic Room');
@@ -143,19 +143,28 @@
 
     section('Journeys');
     V2.journeys.forEach(function (j) {
-      var stage = j.status === 'planned-layer' ? (j.phase || 'Planned') : 'Stage 2';
-      linkV2('journey-' + j.id, j.title.replace(/^An? /, ''), j.flagship ? 'vote' : 'file-text', 'journeys/' + j.id + '.html', stage);
+      linkV2('journey-' + j.id, j.title.replace(/^An? /, ''), j.flagship ? 'vote' : 'file-text', 'journeys/journey.html?id=' + j.id);
     });
     endSection();
 
     section('The economy · Planned');
-    linkV2('marketplace', 'Marketplace', 'building', 'economy/marketplace.html', 'Phase M');
-    linkV2('requests', 'Request board', 'users', 'economy/requests.html', 'Phase M');
-    linkV2('stipend', 'Civic stipend', 'refresh-cw', 'economy/stipend.html', 'Phase M');
-    linkV2('treasury', 'Public finance', 'bar-chart', 'economy/treasury.html', 'Phase L');
+    linkV2('economy-home', 'The exchange', 'bar-chart', 'economy/economy-home.html');
+    linkV2('marketplace', 'Marketplace', 'building', 'economy/marketplace.html');
+    linkV2('requests', 'Request board', 'users', 'economy/requests.html');
+    linkV2('agreements', 'Agreements', 'file-text', 'economy/agreements.html');
+    linkV2('wallet', 'My wallet', 'lock', 'economy/wallet.html');
+    linkV2('joint-ledgers', 'Joint ledgers', 'users', 'economy/joint-ledgers.html');
+    linkV2('units', 'Units & money', 'sliders', 'economy/units.html');
+    linkV2('stipend', 'Civic stipend', 'refresh-cw', 'economy/stipend.html');
+    linkV2('treasury', 'Public finance', 'bar-chart', 'economy/treasury.html');
+    linkV2('org-settings', 'Org economics', 'building', 'economy/org-settings.html');
     endSection();
 
-    section('Groups & reach');
+    section('People & social');
+    linkV2('profile', 'My profile', 'user', 'social/profile.html');
+    linkV2('org-profile', 'Organizations', 'building', 'social/org-profile.html');
+    linkV2('rep', 'My representative', 'landmark', 'social/rep.html');
+    linkV2('social-home', 'Social', 'users', 'social/social-home.html');
     linkV2('groups', 'Informal groups', 'users', 'groups/groups-home.html', 'Stage 3');
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
     endSection();

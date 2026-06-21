@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Social — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="social-root"><p class="gloss">Loading the square…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'social/social-home', title: 'Social', module: 'social', nav: 'my-civic-life', citation: 'The public square — open resident discourse · Art. I', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+
+    /* the personal profile lives on fixtures-econ in the full economy site, but
+       the social home carries its own light feed + a follows summary drawn from
+       the v2 personas. Compose a few pseudonymous square posts in-page. */
+    var me = { handle: 'amara', name: 'Amara Okafor', followsCount: 84, followersCount: 212 };
+
+    /* recent square posts — pseudonymous @u-handles; seat badges where the
+       author is a seated rep speaking in their own capacity. */
+    var feed = [
+      { handle: 'amara', seat: null, when: '12m',
+        body: 'Filed today’s depot air readings as committee testimony — they exceed the planetary baseline on still days. The Clean Air Act hearing is tonight; anyone in New York County can watch or speak.',
+        room: 'committee', tags: ['clean-air-act', 'harbor'] },
+      { handle: 'marcus', seat: { role: 'legislature_member', label: 'Committee chair' }, when: '34m',
+        body: 'The Environment & Infrastructure committee opens public testimony on the Clean Air Act at 7pm. I chair, but the floor is yours — bring your readings, your block, your bus stop.',
+        room: 'committee', tags: ['clean-air-act'] },
+      { handle: 'u-pier7', seat: null, when: '1h',
+        body: 'Three Saturdays of harbor cleanup and Pier 7 already looks different. Next crew meeting is open — the Harbor Cleanup Crew is a voluntary group, no sign-up gate.',
+        room: 'group', tags: ['harbor'] },
+      { handle: 'yuki', seat: { role: 'speaker', label: 'Speaker' }, when: '2h',
+        body: 'Reminder: a square post is talk, not a vote. If you want the participatory-budget pilot on the agenda, it goes through the petition, then a referendum — not a like count.',
+        room: 'townhall', tags: ['participatory-budget'] }
+    ];
+
+    function seatBadge(seat) {
+      if (!seat) return '';
+      return ' ' + S.badge('info', seat.label, 'landmark');
+    }
+    function tagChips(tags) {
+      return (tags || []).map(function (t) {
+        return '<span class="tag-chip">#' + esc(t) + '</span>';
+      }).join(' ');
+    }
+    function postRow(p) {
+      var roomLink = p.room
+        ? '<a href="' + S.hrefV2('shared/live-room.html?variant=' + esc(p.room)) + '">' +
+          S.icon('users', { size: 'sm' }) + ' open the room ' + S.icon('arrow-right', { size: 'sm' }) + '</a>'
+        : '';
+      return '<article class="lr-note" style="flex-direction:column;align-items:stretch">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline;gap:var(--space-2)">' +
+        '<span><span class="rec-handle" style="font-size:var(--text-sm)">@u-' + esc(p.handle) + '</span>' + seatBadge(p.seat) + '</span>' +
+        '<span class="citation">' + esc(p.when) + '</span></div>' +
+        '<p style="margin-block:var(--space-1)">' + esc(p.body) + '</p>' +
+        '<div class="cluster" style="justify-content:space-between;gap:var(--space-2)">' +
+        '<span>' + tagChips(p.tags) + '</span>' + roomLink + '</div></article>';
+    }
+
+    function render() {
+      var entries = [
+        { kind: 'v1', rel: 'civic/civic-home.html', icon: 'globe', title: 'The public square',
+          note: 'Open resident discourse — uncensorable, pseudonymous, governed only by the four carve-outs.' },
+        { kind: 'v2', rel: 'shared/live-room.html?variant=townhall', icon: 'landmark', title: 'The halls of governance',
+          note: 'The testimony bridge — speak into the public record at a hearing, town hall, or floor session.' },
+        { kind: 'v2', rel: 'groups/groups-home.html', icon: 'users', title: 'Groups',
+          note: 'Voluntary associations — start a crew, join a circle. Membership is private and confers no governance power.' }
+      ];
+      var cards = entries.map(function (e) {
+        var href = e.kind === 'v1' ? S.hrefV1(e.rel) : S.hrefV2(e.rel);
+        var tag = e.kind === 'v1' ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '';
+        var planned = (e.kind === 'v2' && !S.isBuiltV2(e.rel)) ? ' ' + S.plannedFlag('Stage 3') : '';
+        return '<a class="role-card" href="' + href + '">' + S.icon(e.icon) +
+          '<span class="role-name">' + esc(e.title) + tag + planned + '</span><span>' + esc(e.note) + '</span>' +
+          '<span class="enter-as">Open ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }).join('');
+
+      var posts = feed.map(postRow).join('');
+
+      document.getElementById('social-root').innerHTML =
+        '<header><span class="eyebrow">My civic life · the public square</span><h1>Social</h1>' +
+        '<p class="page-intro">Where residents talk. Follow your neighbors and your representatives, ' +
+        'read the square, and step into the halls when you want your words on the record. ' +
+        'The square is for talk; <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> is for trade — they never mix.</p>' +
+        '<p class="citation">The public square — open resident discourse · Art. I</p></header>' +
+
+        /* follows / following summary */
+        '<section class="card" aria-labelledby="me-h">' +
+        '<div class="profile-head">' +
+        '<span class="profile-avatar" aria-hidden="true">' + esc(me.name.slice(0, 1)) + '</span>' +
+        '<div><h2 id="me-h" style="margin:0">' + esc(me.name) +
+        ' <span class="rec-handle" style="font-size:var(--text-base)">@u-' + esc(me.handle) + '</span></h2>' +
+        '<div class="profile-stats" style="margin-block-start:var(--space-2)">' +
+        '<span class="profile-stat"><b>' + me.followsCount + '</b> following</span>' +
+        '<span class="profile-stat"><b>' + me.followersCount + '</b> followers</span>' +
+        '<span class="profile-stat"><b>2</b> groups</span></div></div></div>' +
+        '<p class="never-federated" style="margin-block-start:var(--space-3)">' + S.icon('lock', { size: 'sm' }) +
+        ' Who you follow is private to this server — never federated, like a ballot.</p></section>' +
+
+        /* entry cards */
+        '<section aria-labelledby="go-h"><h2 id="go-h">Where to go</h2><div class="role-grid">' + cards + '</div></section>' +
+
+        /* the feed */
+        '<section aria-labelledby="feed-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 id="feed-h">Recent in the square</h2>' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('civic/civic-home.html') + '">' +
+        S.icon('globe', { size: 'sm' }) + ' Open the full square <span class="v1-tag">v1</span></a></div>' +
+        '<div class="stack">' + posts + '</div>' +
+        '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
+        ' A post is talk, not an act. To enter words into the immutable public record, testify in the halls — ' +
+        'render with the testimony form ' +
+        '<span class="form-chip">Public statement <span class="form-id">F-SOC-002</span></span>.</p></section>' +
+
+        /* the uncensorable + pseudonymity guarantee */
+        '<section class="card" aria-labelledby="rights-h"><h2 id="rights-h">The square is uncensorable</h2>' +
+        '<p>The public square is a constitutional right of speech. There is no viewpoint-removal control — ' +
+        'no operator, moderator, admin, or legislative act can take a post down for what it says. ' +
+        'Only four content-neutral carve-outs ever apply.</p>' +
+        '<ul>' +
+        '<li><strong>True threats &amp; incitement</strong> — speech that is itself a crime of violence, not an opinion.</li>' +
+        '<li><strong>Targeted harassment</strong> — conduct aimed at silencing another resident, not a viewpoint.</li>' +
+        '<li><strong>Privacy &amp; doxxing</strong> — publishing another person’s private identifying data.</li>' +
+        '<li><strong>Vote &amp; ballot integrity</strong> — impersonation or fraud that corrupts an election.</li>' +
+        '</ul>' +
+        '<p class="lr-note">' + S.icon('shield', { size: 'sm' }) +
+        ' <span><strong>Pseudonymous by default.</strong> You speak as your <span class="rec-handle">@u-handle</span>, ' +
+        'never your legal name on the wire. Seated representatives may carry a seat badge so constituents can ' +
+        'recognize them — that is a choice, not a requirement.</span></p>' +
+        '<p class="citation">Uncensorable public square — speech &amp; association · Art. I (HARDENED) · four content-neutral carve-outs only</p>' +
+        '</section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

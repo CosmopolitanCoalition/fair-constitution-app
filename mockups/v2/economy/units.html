@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Units &amp; monetary policy — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading units &amp; monetary policy…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/units', title: 'Units & monetary policy', module: 'economy', nav: 'units', citation: 'Currency Production and Regulation · Art. V §5 (reserved to the root jurisdiction, HARDENED)', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. The unit is abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function kindLabel(k) {
+      return k === 'monetary' ? 'Monetary' : 'Policy';
+    }
+
+    function render() {
+      var c = E.currency;
+
+      /* ---- Section 1: the unit-stack of subdivisions ---- */
+      var unitChips = c.subdivisions.map(function (u) {
+        return '<div class="unit-chip">' +
+          '<span class="u-sym">' + esc(u.symbol) + '</span>' +
+          '<span>' + esc(u.name) + '</span>' +
+          '<span class="u-factor">×' + esc(u.factor) + '</span>' +
+          (u.note ? '<span class="u-factor">· ' + esc(u.note) + '</span>' : '') +
+          '</div>';
+      }).join('');
+
+      /* ---- Section 2: a lever-row per monetary key ---- */
+      var levers = E.monetaryKeys.map(function (k) {
+        return '<div class="lever-row">' +
+          '<span class="lever-key">' + esc(k.key) + '</span>' +
+          '<span class="lever-val">' + esc(k.value) + '</span>' +
+          '<span class="dual-door">' + S.icon('lock', { size: 'sm' }) + esc(k.gate) + '</span>' +
+          '<span class="pill pill--info" title="' + esc(kindLabel(k.kind)) + ' lever">' + esc(k.label) + '</span>' +
+          '<span class="citation" style="margin-inline-start:auto">' + esc(k.enactingAct) + ' · ' + esc(k.cite) + '</span>' +
+          '</div>';
+      }).join('');
+
+      var clk = E.economicClock;
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the Open Market</span>' +
+        '<h1>Units &amp; monetary policy</h1>' +
+        '<p class="page-intro">The unit of account, what it is worth, how it subdivides — and the dual-door levers that set every one of those. ' +
+        'The currency, its worth, and its measurement standards are reserved to ' + esc(c.issuerLabel) + ': the most-encompassing jurisdiction alone produces it.</p>' +
+        '<p class="citation">' + esc(c.citation) + '</p></header>' +
+
+        plannedBanner() +
+
+        /* ============================ SECTION 1 — THE UNIT ============================ */
+        '<section class="card" aria-labelledby="unit-h">' +
+        '<h2 id="unit-h">The unit</h2>' +
+        '<p class="gloss">' + esc(c.abstractNote) + '</p>' +
+        '<div class="grid-2" style="margin-block:var(--space-3)">' +
+          '<div class="card card--inset"><span class="eyebrow">Name</span><p style="font-size:var(--text-lg);color:var(--gov-fg)">' +
+            '<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + '</p>' +
+            '<p class="citation">code ' + esc(c.code) + ' · symbol ' + esc(c.symbol) + ' · precision ' + esc(c.precision) + ' places</p></div>' +
+          '<div class="card card--inset"><span class="eyebrow">Kind &amp; issuer</span>' +
+            '<p style="color:var(--gov-fg)">' + S.badge('info', c.unitKind.replace(/_/g, ' '), 'sliders') + '</p>' +
+            '<p class="gloss">Issued by ' + esc(c.issuerLabel) + ' — no lower jurisdiction may mint.</p>' +
+            '<p class="citation">Art. V §5 · reserved to the root</p></div>' +
+        '</div>' +
+
+        '<h3>Subdivisions — the measurement-standards power</h3>' +
+        '<p class="gloss">Defining the unit and how it subdivides is the constitutional power to <strong>set standards for measurements</strong>. ' +
+        'It lives at the root for the same reason the currency does — one shared yardstick across the whole federation.</p>' +
+        '<div class="unit-stack" style="margin-block:var(--space-3)">' + unitChips + '</div>' +
+
+        '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
+          '<div class="agreement-floor"><div><strong>Worth basis.</strong> ' + esc(c.worthBasis) + '</div></div>' +
+          '<div class="agreement-floor"><div><strong>Standards basis.</strong> ' + esc(c.standardsBasis) + '</div></div>' +
+        '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-3)">Currency Production and Regulation · Art. V §5 — reserved to the root jurisdiction · HARDENED</p>' +
+        '</section>' +
+
+        /* ===================== SECTION 2 — THE MONETARY LEVERS ===================== */
+        '<section class="card" aria-labelledby="lever-h">' +
+        '<h2 id="lever-h">The monetary levers</h2>' +
+        '<p class="page-intro">Each lever below is a root-scoped setting. None is an admin knob. Every value shown was set by a ' +
+        'legislative act and can only be changed by another.</p>' +
+
+        '<div class="banner banner--warning" role="note">' + S.icon('lock', { size: 'sm' }) +
+        '<div>These keys change <strong>only</strong> through a single dual-door act — ' +
+        '<span class="form-chip">Monetary policy act <span class="form-id">F-LEG-031</span></span> — ' +
+        'requiring a chamber supermajority <em>and</em> constituent consent. ' +
+        'No operator, admin panel, or unilateral executive order can move them. ' +
+        '<span class="citation">F-LEG-031 · Art. VII (supermajority) · Art. V §5</span></div></div>' +
+
+        '<div style="margin-block-start:var(--space-4)">' + levers + '</div>' +
+
+        '<div class="lr-note" style="margin-block-start:var(--space-4)">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Currency-agnostic.</strong> The demo instance runs a social-credit unit, but the same levers and surfaces ' +
+        'serve a fiat, commodity-backed, or pegged currency without change — only the values differ. ' +
+        'The constitution fixes <em>who decides</em> and <em>how</em>, never <em>which</em> currency.</div></div>' +
+
+        '<div class="econ-clock" style="margin-block-start:var(--space-4)">' +
+        '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
+        '<div><strong style="color:var(--gov-fg)">The interval is itself a lever.</strong> ' + esc(clk.label) + '. ' +
+        '<span class="citation">next run ' + esc(clk.nextRun) + ' · ' + esc(clk.cite) + '</span><br />' +
+        '<span class="gloss">The economic clock’s cadence (' + esc(clk.key) + ') is a dual-door key like any other — the legislature can lengthen or shorten it.</span></div></div>' +
+
+        '<p class="citation" style="margin-block-start:var(--space-3)">' +
+        'Back to <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> · ' +
+        'the worker/shareholder parity math at <span class="v1-tag">v1</span> <a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination</a>.</p>' +
+        '</section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

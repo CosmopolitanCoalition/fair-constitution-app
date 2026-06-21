@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Work posting — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the work posting…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/request-detail', title: 'Work posting', module: 'economy', nav: 'requests', citation: 'The request board — work postings · Art. I (freedom to contract), Art. III §6', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> This surface is design-ahead of code: the forms (F-IND-014, F-IND-019) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function chip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    function render() {
+      var post = E.requests.work[0];
+      var c = E.currency;
+
+      // Lifecycle stepper — apply -> org accepts -> F-IND-014 -> contract -> headcount
+      var steps = [
+        { n: 1, title: 'You apply', actor: 'The worker', cite: 'Art. I — freedom to contract',
+          body: 'Any associated resident may apply. There is no means test and no qualification gate — applying never touches a civic right.' },
+        { n: 2, title: 'The organization accepts', actor: post.org, cite: 'A mutual act',
+          body: 'The hiring org reviews applications and accepts. Acceptance is the trigger — nothing binds until both sides act.' },
+        { n: 3, title: 'Worker registration files', actor: 'The engine', form: ['Worker Registration', 'F-IND-014'],
+          body: 'Acceptance runs ' + chip('Worker Registration', 'F-IND-014') + ', which writes an <code>org_contracts</code> row of kind <code>labor_recurring</code>. Both parties sign on the record; the engine rejects a single-sided contract.' },
+        { n: 4, title: 'The hire counts toward co-determination', actor: 'Headcount', cite: 'Art. III §6',
+          body: 'The new <code>labor_recurring</code> contract increments the org’s worker headcount. A single hire can cross the <strong>100-employee first-seat threshold</strong> that earns workers a seat on the board.' }
+      ];
+
+      function stepRow(s) {
+        var meta = s.form
+          ? chip(s.form[0], s.form[1])
+          : '<span class="citation">' + esc(s.cite) + '</span>';
+        return '<li class="card card--inset stack" style="gap:var(--space-2)">' +
+          '<div class="cluster" style="gap:var(--space-2);align-items:center">' +
+          '<span class="form-id" aria-hidden="true">' + s.n + '</span>' +
+          '<strong style="color:var(--gov-fg)">' + esc(s.title) + '</strong>' +
+          S.badge('neutral', s.actor) + '</div>' +
+          '<p style="margin:0">' + s.body + '</p>' +
+          '<div>' + meta + '</div></li>';
+      }
+
+      var hero =
+        '<div class="card card--inset stack">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-3)">' +
+        '<div class="stack" style="gap:var(--space-1)">' +
+        '<span class="offer-kind">' + S.icon('briefcase', { size: 'sm' }) + ' Work posting · ' + esc(post.id) + '</span>' +
+        '<strong style="color:var(--gov-fg);font-size:var(--text-lg)">' + esc(post.title) + '</strong>' +
+        '<span class="offer-seller">' + S.icon('building', { size: 'sm' }) + ' ' + esc(post.org) + '</span></div>' +
+        '<div class="stack" style="gap:var(--space-1);text-align:end">' +
+        '<span class="offer-price">' + esc(post.rate) + '</span>' +
+        '<span class="offer-kind">recurring labor · ' + esc(c.code) + '</span></div></div>' +
+        '<div class="cluster" style="gap:var(--space-2)">' +
+        S.pill('info', 'Hiring now', 'Open work posting on the request board') +
+        S.pill('info', 'Recurring shifts', 'org_contracts(labor_recurring)') +
+        chip('Work Posting', post.form) + '</div></div>';
+
+      var partyBoth =
+        '<div class="agreement-floor">' + S.icon('lock', { size: 'sm' }) +
+        '<span>Both parties sign. The worker and ' + esc(post.org) + ' each consent on the record — ' +
+        'the engine rejects any single-sided contract · <span class="citation">Art. I — Supremacy of Rights, no clause may waive a right</span></span></div>';
+
+      var parties =
+        '<div class="agreement-parties">' +
+        '<span class="party-chip">' + S.icon('user', { size: 'sm' }) + ' The applying resident <span class="party-role">worker</span></span>' +
+        '<span class="party-chip">' + S.icon('building', { size: 'sm' }) + ' ' + esc(post.org) + ' <span class="party-role">organization</span></span>' +
+        '</div>';
+
+      var codeterm =
+        '<section class="card stack" aria-labelledby="cd-h">' +
+        '<h2 id="cd-h">Why a hire matters — the co-determination threshold</h2>' +
+        '<p>Each accepted application adds a <code>labor_recurring</code> contract to the organization’s worker count. ' +
+        'The constitution earns workers board representation by headcount — the math is hardened and unamendable.</p>' +
+        '<ul class="stack" style="gap:var(--space-2)">' +
+        '<li><strong>First worker seat at 100 employees.</strong> The hire that crosses 100 unlocks the org’s first board seat for workers · <span class="citation">Art. III §6 · HARDENED · worker_rep_min_employees</span></li>' +
+        '<li><strong>Worker / owner parity at 2,000 employees.</strong> Above parity, workers and owners hold equal board power · <span class="citation">Art. III §6 · worker_rep_parity_employees</span></li>' +
+        '<li><strong>No clause can waive it.</strong> A labor contract cannot bargain away the worker’s representation right · <span class="citation">Art. I — Supremacy of Rights</span></li>' +
+        '</ul>' +
+        '<p>See the live calculation on the operations site: ' +
+        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">Co-determination math <span class="v1-tag" title="opens the v1 operations site">v1</span></a> ' +
+        '(' + chip('Co-Determination', 'CLK-13/14') + ').</p>' +
+        '</section>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the request board</span><h1>Work posting</h1>' +
+        '<p class="page-intro">One job on the board, end to end: the rate, the organization, and exactly what happens when an application is accepted — ' +
+        'down to the constitutional row it writes and the board seat it can earn.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        plannedBanner() +
+        '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + ' Your application and any resulting contract terms are private — never federated, like a ballot. Only the public co-determination headcount aggregate leaves this server.</p>' +
+        hero +
+        '<section class="card stack" aria-labelledby="parties-h"><h2 id="parties-h">The two parties</h2>' +
+        parties + partyBoth + '</section>' +
+        '<section aria-labelledby="life-h" class="stack"><h2 id="life-h">The application lifecycle</h2>' +
+        '<p class="gloss">From applying to a seated worker representative — four acts, each on the record.</p>' +
+        '<ol class="stack" style="list-style:none;padding:0;margin:0;gap:var(--space-3)">' +
+        steps.map(stepRow).join('') + '</ol></section>' +
+        codeterm +
+        '<div class="cluster" style="gap:var(--space-2)">' +
+        '<a class="btn btn--secondary" href="' + S.hrefV2('economy/requests.html') + '">' +
+        S.icon('arrow-right', { size: 'sm' }) + ' Back to the request board</a>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('economy/agreements.html') + '">' +
+        S.icon('file-text', { size: 'sm' }) + ' See instruments of agreement</a></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

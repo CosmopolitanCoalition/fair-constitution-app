@@ -102,18 +102,15 @@
         document.getElementById('journey-list').innerHTML = V2.journeys.map(function (j) {
           var cls = V2.byClass[j.cls];
           var built = j.status === 'built-layer';
-          var rel = 'journeys/' + j.id + '.html';
-          var isBuilt = S.isBuiltV2(rel);
+          var rel = 'journeys/journey.html?id=' + j.id;
           var head = '<div class="cluster" style="justify-content:space-between">' +
             '<div class="cluster">' +
             (j.flagship ? '<span class="pill pill--vote" title="The flagship journey">Flagship</span> ' : '') +
             '<strong style="color:var(--gov-fg)">' + esc(j.title) + '</strong>' +
             '<span class="tag-chip" title="Interaction class ' + cls.n + '">' + esc(cls.title) + '</span>' +
+            (built ? '' : '<span class="pill pill--planned" title="Design-ahead of code — ' + esc(j.phase || '') + '">Planned · ' + esc(j.phase || '') + '</span>') +
             '</div>' +
-            (built
-              ? (isBuilt ? '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(rel) + '">Open journey ' + S.icon('arrow-right', { size: 'sm' }) + '</a>'
-                         : '<span class="planned-flag">Stage 2</span>')
-              : '<span class="pill pill--planned" title="Design-ahead of code — ' + esc(j.phase || '') + '">Planned · ' + esc(j.phase || '') + '</span>') +
+            '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(rel) + '">Open journey ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
             '</div>';
           var rail = '<ol class="journey-rail" aria-label="Progress">' + j.rail.map(function (step, i) {
             return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +

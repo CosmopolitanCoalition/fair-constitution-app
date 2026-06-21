@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marketplace — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the marketplace…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/marketplace', title: 'Marketplace', module: 'economy', nav: 'marketplace', citation: 'The Open Market — offers · Art. I (economic freedom), Art. III §5', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function kindLabel(k) { return k === 'service' ? 'Service' : 'Good'; }
+
+    function formChip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    function offerCard(o) {
+      var tags = (o.tags || []).map(function (tg) {
+        return '<span class="tag-chip">' + esc(tg) + '</span>';
+      }).join('');
+      var cgc = o.cgc
+        ? '<span class="cgc-badge">' + S.icon('shield', { size: 'sm' }) + ' Common Good Corp</span>' +
+          '<span class="citation">identical terms · Art. III §5</span>'
+        : '';
+      var note = (o.cgc && o.note)
+        ? '<p class="gloss" style="margin:0">' + esc(o.note) + '</p>'
+        : '';
+      return '<article class="offer-card">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-2)">' +
+          '<h3 style="font-size:var(--text-base);margin:0">' + esc(o.title) + '</h3>' +
+          S.badge(o.kind === 'service' ? 'info' : 'neutral', kindLabel(o.kind)) +
+        '</div>' +
+        '<span class="offer-kind">' + S.icon(o.kind === 'service' ? 'briefcase' : 'building', { size: 'sm' }) + ' ' + esc(kindLabel(o.kind)) + ' · qty ' + esc(String(o.qty)) + '</span>' +
+        '<span class="offer-price">' + esc(o.price) + '</span>' +
+        '<span class="offer-seller">' + S.icon('user', { size: 'sm' }) + ' ' + esc(o.seller) + ' <span class="party-role">' + esc(o.sellerKind.replace(/_/g, ' ')) + '</span></span>' +
+        (cgc ? '<div class="cluster" style="gap:var(--space-1);align-items:center">' + cgc + '</div>' : '') +
+        note +
+        (tags ? '<div class="cluster" style="gap:var(--space-1)">' + tags + '</div>' : '') +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-1)">' +
+          '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('file-text', { size: 'sm' }) + ' View</a>' +
+          '<a class="btn btn--primary btn--sm" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('check', { size: 'sm' }) + ' Place an order</a>' +
+        '</div>' +
+        '<div class="cluster" style="gap:var(--space-1)"><span class="gloss" style="font-size:var(--text-xs)">Ordering files</span> ' + formChip('Place an order', 'F-IND-022') + '</div>' +
+        '</article>';
+    }
+
+    function render() {
+      var offers = E.marketplace;
+      var goods = offers.filter(function (o) { return o.kind === 'good'; }).length;
+      var services = offers.length - goods;
+
+      var theSwitch =
+        '<div class="offer-request-switch" role="group" aria-label="Offers or requests">' +
+          '<button type="button" aria-pressed="true">Offers</button>' +
+          '<a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/requests.html') + '" style="border-radius:0" role="button">Requests</a>' +
+        '</div>';
+
+      var cards = offers.map(offerCard).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The Open Market · offers</span><h1>Marketplace</h1>' +
+        '<p class="page-intro">Goods and services on offer to anyone. The Open Market is open to every resident — no licence, no membership, ' +
+        'no permission needed to buy or to list. ' + S.icon('arrow-right', { size: 'sm' }) + ' Looking for the mirror? The ' +
+        '<a href="' + S.hrefV2('economy/requests.html') + '">request board</a> carries work postings and mutual-aid requests. ' +
+        'Offer ↔ request.</p>' +
+        '<p class="citation">Economic freedom — the right to trade · Art. I · The Open Market — a Common Good Corp sells on identical terms · Art. III §5</p>' +
+        '<div class="cluster" style="gap:var(--space-3);align-items:center;margin-block-start:var(--space-2)">' + theSwitch +
+          '<span class="gloss">' + esc(String(offers.length)) + ' open offers · ' + esc(String(goods)) + ' goods · ' + esc(String(services)) + ' services</span></div>' +
+        '</header>' +
+        plannedBanner() +
+        '<section aria-labelledby="grid-h">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:center">' +
+            '<h2 id="grid-h">Open offers</h2>' +
+            '<a class="btn btn--primary" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('building', { size: 'sm' }) + ' List something</a>' +
+          '</div>' +
+          '<p class="gloss" style="margin-block:0 var(--space-3)">Anyone — a person, a business, a nonprofit, or a Common Good Corp — can post an offer. ' +
+          'Listing files ' + formChip('List an offer', 'F-IND-021') + '.</p>' +
+          '<div class="offer-grid">' + cards + '</div>' +
+        '</section>' +
+        '<section class="card card--inset" aria-labelledby="rails-h">' +
+          '<h2 id="rails-h">How the market holds</h2>' +
+          '<ul>' +
+            '<li><strong>The unit is abstract.</strong> Prices are quoted in the <span class="unit-symbol">' + esc(E.currency.symbol) + '</span> ' + esc(E.currency.name) + ' (' + esc(E.currency.code) + ') — an abstract unit of account with no payment rails and no custody, never touching outside finance.</li>' +
+            '<li><strong>Common Good Corps trade like anyone else.</strong> A CGC posts, prices, and sells on identical terms to a private seller; its IP stays perpetually public domain · <span class="citation">Art. III §5</span></li>' +
+            '<li><strong>No paywall on civic rights.</strong> Buying or selling here never gates voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+            '<li><strong>Placing an order opens an instrument of agreement,</strong> with a constitutional floor no clause can waive · <span class="citation">Art. I Supremacy of Rights · F-IND-022</span></li>' +
+          '</ul>' +
+          '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + ' Your purchases are private — orders, receipts, and balances live only on this server and are never federated, like a ballot.</p>' +
+        '</section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

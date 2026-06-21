@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Request board — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the request board…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/requests', title: 'Request board', module: 'economy', nav: 'requests', citation: 'The mirror of the market — work & mutual aid · Art. I', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function offerRequestSwitch() {
+      return '<div class="offer-request-switch" role="group" aria-label="offer or request">' +
+        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/marketplace.html') + '">' +
+          S.icon('building', { size: 'sm' }) + ' Offer</a>' +
+        '<button type="button" class="btn btn--primary btn--sm" aria-pressed="true" disabled>' +
+          S.icon('users', { size: 'sm' }) + ' Request</button>' +
+        '</div>';
+    }
+
+    function formChip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    function workCard(w) {
+      return '<div class="card offer-card">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:start">' +
+          '<div><h3 style="margin:0">' + esc(w.title) + '</h3>' +
+          '<span class="offer-seller">' + S.icon('building', { size: 'sm' }) + ' ' + esc(w.org) + '</span></div>' +
+          S.pill('vote', 'Hiring') +
+        '</div>' +
+        '<p class="offer-price">' + esc(w.rate) + '</p>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">Posting a job is a request for labor — the mirror of a marketplace offer. ' +
+          formChip('Work posting', w.form) + '</p>' +
+        '<div class="lr-note"><strong>On acceptance</strong> ' + esc(w.triggers) + '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">' +
+          'A hire that crosses the 100-worker line earns the first worker board seat · Art. III §6 · ' +
+          '<a href="' + S.hrefV1('organizations/co-determination.html') + '">this feeds co-determination ' +
+          S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a></p>' +
+        '</div>';
+    }
+
+    function aidCard(a) {
+      return '<div class="card offer-card">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:start">' +
+          '<div><h3 style="margin:0">' + esc(a.title) + '</h3>' +
+          '<span class="offer-seller">' + S.icon('user', { size: 'sm' }) + ' ' + esc(a.by) + '</span></div>' +
+          S.badge('info', 'Non-market', 'users') +
+        '</div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">A neighbor asking for help — no price, no contract, nothing to sell. ' +
+          esc(a.note || '') + '</p>' +
+        '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + ' ' + esc(a.privacy) +
+          ' — a mutual-aid request stays on this server, never federated.</div>' +
+        '</div>';
+    }
+
+    function neverFederated() {
+      return '<div class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        '<div><strong>Never federated.</strong> Mutual-aid requests are personal economic data — they live only on this server, like a ballot. They are never synced to peers.</div></div>';
+    }
+
+    function render() {
+      var work = (E.requests.work || []).map(workCard).join('');
+      var aid = (E.requests.assistance || []).map(aidCard).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the Open Market</span><h1>Request board</h1>' +
+        offerRequestSwitch() +
+        '<p class="page-intro">The mirror of the marketplace. A <strong>marketplace</strong> lists what people will <em>give</em> — goods and services for sale. The <strong>request board</strong> lists what people <em>need</em> — work to be done and a hand from a neighbor. Offer ↔ Request, the two sides of the same Open Market.</p>' +
+        '<p class="citation">The right to assemble, associate, and to economic freedom · Art. I</p></header>' +
+        plannedBanner() +
+
+        '<section aria-labelledby="work-h"><h2 id="work-h">' + S.icon('briefcase', { size: 'sm' }) + ' Work board</h2>' +
+        '<p class="gloss">Open labor postings. Applying and being accepted writes a real recurring-labor contract — and a recurring hire is what counts toward an organization’s co-determination headcount.</p>' +
+        '<div class="offer-grid">' + work + '</div></section>' +
+
+        '<section aria-labelledby="aid-h"><h2 id="aid-h">' + S.icon('users', { size: 'sm' }) + ' Mutual aid</h2>' +
+        '<p class="gloss">Help requested between people — non-market and private by default. No price, no contract: this is the freedom of association, not a trade.</p>' +
+        neverFederated() +
+        '<div class="offer-grid">' + aid + '</div></section>' +
+
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails on the request board</h2><ul>' +
+        '<li><strong>A job posting is a request, not a contract.</strong> The binding instrument is only written when both sides agree — ' + formChip('Recurring labor agreement', 'F-IND-014') + '</li>' +
+        '<li><strong>Hiring feeds co-determination automatically.</strong> Headcount from accepted recurring-labor contracts is what trips the 100-worker first-seat and 2000-worker parity thresholds · <span class="citation">Art. III §6</span></li>' +
+        '<li><strong>Mutual aid is off the market.</strong> No price, no ledger entry, no federation — a private request between people · <span class="citation">Art. I</span></li>' +
+        '<li><strong>No paywall on participation.</strong> Posting, answering, or asking for help can never cost a fee tied to a civic right · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '</ul></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>
