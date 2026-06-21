@@ -134,6 +134,55 @@ a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: no
 .lr-agenda-item .ag-title { color: var(--gov-fg-strong); }
 .lr-agenda-item.ag--none .ag-title { color: var(--gov-fg-subtle); font-style: italic; }
 
+/* ---- the embodied chamber view (the spatial "you are here" scene) ---- */
+.lr-chamber {
+  background: radial-gradient(ellipse at 50% 12%, color-mix(in oklch, var(--gov-primary) 14%, var(--gov-surface)) 0%, var(--gov-surface) 70%);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4) var(--space-2);
+}
+.lr-chamber-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); justify-content: space-between; margin-block-end: var(--space-1); }
+.lr-chamber-svg { inline-size: 100%; block-size: auto; max-block-size: 22rem; display: block; }
+.lr-chamber-legend { display: flex; flex-wrap: wrap; gap: var(--space-3); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.lr-chamber-legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.lr-legend-dot { inline-size: .6rem; block-size: .6rem; border-radius: var(--radius-full); }
+
+/* seats + actors */
+.cseat-ring { fill: var(--gov-surface-2); stroke: var(--gov-border-strong); stroke-width: 1.5; }
+.cseat-ini { fill: var(--gov-fg-strong); font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.cseat-no { fill: var(--gov-fg-subtle); font-family: var(--font-mono); font-size: 9px; }
+.cseat-badge { fill: var(--cc-gold-300); font-family: var(--font-mono); font-size: 9px; }
+.cseat--chair .cseat-ring { stroke: var(--cc-gold-400); stroke-width: 2.5; fill: color-mix(in oklch, var(--cc-gold-400) 16%, var(--gov-surface-2)); }
+.cseat--vacant .cseat-ring { stroke-dasharray: 3 3; fill: var(--gov-bg); }
+.cseat--speaking .cseat-ring { stroke: var(--status-success); stroke-width: 2.5; fill: color-mix(in oklch, var(--status-success) 22%, var(--gov-surface-2)); }
+.cseat-glow { fill: none; stroke: var(--status-success); stroke-width: 2; opacity: .5; animation: cglow 1.8s var(--ease-standard) infinite; }
+@keyframes cglow { 0%,100% { opacity: .55; r: 23px; } 50% { opacity: .12; r: 27px; } }
+/* votes colouring the seats as they come in */
+.cseat--vote-yes .cseat-ring    { fill: color-mix(in oklch, var(--status-success) 34%, var(--gov-surface-2)); stroke: var(--status-success); }
+.cseat--vote-no .cseat-ring     { fill: color-mix(in oklch, var(--status-danger) 32%, var(--gov-surface-2));  stroke: var(--status-danger); }
+.cseat--vote-abstain .cseat-ring{ fill: color-mix(in oklch, var(--status-warning) 30%, var(--gov-surface-2)); stroke: var(--status-warning); }
+
+/* tables / benches / zones / podium / stage */
+.ctable { fill: color-mix(in oklch, var(--gov-surface-2) 80%, var(--gov-bg)); stroke: var(--gov-border-strong); stroke-width: 1.5; }
+.cbench { fill: color-mix(in oklch, var(--cc-gold-400) 10%, var(--gov-surface-2)); }
+.czone rect { fill: color-mix(in oklch, var(--gov-surface-2) 70%, var(--gov-bg)); stroke: var(--gov-border); stroke-width: 1; }
+.czone.cwitness rect { stroke: var(--status-info); }
+.czone.cjury rect { fill: color-mix(in oklch, var(--status-info) 10%, var(--gov-bg)); stroke: color-mix(in oklch, var(--status-info) 45%, transparent); }
+.cjury .cseat-ring, .cjuror { fill: color-mix(in oklch, var(--status-info) 18%, var(--gov-surface-2)); stroke: color-mix(in oklch, var(--status-info) 45%, transparent); }
+.cgallery { fill: var(--gov-surface-2); stroke: var(--gov-border); }
+.czone-label { fill: var(--gov-fg-subtle); font-family: var(--font-sans); font-size: 11px; }
+.czone-tag { fill: var(--gov-fg-subtle); font-family: var(--font-mono); font-size: 10px; }
+.czone-tag--worker { fill: var(--status-info-fg); }
+.czone-tag--owner { fill: var(--status-warning-fg); }
+.cpodium rect { fill: color-mix(in oklch, var(--gov-primary) 22%, var(--gov-surface)); stroke: color-mix(in oklch, var(--gov-primary) 55%, transparent); stroke-width: 1.5; }
+.cstage { fill: var(--gov-border-strong); }
+.clectern { fill: var(--gov-surface-2); stroke: var(--gov-border-strong); }
+.clectern--live { fill: color-mix(in oklch, var(--status-success) 30%, var(--gov-surface-2)); stroke: var(--status-success); }
+
+/* the actor who stepped to the floor */
+.cwell-line { stroke: color-mix(in oklch, var(--status-success) 55%, transparent); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.cwell-name { fill: var(--status-success-fg); font-family: var(--font-sans); font-size: 11px; font-weight: 600; }
+.cwell-actor { transition: opacity var(--dur-slow) var(--ease-standard); }
+
 /* the two-pane body: stage + speaker rail */
 .lr-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 .lr-stage { display: flex; flex-direction: column; gap: var(--space-4); min-inline-size: 0; }

@@ -25,6 +25,7 @@
   </script>
   <script src="../../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/chamber-v2.js"></script>
   <script src="../manifest.js"></script>
   <script src="../../assets/js/icons.js"></script>
   <script src="../../assets/js/i18n.js"></script>
@@ -355,6 +356,19 @@
         }).join('') + '</div></section>';
     }
 
+    /* ---------- the embodied chamber scene (the hero) ---------- */
+    var SCENE_NAME = { committee: 'the committee room', legislative: 'the chamber', exec: 'the table', board: 'the board table', court: 'the courtroom', forum: 'the stage', townhall: 'the town hall', group: 'the circle' };
+    function chamberHtml() {
+      if (!window.CGA.chamber) return '';
+      var legend = '<div class="lr-chamber-legend">' +
+        '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> holds the floor</span>' +
+        (st.vote ? '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> yes</span><span><span class="lr-legend-dot" style="background:var(--status-danger)"></span> no</span><span><span class="lr-legend-dot" style="background:var(--status-warning)"></span> abstain</span>' : '') +
+        '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> chair</span></div>';
+      return '<section class="lr-chamber"><div class="lr-chamber-head">' +
+        '<span class="eyebrow">In ' + esc(SCENE_NAME[st.variant] || 'the room') + ' — you are here</span>' + legend + '</div>' +
+        window.CGA.chamber.svg(st, { voteActive: voteCalled }) + '</section>';
+    }
+
     /* ---------------------------- compose the page ---------------------------- */
     function render() {
       var rail =
@@ -367,6 +381,7 @@
       root.innerHTML =
         bandHtml() +
         nowNextHtml() +
+        chamberHtml() +
         agendaHtml() +
         '<div class="lr-body">' +
           '<div class="lr-stage">' + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
