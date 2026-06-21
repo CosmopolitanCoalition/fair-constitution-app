@@ -32,15 +32,22 @@ class FederationInitCommand extends Command
 
     public function handle(InstanceIdentityService $identity, ClockService $clocks): int
     {
+        // Mint (or rotate) and KEEP the authoritative singleton — then enable + print on the SAME
+        // object. The previous version called setEnabled() and the printers separately, each
+        // re-fetching the singleton via current(); if a duplicate settings row ever exists those
+        // fetches can diverge, so federation:init could mint the identity into one row and enable
+        // ANOTHER — the enabled-but-unminted half-state caught on a cold deploy (federation_enabled
+        // =true but server_id NULL → mesh:gates "identity minted" FAILs at Step 4). One object, one
+        // save. (current() is now deterministic too, which closes the divergence at the source.)
+        $settings = $this->option('rotate') ? $identity->rotate() : $identity->ensureIdentity();
+
         if ($this->option('rotate')) {
-            $identity->rotate();
             $this->warn('Federation identity ROTATED — peers must re-handshake.');
-        } else {
-            $identity->ensureIdentity();
         }
 
         $enable = ! $this->option('disable');
-        $settings = $identity->setEnabled($enable);
+        $settings->federation_enabled = $enable;
+        $settings->save();
 
         // Arm the recurring CLK-20 heartbeat (idempotent — retire any stale
         // armed timer first, then arm one if federation is on).
@@ -53,6 +60,16 @@ class FederationInitCommand extends Command
         if ($enable) {
             $minutes = max(1, (int) config('cga.federation_heartbeat_minutes', 5));
             $clocks->arm('CLK-20', firesAt: now()->addMinutes($minutes));
+        }
+
+        // Enabling the mesh MUST leave a persisted identity. Refuse to exit SUCCESS in the
+        // enabled-but-unminted half-state: it clears the /api/federation/* 404 wall yet fails the
+        // readiness gate, so a cold deploy would silently land "not ready to federate". Failing
+        // loud (non-zero) makes deploy.sh's `set -e` abort with this exact line instead.
+        if ($enable && ($settings->server_id === null || $settings->public_key === null)) {
+            $this->error('federation:init enabled the mesh but no identity persisted (server_id/public_key NULL).');
+
+            return self::FAILURE;
         }
 
         $this->info(sprintf('Federation %s.', $enable ? 'ENABLED' : 'disabled'));

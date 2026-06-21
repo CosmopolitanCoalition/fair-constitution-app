@@ -82,16 +82,25 @@ class InstanceSettings extends Model
     }
 
     /**
-     * Singleton accessor — first-or-create the one instance_settings row.
+     * Singleton accessor — the one instance_settings row.
+     *
+     * DETERMINISTIC: always the OLDEST row, so every caller (ensureIdentity, mesh:gates, the
+     * federation console, …) converges on the SAME settings even if a duplicate singleton row
+     * was ever created. firstOrCreate() is not atomic, so two concurrent callers on an empty
+     * table can each insert one; without a stable ORDER BY, separate current() calls could then
+     * return DIFFERENT duplicate rows — which is how a cold-deploy `federation:init` minted the
+     * identity into one row but enabled another, leaving the enabled-but-unminted half-state that
+     * fails mesh:gates "identity minted" at Step 4. The order makes that divergence impossible.
      */
     public static function current(): self
     {
-        return static::firstOrCreate([], [
-            'instance_name' => 'Unnamed Instance',
-            'map_mode' => 'physical_earth',
-            'time_mode' => 'real',
-            'setup_step_completed' => 0,
-        ]);
+        return static::query()->orderBy('created_at')->orderBy('id')->first()
+            ?? static::create([
+                'instance_name' => 'Unnamed Instance',
+                'map_mode' => 'physical_earth',
+                'time_mode' => 'real',
+                'setup_step_completed' => 0,
+            ]);
     }
 
     public function isSetupComplete(): bool
