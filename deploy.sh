@@ -121,8 +121,13 @@ SERVICES=(app postgres redis horizon scheduler)
 "${DC[@]}" up -d --build "${SERVICES[@]}"
 
 echo "→ Waiting for PostgreSQL…"
-for _ in $(seq 1 60); do
-  if "${DC[@]}" exec -T postgres pg_isready -U fc_user -d fair_constitution >/dev/null 2>&1; then break; fi
+# Wait for a REAL query, not just pg_isready. On a fresh `down -v`, postgres runs initdb on a transient
+# temp-server (pg_isready clears) then RESTARTS into the real server (recovery). pg_isready can pass on the
+# temp-server, after which the next psql ("Ensuring the Matrix logical databases") races the restart and
+# hits "the database system is starting up" → set -e aborts the whole deploy on a cold volume. A SELECT 1
+# only succeeds once the real server is up AND past recovery, so it never proceeds into that race.
+for _ in $(seq 1 90); do
+  if "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1" >/dev/null 2>&1; then break; fi
   sleep 2
 done
 
@@ -140,6 +145,13 @@ done
 # Bring the homeserver up now that its DB exists (it crash-loops if it boots first).
 echo "→ Starting the Matrix homeserver…"
 "${DC[@]}" up -d matrix
+
+# Bring up the Matrix Auth Service (MAS) too. The committed docker/matrix/mas config carries DEV-ONLY
+# secrets — fine for a LAN rig; a PUBLIC deploy should run `php artisan matrix:setup` first to regenerate
+# them. Without this, a fresh founder gets NO Matrix login until `docker compose up -d mas` is run by hand
+# (the gap Box B hit). The matrix_auth DB was ensured in the loop above.
+echo "→ Starting the Matrix Auth Service…"
+"${DC[@]}" up -d mas
 
 # The app entrypoint runs `composer install` on first boot (minutes on a Pi) and
 # writes vendor/.installed-hash as its DONE marker. Wait for that STAMP — NOT

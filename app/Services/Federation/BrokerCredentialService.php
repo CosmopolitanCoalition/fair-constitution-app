@@ -21,7 +21,8 @@ class BrokerCredentialService
 {
     private function path(): string
     {
-        return storage_path('app/broker/credentials.json');
+        // Config-overridable so tests use an isolated store and never touch the operator's REAL credential.
+        return (string) config('cga.broker.credentials_path', storage_path('app/broker/credentials.json'));
     }
 
     /** @return array<string,array<string,mixed>> domain => {zone_id, token_encrypted, updated_at} */

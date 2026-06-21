@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\CertClientService;
 use App\Services\Federation\CertGrantService;
+use App\Services\Federation\CertGrantStore;
 use App\Services\Federation\InMeshBrokerService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\MultiplexClient;
@@ -37,6 +38,7 @@ class MeshRequestCertCommand extends Command
         CapabilityService $caps,
         MultiplexClient $mux,
         InstanceIdentityService $identity,
+        CertGrantStore $grantStore,
     ): int {
         $domain = strtolower((string) $this->argument('domain'));
         $subdomain = strtolower((string) $this->argument('subdomain'));
@@ -44,7 +46,10 @@ class MeshRequestCertCommand extends Command
 
         $kc = $client->generateKeyAndCsr($fqdn);
 
-        // Obtain the cert_grant: a delivered grant file, else mint locally if we are an authority.
+        // Obtain the cert_grant, in order of preference:
+        //   1. --grant-file (an authority handed us a file), else
+        //   2. a grant DELIVERED to this box over the mesh + auto-stored (the no-copy-paste path), else
+        //   3. mint locally if THIS box is an authorized authority for the domain.
         if ($file = $this->option('grant-file')) {
             $loaded = json_decode((string) @file_get_contents($file), true);
             if (! is_array($loaded) || ! isset($loaded['grant'], $loaded['grant_signature'])) {
@@ -54,6 +59,10 @@ class MeshRequestCertCommand extends Command
             }
             $grant = (array) $loaded['grant'];
             $grantSig = (string) $loaded['grant_signature'];
+        } elseif ($delivered = $grantStore->get($fqdn)) {
+            $grant = $delivered['grant'];
+            $grantSig = $delivered['grant_signature'];
+            $this->info("Using a cert_grant delivered to this box over the mesh for {$fqdn}.");
         } else {
             try {
                 $minted = $grants->mint($domain, $subdomain, $identity->serverId(), $identity->publicKey());

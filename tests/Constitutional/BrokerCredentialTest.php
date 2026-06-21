@@ -29,7 +29,7 @@ class BrokerCredentialTest extends TestCase
 
     protected function tearDown(): void
     {
-        @unlink(storage_path('app/broker/credentials.json')); // the store is a file, not in the rolled-back DB
+        @unlink((string) config('cga.broker.credentials_path')); // the store is a file, not in the rolled-back DB
         parent::tearDown();
     }
 
@@ -37,7 +37,7 @@ class BrokerCredentialTest extends TestCase
     {
         $this->onLivePg(function () { // setCredential audits via the hash chain (pg advisory lock)
         $svc = app(BrokerCredentialService::class);
-        @unlink(storage_path('app/broker/credentials.json'));
+        @unlink((string) config('cga.broker.credentials_path'));
 
         $svc->setCredential(self::DOMAIN, 'zone-123', self::TOKEN);
 
@@ -55,7 +55,7 @@ class BrokerCredentialTest extends TestCase
         $this->assertTrue($status[0]['configured']);
 
         // At rest the file holds only ciphertext, never the plaintext token.
-        $onDisk = (string) @file_get_contents(storage_path('app/broker/credentials.json'));
+        $onDisk = (string) @file_get_contents((string) config('cga.broker.credentials_path'));
         $this->assertStringNotContainsString(self::TOKEN, $onDisk, 'the token is encrypted at rest');
 
         $svc->forget(self::DOMAIN);
@@ -68,7 +68,7 @@ class BrokerCredentialTest extends TestCase
         $this->onLivePg(function () {
             app(InstanceIdentityService::class)->ensureIdentity();
             config(['services.cloudflare.dns_token' => '']); // no env fallback — the store must be what qualifies
-            @unlink(storage_path('app/broker/credentials.json'));
+            @unlink((string) config('cga.broker.credentials_path'));
 
             $prober = app(CapabilityProber::class);
             $this->assertFalse($prober->probe('broker.dns')['ok'], 'no credential ⇒ broker.dns does not qualify');

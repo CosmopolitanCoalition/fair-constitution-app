@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Federation;
 use App\Http\Controllers\Controller;
 use App\Models\FederationPeer;
 use App\Services\AuditService;
+use App\Services\Federation\CertGrantStore;
 use App\Services\Federation\InstanceIdentityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,10 @@ use Illuminate\Http\Request;
  */
 class CertGrantController extends Controller
 {
-    public function __construct(private readonly InstanceIdentityService $identity) {}
+    public function __construct(
+        private readonly InstanceIdentityService $identity,
+        private readonly CertGrantStore $store,
+    ) {}
 
     public function receiveGrant(Request $request): JsonResponse
     {
@@ -46,9 +50,19 @@ class CertGrantController extends Controller
             return response()->json(['error' => 'grant signature invalid'], 403);
         }
 
-        // Verified — the grantee may now use it to request a cert (storage is the operator's; we ack).
+        // The grant must be addressed to THIS box — never store a cert_grant minted for another grantee.
+        if ((string) ($grant['peer_pubkey'] ?? '') !== $this->identity->publicKey()) {
+            return response()->json(['error' => 'grant is not addressed to this box'], 403);
+        }
+
+        // Verified + addressed to us — PERSIST it so `mesh:request-cert` can pick it up automatically (no operator
+        // copy-paste). The broker re-verifies the grant end-to-end at issuance, so this store is a
+        // convenience cache, never a trust root.
+        $fqdn = $this->store->put($grant, $grantSig, (string) $from->server_id);
+
         return response()->json([
             'ok' => true,
+            'stored' => $fqdn,
             'domain' => (string) ($grant['domain'] ?? ''),
             'subdomain' => (string) ($grant['subdomain'] ?? ''),
             'expires_at' => (int) ($grant['expires_at'] ?? 0),

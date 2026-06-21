@@ -139,7 +139,7 @@ class MeshRoleGrantTest extends TestCase
 
     public function test_ratifying_a_broker_role_publishes_the_routing_fact(): void
     {
-        @unlink(storage_path('app/broker/credentials.json'));
+        @unlink((string) config('cga.broker.credentials_path'));
         $this->onLivePg(function () {
             $identity = app(InstanceIdentityService::class);
             $identity->ensureIdentity();
@@ -160,7 +160,7 @@ class MeshRoleGrantTest extends TestCase
             $this->assertContains($identity->publicKey(), $authz->authorityKeysFor('a1-test.example'));
             $this->assertContains($identity->serverId(), $authz->brokersFor('a1-test.example'));
         });
-        @unlink(storage_path('app/broker/credentials.json'));
+        @unlink((string) config('cga.broker.credentials_path'));
     }
 
     // -- fixtures ---------------------------------------------------------------------------------------

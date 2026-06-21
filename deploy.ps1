@@ -102,8 +102,12 @@ if ($WithEtl) { $services += "etl" }
 docker @dc up -d --build @services
 
 Write-Host "-> Waiting for PostgreSQL..."
-for ($i = 0; $i -lt 60; $i++) {
-  docker @dc exec -T postgres pg_isready -U fc_user -d fair_constitution *> $null
+# Wait for a REAL query, not just pg_isready. On a fresh `down -v`, postgres runs initdb on a transient
+# temp-server (pg_isready clears) then RESTARTS into the real server (recovery); the next psql step would
+# race that restart and abort the deploy on a cold volume. SELECT 1 only succeeds once the real server is
+# up AND past recovery.
+for ($i = 0; $i -lt 90; $i++) {
+  docker @dc exec -T postgres psql -U fc_user -d fair_constitution -tAc "SELECT 1" *> $null
   if ($LASTEXITCODE -eq 0) { break }
   Start-Sleep -Seconds 2
 }
@@ -122,6 +126,12 @@ foreach ($db in @("matrix", "matrix_auth")) {
 # Bring the homeserver up now that its DB exists (it crash-loops if it boots first).
 Write-Host "-> Starting the Matrix homeserver..."
 docker @dc up -d matrix
+
+# Bring up the Matrix Auth Service (MAS) too. The committed docker/matrix/mas config carries DEV-ONLY
+# secrets (fine for a LAN rig; a PUBLIC deploy should run `php artisan matrix:setup` first). Without this
+# a fresh founder gets no Matrix login until `docker compose up -d mas` is run by hand.
+Write-Host "-> Starting the Matrix Auth Service..."
+docker @dc up -d mas
 
 # The app entrypoint runs `composer install` on first boot (minutes on a fresh clone) and
 # writes vendor/.installed-hash as its DONE marker. Wait for that STAMP before firing
