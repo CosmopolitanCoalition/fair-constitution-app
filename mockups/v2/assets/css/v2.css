@@ -419,3 +419,61 @@ a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: no
 .profile-stat { font-size: var(--text-sm); color: var(--gov-fg-subtle); }
 .profile-stat b { color: var(--gov-fg); font-variant-numeric: tabular-nums; }
 .achievement-chip { display: inline-flex; align-items: center; gap: var(--space-1); border: 1px dashed var(--cc-gold-600); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: var(--text-xs); color: var(--cc-gold-300); }
+
+/* ============================================================ OPERATOR PLANE
+   Off the constitutional plane — a distinct, cooler frame so it never reads as
+   the citizen game. */
+.plane-wall {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--gov-fg-muted);
+  background: color-mix(in oklch, var(--cc-blue-600) 10%, var(--gov-surface));
+  border: 1px solid color-mix(in oklch, var(--cc-blue-500) 40%, transparent);
+  border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);
+}
+.plane-wall .icon { color: var(--status-info); flex-shrink: 0; margin-block-start: .15em; }
+.op-eyebrow { color: var(--status-info-fg); }
+
+/* the health rollup line */
+.health-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--gov-border); background: var(--gov-surface); }
+.health-dot { inline-size: .75rem; block-size: .75rem; border-radius: var(--radius-full); flex-shrink: 0; }
+.health-dot--green { background: var(--status-success); }
+.health-dot--amber { background: var(--status-warning); }
+.health-dot--red { background: var(--status-danger); }
+.gate-chip { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); font-family: var(--font-mono); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); padding-inline: var(--space-2); }
+.gate-chip--pass { color: var(--status-success-fg); border-color: color-mix(in oklch, var(--status-success) 45%, transparent); }
+.gate-chip--warn { color: var(--status-warning-fg); border-color: color-mix(in oklch, var(--status-warning) 45%, transparent); }
+.gate-chip--fail { color: var(--status-danger-fg); border-color: color-mix(in oklch, var(--status-danger) 45%, transparent); }
+
+/* named-role cards (the Tier-1 console) */
+.op-role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--space-4); }
+.op-role-card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-block-start: 3px solid var(--status-info); border-radius: var(--radius-lg); padding: var(--space-5);
+}
+.op-role-card.op-role--recommended { border-block-start-color: var(--cc-gold-400); }
+.op-role-card .orc-title { color: var(--gov-fg); font-weight: var(--weight-semibold); font-size: var(--text-lg); }
+.op-role-card .orc-duty { font-size: var(--text-sm); color: var(--gov-fg-muted); border-inline-start: 2px solid var(--gov-border-strong); padding-inline-start: var(--space-2); }
+.op-role-card .orc-channels { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+
+/* channel chip */
+.channel-chip { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-sm); padding-inline: var(--space-2); background: var(--gov-surface-2); }
+.channel-chip--self { border-color: color-mix(in oklch, var(--status-success) 40%, transparent); }
+.channel-chip--governed { border-color: color-mix(in oklch, var(--cc-gold-400) 40%, transparent); }
+
+/* the channel state-machine strip */
+.fsm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); font-size: var(--text-xs); font-family: var(--font-mono); }
+.fsm-node { border: 1px solid var(--gov-border-strong); border-radius: var(--radius-sm); padding-inline: var(--space-2); color: var(--gov-fg-subtle); }
+.fsm-arrow { color: var(--gov-fg-subtle); }
+
+/* the three meters */
+.meter-abc { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--space-3); }
+.meter-card { border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--gov-surface); }
+.meter-card .mc-id { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.5rem; block-size: 1.5rem; border-radius: var(--radius-full); background: color-mix(in oklch, var(--status-info) 28%, var(--gov-bg)); color: var(--gov-fg); font-weight: var(--weight-bold); font-size: var(--text-sm); }
+.meter-card--super { border-color: color-mix(in oklch, var(--cc-gold-400) 45%, transparent); }
+
+/* peers / sync tables reuse .table; a relation chip */
+.relation-chip { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); padding-inline: var(--space-2); color: var(--gov-fg-muted); }
+
+/* advanced disclosure marker */
+.advanced-note { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }

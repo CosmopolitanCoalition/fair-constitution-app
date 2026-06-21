@@ -22,7 +22,29 @@ spec `App Docs/CGA_Mockups_v2_Build_Instructions.md`.
 | L/M | **The economy** | **done (Planned-badged)** — `economy/` exchange, marketplace (+detail), requests (+detail), wallet, joint-ledgers, units & monetary policy, civic stipend, treasury, agreements (+detail), org economics |
 | K | Profiles + social + rep↔citizen | **done** — `social/` profile, org-profile, rep, social-home |
 | 3 | Connective | **done** — `civic/today.html`, `civic/my-civic-life.html` |
-| 3,5,I | groups · legitimacy · classes 4&5 polish | **next** |
+| 3 | Informal groups + legitimacy | **done** — `groups/` (home, create, detail), `social/legitimacy.html` (Phase I gauge, display-only) |
+| G | **The operator plane** | **done** — `operator/` (home, setup, console, roles, mesh, dns, identity, moderation, versioning); off the constitutional plane |
+| 5,polish | classes 4&5 deepening · final a11y/RTL polish | **next** |
+
+### The operator plane (this hand-off)
+Added at the operator's direction (the v2 build doc had scoped it out — superseded). The mockups
+are now the design contract the coder wires up from Phase A with these layers baked in, so the
+operator/infrastructure plane belongs here. Grounded in the as-built code (Federation.vue,
+InstanceCapability, OperatorAccount, MeshGateService, PeerUpgradeAgreementService, the G-ID
+identity services, ModerationFlipService / LegalComplianceService) and the operator design docs.
+Data spine `assets/js/fixtures-operator.js` (`CGA.fixtures.v2.op`): the plane wall, the 9
+capability channels (3 self-asserted / 6 governed) → the 4 named roles (Record Keeper / Archivist
+/ Social Moderator / Identity Broker), the qualify→request→approve→join lifecycle, the dual-meter
+consent (A operator-board / B seated-gov-supersedes / C peer-unanimity-future), the operator
+account (plane-walled, device-key possession), peers (ESM-20), FF&C sync, transports, the DNS/cert
+broker, G-ID attestation + forwarded writes, the moderation flip + the M-5 legal floor, and the
+constitutional versioning. **Framing throughout: off the constitutional plane (capability, never
+role); operators are a de-facto board answerable to the seated government (Meter A → Meter B
+supersession, automatic).** Built via a fan-out against `operator/operator-home.html`; `qa_scan`
+clean; every page one h1, no console errors, no 360 px overflow; RTL/pseudo verified on the
+console + mesh. The constitution currency-ops reference has a sibling in the operator pages'
+inline citations (Art. V §5 currency/names, Art. V §7 read-write, Art. II §7 freeze, Art. VII
+admissibility). Manifest at 36 records.
 
 ### Economy + social build (this hand-off)
 The economic model is grounded in the constitution (see `CONSTITUTION-CURRENCY-OPS.md`) and the

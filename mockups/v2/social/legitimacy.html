@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reach &amp; legitimacy — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'social/legitimacy', title: 'Reach & legitimacy', module: 'social', nav: 'legitimacy', citation: 'Reach gauge · display-only, never a governance input', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc, L = V2.legitimacy;
+    function render() {
+      var s = L.sample;
+      var pct = s.reachPct;
+      var meter = '<div class="meter-block"><div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Reach — verified residents of the population estimate">' +
+        '<span class="meter-fill" style="inline-size:' + Math.min(pct, 100) + '%"></span></div>' +
+        '<div class="meter-caption"><span>' + s.verifiedResidents.toLocaleString('en-US') + ' verified residents</span><span>of ' + s.populationEstimate.toLocaleString('en-US') + ' (' + pct + '%)</span></div></div>';
+      var rails = L.rails.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('');
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Government with people · reach</span><h1>Reach &amp; legitimacy</h1>' +
+        '<p class="page-intro">A jurisdiction-level gauge of how many of its people are actually here and verified. It is a transparency signal — and nothing more.</p></header>' +
+        '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) + '<div><strong>Planned — Phase I (reach &amp; activation tiers).</strong> The denominator (WorldPop vs CivicPopulation) and the k-anonymity floor are still open decisions; this surface is design-ahead.</div></div>' +
+        '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">Display only — this never affects governance.</strong> ' + esc(L.note) + ' <span class="citation">CI-1 · no money or reach fact ever gates a governance act</span></div></div>' +
+        '<section class="card"><div class="cluster" style="justify-content:space-between"><span class="eyebrow">' + esc(S.admLabel ? '' : '') + 'New York County</span>' +
+        '<span class="pill pill--pass">' + esc(s.tier) + '</span></div>' +
+        '<div class="stat" style="margin-block:var(--space-2)"><span class="stat-number" style="color:var(--cc-gold-400)">' + pct + '%</span><span class="stat-label">reach</span></div>' +
+        meter +
+        '<p class="citation" style="margin-block-start:var(--space-2)">reachRatio = verified residents ÷ population estimate · published nightly · small counts suppressed</p></section>' +
+        '<section class="card"><h2>The hard rails</h2><p class="page-intro">Reach is the most temptation-prone number in the system — so it is fenced:</p><ul>' + rails + '</ul>' +
+        '<p class="citation">Grounded in the Preamble’s consent of the governed — a named, k-anonymous count of who is here, never a per-person score and never a lever on anyone’s rights.</p></section>' +
+        '<section class="card"><span class="eyebrow">What it is used for</span><ul>' +
+        '<li><strong>A transparency badge</strong> on the jurisdiction and the public square.</li>' +
+        '<li><strong>Activation tiers</strong> — institutions activate as a jurisdiction’s verified population pegs against its real population (the Meter A → Meter B flip).</li>' +
+        '<li><strong>Full-scale-demo thresholds</strong> — reaching a scale milestone, never advantaging anyone.</li>' +
+        '</ul><p class="citation">It changes no vote, no moderation, no eligibility — ever.</p></section>';
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

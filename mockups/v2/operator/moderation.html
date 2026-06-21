@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Moderation & the legal floor — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/moderation', title: 'Moderation & the legal floor', module: 'operator', nav: 'operator-moderation', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+    var M = O.moderation;
+
+    function render() {
+      /* ---------- Section 1 — the legitimacy flip (an FSM strip) ---------- */
+      var flipStrip =
+        '<div class="fsm" aria-hidden="true">' +
+        '<span class="fsm-node">below: operator board relays</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">a legislature seats itself</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">above: judicial only</span></div>';
+
+      var flipCards =
+        '<div class="grid-2">' +
+        '<div class="meter-card"><div class="cluster" style="justify-content:space-between">' +
+        '<strong style="color:var(--gov-fg)">Below the flip</strong>' +
+        S.pill('wait', 'No seated government', 'Bootstrap: the operator board holds relay authority') + '</div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(M.flip.below) + '</p>' +
+        '<span class="citation">M-2 · attestation_id = NULL · Art. I</span></div>' +
+        '<div class="meter-card meter-card--super"><div class="cluster" style="justify-content:space-between">' +
+        '<strong style="color:var(--gov-fg)">At / above the flip</strong>' +
+        S.pill('live', 'A legislature is seated', 'Only a live judicial attestation acts') + '</div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(M.flip.above) + '</p>' +
+        '<span class="citation">R-19 / R-20 · live judicial attestation · Art. IV</span></div></div>';
+
+      var flipAutomatic =
+        '<div class="lr-note">' + S.icon('refresh-cw', { size: 'sm' }) + '<div>' +
+        '<strong style="color:var(--gov-fg)">The flip is automatic.</strong> ' + esc(M.flip.automatic) +
+        ' <span class="citation">a pure function of facts — no manual mode change · Art. IV</span></div></div>';
+
+      /* ---------- Section 2 — the four carve-outs (a table) ---------- */
+      var carveRows = M.carveouts.map(function (c) {
+        var loggedCell = c.logged
+          ? '<span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + 'Logged</span>'
+          : '<span class="badge badge--neutral">' + S.icon('lock', { size: 'sm' }) + 'Never logged</span>';
+        return '<tr><td><span class="form-chip">' + esc(c.label) +
+          ' <span class="form-id">' + esc(c.id) + '</span></span></td>' +
+          '<td>' + esc(c.who) + '</td>' +
+          '<td>' + loggedCell + (c.note ? '<br /><span class="gloss">' + esc(c.note) + '</span>' : '') + '</td></tr>';
+      }).join('');
+
+      var carveTable =
+        '<div class="table-wrap"><table class="table"><thead><tr>' +
+        '<th>Carve-out</th><th>Who may invoke it</th><th>Logged?</th></tr></thead>' +
+        '<tbody>' + carveRows + '</tbody></table></div>';
+
+      var viewpointNote =
+        '<div class="lr-note">' + S.icon('shield', { size: 'sm' }) + '<div>' +
+        '<strong style="color:var(--gov-fg)">There is no “remove for content” control.</strong> ' +
+        esc(M.viewpointImpossible) +
+        ' <span class="citation">the uncensorable square · Art. I</span></div></div>';
+
+      /* ---------- Section 3 — M-5, the physical-law legal floor ---------- */
+      var m5 = M.m5;
+      var basisChips = m5.basis.map(function (b) {
+        return '<span class="channel-chip channel-chip--governed">' + esc(b) + '</span>';
+      }).join('');
+
+      var m5Body =
+        '<div class="op-role-card"><div class="cluster" style="justify-content:space-between">' +
+        '<span class="orc-title">' + esc(m5.label) + '</span>' +
+        S.pill('info', 'Off the constitutional plane', 'Physical law, not a constitutional act') + '</div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(m5.what) + '</p>' +
+        '<p class="orc-duty">Authority: ' + esc(m5.auth) + '</p>' +
+        '<div class="stack" style="gap:var(--space-1)"><span class="advanced-note">legal_basis — a closed enum:</span>' +
+        '<div class="orc-channels">' + basisChips + '</div></div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(m5.rails) + '</p>' +
+        '<div class="orc-channels"><span class="form-chip">Legal-compliance removal' +
+        ' <span class="form-id">' + esc(m5.form) + '</span></span></div>' +
+        '<span class="citation">key-possession, not a standing attestation · append-only sealed trail · physical-law floor</span></div>';
+
+      var m5Rails =
+        '<div class="grid-2">' +
+        '<div class="card"><span class="eyebrow op-eyebrow">What it never does</span>' +
+        '<ul style="font-size:var(--text-sm);padding-inline-start:var(--space-4);margin:0">' +
+        '<li>Never writes a server-ACL — it acts per-item, never as a standing filter.</li>' +
+        '<li>Records the matched-list <em>source</em>, never the hash itself.</li>' +
+        '<li>The enum grows only by code release — never from inside the game.</li></ul>' +
+        '<span class="citation">content-neutral · §2258A preserve → report → purge</span></div>' +
+        '<div class="card"><span class="eyebrow op-eyebrow">What csam_hashmatch does</span>' +
+        '<p style="font-size:var(--text-sm)">It <strong>purges the bytes</strong> — a DELETE, not a quarantine. ' +
+        'court_order_specific and true_threat redact. The sealed evidence trail is append-only for forensics.</p>' +
+        '<span class="citation">DELETE not quarantine · physical-law floor</span></div></div>';
+
+      /* ---------- assemble ---------- */
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · moderation</span>' +
+        '<h1>Moderation & the legal floor</h1>' +
+        '<p class="page-intro">The operator-plane side of the uncensorable square. An operator hosts the rooms — but holds no power to remove on viewpoint. ' +
+        'Only the four logged carve-outs and the physical-law legal floor can act, and the right to act flips automatically the moment a government seats itself.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
+        ' This is capability, never a citizen privilege — running the square buys no say in any constitutional act.<br />' +
+        '<span class="citation">' + esc(O.plane.supersession) + '</span></div></div>' +
+
+        '<section aria-labelledby="flip-h"><h2 id="flip-h">The legitimacy flip</h2>' +
+        '<p class="page-intro">Who may remove rights-violating content depends on one fact: is a legislature seated? ' +
+        'Below the flip the operator board relays; above it, only a judge.</p>' +
+        flipStrip + flipCards + flipAutomatic +
+        '<p class="gloss">The operator relay is neutral, R-08-anchored, and every removal is logged with attestation_id NULL — ' +
+        'so an operator action can never be mistaken for a judicial order. M-1 judicial is simply unavailable while no judge is seated.</p>' +
+        '</section>' +
+
+        '<section aria-labelledby="carve-h"><h2 id="carve-h">The four carve-outs</h2>' +
+        '<p class="page-intro">These are the only removals the square knows. Every one is content-neutral or rights-protecting — ' +
+        'none is a viewpoint judgement.</p>' +
+        carveTable + viewpointNote +
+        '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + '<div>' +
+        '<strong style="color:var(--gov-fg)">A per-user block (m3_block) is yours alone.</strong> ' +
+        'It is an ignore list applied client-side — never an appservice action, and never logged. ' +
+        '<span class="citation">client-side · the local-only privacy rail</span></div></div>' +
+        '</section>' +
+
+        '<section aria-labelledby="m5-h"><h2 id="m5-h">M-5 — the legal floor</h2>' +
+        '<p class="page-intro">Separate from the four carve-outs sits the legal-compliance floor: the removal of already-posted ' +
+        '<em>illegal</em> material. This is physical law, off the constitutional plane — there is no viewpoint and nothing to vote on.</p>' +
+        m5Body + m5Rails +
+        '</section>' +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">See it from the citizen side.</strong> ' +
+        'The square the citizen reads — and why it can never be censored on viewpoint — lives on the operations site: ' +
+        '<a href="' + S.hrefV1('civic/civic-home.html') + '">the public square <span class="v1-tag" title="opens the v1 operations site">v1</span></a>.' +
+        '<br /><span class="citation">the uncensorable square · Art. I · the physical-law legal floor</span></div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

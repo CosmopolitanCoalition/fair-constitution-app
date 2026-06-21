@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Run a node — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/operator-home', title: 'Run a node', module: 'operator', nav: 'operator-home', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    function render() {
+      var rollup = O.readiness.rollup;
+      var gates = O.readiness.gates.map(function (g) {
+        return '<span class="gate-chip gate-chip--' + g.status + '">' + (g.status === 'pass' ? S.icon('check', { size: 'sm' }) : S.icon('alert-triangle', { size: 'sm' })) + ' ' + esc(g.label) + '</span>';
+      }).join('');
+
+      var roleCards = O.namedRoles.map(function (r) {
+        var st = O.byChannel[r.channels[0]];
+        var pill = O.STATE_PILL[st ? st.state : 'qualifiable'];
+        var chans = r.channels.map(function (c) { var ch = O.byChannel[c]; return '<span class="channel-chip channel-chip--' + (ch && ch.kind === 'self' ? 'self' : 'governed') + '">' + esc(c) + '</span>'; }).join('');
+        return '<div class="op-role-card' + (r.recommended ? ' op-role--recommended' : '') + '">' +
+          '<div class="cluster" style="justify-content:space-between"><span class="orc-title">' + esc(r.label) + '</span>' +
+          (r.recommended ? '<span class="pill pill--planned">Recommended first node</span>' : '<span class="pill pill--' + pill.pill + '">' + esc(pill.label) + '</span>') + '</div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
+          '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
+          '<div class="orc-channels">' + chans + (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') + '</div>' +
+          '<span class="citation">' + (r.consent === 'self' ? 'self-asserted — one click' : 'governed — requested, then dual-meter approval') + '</span></div>';
+      }).join('');
+
+      var entries = [
+        { rel: 'operator/setup.html', icon: 'sliders', title: 'Set up your node', note: 'Claim an operator account, name the instance, pick a role, and go — the first-run wizard.' },
+        { rel: 'operator/console.html', icon: 'landmark', title: 'The operator console', note: 'Your roles at a glance, the health line, and everything advanced behind one toggle.' },
+        { rel: 'operator/roles.html', icon: 'users', title: 'Roles & channels', note: 'The four named roles over the nine capability channels, and how a channel goes live.' },
+        { rel: 'operator/mesh.html', icon: 'globe', title: 'Mesh & federation', note: 'Join a cluster, your peers, Full Faith & Credit sync, authority, transports, the dual-meter.' },
+        { rel: 'operator/dns.html', icon: 'globe', title: 'DNS & certificates', note: 'The Identity Broker: DNS-before-cert, per-name + wildcard backup, DDNS, providers, the budget.' },
+        { rel: 'operator/identity.html', icon: 'lock', title: 'Identity (G-ID)', note: 'Your devices and mesh identity; how a citizen’s standing travels for a forwarded write.' },
+        { rel: 'operator/moderation.html', icon: 'shield', title: 'Moderation & the legal floor', note: 'The legitimacy flip (operator relay → judicial), the four carve-outs, and the M-5 legal floor.' },
+        { rel: 'operator/versioning.html', icon: 'refresh-cw', title: 'Versions & upgrades', note: 'Peer version tracking and the dual-meter upgrade agreement; the game-in-progress freeze.' }
+      ];
+      var cards = entries.map(function (e) {
+        return '<a class="role-card" href="' + S.hrefV2(e.rel) + '">' + S.icon(e.icon) +
+          '<span class="role-name">' + esc(e.title) + '</span><span>' + esc(e.note) + '</span>' +
+          '<span class="enter-as">Open ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · run a node</span><h1>Run a node</h1>' +
+        '<p class="page-intro">The infrastructure the citizen game runs on. Operators are the people who keep a server alive — holding the record, naming peers, hosting the live rooms. This plane is deliberately separate from the constitutional game.</p></header>' +
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) + ' ' + esc(O.plane.plainNote) + '<br />' +
+        '<span class="citation">' + esc(O.plane.board) + '</span></div></div>' +
+
+        '<div class="health-line"><span class="health-dot health-dot--' + rollup + '" aria-hidden="true"></span>' +
+        '<strong style="color:var(--gov-fg)">Peers &amp; sync at a glance</strong>' +
+        '<span class="citation">' + O.readiness.peerCount + ' trusted peers · last sync ' + esc(O.readiness.lastSync) + '</span>' +
+        '<span style="flex-basis:100%"></span>' + gates + '</div>' +
+
+        '<section aria-labelledby="roles-h"><h2 id="roles-h">Your roles</h2>' +
+        '<p class="page-intro">A box’s “role” is just the set of capability channels it runs. Four friendly names group the nine channels:</p>' +
+        '<div class="op-role-grid">' + roleCards + '</div></section>' +
+
+        '<section aria-labelledby="go-h"><h2 id="go-h">Operator surfaces</h2><div class="role-grid">' + cards + '</div></section>' +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) + '</div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

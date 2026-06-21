@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create a group — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'groups/group-create', title: 'Create a group', module: 'groups', nav: 'groups', citation: 'Freedom of association · Art. I', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, esc = S.esc;
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">People, together · informal groups</span><h1>Create a group</h1>' +
+        '<p class="page-intro">Two steps and you have a group with a discussion room. No registration, no charter, no governance power — just neighbours choosing to associate.</p></header>' +
+        '<section class="card"><form id="g-form" novalidate>' +
+        '<div class="field"><label class="field-label" for="g-name">Name</label>' +
+        '<input class="field-input" id="g-name" type="text" placeholder="e.g. Harbor Cleanup Crew" value="Harbor Cleanup Crew" /></div>' +
+        '<div class="field"><label class="field-label" for="g-purpose">Purpose</label>' +
+        '<input class="field-input" id="g-purpose" type="text" placeholder="What is this group for?" value="Keep the Manhattan waterfront clean" /></div>' +
+        '<fieldset class="field" style="border:0;padding:0;margin-inline:0"><legend class="field-label">Who can join</legend>' +
+        '<div class="radio-group"><label class="radio"><input type="radio" name="g-priv" checked /> Open — anyone may join (the space is public; the four carve-outs apply)</label>' +
+        '<label class="radio"><input type="radio" name="g-priv" /> Invite only — a private space the members self-moderate</label></div></fieldset>' +
+        '<label class="checkbox"><input type="checkbox" id="g-room" checked /> Spin up a discussion room (threads + a live chat and voice room)</label>' +
+        '<div class="cluster" style="margin-block-start:var(--space-4)"><button type="submit" class="btn btn--primary">' + S.icon('users', { size: 'sm' }) + ' Create the group</button>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('groups/groups-home.html') + '">Cancel</a></div>' +
+        '<p id="g-confirm" role="status" class="gloss" style="margin-block-start:var(--space-2)"></p>' +
+        '</form></section>' +
+        '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">This confers no governance power.</strong> A group is a voluntary association (Art. I). Its decisions bind only the group, never a jurisdiction. Membership is private to each member and never federates. If the group grows and wants standing, it can — but never must — register as an organization or file a petition.</div></div>';
+      var form = document.getElementById('g-form');
+      if (form) form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var name = (document.getElementById('g-name').value || 'Your group').trim();
+        document.getElementById('g-confirm').textContent = '“' + name + '” created (simulated) — a discussion room was spun up. Open it from the groups list.';
+        S.announce('Group created: ' + name);
+      });
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

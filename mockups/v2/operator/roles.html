@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roles &amp; channels — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/roles', title: 'Roles & channels', module: 'operator', nav: 'operator-roles', citation: 'The operator plane — trust is composable channels, not tiers · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    var SELF_ASSERTED = { 'mesh.member': true, 'mirror': true, 'etl': true };
+
+    function statePill(state) {
+      var p = O.STATE_PILL[state] || O.STATE_PILL.qualifiable;
+      return '<span class="pill pill--' + p.pill + '">' + esc(p.label) + '</span>';
+    }
+
+    function render() {
+      /* ---- Section 1: the four named roles as op-role-cards ---- */
+      var roleCards = O.namedRoles.map(function (r) {
+        var chans = r.channels.map(function (c) {
+          var ch = O.byChannel[c];
+          var kind = (ch && ch.kind === 'self') ? 'self' : 'governed';
+          return '<span class="channel-chip channel-chip--' + kind + '">' + esc(c) + '</span>';
+        }).join('');
+        var pillHtml = r.recommended
+          ? '<span class="pill pill--planned">Recommended first node</span>'
+          : '<span class="pill pill--' + (r.consent === 'self' ? 'live' : 'info') + '">' +
+            (r.consent === 'self' ? 'Self-asserted' : 'Governed') + '</span>';
+        return '<div class="op-role-card' + (r.recommended ? ' op-role--recommended' : '') + '">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+            '<span class="orc-title">' + esc(r.label) + '</span>' + pillHtml + '</div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
+          '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
+          '<div class="orc-channels">' + chans +
+            (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') +
+          '</div>' +
+          '<span class="citation">' +
+            (r.consent === 'self'
+              ? 'Self-asserted — every channel goes live on one click; no gate.'
+              : 'Governed — requested, then dual-meter approval (operator board, or the seated government).') +
+          '</span>' +
+          '<span class="advanced-note">' + esc(r.note) + '</span></div>';
+      }).join('');
+
+      /* ---- Section 2: the nine channels as a table ---- */
+      var rows = O.channels.map(function (c) {
+        var kind = c.kind === 'self' ? 'self' : 'governed';
+        var kindLabel = c.kind === 'self' ? 'self-asserted' : 'governed';
+        var meterC = c.meterC
+          ? ' <span class="relation-chip" title="acts under a peer’s zone — co-affected peers must consent">Meter C</span>'
+          : '';
+        return '<tr>' +
+          '<td><span class="channel-chip channel-chip--' + kind + '">' + esc(c.slug) + '</span></td>' +
+          '<td><span class="badge badge--' + (c.kind === 'self' ? 'success' : 'warning') + '">' + esc(kindLabel) + '</span></td>' +
+          '<td style="font-size:var(--text-sm)">' + esc(c.what) + meterC + '</td>' +
+          '<td>' + statePill(c.state) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      var channelTable = '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Channel</th><th scope="col">Consent</th>' +
+        '<th scope="col">What it does</th><th scope="col">On this node</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div>';
+
+      /* ---- Section 3: the lifecycle as an .fsm strip ---- */
+      var lifecycle = [
+        { node: 'qualify', words: 'the node proves it can run the channel (reachable, on-version, has the substrate)' },
+        { node: 'request', words: 'the operator asks for the capability over a named peer or jurisdiction' },
+        { node: 'approve', words: 'the dual-meter consents — operator board, or the seated government' },
+        { node: 'join', words: 'the channel turns on; it now shows as Active' }
+      ];
+      var fsmStrip = lifecycle.map(function (s, i) {
+        return (i ? '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' : '') +
+          '<span class="fsm-node">' + esc(s.node) + '</span>';
+      }).join('');
+      var lifecycleWords = lifecycle.map(function (s) {
+        return '<li><span class="advanced-note">' + esc(s.node) + '</span> — ' + esc(s.words) + '</li>';
+      }).join('');
+
+      /* ---- Section 4: the three meters as meter-abc cards ---- */
+      var meterCards = O.meters.map(function (m) {
+        var sup = m.id === 'B';
+        var future = m.id === 'C';
+        return '<div class="meter-card' + (sup ? ' meter-card--super' : '') + '">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+            '<span class="cluster" style="gap:var(--space-2)"><span class="mc-id">' + esc(m.id) + '</span>' +
+            '<strong style="color:var(--gov-fg)">' + esc(m.name.replace(/^Meter [ABC] — /, '')) + '</strong></span>' +
+            (sup ? '<span class="pill pill--live">Supersedes A</span>'
+                 : future ? '<span class="pill pill--planned">Future — G-VER 4</span>' : '') +
+          '</div>' +
+          '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Who:</strong> ' + esc(m.who) + '</p>' +
+          '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Threshold:</strong> ' + esc(m.threshold) + '</p>' +
+          '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Applies:</strong> ' + esc(m.applies) + '</p>' +
+          (future ? '<span class="advanced-note">Co-affected peer-mesh unanimity ships with the next constitutional-versioning round; today it degrades safely.</span>' : '') +
+        '</div>';
+      }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · roles &amp; channels</span>' +
+        '<h1>Roles &amp; channels</h1>' +
+        '<p class="page-intro">A box’s “role” is nothing more than the set of capability channels it runs. Trust here is composable — you add the channels you can serve, one at a time. There are no tiers to climb and no rank to earn.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) + ' ' + esc(O.plane.plainNote) + '<br />' +
+        '<span class="citation">' + esc(O.plane.board) + '</span></div></div>' +
+
+        /* Section 1 */
+        '<section aria-labelledby="roles-h"><h2 id="roles-h">The four named roles</h2>' +
+        '<p class="page-intro">Four friendly names group the nine channels — no new power, just a grouping. Each card shows its channel set, the duty you take on, and whether it turns on by itself or needs a government decision.</p>' +
+        '<div class="op-role-grid">' + roleCards + '</div>' +
+        '<p class="advanced-note"><span class="channel-chip channel-chip--self">self</span> a self-asserted channel · ' +
+        '<span class="channel-chip channel-chip--governed">governed</span> a governed channel</p></section>' +
+
+        /* Section 2 */
+        '<section aria-labelledby="chan-h"><h2 id="chan-h">The nine channels</h2>' +
+        '<p class="page-intro">The whole closed vocabulary. Three channels are <strong>self-asserted</strong> — <code>mesh.member</code>, <code>mirror</code>, and <code>etl</code> — and need no gate at all: they only ever describe what your own box does. The other six are <strong>governed</strong>, because each one grants authority over others, or hangs a name under a peer’s zone.</p>' +
+        channelTable +
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Self-asserted vs governed.</strong> A self-asserted channel touches nobody but you, so it is yours to switch on. A governed channel either grants authority over other people or writes a name under a peer’s zone — so it is requested, never claimed, and approved by the dual-meter below.' +
+        '</div></div></section>' +
+
+        /* Section 3 */
+        '<section aria-labelledby="life-h"><h2 id="life-h">How a channel goes live</h2>' +
+        '<p class="page-intro">A governed channel walks four plain steps. A self-asserted channel skips straight to Active — there is no request and no approval to wait on.</p>' +
+        '<div class="card stack">' +
+        '<div class="fsm">' + fsmStrip +
+          '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+          '<span class="pill pill--live">Active</span></div>' +
+        '<ol class="stack" style="font-size:var(--text-sm);padding-inline-start:var(--space-4)">' + lifecycleWords + '</ol>' +
+        '<p class="advanced-note">Self-asserted (mesh.member · mirror · etl): ' +
+          '<span class="fsm-node">establish</span> ' + S.icon('arrow-right', { size: 'sm' }) +
+          ' <span class="pill pill--live">Active</span> — one click, no gate.</p>' +
+        '</div></section>' +
+
+        /* Section 4 */
+        '<section aria-labelledby="meter-h"><h2 id="meter-h">The three consent meters</h2>' +
+        '<p class="page-intro">A governed channel is approved by a dual-meter — operators while no government is seated, the seated government the moment one exists — plus a third meter for the few channels that reach under a peer’s zone.</p>' +
+        '<div class="meter-abc">' + meterCards + '</div>' +
+        '<div class="plane-wall"><span>' + S.icon('alert-triangle', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Authority ≠ leadership.</strong> ' + esc(O.plane.supersession) + ' ' +
+        '<span class="citation">Art. II §7 · Meter A → Meter B supersession, a pure function of facts.</span>' +
+        '</div></div></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

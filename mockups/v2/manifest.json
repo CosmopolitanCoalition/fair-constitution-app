@@ -362,5 +362,223 @@
   "status": "built-layer",
   "stage": 2,
   "notes": "Personal home base: groups, orgs, open votes, record, rep, wallet (Planned), stipend (Planned), achievements (Proposed)."
+ },
+ {
+  "file": "groups/groups-home.html",
+  "title": "Informal groups — browse & create",
+  "module": "groups",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 3,
+  "notes": "Voluntary affinity groups (Art. I); browse/join + create. No governance power; membership private."
+ },
+ {
+  "file": "groups/group-create.html",
+  "title": "Create a group",
+  "module": "groups",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 3,
+  "notes": "Two-step create: name, purpose, open/invite, spin up a room. No charter, no power conferred."
+ },
+ {
+  "file": "groups/group-detail.html",
+  "title": "Group home",
+  "module": "groups",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 3,
+  "notes": "A group: discussion room, members, pinned, call a meeting (casual/facilitated/formal via the live room), public-square carve-outs vs private self-moderation, optional next steps (org/petition)."
+ },
+ {
+  "file": "social/legitimacy.html",
+  "title": "Reach & legitimacy gauge",
+  "module": "social",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "planned-layer",
+  "stage": 3,
+  "notes": "Phase I reach ratio (verified/population), k-anon, display-only — NEVER a governance input (CI-1). Activation tiers."
+ },
+ {
+  "file": "operator/operator-home.html",
+  "title": "Run a node — the operator plane",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "Off the constitutional plane (capability, not role). The plane wall, the 4 named roles, the health line, entry to every operator surface. Operators = de-facto board answerable to the seated government."
+ },
+ {
+  "file": "operator/setup.html",
+  "title": "Set up your node — first-run wizard",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "Claim an operator account (local password OR device-key link), name the instance, pick a role (Record Keeper recommended), role-specific setup, done. Governed roles can only be requested → dual-meter approval."
+ },
+ {
+  "file": "operator/console.html",
+  "title": "The operator console (two-tier)",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "Tier 1: 4 named-role cards + the peers/sync health line. Tier 2 (Advanced): the raw 9-channel grid, Meters A/B/C, peers, sync ledger, transports, CLI. Federation.vue redesign."
+ },
+ {
+  "file": "operator/roles.html",
+  "title": "Roles & channels",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "The 4 named roles over the 9 capability channels (3 self-asserted / 6 governed); the qualify→request→approve→join lifecycle; the three meters (B supersedes A; C future)."
+ },
+ {
+  "file": "operator/mesh.html",
+  "title": "Mesh & federation",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "Join a cluster (4-step wizard), peers (ESM-20), Full Faith & Credit sync, authority + the Art. V §7 read-write petition (government decides, not the operator), transports."
+ },
+ {
+  "file": "operator/dns.html",
+  "title": "DNS & certificates (Identity Broker)",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "DNS-before-cert; per-name primary + wildcard backup (gated/stub); DDNS; DNS providers (Cloudflare live, stubs); the LE budget pre-flight. Token write-only, never federates. services/mesh-cert-broker."
+ },
+ {
+  "file": "operator/identity.html",
+  "title": "Identity (G-ID)",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "Operator devices + mesh identity (link by possession, never password replay); citizen attestation + AttestedForwardedActor (attestation + action-signature + subject checks); the expiry sweep. Plane wall."
+ },
+ {
+  "file": "operator/moderation.html",
+  "title": "Moderation & the legal floor",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "The legitimacy flip (operator relay below → judicial above, automatic), the four carve-outs (viewpoint removal has no code path), M-5 legal floor (key-possession, closed legal_basis enum, never server_acl, F-SOC-004)."
+ },
+ {
+  "file": "operator/versioning.html",
+  "title": "Versions & upgrades",
+  "module": "operator",
+  "interactionClass": "operator",
+  "journeys": [],
+  "reusesV1": [
+   "jurisdictions/federation.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Jurisdictions/Federation.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": "G",
+  "notes": "The hardened admissibility filter (Art. VII), the dual-meter upgrade agreement, the game-in-progress freeze (Art. II §7), peer version match/refusal (fail-closed)."
  }
 ]

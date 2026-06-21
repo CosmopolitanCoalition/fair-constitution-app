@@ -59,6 +59,14 @@
         <div id="room-grid" class="role-grid"></div>
       </section>
 
+      <section aria-labelledby="operator-h">
+        <h2 id="operator-h">Behind the game — run a node</h2>
+        <p class="page-intro">The infrastructure the game runs on, off the constitutional plane: operator accounts,
+          the four named roles over the capability channels, joining the mesh, DNS &amp; certificates, identity, and
+          the operator side of moderation. Operators are a de-facto board, answerable to the seated government.</p>
+        <div id="operator-link"></div>
+      </section>
+
       <section aria-labelledby="handoff-h">
         <h2 id="handoff-h">For the build team</h2>
         <div class="grid-2" id="handoff-links"></div>
@@ -153,6 +161,12 @@
           var target = l.href ? l.href : S.hrefV2(l.rel);
           return '<a class="role-card" href="' + target + '"><span class="role-name">' + esc(l.title) + '</span><span>' + esc(l.note) + '</span></a>';
         }).join('');
+
+        document.getElementById('operator-link').innerHTML =
+          '<a class="role-card" style="border-block-start:3px solid var(--status-info)" href="' + S.hrefV2('operator/operator-home.html') + '">' +
+          S.icon('sliders') + '<span class="role-name">Run a node — the operator plane</span>' +
+          '<span>Operator account setup, the console, the four named roles over the capability channels, mesh &amp; federation, DNS &amp; certificates, identity, moderation, and versioning.</span>' +
+          '<span class="enter-as">Open the operator plane ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
       }
 
       render();

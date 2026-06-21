@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The operator console — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/console', title: 'The operator console', module: 'operator', nav: 'operator-console', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    function statePill(state) {
+      var p = O.STATE_PILL[state] || O.STATE_PILL.qualifiable;
+      return '<span class="pill pill--' + p.pill + '">' + esc(p.label) + '</span>';
+    }
+
+    function render() {
+      var rollup = O.readiness.rollup;
+
+      /* ---- TIER 1: the health line ---- */
+      var gates = O.readiness.gates.map(function (g) {
+        return '<span class="gate-chip gate-chip--' + g.status + '">' +
+          (g.status === 'pass' ? S.icon('check', { size: 'sm' }) : S.icon('alert-triangle', { size: 'sm' })) +
+          ' ' + esc(g.label) + '</span>';
+      }).join('');
+
+      var healthLine =
+        '<div class="health-line"><span class="health-dot health-dot--' + rollup + '" aria-hidden="true"></span>' +
+        '<strong style="color:var(--gov-fg)">Peers &amp; sync at a glance</strong>' +
+        '<span class="citation">' + O.readiness.peerCount + ' trusted peers · last sync ' + esc(O.readiness.lastSync) + '</span>' +
+        '<span style="flex-basis:100%"></span>' + gates + '</div>';
+
+      /* ---- TIER 1: the four named-role cards ---- */
+      var roleCards = O.namedRoles.map(function (r) {
+        var firstCh = O.byChannel[r.channels[0]];
+        var firstState = firstCh ? firstCh.state : 'qualifiable';
+        var chans = r.channels.map(function (c) {
+          var ch = O.byChannel[c];
+          var kind = ch && ch.kind === 'self' ? 'self' : 'governed';
+          return '<span class="channel-chip channel-chip--' + kind + '">' + esc(c) + '</span>';
+        }).join('');
+        if (r.extra) chans += '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>';
+
+        var ctaLabel = r.consent === 'self' ? 'Establish' : 'Request';
+        var msg = r.consent === 'self'
+          ? 'Establishing ' + r.label + ' — both channels are self-asserted, no approval needed.'
+          : 'Requested ' + r.label + ' — now awaiting dual-meter approval (operator board, or the seated government).';
+
+        return '<div class="op-role-card' + (r.recommended ? ' op-role--recommended' : '') + '">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:center">' +
+          '<span class="orc-title">' + esc(r.label) + '</span>' +
+          (r.recommended ? '<span class="pill pill--planned">Recommended first node</span>' : statePill(firstState)) +
+          '</div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
+          '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
+          '<div class="orc-channels">' + chans + '</div>' +
+          '<button type="button" class="btn btn--primary btn--sm" data-cta="' + esc(msg) + '" style="align-self:flex-start">' +
+          S.icon(r.consent === 'self' ? 'check' : 'arrow-right', { size: 'sm' }) + ' ' + ctaLabel + '</button>' +
+          '<span class="citation">' + (r.consent === 'self'
+            ? 'self-asserted — one click'
+            : 'governed — requested, then dual-meter approval') + '</span></div>';
+      }).join('');
+
+      /* ---- TIER 2 (Advanced): the full channel grid ---- */
+      var channelRows = O.channels.map(function (c) {
+        return '<tr><td><span class="channel-chip channel-chip--' + (c.kind === 'self' ? 'self' : 'governed') + '">' + esc(c.slug) + '</span></td>' +
+          '<td>' + (c.kind === 'self'
+            ? S.badge('success', 'self-asserted', 'check')
+            : S.badge('warning', 'governed', 'shield')) +
+          (c.meterC ? ' <span class="relation-chip">Meter C</span>' : '') + '</td>' +
+          '<td>' + esc(c.what) + '</td>' +
+          '<td>' + statePill(c.state) + '</td></tr>';
+      }).join('');
+      var channelTable =
+        '<div class="table-wrap"><table class="table"><caption class="visually-hidden">The nine capability channels</caption>' +
+        '<thead><tr><th scope="col">Channel</th><th scope="col">Consent</th><th scope="col">What it does</th><th scope="col">State</th></tr></thead>' +
+        '<tbody>' + channelRows + '</tbody></table></div>';
+
+      /* ---- TIER 2: the three meters ---- */
+      var meterCards = O.meters.map(function (m) {
+        var sup = m.id === 'B';
+        return '<div class="meter-card' + (sup ? ' meter-card--super' : '') + '">' +
+          '<div class="cluster" style="align-items:center;gap:var(--space-2)"><span class="mc-id">' + esc(m.id) + '</span>' +
+          '<strong style="color:var(--gov-fg)">' + esc(m.name) + '</strong>' +
+          (sup ? ' <span class="pill pill--live">Supersedes</span>' : '') + '</div>' +
+          '<p style="font-size:var(--text-sm)"><strong>Who:</strong> ' + esc(m.who) + '</p>' +
+          '<p style="font-size:var(--text-sm)"><strong>Threshold:</strong> ' + esc(m.threshold) + '</p>' +
+          '<p class="orc-duty">Applies: ' + esc(m.applies) + '</p>' +
+          (m.id === 'C' ? '<span class="citation">future — peer-mesh unanimity (G-VER, Meter C) lands with the upgrade-agreement protocol</span>' : '') +
+          '</div>';
+      }).join('');
+
+      /* ---- TIER 2: the peers table ---- */
+      var peerRows = O.peers.map(function (p) {
+        var tone = p.status === 'trust_established' ? 'success'
+          : p.status === 'syncing' ? 'info'
+          : p.status === 'border_settled' ? 'warning' : 'neutral';
+        return '<tr><td><strong style="color:var(--gov-fg)">' + esc(p.name) + '</strong>' +
+          '<br /><span class="citation">' + esc(p.serverId) + ' · ' + esc(p.url) + '</span></td>' +
+          '<td>' + S.badge(tone, p.status.replace(/_/g, ' ')) + '</td>' +
+          '<td><span class="relation-chip">' + esc(p.relation) + '</span></td>' +
+          '<td class="advanced-note">' + esc(p.version) + ' · ' + esc(p.release) + '</td>' +
+          '<td class="advanced-note">' + esc(p.heartbeat) + '</td>' +
+          '<td class="advanced-note">#' + p.syncSeq.toLocaleString('en-US') + '</td></tr>';
+      }).join('');
+      var peerTable =
+        '<div class="table-wrap"><table class="table"><caption class="visually-hidden">Trusted peers</caption>' +
+        '<thead><tr><th scope="col">Peer</th><th scope="col">Status</th><th scope="col">Relation</th><th scope="col">Version</th><th scope="col">Heartbeat</th><th scope="col">Sync seq</th></tr></thead>' +
+        '<tbody>' + peerRows + '</tbody></table></div>';
+
+      /* ---- TIER 2: the sync ledger ---- */
+      var ledgerRows = O.syncLedger.map(function (l) {
+        var tone = l.result === 'applied' ? 'success' : 'warning';
+        return '<tr><td class="advanced-note">#' + l.seq + '</td>' +
+          '<td>' + S.badge(l.dir === 'outbound' ? 'info' : 'neutral', l.dir, l.dir === 'outbound' ? 'arrow-right' : 'refresh-cw') + '</td>' +
+          '<td>' + S.badge(tone, l.result.replace(/_/g, ' ')) + '</td>' +
+          '<td class="advanced-note">' + esc(l.range) + '</td>' +
+          '<td class="advanced-note">' + esc(l.at) + '</td>' +
+          '<td>' + (l.note ? esc(l.note) : '<span class="citation">—</span>') + '</td></tr>';
+      }).join('');
+      var ledgerTable =
+        '<div class="table-wrap"><table class="table"><caption class="visually-hidden">The sync ledger</caption>' +
+        '<thead><tr><th scope="col">Seq</th><th scope="col">Direction</th><th scope="col">Result</th><th scope="col">Range</th><th scope="col">At</th><th scope="col">Note</th></tr></thead>' +
+        '<tbody>' + ledgerRows + '</tbody></table></div>';
+
+      /* ---- TIER 2: transports ---- */
+      var transportRows = O.transports.map(function (tr) {
+        return '<tr><td class="advanced-note">' + esc(tr.transport) + '</td>' +
+          '<td class="advanced-note">' + esc(tr.address) + '</td>' +
+          '<td class="advanced-note">' + tr.priority + '</td>' +
+          '<td>' + statePill(tr.state) + '</td></tr>';
+      }).join('');
+      var transportTable =
+        '<div class="table-wrap"><table class="table"><caption class="visually-hidden">Advertised transports</caption>' +
+        '<thead><tr><th scope="col">Transport</th><th scope="col">Address</th><th scope="col">Priority</th><th scope="col">State</th></tr></thead>' +
+        '<tbody>' + transportRows + '</tbody></table></div>';
+
+      /* ---- TIER 2: the CLI hints ---- */
+      var cliChips = O.cli.map(function (verb) {
+        return '<code class="advanced-note" style="border:1px solid var(--gov-border-strong);border-radius:var(--radius-sm);padding:var(--space-1) var(--space-2);background:var(--gov-surface-2)">' + esc(verb) + '</code>';
+      }).join(' ');
+
+      var advanced =
+        '<details class="about-surface">' +
+        '<summary><strong>Advanced</strong> — every channel slug, the three meters, peers, sync, transports, and the CLI</summary>' +
+        '<div class="stack" style="margin-block-start:var(--space-4)">' +
+
+        '<section aria-labelledby="ch-h"><h3 id="ch-h">The nine capability channels</h3>' +
+        '<p class="gloss">A box’s “role” is just the set of channels it runs. Self-asserted channels turn on with one click; governed channels are requested, then approved by the dual-meter.</p>' +
+        channelTable + '</section>' +
+
+        '<section aria-labelledby="mtr-h"><h3 id="mtr-h">The dual-meter consent</h3>' +
+        '<p class="gloss">Governed channels need approval. Meter A runs the bootstrap path; the moment a legislature seats itself, Meter B supersedes it automatically. Meter C only attaches to channels that act under a peer’s own zone.</p>' +
+        '<div class="meter-abc">' + meterCards + '</div></section>' +
+
+        '<section aria-labelledby="peers-h"><h3 id="peers-h">Trusted peers</h3>' +
+        '<p class="gloss">The Full Faith &amp; Credit mesh. Each row is a peer this box has handshaked, with its relation, version, and last heartbeat.</p>' +
+        peerTable + '</section>' +
+
+        '<section aria-labelledby="sync-h"><h3 id="sync-h">The sync ledger</h3>' +
+        '<p class="gloss">Outbound and inbound batches. Conflicts resolve authoritative-wins — the authoritative instance’s record stands.</p>' +
+        ledgerTable + '</section>' +
+
+        '<section aria-labelledby="tr-h"><h3 id="tr-h">Advertised transports</h3>' +
+        '<p class="gloss">The same signed bytes travel over any channel, lowest priority first. A new node only needs one transport in common with a peer.</p>' +
+        transportTable + '</section>' +
+
+        '<section aria-labelledby="cli-h"><h3 id="cli-h">CLI hints</h3>' +
+        '<p class="gloss">Everything on this console is also a command. These are the operator-plane verbs the console wraps.</p>' +
+        '<div class="cluster" style="flex-wrap:wrap;gap:var(--space-2)">' + cliChips + '</div></section>' +
+
+        '</div></details>';
+
+      /* ---- compose ---- */
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · the console</span>' +
+        '<h1>The operator console</h1>' +
+        '<p class="page-intro">One screen for the box you run: are your peers reachable, is sync flowing, and which capabilities are live. The friendly view is the default — every channel slug and every meter lives one tap away under <strong>Advanced</strong>.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) + ' ' + esc(O.plane.plainNote) + '<br />' +
+        '<span class="citation">Mesh state is a public record · Art. II §2</span></div></div>' +
+
+        '<section aria-labelledby="glance-h"><h2 id="glance-h">Peers &amp; sync at a glance</h2>' +
+        healthLine +
+        '<p class="gloss">The dot is the rollup: ' +
+        (rollup === 'green' ? 'green' : rollup === 'amber' ? 'amber — a couple of gates want attention' : 'red — sync is blocked') +
+        '. Each gate below is one of the six readiness checks behind it.</p></section>' +
+
+        '<section aria-labelledby="roles-h"><h2 id="roles-h">Your roles</h2>' +
+        '<p class="page-intro">Four friendly names group the nine channels. The pill is the plain-language state of the role’s lead channel. The Record Keeper is self-asserted — one click; the governed roles are requested, then approved by the dual-meter.</p>' +
+        '<div class="op-role-grid">' + roleCards + '</div></section>' +
+
+        '<section aria-labelledby="adv-h"><h2 id="adv-h">Advanced</h2>' +
+        '<p class="gloss">Everything raw, behind one toggle. Closed by default.</p>' +
+        advanced + '</section>' +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) + '</div></div>';
+
+      /* wire the CTA buttons */
+      var root = document.getElementById('root');
+      root.querySelectorAll('[data-cta]').forEach(function (btn) {
+        btn.addEventListener('click', function () { S.announce(btn.getAttribute('data-cta')); });
+      });
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

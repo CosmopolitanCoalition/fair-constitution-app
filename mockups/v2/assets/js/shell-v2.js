@@ -169,6 +169,18 @@
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
     endSection();
 
+    section('Run a node · operator plane');
+    linkV2('operator-home', 'Operator home', 'sliders', 'operator/operator-home.html');
+    linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
+    linkV2('operator-console', 'Operator console', 'landmark', 'operator/console.html');
+    linkV2('operator-roles', 'Roles & channels', 'users', 'operator/roles.html');
+    linkV2('operator-mesh', 'Mesh & federation', 'globe', 'operator/mesh.html');
+    linkV2('operator-dns', 'DNS & certificates', 'globe', 'operator/dns.html');
+    linkV2('operator-identity', 'Identity (G-ID)', 'lock', 'operator/identity.html');
+    linkV2('operator-moderation', 'Moderation & legal', 'shield', 'operator/moderation.html');
+    linkV2('operator-versioning', 'Versions & upgrades', 'refresh-cw', 'operator/versioning.html');
+    endSection();
+
     section('Operations (v1)');
     linkV1('v1 launchpad', 'globe', 'index.html');
     linkV1('Open ballot', 'vote', 'electoral/open-ballot.html');
