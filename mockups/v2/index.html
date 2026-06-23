@@ -67,6 +67,13 @@
         <div id="operator-link"></div>
       </section>
 
+      <section aria-labelledby="learn-h">
+        <h2 id="learn-h">Learn, get help, and translate</h2>
+        <p class="page-intro">The standard procedure for every workflow, a short video in many languages, the place to report a problem,
+          and the interface that gets World of Statecraft into every language its people speak.</p>
+        <div id="learn-links" class="role-grid"></div>
+      </section>
+
       <section aria-labelledby="handoff-h">
         <h2 id="handoff-h">For the build team</h2>
         <div class="grid-2" id="handoff-links"></div>
@@ -160,6 +167,19 @@
         document.getElementById('handoff-links').innerHTML = links.map(function (l) {
           var target = l.href ? l.href : S.hrefV2(l.rel);
           return '<a class="role-card" href="' + target + '"><span class="role-name">' + esc(l.title) + '</span><span>' + esc(l.note) + '</span></a>';
+        }).join('');
+
+        var learnLinks = [
+          { rel: 'learn/learn-home.html', icon: 'graduation-cap', title: 'Learn', note: 'Six tracks of short lessons — a video, the procedure, and a quick check for every tool.' },
+          { rel: 'learn/guides.html', icon: 'list-checks', title: 'Guides & procedures', note: 'Every journey’s standard operating procedure, in one searchable place.' },
+          { rel: 'shared/video-player.html', icon: 'play', title: 'Video library', note: 'One silent master, narration and captions in many languages — the multi-track player.' },
+          { rel: 'translation/translation-home.html', icon: 'languages', title: 'Translation status', note: 'Languages × modalities, AI first round, then community-verified.' },
+          { rel: 'support/support-home.html', icon: 'life-buoy', title: 'Help & support', note: 'Report an issue and track tickets — routed to the right people automatically.' }
+        ];
+        document.getElementById('learn-links').innerHTML = learnLinks.map(function (l) {
+          return '<a class="role-card" href="' + S.hrefV2(l.rel) + '">' + S.icon(l.icon) +
+            '<span class="role-name">' + esc(l.title) + '</span><span>' + esc(l.note) + '</span>' +
+            '<span class="enter-as">Open ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
         }).join('');
 
         document.getElementById('operator-link').innerHTML =

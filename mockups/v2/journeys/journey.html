@@ -17,14 +17,18 @@
   </script>
   <script src="../../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
   <script src="../manifest.js"></script>
   <script src="../../assets/js/icons.js"></script>
   <script src="../../assets/js/i18n.js"></script>
   <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
   <script>
   (function () {
     'use strict';
-    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+    var S = window.CGA.shellV2, C = window.CGA.v2c, V2 = window.CGA.fixtures.v2, L = V2.learn, esc = S.esc;
 
     function jid() { try { return new URLSearchParams(location.search).get('id') || 'election'; } catch (e) { return 'election'; } }
     var J = V2.byJourney[jid()] || V2.byJourney.election;
@@ -65,6 +69,16 @@
         return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + ' <span class="v1-tag">v1</span></a>';
       }).join(' ');
 
+      /* the SOP-in-interface once-over: the video + standard procedure that
+         makes this journey understandable before you act in it */
+      var sop = (L.sops || []).filter(function (s) { return s.journeyId === J.id; })[0];
+      var understand = sop
+        ? '<section aria-labelledby="sop-h"><h2 id="sop-h">Understand it first</h2>' +
+            '<p class="page-intro">A short guide and the standard procedure — so you know what’s about to happen before you step in.</p>' +
+            (sop.videoId ? '<div class="card" style="margin-block-end:var(--space-4)">' + C.videoPlayer(sop.videoId) + '</div>' : '') +
+            C.sopPanel(sop.id, { hideVideo: true }) + '</section>'
+        : '';
+
       document.getElementById('root').innerHTML =
         '<header><div class="cluster" style="justify-content:space-between">' +
         '<div class="cluster">' + (J.flagship ? '<span class="pill pill--vote">Flagship</span>' : '') +
@@ -75,6 +89,7 @@
         '<strong style="color:var(--gov-fg)">Now:</strong> ' + esc(J.now) + ' ' +
         '<strong style="color:var(--gov-fg)">Your part:</strong> follow the arc below — watch from the gallery, or take the floor where you’re a resident. ' +
         '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(J.rail[1] || J.rail[0]) + '.</div></div>' +
+        understand +
         '<section class="card"><span class="eyebrow">The arc</span>' + rail + arc + '</section>' +
         (rooms ? '<section aria-labelledby="rooms-h"><h2 id="rooms-h">Where you act — the Live Civic Room</h2>' +
           '<p class="page-intro">Every journey passes through at least one live room, where the form, the vote, and the social floor are fused.</p>' +
@@ -82,8 +97,10 @@
         (v1 ? '<section class="card"><span class="eyebrow">The formal moment</span>' +
           '<p>The formal steps open the existing operations screen — v2 wraps them in this journey rather than re-mocking them.</p>' +
           '<div class="cluster" style="gap:var(--space-1)">' + v1 + '</div></section>' : '') +
-        '<p><a href="' + S.hrefV2('index.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All journeys</a></p>';
+        '<div class="cluster" style="justify-content:space-between"><a href="' + S.hrefV2('index.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All journeys</a>' +
+        C.reportLink(J.title) + '</div>';
 
+      C.initVideo(document.getElementById('root'));
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
     render();

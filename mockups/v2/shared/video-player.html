@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video library — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the video library…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'shared/video-player', title: 'Video library', module: 'learn', nav: 'video-library', citation: 'The multi-track player · one silent master + N language tracks · modeled on functions/video_player.php', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, L = window.CGA.fixtures.v2.learn, T = window.CGA.fixtures.v2.tr, esc = S.esc;
+    var currentId = L.videos[0].id;
+
+    function howItWorks() {
+      return '<section class="card" aria-labelledby="how-h"><h2 id="how-h">How the player works</h2>' +
+        '<p class="gloss">Every guide, tool, and workflow has a short video — and every video speaks ' + T.totals.mapped + ' languages without rendering ' + T.totals.mapped + ' separate films. ' +
+        'It is the same cost-saver the marketing site uses: <strong style="color:var(--gov-fg)">one silent master video</strong> plus a cheap audio and caption track per language.</p>' +
+        '<div class="grid-2">' +
+        '<div class="card card--inset"><span class="eyebrow">The pieces</span><ul>' +
+        '<li><strong style="color:var(--gov-fg)">One silent master</strong> — <code>{Subject}-Silent.mp4</code>, muted, shared by every language.</li>' +
+        '<li><strong style="color:var(--gov-fg)">Audio tracks</strong> — <code>{Subject}-{Language}.m4a</code>, time-synced to the master.</li>' +
+        '<li><strong style="color:var(--gov-fg)">Caption tracks</strong> — <code>{Subject}-{Language}.vtt</code>, the searchable, translatable transcript.</li></ul></div>' +
+        '<div class="card card--inset"><span class="eyebrow">What it does for you</span><ul>' +
+        '<li><strong style="color:var(--gov-fg)">Link audio &amp; subtitles</strong> — one control sets both to your language; unlink to mix (e.g. English audio, your captions).</li>' +
+        '<li><strong style="color:var(--gov-fg)">Stays in sync</strong> — the hidden audio is corrected back to the master whenever it drifts past 0.3 seconds.</li>' +
+        '<li><strong style="color:var(--gov-fg)">Remembers you</strong> — your language choice carries to every other video.</li></ul></div></div>' +
+        '<p class="citation">A faithful mockup of <code>functions/video_player.php</code> (the <code>[subject_video_player]</code> shortcode). No media ships in the prototype — the stage is a labelled placeholder.</p></section>';
+    }
+
+    function library() {
+      return '<section aria-labelledby="lib-h"><h2 id="lib-h">Every guide</h2>' +
+        '<p class="page-intro">' + L.totals.videos + ' videos so far. Pick one to load it above — your language choice follows you.</p>' +
+        '<div class="lesson-list">' + L.videos.map(function (v) {
+          var cur = v.id === currentId;
+          return '<button type="button" class="ticket-row" data-pick="' + esc(v.id) + '"' + (cur ? ' aria-current="true"' : '') + ' style="inline-size:100%;text-align:start;cursor:pointer">' +
+            '<span class="tk-n">' + L.fmtDuration(v.seconds) + '</span>' +
+            '<span class="tk-title">' + esc(v.title) + (cur ? ' ' + S.icon('play', { size: 'sm' }) : '') + '</span>' +
+            '<span class="tk-meta">' + v.audio.length + ' audio · ' + v.captions.length + ' captions</span>' +
+            '</button>';
+        }).join('') + '</div></section>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Learn · the video library</span><h1>Video library</h1>' +
+        '<p class="page-intro">A short film for every journey, tool, and workflow — narrated and captioned in many languages from one master recording.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        '<div id="featured">' + C.videoPlayer(currentId) + '</div>' +
+        howItWorks() +
+        library() +
+        '<section class="card card--inset" aria-labelledby="tr-h"><h2 id="tr-h">Many languages, tracked</h2>' +
+        '<p>Audio and captions are two of the six modalities the <a href="' + S.hrefV2('translation/translation-home.html') + '">translation interface</a> tracks per language — ' +
+        T.totals.mapped + ' mapped, ' + T.totals.shipped + ' shipped on the marketing site, the rest queued.</p></section>';
+
+      C.initVideo(document.getElementById('featured'));
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest ? ev.target.closest('[data-pick]') : null;
+      if (!btn) return;
+      currentId = btn.getAttribute('data-pick');
+      var feat = document.getElementById('featured');
+      feat.innerHTML = C.videoPlayer(currentId);
+      C.initVideo(feat);
+      document.querySelectorAll('[data-pick]').forEach(function (b) {
+        b.toggleAttribute('aria-current', b.getAttribute('data-pick') === currentId);
+      });
+      S.announce('Now showing: ' + (L.byVideo[currentId] || {}).title);
+      feat.scrollIntoView({ block: 'nearest' });
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', function () { /* chrome only; keep player state */ });
+  })();
+  </script>
+</body>
+</html>

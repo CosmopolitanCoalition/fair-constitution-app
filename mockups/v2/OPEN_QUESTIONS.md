@@ -112,11 +112,30 @@ design-ahead of the shipped backend.
 **v2 does:** the mutual-aid surface (Stage 4) renders it without a form chip and badges it
 Planned.
 
-## K. Education (Phase K-2) is out of v2 scope but unspecified anyway ([Open])
+## K. Education (Phase K-2) — now mocked in v2 ([v2-new])
 
 The Learn area / `education_*` schema, progress grading, and form IDs are explored but not
-specified. Not a v2 deliverable; noted because point-of-use civic education is referenced by
-the simplification principle. v2's "How this works" disclosures are the in-mockup stand-in.
+specified. **Superseded:** at the operator's direction v2 now mocks the education layer —
+`learn/` (learn-home, lesson, guides) plus the SOP panels embedded into journeys. The
+`education_*` tables, lesson/track/check schema, progress persistence, and any form IDs are
+still **unregistered** — the design is ahead of the code, and the lessons key off
+`fixtures-learn.js`, not a registry.
+
+## L. The video + translation pipeline models external scripts not in the repo ([Open])
+
+The multi-track player is a faithful mockup of the operator's WordPress player
+(`functions/video_player.php`, the `[subject_video_player]` shortcode) and the translation
+toolchain (`Import/Post/Check Translations.ps1`, `Convert ASS↔SRT/VTT.ps1`) — both live
+**outside the repo** (OneDrive + the `appsvr` plugin tree), so the mockup is built from the
+documented contract (one silent master MP4 + `{Subject}-{Language}.{m4a,vtt}`, the link toggle,
+drift-correction, prefs), not the source. **For the wiring pass:** fold the actual scripts in to
+lock the exact filename conventions, the drift threshold, and the ASS↔VTT step. The language set
+is real (`scripts/etl/languages.py`, 115 codes); the per-modality status states, the review-queue
+quorum, the AI engine choice (Haiku tier-1 + NLLB tail), and the contributor-gating ("verify only
+the language you read") are **design proposals** — no `translation_*` schema or form IDs exist yet.
+Likewise the **ticket/support** surface (`support/`) has no `tickets`/`reports` schema or routing
+service; the category→destination routing (abuse/illegal → the moderation & legal plane, never the
+support queue) is the design intent to wire.
 
 ---
 

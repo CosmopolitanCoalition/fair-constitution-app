@@ -24,7 +24,35 @@ spec `App Docs/CGA_Mockups_v2_Build_Instructions.md`.
 | 3 | Connective | **done** — `civic/today.html`, `civic/my-civic-life.html` |
 | 3 | Informal groups + legitimacy | **done** — `groups/` (home, create, detail), `social/legitimacy.html` (Phase I gauge, display-only) |
 | G | **The operator plane** | **done** — `operator/` (home, setup, console, roles, mesh, dns, identity, moderation, versioning); off the constitutional plane |
+| K/N | **Learn & support — the SOP/video/translation/ticket once-over** | **done** — `learn/` (learn-home, lesson, guides), `shared/video-player.html`, `translation/` (translation-home, language), `support/` (support-home, report, tickets, ticket); the SOP panel + multi-track player embedded into journeys |
 | 5,polish | classes 4&5 deepening · final a11y/RTL polish | **next** |
+
+### Learn & support — the SOP / video / translation / ticket once-over (this hand-off)
+At the operator's direction: make the **standard operating procedure legible in the interface**, give
+**every journey/tool/workflow a video in many languages**, build the **education modules**, the
+**translation-support interface** (languages × modalities, AI first round → community-verified), and a
+**report-an-issue + ticket** system. Three data spines + two shared renderers:
+- `assets/js/fixtures-learn.js` (`CGA.fixtures.v2.learn`) — 13 SOPs, 20 videos, 6 tracks, 18 lessons.
+  Every SOP is `{steps[{do,detail,cite}], videoId, journeyId, v1, issues[]}`; every lesson wraps a
+  video + its SOP + a knowledge check + the live journey.
+- `assets/js/fixtures-translation.js` (`CGA.fixtures.v2.tr`) — the canonical 24-language registry
+  (curated of **115 mapped in `scripts/etl/languages.py`**, 77 shipped on the marketing site), 6
+  modalities (interface, page copy, video audio, captions, education, help), the 5-state lifecycle
+  (none → ai_draft → in_review → verified → published), the per-language coverage matrix, the review
+  queue, the engine (Haiku tier-1 + NLLB tail, pluggable), and the privacy rail. Exposes `langName`.
+- `assets/js/fixtures-support.js` (`CGA.fixtures.v2.support`) — 12 tickets, 6 categories with **routing**
+  (bug/accessibility/content → operators, translation → the translation interface, abuse/illegal → the
+  moderation & legal plane, idea → backlog), 6 statuses, severities.
+- `assets/js/components-v2.js` (`CGA.v2c`) — **`videoPlayer(id)` + `initVideo(root)`**: a faithful mockup
+  of the WordPress `functions/video_player.php` (`[subject_video_player]`): ONE silent master MP4 +
+  per-language audio `.m4a` + caption `.vtt`, keyed `{Subject}-{Language}.{ext}`, the **link audio &
+  subtitles** toggle, drift-correction note, prefs in `localStorage` (carry across videos). Also
+  `sopPanel(id)`, `reportLink(ref)` (also injected site-wide into the footer by `shell-v2.js`),
+  `stateBadge(tone)`. **No media ships in the prototype — the stage is a labelled placeholder.**
+Sidebar gained a **Learn & support** section; the footer gained a site-wide **Report an issue** link.
+`qa_scan` clean; every page one h1, no console errors, no 360 px overflow; matrix wrapped + RTL-verified
+(Arabic native heading + RTL drafts); the knowledge-check, guides filter, report submit→ticket, ticket
+filters, and the accept-draft verify flow all interaction-tested.
 
 ### The operator plane (this hand-off)
 Added at the operator's direction (the v2 build doc had scoped it out — superseded). The mockups

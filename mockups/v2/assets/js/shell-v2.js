@@ -169,6 +169,16 @@
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
     endSection();
 
+    section('Learn & support');
+    linkV2('learn-home', 'Learn', 'graduation-cap', 'learn/learn-home.html');
+    linkV2('guides', 'Guides & procedures', 'list-checks', 'learn/guides.html');
+    linkV2('video-library', 'Video library', 'play', 'shared/video-player.html');
+    linkV2('translation-home', 'Translation status', 'languages', 'translation/translation-home.html');
+    linkV2('support-home', 'Help & support', 'life-buoy', 'support/support-home.html');
+    linkV2('tickets', 'Tickets', 'ticket', 'support/tickets.html');
+    linkV2('report', 'Report an issue', 'flag', 'support/report.html');
+    endSection();
+
     section('Run a node · operator plane');
     linkV2('operator-home', 'Operator home', 'sliders', 'operator/operator-home.html');
     linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
@@ -248,6 +258,7 @@
     return '<span class="footer-citation">' + esc(PAGE.citation || 'CGA mockups v2 · the game layer') + '</span>' +
       '<span class="header-spacer"></span>' +
       '<a href="' + hrefV1('shared/accessibility.html') + '">Accessibility</a>' +
+      '<a href="' + hrefV2('support/report.html', { ref: PAGE.id || PAGE.nav || 'page' }) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a>' +
       '<span class="footer-instance">' + esc(instanceLine) + '</span>' +
       '<span class="audit-chip">Audit #' + W.instance.auditSeq.toLocaleString('en-US') + ' · chained ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
   }

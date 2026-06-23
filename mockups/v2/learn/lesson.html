@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lesson — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the lesson…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'learn/lesson', title: 'Lesson', module: 'learn', nav: 'learn-home', citation: 'A lesson · video + standard procedure + a check + the live journey', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, L = window.CGA.fixtures.v2.learn, esc = S.esc;
+
+    function params() { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(''); } }
+    function resolve() {
+      var p = params(), id = p.get('id'), sop = p.get('sop');
+      if (id && L.byLesson[id]) return L.byLesson[id];
+      if (sop) {
+        var bySop = L.lessons.filter(function (l) { return l.sopId === sop; })[0];
+        if (bySop) return bySop;
+        var s = L.bySop[sop];
+        if (s) return { id: null, title: s.title, track: null, videoId: s.videoId, sopId: s.id, seconds: (L.byVideo[s.videoId] || {}).seconds || 0, summary: s.summary, synthetic: true };
+      }
+      return L.byLesson['what-is-wos'];
+    }
+    var lesson = resolve();
+    var track = lesson.track ? L.byTrack[lesson.track] : null;
+
+    function checkBlock() {
+      if (!lesson.check) return '';
+      var c = lesson.check;
+      var opts = c.options.map(function (o, i) {
+        return '<button type="button" class="check-opt" data-opt="' + i + '">' +
+          '<span class="lesson-n" aria-hidden="true">' + String.fromCharCode(65 + i) + '</span>' +
+          '<span>' + esc(o) + '</span></button>';
+      }).join('');
+      return '<section class="lesson-check" aria-labelledby="check-h">' +
+        '<span class="eyebrow" id="check-h">' + S.icon('list-checks', { size: 'sm' }) + ' Quick check</span>' +
+        '<p style="color:var(--gov-fg);font-weight:var(--weight-medium)">' + esc(c.q) + '</p>' +
+        opts +
+        '<p class="check-explain" data-explain hidden>' + esc(c.explain) + '</p></section>';
+    }
+
+    function nextBlock() {
+      if (!track) return '';
+      var ids = track.lessons, i = ids.indexOf(lesson.id), nxt = ids[i + 1];
+      if (!nxt) return '<p class="gloss">That’s the last lesson in <strong style="color:var(--gov-fg)">' + esc(track.title) + '</strong>. ' +
+        '<a href="' + S.hrefV2('learn/learn-home.html') + '">Back to all tracks</a>.</p>';
+      var l = L.byLesson[nxt];
+      return '<a class="role-card" href="' + S.hrefV2('learn/lesson.html?id=' + nxt) + '">' + S.icon('arrow-right') +
+        '<span class="role-name">Up next: ' + esc(l.title) + '</span><span>' + esc(l.summary) + '</span>' +
+        '<span class="enter-as">Continue ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+    }
+
+    function render() {
+      var sop = lesson.sopId ? L.bySop[lesson.sopId] : null;
+      document.getElementById('root').innerHTML =
+        '<p><a href="' + S.hrefV2('learn/learn-home.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' Learn</a>' +
+        (track ? ' · <span class="citation">' + esc(track.title) + '</span>' : '') + '</p>' +
+        '<header><span class="eyebrow">' + S.icon('graduation-cap', { size: 'sm' }) + ' Lesson</span>' +
+        '<h1>' + esc(lesson.title) + (lesson.planned ? ' <span class="pill pill--planned">Planned</span>' : '') + '</h1>' +
+        '<p class="page-intro">' + esc(lesson.summary) + '</p></header>' +
+        (lesson.videoId ? C.videoPlayer(lesson.videoId) : '') +
+        (sop ? C.sopPanel(sop.id, { hideVideo: true }) : '') +
+        checkBlock() +
+        (lesson.journeyId || (sop && sop.journeyId) ?
+          '<a class="btn btn--primary" href="' + S.hrefV2('journeys/journey.html?id=' + (lesson.journeyId || sop.journeyId)) + '">Now do it live ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
+        '<section aria-labelledby="next-h"><h2 id="next-h">Keep going</h2>' + nextBlock() + '</section>';
+
+      C.initVideo(document.getElementById('root'));
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-opt]') : null;
+      if (!b || !lesson.check) return;
+      var chosen = +b.getAttribute('data-opt'), ans = lesson.check.answer;
+      document.querySelectorAll('[data-opt]').forEach(function (o) {
+        var i = +o.getAttribute('data-opt');
+        o.disabled = true;
+        if (i === ans) o.classList.add('opt--right');
+        else if (i === chosen) o.classList.add('opt--wrong');
+      });
+      var ex = document.querySelector('[data-explain]'); if (ex) ex.hidden = false;
+      S.announce(chosen === ans ? 'Correct.' : 'Not quite — see the explanation.');
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

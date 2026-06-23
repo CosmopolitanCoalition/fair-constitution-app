@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tickets — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading tickets…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'support/tickets', title: 'Tickets', module: 'support', nav: 'tickets', citation: 'The ticket queue · routed by category, tracked to resolved', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, U = window.CGA.fixtures.v2.support, esc = S.esc;
+    var fStatus = 'open', fCat = 'all';
+
+    function statusPill(id) { var s = U.byStatus[id]; return C.stateBadge(s.tone, s.label, 'status: ' + s.label); }
+
+    function row(t) {
+      var cat = U.byCategory[t.category];
+      return '<a class="ticket-row" href="' + S.hrefV2('support/ticket.html?id=' + t.id) + '" data-cat="' + esc(t.category) + '" data-status="' + esc(t.status) + '">' +
+        '<span class="tk-n">#' + t.n + '</span>' +
+        '<span class="sev-dot sev-dot--' + esc(t.severity) + '" title="severity: ' + esc(t.severity) + '" aria-label="severity ' + esc(t.severity) + '"></span>' +
+        '<span class="tk-title">' + esc(t.title) + '</span>' +
+        statusPill(t.status) +
+        '<span class="tk-meta">' + S.icon(cat.icon, { size: 'sm' }) + ' ' + esc(cat.label.replace(/^Something is /, '')) + '</span>' +
+        '<span class="tk-meta">' + S.icon('arrow-up', { size: 'sm' }) + ' ' + t.votes + '</span>' +
+        '<span class="tk-meta">' + esc(t.updated) + '</span></a>';
+    }
+
+    function opts(list, cur, allLabel) {
+      return '<option value="all"' + (cur === 'all' ? ' selected' : '') + '>' + esc(allLabel) + '</option>' +
+        list.map(function (x) { return '<option value="' + esc(x.id) + '"' + (cur === x.id ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('');
+    }
+
+    function visible(t) {
+      var statusOk = fStatus === 'all' || (fStatus === 'open' ? ['new', 'triaged', 'in_progress'].indexOf(t.status) >= 0 : t.status === fStatus);
+      var catOk = fCat === 'all' || t.category === fCat;
+      return statusOk && catOk;
+    }
+
+    function render() {
+      var list = U.tickets.filter(visible);
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('ticket', { size: 'sm' }) + ' Tickets</span><h1>Tickets</h1>' +
+        '<p class="page-intro">Everything reported, and where it stands. <strong>' + U.counts.open + ' open</strong> of ' + U.counts.total + '. ' +
+        'Bugs go to the operators, wording to the translators, abuse to the moderation plane.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+
+        '<div class="cluster">' +
+        '<label class="demo-control">Status <select class="select" data-f-status><option value="open"' + (fStatus === 'open' ? ' selected' : '') + '>Open</option>' + opts(U.statuses, fStatus, 'All statuses') + '</select></label>' +
+        '<label class="demo-control">Category <select class="select" data-f-cat>' + opts(U.categories, fCat, 'All categories') + '</select></label>' +
+        '<a class="btn btn--primary btn--sm" href="' + S.hrefV2('support/report.html') + '">' + S.icon('flag', { size: 'sm' }) + ' Report an issue</a>' +
+        '</div>' +
+
+        '<p class="citation" data-count>' + list.length + ' ticket' + (list.length === 1 ? '' : 's') + '</p>' +
+        '<div class="ticket-list">' + (list.length ? list.map(row).join('') : '<p class="gloss">No tickets match. ' +
+          '<a href="' + S.hrefV2('support/report.html') + '">Report something.</a></p>') + '</div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('change', function (ev) {
+      if (ev.target.matches('[data-f-status]')) { fStatus = ev.target.value; render(); }
+      else if (ev.target.matches('[data-f-cat]')) { fCat = ev.target.value; render(); }
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guides &amp; procedures — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the guides…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'learn/guides', title: 'Guides & procedures', module: 'learn', nav: 'guides', citation: 'Standard operating procedures · every journey, tool, and workflow', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, L = window.CGA.fixtures.v2.learn, esc = S.esc;
+
+    function byModule() {
+      var order = [], groups = {};
+      L.sops.forEach(function (s) {
+        if (!groups[s.module]) { groups[s.module] = []; order.push(s.module); }
+        groups[s.module].push(s);
+      });
+      return order.map(function (m) { return { module: m, sops: groups[m] }; });
+    }
+
+    function entry(s) {
+      var search = (s.title + ' ' + s.module + ' ' + s.summary).toLowerCase();
+      return '<details class="card" data-sop-entry data-search="' + esc(search) + '">' +
+        '<summary class="cluster" style="justify-content:space-between;cursor:pointer">' +
+        '<span class="cluster">' + S.icon(s.icon, { size: 'sm' }) + ' <strong style="color:var(--gov-fg)">' + esc(s.title) + '</strong>' +
+        '<span class="tag-chip">' + esc(s.module) + '</span>' +
+        (s.scope === 'operator' ? '<span class="pill pill--planned">Operator</span>' : '') + '</span>' +
+        S.icon('chevron-down', { size: 'sm' }) + '</summary>' +
+        '<div style="margin-block-start:var(--space-3)">' + C.sopPanel(s.id) + '</div></details>';
+    }
+
+    function render() {
+      var groups = byModule();
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('list-checks', { size: 'sm' }) + ' Guides &amp; procedures</span><h1>Guides &amp; procedures</h1>' +
+        '<p class="page-intro">The standard way to do everything. Each journey, tool, and workflow has a short <strong>standard operating procedure</strong> — numbered steps, the rule behind each, the video, and a way to report a problem — so the procedure lives in the interface, not in a manual you have to go find.</p>' +
+        '<p class="citation">' + L.totals.sops + ' procedures · ' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        '<div class="field"><label class="field-label" for="gfilter">Find a procedure</label>' +
+        '<input id="gfilter" class="field-input" type="search" placeholder="Search by name, tool, or topic…" data-filter autocomplete="off" /></div>' +
+        '<p class="gloss" data-empty hidden>No procedure matches that. <a href="' + S.hrefV2('support/report.html') + '">Tell us what’s missing.</a></p>' +
+        groups.map(function (g) {
+          return '<section class="stack" data-group><h2>' + esc(g.module) + '</h2>' + g.sops.map(entry).join('') + '</section>';
+        }).join('');
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('input', function (ev) {
+      if (!ev.target.matches('[data-filter]')) return;
+      var q = ev.target.value.trim().toLowerCase(), any = false;
+      document.querySelectorAll('[data-sop-entry]').forEach(function (d) {
+        var hit = !q || d.getAttribute('data-search').indexOf(q) >= 0;
+        d.hidden = !hit; if (hit) any = true;
+        if (q && hit) d.open = true; if (!q) d.open = false;
+      });
+      document.querySelectorAll('[data-group]').forEach(function (g) {
+        var visible = g.querySelectorAll('[data-sop-entry]:not([hidden])').length;
+        g.hidden = visible === 0;
+      });
+      var empty = document.querySelector('[data-empty]'); if (empty) empty.hidden = any;
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

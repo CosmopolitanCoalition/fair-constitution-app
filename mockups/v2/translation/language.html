@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Language detail — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the language…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'translation/language', title: 'Language detail', module: 'translation', nav: 'translation-home', citation: 'Review the AI draft · verify in the language you read', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, T = window.CGA.fixtures.v2.tr, esc = S.esc;
+
+    function params() { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(''); } }
+    var code = params().get('code'); if (!T.byLang[code]) code = 'es';
+    var modality = params().get('m'); if (!T.modalities.some(function (m) { return m.id === modality; })) modality = 'ui';
+    var lang = T.byLang[code], row = T.byRow[code], rtl = lang.dir === 'rtl';
+
+    function modalityRow(m) {
+      var c = row.cells[m.id], st = T.byState[c.state], cur = m.id === modality;
+      return '<a class="lesson-row' + (cur ? ' lesson--done' : '') + '" href="' + S.hrefV2('translation/language.html?code=' + code + '&m=' + m.id) + '"' + (cur ? ' aria-current="true"' : '') + '>' +
+        '<span class="lesson-title">' + S.icon(m.icon, { size: 'sm' }) + ' ' + esc(m.label) + '</span>' +
+        C.stateBadge(st.tone, st.label, st.desc) +
+        '<span class="lesson-meta" style="flex:1 1 8rem;min-inline-size:6rem"><span class="tprog"><i style="inline-size:' + c.pct + '%"></i></span></span>' +
+        '<span class="lesson-meta">' + c.pct + '% · ' + c.verifiers + ' verifiers</span></a>';
+    }
+
+    function reviewQueue() {
+      var modLabel = (T.modalities.filter(function (m) { return m.id === modality; })[0] || {}).label || modality;
+      var items = T.reviewQueue(code).map(function (it, i) {
+        var st = T.byState[it.state];
+        return '<div class="review-row" data-review="' + i + '">' +
+          '<span class="rkey">' + esc(it.key) + ' · ' + C.stateBadge(st.tone, st.label) + '</span>' +
+          '<div class="review-src"><span class="rlbl">Source (English)</span>' + esc(it.source) + '</div>' +
+          '<div class="review-draft"><span class="rlbl">Draft (' + esc(lang.name) + ')</span>' +
+          '<span' + (rtl ? ' dir="rtl"' : '') + '>' + esc(it.draft) + '</span></div>' +
+          '<div class="stack" style="gap:var(--space-1);grid-column:1 / -1">' +
+          '<div class="cluster" style="gap:var(--space-1)">' +
+          '<button type="button" class="btn btn--secondary btn--sm" data-accept="' + i + '">' + S.icon('check', { size: 'sm' }) + ' Accept draft</button>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-suggest="' + i + '">' + S.icon('message-square', { size: 'sm' }) + ' Suggest a change</button>' +
+          '<span class="citation" data-votes="' + i + '">' + it.verifiers + ' of ' + it.needed + ' verifications</span></div></div></div>';
+      }).join('');
+      return '<section class="card" aria-labelledby="rq-h"><div class="cluster" style="justify-content:space-between">' +
+        '<h2 id="rq-h">Review queue — ' + esc(modLabel) + '</h2>' + C.stateBadge('info', code, 'You are reviewing ' + lang.name) + '</div>' +
+        '<p class="gloss">Each string shows the English source and the machine first draft. Accept a good one, or suggest a better wording. ' +
+        'Enough verifications move it to <strong style="color:var(--gov-fg)">community-verified</strong>, then it publishes.</p>' +
+        items + '</section>';
+    }
+
+    function gate() {
+      return '<div class="route-note">' + S.icon('users', { size: 'sm' }) +
+        '<div><strong style="color:var(--gov-fg)">You can verify ' + esc(lang.name) + ' because you read the interface in ' + esc(lang.name) + '.</strong> ' +
+        'Verification is gated to the people who actually use a language — not a central team, and not machine translation grading itself. ' +
+        '<span class="citation">community-verified by interface-language users</span></div></div>';
+    }
+
+    function contributors() {
+      return '<section class="card" aria-labelledby="con-h"><h2 id="con-h">Contributors</h2>' +
+        T.contributors.map(function (c) {
+          return '<div class="contributor-row"><span class="avatar" aria-hidden="true">' + esc(c.handle.slice(0, 2).toUpperCase()) + '</span>' +
+            '<span style="flex:1 1 8rem;min-inline-size:0;color:var(--gov-fg)">@' + esc(c.handle) + ' <span class="citation">' + esc(c.role) + '</span></span>' +
+            '<span class="cverified">' + c.verified.toLocaleString('en-US') + ' verified</span></div>';
+        }).join('') + '</section>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<p><a href="' + S.hrefV2('translation/translation-home.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All languages</a></p>' +
+        '<header><div class="cluster" style="justify-content:space-between"><div class="cluster">' +
+        '<span class="eyebrow">' + S.icon('languages', { size: 'sm' }) + ' Translation</span>' +
+        '<h1 style="margin:0"' + (rtl ? ' dir="rtl"' : '') + '>' + esc(lang.native) + '</h1>' +
+        '<span class="citation">' + esc(lang.name) + ' · ' + esc(code) + ' · ' + esc(lang.dir.toUpperCase()) + '</span></div>' +
+        (lang.source ? '<span class="pill pill--pass">Source language</span>' : '<span class="pill pill--info">' + row.overall + '% overall</span>') + '</div></header>' +
+        gate() +
+        '<section aria-labelledby="bd-h"><h2 id="bd-h">By modality</h2>' +
+        '<p class="page-intro">Pick a modality to review it. Audio and captions cover every guide video; interface and page copy cover the screens.</p>' +
+        '<div class="lesson-list">' + T.modalities.map(modalityRow).join('') + '</div></section>' +
+        reviewQueue() +
+        contributors() +
+        '<section aria-labelledby="more-h"><h2 id="more-h">More</h2><div class="cluster">' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('learn/lesson.html?sop=verify-translation') + '">' + S.icon('play', { size: 'sm' }) + ' Watch how verification works</a>' +
+        C.reportLink(lang.name + ' translation') + '</div></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      var acc = ev.target.closest ? ev.target.closest('[data-accept]') : null;
+      var sug = ev.target.closest ? ev.target.closest('[data-suggest]') : null;
+      if (acc) {
+        var i = acc.getAttribute('data-accept');
+        var v = document.querySelector('[data-votes="' + i + '"]');
+        if (v) v.innerHTML = S.icon('check', { size: 'sm' }) + ' Verified — thank you';
+        acc.disabled = true; acc.textContent = 'Accepted';
+        S.announce('Draft accepted — one verification added.');
+      } else if (sug) {
+        S.announce('In the running app a wording box would open here for your suggestion.');
+      }
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

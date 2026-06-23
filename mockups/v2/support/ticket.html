@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ticket — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the ticket…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'support/ticket', title: 'Ticket', module: 'support', nav: 'tickets', citation: 'A ticket · the report, the routing, and the status thread', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, U = window.CGA.fixtures.v2.support, T = window.CGA.fixtures.v2.tr, esc = S.esc;
+    function params() { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(''); } }
+    var id = params().get('id'); var tk = U.byTicket[id] || U.tickets[0];
+
+    function statusPill(s) { var st = U.byStatus[s]; return C.stateBadge(st.tone, st.label, 'status: ' + st.label); }
+
+    function thread() {
+      return '<div class="ticket-thread">' + tk.thread.map(function (e, i) {
+        var last = i === tk.thread.length - 1;
+        return '<div class="thread-ev ev--' + esc(e.kind) + '"><div class="ev-rail"><span class="ev-dot"></span>' +
+          (last ? '' : '<span class="ev-line"></span>') + '</div>' +
+          '<div class="ev-body"><span class="ev-who">' + esc(e.who) + '</span><span class="ev-when">' + esc(e.rel) + '</span>' +
+          '<p class="gloss" style="margin-block-start:2px">' + esc(e.text) + '</p></div></div>';
+      }).join('') + '</div>';
+    }
+
+    function linkedBlocks() {
+      var out = '';
+      if (tk.routedNote) {
+        out += '<div class="route-note">' + S.icon('shield', { size: 'sm' }) +
+          '<div><strong style="color:var(--gov-fg)">Routed off the support queue.</strong> ' + esc(tk.routedNote) + ' ' +
+          '<a href="' + S.hrefV2('operator/moderation.html') + '">The moderation &amp; legal plane ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div></div>';
+      }
+      if (tk.linkedTranslation) {
+        var lt = tk.linkedTranslation, ln = T.byLang[lt.code];
+        out += '<div class="route-note" style="border-color:color-mix(in oklch, var(--status-info) 40%, transparent);background:color-mix(in oklch, var(--status-info) 8%, var(--gov-bg))">' +
+          S.icon('languages', { size: 'sm' }) +
+          '<div><strong style="color:var(--gov-fg)">A translation review.</strong> This belongs to the ' + esc(ln ? ln.name : lt.code) + ' ' + esc(lt.modality) + ' queue, where readers of that language verify it. ' +
+          '<a href="' + S.hrefV2('translation/language.html?code=' + lt.code + '&m=' + lt.modality) + '">Open the review queue ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div></div>';
+      }
+      return out;
+    }
+
+    function render() {
+      var cat = U.byCategory[tk.category];
+      document.getElementById('root').innerHTML =
+        '<p><a href="' + S.hrefV2('support/tickets.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All tickets</a></p>' +
+        '<header><div class="cluster" style="justify-content:space-between"><div class="cluster">' +
+        '<span class="tk-n" style="font-size:var(--text-base)">#' + tk.n + '</span>' + statusPill(tk.status) +
+        '<span class="tag-chip">' + S.icon(cat.icon, { size: 'sm' }) + ' ' + esc(cat.label) + '</span>' +
+        '<span class="sev-dot sev-dot--' + esc(tk.severity) + '" aria-label="severity ' + esc(tk.severity) + '"></span>' +
+        '<span class="citation">' + esc(tk.severity) + '</span></div>' +
+        '<span class="tk-meta">' + S.icon('arrow-up', { size: 'sm' }) + ' ' + tk.votes + '</span></div>' +
+        '<h1>' + esc(tk.title) + '</h1></header>' +
+
+        '<div class="card card--inset"><div class="profile-stats">' +
+        '<span class="profile-stat">Reported by <b>@' + esc((tk.reporter || '').replace(/^u-/, '')) + '</b></span>' +
+        '<span class="profile-stat">Routed to <b>' + esc(tk.assignee || cat.routesTo) + '</b></span>' +
+        '<span class="profile-stat">Opened <b>' + esc(tk.created) + '</b></span>' +
+        '<span class="profile-stat">Updated <b>' + esc(tk.updated) + '</b></span>' +
+        (tk.page ? '<span class="profile-stat">Page <b><code>' + esc(tk.page) + '</code></b></span>' : '') +
+        '</div></div>' +
+
+        linkedBlocks() +
+
+        '<section class="card" aria-labelledby="rep-h"><span class="eyebrow" id="rep-h">The report</span>' +
+        '<p>' + esc(tk.body) + '</p></section>' +
+
+        '<section aria-labelledby="th-h"><h2 id="th-h">Status &amp; history</h2>' + thread() + '</section>' +
+
+        '<section class="card" aria-labelledby="re-h"><span class="eyebrow" id="re-h">Add to this ticket</span>' +
+        '<div class="field"><label class="field-label" for="reply">Your reply</label>' +
+        '<textarea id="reply" class="field-input" rows="3" placeholder="Add detail, a reproduction, or a +1…"></textarea></div>' +
+        '<div class="cluster"><button type="button" class="btn btn--secondary" data-reply>' + S.icon('message-square', { size: 'sm' }) + ' Post reply</button>' +
+        '<button type="button" class="btn btn--ghost" data-vote>' + S.icon('arrow-up', { size: 'sm' }) + ' This affects me too</button></div></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      if (ev.target.closest && ev.target.closest('[data-reply]')) S.announce('Mockup — your reply would post to the ticket thread.');
+      else if (ev.target.closest && ev.target.closest('[data-vote]')) S.announce('Noted — in the running app this adds your +1.');
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

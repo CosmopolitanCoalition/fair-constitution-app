@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Report an issue — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the form…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'support/report', title: 'Report an issue', module: 'support', nav: 'report', citation: 'Report an issue · it routes itself by category', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, U = window.CGA.fixtures.v2.support, esc = S.esc;
+    function params() { try { return new URLSearchParams(location.search); } catch (e) { return new URLSearchParams(''); } }
+    var ref = params().get('ref') || 'the page you were on';
+    var selected = null;
+    var nextN = Math.max.apply(null, U.tickets.map(function (t) { return t.n; })) + 1;
+
+    function catButtons() {
+      return '<div class="cat-grid" role="radiogroup" aria-label="Issue category">' + U.categories.map(function (c) {
+        return '<button type="button" class="cat-card' + (c.id === 'abuse' ? ' cat--abuse' : '') + '" role="radio" aria-checked="false" data-cat="' + esc(c.id) + '">' +
+          '<span class="cat-name">' + S.icon(c.icon, { size: 'sm' }) + ' ' + esc(c.label) + '</span>' +
+          '<span style="font-size:var(--text-sm)">' + esc(c.note) + '</span>' +
+          '<span class="cat-route">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(c.routesTo) + '</span></button>';
+      }).join('') + '</div>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('flag', { size: 'sm' }) + ' Report an issue</span><h1>Report an issue</h1>' +
+        '<p class="page-intro">Tell us what’s wrong and we’ll route it to the right people. You can stay pseudonymous — your residency is never attached.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+
+        '<form id="report-form" class="stack" novalidate>' +
+        '<section aria-labelledby="cat-h"><h2 id="cat-h">1 · What kind of issue?</h2>' + catButtons() +
+        '<div data-route-note hidden></div></section>' +
+
+        '<section aria-labelledby="desc-h"><h2 id="desc-h">2 · Describe it</h2>' +
+        '<div class="field"><label class="field-label" for="subj">Short summary</label>' +
+        '<input id="subj" class="field-input" type="text" placeholder="e.g. The vote tally doesn’t update after I cast" autocomplete="off" /></div>' +
+        '<div class="field"><label class="field-label" for="body">What happened?</label>' +
+        '<textarea id="body" class="field-input" rows="5" placeholder="What did you expect, and what happened instead?"></textarea></div>' +
+        '</section>' +
+
+        '<section class="card card--inset" aria-labelledby="ctx-h"><h2 id="ctx-h">3 · Context attached for you</h2>' +
+        '<p class="gloss">We attach where you were so you don’t have to explain it.</p>' +
+        '<ul><li>Page: <code>' + esc(ref) + '</code></li>' +
+        '<li>Persona: <span class="citation">' + esc((S.activePersona() || {}).name || 'you') + '</span> (you can report pseudonymously)</li>' +
+        '<li>Instance &amp; version: attached automatically</li></ul></section>' +
+
+        '<div class="cluster"><button type="submit" class="btn btn--primary">' + S.icon('flag', { size: 'sm' }) + ' Submit report</button>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('support/support-home.html') + '">Cancel</a>' +
+        '<span class="citation" data-form-error role="alert" hidden></span></div>' +
+        '</form>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    function selectCat(id) {
+      selected = id;
+      document.querySelectorAll('[data-cat]').forEach(function (b) {
+        var on = b.getAttribute('data-cat') === id;
+        b.classList.toggle('cat--selected', on); b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      var cat = U.byCategory[id], box = document.querySelector('[data-route-note]');
+      box.hidden = false;
+      var deep = cat.deep ? ' <a href="' + S.hrefV2(cat.deep) + '">Open ' + esc(cat.routesTo) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '';
+      box.innerHTML = '<div class="route-note">' + S.icon(id === 'abuse' ? 'shield' : 'info', { size: 'sm' }) +
+        '<div>This goes to <strong style="color:var(--gov-fg)">' + esc(cat.routesTo) + '</strong>. ' + esc(cat.note) + deep + '</div></div>';
+    }
+
+    function submit() {
+      var err = document.querySelector('[data-form-error]');
+      var body = (document.getElementById('body') || {}).value || '';
+      if (!selected) { err.hidden = false; err.textContent = 'Pick a category first.'; document.querySelector('[data-cat]').focus(); return; }
+      if (!body.trim()) { err.hidden = false; err.textContent = 'Add a short description.'; document.getElementById('body').focus(); return; }
+      var cat = U.byCategory[selected];
+      var subj = (document.getElementById('subj') || {}).value || cat.label;
+      document.getElementById('root').innerHTML =
+        '<div class="banner banner--demo"><div><span class="banner-title">Mockup — nothing was actually sent.</span> ' +
+        'In the running app this would file a ticket and route it.</div></div>' +
+        '<section class="card" aria-labelledby="ok-h"><span class="eyebrow">' + S.icon('check', { size: 'sm' }) + ' Report received</span>' +
+        '<h1 id="ok-h">Thank you — ticket #' + nextN + '</h1>' +
+        '<p class="page-intro">“' + esc(subj) + '” is filed and routed to <strong>' + esc(cat.routesTo) + '</strong>. You can follow it as it moves to resolved.</p>' +
+        '<div class="ticket-list">' +
+        '<div class="ticket-row"><span class="tk-n">#' + nextN + '</span>' +
+        '<span class="tk-title">' + esc(subj) + '</span>' +
+        '<span class="pill pill--info">New</span>' +
+        '<span class="tk-meta">' + S.icon(cat.icon, { size: 'sm' }) + ' ' + esc(cat.label) + '</span></div></div>' +
+        (selected === 'abuse'
+          ? '<div class="route-note">' + S.icon('shield', { size: 'sm' }) + '<div>Because this is an abuse report it was sent to the <a href="' + S.hrefV2('operator/moderation.html') + '">moderation &amp; legal plane</a>, not the support queue. No one decides viewpoint here.</div></div>'
+          : '') +
+        '<div class="cluster"><a class="btn btn--secondary" href="' + S.hrefV2('support/tickets.html') + '">See all tickets ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('support/report.html') + '">Report another</a></div></section>';
+      S.announce('Report received — ticket ' + nextN + ' filed.');
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-cat]') : null;
+      if (b) { selectCat(b.getAttribute('data-cat')); }
+    });
+    document.addEventListener('submit', function (ev) {
+      if (ev.target && ev.target.id === 'report-form') { ev.preventDefault(); submit(); }
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', function () { /* keep form state */ });
+  })();
+  </script>
+</body>
+</html>
