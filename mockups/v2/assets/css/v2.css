@@ -478,6 +478,42 @@ a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: no
 /* advanced disclosure marker */
 .advanced-note { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
 
+/* ============================================================ GUIDED TOUR
+   A follow-along bar at the top of <main> when a page is opened in tour mode
+   (?step=N). In-flow (not fixed) so it is robust on file:// and at any width. */
+.tour-bar-wrap:empty { display: none; }
+.tour-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4);
+  margin-block-end: var(--space-5); padding: var(--space-3) var(--space-4);
+  background: var(--gov-surface); border: 1px solid var(--gov-border);
+  border-inline-start: 3px solid var(--gov-primary); border-radius: var(--radius-lg);
+  position: relative; overflow: hidden;
+}
+.tour-bar-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); flex: 1 1 18rem; min-inline-size: 0; }
+.tour-bar .tour-step { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--cc-gold-300); }
+.tour-bar .tour-step .icon { color: var(--gov-link); }
+.tour-bar .tour-title { color: var(--gov-fg); font-size: var(--text-base); }
+.tour-bar .tour-blurb { color: var(--gov-fg-muted); font-size: var(--text-sm); flex: 1 1 12rem; min-inline-size: 0; }
+.tour-bar-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.tour-bar .tour-exit { font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.tour-prog { position: absolute; inset-block-end: 0; inset-inline: 0; block-size: 3px; background: var(--gov-surface-2); }
+.tour-prog > i { display: block; block-size: 100%; background: var(--gov-primary); }
+
+/* the tour index (tour.html) */
+.tour-act { display: flex; flex-direction: column; gap: var(--space-2); }
+.tour-stop {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3);
+  background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+}
+a.tour-stop:hover { border-color: var(--gov-border-strong); text-decoration: none; }
+.tour-stop .tour-stop-n {
+  inline-size: 1.9rem; block-size: 1.9rem; flex-shrink: 0; border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--gov-primary) 26%, var(--gov-bg)); color: var(--gov-fg);
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: var(--text-sm); font-weight: var(--weight-bold);
+}
+.tour-stop .tour-stop-title { color: var(--gov-fg); font-weight: var(--weight-medium); flex: 1 1 12rem; min-inline-size: 0; }
+.tour-stop .tour-stop-blurb { color: var(--gov-fg-muted); font-size: var(--text-sm); flex: 2 1 16rem; min-inline-size: 0; }
+
 /* ============================================================ MULTI-TRACK VIDEO
    A faithful mockup of the WordPress player: one silent master + N audio + N
    caption tracks, a link toggle, drift-correction, remembered prefs. */

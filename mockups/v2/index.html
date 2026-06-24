@@ -38,6 +38,15 @@
         </div>
       </div>
 
+      <div class="tour-bar" style="margin-block-end:0">
+        <div class="tour-bar-text">
+          <span class="tour-step"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> New here?</span>
+          <strong class="tour-title">Take the guided tour</strong>
+          <span class="tour-blurb">One linear path through the whole game layer — step through it with Back / Next on every screen.</span>
+        </div>
+        <div class="tour-bar-nav"><a class="btn btn--primary btn--sm" id="tour-cta" href="tour.html">Start the tour <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></div>
+      </div>
+
       <section aria-labelledby="classes-h">
         <h2 id="classes-h">Enter by who is acting</h2>
         <p class="page-intro">The honest map of the system is five kinds of interaction. Every journey belongs to one
@@ -187,6 +196,9 @@
           S.icon('sliders') + '<span class="role-name">Run a node — the operator plane</span>' +
           '<span>Operator account setup, the console, the four named roles over the capability channels, mesh &amp; federation, DNS &amp; certificates, identity, moderation, and versioning.</span>' +
           '<span class="enter-as">Open the operator plane ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+
+        var cta = document.getElementById('tour-cta');
+        if (cta && S.tourHref) cta.setAttribute('href', S.tourHref(0));
       }
 
       render();

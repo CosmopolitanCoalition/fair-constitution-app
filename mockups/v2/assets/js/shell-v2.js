@@ -109,6 +109,88 @@
     ['group', 'Informal-group meeting', 'users']
   ];
 
+  /* ------------------------------------------------------ the guided tour
+     One linear path through the whole game layer. A page enters "tour mode"
+     when its URL carries ?step=N (1-based); shell renders a follow-along bar
+     at the top of <main> with Back / Next that walk this order. The order is
+     also the spine of tour.html. */
+  var TOUR = [
+    { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'The five kinds of civic interaction — the whole map on one screen.' },
+    { act: 'Arrive', rel: 'civic/today.html', title: 'Today', blurb: 'Everything live right now in the places you belong to.' },
+    { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My civic life', blurb: 'Your home base: groups, orgs, open votes, record, wallet.' },
+
+    { act: 'An election', rel: 'journeys/journey.html?id=election', title: 'An election, end to end', blurb: 'The flagship journey — now, your part, next.' },
+    { act: 'An election', rel: 'shared/live-room.html?variant=forum', title: 'The candidate forum', blurb: 'Candidates take the floor in turn — a Live Civic Room.' },
+    { act: 'An election', rel: 'shared/live-room.html?variant=legislative', title: 'The legislative chamber', blurb: 'The embodied chamber: seats, the floor, votes coming in live.' },
+
+    { act: 'Lawmaking & justice', rel: 'journeys/journey.html?id=bill', title: 'A bill becomes law', blurb: 'A reading, a committee, the floor vote, the versioned law.' },
+    { act: 'Lawmaking & justice', rel: 'shared/live-room.html?variant=committee', title: 'A committee hearing', blurb: 'Testimony to the record; a committee vote.' },
+    { act: 'Lawmaking & justice', rel: 'journeys/journey.html?id=court-case', title: 'A court case', blurb: 'File, the panel forms, advocates argue, the ruling stands.' },
+    { act: 'Lawmaking & justice', rel: 'shared/live-room.html?variant=court', title: 'The courtroom', blurb: 'The judge chairs; advocates hold the floor.' },
+
+    { act: 'Organizations', rel: 'journeys/journey.html?id=start-org', title: 'Found an organization', blurb: 'Register a party, business, nonprofit, or common-good corp.' },
+    { act: 'Organizations', rel: 'shared/live-room.html?variant=board', title: 'A board meeting', blurb: 'Worker and owner seats; co-determination in the room.' },
+
+    { act: 'People & social', rel: 'social/profile.html', title: 'My profile', blurb: 'Your public page — endorsements, groups, orgs, achievements.' },
+    { act: 'People & social', rel: 'social/org-profile.html', title: 'An organization', blurb: 'Type, charter, workers, board, listings, the org ledger.' },
+    { act: 'People & social', rel: 'social/rep.html', title: 'My representative', blurb: 'Office hours, a meeting request, a constituent message.' },
+    { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed and the halls — uncensorable, pseudonymous.' },
+    { act: 'People & social', rel: 'groups/groups-home.html', title: 'Informal groups', blurb: 'Voluntary affinity groups — meet on your own terms.' },
+
+    { act: 'The economy', rel: 'economy/economy-home.html', title: 'The exchange', blurb: 'The entry to the Open Market and the economic clock.' },
+    { act: 'The economy', rel: 'economy/marketplace.html', title: 'The marketplace', blurb: 'Offers and requests for goods and services.' },
+    { act: 'The economy', rel: 'economy/wallet.html', title: 'My wallet', blurb: 'A private balance — never federated, like a ballot.' },
+    { act: 'The economy', rel: 'economy/units.html', title: 'Units & monetary policy', blurb: 'The unit, its subdivisions, and the dual-door levers.' },
+    { act: 'The economy', rel: 'economy/stipend.html', title: 'The civic stipend', blurb: 'A residency floor plus a capped role differential.' },
+    { act: 'The economy', rel: 'economy/agreements.html', title: 'Instruments of agreement', blurb: 'Contracts with a Supremacy-of-Rights floor.' },
+
+    { act: 'Learn & get help', rel: 'learn/learn-home.html', title: 'Learn', blurb: 'Six tracks of short lessons — video, procedure, a check.' },
+    { act: 'Learn & get help', rel: 'learn/lesson.html?id=cast-your-ballot', title: 'A lesson', blurb: 'Video + the standard procedure + a knowledge check.' },
+    { act: 'Learn & get help', rel: 'learn/guides.html', title: 'Guides & procedures', blurb: 'Every workflow’s standard operating procedure, searchable.' },
+    { act: 'Learn & get help', rel: 'shared/video-player.html', title: 'The video library', blurb: 'One silent master, narration and captions in many languages.' },
+    { act: 'Learn & get help', rel: 'translation/translation-home.html', title: 'Translation status', blurb: 'Languages × modalities, AI first round, community-verified.' },
+    { act: 'Learn & get help', rel: 'support/report.html', title: 'Report an issue', blurb: 'It routes itself — to operators, translators, or moderation.' },
+    { act: 'Learn & get help', rel: 'support/tickets.html', title: 'Tickets', blurb: 'Everything reported, and where it stands.' },
+
+    { act: 'Run a node', rel: 'operator/operator-home.html', title: 'The operator plane', blurb: 'The infrastructure, off the constitutional plane.' },
+    { act: 'Run a node', rel: 'operator/setup.html', title: 'Set up your node', blurb: 'Claim an account, name the instance, pick a role.' },
+    { act: 'Run a node', rel: 'operator/console.html', title: 'The operator console', blurb: 'Your roles at a glance; everything advanced behind a toggle.' },
+    { act: 'Run a node', rel: 'operator/mesh.html', title: 'Mesh & federation', blurb: 'Join a cluster, your peers, and Full Faith & Credit sync.' },
+    { act: 'Run a node', rel: 'social/legitimacy.html', title: 'Reach & legitimacy', blurb: 'The Phase-I gauge — display-only, never a governance input.' }
+  ];
+
+  function currentTourIndex() {
+    try {
+      var s = new URLSearchParams(location.search).get('step');
+      if (!s) return -1;
+      var i = parseInt(s, 10) - 1;
+      return (i >= 0 && i < TOUR.length) ? i : -1;
+    } catch (e) { return -1; }
+  }
+  function tourHref(i) {
+    var abs = CGA.state.link(ROOT_V2 + TOUR[i].rel);
+    try { var u = new URL(abs, document.baseURI); u.searchParams.set('step', String(i + 1)); return u.href; }
+    catch (e) { return abs + (abs.indexOf('?') < 0 ? '?' : '&') + 'step=' + (i + 1); }
+  }
+  function renderTourBar() {
+    var i = currentTourIndex();
+    if (i < 0) return '';
+    var stop = TOUR[i], pct = Math.round((i + 1) / TOUR.length * 100);
+    var back = i > 0
+      ? '<a class="btn btn--ghost btn--sm" href="' + tourHref(i - 1) + '">' + icon('chevron-left', { size: 'sm' }) + ' Back</a>'
+      : '<a class="btn btn--ghost btn--sm" href="' + hrefV2('tour.html') + '">' + icon('chevron-left', { size: 'sm' }) + ' Start</a>';
+    var next = i < TOUR.length - 1
+      ? '<a class="btn btn--primary btn--sm" href="' + tourHref(i + 1) + '">Next ' + icon('chevron-right', { size: 'sm' }) + '</a>'
+      : '<a class="btn btn--primary btn--sm" href="' + hrefV2('tour.html') + '">Finish ' + icon('check', { size: 'sm' }) + '</a>';
+    return '<div class="tour-bar" role="navigation" aria-label="Guided tour">' +
+      '<div class="tour-bar-text"><span class="tour-step">' + icon('map', { size: 'sm' }) + ' Guided tour · step ' + (i + 1) + ' of ' + TOUR.length + '</span>' +
+      '<strong class="tour-title">' + esc(stop.title) + '</strong>' +
+      '<span class="tour-blurb">' + esc(stop.blurb) + '</span></div>' +
+      '<div class="tour-bar-nav">' + back + next +
+      '<a class="tour-exit" href="' + hrefV2('tour.html') + '">All steps</a></div>' +
+      '<div class="tour-prog" aria-hidden="true"><i style="inline-size:' + pct + '%"></i></div></div>';
+  }
+
   function renderSidebar() {
     var html = '<details class="sidebar-toggle" open><summary>' + icon('menu', { size: 'sm' }) + ' Menu</summary><div class="sidebar-nav">';
 
@@ -129,6 +211,7 @@
 
     section('Start here');
     linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
+    linkV2('tour', 'Guided tour', 'map', 'tour.html');
     linkV2('today', 'Today', 'home', 'civic/today.html');
     linkV2('my-civic-life', 'My civic life', 'file-text', 'civic/my-civic-life.html');
     endSection();
@@ -358,7 +441,7 @@
   }
 
   /* ------------------------------------------------------------- render */
-  var headerEl, sidebarEl, footerEl, demoBarEl;
+  var headerEl, sidebarEl, footerEl, demoBarEl, tourBarEl;
   function buildShell() {
     document.body.classList.add('app-shell');
     if (PAGE.register === 'brand') document.body.classList.add('register-brand');
@@ -385,6 +468,11 @@
     if (!main) fail('page is missing <main id="main">');
     main.classList.add('main-content');
 
+    /* the guided-tour follow-along bar lives at the top of <main>, above the
+       page's own content, so it survives the page IIFE re-rendering #root */
+    tourBarEl = document.createElement('div'); tourBarEl.className = 'tour-bar-wrap';
+    main.insertBefore(tourBarEl, main.firstChild);
+
     document.body.insertBefore(headerEl, main);
     document.body.insertBefore(sidebarEl, main);
     document.body.appendChild(footerEl);
@@ -398,6 +486,7 @@
     sidebarEl.innerHTML = renderSidebar();
     footerEl.innerHTML = renderFooter();
     demoBarEl.innerHTML = renderDemoBar();
+    if (tourBarEl) tourBarEl.innerHTML = renderTourBar();
   }
   function wireEvents() {
     document.body.addEventListener('change', function (ev) {
@@ -446,6 +535,7 @@
     icon: icon, esc: esc, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
     hrefV1: hrefV1, hrefV2: hrefV2, isBuiltV2: isBuiltV2, plannedFlag: plannedFlag,
     announce: announce, activePersona: activePersona, jurisdictionChain: jurisdictionChain,
+    tour: TOUR, tourHref: tourHref,
     refresh: function () { renderChrome(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain(); }
   };
 

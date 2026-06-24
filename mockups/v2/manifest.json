@@ -15,6 +15,20 @@
   "notes": "v2 entry point. The five interaction classes as cards, the journey directory with progress rails, the eight Live-Room variants, and handoff links. Governance register; reuses v1 tokens/shell foundation via fixtures-v2 + shell-v2."
  },
  {
+  "file": "tour.html",
+  "title": "Guided tour — the linear walkthrough",
+  "module": "shared",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 0,
+  "notes": "One linear path through the whole game layer (35 stops, 8 acts). A page enters tour mode via ?step=N; shell-v2 renders a Back/Next follow-along bar at the top of <main>. The order is exposed as CGA.shellV2.tour and is the spine of this page."
+ },
+ {
   "file": "shared/live-room.html",
   "title": "Live Civic Room — the keystone (8 variants via ?variant=)",
   "interactionClass": "all",
