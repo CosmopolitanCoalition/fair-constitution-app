@@ -29,9 +29,61 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
     var BY = window.CGA.fixtures.byId;
+    var L = V2.live;
+
+    var tick = null; // the single re-diffing countdown interval, cleared each render
+
+    /* prefers-reduced-motion: render remaining-time once, do not start ticking. */
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
     function neverFederated(text) {
       return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + '<span>' + esc(text) + '</span></p>';
+    }
+
+    /* deadline(iso) → a remaining string: "closes in 2h 14m" / "opens in 38m";
+       the dayOf shape reads "day 4 of 90" carrying max from the fixture. */
+    function remaining(ms) {
+      if (ms <= 0) return null;
+      var totalMin = Math.floor(ms / 60000);
+      var d = Math.floor(totalMin / 1440), h = Math.floor((totalMin % 1440) / 60), m = totalMin % 60;
+      var parts = [];
+      if (d) parts.push(d + 'd');
+      if (h) parts.push(h + 'h');
+      if (m || !parts.length) parts.push(m + 'm');
+      return parts.join(' ');
+    }
+    function countdownText(target) {
+      if (!target) return null;
+      if (target.kind === 'dayOf') return 'day ' + target.day + ' of ' + target.max;
+      var rem = remaining(new Date(target.iso).getTime() - Date.now());
+      if (target.kind === 'opensAt') return rem ? 'opens in ' + rem : 'opening now';
+      return rem ? 'closes in ' + rem : 'closing now';
+    }
+    function countdownHtml(target) {
+      if (!target) return '';
+      var text = countdownText(target);
+      if (target.kind === 'dayOf') return '<span class="countdown">' + esc(text) + '</span>';
+      return '<span class="countdown" data-countdown="' + esc(target.iso) +
+        '" data-kind="' + esc(target.kind) + '">' + esc(text) + '</span>';
+    }
+    function updateCountdowns() {
+      var nodes = document.querySelectorAll('#root [data-countdown]');
+      Array.prototype.forEach.call(nodes, function (n) {
+        var text = countdownText({ kind: n.getAttribute('data-kind'), iso: n.getAttribute('data-countdown') });
+        if (text != null) n.textContent = text;
+      });
+    }
+
+    /* the ballot slice of the live feed — votes only. A ballot row shows only
+       that voting is OPEN, never any choice (Art. II ballot secrecy). */
+    function ballotRows() {
+      var flags;
+      try { flags = window.CGA.state.get('scenario') || {}; } catch (e) { flags = {}; }
+      var kinds = { election: 1, petition: 1, referendum: 1 };
+      return L.forFootprint().filter(function (r) {
+        return kinds[r.kind] && (!r.scenarioFlag || flags[r.scenarioFlag]);
+      });
     }
 
     // A section card with a heading + an "open" deep link.
@@ -54,6 +106,7 @@
     }
 
     function render() {
+      if (tick) { clearInterval(tick); tick = null; }
       var prof = E.profiles.personal;
       var persona = BY.personas[prof.persona] || { name: 'Resident', initials: 'R' };
       var w = E.wallet;
@@ -93,12 +146,17 @@
         '<p class="gloss" style="margin:0">@' + esc(prof.handle) + ' · ' + esc(prof.bio) + '</p>' +
         '<div class="profile-stats">' + stats + '</div></div></div>';
 
-      /* -------- the "now" line -------- */
+      /* -------- the "now" line — counts your open ballots from the live feed -------- */
+      var ballots = ballotRows();
+      var openBallots = ballots.filter(function (r) { return r.status === 'open'; }).length;
+      var ballotPhrase = openBallots
+        ? openBallots + ' ballot' + (openBallots === 1 ? ' is' : 's are') + ' open for you'
+        : 'nothing needs your vote this minute';
       var nowLine =
         '<div class="banner banner--info">' + S.icon('clock', { size: 'sm' }) +
-        '<div><strong>Right now</strong> — the Clean Air Act is on the floor of your legislature, ' +
-        'a participatory-budget petition is gathering signatures, and your civic stipend last credited your wallet on ' +
-        esc(w.transactions[0].date) + '. Your one open thing: nothing needs your vote this minute.</div></div>';
+        '<div><strong>Right now</strong> — ' + esc(ballotPhrase) + ', and your civic stipend last credited your wallet on ' +
+        esc(w.transactions[0].date) + '. Your ballot never shows how you voted — only that voting is open · ' +
+        '<span class="citation">Art. II (ballot secrecy)</span></div></div>';
 
       /* -------- My groups -------- */
       var groupBody = '<ul style="list-style:none;padding:0;margin:0">' + myGroups.map(function (g) {
@@ -131,17 +189,20 @@
         ]
       });
 
-      /* -------- My open votes -------- */
+      /* -------- My open votes — the ballot slice of the live feed.
+         A row shows only that voting is OPEN, never any choice (Art. II). -------- */
+      var votesRows = ballots.map(function (r) {
+        return '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
+          '<span><strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' +
+          '<span class="gloss"> · ' + esc(r.what) + '</span></span>' +
+          '<span class="cluster" style="gap:var(--space-2);align-items:center">' +
+          (r.pill ? S.pill(r.pill.tone, r.pill.label, r.pill.tip) : '') +
+          countdownHtml(r.target) + '</span></li>';
+      }).join('');
       var votesBody =
-        '<ul style="list-style:none;padding:0;margin:0">' +
-        '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
-        '<span><strong style="color:var(--gov-fg)">Manhattan approval phase</strong>' +
-        '<span class="gloss"> · approve as many candidates as you trust</span></span>' +
-        S.pill('vote', 'Open', 'Approval is secret; you may approve more than one · Art. I') + '</li>' +
-        '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
-        '<span><strong style="color:var(--gov-fg)">Participatory-budget referendum</strong>' +
-        '<span class="gloss"> · ranked vote when the window opens</span></span>' +
-        S.pill('wait', 'Soon', 'Delegated from a petition; deliberation in the town hall first') + '</li></ul>' +
+        (votesRows
+          ? '<ul style="list-style:none;padding:0;margin:0">' + votesRows + '</ul>'
+          : '<p class="gloss">No ballot is open for you right now — your galleries stay open.</p>') +
         '<p class="citation" style="margin-block-start:var(--space-2)">Your ballot is cryptographically separated from your identity — nobody can link your vote to you · Art. II (ballot secrecy, HARDENED)</p>';
       var votesCard = sectionCard({
         id: 'votes', icon: 'vote', title: 'My open votes',
@@ -205,18 +266,22 @@
         links: [{ label: 'Open my stipend', href: S.hrefV2('economy/stipend.html'), icon: 'refresh-cw', primary: true }]
       });
 
-      /* -------- Achievements (Proposed) -------- */
+      /* -------- Achievements (Proposed) — chips link to the catalog -------- */
+      var achHref = S.hrefV2('social/achievements.html');
       var chips = (prof.achievements || []).map(function (a) {
-        return '<span class="achievement-chip" title="' + esc(a.note || 'Decorative — confers no power') + '">' +
-          S.icon('check', { size: 'sm' }) + esc(a.name) + '</span>';
+        return '<a class="achievement-chip" href="' + achHref + '" title="' + esc(a.note || 'Decorative — confers no power') + '">' +
+          S.icon('check', { size: 'sm' }) + esc(a.name) + '</a>';
       }).join('');
       var achievementsCard =
         '<section class="card card--inset" aria-labelledby="ach-h">' +
         '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
-        '<h2 id="ach-h">' + S.icon('check', { size: 'sm' }) + ' Achievements</h2>' +
+        '<h2 id="ach-h">' + S.icon('award', { size: 'sm' }) + ' Achievements</h2>' +
         S.badge('neutral', 'Proposed') + '</div>' +
         '<p class="gloss">Decorative markers of participation — grounded in the Preamble’s consent of the governed. They confer no governance advantage: no vote, no seat, no role, no standing · <span class="citation">Preamble (named reach, not consent)</span></p>' +
         '<div class="cluster" style="margin-block-start:var(--space-3)">' + chips + '</div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+        '<a class="btn btn--secondary" href="' + achHref + '">' + S.icon('award', { size: 'sm' }) +
+        ' The achievement catalog ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
         '<p class="citation" style="margin-block-start:var(--space-3)">Awarded from the envelope, never the ballot; small recipient classes are k-anonymous and never published.</p>' +
         '</section>';
 
@@ -245,6 +310,11 @@
         '</div></section>' +
         achievementsCard +
         railsCard;
+
+      // one re-diffing interval for all ballot countdowns, unless reduced motion.
+      if (!reduce && document.querySelector('#root [data-countdown]')) {
+        tick = setInterval(updateCountdowns, 1000);
+      }
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

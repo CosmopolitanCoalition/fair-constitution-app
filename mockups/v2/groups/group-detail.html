@@ -17,6 +17,7 @@
   </script>
   <script src="../../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/chamber-v2.js"></script>
   <script src="../manifest.js"></script>
   <script src="../../assets/js/icons.js"></script>
   <script src="../../assets/js/i18n.js"></script>
@@ -28,6 +29,46 @@
     function gid() { try { return new URLSearchParams(location.search).get('id') || 'grp-harbor'; } catch (e) { return 'grp-harbor'; } }
     var grp = G.spaces.filter(function (s) { return s.id === gid(); })[0] || G.spaces[0];
     var isPublic = grp.privacy === 'open';
+    /* a group with a live room gets the embodied scene; only the harbor crew maps today */
+    var room = grp.room ? V2.rooms[grp.room] : null;
+
+    /* a pseudonymous handle: always @u-<localpart>, never doubled */
+    function mxid(h) { return h && h.indexOf('u-') === 0 ? '@' + h : '@u-' + h; }
+    function nameOf(p) { return p.name || p.handleName || mxid(p.handle); }
+
+    /* the embodied scene + the accessible presence roster below it */
+    function embodimentHtml() {
+      if (!room || !window.CGA.chamber) return '';
+      var here = room.presence.filter(function (p) { return p.online !== false; });
+      var rows = room.presence.map(function (p) {
+        var tags = [];
+        if (p.role === 'chair') tags.push('facilitator');
+        else if (p.role === 'gallery') tags.push('watching');
+        else tags.push('member');
+        return '<div class="presence-row' + (p.speaking ? ' presence-row--speaking' : '') + '">' +
+          '<span class="presence-dot" aria-hidden="true"></span>' +
+          (p.role === 'chair' ? S.icon('user', { size: 'sm' }) : (p.speaking ? S.icon('vote', { size: 'sm' }) : '')) +
+          '<span class="presence-name">' + esc(nameOf(p)) + '</span>' +
+          '<span class="handle">' + esc(mxid(p.handle)) + '</span>' +
+          '<span class="presence-tag">' + esc(tags.join(' · ')) + (p.speaking ? ' · has the floor' : '') + '</span></div>';
+      }).join('');
+      return '<section class="lr-chamber"><div class="lr-chamber-head">' +
+        '<span class="eyebrow">In the circle — you are here</span>' +
+        '<div class="lr-chamber-legend">' +
+        '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> has the floor</span>' +
+        '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> facilitator</span></div></div>' +
+        window.CGA.chamber.svg(room, {}) +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline;margin-block-start:var(--space-3)">' +
+        '<span class="eyebrow">Who is here now</span>' +
+        '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span>' + here.length + ' here now</span></div>' +
+        '<div class="stack" style="gap:var(--space-1);margin-block-start:var(--space-2)">' + rows + '</div>' +
+        '<p class="never-federated" style="margin-block-start:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
+        ' Presence is server-local — who is in the room is never federated and confers no governance power. <span class="citation">Art. I</span></p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=group') + '">' +
+        S.icon('users', { size: 'sm' }) + ' Step into the live room ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
+        '</section>';
+    }
 
     function render() {
       var meetingTypes = G.meetingTypes.map(function (m) {
@@ -41,6 +82,8 @@
         '<span class="tag-chip">' + esc(grp.privacy) + (isPublic ? ' · public space' : ' · private space') + '</span></div>' +
         '<h1>' + esc(grp.name) + '</h1><p class="page-intro">' + esc(grp.purpose) + '</p>' +
         '<p class="citation">' + grp.members + ' members · ' + esc(G.note) + '</p></header>' +
+
+        embodimentHtml() +
 
         '<div class="grid-2">' +
         '<section class="card"><span class="eyebrow">Discussion</span>' +

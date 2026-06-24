@@ -33,8 +33,40 @@
     function jid() { try { return new URLSearchParams(location.search).get('id') || 'election'; } catch (e) { return 'election'; } }
     var J = V2.byJourney[jid()] || V2.byJourney.election;
     var cls = V2.byClass[J.cls];
+    /* the TRUE current step + a snapshot — the rail marker, the arc marker, and
+       the now/next sentence ALL derive from this single currentStep. */
+    var jl = (V2.journeyLive && V2.journeyLive[J.id]) || { currentStep: 0, snapshot: { statusPill: { tone: 'info', label: 'In progress' } } };
+    var cur = jl.currentStep || 0;
+    var snap = jl.snapshot || { statusPill: { tone: 'info', label: 'In progress' } };
     var ROOM_LABEL = { committee: 'Committee hearing', legislative: 'Legislative session', exec: 'Executive committee', board: 'Board meeting', court: 'Court hearing', forum: 'Candidate forum', townhall: 'Referendum town hall', group: 'Group meeting' };
     var ROOM_ICON = { committee: 'landmark', legislative: 'landmark', exec: 'briefcase', board: 'building', court: 'scale', forum: 'vote', townhall: 'users', group: 'users' };
+
+    /* reduced-motion-guarded live countdown */
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    var ticker = null;
+    function deadline(iso) {
+      var ms = new Date(iso).getTime() - Date.now(), abs = Math.abs(ms);
+      if (abs < 60000) return ms >= 0 ? 'opens in under a minute' : 'just now';
+      var h = Math.floor(abs / 3600000), m = Math.floor((abs % 3600000) / 60000);
+      var span = h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+      return ms >= 0 ? 'opens in ' + span : span + ' ago';
+    }
+    function countdownEl(iso) {
+      var label = deadline(iso);
+      return '<span class="countdown" data-countdown="' + esc(iso) + '">' + esc(label) + '</span>';
+    }
+    function startTicker() {
+      if (ticker) { clearInterval(ticker); ticker = null; }
+      if (reduce) return;
+      ticker = setInterval(function () {
+        var els = document.querySelectorAll('[data-countdown]');
+        if (!els.length) { clearInterval(ticker); ticker = null; return; }
+        for (var i = 0; i < els.length; i++) {
+          els[i].textContent = deadline(els[i].getAttribute('data-countdown'));
+        }
+      }, 1000);
+    }
 
     function render() {
       var built = J.status === 'built-layer';
@@ -42,16 +74,20 @@
         ? '<span class="pill pill--live">Rides built surfaces</span>'
         : '<span class="pill pill--planned" title="design-ahead of code">Planned · ' + esc(J.phase || '') + '</span>';
 
-      /* the progress rail */
+      /* the progress rail — current marker = jl.currentStep; past steps get a check */
       var rail = '<ol class="journey-rail" aria-label="Progress through this journey">' + J.rail.map(function (step, i) {
+        var done = i < cur;
         return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +
-          '<li' + (i === 0 ? ' class="rail--current"' : '') + '>' + esc(step) + '</li>';
+          '<li' + (i === cur ? ' class="rail--current"' : '') + (i === cur ? ' aria-current="step"' : '') + '>' +
+          (done ? S.icon('check', { size: 'sm' }) + ' ' : '') + esc(step) + '</li>';
       }).join('') + '</ol>';
 
-      /* the arc — each rail step as a card */
+      /* the arc — each rail step as a card; current = jl.currentStep, past = check */
       var arc = '<ol class="flow-steps">' + J.rail.map(function (step, i) {
-        return '<li class="flow-step' + (i === 0 ? ' flow-step--current' : '') + '">' +
+        var done = i < cur;
+        return '<li class="flow-step' + (i === cur ? ' flow-step--current' : '') + '">' +
           '<div class="flow-step-head"><span class="flow-step-n">' + (i + 1) + '</span>' +
+          (done ? '<span class="live-icon">' + S.icon('check', { size: 'sm' }) + '</span>' : '') +
           '<span class="flow-action" style="color:var(--gov-fg)">' + esc(step) + '</span></div></li>';
       }).join('') + '</ol>';
 
@@ -68,6 +104,29 @@
         var label = rel.replace(/^.*\//, '').replace(/\.html$/, '').replace(/-/g, ' ');
         return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + ' <span class="v1-tag">v1</span></a>';
       }).join(' ');
+
+      /* now / your part / next — ALL recomputed from the same currentStep */
+      var curStepName = J.rail[cur] || J.rail[0];
+      var nowText = snap.now || curStepName;
+      var nextStep = J.rail[cur + 1] || J.rail[J.rail.length - 1];
+
+      /* the live snapshot strip — current step + status pill, an honest countdown
+         to the next step (only when a real target exists and it isn't planned),
+         and a "step into the room" CTA when a room variant is set */
+      var sp = snap.statusPill || { tone: 'info', label: 'In progress' };
+      var planned = sp.tone === 'planned';
+      var showCountdown = !planned && snap.target && snap.target.iso;
+      var liveStrip = '<div class="live-row' + (sp.tone === 'live' ? ' live-row--live' : '') + '" aria-label="Live snapshot of this journey">' +
+        '<span class="live-icon">' + S.icon(planned ? 'clock' : 'play', { size: 'sm' }) + '</span>' +
+        '<span class="live-title">' + esc(curStepName) + '</span>' +
+        S.pill(sp.tone, sp.label) +
+        (showCountdown
+          ? '<span class="live-what">Next — ' + esc(nextStep) + ' ' + countdownEl(snap.target.iso) + '</span>'
+          : '<span class="live-what">Next — ' + esc(nextStep) + '</span>') +
+        (snap.roomVariant
+          ? '<a class="enter-as" href="' + S.hrefV2('shared/live-room.html?variant=' + snap.roomVariant) + '">Step into the room ' + S.icon('arrow-right', { size: 'sm' }) + '</a>'
+          : '') +
+        '</div>';
 
       /* the SOP-in-interface once-over: the video + standard procedure that
          makes this journey understandable before you act in it */
@@ -86,11 +145,11 @@
         '<h1>' + esc(J.title) + '</h1></header>' +
         /* now / your part / next */
         '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">Now:</strong> ' + esc(J.now) + ' ' +
+        '<strong style="color:var(--gov-fg)">Now:</strong> ' + esc(nowText) + '. ' +
         '<strong style="color:var(--gov-fg)">Your part:</strong> follow the arc below — watch from the gallery, or take the floor where you’re a resident. ' +
-        '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(J.rail[1] || J.rail[0]) + '.</div></div>' +
+        '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(nextStep) + '.</div></div>' +
         understand +
-        '<section class="card"><span class="eyebrow">The arc</span>' + rail + arc + '</section>' +
+        '<section class="card"><span class="eyebrow">The arc</span>' + liveStrip + rail + arc + '</section>' +
         (rooms ? '<section aria-labelledby="rooms-h"><h2 id="rooms-h">Where you act — the Live Civic Room</h2>' +
           '<p class="page-intro">Every journey passes through at least one live room, where the form, the vote, and the social floor are fused.</p>' +
           '<div class="role-grid">' + rooms + '</div></section>' : '') +
@@ -101,6 +160,7 @@
         C.reportLink(J.title) + '</div>';
 
       C.initVideo(document.getElementById('root'));
+      startTicker();
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
     render();

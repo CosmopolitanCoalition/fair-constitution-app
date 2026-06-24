@@ -137,6 +137,7 @@
     { act: 'People & social', rel: 'social/rep.html', title: 'My representative', blurb: 'Office hours, a meeting request, a constituent message.' },
     { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed and the halls — uncensorable, pseudonymous.' },
     { act: 'People & social', rel: 'groups/groups-home.html', title: 'Informal groups', blurb: 'Voluntary affinity groups — meet on your own terms.' },
+    { act: 'People & social', rel: 'social/achievements.html', title: 'Achievements', blurb: 'A decorative catalog of participation — fenced: no vote, no seat, no advantage.' },
 
     { act: 'The economy', rel: 'economy/economy-home.html', title: 'The economy', blurb: 'The hub — the Open Market, the live tape, and the economic clock.' },
     { act: 'The economy', rel: 'economy/exchange.html', title: 'The exchange floor', blurb: 'A live ticker, an order book, and trades printing in real time.' },
@@ -253,6 +254,7 @@
     linkV2('rep', 'My representative', 'landmark', 'social/rep.html');
     linkV2('social-home', 'Social', 'users', 'social/social-home.html');
     linkV2('groups', 'Informal groups', 'users', 'groups/groups-home.html', 'Stage 3');
+    linkV2('achievements', 'Achievements', 'award', 'social/achievements.html', 'Proposed');
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
     endSection();
 

@@ -594,6 +594,37 @@ a.tour-stop:hover { border-color: var(--gov-border-strong); text-decoration: non
 .setup-step { border-block-start: 3px solid var(--gov-primary); }
 .setup-step .setup-n { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.75rem; block-size: 1.75rem; border-radius: var(--radius-full); background: color-mix(in oklch, var(--gov-primary) 28%, var(--gov-bg)); color: var(--gov-fg); font-family: var(--font-mono); font-weight: var(--weight-bold); }
 
+/* ============================================================ LIVENESS / COUNTDOWN */
+.countdown { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--gov-fg-strong); }
+.live-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); background: var(--gov-surface); border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); }
+.live-row.live-row--live { border-inline-start: 3px solid var(--status-success); }
+.live-row .live-icon { color: var(--gov-link); flex-shrink: 0; }
+.live-row .live-title { color: var(--gov-fg); font-weight: var(--weight-medium); flex: 1 1 14rem; min-inline-size: 0; }
+.live-row .live-what { color: var(--gov-fg-muted); font-size: var(--text-sm); flex: 2 1 16rem; min-inline-size: 0; }
+
+/* presence rosters (social/groups embodiment) */
+.presence-row { display: flex; align-items: center; gap: var(--space-2); padding-block: 2px; font-size: var(--text-sm); color: var(--gov-fg-muted); }
+.presence-dot { inline-size: .5rem; block-size: .5rem; border-radius: var(--radius-full); background: var(--status-success); flex-shrink: 0; }
+.presence-name { color: var(--gov-fg); }
+.presence-row--speaking .presence-name { color: var(--status-success-fg); font-weight: var(--weight-medium); }
+.presence-row--speaking .presence-dot { box-shadow: 0 0 0 3px color-mix(in oklch, var(--status-success) 30%, transparent); }
+
+/* legitimacy time-series */
+.legit-spark { inline-size: 100%; max-inline-size: 28rem; block-size: 4rem; }
+.legit-spark path { fill: none; stroke: var(--cc-gold-400); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.tier-readout { font-variant-numeric: tabular-nums; }
+
+/* ============================================================ ACHIEVEMENTS */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: var(--space-3); }
+.ach-medal { display: flex; flex-direction: column; gap: var(--space-2); align-items: center; text-align: center; padding: var(--space-4); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); background: var(--gov-surface); }
+.ach-medal--earned { border-color: color-mix(in oklch, var(--cc-gold-400) 45%, transparent); background: linear-gradient(160deg, color-mix(in oklch, var(--cc-purple-500) 14%, var(--gov-surface)), color-mix(in oklch, var(--cc-gold-500) 12%, var(--gov-surface))); }
+.ach-medal--locked { opacity: .55; filter: grayscale(.4); }
+.ach-disc { inline-size: 3rem; block-size: 3rem; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; background: color-mix(in oklch, var(--cc-gold-400) 22%, var(--gov-bg)); color: var(--cc-gold-200); }
+.ach-medal--locked .ach-disc { background: var(--gov-surface-2); color: var(--gov-fg-subtle); }
+.ach-name { color: var(--gov-fg); font-weight: var(--weight-medium); font-size: var(--text-sm); }
+.ach-code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.ach-fence { border-inline-start: 3px solid var(--cc-gold-600); }
+
 /* ============================================================ MULTI-TRACK VIDEO
    A faithful mockup of the WordPress player: one silent master + N audio + N
    caption tracks, a link toggle, drift-correction, remembered prefs. */

@@ -54,6 +54,46 @@
       if (!seat) return '';
       return ' ' + S.badge('info', seat.label, 'landmark');
     }
+
+    /* a pseudonymous handle: always @u-<localpart>, never doubled */
+    function mxid(h) { return h && h.indexOf('u-') === 0 ? '@' + h : '@u-' + h; }
+    function presNameOf(p) { return p.name || p.handleName || mxid(p.handle); }
+
+    /* "who is in the halls right now" — rosters of two open rooms, each linking
+       into the live room. Presence is server-local and never federated. */
+    function presenceStrip() {
+      var rooms = V2.rooms || {};
+      var openRooms = [
+        { cfg: rooms.committee, variant: 'committee', title: 'Committee hearing', icon: 'landmark' },
+        { cfg: rooms.townhall, variant: 'townhall', title: 'Referendum town hall', icon: 'landmark' }
+      ].filter(function (r) { return r.cfg && r.cfg.presence; });
+      if (!openRooms.length) return '';
+      var cols = openRooms.map(function (r) {
+        var pres = r.cfg.presence.filter(function (p) { return p.online !== false; });
+        var rows = pres.slice(0, 6).map(function (p) {
+          return '<div class="presence-row' + (p.speaking ? ' presence-row--speaking' : '') + '">' +
+            '<span class="presence-dot" aria-hidden="true"></span>' +
+            (p.speaking ? S.icon('vote', { size: 'sm' }) : '') +
+            '<span class="presence-name">' + esc(presNameOf(p)) + '</span>' +
+            '<span class="handle">' + esc(mxid(p.handle)) + '</span>' +
+            (p.speaking ? '<span class="presence-tag">has the floor</span>' : '') + '</div>';
+        }).join('');
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<span class="eyebrow">' + S.icon(r.icon, { size: 'sm' }) + ' ' + esc(r.title) + '</span>' +
+          '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span>' + pres.length + ' here now</span></div>' +
+          '<p class="citation" style="margin-block:var(--space-1)">' + esc(r.cfg.title) + '</p>' +
+          '<div class="stack" style="gap:var(--space-1)">' + rows + '</div>' +
+          '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+          '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=' + r.variant) + '">' +
+          S.icon('users', { size: 'sm' }) + ' Step into the room ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div></div>';
+      }).join('');
+      return '<section aria-labelledby="halls-now-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 id="halls-now-h">Who is in the halls right now</h2></div>' +
+        '<div class="grid-2">' + cols + '</div>' +
+        '<p class="never-federated" style="margin-block-start:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
+        ' Presence is server-local — who is in a room is never federated and confers no governance power. <span class="citation">Art. I</span></p></section>';
+    }
     function tagChips(tags) {
       return (tags || []).map(function (t) {
         return '<span class="tag-chip">#' + esc(t) + '</span>';
@@ -115,6 +155,9 @@
 
         /* entry cards */
         '<section aria-labelledby="go-h"><h2 id="go-h">Where to go</h2><div class="role-grid">' + cards + '</div></section>' +
+
+        /* who is in the halls right now — presence strip above the feed */
+        presenceStrip() +
 
         /* the feed */
         '<section aria-labelledby="feed-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +

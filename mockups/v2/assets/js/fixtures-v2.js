@@ -621,11 +621,112 @@
     note: 'Groups are voluntary associations (Art. I). No governance power is conferred; membership is private to each member and never federates.'
   };
 
+  /* ---- LIVE FEED (today.html / my-civic-life.html) ----------------------
+     ISO targets are computed relative to load so countdowns always read live
+     without a backend. forFootprint() returns rows the active persona can see
+     (watch is universal; act is residency-gated — the page enforces that copy).
+     'rows' carry a scenarioFlag honored by the demo bar. */
+  var nowMs = Date.now();
+  function inMin(m) { return new Date(nowMs + m * 60000).toISOString(); }
+  var live = {
+    rail: 'You watch everything; you act where you reside (Art. I residency sweep). A ballot row shows only that voting is OPEN — never how you voted (Art. II).',
+    rows: [
+      { id: 'lv-session', kind: 'session', icon: 'landmark', title: 'Council — regular session', what: 'The chamber is in session; the locked agenda is on item 2.', part: 'Watch from the gallery, or take the floor if you reside here.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Live now', tip: 'In session · peg quorum = majority of ALL serving' }, form: { name: 'Session', id: 'F-SPK-001' }, target: { kind: 'closesAt', iso: inMin(74) }, to: { rel: 'shared/live-room.html?variant=legislative' }, scenarioFlag: 'liveSession' },
+      { id: 'lv-committee', kind: 'committee', icon: 'landmark', title: 'Environment & Infrastructure — hearing', what: 'Public testimony on the Clean Air Act is open.', part: 'Add testimony to the record if you reside in the district.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Taking testimony' }, form: { name: 'Testimony', id: 'F-SOC-002' }, target: { kind: 'closesAt', iso: inMin(38) }, to: { rel: 'shared/live-room.html?variant=committee' }, scenarioFlag: 'liveSession' },
+      { id: 'lv-ballot', kind: 'election', icon: 'vote', title: 'Manhattan approval race — ballot open', what: 'The approval phase is open; ranking closes soon.', part: 'Cast your ballot — secret, like always.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'vote', label: 'Ballot open' }, form: { name: 'Open ballot', id: null }, target: { kind: 'closesAt', iso: inMin(220) }, to: { rel: 'electoral/open-ballot.html', v1: true } },
+      { id: 'lv-forum', kind: 'forum', icon: 'vote', title: 'Candidate forum — tonight', what: 'Candidates speak in turn before the vote window opens.', part: 'Listen, ask, decide.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Starts soon' }, form: null, target: { kind: 'opensAt', iso: inMin(95) }, to: { rel: 'shared/live-room.html?variant=forum' } },
+      { id: 'lv-veto', kind: 'challenge', icon: 'scale', title: 'A signed bill is in its veto window', what: 'The executive may sign or veto.', part: 'Track the clock; an override needs a supermajority of ALL serving.', jurisdiction: 'usa-3-new-york-county', status: 'window', pill: { tone: 'wait', label: 'Window open' }, form: null, target: { kind: 'dayOf', day: 4, max: 90 }, to: { rel: 'legislature/bills.html', v1: true } },
+      { id: 'lv-group', kind: 'group', icon: 'users', title: 'Harbor Cleanup Crew — meeting', what: 'The group is calling a facilitated meeting.', part: 'Join if you are a member.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Meeting soon' }, form: null, target: { kind: 'opensAt', iso: inMin(150) }, to: { rel: 'shared/live-room.html?variant=group' }, scenarioFlag: 'groupForming' },
+      { id: 'lv-stipend', kind: 'stipend', icon: 'refresh-cw', title: 'Civic-stipend run posted', what: 'The economic clock posted this period’s stipend.', part: 'See your private receipt in your wallet.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'planned', label: 'Planned · L/M' }, form: { name: 'Stipend run', id: 'F-TRE-004' }, target: null, to: { rel: 'economy/stipend.html' }, planned: true, scenarioFlag: 'ubiRun' },
+      { id: 'lv-trade', kind: 'trade', icon: 'globe', title: 'Cross-government trade talk', what: 'Two governments are negotiating terms.', part: 'Observe the talks; only the governments act.', jurisdiction: 'earth', status: 'soon', pill: { tone: 'planned', label: 'Planned · L/M' }, form: null, target: { kind: 'opensAt', iso: inMin(300) }, to: { rel: 'economy/economy-home.html' }, planned: true, scenarioFlag: 'tradeTalk' }
+    ],
+    forFootprint: function () { return live.rows; }
+  };
+
+  /* ---- JOURNEY LIVE STATE (journey.html) — the true current step + a snapshot,
+     so the rail marker, the arc marker, and the now/next sentence all agree. */
+  var journeyLive = {
+    election: { currentStep: 1, snapshot: { now: 'The candidate forum is on tonight', statusPill: { tone: 'wait', label: 'Forum tonight' }, target: { iso: inMin(95) }, roomVariant: 'forum' } },
+    'committee-session': { currentStep: 3, snapshot: { now: 'Public testimony is open', statusPill: { tone: 'live', label: 'Live now' }, target: { iso: inMin(38) }, roomVariant: 'committee' } },
+    bill: { currentStep: 2, snapshot: { now: 'Floor reading in progress', statusPill: { tone: 'live', label: 'On the floor' }, target: { iso: inMin(74) }, roomVariant: 'legislative' } },
+    'court-case': { currentStep: 3, snapshot: { now: 'Evidence is being heard', statusPill: { tone: 'live', label: 'In session' }, target: { iso: inMin(50) }, roomVariant: 'court' } },
+    budget: { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · L' } } },
+    'start-org': { currentStep: 2, snapshot: { now: 'The first board meeting is forming', statusPill: { tone: 'wait', label: 'Board forming' }, target: { iso: inMin(180) }, roomVariant: 'board' } },
+    'board-meeting': { currentStep: 1, snapshot: { now: 'The board is in session', statusPill: { tone: 'live', label: 'Live now' }, target: { iso: inMin(40) }, roomVariant: 'board' } },
+    'form-a-group': { currentStep: 2, snapshot: { now: 'Calling a meeting', statusPill: { tone: 'wait', label: 'Meeting soon' }, target: { iso: inMin(150) }, roomVariant: 'group' } },
+    'mutual-aid': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · M' } } },
+    'petition-to-referendum': { currentStep: 1, snapshot: { now: 'Gathering signatures to the threshold', statusPill: { tone: 'wait', label: 'Signatures' }, target: null } },
+    'public-service': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned' } } },
+    'stipend-and-tax': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · L/M' } } },
+    'two-governments': { currentStep: 2, snapshot: { now: 'Trade talks are underway', statusPill: { tone: 'planned', label: 'Planned' }, target: null } }
+  };
+
+  /* ---- LEGITIMACY / REACH (legitimacy.html) — time-series + tier console.
+     Display-only (CI-1). k-anon suppresses small counts; 'unmeasurable' (never
+     0%) when the denominator is null; raw stored, display-capped at 100%. */
+  function legitSnaps(endPct, n, fromPct) {
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var t = i / (n - 1), v = fromPct + (endPct - fromPct) * t, wob = ((i * 37) % 7 - 3) * 0.01 * endPct;
+      out.push({ day: i - (n - 1), reachPct: +(Math.max(0, v + wob)).toFixed(2) });
+    }
+    return out;
+  }
+  var legitJurs = [
+    { slug: 'usa-3-new-york-county', name: 'New York County', verifiedResidents: 41200, populationEstimate: 1694251, populationYear: 2020, provenance: 'WorldPop', reachPct: 2.43, tier: 'Active', lifecycleState: 'active', suppressed: false, snapshots: legitSnaps(2.43, 30, 0.4) },
+    { slug: 'usa-queens', name: 'Queens County', verifiedResidents: 28800, populationEstimate: 2405464, populationYear: 2020, provenance: 'WorldPop', reachPct: 1.20, tier: 'Active', lifecycleState: 'active', suppressed: false, snapshots: legitSnaps(1.20, 30, 0.2) },
+    { slug: 'greenwood-hamlet', name: 'Greenwood (hamlet)', verifiedResidents: 480, populationEstimate: 460, populationYear: 2020, provenance: 'WorldPop', reachPct: 104.3, displayCap: 100, tier: 'Saturated', lifecycleState: 'active', suppressed: false, snapshots: legitSnaps(100, 30, 38) },
+    { slug: 'manhattan-nbhd', name: 'A Manhattan neighborhood', verifiedResidents: null, populationEstimate: 3100, populationYear: 2020, provenance: 'WorldPop', reachPct: null, tier: null, lifecycleState: 'activating', suppressed: true, snapshots: [] },
+    { slug: 'antarctica-base', name: 'Antarctic research base', verifiedResidents: 120, populationEstimate: null, provenance: 'no estimate', reachPct: null, tier: null, lifecycleState: 'unmeasurable', suppressed: false, snapshots: [] }
+  ];
   var legitimacy = {
     planned: true, phase: 'Phase I',
     note: 'Reach is a display-only transparency gauge. It is NEVER a governance input — it changes no vote, no moderation, no right.',
-    rails: ['No per-person score', 'No individual leaderboard', 'Measured from the envelope, not the ballot', 'k-anonymous floor suppresses small counts'],
-    sample: { jurisdiction: 'usa-3-new-york-county', verifiedResidents: 41200, populationEstimate: 1694251, reachPct: 2.43, tier: 'Active government' }
+    rails: ['Display-only — never a governance input (CI-1)', 'No per-person score', 'No individual leaderboard — jurisdiction scope only', 'Measured from the envelope, not the ballot', 'k-anonymous floor suppresses small counts', 'Reach is named coverage (Preamble consent), not the Art. VI §3 wartime test'],
+    jurisdictions: legitJurs,
+    byJur: (function () { var m = {}; legitJurs.forEach(function (j) { m[j.slug] = j; }); return m; })(),
+    tierParams: { enabled: false, k: 1, exponent: 3, floor: 5, cap: 9, devDefaultNote: 'disabled → CLK-06 default = 1 verified resident boots a government', samplePops: [27, 216, 343, 512, 729, 1000000], rail: 'Gates when a GOVERNMENT may BOOT, never the franchise (CI-4). Amendable policy authored by founders / the legislature — not a hardcoded ceiling.' },
+    sample: legitJurs[0]
+  };
+
+  /* ---- ACHIEVEMENTS (social/achievements.html) — a decorative, fenced catalog.
+     CI-1 no governance advantage; PI-6 no per-person score; PI-1 no individual
+     leaderboard; PI-3 k-anon; PI-2 from the envelope not the ballot; PI-4
+     individual default-private. Proposed — founder/legislature-authored policy. */
+  var achievements = {
+    proposed: true,
+    rails: ['No governance advantage — no vote, no seat, no role, no moderation, no eligibility (CI-1)', 'No per-person score or rank (PI-6)', 'No individual leaderboard — jurisdiction scope only (PI-1)', 'k-anonymous floor (PI-3)', 'From the envelope, never the ballot — no abstention leak (PI-2)', 'Default private for individuals, opt-in to show (PI-4)', 'No economic reward — hard-separate from treasury and the exchange (CI-3)'],
+    inProgress: [{ code: 'ACH-IND-VERIFIED', label: 'Resident → Verified', have: 21, need: 30, unit: 'days' }],
+    tiers: [
+      { key: 'individual', label: 'Individual', prefix: 'ACH-IND', visibility: 'Default private · opt-in to show', items: [
+        { code: 'ACH-IND-VERIFIED', name: 'Verified resident', earned: true, note: '30 days of qualifying pings' },
+        { code: 'ACH-IND-FIRST-BALLOT', name: 'First ballot cast', earned: true, note: 'from the envelope, never the ballot' },
+        { code: 'ACH-IND-FIRST-STAND', name: 'Stood for office', earned: false },
+        { code: 'ACH-IND-PETITIONER', name: 'Filed a petition', earned: false },
+        { code: 'ACH-IND-JUROR', name: 'Served on a jury', earned: false },
+        { code: 'ACH-IND-SEATED', name: 'Held a seat', earned: false } ] },
+      { key: 'organization', label: 'Organization', prefix: 'ACH-ORG', visibility: 'Public · k-anonymous floor', items: [
+        { code: 'ACH-ORG-FOUNDED', name: 'Founded an organization', earned: true },
+        { code: 'ACH-ORG-FIRST-ENDORSEMENT', name: 'First endorsement', earned: true },
+        { code: 'ACH-ORG-100-MEMBERS', name: '100 members', earned: true, note: 'first worker seat · Art. III §6' },
+        { code: 'ACH-ORG-PARITY', name: 'Worker–owner parity', earned: false, note: '2000 employees' },
+        { code: 'ACH-ORG-MULTI-JURISDICTION', name: 'Operates across jurisdictions', earned: false } ] },
+      { key: 'jurisdiction', label: 'Jurisdiction', prefix: 'ACH-JUR', visibility: 'Public · k-anonymous floor', items: [
+        { code: 'ACH-JUR-CRITICAL-POP', name: 'Reached critical population', earned: true },
+        { code: 'ACH-JUR-FIRST-LEGISLATURE', name: 'Seated a legislature', earned: true },
+        { code: 'ACH-JUR-FIRST-ELECTION', name: 'Held an election', earned: true },
+        { code: 'ACH-JUR-LEGIT-25', name: '25% reach', earned: false },
+        { code: 'ACH-JUR-LEGIT-50', name: '50% reach', earned: false },
+        { code: 'ACH-JUR-LEGIT-75', name: '75% reach', earned: false },
+        { code: 'ACH-JUR-LEGIT-100', name: 'Full reach', earned: false },
+        { code: 'ACH-JUR-FULL-INSTITUTIONS', name: 'All institutions seated', earned: false },
+        { code: 'ACH-JUR-SUBDIVIDED', name: 'Subdivided at the seat ceiling', earned: false } ] },
+      { key: 'system', label: 'Global milestones', prefix: 'ACH-SYS', visibility: 'Public · celebratory', items: [
+        { code: 'ACH-SYS-FIRST-ACTIVATION', name: 'First government booted', earned: true },
+        { code: 'ACH-SYS-100-JURISDICTIONS', name: '100 jurisdictions active', earned: true },
+        { code: 'ACH-SYS-1M-RESIDENTS', name: '1,000,000 verified residents', earned: false },
+        { code: 'ACH-SYS-FIRST-UNION', name: 'First union of governments', earned: false } ] }
+    ]
   };
 
   /* --------------------------------------------------------------- expose */
@@ -637,6 +738,9 @@
     economy: economy,
     groups: groups,
     legitimacy: legitimacy,
+    live: live,
+    journeyLive: journeyLive,
+    achievements: achievements,
     byJourney: (function () { var m = {}; journeys.forEach(function (j) { m[j.id] = j; }); return m; })(),
     byClass: (function () { var m = {}; interactionClasses.forEach(function (c) { m[c.id] = c; }); return m; })()
   };

@@ -456,6 +456,20 @@
   "notes": "A group: discussion room, members, pinned, call a meeting (casual/facilitated/formal via the live room), public-square carve-outs vs private self-moderation, optional next steps (org/petition)."
  },
  {
+  "file": "social/achievements.html",
+  "title": "Achievements — a fenced catalog",
+  "module": "social",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "planned-layer",
+  "stage": "I",
+  "notes": "A decorative achievements catalog grouped by the 4 subject tiers (Individual/Organization/Jurisdiction/Global) with the real ACH-* codes, earned vs locked medals, a derived in-progress meter, and a global milestone wall. Hard-fenced: CI-1 no governance advantage, PI-6 no per-person score, PI-1 no individual leaderboard, PI-3 k-anon, PI-2 from-the-envelope, PI-4 default-private. Proposed; no AchievementCatalog in code."
+ },
+ {
   "file": "social/legitimacy.html",
   "title": "Reach & legitimacy gauge",
   "module": "social",

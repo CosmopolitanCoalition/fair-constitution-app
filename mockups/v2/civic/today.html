@@ -27,149 +27,156 @@
   (function () {
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
-    var E = V2.economy;
+    var L = V2.live;
 
-    /* Each row: icon, what + your part (one line), a status pill, and one entry link.
-       `to` is either a v2 deep-link (hrefV2) or a v1 deep-link (hrefV1, tagged v1).
-       `planned` rows carry an inline Planned badge. */
-    function rows() {
-      return [
-        {
-          icon: 'landmark',
-          title: 'Legislative session tonight',
-          what: 'The New York County floor takes the Novák response, then reads the Clean Air Act.',
-          part: 'Your part: watch from the gallery; residents may speak from the floor.',
-          pill: S.pill('live', 'Live now', 'Open · in session · peg quorum of all serving · Art. II §2'),
-          form: { name: 'Floor reading', id: 'F-LEG-004' },
-          to: S.hrefV2('shared/live-room.html?variant=legislative'),
-          cta: 'Enter the room'
-        },
-        {
-          icon: 'users',
-          title: 'Committee hearing — open testimony',
-          what: 'Environment & Infrastructure is hearing the Clean Air Act before referring it to the floor.',
-          part: 'Your part: testimony from residents enters the immutable public record.',
-          pill: S.pill('live', 'Live now', 'Open · in session · committee majority of all members · Art. II §4'),
-          form: { name: 'Public testimony', id: 'F-LEG-006' },
-          to: S.hrefV2('shared/live-room.html?variant=committee'),
-          cta: 'Watch the hearing'
-        },
-        {
-          icon: 'vote',
-          title: 'Manhattan approval race',
-          what: 'Candidates are gathering approvals on the open ballot — the finalist cutoff is ahead.',
-          part: 'Your part: approve as many candidates as you trust; every approval is secret.',
-          pill: S.pill('vote', 'Ballot open', 'Approval phase · voting and candidacy require nothing beyond residency · Art. I'),
-          form: null,
-          to: S.hrefV1('electoral/open-ballot.html'),
-          v1: true,
-          cta: 'Open the ballot'
-        },
-        {
-          icon: 'vote',
-          title: 'Candidate forum',
-          what: 'Manhattan finalists hold the floor in turn; residents ask the questions.',
-          part: 'Your part: watch and ask — your approvals stay on the ballot, never here.',
-          pill: S.pill('live', 'Forum in progress', 'Open · forum in progress · approvals remain secret · Art. I'),
-          form: null,
-          to: S.hrefV2('shared/live-room.html?variant=forum'),
-          cta: 'Join the forum'
-        },
-        {
-          icon: 'refresh-cw',
-          title: 'New civic-stipend run posted',
-          what: 'The residency floor plus a role differential cleared on the economic clock.',
-          part: 'Your part: your receipt is private — only the public aggregate federates.',
-          pill: S.pill('info', 'New run', 'Active residency only — no means test, no application · Art. I'),
-          form: { name: 'Stipend run', id: 'F-TRE-004' },
-          to: S.hrefV2('economy/stipend.html'),
-          planned: true,
-          cta: 'See the run'
-        },
-        {
-          icon: 'users',
-          title: 'Harbor Cleanup Crew — first meeting',
-          what: 'Neighbors picked a facilitated meeting to choose a first cleanup date.',
-          part: 'Your part: a voluntary group, on its own terms — no governance power conferred.',
-          pill: S.pill('info', 'Facilitated', 'Freedom of association — voluntary, no constitutional force · Art. I'),
-          form: null,
-          to: S.hrefV2('shared/live-room.html?variant=group'),
-          cta: 'Join the meeting'
-        },
-        {
-          icon: 'scale',
-          title: 'Novák challenge — veto window',
-          what: 'A constitutional finding on Curfew Ordinance §3 is in its legislative-response window.',
-          part: 'Your part: follow the three-path challenge; the legislature answers before any general business.',
-          pill: S.pill('wait', 'Window open', 'Art. IV §5 three-path challenge · finding precedes general business · Art. II §2'),
-          form: { name: 'Constitutional finding', id: 'F-JDG-003' },
-          to: S.hrefV1('judiciary/constitutional-challenge.html'),
-          v1: true,
-          cta: 'Read the challenge'
-        }
-      ];
+    var tick = null; // the single re-diffing interval, cleared before each render
+
+    /* prefers-reduced-motion: render the remaining-time string once, no ticking */
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    /* the demo bar's scenario flags decide which scenario-gated rows appear.
+       liveSession→session+committee, ubiRun→stipend, groupForming→group,
+       tradeTalk→trade. A row with no scenarioFlag is always present. */
+    function scenarioFlags() {
+      try { return window.CGA.state.get('scenario') || {}; } catch (e) { return {}; }
     }
 
-    function rowCard(r) {
-      var head =
-        '<div class="cluster" style="align-items:flex-start;gap:var(--space-3)">' +
-          '<span class="role-card-icon" aria-hidden="true">' + S.icon(r.icon) + '</span>' +
-          '<div class="stack" style="gap:var(--space-1);flex:1;min-inline-size:0">' +
-            '<div class="cluster" style="gap:var(--space-2);align-items:center">' +
-              '<strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' +
-              r.pill +
-              (r.planned ? S.badge('warning', 'Planned', 'info') : '') +
-            '</div>' +
-            '<span>' + esc(r.what) + '</span>' +
-            '<span class="gloss">' + esc(r.part) + '</span>' +
-            (r.form
-              ? '<span class="form-chip">' + esc(r.form.name) + ' <span class="form-id">' + esc(r.form.id) + '</span></span>'
-              : '') +
-          '</div>' +
+    /* status order for the feed: live, then open, then soon, then window, then
+       planned/closed last (planned rows sort to the bottom of their bucket). */
+    var STATUS_RANK = { live: 0, open: 1, soon: 2, window: 3, planned: 4, closed: 5 };
+    function rank(r) {
+      var base = STATUS_RANK[r.status];
+      if (base == null) base = 5;
+      return r.planned ? base + 10 : base;
+    }
+
+    /* deadline(iso) — diff Date.now() to an ISO target → a human remaining string.
+       'closesAt' reads "closes in 2h 14m"; 'opensAt' reads "opens in 38m"; the
+       dayOf shape reads "day 4 of 90" carrying max from the fixture (never hard-coded). */
+    function remaining(ms) {
+      if (ms <= 0) return null;
+      var totalMin = Math.floor(ms / 60000);
+      var d = Math.floor(totalMin / 1440);
+      var h = Math.floor((totalMin % 1440) / 60);
+      var m = totalMin % 60;
+      var parts = [];
+      if (d) parts.push(d + 'd');
+      if (h) parts.push(h + 'h');
+      if (m || !parts.length) parts.push(m + 'm');
+      return parts.join(' ');
+    }
+    function countdownText(target) {
+      if (!target) return null;
+      if (target.kind === 'dayOf') return 'day ' + target.day + ' of ' + target.max;
+      var ms = new Date(target.iso).getTime() - Date.now();
+      var rem = remaining(ms);
+      if (target.kind === 'opensAt') return rem ? 'opens in ' + rem : 'opening now';
+      return rem ? 'closes in ' + rem : 'closing now';
+    }
+
+    /* one countdown span. dayOf carries no live ISO; clock shapes carry data-countdown
+       so the single interval can re-diff every span at once. */
+    function countdownHtml(target) {
+      if (!target) return '';
+      var text = countdownText(target);
+      if (target.kind === 'dayOf') {
+        return '<span class="countdown">' + esc(text) + '</span>';
+      }
+      return '<span class="countdown" data-countdown="' + esc(target.iso) +
+        '" data-kind="' + esc(target.kind) + '">' + esc(text) + '</span>';
+    }
+
+    function updateCountdowns() {
+      var nodes = document.querySelectorAll('#root [data-countdown]');
+      Array.prototype.forEach.call(nodes, function (n) {
+        var text = countdownText({ kind: n.getAttribute('data-kind'), iso: n.getAttribute('data-countdown') });
+        if (text != null) n.textContent = text;
+      });
+    }
+
+    /* visible rows: scenario-gated rows only show when their flag is on. */
+    function visibleRows() {
+      var flags = scenarioFlags();
+      return L.forFootprint().filter(function (r) {
+        return !r.scenarioFlag || flags[r.scenarioFlag];
+      }).slice().sort(function (a, b) { return rank(a) - rank(b); });
+    }
+
+    function rowHref(r) {
+      return r.to.v1 ? S.hrefV1(r.to.rel) : S.hrefV2(r.to.rel);
+    }
+
+    function liveRow(r) {
+      var cls = 'live-row' + (r.status === 'live' ? ' live-row--live' : '');
+      var pill = r.pill ? S.pill(r.pill.tone, r.pill.label, r.pill.tip) : '';
+      var formId = (r.form && r.form.id) ? '<span class="citation">' + esc(r.form.id) + '</span>' : '';
+      var clock = countdownHtml(r.target);
+      var v1tag = r.to.v1 ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '';
+
+      return '<div class="' + cls + '">' +
+        '<span class="live-icon" aria-hidden="true">' + S.icon(r.icon, { size: 'sm' }) + '</span>' +
+        '<span class="live-title">' + esc(r.title) + '</span>' +
+        '<span class="live-what">' + esc(r.what) + '</span>' +
+        '<span class="gloss" style="flex:1 1 12rem;min-inline-size:0">' + esc(r.part) + '</span>' +
+        '<span class="cluster" style="gap:var(--space-2);align-items:center">' +
+          pill + formId + clock +
+        '</span>' +
+        '<a class="btn btn--secondary btn--sm" href="' + rowHref(r) + '">' +
+          'Open ' + S.icon('arrow-right', { size: 'sm' }) + v1tag +
+        '</a>' +
+      '</div>';
+    }
+
+    function emptyState() {
+      return '<div class="card card--inset stack" style="gap:var(--space-2)">' +
+        '<strong style="color:var(--gov-fg)">Nothing is live in your jurisdictions right now</strong>' +
+        '<span class="gloss">The galleries stay open — every chamber, hall, and gallery is here whenever a proceeding begins.</span>' +
         '</div>';
-
-      var cta =
-        '<a class="btn btn--secondary btn--sm" href="' + r.to + '">' +
-          esc(r.cta) + ' ' + S.icon('arrow-right', { size: 'sm' }) +
-          (r.v1 ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '') +
-        '</a>';
-
-      return '<div class="card card--inset stack" style="gap:var(--space-3)">' + head +
-        '<div class="cluster" style="justify-content:flex-end">' + cta + '</div></div>';
     }
 
     function render() {
-      var liveCount = rows().filter(function (r) { return r.cta; }).length;
+      if (tick) { clearInterval(tick); tick = null; }
+
+      var list = visibleRows();
+      // "happening" = the rows that need attention now: live + open.
+      var happening = list.filter(function (r) {
+        return r.status === 'live' || r.status === 'open';
+      }).length;
 
       var header =
-        '<header><span class="eyebrow">Civic · your jurisdictions</span><h1>Today</h1>' +
+        '<header><span class="eyebrow">Civic · your jurisdictions</span>' +
+        '<h1>Now — ' + happening + ' thing' + (happening === 1 ? ' is' : 's are') + ' happening</h1>' +
         '<p class="page-intro">Everything live in the places you reside, each one a tap away. ' +
-        '<strong style="color:var(--gov-fg)">Now</strong> — ' + liveCount + ' things are happening across your jurisdictions. ' +
-        '<strong style="color:var(--gov-fg)">Your part</strong> — watch, speak where you reside, vote where the ballot is open. ' +
-        '<strong style="color:var(--gov-fg)">Next</strong> — the floor reads the Clean Air Act after the constitutional response.</p>' +
+        'You watch every public proceeding; you speak, testify, and vote only where you reside · ' +
+        '<span class="citation">Art. I</span></p>' +
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>';
 
-      var lead =
+      var rail =
         '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
-        '<div>This is a live snapshot — it rides surfaces that already exist. ' +
-        'Anyone may watch any public proceeding; speaking, testifying, and voting are gated only by residency, never by anything else · ' +
-        '<span class="citation">Art. I</span></div></div>';
+        '<div>' + esc(L.rail) + '</div></div>';
 
-      var list =
-        '<section aria-labelledby="now-h" class="stack" style="gap:var(--space-3)">' +
+      var feed =
+        '<section aria-labelledby="now-h" class="stack" style="gap:var(--space-2)">' +
         '<h2 id="now-h">Live in your jurisdictions</h2>' +
-        rows().map(rowCard).join('') + '</section>';
+        (list.length ? list.map(liveRow).join('') : emptyState()) +
+        '</section>';
 
       var foot =
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">How today works</h2><ul>' +
         '<li><strong>You watch everything; you act where you reside.</strong> Galleries are open to all — the floor, testimony, and the vote belong to residents · <span class="citation">Art. I · Art. II §2</span></li>' +
-        '<li><strong>Constitutional matters come first.</strong> A judicial finding is answered before any general business on the floor · <span class="citation">Art. II §2</span></li>' +
-        '<li><strong>The denominator never shrinks.</strong> Floor votes peg quorum to every serving seat — an absent member counts the same as a no · <span class="citation">Peg quorum · Art. II §2</span></li>' +
-        '<li><strong>Your money stays yours.</strong> A stipend receipt is private and never federates — only the public aggregate is shared.</li>' +
+        '<li><strong>A ballot row shows only that voting is open.</strong> It never shows how — or whether — you voted · <span class="citation">Art. II (ballot secrecy, HARDENED)</span></li>' +
+        '<li><strong>The denominator never shrinks.</strong> A floor vote pegs quorum to a majority of all serving — an absent member counts the same as a no · <span class="citation">Peg quorum · Art. II §2</span></li>' +
+        '<li><strong>An override needs a supermajority of all serving.</strong> Not a supermajority of those present · <span class="citation">Art. VII</span></li>' +
         '<li><strong>Groups confer no power.</strong> A voluntary association binds only its own members · <span class="citation">Art. I</span></li>' +
-        '</ul><p class="citation">The economic items above are <strong>Planned</strong> (Phases L &amp; M) — abstract units, no payment rails.</p></section>';
+        '</ul><p class="citation">The economic items in this feed are <strong>Planned</strong> (Phases L &amp; M) — abstract units, no payment rails.</p></section>';
 
-      document.getElementById('root').innerHTML = header + lead + list + foot;
+      document.getElementById('root').innerHTML = header + rail + feed + foot;
+
+      // start the single re-diffing interval unless reduced motion is requested.
+      if (!reduce && document.querySelector('#root [data-countdown]')) {
+        tick = setInterval(updateCountdowns, 1000);
+      }
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
