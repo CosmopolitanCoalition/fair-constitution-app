@@ -137,7 +137,8 @@
     { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed and the halls — uncensorable, pseudonymous.' },
     { act: 'People & social', rel: 'groups/groups-home.html', title: 'Informal groups', blurb: 'Voluntary affinity groups — meet on your own terms.' },
 
-    { act: 'The economy', rel: 'economy/economy-home.html', title: 'The exchange', blurb: 'The entry to the Open Market and the economic clock.' },
+    { act: 'The economy', rel: 'economy/economy-home.html', title: 'The economy', blurb: 'The hub — the Open Market, the live tape, and the economic clock.' },
+    { act: 'The economy', rel: 'economy/exchange.html', title: 'The exchange floor', blurb: 'A live ticker, an order book, and trades printing in real time.' },
     { act: 'The economy', rel: 'economy/marketplace.html', title: 'The marketplace', blurb: 'Offers and requests for goods and services.' },
     { act: 'The economy', rel: 'economy/wallet.html', title: 'My wallet', blurb: 'A private balance — never federated, like a ballot.' },
     { act: 'The economy', rel: 'economy/units.html', title: 'Units & monetary policy', blurb: 'The unit, its subdivisions, and the dual-door levers.' },
@@ -231,7 +232,8 @@
     endSection();
 
     section('The economy · Planned');
-    linkV2('economy-home', 'The exchange', 'bar-chart', 'economy/economy-home.html');
+    linkV2('economy-home', 'The economy', 'bar-chart', 'economy/economy-home.html');
+    linkV2('exchange', 'The exchange', 'bar-chart', 'economy/exchange.html');
     linkV2('marketplace', 'Marketplace', 'building', 'economy/marketplace.html');
     linkV2('requests', 'Request board', 'users', 'economy/requests.html');
     linkV2('agreements', 'Agreements', 'file-text', 'economy/agreements.html');

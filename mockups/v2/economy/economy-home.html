@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The exchange — CGA mockups v2</title>
+  <title>The economy — CGA mockups v2</title>
   <link rel="icon" href="../../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack" id="econ-root"><p class="gloss">Loading the exchange…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/economy-home', title: 'The exchange', module: 'economy', nav: 'economy-home', citation: 'The economy — Open Market · Art. I, Art. III §5, Art. V §4–5', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/economy-home', title: 'The economy', module: 'economy', nav: 'economy-home', citation: 'The economy — Open Market · Art. I, Art. III §5, Art. V §4–5', register: 'governance' };
   </script>
   <script src="../../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -36,15 +36,13 @@
 
     function render() {
       var c = E.currency;
-      var ticker = [
-        { l: c.code + ' worth', v: c.worthBasis.split(' · ')[0], cls: '' },
-        { l: 'issuance', v: '120 bps', cls: 'tick-up' },
-        { l: 'inflation target', v: '200 bps', cls: '' },
-        { l: 'stipend base', v: '50 ' + c.symbol, cls: '' },
-        { l: 'last run', v: E.stipend.lastRun.totalMinted, cls: 'tick-up' }
-      ].map(function (t) { return '<span class="tick ' + t.cls + '">' + esc(t.l) + ' <strong>' + esc(t.v) + '</strong></span>'; }).join('');
+      var ticker = E.exchange.instruments.map(function (i) {
+        var cls = i.change > 0 ? 'tick-up' : '';
+        return '<span class="tick ' + cls + '">' + esc(i.sym) + ' <strong>' + Number(i.last).toFixed(2) + ' ' + esc(c.symbol) + '</strong> ' + (i.change > 0 ? '+' : '') + i.change.toFixed(1) + '%</span>';
+      }).join('');
 
       var surfaces = [
+        { rel: 'economy/exchange.html', icon: 'bar-chart', title: 'The exchange', note: 'The trading floor — a live ticker, the order book, and recent trades for shares and goods.' },
         { rel: 'economy/marketplace.html', icon: 'building', title: 'Marketplace', note: 'Offers — goods and services for sale on the Open Market. Buy, or list your own.' },
         { rel: 'economy/requests.html', icon: 'users', title: 'Request board', note: 'The mirror — work postings and mutual-aid requests. Offer ↔ Request.' },
         { rel: 'economy/agreements.html', icon: 'file-text', title: 'Instruments of agreement', note: 'Contracts — labor, ownership transfer, joint ledgers, sale. Each with a constitutional floor.' },
@@ -63,14 +61,15 @@
 
       var clk = E.economicClock;
       document.getElementById('econ-root').innerHTML =
-        '<header><span class="eyebrow">The economy · the Open Market</span><h1>The exchange</h1>' +
+        '<header><span class="eyebrow">The economy · the Open Market</span><h1>The economy</h1>' +
         '<p class="page-intro">Everything you trade, agree, earn, and owe — in one place. The unit is the ' +
         '<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + ' (' + esc(c.code) + '), reserved to ' + esc(c.issuerLabel) + '. ' +
         'It is an abstract unit of account: no payment rails, no custody, never touching outside finance.</p>' +
         '<p class="citation">' + esc(c.citation) + '</p></header>' +
         plannedBanner() +
-        '<div class="exchange-hero"><div class="ticker" role="status" aria-label="market summary">' + ticker + '</div>' +
-        '<p style="margin-block-start:var(--space-3)">A government with itself, organizations and people, and people together — all meet here to make agreements and move value. The square is for talk; the exchange is for trade.</p></div>' +
+        '<div class="exchange-hero"><div class="ticker" role="status" aria-label="live market tape">' + ticker + '</div>' +
+        '<p style="margin-block-start:var(--space-3)">A government with itself, organizations and people, and people together — all meet here to make agreements and move value. The square is for talk; the exchange is for trade.</p>' +
+        '<a class="btn btn--primary" href="' + S.hrefV2('economy/exchange.html') + '">' + S.icon('bar-chart', { size: 'sm' }) + ' Enter the trading floor ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
         '<div class="econ-clock">' +
         '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The economic clock</strong> — ' + esc(clk.label) + '. ' +

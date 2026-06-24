@@ -272,8 +272,49 @@
     }
   };
 
+  /* --------------------------------------------------- THE EXCHANGE (trading floor)
+     Price discovery on the public Open Market (Art. V §5). Shares trade on a
+     fair market (Art. III §5); fungible goods clear against standing offers and
+     requests. Units are ABSTRACT — no payment rails, no custody; a fill writes
+     only the private wallets, like a ballot. A CGC quotes on identical terms to
+     any private seller. Liveness here is simulated in-page (Planned, L/M). */
+  var exchange = {
+    venue: 'The Open Market',
+    rail: 'Price discovery on the public Open Market. Shares trade on a fair market (Art. III §5); a fill settles only to the private wallets — never federated. Units are abstract; there are no payment rails or custody. A common-good corp quotes on identical terms to any private seller (Art. III §5).',
+    session: { label: 'Open', open: true, volumeToday: 38420, hours: 'Continuous while the jurisdiction is active', note: 'Simulated in-page — design-ahead (Phases L & M); forms F-IND-018…023 reserved, not registered.' },
+    instruments: [
+      { sym: 'BLU', name: 'Bluefin Logistics', kind: 'share', issuer: orgName('bluefin-logistics'), last: 12.40, change: 2.1, volume: 5120, spark: [11.8, 11.9, 12.0, 11.95, 12.1, 12.2, 12.15, 12.3, 12.35, 12.28, 12.4, 12.4] },
+      { sym: 'NSP', name: 'Northstar Equal Partners', kind: 'share', issuer: 'Northstar Equal Partners', last: 8.10, change: -1.2, volume: 2240, spark: [8.3, 8.25, 8.2, 8.28, 8.15, 8.1, 8.12, 8.05, 8.08, 8.1, 8.12, 8.1] },
+      { sym: 'WTRK', name: 'Water-quality kits', kind: 'good', issuer: orgName('manhattan-water-power'), cgc: true, last: 18.00, change: -0.6, volume: 640, spark: [18.2, 18.1, 18.0, 18.05, 18.0, 17.95, 18.0, 18.1, 18.0, 17.98, 18.0, 18.0] },
+      { sym: 'BIKE', name: 'Repaired cargo bikes', kind: 'good', issuer: orgName('bluefin-logistics'), last: 240, change: 1.5, volume: 96, spark: [236, 238, 237, 240, 239, 241, 240, 242, 240, 238, 240, 240] },
+      { sym: 'PLT', name: 'Surplus pallets', kind: 'good', issuer: orgName('bluefin-logistics'), last: 2.00, change: 0.0, volume: 12400, spark: [2, 2, 2.02, 2, 1.98, 2, 2, 2.01, 2, 2, 2, 2] }
+    ],
+    /* a seeded order book + tape for the default focus (BLU); other instruments
+       derive a synthetic book around `last` in the page (deterministic). */
+    seedBook: {
+      bids: [ { price: 12.39, size: 140 }, { price: 12.38, size: 90 }, { price: 12.35, size: 320 }, { price: 12.30, size: 210 }, { price: 12.25, size: 500 } ],
+      asks: [ { price: 12.41, size: 120 }, { price: 12.42, size: 80 }, { price: 12.45, size: 260 }, { price: 12.50, size: 300 }, { price: 12.55, size: 420 } ]
+    },
+    seedTape: [
+      { t: '14:32:08', price: 12.40, size: 40, side: 'buy' }, { t: '14:31:55', price: 12.39, size: 120, side: 'sell' },
+      { t: '14:31:40', price: 12.40, size: 25, side: 'buy' }, { t: '14:31:22', price: 12.38, size: 60, side: 'sell' },
+      { t: '14:30:59', price: 12.41, size: 200, side: 'buy' }, { t: '14:30:31', price: 12.40, size: 35, side: 'buy' }
+    ],
+    /* the pool the in-page streamer cycles through to fake a live tape */
+    streamPool: [
+      { price: 12.41, size: 25, side: 'buy' }, { price: 12.39, size: 60, side: 'sell' }, { price: 12.40, size: 110, side: 'buy' },
+      { price: 12.42, size: 40, side: 'buy' }, { price: 12.38, size: 80, side: 'sell' }, { price: 12.40, size: 15, side: 'buy' },
+      { price: 12.43, size: 200, side: 'buy' }, { price: 12.37, size: 95, side: 'sell' }
+    ],
+    traders: [
+      { handle: 'amara', role: 'resident' }, { handle: 'tomas', role: 'org agent · Bluefin' },
+      { handle: 'pier7', role: 'resident' }, { handle: 'noor', role: 'resident' }, { handle: 'diego', role: 'resident' }
+    ]
+  };
+
   V2.econ = {
     currency: currency, monetaryKeys: monetaryKeys, economicClock: economicClock, stipend: stipend,
+    exchange: exchange,
     accounts: accounts, publicLedger: publicLedger, jointLedgers: jointLedgers, wallet: wallet,
     marketplace: marketplace, requests: requests, agreements: agreements, treasury: treasury,
     stock: stock, dues: dues, taxes: taxes, reps: reps, profiles: profiles,

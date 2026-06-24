@@ -127,6 +127,20 @@ window.CGA_MANIFEST = [
   "notes": "Entry to the Open Market: marketplace, requests, agreements, wallet, joint ledgers, units/monetary policy, stipend, treasury, org economics. The economic clock + the rails."
  },
  {
+  "file": "economy/exchange.html",
+  "title": "The exchange — the trading floor",
+  "module": "economy",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "planned-layer",
+  "stage": "M",
+  "notes": "The Open Market trading floor: a scrolling live ticker, an order-book ladder with depth bars, a streaming trade tape (reduced-motion-safe), price/volume sparklines, and trader presence. Click a symbol to focus. Grounded: shares fair-market (Art. III §5), abstract units, private settlement (Art. V §5), CGC identical terms. Liveness simulated in-page; F-IND-018..023 reserved."
+ },
+ {
   "file": "economy/marketplace.html",
   "title": "Marketplace — offers on the Open Market",
   "module": "economy",

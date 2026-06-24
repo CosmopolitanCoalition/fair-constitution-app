@@ -514,6 +514,72 @@ a.tour-stop:hover { border-color: var(--gov-border-strong); text-decoration: non
 .tour-stop .tour-stop-title { color: var(--gov-fg); font-weight: var(--weight-medium); flex: 1 1 12rem; min-inline-size: 0; }
 .tour-stop .tour-stop-blurb { color: var(--gov-fg-muted); font-size: var(--text-sm); flex: 2 1 16rem; min-inline-size: 0; }
 
+/* ============================================================ THE EXCHANGE
+   A trading floor for the Open Market. NOTE: within .ex-* only, green/red carry
+   ECONOMIC semantics (up/bid vs down/sell) — not the governance "red = error"
+   rule. Scoped so it never leaks into the governance register. */
+.ex-floor { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+@media (max-width: 56rem) { .ex-floor { grid-template-columns: 1fr; } }
+
+/* the scrolling ticker */
+.ex-ticker { position: relative; overflow: hidden; border: 1px solid var(--gov-border); border-radius: var(--radius-md); background: var(--gov-surface); }
+.ex-ticker-track { display: inline-flex; gap: var(--space-5); padding: var(--space-2) var(--space-3); white-space: nowrap; animation: ex-marquee 32s linear infinite; }
+.ex-ticker:hover .ex-ticker-track, .ex-ticker:focus-within .ex-ticker-track { animation-play-state: paused; }
+@keyframes ex-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.ex-tk { display: inline-flex; align-items: baseline; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-sm); border: 0; background: none; cursor: pointer; color: var(--gov-fg-muted); }
+.ex-tk .ex-sym { color: var(--gov-fg); font-weight: var(--weight-bold); }
+.ex-tk .ex-last { color: var(--gov-fg); font-variant-numeric: tabular-nums; }
+.ex-up { color: var(--status-success-fg); }
+.ex-dn { color: var(--status-danger); }
+.ex-flat { color: var(--gov-fg-subtle); }
+
+/* the focused instrument header + sparkline */
+.ex-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.ex-head .ex-bigsym { font-family: var(--font-mono); font-weight: var(--weight-bold); color: var(--gov-fg); font-size: var(--text-2xl); }
+.ex-head .ex-bigprice { font-variant-numeric: tabular-nums; font-size: var(--text-2xl); color: var(--gov-fg); }
+.ex-spark { inline-size: 100%; max-inline-size: 22rem; block-size: 3.5rem; }
+.ex-spark path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.ex-kpis { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: var(--text-sm); color: var(--gov-fg-subtle); }
+.ex-kpis b { color: var(--gov-fg); font-variant-numeric: tabular-nums; }
+
+/* the order book ladder */
+.ex-book { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.ex-col { display: flex; flex-direction: column; gap: 2px; }
+.ex-col .ex-col-h { font-size: var(--text-xs); color: var(--gov-fg-subtle); font-family: var(--font-mono); display: flex; justify-content: space-between; }
+.ex-row { position: relative; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: var(--text-sm); padding: 1px var(--space-2); border-radius: var(--radius-sm); overflow: hidden; }
+.ex-row .ex-depth { position: absolute; inset-block: 0; inline-size: var(--d, 0%); z-index: 0; }
+.ex-row > span { position: relative; z-index: 1; font-variant-numeric: tabular-nums; }
+.ex-bid .ex-depth { inset-inline-end: 0; background: color-mix(in oklch, var(--status-success) 18%, transparent); }
+.ex-bid .ex-price { color: var(--status-success-fg); }
+.ex-ask .ex-depth { inset-inline-start: 0; background: color-mix(in oklch, var(--status-danger) 14%, transparent); }
+.ex-ask .ex-price { color: var(--status-danger); }
+.ex-spread { text-align: center; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle); padding-block: var(--space-1); border-block: 1px dashed var(--gov-border); margin-block: var(--space-1); grid-column: 1 / -1; }
+
+/* the live trade tape */
+.ex-tape { display: flex; flex-direction: column; gap: 2px; max-block-size: 18rem; overflow: auto; }
+.ex-tape .ex-trade { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-sm); padding: 2px var(--space-2); border-radius: var(--radius-sm); }
+.ex-trade.ex-new { animation: ex-flash 1.2s var(--ease-standard); }
+@keyframes ex-flash { from { background: color-mix(in oklch, var(--gov-primary) 22%, transparent); } to { background: transparent; } }
+.ex-trade .ex-t { color: var(--gov-fg-subtle); }
+.ex-trade .ex-px--buy { color: var(--status-success-fg); }
+.ex-trade .ex-px--sell { color: var(--status-danger); }
+.ex-trade .ex-sz { color: var(--gov-fg-muted); text-align: end; }
+
+/* trader presence */
+.ex-presence { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ex-trader { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); color: var(--gov-fg-muted); border: 1px solid var(--gov-border-strong); border-radius: var(--radius-full); padding-inline: var(--space-2); }
+.ex-trader .ex-dot { inline-size: .5rem; block-size: .5rem; border-radius: var(--radius-full); background: var(--status-success); }
+
+/* a live session pill that pulses (calm) */
+.ex-live { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--status-success-fg); font-size: var(--text-sm); }
+
+/* ---- respect reduced motion across all v2 motion (audit a11y fix) ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ex-ticker-track { animation: none; white-space: normal; flex-wrap: wrap; }
+  .ex-trade.ex-new { animation: none; }
+  .pill .dotlive, .cseat--speaking, .cseat-glow { animation: none !important; }
+}
+
 /* ============================================================ MULTI-TRACK VIDEO
    A faithful mockup of the WordPress player: one silent master + N audio + N
    caption tracks, a link toggle, drift-correction, remembered prefs. */

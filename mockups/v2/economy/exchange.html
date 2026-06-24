@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The exchange — CGA mockups v2</title>
+  <link rel="icon" href="../../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the exchange…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/exchange', title: 'The exchange', module: 'economy', nav: 'exchange', citation: 'The Open Market — price discovery · shares fair-market (Art. III §5) · settles private (Art. V §5)', register: 'governance' };
+  </script>
+  <script src="../../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../../assets/js/icons.js"></script>
+  <script src="../../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, X = window.CGA.fixtures.v2.econ.exchange, sym = window.CGA.fixtures.v2.econ.currency.symbol, esc = S.esc;
+    var byInst = {}; X.instruments.forEach(function (i) { byInst[i.sym] = i; });
+    var focus = 'BLU', tape = [], streamIx = 0, timer = null;
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+    function fmt(n) { return Number(n).toFixed(2) + ' ' + sym; }
+    function num(n) { return Number(n).toLocaleString('en-US'); }
+    function nowTime() { try { return new Date().toTimeString().slice(0, 8); } catch (e) { return '14:32:00'; } }
+    function chgCls(c) { return c > 0 ? 'ex-up' : (c < 0 ? 'ex-dn' : 'ex-flat'); }
+    function chgStr(c) { return (c > 0 ? '+' : '') + Number(c).toFixed(1) + '%'; }
+
+    function sparkPath(arr, w, h) {
+      var min = Math.min.apply(null, arr), max = Math.max.apply(null, arr), range = (max - min) || 1;
+      return arr.map(function (v, i) {
+        var x = (i / (arr.length - 1)) * w, y = h - ((v - min) / range) * (h - 6) - 3;
+        return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }).join(' ');
+    }
+
+    /* synthesize a book + tape for a non-seeded instrument, deterministic */
+    function bookFor(inst) {
+      if (inst.sym === 'BLU') return X.seedBook;
+      var p = inst.last, tick = p >= 100 ? 1 : (p >= 10 ? 0.05 : 0.01);
+      var sizes = [120, 90, 300, 210, 480];
+      return {
+        bids: sizes.map(function (s, i) { return { price: +(p - tick * (i + 1)).toFixed(2), size: s + i * 17 }; }),
+        asks: sizes.map(function (s, i) { return { price: +(p + tick * (i + 1)).toFixed(2), size: s + i * 13 }; })
+      };
+    }
+    function seedTapeFor(inst) {
+      if (inst.sym === 'BLU') return X.seedTape.slice();
+      var p = inst.last, sides = ['buy', 'sell', 'buy', 'sell', 'buy', 'buy'];
+      return sides.map(function (sd, i) {
+        var d = (sd === 'buy' ? 1 : -1) * (i % 3) * (p >= 100 ? 1 : 0.01);
+        return { t: '14:3' + (1 - (i > 4 ? 1 : 0)) + ':' + (59 - i * 7 < 10 ? '0' : '') + Math.max(0, 59 - i * 7), price: +(p + d).toFixed(2), size: [40, 120, 25, 60, 200, 35][i], side: sd };
+      });
+    }
+
+    function tickerHtml() {
+      var items = X.instruments.map(function (i) {
+        return '<button type="button" class="ex-tk" data-focus="' + i.sym + '">' +
+          '<span class="ex-sym">' + esc(i.sym) + '</span>' +
+          '<span class="ex-last">' + fmt(i.last) + '</span>' +
+          '<span class="' + chgCls(i.change) + '">' + chgStr(i.change) + '</span></button>';
+      }).join('');
+      /* duplicated for a seamless marquee loop */
+      return '<div class="ex-ticker"><div class="ex-ticker-track">' + items + items + '</div></div>';
+    }
+
+    function bookHtml(inst) {
+      var bk = bookFor(inst);
+      var maxSz = Math.max.apply(null, bk.bids.concat(bk.asks).map(function (l) { return l.size; }));
+      function side(levels, cls) {
+        return '<div class="ex-col">' +
+          '<div class="ex-col-h"><span>' + (cls === 'ex-bid' ? 'Bids (buy)' : 'Asks (sell)') + '</span><span>size</span></div>' +
+          levels.map(function (l) {
+            return '<div class="ex-row ' + cls + '"><span class="ex-depth" style="--d:' + Math.round(l.size / maxSz * 100) + '%"></span>' +
+              '<span class="ex-price">' + Number(l.price).toFixed(2) + '</span><span>' + num(l.size) + '</span></div>';
+          }).join('') + '</div>';
+      }
+      var bestBid = bk.bids[0].price, bestAsk = bk.asks[0].price, spread = (bestAsk - bestBid).toFixed(2);
+      return '<div class="ex-book">' + side(bk.bids, 'ex-bid') + side(bk.asks, 'ex-ask') +
+        '<div class="ex-spread">spread ' + spread + ' ' + sym + ' · best bid ' + bestBid.toFixed(2) + ' / best ask ' + bestAsk.toFixed(2) + '</div></div>';
+    }
+
+    function tradeRow(tr, isNew) {
+      return '<div class="ex-trade' + (isNew ? ' ex-new' : '') + '" title="' + esc(tr.side) + '"><span class="ex-t">' + esc(tr.t) + '</span>' +
+        '<span class="ex-px--' + tr.side + '">' + Number(tr.price).toFixed(2) + '</span>' +
+        '<span class="ex-sz">' + num(tr.size) + '</span></div>';
+    }
+    function tapeHtml() {
+      return tape.map(function (t) { return tradeRow(t, false); }).join('');
+    }
+
+    function focusedHtml() {
+      var inst = byInst[focus];
+      var w = 300, h = 56;
+      var strokeVar = inst.change > 0 ? '--status-success' : (inst.change < 0 ? '--status-danger' : '--gov-fg-subtle');
+      var spark = '<svg class="ex-spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="' + esc(inst.sym + ' recent price trend') + '">' +
+        '<path d="' + sparkPath(inst.spark, w, h) + '" style="stroke:var(' + strokeVar + ')" /></svg>';
+      return '<div class="stack">' +
+        '<div class="ex-head"><span class="ex-bigsym">' + esc(inst.sym) + '</span>' +
+        '<span class="ex-bigprice" data-ex-last>' + fmt(inst.last) + '</span>' +
+        '<span class="' + chgCls(inst.change) + '" style="font-size:var(--text-lg)">' + chgStr(inst.change) + '</span>' +
+        '<span class="tag-chip">' + esc(inst.kind === 'share' ? 'Share · fair-market' : 'Good') + '</span>' +
+        (inst.cgc ? '<span class="pill pill--info" title="A common-good corp quotes on identical terms · Art. III §5">CGC</span>' : '') + '</div>' +
+        '<span class="citation">' + esc(inst.name) + ' · issued by ' + esc(inst.issuer) + '</span>' +
+        spark +
+        '<div class="ex-kpis"><span>Last <b>' + fmt(inst.last) + '</b></span><span>Change <b class="' + chgCls(inst.change) + '">' + chgStr(inst.change) + '</b></span>' +
+        '<span>Volume today <b>' + num(inst.volume) + '</b></span></div>' +
+        '<h3 style="font-size:var(--text-base);margin-block-start:var(--space-2)">Order book</h3>' + bookHtml(inst) +
+        orderTicket(inst) + '</div>';
+    }
+
+    function orderTicket(inst) {
+      var bk = bookFor(inst);
+      return '<div class="card card--inset"><span class="eyebrow">Place an order</span>' +
+        '<div class="cluster" style="gap:var(--space-2);align-items:flex-end">' +
+        '<label class="field" style="margin:0"><span class="field-label">Side</span>' +
+        '<select class="select" data-o-side><option value="buy">Buy / bid</option><option value="sell">Sell / ask</option></select></label>' +
+        '<label class="field" style="margin:0"><span class="field-label">Size</span><input class="field-input" type="number" value="50" min="1" data-o-size style="inline-size:6rem" /></label>' +
+        '<label class="field" style="margin:0"><span class="field-label">Limit (' + sym + ')</span><input class="field-input" type="number" value="' + bk.asks[0].price.toFixed(2) + '" step="0.01" data-o-price style="inline-size:7rem" /></label>' +
+        '<button type="button" class="btn btn--primary" data-o-submit>Send order</button></div>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Mockup — a matched order forms an agreement and settles only to the private wallets. No payment rails, no custody.</p></div>';
+    }
+
+    function render() {
+      tape = seedTapeFor(byInst[focus]);
+      var live = '<span class="ex-live">' + (reduce ? S.icon('check', { size: 'sm' }) : '<span class="dotlive" aria-hidden="true"></span>') +
+        ' ' + esc(X.session.label) + ' · volume today ' + num(X.session.volumeToday) + ' ' + sym + '</span>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('bar-chart', { size: 'sm' }) + ' The economy · the exchange</span>' +
+        '<div class="cluster" style="justify-content:space-between"><h1 style="margin:0">The exchange</h1>' + live + '</div>' +
+        '<p class="page-intro">' + esc(X.venue) + ' — price discovery in the open. Shares of organizations trade on a <strong>fair market</strong>; fungible goods clear against standing offers and requests. ' +
+        'Tap a symbol on the tape to bring it into focus.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+
+        '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the market layer (Phase M).</strong> ' + esc(X.session.note) + ' Liveness on this page is simulated in your browser.</div></div>' +
+
+        tickerHtml() +
+
+        '<div class="ex-floor">' +
+        '<section class="card" aria-labelledby="foc-h"><h2 id="foc-h" class="visually-hidden">Focused instrument</h2><div id="ex-focus">' + focusedHtml() + '</div></section>' +
+        '<div class="stack">' +
+        '<section class="card" aria-labelledby="tape-h"><div class="cluster" style="justify-content:space-between"><h2 id="tape-h" style="font-size:var(--text-lg);margin:0">Live trades</h2>' +
+        (reduce ? '<span class="citation">updates paused · reduced motion</span>' : '<span class="ex-live"><span class="dotlive" aria-hidden="true"></span> streaming</span>') + '</div>' +
+        '<div class="ex-tape" id="ex-tape" aria-live="off">' + tapeHtml() + '</div></section>' +
+        '<section class="card" aria-labelledby="pres-h"><h2 id="pres-h" style="font-size:var(--text-lg);margin:0">On the floor now</h2>' +
+        '<p class="gloss">Residents and organization agents trading right now.</p>' +
+        '<div class="ex-presence">' + X.traders.map(function (t) {
+          return '<span class="ex-trader"><span class="ex-dot" aria-hidden="true"></span>@' + esc(t.handle) + ' <span class="citation">' + esc(t.role) + '</span></span>';
+        }).join('') + '</div></section>' +
+        '</div></div>' +
+
+        '<section class="card card--inset" aria-labelledby="rail-h"><h2 id="rail-h">What the exchange is — and is not</h2>' +
+        '<p>' + esc(X.rail) + '</p>' +
+        '<p class="citation">See a single listing on the ' + S.hrefV2('economy/marketplace.html') + ', or the rules of money on ' + S.hrefV2('economy/units.html') + '.</p></section>';
+
+      bindFloor();
+      startStream();
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    function bindFloor() {
+      document.querySelectorAll('[data-focus]').forEach(function (b) {
+        b.addEventListener('click', function () { setFocus(b.getAttribute('data-focus')); });
+      });
+      var sub = document.querySelector('[data-o-submit]');
+      if (sub) sub.addEventListener('click', sendOrder);
+    }
+
+    function setFocus(simbol) {
+      if (!byInst[simbol]) return;
+      focus = simbol;
+      tape = seedTapeFor(byInst[focus]);
+      var node = document.getElementById('ex-focus');
+      if (node) node.innerHTML = focusedHtml();
+      var tnode = document.getElementById('ex-tape');
+      if (tnode) tnode.innerHTML = tapeHtml();
+      bindFloor();
+      startStream();
+      S.announce('Now showing ' + byInst[focus].name + ' at ' + fmt(byInst[focus].last));
+    }
+
+    function pushTrade(tr) {
+      tape.unshift(tr); if (tape.length > 16) tape.pop();
+      var tnode = document.getElementById('ex-tape');
+      if (!tnode) return;
+      var row = document.createElement('div');
+      row.innerHTML = tradeRow(tr, true);
+      tnode.insertBefore(row.firstChild, tnode.firstChild);
+      while (tnode.children.length > 16) tnode.removeChild(tnode.lastChild);
+      var lastEl = document.querySelector('[data-ex-last]');
+      if (lastEl) lastEl.textContent = fmt(tr.price);
+    }
+
+    function startStream() {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (reduce) return;
+      timer = setInterval(function () {
+        var seed = X.streamPool[streamIx % X.streamPool.length]; streamIx++;
+        var inst = byInst[focus];
+        /* BLU uses the seeded prices; other instruments trade around their own last */
+        var price = inst.sym === 'BLU' ? seed.price : +(inst.last + (seed.side === 'buy' ? 1 : -1) * (inst.last >= 100 ? 1 : 0.01)).toFixed(2);
+        pushTrade({ t: nowTime(), price: price, size: seed.size, side: seed.side });
+      }, 2600);
+    }
+
+    function sendOrder() {
+      var side = (document.querySelector('[data-o-side]') || {}).value || 'buy';
+      var size = +(document.querySelector('[data-o-size]') || {}).value || 0;
+      var price = +(document.querySelector('[data-o-price]') || {}).value || byInst[focus].last;
+      if (size <= 0) { S.announce('Enter a size greater than zero.'); return; }
+      pushTrade({ t: nowTime(), price: price, size: size, side: side });
+      S.announce('Mockup — your ' + side + ' order for ' + size + ' filled at ' + fmt(price) + ' and would settle privately.');
+    }
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+    window.addEventListener('beforeunload', function () { if (timer) clearInterval(timer); });
+  })();
+  </script>
+</body>
+</html>
