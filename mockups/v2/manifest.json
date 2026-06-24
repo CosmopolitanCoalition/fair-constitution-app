@@ -15,6 +15,28 @@
   "notes": "v2 entry point. The five interaction classes as cards, the journey directory with progress rails, the eight Live-Room variants, and handoff links. Governance register; reuses v1 tokens/shell foundation via fixtures-v2 + shell-v2."
  },
  {
+  "file": "system/setup.html",
+  "title": "Instance setup — the founding loop",
+  "module": "system",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [
+   "system/setup-wizard.html"
+  ],
+  "productionPages": [
+   "resources/js/Pages/Setup/Step0_CosmicAddress.vue",
+   "resources/js/Pages/Setup/Step1_Constants.vue",
+   "resources/js/Pages/Setup/Step2_MapData.vue",
+   "resources/js/Pages/Setup/Step3_Districts.vue",
+   "resources/js/Pages/Setup/Step4_Confirm.vue"
+  ],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 0,
+  "notes": "The five-step constitutional founding wizard (cosmic address -> 19 reference-default constitution settings -> map data/ETL -> districts -> seat institutions), ported 1:1 from the v1 setup-wizard into the v2 shell, shown as its completed end-state. Reference defaults not locks (Art. VII); apportionment fires at the planet-scope Accept Map Data button (1,999 seats / 393 districts / 951,636 rows / 11.30 GB seed). DISTINCT from operator/setup.html (node/mesh provisioning). First stop of the guided tour."
+ },
+ {
   "file": "tour.html",
   "title": "Guided tour — the linear walkthrough",
   "module": "shared",

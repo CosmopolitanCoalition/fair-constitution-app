@@ -580,6 +580,20 @@ a.tour-stop:hover { border-color: var(--gov-border-strong); text-decoration: non
   .pill .dotlive, .cseat--speaking, .cseat-glow { animation: none !important; }
 }
 
+/* ============================================================ INSTANCE SETUP
+   The founding wizard's ETL + stat helpers (ported from the v1 setup-wizard so
+   they are shared in v2). Governance register. */
+.etl-bar { position: relative; block-size: .625rem; background: var(--gov-surface-2); border: 1px solid var(--gov-border); border-radius: var(--radius-full); overflow: hidden; }
+.etl-fill { position: absolute; inset-block: 0; inset-inline-start: 0; background: var(--status-success); border-radius: var(--radius-full); }
+.etl-fill--pop { background: var(--status-info); }
+.etl-row { margin-block-end: var(--space-3); }
+.etl-row .meter-caption { display: flex; justify-content: space-between; gap: var(--space-2); margin-block-start: 2px; font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: var(--space-2); }
+.stat-tile { background: var(--gov-surface-2); border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-2); }
+.stat-tile .n { display: block; font-size: var(--text-lg); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; color: var(--gov-fg); }
+.setup-step { border-block-start: 3px solid var(--gov-primary); }
+.setup-step .setup-n { display: inline-flex; align-items: center; justify-content: center; inline-size: 1.75rem; block-size: 1.75rem; border-radius: var(--radius-full); background: color-mix(in oklch, var(--gov-primary) 28%, var(--gov-bg)); color: var(--gov-fg); font-family: var(--font-mono); font-weight: var(--weight-bold); }
+
 /* ============================================================ MULTI-TRACK VIDEO
    A faithful mockup of the WordPress player: one silent master + N audio + N
    caption tracks, a link toggle, drift-correction, remembered prefs. */

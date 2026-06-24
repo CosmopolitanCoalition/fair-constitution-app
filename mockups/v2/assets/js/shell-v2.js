@@ -115,6 +115,7 @@
      at the top of <main> with Back / Next that walk this order. The order is
      also the spine of tour.html. */
   var TOUR = [
+    { act: 'Found an instance', rel: 'system/setup.html', title: 'Found the instance', blurb: 'From cosmic address to a seated constitution — the five-step founding loop.' },
     { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'The five kinds of civic interaction — the whole map on one screen.' },
     { act: 'Arrive', rel: 'civic/today.html', title: 'Today', blurb: 'Everything live right now in the places you belong to.' },
     { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My civic life', blurb: 'Your home base: groups, orgs, open votes, record, wallet.' },
@@ -213,6 +214,7 @@
     section('Start here');
     linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
     linkV2('tour', 'Guided tour', 'map', 'tour.html');
+    linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
     linkV2('today', 'Today', 'home', 'civic/today.html');
     linkV2('my-civic-life', 'My civic life', 'file-text', 'civic/my-civic-life.html');
     endSection();
