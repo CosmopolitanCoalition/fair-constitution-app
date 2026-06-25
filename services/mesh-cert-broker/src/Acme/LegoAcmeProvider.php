@@ -48,11 +48,11 @@ final class LegoAcmeProvider implements AcmeProvider
                 $args[] = '--dns.resolvers';
                 $args[] = $resolvers;
             }
-            // Skip the local propagation pre-check: it queries the zone's AUTHORITATIVE nameservers
-            // directly, which a Docker container often can't reach over UDP/53. Let's Encrypt's own
-            // (external) validators still confirm the TXT, so issuance is unaffected — this only drops a
-            // local check the container can't perform. Disabled by default for the in-Docker broker.
-            if (($this->acme['dns_disable_cp'] ?? true) !== false) {
+            // Optionally SKIP lego's propagation check. By DEFAULT it stays ON and uses the configured
+            // --dns.resolvers above to confirm the TXT has propagated (reliable — it WAITS, avoiding a
+            // validation race that intermittently fails issuance). Only disable it where no resolver is
+            // reachable for the check.
+            if (($this->acme['dns_disable_cp'] ?? false) === true) {
                 $args[] = '--dns.disable-cp';
             }
             // Default to STAGING when unset — only an EXPLICIT staging=false talks to production Let's
