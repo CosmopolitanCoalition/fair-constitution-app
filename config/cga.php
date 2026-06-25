@@ -195,6 +195,13 @@ return [
             'email' => env('CGA_BROKER_ACME_EMAIL', ''),
             'lego_bin' => env('CGA_BROKER_LEGO_BIN', 'lego'),
             'staging' => env('CGA_BROKER_ACME_STAGING', true),
+            // DNS-01 zone-detection + propagation resolver. Inside Docker the embedded resolver
+            // (127.0.0.11) SERVFAILs lego's SOA lookups; an explicit reachable resolver fixes it
+            // (Docker Desktop: the host gateway, e.g. 192.168.65.7:53; elsewhere a public 1.1.1.1:53).
+            'dns_resolvers' => env('CGA_BROKER_DNS_RESOLVERS', '1.1.1.1:53'),
+            // Skip lego's local propagation pre-check (it hits the authoritative NS directly, which a
+            // container usually can't reach over UDP/53). LE's own validators still verify the TXT.
+            'dns_disable_cp' => env('CGA_BROKER_DNS_DISABLE_CP', true),
         ],
     ],
 

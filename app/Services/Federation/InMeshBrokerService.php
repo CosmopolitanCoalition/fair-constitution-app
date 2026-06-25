@@ -66,6 +66,8 @@ class InMeshBrokerService
                 'email' => (string) config('cga.broker.acme.email', ''),
                 'lego_bin' => (string) config('cga.broker.acme.lego_bin', 'lego'),
                 'staging' => (bool) config('cga.broker.acme.staging', true),
+                'dns_resolvers' => (string) config('cga.broker.acme.dns_resolvers', '1.1.1.1:53'),
+                'dns_disable_cp' => (bool) config('cga.broker.acme.dns_disable_cp', true),
             ],
             'request_ttl' => (int) config('cga.broker.request_ttl', 120),
             'domains' => $domains,

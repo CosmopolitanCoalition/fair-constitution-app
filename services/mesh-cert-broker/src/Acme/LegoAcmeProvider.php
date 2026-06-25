@@ -39,6 +39,22 @@ final class LegoAcmeProvider implements AcmeProvider
                 $bin, '--accept-tos', '--email', $email, '--dns', 'cloudflare',
                 '--csr', $csrFile, '--path', $work,
             ];
+            // Use an EXPLICIT public recursive resolver for DNS-01 zone-detection + propagation checks.
+            // Inside Docker the default resolver is the embedded 127.0.0.11, which SERVFAILs on the SOA
+            // queries lego uses to find the Cloudflare zone — breaking issuance even with a valid token.
+            // A real public resolver (e.g. 1.1.1.1:53) answers them. Empty = lego's default (system resolver).
+            $resolvers = trim((string) ($this->acme['dns_resolvers'] ?? ''));
+            if ($resolvers !== '') {
+                $args[] = '--dns.resolvers';
+                $args[] = $resolvers;
+            }
+            // Skip the local propagation pre-check: it queries the zone's AUTHORITATIVE nameservers
+            // directly, which a Docker container often can't reach over UDP/53. Let's Encrypt's own
+            // (external) validators still confirm the TXT, so issuance is unaffected — this only drops a
+            // local check the container can't perform. Disabled by default for the in-Docker broker.
+            if (($this->acme['dns_disable_cp'] ?? true) !== false) {
+                $args[] = '--dns.disable-cp';
+            }
             // Default to STAGING when unset — only an EXPLICIT staging=false talks to production Let's
             // Encrypt, so a forgotten key can never silently burn the real per-domain rate limit.
             if (($this->acme['staging'] ?? true) !== false) {
