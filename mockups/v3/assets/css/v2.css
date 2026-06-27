@@ -840,3 +840,28 @@ a.ticket-row:hover { border-color: var(--gov-border-strong); text-decoration: no
 @media (max-width: 34rem) {
   .review-row { grid-template-columns: 1fr; }
 }
+
+/* ============================================================ LEARN + REPORT DRAWER (v3)
+   The keystone: a collapsible "learn about this screen + report" panel at the
+   foot of every page. Tucked away by default; the constitutional "why" + the
+   embedded multi-track guide live here, never in the plain player chrome. */
+.learn-drawer-wrap { margin-block-start: var(--space-6); }
+.learn-drawer {
+  border: 1px solid var(--gov-border); border-inline-start: 3px solid var(--gov-link);
+  border-radius: var(--radius-lg); background: var(--gov-surface); overflow: hidden;
+}
+.learn-drawer > summary {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2);
+  padding: var(--space-3) var(--space-4); cursor: pointer; color: var(--gov-fg-muted);
+  font-size: var(--text-sm); list-style: none;
+}
+.learn-drawer > summary::-webkit-details-marker { display: none; }
+.learn-drawer > summary:hover { color: var(--gov-fg); }
+.learn-drawer > summary .icon { color: var(--gov-link); }
+.learn-drawer > summary > span { color: var(--gov-fg); }
+.learn-drawer .ld-dot { color: var(--gov-fg-subtle); margin-inline: var(--space-1); }
+.learn-drawer .ld-caret { margin-inline-start: auto; transition: transform var(--dur) var(--ease-standard); }
+.learn-drawer[open] .ld-caret { transform: rotate(180deg); }
+.learn-drawer .ld-body { padding: 0 var(--space-4) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.learn-drawer .ld-video { max-inline-size: 40rem; }
+@media (prefers-reduced-motion: reduce) { .learn-drawer .ld-caret { transition: none; } }

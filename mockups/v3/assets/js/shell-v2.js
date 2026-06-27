@@ -196,6 +196,73 @@
       '<div class="tour-prog" aria-hidden="true"><i style="inline-size:' + pct + '%"></i></div></div>';
   }
 
+  /* ----------------------------------------------- the Learn + Report drawer
+     v3 keystone: a collapsible "learn about this screen + report an issue" panel
+     at the foot of every page. The constitutional "why" and the deep references
+     live HERE (the learning layer), never in the plain player chrome. The
+     multi-track guide video lazy-loads when the drawer is opened. */
+  var LEARN_BY_MODULE = {
+    civic: { video: 'v-find-live', about: 'Your civic home — what’s happening now, and what’s yours to act on.' },
+    journeys: { video: 'v-welcome', about: 'How this plays out — what’s happening now and where you fit in.' },
+    economy: { video: 'v-market', about: 'How the economy works — trading, agreements, and money, in plain terms.' },
+    social: { video: 'v-square', about: 'How the social layer works — the square, groups, and reaching people.' },
+    groups: { video: 'v-square', about: 'Groups — talking, meeting, and gathering with other people.' },
+    operator: { video: 'v-node', about: 'Running a node — the infrastructure the game runs on.' },
+    system: { video: 'v-node', about: 'Founding and setting up an instance.' },
+    learn: { video: 'v-welcome', about: 'Learning your way around World of Statecraft.' },
+    translation: { video: 'v-translate', about: 'How the interface gets into your language — and how to help.' },
+    support: { video: 'v-welcome', about: 'Getting help and reporting anything that’s wrong.' }
+  };
+  var LEARN_BY_ID = {
+    'shared/live-room': { video: 'v-floor', about: 'How a live room works — raising a hand, taking the floor, and the vote.' },
+    'economy/exchange': { video: 'v-market', about: 'How the exchange works — the order book and the live tape.' },
+    'economy/stipend': { video: 'v-units', about: 'How the civic stipend works — a floor everyone shares plus a small role bump.' },
+    'social/legitimacy': { video: 'v-welcome', about: 'What reach means — a transparency gauge, never a lever on anyone’s rights.' },
+    'journeys/journey': { video: 'v-welcome', about: 'How this journey works — watch from the gallery, or take part where you live.' }
+  };
+  function learnFor() {
+    return LEARN_BY_ID[PAGE.id] || LEARN_BY_MODULE[PAGE.module] || { video: 'v-welcome', about: 'A quick guide to this screen.' };
+  }
+  function renderLearnDrawer() {
+    return '<details class="learn-drawer" id="learn-drawer">' +
+      '<summary>' + icon('graduation-cap', { size: 'sm' }) + ' <span>Learn about this screen</span>' +
+      '<span class="ld-dot" aria-hidden="true">·</span>' + icon('flag', { size: 'sm' }) + ' <span>Report an issue</span>' +
+      icon('chevron-down', { size: 'sm', cls: 'ld-caret' }) + '</summary>' +
+      '<div class="ld-body" data-ld-body><p class="gloss">Open to load the guide…</p></div></details>';
+  }
+  function loadScript(rel, done) {
+    var s = document.createElement('script'); s.src = ROOT_V2 + rel;
+    s.onload = done; s.onerror = function () { done(); };
+    document.head.appendChild(s);
+  }
+  function ensureLearnDeps(cb) {
+    function s1() { if (CGA.fixtures.v2.learn) return s2(); loadScript('assets/js/fixtures-learn.js', s2); }
+    function s2() { if (CGA.fixtures.v2.tr) return s3(); loadScript('assets/js/fixtures-translation.js', s3); }
+    function s3() { if (CGA.v2c) return cb(true); loadScript('assets/js/components-v2.js', function () { cb(!!CGA.v2c); }); }
+    s1();
+  }
+  function hydrateLearnDrawer(d) {
+    if (!d || d.getAttribute('data-hydrated')) return;
+    d.setAttribute('data-hydrated', '1');
+    var lf = learnFor(), body = d.querySelector('[data-ld-body]');
+    body.innerHTML =
+      '<p class="gloss">' + esc(lf.about) + '</p>' +
+      '<div class="ld-video" data-ld-video><p class="gloss">Loading the guide…</p></div>' +
+      '<div class="cluster" style="gap:var(--space-1)">' +
+      '<a class="form-chip" href="' + hrefV2('learn/learn-home.html') + '">' + icon('graduation-cap', { size: 'sm' }) + ' Full lessons</a>' +
+      '<a class="form-chip form-chip--report" href="' + hrefV2('support/report.html', { ref: PAGE.id || 'page' }) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a></div>';
+    ensureLearnDeps(function (ok) {
+      var slot = body.querySelector('[data-ld-video]');
+      if (!slot) return;
+      if (ok && CGA.v2c && CGA.fixtures.v2.learn.byVideo[lf.video]) {
+        slot.innerHTML = CGA.v2c.videoPlayer(lf.video);
+        CGA.v2c.initVideo(slot);
+      } else {
+        slot.innerHTML = '<a class="form-chip" href="' + hrefV2('shared/video-player.html') + '">' + icon('play', { size: 'sm' }) + ' Open the video library</a>';
+      }
+    });
+  }
+
   function renderSidebar() {
     var html = '<details class="sidebar-toggle" open><summary>' + icon('menu', { size: 'sm' }) + ' Menu</summary><div class="sidebar-nav">';
 
@@ -449,7 +516,7 @@
   }
 
   /* ------------------------------------------------------------- render */
-  var headerEl, sidebarEl, footerEl, demoBarEl, tourBarEl;
+  var headerEl, sidebarEl, footerEl, demoBarEl, tourBarEl, learnDrawerEl;
   function buildShell() {
     document.body.classList.add('app-shell');
     if (PAGE.register === 'brand') document.body.classList.add('register-brand');
@@ -481,6 +548,11 @@
     tourBarEl = document.createElement('div'); tourBarEl.className = 'tour-bar-wrap';
     main.insertBefore(tourBarEl, main.firstChild);
 
+    /* the Learn + Report drawer lives at the FOOT of <main>, after the page's
+       content — collapsed by default, survives #root re-renders */
+    learnDrawerEl = document.createElement('div'); learnDrawerEl.className = 'learn-drawer-wrap';
+    main.appendChild(learnDrawerEl);
+
     document.body.insertBefore(headerEl, main);
     document.body.insertBefore(sidebarEl, main);
     document.body.appendChild(footerEl);
@@ -495,6 +567,7 @@
     footerEl.innerHTML = renderFooter();
     demoBarEl.innerHTML = renderDemoBar();
     if (tourBarEl) tourBarEl.innerHTML = renderTourBar();
+    if (learnDrawerEl) learnDrawerEl.innerHTML = renderLearnDrawer();
   }
   function wireEvents() {
     document.body.addEventListener('change', function (ev) {
@@ -531,6 +604,11 @@
       var open = document.querySelectorAll('details.popover[open]');
       for (var i = 0; i < open.length; i++) if (!open[i].contains(ev.target)) open[i].removeAttribute('open');
     });
+    /* the Learn drawer hydrates (and lazy-loads its video) when opened; toggle
+       does not bubble, so listen in the capture phase */
+    document.addEventListener('toggle', function (ev) {
+      if (ev.target && ev.target.id === 'learn-drawer') hydrateLearnDrawer(ev.target);
+    }, true);
     CGA.state.subscribe(function () {
       renderChrome(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
       document.dispatchEvent(new CustomEvent('cga:v2:rerender'));
