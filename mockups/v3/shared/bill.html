@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A bill — CGA mockups v3</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the bill…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'shared/bill', title: 'A bill', module: 'legislature', nav: 'journey-bill', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/negotiate-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+    function billId() { try { return new URLSearchParams(location.search).get('id') || 'bill-2031-07'; } catch (e) { return 'bill-2031-07'; } }
+    var bill = (V2.bills || {})[billId()] || V2.bills['bill-2031-07'];
+
+    function jurName(slug) { var j = window.CGA.fixtures.byId.jurisdictions[slug]; return j ? j.name : slug; }
+
+    function stagesHtml() {
+      var STATUS = { done: 'check', current: 'clock', pending: 'minus' };
+      var cells = bill.stages.map(function (st) {
+        return '<li class="bill-stage bill-stage--' + esc(st.status) + '">' +
+          '<span class="bill-stage-dot">' + S.icon(STATUS[st.status] || 'minus', { size: 'sm' }) + '</span>' +
+          '<span class="bill-stage-label">' + esc(st.label) + '</span></li>';
+      }).join('');
+      return '<section class="card" aria-labelledby="prog-h"><h2 id="prog-h">' + S.icon('list-checks', { size: 'sm' }) + ' Progress</h2>' +
+        '<p class="gloss">Where this bill is on its way to becoming law. You can open it and watch it move.</p>' +
+        '<ol class="bill-stages">' + cells + '</ol></section>';
+    }
+
+    function commentsHtml() {
+      var rows = bill.comments.map(function (m) {
+        return '<div class="neg-comment"><span class="neg-comment-who">' + esc(m.by) + '</span>' +
+          '<span class="neg-comment-text">' + esc(m.text) + '</span>' +
+          '<span class="neg-comment-when">' + esc(m.when) + '</span></div>';
+      }).join('');
+      return '<section class="card" aria-labelledby="cmt-h"><h2 id="cmt-h">' + S.icon('message-square', { size: 'sm' }) + ' Comments</h2>' +
+        '<p class="gloss">Residents and members weigh in. Comments are public talk on the bill — separate from the formal floor record.</p>' +
+        '<div class="neg-comments" data-bill-comments>' + rows + '</div>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
+        '<input class="field-input" id="bill-cmt" type="text" placeholder="Add a comment…" autocomplete="off" />' +
+        '<button type="button" class="btn btn--secondary btn--sm" id="bill-cmt-send">' + S.icon('arrow-right', { size: 'sm' }) + ' Comment</button></div>' +
+        '</section>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Lawmaking · a bill</span><h1>' + esc(bill.title) + '</h1>' +
+        '<p class="page-intro">' + esc(bill.summary) + '</p>' +
+        '<p class="gloss">' + S.icon('user', { size: 'sm' }) + ' Sponsored by ' + esc(bill.sponsor) + ' · ' + S.icon('landmark', { size: 'sm' }) + ' ' + esc(jurName(bill.jurisdiction)) + '</p></header>' +
+        stagesHtml() +
+        '<section class="card"><div data-neg-mount></div></section>' +
+        commentsHtml() +
+        '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=legislative') + '">' + S.icon('users', { size: 'sm' }) + ' Watch the floor session ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV1('legislature/bill-detail.html') + '">The full bill record <span class="v1-tag">v1</span></a></div>';
+
+      // mount the negotiation interface over the bill's clauses
+      var mountEl = document.querySelector('[data-neg-mount]');
+      if (mountEl && window.CGA.negotiateV2) window.CGA.negotiateV2.mount(mountEl, bill.neg, { kindLabel: 'bill' });
+
+      // wire the comments composer (simulated)
+      var send = document.getElementById('bill-cmt-send');
+      if (send) send.addEventListener('click', function () {
+        var inp = document.getElementById('bill-cmt'); var v = (inp.value || '').trim(); if (!v) return;
+        var box = document.querySelector('[data-bill-comments]');
+        var div = document.createElement('div'); div.className = 'neg-comment';
+        div.innerHTML = '<span class="neg-comment-who">You</span><span class="neg-comment-text">' + esc(v) + '</span><span class="neg-comment-when">just now</span>';
+        box.appendChild(div); inp.value = ''; S.announce('Comment added (simulated).');
+      });
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

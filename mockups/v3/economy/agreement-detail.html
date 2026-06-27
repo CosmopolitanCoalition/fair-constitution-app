@@ -24,6 +24,7 @@
   <script src="../assets/js/icons.js"></script>
   <script src="../assets/js/i18n.js"></script>
   <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/negotiate-v2.js"></script>
   <script>
   (function () {
     'use strict';
@@ -58,6 +59,27 @@
     function render() {
       var a = E.agreements[0]; /* the labor contract — agr-1, F-IND-014 */
       var kind = KINDS[a.kind] || { label: a.kind, cite: '' };
+
+      /* a negotiation doc over this instrument — the same interface a bill uses.
+         Persisted on the agreement object so edits survive a re-render. */
+      if (!a.neg) {
+        a.neg = {
+          kind: 'agreement', title: a.title,
+          parties: a.parties.map(function (p, i) { return { name: p.name, side: i === 0 ? 'a' : 'b', role: p.role }; }),
+          youSide: 'a',
+          clauses: [
+            { id: 't1', heading: 'Terms', text: a.terms },
+            { id: 't2', heading: 'Co-determination', text: 'Recurring shifts count toward the organization’s co-determination headcount.' }
+          ],
+          redlines: [
+            { id: 1, by: a.parties[1] ? a.parties[1].name : 'Counterparty', side: 'b', clauseId: 't1', kind: 'edit', text: 'Recurring shifts at 24 ç/shift (up from 22).', rationale: 'A small cost-of-living adjustment.', status: 'pending' }
+          ],
+          comments: [
+            { by: a.parties[1] ? a.parties[1].name : 'Counterparty', side: 'b', when: '1h', text: 'Proposing a small rate bump before I sign.' }
+          ],
+          status: 'negotiating'
+        };
+      }
 
       /* Parties — each as a party-chip with its role (the .party-role mono). */
       var parties = a.parties.map(function (p) {
@@ -116,6 +138,9 @@
         '<div class="stack" style="gap:var(--space-1);margin-block-start:var(--space-4)"><span class="eyebrow">Terms</span>' +
         '<p>' + esc(a.terms) + '</p></div></section>' +
 
+        /* ----------------------------------- the negotiation interface (redline) */
+        '<section class="card"><div data-neg-mount></div></section>' +
+
         /* ------------------------------------------------------- the parties */
         '<section class="card" aria-labelledby="party-h"><h2 id="party-h">Parties to the agreement</h2>' +
         '<p class="gloss">Each party signs in their own role. Identity comes from the residency-confirmed record — never a paywall.</p>' +
@@ -170,6 +195,10 @@
         /* ----------------------------------------------------------- back link */
         '<p style="margin-block-start:var(--space-4)"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/agreements.html') + '">' +
         S.icon('arrow-right', { size: 'sm' }) + ' Back to all instruments of agreement</a></p>';
+
+      /* mount the negotiation interface over this instrument's clauses */
+      var negEl = root.querySelector('[data-neg-mount]');
+      if (negEl && window.CGA.negotiateV2) window.CGA.negotiateV2.mount(negEl, a.neg, { kindLabel: 'agreement' });
 
       /* simulated sign / decline */
       var signBtn = root.querySelector('[data-sign]');

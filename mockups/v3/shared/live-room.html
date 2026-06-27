@@ -131,6 +131,7 @@
         S.icon('chevron-right', { size: 'sm' }) + ' How this works</summary><div class="about-surface-body">' +
         '<p>' + esc(st.floor.body) + '</p>' +
         (formChip ? '<p>The formal act here: ' + formChip + ' <span class="citation">' + esc(st.floor.citation) + '</span></p>' : '<p class="citation">' + esc(st.floor.citation) + '</p>') +
+        (st.variant === 'legislative' ? '<p><a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/bill.html?id=bill-2031-07') + '">' + S.icon('file-text', { size: 'sm' }) + ' Open the bill — progress, comments &amp; redlines ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' : '') +
         (st.floor.deepLink ? '<p><a class="btn btn--secondary btn--sm" href="' + S.hrefV1(st.floor.deepLink) + '">Open the formal screen ' + S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a></p>' : '') +
         '</div></details>';
       return '<section class="lr-floor"><span class="lr-floor-kind">On the floor · ' + esc(st.floor.kind.replace(/_/g, ' ')) + '</span>' +

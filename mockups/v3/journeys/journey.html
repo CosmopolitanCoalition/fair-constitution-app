@@ -153,6 +153,9 @@
         (rooms ? '<section aria-labelledby="rooms-h"><h2 id="rooms-h">Where you act — the Live Civic Room</h2>' +
           '<p class="page-intro">Every journey passes through at least one live room, where the form, the vote, and the social floor are fused.</p>' +
           '<div class="role-grid">' + rooms + '</div></section>' : '') +
+        (J.id === 'bill' ? '<section class="card"><span class="eyebrow">Open the bill</span>' +
+          '<p>You can open this bill and watch it move — its progress through the stages, the comments, and the redline negotiation over its clauses.</p>' +
+          '<a class="btn btn--primary btn--sm" href="' + S.hrefV2('shared/bill.html?id=bill-2031-07') + '">' + S.icon('file-text', { size: 'sm' }) + ' Open the Clean Air Act ' + S.icon('arrow-right', { size: 'sm' }) + '</a></section>' : '') +
         (v1 ? '<section class="card"><span class="eyebrow">The formal moment</span>' +
           '<p>The formal steps open the existing operations screen — v2 wraps them in this journey rather than re-mocking them.</p>' +
           '<div class="cluster" style="gap:var(--space-1)">' + v1 + '</div></section>' : '') +

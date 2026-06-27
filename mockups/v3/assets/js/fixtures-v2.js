@@ -780,6 +780,48 @@
   };
 
   /* --------------------------------------------------------------- expose */
+  /* ---- BILLS (shared/bill.html) — a bill you can OPEN and watch: its progress
+     through the stages, a comment thread, and the negotiation interface over its
+     own clauses (the same interface used for instruments of agreement). */
+  var bills = {
+    'bill-2031-07': {
+      id: 'bill-2031-07',
+      title: 'New York County Clean Air Act',
+      jurisdiction: 'usa-3-new-york-county',
+      sponsor: 'Marcus Chen',
+      summary: 'Sets depot-area air-quality limits and a retrofit timeline for diesel freight yards.',
+      stages: [
+        { key: 'drafted', label: 'Drafted', status: 'done' },
+        { key: 'committee', label: 'Committee', status: 'done' },
+        { key: 'floor', label: 'Floor reading', status: 'current' },
+        { key: 'vote', label: 'Floor vote', status: 'pending' },
+        { key: 'law', label: 'Becomes law', status: 'pending' }
+      ],
+      comments: [
+        { by: '@u-harborwatch', when: '2h', text: 'The still-day limits matter most near Pier 7 — keep them.' },
+        { by: 'Asha Okonkwo', when: '1h', text: 'Supportive. I moved it favourably out of committee.' },
+        { by: '@u-tamb', when: '40m', text: 'What happens to the smallest operators on the retrofit timeline?' }
+      ],
+      neg: {
+        kind: 'bill', title: 'New York County Clean Air Act',
+        parties: [ { name: 'Sponsor · Marcus Chen', side: 'a', role: 'sponsor' }, { name: 'The floor', side: 'b', role: 'amenders' } ],
+        youSide: 'a',
+        clauses: [
+          { id: 'c1', heading: 'Section 1 — Scope', text: 'This Act applies to diesel depots and freight yards within New York County.' },
+          { id: 'c2', heading: 'Section 2 — Limits', text: 'Particulate levels near a depot may not exceed the planetary baseline on still-air days.' },
+          { id: 'c3', heading: 'Section 3 — Retrofit timeline', text: 'Operators must complete a retrofit within 24 months of enactment.' }
+        ],
+        redlines: [
+          { id: 1, by: '@u-jpetersen', side: 'b', clauseId: 'c3', kind: 'edit', text: 'Operators must complete a retrofit within 36 months, with a hardship extension for the smallest operators.', rationale: '24 months is not feasible for the smallest depots.', status: 'pending' }
+        ],
+        comments: [
+          { by: 'The floor', side: 'b', when: '1h', text: 'I will offer a cost amendment to Section 3.' }
+        ],
+        status: 'negotiating'
+      }
+    }
+  };
+
   F.v2 = {
     interactionClasses: interactionClasses,
     journeys: journeys,
@@ -787,6 +829,7 @@
     handleFor: handleFor,
     economy: economy,
     groups: groups,
+    bills: bills,
     legitimacy: legitimacy,
     live: live,
     journeyLive: journeyLive,

@@ -971,3 +971,38 @@ a.cal-row:hover { border-color: var(--gov-link); }
 .cal-when { color: var(--gov-fg-subtle); flex-shrink: 0; }
 .cal-main { display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-inline-size: 0; }
 .cal-main strong { color: var(--gov-fg); }
+
+/* ============================================================ NEGOTIATION (v3)
+   The draft / redline / back-and-forth interface for any negotiated document —
+   an instrument of agreement or a bill. */
+.neg-wrap { display: flex; flex-direction: column; gap: var(--space-3); }
+.neg-doc { display: flex; flex-direction: column; gap: var(--space-3); }
+.neg-clause { border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-3); background: var(--gov-surface); }
+.neg-clause--new { border-style: dashed; }
+.neg-clause-head { margin: 0 0 var(--space-1); font-size: var(--text-sm); color: var(--gov-fg-subtle); text-transform: uppercase; letter-spacing: 0.04em; }
+.neg-clause-text { margin: 0; }
+.rl-list { display: flex; flex-direction: column; gap: var(--space-2); margin-block-start: var(--space-3); }
+.rl-item { border-inline-start: 3px solid var(--gov-border-strong); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--gov-bg); }
+.rl-pending { border-inline-start-color: var(--status-warning); }
+.rl-accepted { border-inline-start-color: var(--status-success); }
+.rl-rejected { border-inline-start-color: var(--status-danger); }
+.rl-text { margin: var(--space-1) 0; }
+.rl-strike { text-decoration: line-through; color: var(--gov-fg-subtle); }
+.neg-propose { border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
+.neg-propose > summary { cursor: pointer; color: var(--gov-link); font-size: var(--text-sm); list-style: none; }
+.neg-propose > summary::-webkit-details-marker { display: none; }
+.neg-talk { border-block-start: 1px solid var(--gov-border); padding-block-start: var(--space-3); }
+.neg-comments { display: flex; flex-direction: column; gap: var(--space-2); }
+.neg-comment { display: flex; flex-direction: column; gap: 1px; padding: var(--space-2) var(--space-3); border: 1px solid var(--gov-border); border-radius: var(--radius-md); background: var(--gov-surface); }
+.neg-comment-who { font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--gov-link); }
+.neg-comment-when { font-size: var(--text-xs); color: var(--gov-fg-subtle); font-family: var(--font-mono); align-self: flex-end; }
+.neg-footer { border-block-start: 1px solid var(--gov-border); padding-block-start: var(--space-3); }
+
+/* ============================================================ BILL PROGRESS (v3)
+   The stepper on shared/bill.html — a bill's path to becoming law. */
+.bill-stages { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: var(--space-2) 0 0; }
+.bill-stage { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); border: 1px solid var(--gov-border); font-size: var(--text-sm); color: var(--gov-fg-muted); }
+.bill-stage-dot { display: inline-flex; }
+.bill-stage--done { color: var(--status-success-fg); border-color: var(--status-success); background: color-mix(in oklch, var(--status-success) 12%, var(--gov-bg)); }
+.bill-stage--current { color: var(--gov-fg); border-color: var(--gov-link); background: color-mix(in oklch, var(--gov-link) 12%, var(--gov-bg)); font-weight: var(--weight-medium); }
+.bill-stage--pending { opacity: 0.7; }
