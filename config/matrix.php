@@ -56,6 +56,38 @@ return [
         'endpoint' => env('MATRIX_MAS_URL', 'http://mas:8080/'),
     ],
 
+    // The GAME-as-OIDC-PROVIDER (K3-C — identity bridge flows GAME → Matrix, operator-ratified 2026-06-27).
+    // The game is a SMALL OIDC provider serving exactly ONE relying party: MAS, configured upstream→game.
+    // One CGA login mints the Matrix session; the homeserver never sees a password; only the pseudonym
+    // (@u-<handle>) ever crosses to Matrix (the de-anon stays a judicial carve-out in the game DB).
+    'oidc' => [
+        // The issuer = the game's public base URL (what .well-known/openid-configuration advertises and what
+        // MAS pins as the upstream issuer). MAS reaches it over the Docker network at the internal URL.
+        'issuer'       => rtrim((string) env('APP_URL', 'http://localhost:8080'), '/'),
+        'internal_url' => rtrim((string) env('OIDC_INTERNAL_URL', (string) env('APP_URL', 'http://nginx:80')), '/'),
+
+        // The single registered relying party: MAS. The secret is the game↔MAS shared client secret (dev
+        // default follows the repo's dev-secret pattern; `php artisan matrix:setup` regenerates it). The
+        // redirect_uri is MAS's upstream callback — finalized in K3-C.3 once the MAS provider ULID exists.
+        'client' => [
+            'id'            => env('OIDC_MAS_CLIENT_ID', 'mas-upstream'),
+            'secret'        => env('OIDC_MAS_CLIENT_SECRET', 'cga_dev_oidc_mas_secret_9b3f1a7c5e2d4806b1f9c8e04a7d2630'),
+            // MAS's upstream callback = <MAS public_base>/upstream/callback/<provider-id> (verified empirically
+            // against MAS v1.19 — NOT the /upstream/oauth2/callback path some docs show). The dev default
+            // matches the provider id in docker/matrix/mas/config.yaml; matrix:setup regenerates both sides in
+            // sync for a deployment. The game validates redirect_uri by EXACT match.
+            'redirect_uris' => array_values(array_filter(array_map('trim', explode(
+                ',',
+                (string) env('OIDC_MAS_REDIRECT_URIS', 'http://localhost:8090/upstream/callback/01HZX4GA7JK9MNP8QRSTVWXYZ2')
+            )))),
+        ],
+
+        // Short-lived by design (mirrors AttestationService's discipline): an auth code is single-use +
+        // seconds-lived; the id_token is minted at the token endpoint and consumed immediately by MAS.
+        'code_ttl'     => (int) env('OIDC_CODE_TTL', 60),
+        'id_token_ttl' => (int) env('OIDC_ID_TOKEN_TTL', 300),
+    ],
+
     // LiveKit (Element Call SFU) for voice/video (K3-J). Dev-stack only; Pi A/V deferred to scaling.
     // The api_key/secret DEV defaults match docker/livekit dev config (the dev-secret pattern, like the
     // appservice as_token); `php artisan matrix:setup` regenerates real secrets for a deployment. The

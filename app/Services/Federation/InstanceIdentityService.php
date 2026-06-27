@@ -169,7 +169,7 @@ class InstanceIdentityService
      * The identity payload shared at handshake (server_id + public_key +
      * instance metadata). Signed by the caller before transmission.
      *
-     * @return array{server_id: string, public_key: string, name: string, schema_version: string, constitutional_version: string, app_release: ?string}
+     * @return array{server_id: string, public_key: string, name: string, schema_version: string, constitutional_version: string, app_release: ?string, matrix_server_name: string}
      */
     public function handshakePayload(): array
     {
@@ -184,6 +184,10 @@ class InstanceIdentityService
             // the human-readable deploy tag (provenance only).
             'constitutional_version' => $settings->constitutionalVersion(),
             'app_release' => config('cga.app_release'),
+            // K3-C / Phase 5 — our Matrix homeserver server_name, so a peer can add us to its Matrix
+            // federation_domain_whitelist (the SAME peers that mirror our records may federate our rooms).
+            // Signed with the rest of this payload; the receiver stores it in the peer's metadata.
+            'matrix_server_name' => (string) config('matrix.server_name'),
         ];
     }
 

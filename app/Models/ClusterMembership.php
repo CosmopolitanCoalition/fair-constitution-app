@@ -49,12 +49,22 @@ class ClusterMembership extends Model
         'backfill_cursor_seq',
         'backfill_target_seq',
         'backfilled_at',
+        // Geodata-seed transfer (roles-campaign Phase 0b).
+        'seed_dataset',
+        'seed_version',
+        'seed_sha256',
+        'seed_total_bytes',
+        'seed_cursor_bytes',
+        'seeded_at',
     ];
 
     protected $casts = [
         'backfill_cursor_seq' => 'integer',
         'backfill_target_seq' => 'integer',
         'backfilled_at' => 'datetime',
+        'seed_total_bytes' => 'integer',
+        'seed_cursor_bytes' => 'integer',
+        'seeded_at' => 'datetime',
     ];
 
     public function peer(): BelongsTo

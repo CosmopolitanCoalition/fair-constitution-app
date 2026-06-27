@@ -56,13 +56,30 @@ class SetupController extends Controller
             return redirect('/setup/bootstrap');
         }
 
+        // Roles-campaign Phase 1 — operator account FIRST. needsBootstrap gates only on schema readiness,
+        // so the founder/operator account is created on the bootstrap page (after migrations) BEFORE the
+        // fork. Until it exists, route back there. (This intentionally overrides the older founder-at-end
+        // model: the operator's physical credentials are the first thing set up, then the SOLO/JOIN fork.)
+        if (User::query()->doesntExist()) {
+            return redirect('/setup/bootstrap');
+        }
+
         $settings = InstanceSettings::current();
 
         if ($settings->isSetupComplete()) {
             return redirect('/');
         }
 
-        // Convention: setup_step_completed = n  →  steps 0..n-1 done, next is step n.
+        // The SOLO/JOIN fork is the first question after the operator account. SOLO walks the build steps;
+        // JOIN connects to an existing mesh and syncs everything (skipping institution-building).
+        if ($settings->setup_mode === null) {
+            return redirect('/setup/mode');
+        }
+        if ($settings->setup_mode === 'join') {
+            return redirect('/setup/join');
+        }
+
+        // SOLO. Convention: setup_step_completed = n  →  steps 0..n-1 done, next is step n.
         $next = min(4, max(0, (int) $settings->setup_step_completed));
 
         return redirect("/setup/step/{$next}");
@@ -85,6 +102,15 @@ class SetupController extends Controller
         }
 
         $settings = InstanceSettings::current();
+
+        // Roles-campaign Phase 1 — the build steps belong to SOLO. An undecided instance goes to the
+        // fork; a JOIN instance never walks these (its foundation + institutions sync in from the host).
+        if ($settings->setup_mode === null) {
+            return redirect('/setup/mode');
+        }
+        if ($settings->setup_mode === 'join') {
+            return redirect('/setup');
+        }
 
         // Gate forward progression: step n is reachable iff steps 0..n-1 are done.
         if ((int) $settings->setup_step_completed < $n) {
@@ -149,6 +175,163 @@ class SetupController extends Controller
         return response()->json([
             'settings' => $this->serializeSettings($settings),
             'complete' => $settings->isSetupComplete(),
+        ]);
+    }
+
+    // ─── Roles-campaign Phase 1 — SOLO/JOIN fork ──────────────────────────────
+
+    /**
+     * Render the SOLO/JOIN fork — the first question after the operator account. SOLO starts a new
+     * world (you ARE the canonical game, federating to yourself); JOIN connects to an existing mesh.
+     */
+    public function mode(): Response|RedirectResponse
+    {
+        if ($this->needsBootstrap() || User::query()->doesntExist()) {
+            return redirect('/setup/bootstrap'); // operator account is created there, before the fork
+        }
+        $settings = InstanceSettings::current();
+        if ($settings->isSetupComplete()) {
+            return redirect('/');
+        }
+        if ($settings->setup_mode !== null) {
+            return redirect('/setup'); // already chosen — index routes to the right path
+        }
+
+        return Inertia::render('Setup/ModeFork', [
+            'settings' => $this->serializeSettings($settings),
+        ]);
+    }
+
+    /**
+     * POST /api/setup/mode — record the SOLO/JOIN choice. One-way: the fork is settled once chosen
+     * (re-running setup from scratch is `down -v`). JOIN mints the federation identity now so the
+     * operator can read their server_id and a host can pin it during adoption.
+     */
+    public function setMode(Request $request): JsonResponse
+    {
+        if (User::query()->doesntExist()) {
+            return response()->json(['error' => 'Create the operator account first.'], 409);
+        }
+        $data = $request->validate([
+            'setup_mode' => ['required', Rule::in(['solo', 'join'])],
+        ]);
+
+        // Settle the fork ATOMICALLY: only the request that flips NULL → mode wins; a concurrent second
+        // tab sees 0 rows updated → 409. (A check-then-save would let two requests both pass the guard.)
+        $won = DB::table('instance_settings')
+            ->whereNull('setup_mode')
+            ->whereNull('deleted_at')
+            ->update(['setup_mode' => $data['setup_mode']]);
+        if (! $won) {
+            return response()->json(['error' => 'Setup mode is already chosen.'], 409);
+        }
+
+        if ($data['setup_mode'] === 'join') {
+            // Mint THIS box's federation identity before it talks to a host (idempotent).
+            app(\App\Services\Federation\InstanceIdentityService::class)->ensureIdentity();
+        }
+
+        return response()->json([
+            'settings' => $this->serializeSettings(InstanceSettings::current()->fresh()),
+            'next'     => $data['setup_mode'] === 'join' ? '/setup/join' : '/setup/step/0',
+        ]);
+    }
+
+    /**
+     * Render the JOIN screen (mirror onboarding). Shows this box's server_id so the operator can hand
+     * it to a host, and collects the host URL + optional join key.
+     */
+    public function join(): Response|RedirectResponse
+    {
+        if ($this->needsBootstrap() || User::query()->doesntExist()) {
+            return redirect('/setup/bootstrap');
+        }
+        $settings = InstanceSettings::current();
+        if ($settings->isSetupComplete()) {
+            return redirect('/');
+        }
+        if ($settings->setup_mode !== 'join') {
+            return redirect('/setup');
+        }
+
+        return Inertia::render('Setup/JoinHost', [
+            'settings'  => $this->serializeSettings($settings),
+            'server_id' => $settings->server_id,
+        ]);
+    }
+
+    /**
+     * POST /api/setup/join — connect to a host and become a read-only mirror. Reuses MirrorService
+     * (keyed joinHost / keyless requestJoin) — which, since Phase 0b, pulls the host's geodata seed
+     * BEFORE draining the audit corpus, so the foundation + replayed institutions all sync in. A LIVE
+     * mirror IS "ready player one" for a join: the operator account is connected to a federation account
+     * on the mesh. A keyless request the host hasn't vouched yet returns 'pending_host_approval'.
+     */
+    public function joinFromSetup(Request $request, \App\Services\Mirror\MirrorService $mirror): JsonResponse
+    {
+        $settings = InstanceSettings::current();
+        if ($settings->setup_mode !== 'join') {
+            return response()->json(['error' => 'This instance is not in join mode.'], 409);
+        }
+
+        // Already joined — a re-POST after completion is a no-op, not another adoption.
+        if ($settings->isSetupComplete()) {
+            return response()->json([
+                'state'    => 'ready',
+                'settings' => $this->serializeSettings($settings),
+                'next'     => '/',
+            ]);
+        }
+
+        try {
+            if ($mirror->isMirror()) {
+                // A prior attempt already pinned us as a mirror of this host. RESUME the drain directly
+                // rather than re-running /adopt — re-adopting would burn a single-use join key (and a
+                // different host would collide on the one-active-mirror index). Resumable + idempotent.
+                $membership = $mirror->resumeJoin();
+            } else {
+                $data = $request->validate([
+                    'host_url' => ['required', 'url'],
+                    'join_key' => ['nullable', 'string'],
+                ]);
+                if (! empty($data['join_key'])) {
+                    $membership = $mirror->joinHost($data['host_url'], $data['join_key']);
+                } else {
+                    $membership = $mirror->requestJoin($data['host_url']);
+                    if ($membership === null) {
+                        return response()->json([
+                            'state'    => 'pending_host_approval',
+                            'settings' => $this->serializeSettings($settings->fresh()),
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Already pinned as a mirror = the sync merely didn't finish; it's resumable, not a fresh
+            // failure. Say so distinctly so the operator re-submits (which now resumes) rather than reading
+            // a dead end.
+            $msg = $mirror->isMirror()
+                ? 'Connected, but the sync did not finish — re-submit to resume: '.$e->getMessage()
+                : 'Join failed: '.$e->getMessage();
+
+            return response()->json(['error' => $msg], 422);
+        }
+
+        // A LIVE membership = the corpus drained to catch-up → ready player one. SYNCING = still pulling
+        // (re-submit to resume — now idempotent for keyed + keyless via resumeJoin).
+        $live = $membership->state === \App\Models\ClusterMembership::STATE_LIVE;
+        $settings->refresh();
+        if ($live && ! $settings->isSetupComplete()) {
+            $settings->forceFill([
+                'setup_completed_at'   => now(),
+                'setup_step_completed' => 5,
+            ])->save();
+        }
+
+        return response()->json([
+            'state'    => $live ? 'ready' : 'syncing',
+            'settings' => $this->serializeSettings($settings->fresh()),
+            'next'     => $live ? '/' : '/setup/join',
         ]);
     }
 
@@ -1963,6 +2146,9 @@ class SetupController extends Controller
             'setup_completed_at'            => optional($settings->setup_completed_at)->toIso8601String(),
             'apportionment_completed_at'    => optional($settings->apportionment_completed_at)->toIso8601String(),
             'setup_districts_confirmed_at'  => optional($settings->setup_districts_confirmed_at)->toIso8601String(),
+            'setup_mode'                    => $settings->setup_mode,
+            'is_mirror'                     => $settings->isMirror(),
+            'server_id'                     => $settings->server_id, // public mesh id (never the private key — that is $hidden)
         ];
     }
 

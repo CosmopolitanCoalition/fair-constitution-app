@@ -3,6 +3,7 @@
 namespace App\Services\Matrix;
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\FederationPeer;
 use App\Models\MatrixServerAcl;
 
 /**
@@ -21,9 +22,16 @@ class MatrixFederationGateService
     public function __construct(private MatrixClientService $client) {}
 
     /**
-     * The federation_domain_whitelist the homeserver should run. Always retains the local server.
-     * Peer Matrix domains join here when the mesh is live (rig — same peers as federation_peers);
-     * a scale_demo instance forces empty (a demo has no consent to federate).
+     * The federation_domain_whitelist the homeserver should run: the local server PLUS every TRUSTED mesh
+     * peer's Matrix server_name — exactly the same peers that mirror our public records may federate our
+     * Matrix rooms (design §6.4). A scale_demo instance forces empty (a demo has no consent to federate).
+     *
+     * A peer's Matrix domain is its OWN signed handshake claim (or the host of its federation url) — it is
+     * not an authority grant: the whitelist only says "we will ACCEPT Matrix federation from these domains,"
+     * and Matrix S2S independently authenticates every server against that domain's published keys, so a
+     * peer cannot impersonate a domain it merely names. Trust to even be in this set is the pinned-peer TOFU.
+     *
+     * @return list<string>
      */
     public function desiredFederationWhitelist(bool $scaleDemo = false): array
     {
@@ -31,8 +39,17 @@ class MatrixFederationGateService
             return [];
         }
 
-        // Local always present. Peer-domain inclusion is wired with the two-box mesh (K3-N, rig).
-        return [(string) config('matrix.server_name')];
+        $local = (string) config('matrix.server_name');
+
+        $peerDomains = FederationPeer::query()
+            ->whereNull('deleted_at')
+            ->get()
+            ->filter(fn (FederationPeer $p) => $p->isTrusted())
+            ->map(fn (FederationPeer $p) => $p->matrixServerName())
+            ->filter()
+            ->all();
+
+        return array_values(array_unique(array_merge([$local], $peerDomains)));
     }
 
     /**

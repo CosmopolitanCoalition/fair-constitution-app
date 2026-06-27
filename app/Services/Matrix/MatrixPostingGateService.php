@@ -3,6 +3,7 @@
 namespace App\Services\Matrix;
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\MatrixIdentity;
 use App\Models\SocialProfile;
 use App\Models\User;
 use App\Services\RoleService;
@@ -70,13 +71,46 @@ class MatrixPostingGateService
         };
     }
 
-    /** The pseudonymous @u-<handle>:domain — NEVER the legal name (Art. I). Handle from the profile, else a stable non-PII id. */
+    /** The pseudonymous @u-<handle>:domain — NEVER the legal name (Art. I). */
     public function matrixUserId(User $actor): string
     {
-        $profile = SocialProfile::query()->where('user_id', (string) $actor->getKey())->first();
-        $base = ! empty($profile?->handle) ? (string) $profile->handle : substr(hash('sha256', (string) $actor->getKey()), 0, 8);
-        $local = 'u-'.preg_replace('/[^a-z0-9._=\-]/', '', strtolower($base));
+        return '@'.$this->localpartFor($actor).':'.config('matrix.server_name');
+    }
 
-        return '@'.$local.':'.config('matrix.server_name');
+    /**
+     * The pseudonymous LOCALPART (`u-<handle>`) — the single source of truth for a user's Matrix identity,
+     * reused by the OIDC provider (K3-C) so the id_token's preferred_username, the provisioned
+     * matrix_identities row, and a sent message all carry the IDENTICAL pseudonym. NEVER the legal name
+     * (Art. I).
+     *
+     * The PROVISIONED identity is authoritative once it exists: a (vanishingly rare) localpart collision can
+     * be discriminated at provision time (MatrixIdentityProvisioner), so message-sending must read the SAME
+     * stored value rather than re-deriving and disagreeing — otherwise a user's identity would split.
+     */
+    public function localpartFor(User $actor): string
+    {
+        $stored = MatrixIdentity::query()
+            ->where('user_id', (string) $actor->getKey())
+            ->whereNull('deleted_at')
+            ->value('matrix_localpart');
+
+        return ! empty($stored) ? (string) $stored : $this->deriveLocalpart($actor);
+    }
+
+    /**
+     * Derive a fresh pseudonymous localpart: the profile handle if set, else a 128-bit non-PII id from the
+     * user-id hash. (Widened from 32 bits per the K3-C security review — at 32 bits a birthday collision
+     * near ~65k handle-less users on one instance was mis-recovered into an opaque 500 + permanent identity
+     * denial. 128 bits makes a collision astronomically improbable; the provisioner still discriminates the
+     * residual case rather than failing.)
+     */
+    public function deriveLocalpart(User $actor): string
+    {
+        $profile = SocialProfile::query()->where('user_id', (string) $actor->getKey())->first();
+        $base = ! empty($profile?->handle)
+            ? (string) $profile->handle
+            : substr(hash('sha256', (string) $actor->getKey()), 0, 32);
+
+        return 'u-'.preg_replace('/[^a-z0-9._=\-]/', '', strtolower($base));
     }
 }

@@ -1,5 +1,7 @@
 # Mesh Roles & Channels of Trust — Design Doc
 
+> **⚑ MODEL CORRECTION (operator, 2026-06-26).** The federation model is **SAME-GAME full replication**, not narrow sync. A mesh is one game → every node's data should MATCH; read = full replication minus per-node-unique (identity/keypair/local ops); **geodata + cosmic sync IN FULL** (no skip); **Full Faith & Credit is the WRITE side** (the node authoritative for a jurisdiction writes; peers credit/accept those writes) — NOT a sync limiter. State lives on **two planes**: Plane A (records + geodata foundation, fully replicated via FF&C; institutions converge by audit-replay; the geodata *seed* is the one gap, closed by the seed-sync build) and Plane B (live Matrix + voice, S2S, load-bearing for gameplay). **Any "only public_records sync / geodata off-plane / FF&C narrows what syncs" framing below is SUPERSEDED.** Canonical model: the auto-memory `project_federation_same_game_model.md`; campaign plan: `~/.claude/plans/your-interpretation-of-the-fluffy-hartmanis.md`.
+
 **Status:** Decision-ready. Drives both the build and the multibox campaign.
 **Plane:** Operator / instance plane (G-OP). Never touches the constitutional citizen role
 system (R-01…R-30, `RoleService`). The "role" here is an **operator/instance** concept.

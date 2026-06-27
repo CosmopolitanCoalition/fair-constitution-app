@@ -34,17 +34,23 @@ class BrokerAuthorizationTest extends TestCase
             $identity = app(InstanceIdentityService::class);
             $identity->ensureIdentity();
             $svc = app(BrokerAuthorizationService::class);
+
+            // A domain UNIQUE to this run. authorityKeysFor aggregates our authority key over EVERY broker
+            // attested under a domain (plus the operator-PINNED config keys), so on a live broker box a
+            // pre-existing real attestation / pinned key for a SHARED domain would (rightly) survive a single
+            // revoke. A fresh domain isolates the revoke invariant to the one attestation this test makes.
+            $domain = 'wos-'.Str::lower(Str::random(10)).'.test';
             $brokerServerId = (string) Str::uuid();
 
-            $svc->attest(self::DOMAIN, $brokerServerId);
+            $svc->attest($domain, $brokerServerId);
 
-            $this->assertContains($identity->publicKey(), $svc->authorityKeysFor(self::DOMAIN),
+            $this->assertContains($identity->publicKey(), $svc->authorityKeysFor($domain),
                 'our attestation surfaces as an authority key for the domain');
-            $this->assertContains($brokerServerId, $svc->brokersFor(self::DOMAIN),
+            $this->assertContains($brokerServerId, $svc->brokersFor($domain),
                 'the attested broker is routable for the domain');
 
-            $svc->revoke(self::DOMAIN, $brokerServerId);
-            $this->assertNotContains($identity->publicKey(), $svc->authorityKeysFor(self::DOMAIN),
+            $svc->revoke($domain, $brokerServerId);
+            $this->assertNotContains($identity->publicKey(), $svc->authorityKeysFor($domain),
                 'revocation removes the authority key (fail-closed at read)');
         });
     }

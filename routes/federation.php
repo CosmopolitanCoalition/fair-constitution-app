@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Federation\AdoptionController;
+use App\Http\Controllers\Federation\BrokerCredentialShareController;
 use App\Http\Controllers\Federation\CertGrantController;
 use App\Http\Controllers\Federation\CertRequestController;
 use App\Http\Controllers\Federation\FlipController;
@@ -100,8 +101,23 @@ Route::post('/cert-grant', [CertGrantController::class, 'receiveGrant'])
 Route::post('/role-grant', [RoleGrantController::class, 'receiveGrant'])
     ->middleware('federation.signed');
 
+// ── Broker credential failover (roles campaign Phase 4) — a primary broker pushes its per-domain Cloudflare
+// credential SEALED to a designated failover broker (the ONE authorized exception to "the token never
+// leaves the box"). Trusted-only + fail-closed: the authenticated pinned sender must be on this box's
+// per-domain accept opt-in, and the sealed payload must name this box + that same sender. The token is
+// never echoed.
+Route::post('/broker/credential-share', [BrokerCredentialShareController::class, 'receive'])
+    ->middleware('federation.signed');
+
 // ── Geodata manifest (G3c, N3) — a pinned peer pulls our signed dataset manifest.
 // Large/license-bound rasters ride this SEPARATE channel, never the audit tail;
 // each manifest is signed by its origin (verified against the origin's pinned key).
 Route::get('/geodata/manifest', [GeodataController::class, 'manifest'])
+    ->middleware('federation.signed');
+
+// ── Geodata SEED bytes (roles-campaign Phase 0b) — a joining mirror range-pulls the
+// foundation tarball the manifest names, BEFORE it drains the audit corpus (the seed's
+// jurisdiction rows must exist for the audit-replay to rebuild institutions on them).
+// Opaque byte pages; integrity is the origin-signed manifest sha256, request-auth is pinned.
+Route::get('/geodata/seed/page', [GeodataController::class, 'seedPage'])
     ->middleware('federation.signed');

@@ -103,6 +103,23 @@ class FederationPeer extends Model
     }
 
     /**
+     * The peer's Matrix homeserver server_name (K3-C / Phase 5) — for the Matrix federation whitelist. The
+     * value the peer advertised at handshake (stored in metadata) is authoritative; absent that (a pre-K3-C
+     * peer, or a non-DNS transport with no declared domain), fall back to the host of its federation url.
+     */
+    public function matrixServerName(): ?string
+    {
+        $declared = $this->metadata['matrix_server_name'] ?? null;
+        if (! empty($declared)) {
+            return strtolower(trim((string) $declared));
+        }
+
+        $host = parse_url((string) $this->url, PHP_URL_HOST);
+
+        return ! empty($host) ? strtolower(trim((string) $host, '[]')) : null;
+    }
+
+    /**
      * Resolve a peer from a CLI "{peer}" argument that may be either a server_id
      * (uuid) or a URL. server_id is a uuid column, so comparing a URL against it
      * makes Postgres throw 22P02 ("invalid input syntax for type uuid") — the OR

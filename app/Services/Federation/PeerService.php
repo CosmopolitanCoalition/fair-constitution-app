@@ -70,7 +70,10 @@ class PeerService
             'name' => $remote['name'] ?? null,
             'url' => $url,
             'public_key' => $publicKey,
-            'metadata' => ['schema_version' => $remote['schema_version'] ?? null],
+            'metadata' => [
+                'schema_version' => $remote['schema_version'] ?? null,
+                'matrix_server_name' => $remote['matrix_server_name'] ?? ($peer->metadata['matrix_server_name'] ?? null),
+            ],
             'constitutional_version' => $remote['constitutional_version'] ?? null,
             'app_release' => $remote['app_release'] ?? null,
         ]);
@@ -176,6 +179,7 @@ class PeerService
             'schema_version' => $payload['schema_version'] ?? null,
             'constitutional_version' => $payload['constitutional_version'] ?? null,
             'app_release' => $payload['app_release'] ?? null,
+            'matrix_server_name' => $payload['matrix_server_name'] ?? null,
         ], FederationPeer::RELATION_SOVEREIGN, 'received');
 
         // Learn the introducing peer's transports (G8b), and advertise ours back so
@@ -221,7 +225,11 @@ class PeerService
             'relation' => $relation,
             'status' => FederationPeer::STATUS_TRUST_ESTABLISHED,
             'trust_established_at' => now(),
-            'metadata' => ['schema_version' => $attrs['schema_version'] ?? null],
+            'metadata' => [
+                'schema_version' => $attrs['schema_version'] ?? null,
+                // Preserve a previously-learned Matrix domain when this upsert doesn't carry one.
+                'matrix_server_name' => $attrs['matrix_server_name'] ?? ($peer->metadata['matrix_server_name'] ?? null),
+            ],
             // G-VER — pin the peer's tracked versions (gate counted sync, provenance).
             'constitutional_version' => $attrs['constitutional_version'] ?? $peer->constitutional_version,
             'app_release' => $attrs['app_release'] ?? $peer->app_release,

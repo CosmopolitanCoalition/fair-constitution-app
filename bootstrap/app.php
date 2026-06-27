@@ -32,6 +32,13 @@ return Application::configure(basePath: dirname(__DIR__))
             // /_matrix/app/ here. Generous throttle — Synapse batches up to 100 events per transaction.
             Route::middleware(['throttle:600,1', 'matrix.appservice'])
                 ->group(__DIR__.'/../routes/matrix.php');
+
+            // Phase 5 / K-3 (K3-C) — the game-as-OIDC-provider STATELESS endpoints MAS consumes
+            // (discovery, JWKS, token, userinfo), OUTSIDE the web group (no session/CSRF). The token
+            // endpoint authenticates by client secret + PKCE in the service. /oauth/authorize (which
+            // needs the citizen's session) is the one OIDC route that stays in the web group.
+            Route::middleware('throttle:120,1')
+                ->group(__DIR__.'/../routes/oidc.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

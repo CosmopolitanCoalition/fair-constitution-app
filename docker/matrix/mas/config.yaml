@@ -88,8 +88,11 @@ secrets:
       oUQDQgAEhuC8zoLFUSNuKaQo6EnCIjL25sRIHUcf4JN46oE9mzHzX9Oo15O77Sid
       eYj197yrS7Aej/frR/gvk1hnS+PLIQ==
       -----END EC PRIVATE KEY-----
+# K3-C — local passwords are OFF: the GAME (CGA) is the upstream identity provider; the homeserver never
+# sees a password. With one upstream provider and passwords disabled, MAS sends the player straight to the
+# CGA login. (Dev secret, like the repo's APP_KEY; matrix:setup regenerates for a deployment.)
 passwords:
-  enabled: true
+  enabled: false
   schemes:
   - version: 1
     algorithm: argon2id
@@ -99,3 +102,32 @@ matrix:
   homeserver: localhost
   secret: jrMzG1lUJWsj8PsQRzBwU2WScSbinZ4p
   endpoint: http://matrix:8008/
+
+# K3-C — the GAME as MAS's UPSTREAM OIDC provider (identity bridge flows GAME → Matrix). One CGA login
+# mints the Matrix session; only the pseudonym (u-<handle>) crosses over. The DEV stack is split-horizon:
+# the browser reaches the game at localhost:8081 (authorization_endpoint) while MAS reaches it server-side
+# over the Docker network (token/jwks at nginx:80) — so discovery_mode is `disabled` with explicit
+# endpoints. A real deployment (one public HTTPS issuer reachable both ways) uses discovery_mode: oidc.
+upstream_oauth2:
+  providers:
+  - id: 01HZX4GA7JK9MNP8QRSTVWXYZ2
+    human_name: Cosmopolitan Governance App
+    issuer: http://localhost:8081
+    client_id: mas-upstream
+    client_secret: cga_dev_oidc_mas_secret_9b3f1a7c5e2d4806b1f9c8e04a7d2630
+    token_endpoint_auth_method: client_secret_post
+    scope: "openid profile"
+    discovery_mode: disabled
+    pkce_method: always
+    authorization_endpoint: http://localhost:8081/oauth/authorize
+    token_endpoint: http://nginx:80/oauth/token
+    jwks_uri: http://nginx:80/oauth/jwks
+    claims_imports:
+      subject:
+        template: "{{ user.sub }}"
+      localpart:
+        action: require
+        template: "{{ user.preferred_username }}"
+      displayname:
+        action: suggest
+        template: "{{ user.preferred_username }}"

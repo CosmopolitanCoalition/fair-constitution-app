@@ -55,6 +55,8 @@ class PeerController extends Controller
             'schema_version' => ['nullable', 'string'],
             'constitutional_version' => ['nullable', 'string'],
             'app_release' => ['nullable', 'string'],
+            // K3-C / Phase 5 — the peer's Matrix homeserver server_name (for the federation whitelist).
+            'matrix_server_name' => ['nullable', 'string'],
             // G8b — the peer's reachable channels (learned into the ladder).
             'transports' => ['nullable', 'array'],
             'transports.*.transport' => ['nullable', 'string'],

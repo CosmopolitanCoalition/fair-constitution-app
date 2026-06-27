@@ -24,25 +24,25 @@ final class Broker
     {
         $v = (new GrantVerifier($this->config, $this->store))->verify($body);
 
-        // The cert is the deliverable — issue it first (DNS-01 uses a TXT record, not the A record).
+        // DNS-with-cert as ONE workflow (Identity Broker — roles campaign Phase 4). When the peer supplied
+        // an address, point <fqdn> at it BEFORE issuing the cert. The write HARD-FAILS the whole request
+        // here, so a cert is never burned for a name that resolves to nothing AND no Let's Encrypt budget is
+        // spent on a doomed issuance. (The DNS-01 challenge itself uses a _acme-challenge TXT record the ACME
+        // client creates + cleans up — that is separate from this address record.) The no-target path — the
+        // peer sets its own DNS — is unchanged: nothing to write, straight to issuance.
+        $dns = 'skipped';
+        if ($v['target'] !== null && $v['target'] !== '') {
+            Cloudflare::upsertAddressRecord($v['domainCfg'], $v['fqdn'], $v['target']); // throws BrokerError → fails before ACME
+            $dns = 'created';
+        }
+
+        // The cert is the deliverable — issue it from the CSR (DNS-01 via the ACME client).
         $cert = $this->acme->issueFromCsr($v['fqdn'], (string) $body['csr'], $v['domainCfg']);
 
         // THE NET (defense in depth): inspect the ACTUAL issued cert in-process and refuse to deliver it
         // unless it covers EXACTLY the granted name. This catches any name the CSR pre-filter could miss,
         // including a SAN lego copied straight from the CSR — a mis-issued cert is never handed back.
         self::assertCertCoversOnly($cert, $v['fqdn']);
-
-        // Best-effort: point <fqdn> at the peer's address. A failure here does NOT void the cert — the
-        // peer can set DNS itself; we report it so the operator sees an incomplete provision.
-        $dns = 'skipped';
-        if ($v['target'] !== null && $v['target'] !== '') {
-            try {
-                Cloudflare::upsertAddressRecord($v['domainCfg'], $v['fqdn'], $v['target']);
-                $dns = 'created';
-            } catch (BrokerError) {
-                $dns = 'failed';
-            }
-        }
 
         $notAfter = null;
         $parsed = @openssl_x509_parse($cert);

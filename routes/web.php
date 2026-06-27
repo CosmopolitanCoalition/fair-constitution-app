@@ -20,6 +20,7 @@ use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Controllers\Elections\ResultsController;
 use App\Http\Controllers\Elections\VacancyController;
 use App\Http\Controllers\JurisdictionController;
+use App\Http\Controllers\Oidc\OidcAuthorizationController;
 use App\Http\Controllers\Legislature\BillController;
 use App\Http\Controllers\Legislature\ChamberController;
 use App\Http\Controllers\Legislature\ChamberResolverController;
@@ -34,6 +35,12 @@ use App\Http\Middleware\DevToolsEnabled;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// ── Game-as-OIDC-provider (K3-C.2) — the AUTHORIZE endpoint is the one OIDC route that needs the citizen's
+// session: behind `auth`, an unauthenticated player is sent to the game login (intended preserved) and
+// bounces back here once logged in — the player's ONE login. Discovery/JWKS/token/userinfo are stateless
+// and live in routes/oidc.php (mounted outside the web group).
+Route::get('/oauth/authorize', [OidcAuthorizationController::class, 'authorize'])->middleware('auth');
 
 // WI-8: /civic is the authenticated landing; Home stays the guest welcome.
 Route::get('/', function (Request $request) {
@@ -52,6 +59,13 @@ Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::get('/setup/step/{n}', [SetupController::class, 'step'])
     ->where('n', '[0-4]')
     ->name('setup.step');
+
+// Roles-campaign Phase 1 — the SOLO/JOIN fork (first question after the operator account) + the
+// JOIN (mirror-onboarding) screen. SOLO falls through to the build steps above; JOIN connects to a host.
+Route::get('/setup/mode', [SetupController::class, 'mode'])->name('setup.mode');
+Route::get('/setup/join', [SetupController::class, 'join'])->name('setup.join');
+Route::post('/api/setup/mode', [SetupController::class, 'setMode'])->name('api.setup.mode');
+Route::post('/api/setup/join', [SetupController::class, 'joinFromSetup'])->name('api.setup.join');
 
 // Phase M — self-bootstrap (schema migrations + founder account).
 // /setup/bootstrap is reachable even when the schema is empty — the page

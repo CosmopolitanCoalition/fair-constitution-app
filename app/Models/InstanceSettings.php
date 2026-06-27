@@ -39,6 +39,7 @@ class InstanceSettings extends Model
         'apportionment_completed_at',
         'apportionment_log',
         'setup_districts_confirmed_at',
+        'setup_mode',                     // Phase 1 (roles campaign) — 'solo' | 'join' fork
         // Phase F — federation identity (federation:init mints these).
         'server_id',
         'public_key',

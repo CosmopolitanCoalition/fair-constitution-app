@@ -40,18 +40,28 @@ class BrokerCredentialService
     /** @param array<string,array<string,mixed>> $domains */
     private function write(array $domains): void
     {
-        $dir = dirname($this->path());
+        // Atomic write: a same-dir temp is created 0600 FIRST, then renamed into place — so the token file
+        // is never momentarily umask-readable, and a concurrent reader sees the old file or the new one,
+        // never a torn half-written JSON (which would silently decode to []).
+        $path = $this->path();
+        $dir = dirname($path);
         if (! is_dir($dir) && ! @mkdir($dir, 0700, true) && ! is_dir($dir)) {
             throw new \RuntimeException('Could not create the broker credential directory.');
         }
-        file_put_contents($this->path(), json_encode(['domains' => $domains], JSON_PRETTY_PRINT), LOCK_EX);
-        @chmod($this->path(), 0600);
+        $tmp = $path.'.tmp.'.bin2hex(random_bytes(6));
+        file_put_contents($tmp, (string) json_encode(['domains' => $domains], JSON_PRETTY_PRINT));
+        @chmod($tmp, 0600);
+        if (! @rename($tmp, $path)) {
+            @unlink($tmp);
+            throw new \RuntimeException('Could not write the broker credential file.');
+        }
     }
 
     /**
      * Store (or replace) the Cloudflare credential for a domain. The token is encrypted at rest; it is
      * never returned to a UI-facing caller, never federated, never logged (the audit records the domain +
-     * zone only).
+     * zone only). source='local' — a credential the OPERATOR entered on this box, the only kind that may be
+     * shared onward (a received failover credential is never re-shared; see BrokerFailoverService).
      */
     public function setCredential(string $domain, string $zoneId, string $plaintextToken): void
     {
@@ -60,6 +70,8 @@ class BrokerCredentialService
         $domains[$domain] = [
             'zone_id' => trim($zoneId),
             'token_encrypted' => Crypt::encryptString($plaintextToken),
+            'source' => 'local',
+            'from_server_id' => null,
             'updated_at' => now()->getTimestamp(),
         ];
         $this->write($domains);
@@ -68,6 +80,43 @@ class BrokerCredentialService
             'domain' => $domain,
             'zone_id' => trim($zoneId), // NEVER the token
         ], 'MESH-ROLES');
+    }
+
+    /**
+     * Store a credential RECEIVED from a trusted primary broker as failover (Identity Broker — roles
+     * campaign Phase 4). source='failover' + the originating server_id, so it is (a) visibly distinct from
+     * an operator-entered credential in status(), and (b) excluded from any onward share (no transitive
+     * fan-out — only an origin credential leaves a box). The decrypted inner token is sealed-box material
+     * that only this box could open; it is re-encrypted at rest here exactly like a local one and is NEVER
+     * echoed, logged, or federated. Trust + provenance are enforced by BrokerFailoverService BEFORE this is
+     * ever called — this method only persists.
+     */
+    public function storeReceived(string $domain, string $zoneId, string $plaintextToken, string $fromServerId): void
+    {
+        $domain = strtolower(trim($domain));
+        $domains = $this->read();
+        $domains[$domain] = [
+            'zone_id' => trim($zoneId),
+            'token_encrypted' => Crypt::encryptString($plaintextToken),
+            'source' => 'failover',
+            'from_server_id' => $fromServerId,
+            'updated_at' => now()->getTimestamp(),
+        ];
+        $this->write($domains);
+
+        app(AuditService::class)->append('federation', 'broker.credential.received', [
+            'domain' => $domain,
+            'zone_id' => trim($zoneId), // NEVER the token
+            'from_server_id' => $fromServerId,
+        ], 'MESH-ROLES');
+    }
+
+    /** 'local' (operator-entered) | 'failover' (received) | null (no credential). Provenance, never a secret. */
+    public function sourceOf(string $domain): ?string
+    {
+        $s = $this->read()[strtolower(trim($domain))]['source'] ?? null;
+
+        return $s !== null ? (string) $s : null;
     }
 
     public function forget(string $domain): void
@@ -110,9 +159,10 @@ class BrokerCredentialService
     }
 
     /**
-     * UI-safe status — per domain, the zone + whether it's configured, NEVER the token.
+     * UI-safe status — per domain, the zone + provenance (source + originating server, for a received
+     * failover credential) + whether it's configured, NEVER the token.
      *
-     * @return list<array{domain:string,zone_id:?string,configured:bool,updated_at:?int}>
+     * @return list<array{domain:string,zone_id:?string,source:string,from_server_id:?string,configured:bool,updated_at:?int}>
      */
     public function status(): array
     {
@@ -121,6 +171,8 @@ class BrokerCredentialService
             $out[] = [
                 'domain' => (string) $domain,
                 'zone_id' => isset($c['zone_id']) ? (string) $c['zone_id'] : null,
+                'source' => isset($c['source']) ? (string) $c['source'] : 'local',
+                'from_server_id' => isset($c['from_server_id']) && $c['from_server_id'] !== null ? (string) $c['from_server_id'] : null,
                 'configured' => true,
                 'updated_at' => isset($c['updated_at']) ? (int) $c['updated_at'] : null,
             ];

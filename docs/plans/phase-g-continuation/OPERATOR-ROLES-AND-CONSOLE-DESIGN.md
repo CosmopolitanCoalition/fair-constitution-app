@@ -1,5 +1,7 @@
 # Operator Roles & Mesh Reach — Consolidated Design (2026-06-21)
 
+> **⚑ MODEL CORRECTION (operator, 2026-06-26).** The federation model is **SAME-GAME full replication**, not narrow sync. A mesh is one game → every node's data should MATCH; read = full replication minus per-node-unique (identity/keypair/local ops); **geodata + cosmic sync IN FULL** (no skip); **Full Faith & Credit is the WRITE side** (the node authoritative for a jurisdiction writes; peers credit/accept those writes) — NOT a sync limiter. State lives on **two planes**: Plane A (records + geodata foundation, fully replicated via FF&C; institutions converge by audit-replay; the geodata *seed* is the one gap, closed by the seed-sync build) and Plane B (live Matrix + voice, S2S, load-bearing for gameplay). **Decisions updated by the 2026-06-26 review:** DNS+cert collapse into ONE Identity-Broker role (★12-19); no raster skipping (Plane A replicates in full); mesh-reach (★20-25) extends to `matrix.homeserver`/`voice.sfu` for the mixed environment. Canonical model: the auto-memory `project_federation_same_game_model.md`; campaign plan: `~/.claude/plans/your-interpretation-of-the-fluffy-hartmanis.md`.
+
 *Synthesis of the 5-section operator design round. Every claim is grounded to `file:line` in
 `E:/fair-constitution-app/.claude/worktrees/practical-payne-17d537`. This is a DESIGN doc — a model,
 decisions, a ★-numbered build table with effort, and the open decisions the operator must rule on before

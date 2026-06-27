@@ -30,13 +30,13 @@ use Throwable;
  */
 class MeshRoleCommand extends Command
 {
-    protected $signature = 'mesh:role {action : list|qualify|request|approve|revoke}
-        {capability? : the channel slug (qualify/request/revoke)}
+    protected $signature = 'mesh:role {action : list|roles|qualify|request|adopt|drop|approve|deliver|revoke}
+        {capability? : the channel slug (qualify/request/revoke) OR the role name (adopt/drop)}
         {--scope= : scope jurisdiction id (default: the root jurisdiction)}
         {--proposal= : role-grant proposal id (approve)}
         {--operator= : operator username or id to attest as (approve; default: first active)}';
 
-    protected $description = 'Drive the mesh capability lifecycle: qualify / request / approve / list / revoke';
+    protected $description = 'Drive the mesh capability + named-role lifecycle: roles / adopt / drop / qualify / request / approve / list / revoke';
 
     public function handle(
         CapabilityService $caps,
@@ -44,18 +44,88 @@ class MeshRoleCommand extends Command
         MeshRoleGrantService $grants,
         PeerUpgradeAgreementService $agreement,
         InstanceIdentityService $identity,
+        \App\Services\Federation\MeshGateService $gates,
+        \App\Services\Identity\MeshRoleOrchestrator $orchestrator,
     ): int {
         $identity->ensureIdentity();
 
         return match ((string) $this->argument('action')) {
             'list' => $this->list($caps),
+            'roles' => $this->rolesList($gates),
             'qualify' => $this->qualify($prober),
             'request' => $this->request($caps, $grants),
+            'adopt' => $this->adopt($orchestrator),
+            'drop' => $this->drop($orchestrator),
             'approve' => $this->approve($grants, $agreement),
             'deliver' => $this->deliver($grants),
             'revoke' => $this->revoke($grants),
-            default => $this->bail('Unknown action — use list|qualify|request|approve|deliver|revoke.'),
+            default => $this->bail('Unknown action — use list|roles|qualify|request|adopt|drop|approve|deliver|revoke.'),
         };
+    }
+
+    private function rolesList(\App\Services\Federation\MeshGateService $gates): int
+    {
+        foreach ($gates->roles($this->scope()) as $role) {
+            $rec = $role['recommended'] ? ' (recommended)' : '';
+            $this->info(sprintf('%-18s %-13s [%s]%s', $role['role'], $role['state'], implode(', ', $role['channels']), $rec));
+            foreach ($role['channel_states'] as $cap => $st) {
+                $this->line(sprintf('    %-22s %s', $cap, $st));
+            }
+            if ($role['petition'] !== null) {
+                $this->line(sprintf('    + petition: %s (Art. V §7 — governed flow, not a channel)', $role['petition']));
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function adopt(\App\Services\Identity\MeshRoleOrchestrator $orchestrator): int
+    {
+        $role = (string) ($this->argument('capability') ?? '');
+        if ($role === '') {
+            $this->error('Pass a role: '.implode(', ', array_keys((array) config('mesh_roles', []))));
+
+            return self::FAILURE;
+        }
+        try {
+            $result = $orchestrator->adopt($role, $this->scope());
+        } catch (Throwable $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+        foreach ($result['actions'] as $a) {
+            $line = sprintf('  %-22s %-13s %s', $a['capability'], $a['kind'], $a['result']);
+            if ($a['detail'] !== null) {
+                $line .= ' — '.$a['detail'];
+            }
+            $this->info($line);
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function drop(\App\Services\Identity\MeshRoleOrchestrator $orchestrator): int
+    {
+        $role = (string) ($this->argument('capability') ?? '');
+        if ($role === '') {
+            $this->error('Pass a role: '.implode(', ', array_keys((array) config('mesh_roles', []))));
+
+            return self::FAILURE;
+        }
+        try {
+            $result = $orchestrator->drop($role);
+        } catch (Throwable $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+        $this->info('[DROPPED] '.($result['dropped'] === [] ? '(nothing enabled)' : implode(', ', $result['dropped'])));
+        if ($result['kept_shared'] !== []) {
+            $this->comment('Kept (still needed by another established role): '.implode(', ', $result['kept_shared']));
+        }
+
+        return self::SUCCESS;
     }
 
     private function list(CapabilityService $caps): int

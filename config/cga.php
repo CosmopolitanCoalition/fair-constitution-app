@@ -114,6 +114,16 @@ return [
     'federation_cold_pages_per_tick' => env('CGA_FEDERATION_COLD_PAGES_PER_TICK', 5),
 
     /*
+    | Geodata SEED bytes transport (roles-campaign Phase 0b). A joining mirror range-pulls
+    | the host's geodata-foundation tarball in bounded, resumable byte pages, BEFORE the
+    | audit drain. `page_bytes` is the puller's per-request ask; `page_max_bytes` is the
+    | producer's hard cap (a peer can never demand an unbounded slab). 8 MB default keeps a
+    | page well inside the federation HTTP timeout even on a slow link.
+    */
+    'federation_seed_page_bytes' => env('CGA_FEDERATION_SEED_PAGE_BYTES', 8 * 1024 * 1024),
+    'federation_seed_page_max_bytes' => env('CGA_FEDERATION_SEED_PAGE_MAX_BYTES', 16 * 1024 * 1024),
+
+    /*
     | WAN resilience (Phase G, G8b). LAN tolerates a 20s S2S timeout; a real WAN
     | link (mobile uplink, tunnel jitter, a slow onion hop) needs more — so the
     | per-request timeout is configurable. Cold-sync page fetches (idempotent GETs)
@@ -190,6 +200,12 @@ return [
         'request_ttl' => env('CGA_BROKER_REQUEST_TTL', 120),
         'store_dsn' => env('CGA_BROKER_STORE_DSN', ''),
         'tls_path' => env('CGA_BROKER_TLS_PATH', storage_path('app/mesh-tls')),
+        // Broker-LOCAL state files, atomically written 0600, that the FF&C sync NEVER touches and that NEVER
+        // federate: the encrypted per-domain Cloudflare token (credentials_path), and the trusted-broker
+        // failover trust lists — accept_from / share_with (failover_path). Both are config-overridable so a
+        // test isolates them from the operator's real files.
+        'credentials_path' => env('CGA_BROKER_CREDENTIALS_PATH', storage_path('app/broker/credentials.json')),
+        'failover_path' => env('CGA_BROKER_FAILOVER_PATH', storage_path('app/broker/failover.json')),
         'acme' => [
             'provider' => env('CGA_BROKER_ACME_PROVIDER', 'stub'),
             'email' => env('CGA_BROKER_ACME_EMAIL', ''),

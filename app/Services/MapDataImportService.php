@@ -198,6 +198,162 @@ class MapDataImportService
         ];
     }
 
+    /**
+     * Roles-campaign Phase 0b — import a geodata SEED tarball (the donor's foundation subset,
+     * produced by MapDataExportService) from a FILE PATH, identity-safely.
+     *
+     * Unlike importFromUpload, this NEVER `TRUNCATE … CASCADE`s `cosmic_addresses` — that would
+     * cascade onto `instance_settings` and wipe THIS box's server_id + keypair (its identity).
+     * Instead (D1): detach `instance_settings.cosmic_address_id`, hard-DELETE `cosmic_addresses`
+     * (now unreferenced — `instance_settings` is its only external referent), load the donor's
+     * foundation, then RE-POINT `instance_settings` to the synced cosmic node sharing this box's
+     * prior `slug`. The box mirrors the host's cosmos while keeping its own identity.
+     *
+     * @return array{imported_at:string,tables_restored:list<string>}
+     */
+    public function importSeedFromFile(string $tarPath): array
+    {
+        if (! is_file($tarPath)) {
+            throw new \RuntimeException("Seed tarball not found at {$tarPath}.");
+        }
+
+        $tmpRoot = storage_path('app/imports');
+        if (! is_dir($tmpRoot) && ! @mkdir($tmpRoot, 0775, true)) {
+            throw new \RuntimeException("Could not create import directory: {$tmpRoot}");
+        }
+        $stageDir = "{$tmpRoot}/seed-".uniqid('', true);
+        if (! @mkdir($stageDir, 0775, true)) {
+            throw new \RuntimeException("Could not create staging directory: {$stageDir}");
+        }
+
+        try {
+            $proc = new Process(['tar', '-xzf', $tarPath, '-C', $stageDir]);
+            $proc->setTimeout(0);
+            $proc->mustRun();
+
+            $inner = null;
+            foreach (scandir($stageDir) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                if (is_dir("{$stageDir}/{$entry}")) {
+                    $inner = "{$stageDir}/{$entry}";
+                    break;
+                }
+            }
+            if ($inner === null || ! is_file("{$inner}/manifest.json") || ! is_file("{$inner}/data.dump")) {
+                throw new \RuntimeException('Seed tarball did not contain the expected manifest.json + data.dump.');
+            }
+            $manifest = json_decode((string) file_get_contents("{$inner}/manifest.json"), true);
+            if (! is_array($manifest)) {
+                throw new \RuntimeException('Seed manifest.json is not valid JSON.');
+            }
+
+            // Surface a schema-version delta BEFORE the destructive clear (parity with importFromUpload).
+            // A foundation table that changed shape across versions would fault pg_restore AFTER the
+            // truncate commits; this note gives an operator the signal. Recovery: seeded_at is only
+            // stamped on success, so a re-join re-pulls + re-imports once the schema is brought forward.
+            $localLatest = DB::table('migrations')->orderByDesc('id')->value('migration');
+            $manifestSchema = (string) ($manifest['schema_version'] ?? '');
+            if ($manifestSchema !== '' && $localLatest && strcmp($manifestSchema, (string) $localLatest) > 0) {
+                Log::info("importSeedFromFile: seed schema ({$manifestSchema}) is newer than local ({$localLatest}) — proceeding.");
+            }
+
+            // Effective set = the curated foundation tables actually present in this seed, in
+            // TABLES (parent→child) order. instance_settings can never appear (it is not in TABLES'
+            // exportable-by-seed set here — the donor excludes it).
+            $included = is_array($manifest['included_tables'] ?? null) ? $manifest['included_tables'] : MapDataExportService::TABLES;
+            $effective = array_values(array_filter(
+                MapDataExportService::TABLES,
+                fn ($t) => in_array($t, $included, true) && $t !== 'instance_settings',
+            ));
+            if ($effective === []) {
+                throw new \RuntimeException('Seed bundle carries no recognised foundation tables.');
+            }
+
+            // Remember this box's CURRENT cosmic placement so we can re-point to the matching
+            // synced node by its stable slug after the import (keeps our place in the cosmos).
+            $priorCosmicId = DB::table('instance_settings')->value('cosmic_address_id');
+            $prior = $priorCosmicId !== null
+                ? DB::table('cosmic_addresses')->where('id', $priorCosmicId)->first(['slug', 'type'])
+                : null;
+
+            $hasCosmic = in_array('cosmic_addresses', $effective, true);
+            $nonCosmic = array_values(array_filter($effective, fn ($t) => $t !== 'cosmic_addresses'));
+
+            // ── Identity-safe clear (D1). Detach instance_settings from cosmic, TRUNCATE the
+            // non-cosmic foundation CASCADE, then HARD-DELETE cosmic (now unreferenced). We never
+            // TRUNCATE cosmic_addresses CASCADE — that constraint-based cascade would take the
+            // instance_settings identity row with it regardless of the detach.
+            DB::transaction(function () use ($nonCosmic, $hasCosmic) {
+                DB::statement('SET CONSTRAINTS ALL DEFERRED');
+                if ($hasCosmic) {
+                    DB::table('instance_settings')->update(['cosmic_address_id' => null]);
+                }
+                foreach (array_reverse($nonCosmic) as $t) {
+                    DB::statement("TRUNCATE TABLE {$t} CASCADE");
+                }
+                if ($hasCosmic) {
+                    DB::statement('DELETE FROM cosmic_addresses');
+                }
+            });
+
+            // ── pg_restore --data-only the foundation tables (filtered to the effective set).
+            $cfg = config('database.connections.'.config('database.default'));
+            $argv = ['pg_restore', '--host='.$cfg['host'], '--port='.$cfg['port'], '--username='.$cfg['username'],
+                '--dbname='.$cfg['database'], '--data-only', '--no-owner', '--no-privileges'];
+            foreach ($effective as $t) {
+                $argv[] = '--table='.$t;
+            }
+            $argv[] = "{$inner}/data.dump";
+            $restore = new Process($argv);
+            $restore->setTimeout(0);
+            $restore->setEnv(['PGPASSWORD' => $cfg['password']]);
+            try {
+                $restore->mustRun();
+            } catch (\Throwable $e) {
+                // The destructive clear already committed; the foundation is left empty but IDENTITY-SAFE
+                // (instance_settings/keypair untouched). seedFromHost never stamps seeded_at after a throw,
+                // so re-running the join re-pulls + re-imports. Log loudly so an operator sees the mid-seed box.
+                Log::error('seed pg_restore failed — foundation left cleared (identity preserved); re-run the join to retry.', [
+                    'prior_cosmic_slug' => $prior?->slug,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
+            }
+
+            // ── Re-point instance_settings to the synced cosmic node sharing our prior slug
+            // (fail-closed: a foundation with no resolvable node must not leave a dangling FK).
+            if ($hasCosmic) {
+                $node = null;
+                if ($prior?->slug) {
+                    $node = DB::table('cosmic_addresses')->where('slug', $prior->slug)->whereNull('deleted_at')->first(['id']);
+                }
+                if ($node === null && $prior?->type) {
+                    $node = DB::table('cosmic_addresses')->where('type', $prior->type)->whereNull('deleted_at')->orderBy('sort_order')->first(['id']);
+                }
+                if ($node === null) {
+                    throw new \RuntimeException('Seed import: could not resolve a synced cosmic node to re-point instance_settings to.');
+                }
+                DB::table('instance_settings')->update(['cosmic_address_id' => $node->id]);
+            }
+
+            DB::table('instance_settings')->update(['map_accepted_at' => now()]);
+
+            Cache::flush();
+            try {
+                PrewarmRasterTilesJob::dispatch();
+                PrewarmGeojsonCachesJob::dispatch();
+            } catch (\Throwable $e) {
+                Log::warning('post-seed-import prewarm dispatch failed', ['error' => $e->getMessage()]);
+            }
+
+            return ['imported_at' => now()->toIso8601String(), 'tables_restored' => $effective];
+        } finally {
+            $this->rmTree($stageDir);
+        }
+    }
+
     private function rmTree(string $path): void
     {
         if (! is_dir($path)) {

@@ -8,8 +8,10 @@ use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Services\AuditService;
 use App\Services\Federation\FederationClient;
+use App\Services\Federation\GeodataSeedTransportService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
+use App\Services\MapDataImportService;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -36,6 +38,8 @@ class MirrorService
         private readonly MirrorBackfillService $backfill,
         private readonly FederationClient $client,
         private readonly InstanceIdentityService $identity,
+        private readonly GeodataSeedTransportService $seed,
+        private readonly MapDataImportService $import,
     ) {}
 
     /** Is THIS instance a read-only mirror of some host? */
@@ -247,11 +251,104 @@ class MirrorService
         $membership = $this->openMirrorMembership($host, $admissionMethod, is_string($scope) ? $scope : null);
         $membership->update(['state' => ClusterMembership::STATE_SYNCING]);
 
+        // Engage the read-only write-guard for the ENTIRE admission window (seed + drain), BEFORE either
+        // runs — so this box is authoritative for nothing and fail-CLOSED throughout, even mid-sync or
+        // after a crash (a partial seed leaves jurisdictions unowned = NULL = "ours"; the guard makes that
+        // refuse writes, not accept them). Safe: the audit drain applies records via raw mirrorRecord, never
+        // the write-guarded ConstitutionalEngine, so the early guard never blocks the backfill. markMirrorLive
+        // later finalizes (mirror_adopted_at + membership LIVE); setting mirror_of_server_id here is idempotent.
+        $settings = InstanceSettings::current();
+        if ($settings->mirror_of_server_id !== $hostServerId) {
+            $settings->mirror_of_server_id = $hostServerId;
+            $settings->save();
+        }
+
+        // Seed-FIRST: pull + apply the host's geodata FOUNDATION (cosmic + jurisdictions + rasters
+        // + base constitutional_settings) BEFORE the audit drain, so the replayed institutions have
+        // their jurisdiction rows to attach to. Identity-safe — keeps THIS box's server_id + keypair.
+        $this->seedFromHost($host, $membership);
+
         // Pull the host's full public corpus (chunked, resumable, signed pages).
         $cursor = $this->backfill->drain($host, $membership);
 
         if ($cursor->status === \App\Models\SyncCursor::STATUS_COMPLETE) {
             $this->markMirrorLive($membership, $hostServerId);
+        }
+
+        return $membership->refresh();
+    }
+
+    /**
+     * MIRROR side (roles-campaign Phase 0b): pull + apply the host's geodata FOUNDATION before
+     * the audit drain. Idempotent — once seeded_at is stamped, a re-join skips straight past.
+     *
+     * This is the ONE place a mirror writes authoritative_server_id, and it is deliberate: the
+     * seed's jurisdiction rows ARE the host's. Rows the donor was authoritative for arrive with a
+     * NULL authoritative_server_id (the donor's "mine" sentinel) and are stamped to the host; rows
+     * the donor itself mirrored from a third server keep that third server's id. After this the
+     * mirror is still authoritative for NOTHING — every imported jurisdiction names another server.
+     */
+    public function seedFromHost(FederationPeer $host, ClusterMembership $membership): void
+    {
+        if ($membership->seeded_at !== null) {
+            return; // this host's seed is already applied
+        }
+
+        $pulled = $this->seed->pull($host, $membership);    // verified tarball, or null if the host has no seed
+        if ($pulled === null) {
+            return; // host advertises no seed — a read-only mirror still admits (foundation via ETL/bundle/posture)
+        }
+        $this->import->importSeedFromFile($pulled['path']); // D1 identity-safe load + cosmic re-point
+
+        $stamped = DB::table('jurisdictions')
+            ->whereNull('authoritative_server_id')
+            ->update(['authoritative_server_id' => $host->server_id]);
+
+        // Fail-CLOSED: after the stamp NO jurisdiction may remain unowned — a NULL authoritative_server_id
+        // resolves to "ours" (AuthorityResolver), which would make this mirror wrongly authoritative for the
+        // whole imported world. Refuse to finish seeding (and to stamp seeded_at) if any slipped through.
+        $unowned = (int) DB::table('jurisdictions')->whereNull('authoritative_server_id')->count();
+        if ($unowned > 0) {
+            throw new RuntimeException("Seed authority stamp left {$unowned} jurisdiction(s) unowned — refusing to finish seeding.");
+        }
+
+        $membership->forceFill(['seeded_at' => now()])->save();
+        $this->seed->discardIncoming($membership);
+
+        $this->audit->append('mirror', 'mirror.seeded', [
+            'host_server_id' => $host->server_id,
+            'seed_version' => $membership->seed_version,
+            'jurisdictions_attributed' => $stamped,
+        ], 'WF-JUR-06');
+    }
+
+    /**
+     * MIRROR side: resume an in-progress join WITHOUT re-running /adopt. Used when this box is already a
+     * pinned mirror (a prior attempt timed out mid-sync) — re-adopting would burn a single-use join key
+     * and a different host would collide on the one-active-mirror index. Re-applies the seed (idempotent
+     * via seeded_at) and re-drains the corpus from its cursor, marking live on catch-up. Throws if there
+     * is no active mirror membership to resume.
+     */
+    public function resumeJoin(): ClusterMembership
+    {
+        $membership = ClusterMembership::query()
+            ->where('role', ClusterMembership::ROLE_MIRROR)
+            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
+            ->latest('updated_at')
+            ->first();
+
+        if ($membership === null || $membership->peer === null) {
+            throw new RuntimeException('No active mirror membership to resume — re-join from the host.');
+        }
+
+        $host = $membership->peer;
+        $membership->update(['state' => ClusterMembership::STATE_SYNCING]);
+
+        $this->seedFromHost($host, $membership);             // idempotent — short-circuits on seeded_at
+        $cursor = $this->backfill->drain($host, $membership); // resumes from the cursor
+
+        if ($cursor->status === \App\Models\SyncCursor::STATUS_COMPLETE) {
+            $this->markMirrorLive($membership, (string) $host->server_id);
         }
 
         return $membership->refresh();

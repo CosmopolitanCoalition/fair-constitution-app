@@ -38,6 +38,13 @@ class MeshGateService
     public const STATE_REQUESTED = 'requested';
     public const STATE_LAPSED = 'lapsed';
 
+    /** Named-role roll-up states (Operator Roles & Console ★2) — folded from the channel states above. */
+    public const ROLE_ESTABLISHED = 'established';
+    public const ROLE_PARTIAL = 'partial';
+    public const ROLE_REQUESTED = 'requested';
+    public const ROLE_QUALIFIABLE = 'qualifiable';
+    public const ROLE_NEEDS_CONFIG = 'needs-config';
+
     public function __construct(
         private readonly TransportService $transports,
         private readonly CapabilityService $capabilities,
@@ -191,6 +198,79 @@ class MeshGateService
         }
 
         return $out;
+    }
+
+    /**
+     * The 4 named operator-roles (Operator Roles & Console ★2) folded from the per-channel projection.
+     * Each role's STATE is DERIVED from its required channels' states — this READS config/mesh_roles.php
+     * and reuses channels() (it does NOT re-probe). channels()/evaluate() stay byte-identical, so
+     * `mesh:gates` and the existing Role Board are unaffected.
+     *
+     * @return list<array{role:string,label:string,what:string,duty:string,recommended:bool,channels:list<string>,channel_states:array<string,string>,petition:?string,state:string}>
+     */
+    public function roles(?string $scopeJurisdictionId = null): array
+    {
+        $catalog = (array) config('mesh_roles', []);
+        $byCap = [];
+        foreach ($this->channels($scopeJurisdictionId) as $c) {
+            $byCap[$c['capability']] = $c['state'];
+        }
+
+        $out = [];
+        foreach ($catalog as $key => $role) {
+            $required = array_values((array) ($role['channels'] ?? []));
+            $states = [];
+            foreach ($required as $cap) {
+                $states[$cap] = $byCap[$cap] ?? self::STATE_NEEDS_CONFIG;
+            }
+
+            $out[] = [
+                'role' => $key,
+                'label' => (string) ($role['label'] ?? $key),
+                'what' => (string) ($role['what'] ?? ''),
+                'duty' => (string) ($role['duty'] ?? ''),
+                'recommended' => (bool) ($role['recommended'] ?? false),
+                'channels' => $required,
+                'channel_states' => $states,
+                'petition' => isset($role['petition']) ? (string) $role['petition'] : null,
+                'state' => $this->rollupRoleState($states),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Deterministic fold of a role's channel states into one roll-up (Operator Roles ★2):
+     *   established  — every required channel established
+     *   partial      — some (but not all) established
+     *   requested    — none established, at least one requested
+     *   qualifiable  — none established/requested, every channel qualifiable
+     *   needs-config — otherwise
+     *
+     * @param  array<string,string>  $states
+     */
+    private function rollupRoleState(array $states): string
+    {
+        if ($states === []) {
+            return self::ROLE_NEEDS_CONFIG;
+        }
+        $vals = array_values($states);
+
+        if (! in_array(false, array_map(fn ($s) => $s === self::STATE_ESTABLISHED, $vals), true)) {
+            return self::ROLE_ESTABLISHED;
+        }
+        if (in_array(self::STATE_ESTABLISHED, $vals, true)) {
+            return self::ROLE_PARTIAL;
+        }
+        if (in_array(self::STATE_REQUESTED, $vals, true)) {
+            return self::ROLE_REQUESTED;
+        }
+        if (! in_array(false, array_map(fn ($s) => $s === self::STATE_QUALIFIABLE, $vals), true)) {
+            return self::ROLE_QUALIFIABLE;
+        }
+
+        return self::ROLE_NEEDS_CONFIG;
     }
 
     /**
