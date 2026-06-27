@@ -90,6 +90,7 @@
     };
   </script>
   <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
   <script src="../manifest.js"></script>
   <script src="../assets/js/icons.js"></script>
   <script src="../assets/js/i18n.js"></script>
@@ -99,6 +100,36 @@
       'use strict';
       var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
       var esc = S.esc;
+      var L = (F.v2 && F.v2.legitimacy) || { byJur: {} };
+
+      function num(n) { return Number(n).toLocaleString('en-US'); }
+
+      /* Reach & participation — the jurisdiction view is the home for legitimacy.
+         Reach is the share of a place's people who are verified and here, as a
+         PERCENT of population, so a hamlet and a metropolis compete on equal
+         footing. The detailed panel (trend + tiers) lives on social/legitimacy. */
+      function reachBlock(slug) {
+        var j = L.byJur[slug];
+        var head = '<p class="eyebrow" style="margin-block-start:var(--space-4)">' + S.icon('bar-chart', { size: 'sm' }) + ' Reach &amp; participation</p>';
+        if (!j || j.populationEstimate == null || j.suppressed || j.verifiedResidents == null) {
+          return head +
+            '<div class="card card--inset" style="padding:var(--space-3)">' +
+            '<p class="cc-small" style="margin:0">Reach is the share of a jurisdiction’s people who are verified and here — measured as a percent of population, so a hamlet and a metropolis can both reach 100%.</p>' +
+            '<p style="margin-block-start:var(--space-2)"><a class="btn btn--ghost btn--sm" href="../social/legitimacy.html">Open the reach panel ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></div>';
+        }
+        var raw = j.reachPct;
+        var capped = j.displayCap != null && raw > j.displayCap;
+        var fillPct = Math.min(j.displayCap != null ? Math.min(raw, j.displayCap) : raw, 100);
+        return head +
+          '<div class="card card--inset" style="padding:var(--space-3)">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<span><span class="jv-members" style="color:var(--cc-gold-400)">' + (capped ? '100%' : raw + '%') + '</span> <span class="citation">reach (% of population)</span></span>' +
+          (j.tier ? '<span class="pill pill--pass">' + esc(j.tier) + '</span>' : '') + '</div>' +
+          '<div class="meter" style="margin-block:var(--space-2)"><span class="meter-fill' + (fillPct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + fillPct + '%"></span></div>' +
+          '<p class="citation" style="margin:0">' + num(j.verifiedResidents) + ' verified of ' + num(j.populationEstimate) +
+          (j.provenance ? ' · ' + esc(j.provenance) + (j.populationYear ? ' ' + j.populationYear : '') : '') + '</p>' +
+          '<p style="margin-block-start:var(--space-2)"><a class="btn btn--ghost btn--sm" href="../social/legitimacy.html">Reach over time &amp; activation tiers ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></div>';
+      }
 
       /* Mirrors the developed viewer. Earth carries the shipped figures
          (232 members = countries + dual-footprint rows); deeper levels render
@@ -169,6 +200,7 @@
             '<span class="eyebrow" style="color:var(--status-success-fg)">Maps accepted</span>' +
             '<p class="cc-small" style="margin:var(--space-1) 0 0;color:var(--status-success-fg)" data-no-i18n>' + esc(v.accepted) + '</p>' +
             '<p class="citation" style="margin-block-start:var(--space-1)" data-no-i18n>Apportionment completed ' + esc(v.apportioned) + '</p></div>' : '') +
+          reachBlock(state.view) +
           (v.children.length ? '<p class="eyebrow" style="margin-block-start:var(--space-4)">Drill down</p><div class="cluster" style="margin-block-start:var(--space-2)">' + kids + '</div>' : '') +
           '</div>';
       }

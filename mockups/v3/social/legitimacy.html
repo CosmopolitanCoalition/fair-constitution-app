@@ -197,7 +197,8 @@
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">Government with people · reach</span><h1>Reach &amp; legitimacy</h1>' +
-        '<p class="page-intro">A jurisdiction-level gauge of how many of its people are actually here and verified. It is a transparency signal — and nothing more.</p></header>' +
+        '<p class="page-intro">A jurisdiction-level gauge of how many of its people are actually here and verified, as a percent of population — so a hamlet and a metropolis compete on equal footing. It is a transparency signal, and nothing more.</p></header>' +
+        '<div class="lr-note"><div>' + S.icon('map', { size: 'sm' }) + '</div><div>Reach is part of every jurisdiction’s data — you can see a place’s reach right in the <a href="' + S.hrefV2('jurisdictions/jurisdiction-browser.html') + '">jurisdiction view</a>. This page is the detailed panel: the trend over time and the activation tiers.</div></div>' +
         /* verbatim Planned — Phase I banner */
         '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) + '<div><strong>Planned — Phase I (reach &amp; activation tiers).</strong> The denominator (WorldPop vs CivicPopulation) and the k-anonymity floor are still open decisions; this surface is design-ahead.</div></div>' +
         /* CI-1 display-only rail */

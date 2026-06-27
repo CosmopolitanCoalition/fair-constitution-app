@@ -763,8 +763,8 @@
         { code: 'ACH-JUR-SUBDIVIDED', name: 'Subdivided at the seat ceiling', earned: false } ] },
       { key: 'system', label: 'Global milestones', prefix: 'ACH-SYS', visibility: 'Public · celebratory', items: [
         { code: 'ACH-SYS-FIRST-ACTIVATION', name: 'First government booted', earned: true },
-        { code: 'ACH-SYS-100-JURISDICTIONS', name: '100 jurisdictions active', earned: true },
-        { code: 'ACH-SYS-1M-RESIDENTS', name: '1,000,000 verified residents', earned: false },
+        { code: 'ACH-SYS-JUR-COVERAGE', name: '1 in 10 jurisdictions active', earned: true, note: 'a share of mapped jurisdictions, never a raw count' },
+        { code: 'ACH-SYS-EARTH-REACH', name: '1% of Earth verified', earned: false, note: 'a share of the world’s people, never a raw count' },
         { code: 'ACH-SYS-FIRST-UNION', name: 'First union of governments', earned: false } ] }
     ]
   };
