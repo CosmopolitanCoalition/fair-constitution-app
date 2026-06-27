@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Found the instance — CGA mockups v2</title>
+  <title>Found the instance — CGA mockups v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the founding loop…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'system/setup', title: 'Found the instance', module: 'system', nav: 'founding', citation: 'The founding loop · reference defaults, not locks · Art. VII', register: 'governance' };
+    window.CGA_PAGE = { id: 'system/setup', title: 'Found the instance', module: 'system', nav: 'founding', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -25,7 +25,11 @@
   (function () {
     'use strict';
     var S = window.CGA.shellV2, esc = S.esc;
-    var STEPS = ['Cosmic address', 'Constitutional defaults', 'Map data', 'Build districts', 'Confirm & seat'];
+    /* The founding flow, reordered (v3): your operator account first, then a
+       one-way choice — JOIN a federation (nothing to found) or START FROM
+       SCRATCH (found a world). The scratch path ends by creating your first
+       federation account — your player username, player one. */
+    var STEPS = ['Operator account', 'Join or start fresh', 'Cosmic address', 'Constitution & economy', 'Map data', 'Build districts', 'Seat & your account'];
 
     var fseq = 0;
     function field(label, value, hint, opts) {
@@ -36,150 +40,181 @@
       return '<div class="field"><label class="field-label" for="' + id + '">' + esc(label) + '</label>' + input +
         (hint ? '<span class="field-hint citation">' + esc(hint) + '</span>' : '') + '</div>';
     }
+    function grp(title, fields) { return '<div class="card card--inset"><h3>' + esc(title) + '</h3><div class="grid-2">' + fields + '</div></div>'; }
     function etlBar(label, n, unit, pop) {
       return '<div class="etl-row"><div class="etl-bar"><span class="etl-fill' + (pop ? ' etl-fill--pop' : '') + '" style="inline-size:100%"></span></div>' +
         '<div class="meter-caption"><span>' + esc(label) + '</span><span data-no-i18n>' + esc(n) + ' / ' + esc(n) + ' ' + esc(unit) + ' (100%)</span></div></div>';
     }
     function tile(n, label) { return '<div class="stat-tile"><span class="n" data-no-i18n>' + esc(n) + '</span><span class="citation">' + esc(label) + '</span></div>'; }
-
-    function stepHead(i) {
+    function stepHead(i, extra) {
       return '<div class="cluster" style="gap:var(--space-2)"><span class="setup-n">' + i + '</span>' +
-        '<h2 style="margin:0">' + esc(STEPS[i]) + '</h2></div>';
+        '<h2 id="s' + i + '" style="margin:0">' + esc(STEPS[i]) + '</h2>' + (extra || '') + '</div>';
     }
 
-    function step0() {
-      return '<section class="card setup-step" aria-labelledby="s0">' + stepHead(0).replace('<h2 ', '<h2 id="s0" ') +
-        '<p>This is the Cosmopolitan Governance App — a federated, open-source platform implementing <em>A Fair Constitution</em>. ' +
-        'It models every institution the Template defines as automatable software, from neighborhood scale to planetary scale. First, set the cosmic address your instance federates under.</p>' +
-        '<div class="card card--inset"><h3>Or restore from a backup</h3>' +
-        '<p class="gloss">Have a <code>.tar.gz</code> exported from another instance? Upload it to skip ahead. The backend validates the manifest’s schema version first; after a successful restore you land on whichever step matches the bundle’s saved progress. <span class="citation">restore lives only here, at Step 0</span></p>' +
-        '<div class="cluster"><button type="button" class="btn btn--secondary btn--sm" data-sim>Choose file</button>' +
-        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Upload &amp; restore</button></div></div>' +
-        '<h3 style="margin-block-start:var(--space-4)">Instance</h3>' +
+    /* 0 — your operator account (you are a physical node) */
+    function stepOperator() {
+      return '<section class="card setup-step" aria-labelledby="s0">' + stepHead(0) +
+        '<p>Before anything else, set up <strong>your</strong> account. You are a person running a physical node — a box on the mesh. This account is who you are as the operator of this instance.</p>' +
+        grp('You, the operator',
+          field('Your name', 'Jordan Operator', 'Shown to the people you federate with.') +
+          field('Contact email', 'you@example.org', 'For recovery and federation notices — never shown publicly.')) +
+        grp('This node',
+          field('Node name', 'united-earth-1', 'A label for this box on the mesh.') +
+          field('Region', '', 'Where this node physically lives.', { select: ['North America', 'South America', 'Europe', 'Africa', 'Asia', 'Oceania'] })) +
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Running the box has more to it.</strong> DNS, certificates, and mesh keys live on the operator plane — see ' +
+        '<a href="' + S.hrefV2('operator/setup.html') + '">Set up your node</a>. That work and this founding flow are siblings; this step is just the account that ties them together.</div></div>' +
+        '</section>';
+    }
+
+    /* 1 — the one-way binary: join, or start from scratch */
+    function stepBranch() {
+      return '<section class="card setup-step" aria-labelledby="s1">' + stepHead(1) +
+        '<p>Now a single, one-way choice. <strong>Joining</strong> connects you to a world that already exists; <strong>starting fresh</strong> founds a brand-new one. The moment you start fresh you are a new, separate node — you can’t then join (you could later fork or disconnect, but that’s another story).</p>' +
+        '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
+        '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h3>' + S.icon('globe', { size: 'sm' }) + ' Join a federation</h3>' + S.badge('info', 'Short path') + '</div>' +
+        '<p>Connect to an existing federation. You inherit its constitution, its map, and its institutions — there is <strong>nothing to found</strong>. You finish at <a href="' + S.hrefV2('jurisdictions/federation.html') + '">federation-join</a>, where you enter your federation account and connect as a node.</p>' +
+        '<p class="gloss">All the founding steps below are skipped.</p>' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Join a federation</button></div>' +
+        '<div class="card card--inset" style="border-color:var(--gov-primary)"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h3>' + S.icon('sliders', { size: 'sm' }) + ' Start from scratch</h3>' + S.badge('success', 'Selected') + '</div>' +
+        '<p>Found a brand-new world. You author the constitution and its economy, load the map, draw districts, and seat the institutions — the full founding loop below. The <strong>last</strong> step creates your first federation account: your player username, player one.</p>' +
+        '<p class="gloss">Continue through the steps below.</p></div>' +
+        '</div></section>';
+    }
+
+    /* 2 — cosmic address */
+    function stepCosmic() {
+      return '<section class="card setup-step" aria-labelledby="s2">' + stepHead(2) +
+        '<p>Name your instance and set the cosmic address it federates under.</p>' +
         field('Instance name', 'United Earth', 'A friendly label — shown in nav and federation directories.') +
-        '<h3 style="margin-block-start:var(--space-4)">Cosmic address</h3>' +
-        '<p class="citation">Multiverse · Observable Universe · Laniakea Supercluster · Local Group · Milky Way · Orion Arm (Orion Spur) · Solar System · Earth (planet)</p>' +
+        '<p class="citation">Multiverse · Observable Universe · Laniakea Supercluster · Local Group · Milky Way · Orion Arm · Solar System · Earth (planet)</p>' +
         field('World', '', '', { select: ['Earth (planet)', 'Luna (moon) — future scope', 'New world…'] }) +
         '<h3 style="margin-block-start:var(--space-4)">Time mode</h3><div class="grid-2">' +
-        '<div class="card card--inset" style="border-color:var(--gov-primary)"><strong style="color:var(--gov-fg)">Real-time</strong><br /><span class="gloss">Elections on wall-clock — 5-year default cycle.</span><br /><span class="citation">CLK-01 · election_interval_months 60</span></div>' +
+        '<div class="card card--inset" style="border-color:var(--gov-primary)"><strong style="color:var(--gov-fg)">Real-time</strong><br /><span class="gloss">Elections on the wall clock — a 5-year default cycle.</span></div>' +
         '<div class="card card--inset"><strong style="color:var(--gov-fg)">Accelerated</strong><br /><span class="gloss">Compressed simulation — pick seconds per simulated year.</span></div>' +
         '</div></section>';
     }
 
-    function step1() {
-      function grp(title, fields) { return '<div class="card card--inset"><h3>' + esc(title) + '</h3><div class="grid-2">' + fields + '</div></div>'; }
-      return '<section class="card setup-step" aria-labelledby="s1">' + stepHead(1).replace('<h2 ', '<h2 id="s1" ') +
-        '<p>The constitutional settings for your instance’s root jurisdiction. You are founding the constitution now — the values are the Fair Constitution Template’s suggested defaults (the “defaults of defaults”), shown as <strong>reference</strong>. You can depart from them here; after setup, amendments go through valid legislative acts.</p>' +
-        '<p class="citation">Reference, not locks · Art. VII — see the amendable-settings register for life after founding</p>' +
+    /* 3 — constitution AND economy defaults (all of them, set once) */
+    function stepDefaults() {
+      return '<section class="card setup-step" aria-labelledby="s3">' + stepHead(3) +
+        '<p>Author the defaults for your world — the constitutional settings <strong>and</strong> the economic ones. The Template’s suggested values are shown as reference; depart from them here as you like.</p>' +
+        '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">Set once, inherited everywhere.</strong> Every default here becomes the inherited default for new child jurisdictions coming online — so they don’t reinvent the wheel. Each jurisdiction can still edit its own once its legitimacy gate activates.</div></div>' +
         grp('Legislature',
-          field('Minimum seats per legislature', '5', 'Default of defaults: 5 · Art. II §2', { type: 'number' }) +
-          field('Maximum seats per legislature', '9', 'Default of defaults: 9 (before mandatory subdivision) · Art. II §2', { type: 'number' }) +
-          field('Legislature sizing law', '', 'Total seats = max(min, round(population^(1/3))) · as implemented', { select: ['Cube-Root Law — round(population^(1/3))'] }) +
-          field('Max days between meetings', '90', 'Default of defaults: 90 days · Art. II §2', { type: 'number' })) +
+          field('Minimum seats per legislature', '5', 'Reference: 5', { type: 'number' }) +
+          field('Maximum seats per legislature', '9', 'Reference: 9 (before mandatory subdivision)', { type: 'number' }) +
+          field('Legislature sizing law', '', 'Total seats = round(population^⅓)', { select: ['Cube-Root Law'] }) +
+          field('Max days between meetings', '90', 'Reference: 90', { type: 'number' })) +
         grp('Elections',
-          field('Election interval (months)', '60', 'Default of defaults: 60 (5 years) · Art. II §2 · CLK-01', { type: 'number' }) +
-          field('Voting method', '', 'Replaceable only by a MORE proportional method · Art. VII', { select: ['STV with Droop Quota'] }) +
-          field('Special election — min days after vacancy', '90', 'Default of defaults: 90 · Art. II §5', { type: 'number' }) +
-          field('Special election — max days after vacancy', '180', 'Default of defaults: 180 · Art. II §5', { type: 'number' })) +
+          field('Election interval (months)', '60', 'Reference: 60 (5 years)', { type: 'number' }) +
+          field('Voting method', '', 'Replaceable only by a more proportional method', { select: ['STV with Droop Quota'] })) +
         grp('Governance thresholds',
-          field('Supermajority (numerator / denominator)', '2 / 3', '≈ 66.7% · cannot fall below majority + 1 · Art. VII', {}) +
-          field('Emergency powers max duration (days)', '90', 'Default of defaults: 90 · Art. II §7 · CLK-03', { type: 'number' }) +
-          field('Citizen initiative petition threshold (% of population)', '5', 'Default of defaults: 5.00 · CLK-17', { type: 'number' })) +
+          field('Supermajority (numerator / denominator)', '2 / 3', '≈ 66.7% · never below majority + 1', {}) +
+          field('Emergency powers max duration (days)', '90', 'Reference: 90', { type: 'number' }) +
+          field('Citizen initiative threshold (% of population)', '5', 'Reference: 5.00', { type: 'number' })) +
         grp('Appointments &amp; judiciary',
-          field('Civil appointment term (years)', '10', 'Default of defaults: 10 · lockstep with judicial · Art. II §9', { type: 'number' }) +
-          field('Judicial appointment term (years)', '10', 'Default of defaults: 10 · lockstep with civil · Art. IV §4', { type: 'number' }) +
-          field('Minimum judges per race', '5', 'Default of defaults: 5 · Art. IV §4', { type: 'number' }) +
-          '<div class="field"><span class="field-label">Judiciary selection method</span>' +
+          field('Civil / judicial appointment term (years)', '10', 'Reference: 10, in lockstep', { type: 'number' }) +
+          field('Minimum judges per race', '5', 'Reference: 5', { type: 'number' }) +
+          '<div class="field"><span class="field-label">Judiciary selection</span>' +
           '<div class="radio-group"><label class="radio"><input type="radio" name="jud" checked /> Appointed</label>' +
-          '<label class="radio"><input type="radio" name="jud" /> Elected</label></div>' +
-          '<span class="field-hint citation">Default of defaults: appointed · Art. IV §2–3</span></div>') +
+          '<label class="radio"><input type="radio" name="jud" /> Elected</label></div></div>') +
         grp('Organizations &amp; workers',
-          field('Worker rep — first seat (employees)', '100', 'Default of defaults: 100 · Art. III §6', { type: 'number' }) +
-          field('Worker / shareholder parity (employees)', '2000', 'Default of defaults: 2000 · Art. III §6', { type: 'number' })) +
+          field('Worker rep — first seat (employees)', '100', 'Reference: 100', { type: 'number' }) +
+          field('Worker / shareholder parity (employees)', '2000', 'Reference: 2000', { type: 'number' })) +
+        /* the economic defaults — NEW: set every economic default here too */
+        '<div class="card card--inset" style="border-color:var(--gov-primary)"><h3>' + S.icon('refresh-cw', { size: 'sm' }) + ' Economy defaults</h3>' +
+        '<p class="gloss">The starting economy for your world — these cascade to child jurisdictions just like the constitutional ones.</p>' +
+        '<div class="grid-2">' +
+        field('Currency name', 'Civic Value Unit', 'The abstract unit of account.') +
+        field('Currency symbol / code', 'ç · CVU', 'Shown on wallets and the exchange.') +
+        field('Civic stipend — residency floor', '50', 'Everyone with active residency receives this.', { type: 'number' }) +
+        field('Stipend — bump cap (max stacked)', '20', 'The most the role differentials can add.', { type: 'number' }) +
+        field('Per-role pay — node operators', '8', 'Civic-duty pay for the people running nodes.', { type: 'number' }) +
+        field('Per-role pay — social moderators', '5', 'Civic-duty pay for moderators.', { type: 'number' }) +
+        field('Per-role pay — civic office-holders', '12', 'Civic-duty pay for elected & appointed officers.', { type: 'number' }) +
+        field('Stipend / UBI interval', '', 'How often the economic clock pays out.', { select: ['Monthly', 'Quarterly', 'Per cycle'] }) +
+        '</div></div>' +
         '<div class="card card--inset"><h3>Residency</h3>' +
-        field('Residency confirmation window (days)', '30', 'Default of defaults: 30 days of qualifying GPS pings before residency is confirmed and rights unlock · CLK-05', { type: 'number' }) + '</div>' +
+        field('Residency confirmation window (days)', '30', 'Reference: 30 days of qualifying pings before rights unlock.', { type: 'number' }) + '</div>' +
         '</section>';
     }
 
-    function step2() {
-      return '<section class="card setup-step" aria-labelledby="s2">' + stepHead(2).replace('<h2 ', '<h2 id="s2" ') +
-        '<p>Pick a data source and run the ETL pipeline. Progress streams live from the ETL container; review any flagged discrepancies before continuing to districting.</p>' +
-        '<div class="card card--inset"><h3>1 · Data source</h3><div class="radio-group">' +
-        '<label class="radio"><input type="radio" name="src" checked /> Local archive (default) — the bind-mounted map-files volume; fastest, no network</label>' +
-        '<label class="radio"><input type="radio" name="src" /> Custom folder — an alternate path inside the ETL container</label>' +
-        '<label class="radio"><input type="radio" name="src" disabled /> Custom URL <span class="planned-flag">planned</span></label>' +
-        '<label class="radio"><input type="radio" name="src" disabled /> Browser upload <span class="planned-flag">planned</span></label></div></div>' +
-        '<div class="card card--inset"><h3>3 · Live progress <span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' run completed</span></h3>' +
-        '<p class="eyebrow">Boundary</p>' +
+    /* 4 — map data, the three real sources */
+    function stepMap() {
+      return '<section class="card setup-step" aria-labelledby="s4">' + stepHead(4) +
+        '<p>Where does your map come from? Three real choices:</p>' +
+        '<div class="card card--inset"><div class="radio-group">' +
+        '<label class="radio"><input type="radio" name="src" /> <strong>Sync with a federation</strong> — pull the boundaries and populations a federation already uses.</label>' +
+        '<label class="radio"><input type="radio" name="src" /> <strong>Upload an export</strong> — a <code>.tar.gz</code> from another instance (it carries the map and saved state; you can pick the file from your browser).</label>' +
+        '<label class="radio"><input type="radio" name="src" checked /> <strong>Start fresh</strong> — load the standard open geodata (geoBoundaries boundaries + WorldPop populations), planet to neighbourhood.</label>' +
+        '</div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)"><button type="button" class="btn btn--secondary btn--sm" data-sim>Choose a file…</button>' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Load the map</button></div></div>' +
+        '<div class="card card--inset"><h3>Live progress <span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' run completed</span></h3>' +
         etlBar('Countries', '251', 'countries') + etlBar('States / provinces', '3,382', 'states') +
-        etlBar('Counties', '49,345', 'counties') + etlBar('Municipalities', '105,772', 'municipalities') +
-        etlBar('Townships', '98,757', 'townships') + etlBar('Neighborhoods', '899,786', 'neighborhoods') +
-        '<p class="eyebrow" style="margin-block-start:var(--space-3)">Population</p>' + etlBar('Countries (WorldPop)', '232', 'countries', true) +
-        '<p class="eyebrow" style="margin-block-start:var(--space-3)">Final counts</p>' +
-        '<div class="stat-tiles">' + tile('232', 'countries') + tile('3,339', 'states / provinces') + tile('49,385', 'counties') +
-        tile('105,856', 'municipalities') + tile('94,876', 'townships') + tile('699,737', 'neighborhoods') + tile('951,636', 'total rows') + '</div>' +
-        '<p class="citation" style="margin-block-start:var(--space-2)">Finished <span data-no-i18n>2026-05-22T17:17:04+00:00</span></p></div>' +
-        '<div class="card card--inset"><h3>4 · Review &amp; accept</h3>' +
-        '<p>The import finished. Open the jurisdiction viewer to inspect boundaries, populations, raster overlays, and dual-footprint relationships. Accepting here is what <strong>triggers apportionment</strong>.</p>' +
-        '<a class="btn btn--secondary" href="' + S.hrefV1('jurisdictions/jurisdiction-browser.html') + '">Open jurisdiction viewer ' + S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a></div>' +
+        etlBar('Counties', '49,345', 'counties') + etlBar('Neighbourhoods', '899,786', 'neighborhoods') +
+        etlBar('Populations (WorldPop)', '232', 'countries', true) +
+        '<div class="stat-tiles" style="margin-block-start:var(--space-3)">' + tile('232', 'countries') + tile('3,339', 'states') + tile('49,385', 'counties') + tile('951,636', 'total rows') + '</div></div>' +
+        '<div class="card card--inset"><h3>Review &amp; accept</h3>' +
+        '<p>Inspect the boundaries, populations, and raster overlays — accepting is what <strong>triggers apportionment</strong>.</p>' +
+        '<a class="btn btn--secondary" href="' + S.hrefV2('jurisdictions/jurisdiction-browser.html') + '">Open the jurisdiction viewer ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
         '</section>';
     }
 
-    function step3() {
-      return '<section class="card setup-step" aria-labelledby="s3">' + stepHead(3).replace('<h2 ', '<h2 id="s3" ') +
-        '<p>This is where your instance gets its first shape. Every legislature needs a map — a partition of its jurisdiction into districts sized within the constitutional min/max seat range.</p>' +
+    /* 5 — build districts */
+    function stepDistricts() {
+      return '<section class="card setup-step" aria-labelledby="s5">' + stepHead(5) +
+        '<p>Every legislature needs a map — a partition of its jurisdiction into districts sized within the constitutional seat range.</p>' +
         '<div class="card card--inset" style="border-color:color-mix(in oklch, var(--status-success) 40%, transparent)">' +
         '<h3 style="color:var(--status-success-fg)">' + S.icon('check', { size: 'sm' }) + ' Apportionment complete</h3>' +
         '<div class="cluster" style="gap:var(--space-8)">' +
         '<div class="stat"><span class="stat-number">1</span><span class="stat-label">legislatures sized</span></div>' +
-        '<div class="stat stat--accent"><span class="stat-number">1,999</span><span class="stat-label">total seats apportioned</span></div>' +
-        '<div class="stat"><span class="stat-number">Earth</span><span class="stat-label">largest · 1,999 seats</span></div></div>' +
-        '<p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing applied per Taagepera’s law — every parent jurisdiction with direct children now has a sized legislature ready for districting.</p>' +
-        '<p class="citation">Art. II §2 · as implemented</p></div>' +
-        '<p>The <strong>Earth</strong> legislature is ready. You’re handed off to the interactive district mapper — auto-seed districts from the cube-root law, hand-edit any you want, review quality metrics, and activate the map.</p>' +
-        '<a class="btn btn--primary" href="' + S.hrefV1('jurisdictions/district-mapper.html') + '">Go to district mapper ' + S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a>' +
+        '<div class="stat stat--accent"><span class="stat-number">1,999</span><span class="stat-label">total seats apportioned</span></div></div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing applied — every parent jurisdiction with children now has a sized legislature ready for districting.</p></div>' +
+        '<p>You’re handed off to the interactive district mapper — auto-seed from the cube-root law, hand-edit any you want, then activate the map.</p>' +
+        '<a class="btn btn--primary" href="' + S.hrefV2('jurisdictions/district-mapper.html') + '">Go to the district mapper ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
         '</section>';
     }
 
-    function step4() {
-      return '<section class="card setup-step" aria-labelledby="s4">' + stepHead(4).replace('<h2 ', '<h2 id="s4" ') +
-        '<p>Review the shape of your instance, then seat the executive and judicial institutions for every jurisdiction with a legislature. They start <strong>forming</strong> — members get elected once the elections engine runs.</p>' +
+    /* 6 — seat institutions AND create your first federation account (player one) */
+    function stepSeat() {
+      return '<section class="card setup-step" aria-labelledby="s6">' + stepHead(6) +
+        '<p>The last step. Seat the executive and judicial institutions for every jurisdiction with a legislature — they start <strong>forming</strong>, and members arrive when the elections engine runs — then create your account.</p>' +
         '<div class="grid-2">' +
         '<div class="card card--inset"><div class="stat"><span class="stat-number">1</span><span class="stat-label">legislatures formed</span></div></div>' +
         '<div class="card card--inset"><div class="stat"><span class="stat-number">393</span><span class="stat-label">districts drawn</span></div></div></div>' +
-        '<div class="card card--inset"><h3>What happens when you click Finish</h3><ul>' +
-        '<li>For every jurisdiction with a legislature, one <code>executives</code> row (default <em>committee</em>) and one <code>judiciaries</code> row (default <em>appointed</em>, min 5 judges, 10-year terms).</li>' +
-        '<li>No members or seats are populated — those land via the elections engine; status stays <em>forming</em>.</li>' +
-        '<li>We record <code>setup_completed_at</code>; from here <code>/setup</code> redirects home.</li></ul>' +
-        '<p class="citation">Executive default: committee · Art. III §2 — Judiciary default: appointed · Art. IV §2 · 5 judges · 10-year terms</p></div>' +
+        '<div class="card card--inset"><h3>Institutions seated on Finish</h3><ul>' +
+        '<li>For every jurisdiction with a legislature: one executive (default <em>committee</em>) and one judiciary (default <em>appointed</em>, 5 judges, 10-year terms).</li>' +
+        '<li>No members yet — those arrive via the elections engine; status stays <em>forming</em>.</li></ul></div>' +
+        /* the federation account = player one */
+        '<div class="card card--inset" style="border-color:var(--gov-primary)"><h3>' + S.icon('user', { size: 'sm' }) + ' Create your first federation account</h3>' +
+        '<p>This is the moment you become a player. Your first federation account is your <strong>player username — player one</strong>. There was no login wall before now; the founder account is created at the very end of founding.</p>' +
+        '<div class="grid-2">' +
+        field('Player username', 'founder', 'Your handle across the federation.') +
+        field('Display name (optional)', '', 'Shown by choice — a handle is the default.') + '</div>' +
+        '<p class="gloss">On Finish, play begins as populations reach critical mass.</p></div>' +
         '<div class="card card--inset"><h3>Export this instance (the federation seed)</h3>' +
-        '<p class="gloss">Build a portable <code>.tar.gz</code> snapshot — every table downstream of jurisdictions, plus settings and rasters. Restoring it on another instance via Step 0 reproduces the full state, including district maps. This bundle is the <strong>federation seed</strong>: a peer instance restores it at Step 0.</p>' +
-        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Start full export</button>' +
-        '<div class="log-row" style="margin-block-start:var(--space-2)"><span class="log-seq" data-no-i18n>map-data-…57a8208f</span> ' +
-        '<span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' done</span> ' +
-        '<span class="citation" data-no-i18n>finished 10:09:22 AM · 11.30 GB</span></div></div>' +
-        '<div class="banner banner--demo"><div><span class="banner-title">The first founder account is created at the very end of founding</span> — there is no login wall before the wizard. On Finish, play begins as populations reach critical mass (CLK-06).</div></div>' +
+        '<p class="gloss">Build a portable <code>.tar.gz</code> snapshot — the whole world plus settings. A peer instance restores it as their map source (“upload an export”), and your world becomes theirs to join.</p>' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Start full export</button></div>' +
         '</section>';
     }
 
     function render() {
-      var stepper = '<ol class="stepper" aria-label="Founding steps">' + STEPS.map(function (n, i) {
+      var stepper = '<ol class="stepper" aria-label="Founding steps">' + STEPS.map(function (n) {
         return '<li class="stepper-step stepper-step--done"><span>' + S.icon('check', { size: 'sm' }) + ' ' + esc(n) + '</span></li>';
       }).join('') + '</ol>';
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('sliders', { size: 'sm' }) + ' System · the founding loop</span><h1>Found the instance</h1>' +
-        '<p class="page-intro">Before anyone plays, someone founds the world. This is the five-step loop that takes a fresh instance from a <strong>cosmic address</strong> to a <strong>seated constitution</strong> — modeled on the shipped setup wizard, shown here as its completed end-state.</p>' +
-        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
-
-        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Founding the constitution? This is it.</strong> Running a box on the mesh is a different job — see ' +
-        '<a href="' + S.hrefV2('operator/setup.html') + '">Set up your node</a> on the operator plane. The two setups are siblings, never merged.</div></div>' +
+        '<p class="page-intro">Before anyone plays, someone founds the world. It starts with <strong>your operator account</strong>, then a one-way choice — <strong>join</strong> a federation or <strong>start from scratch</strong> — and the scratch path ends by creating your first account: <strong>player one</strong>. Shown here as a completed end-state.</p></header>' +
 
         stepper +
-        step0() + step1() + step2() + step3() + step4() +
+        stepOperator() + stepBranch() + stepCosmic() + stepDefaults() + stepMap() + stepDistricts() + stepSeat() +
 
-        '<div class="cluster"><span class="btn btn--primary" aria-disabled="true">Finish setup ' + S.icon('check', { size: 'sm' }) + '</span>' +
+        '<div class="cluster"><span class="btn btn--primary" aria-disabled="true">Finish &amp; enter as player one ' + S.icon('check', { size: 'sm' }) + '</span>' +
         '<span class="citation">Static end-state — a mockup of the founding loop, not a live run.</span></div>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
