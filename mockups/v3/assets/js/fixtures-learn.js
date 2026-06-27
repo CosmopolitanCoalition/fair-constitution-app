@@ -92,7 +92,7 @@
       issues: ['ticket-ballot-confirm'] },
 
     { id: 'stand-for-office', title: 'Stand for office', icon: 'award', scope: 'citizen', module: 'Elections',
-      videoId: 'v-stand', journeyId: 'election', v1: 'electoral/candidacy.html',
+      videoId: 'v-stand', journeyId: 'election', v1: 'electoral/candidacy-registration.html',
       summary: 'Declare your candidacy. The only requirement is residency in the jurisdiction — there is no other gate of any kind.',
       steps: [
         { do: 'Confirm you reside here', detail: 'Candidacy is an absolute right tied to residency alone.', cite: 'Art. I · no requirement beyond residency' },
@@ -122,7 +122,7 @@
       ], issues: [] },
 
     { id: 'start-org', title: 'Found an organization', icon: 'building', scope: 'citizen', module: 'Organizations',
-      videoId: 'v-org', journeyId: 'start-org', v1: 'organizations/registry.html',
+      videoId: 'v-org', journeyId: 'start-org', v1: 'organizations/org-registry.html',
       summary: 'Register a party, business, nonprofit, or common-good corp. Crossing 100 employees brings worker representation onto the board.',
       steps: [
         { do: 'Pick a type', detail: 'Party, business, nonprofit, common-good corp, or informal.' },
