@@ -38,6 +38,19 @@
       return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + '<span>' + esc(text) + '</span></p>';
     }
 
+    /* suggestions for the transfer recipient — residents and organizations */
+    function recipientOpts() {
+      var people = ['@u-greenwood', '@u-pier7', '@u-neighbor2', '@diego', '@u-harborwatch'];
+      var orgs = [];
+      try {
+        var BY = window.CGA.fixtures.byId;
+        ['bluefin-logistics', 'hudson-mutual-aid', 'manhattan-water-power'].forEach(function (id) {
+          var o = BY.organizations[id]; if (o) orgs.push(o.name);
+        });
+      } catch (e) {}
+      return people.concat(orgs).map(function (v) { return '<option value="' + esc(v) + '"></option>'; }).join('');
+    }
+
     function render() {
       var w = E.wallet, c = E.currency;
 
@@ -98,16 +111,30 @@
         '<p class="gloss">Money in is shown in green, money out in red. This list is yours alone.</p>' +
         '<div class="card" style="margin-block-start:var(--space-3)">' + rows + '</div></section>' +
 
-        // Transfer CTA + form chip.
+        // Transfer composer — to a resident OR an organization (simulated).
         '<section class="card" id="transfer" aria-labelledby="xfer-h">' +
-        '<h2 id="xfer-h">Send a transfer</h2>' +
-        '<p>Move ' + esc(c.symbol) + ' to another resident or organization. Both the sending and the form are recorded on ' +
-        '<strong>your</strong> private ledger only — the recipient sees the credit on theirs. There is no shared custodian and no payment rail in between.</p>' +
-        '<p>' + S.icon('file-text', { size: 'sm' }) + ' <span class="form-chip">Transfer of value <span class="form-id">F-IND-023</span></span> ' +
-        S.badge('warning', 'Planned', 'clock') + '</p>' +
-        '<p class="citation">A transfer is a private agreement between two parties · Art. V §2 (joint &amp; shared value) + Art. I</p>' +
-        '<a class="btn btn--primary" aria-disabled="true" href="#transfer" title="Planned — F-IND-023 is reserved, not yet registered">Start a transfer ' +
-        S.icon('arrow-right', { size: 'sm' }) + '</a></section>' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+        '<h2 id="xfer-h">Send a transfer</h2>' + S.badge('warning', 'Planned', 'clock') + '</div>' +
+        '<p class="gloss">Move ' + esc(c.symbol) + ' to another resident or an organization. It posts to your private ledger; the recipient sees the credit on theirs. There is no shared custodian and no payment rail in between.</p>' +
+        '<form id="xfer-form" novalidate>' +
+        '<fieldset class="field" style="border:0;padding:0;margin-inline:0"><legend class="field-label">Send to</legend>' +
+        '<div class="radio-group"><label class="radio"><input type="radio" name="xfer-kind" value="resident" checked /> A resident</label>' +
+        '<label class="radio"><input type="radio" name="xfer-kind" value="org" /> An organization</label></div></fieldset>' +
+        '<div class="field"><label class="field-label" for="xfer-to">Recipient</label>' +
+        '<input class="field-input" id="xfer-to" list="xfer-list" placeholder="@handle or organization name" autocomplete="off" />' +
+        '<datalist id="xfer-list">' + recipientOpts() + '</datalist></div>' +
+        '<div class="cluster" style="gap:var(--space-3);align-items:flex-end">' +
+        '<div class="field" style="flex:1 1 8rem;margin:0"><label class="field-label" for="xfer-amt">Amount (' + esc(c.symbol) + ')</label>' +
+        '<input class="field-input" id="xfer-amt" type="number" min="0" step="0.01" placeholder="0.00" /></div>' +
+        '<div class="field" style="flex:2 1 12rem;margin:0"><label class="field-label" for="xfer-memo">Memo (optional)</label>' +
+        '<input class="field-input" id="xfer-memo" type="text" placeholder="What’s it for?" /></div></div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)"><button type="submit" class="btn btn--primary">' +
+        S.icon('arrow-right', { size: 'sm' }) + ' Send transfer</button>' +
+        '<span class="gloss">Simulated — nothing leaves this mockup.</span></div>' +
+        '<p id="xfer-confirm" role="status" class="gloss" style="margin-block-start:var(--space-1)"></p>' +
+        '</form>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">A transfer is a private agreement between two parties — both sides on the record, no clause can waive a right.</p>' +
+        '</section>' +
 
         // The rails that protect a personal wallet.
         '<section class="card card--inset" aria-labelledby="rails-h"><h2 id="rails-h">Why your wallet stays yours</h2><ul>' +
@@ -119,6 +146,34 @@
         '</ul>' +
         neverFederated('This page never leaves this instance — there is nothing here to sync.') +
         '</section>';
+
+      // wire the (simulated) transfer composer
+      var form = document.getElementById('xfer-form');
+      if (form) form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var kind = (document.querySelector('[name="xfer-kind"]:checked') || {}).value || 'resident';
+        var to = (document.getElementById('xfer-to').value || '').trim();
+        var amt = parseFloat(document.getElementById('xfer-amt').value);
+        var memo = (document.getElementById('xfer-memo').value || '').trim();
+        var out = document.getElementById('xfer-confirm');
+        if (!to) { out.textContent = 'Add a recipient first.'; return; }
+        if (!(amt > 0)) { out.textContent = 'Enter an amount greater than zero.'; return; }
+        var label = (kind === 'org' ? 'organization ' : '') + to;
+        // optimistically post the row to the activity list
+        var card = document.querySelector('#tx-h + p + .card, #tx-h ~ .card');
+        if (card) {
+          var row = document.createElement('div');
+          row.className = 'wallet-row';
+          row.innerHTML = '<span>' + S.badge('neutral', 'transfer') + '</span>' +
+            '<span><strong style="color:var(--gov-fg)">' + esc(to) + '</strong>' + (memo ? '<span class="gloss"> · ' + esc(memo) + '</span>' : '') + '</span>' +
+            '<span class="citation">just now</span>' +
+            '<span class="wallet-amt wallet-amt--out">−' + amt.toFixed(2) + ' ' + esc(E.currency.symbol) + '</span>';
+          card.insertBefore(row, card.firstChild);
+        }
+        out.textContent = 'Sent ' + amt.toFixed(2) + ' ' + E.currency.symbol + ' to ' + label + ' (simulated). It posted to your private ledger; ' + to + ' sees the credit on theirs.';
+        S.announce('Transfer sent to ' + label);
+        form.reset();
+      });
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
