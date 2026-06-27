@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Identity (G-ID) — the operator plane — CGA mockups v2</title>
+  <title>Identity — the operator plane — CGA mockups v2</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'operator/identity', title: 'Identity (G-ID)', module: 'operator', nav: 'operator-identity', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+    window.CGA_PAGE = { id: 'operator/identity', title: 'Identity', module: 'operator', nav: 'operator-identity', citation: 'The operator plane — capability, not role', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -74,12 +74,12 @@
         '</div>';
 
       document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow op-eyebrow">The operator plane · identity</span><h1>Identity (G-ID)</h1>' +
+        '<header><span class="eyebrow op-eyebrow">The operator plane · identity</span><h1>Identity</h1>' +
         '<p class="page-intro">The identity layer that lets a server know who you are across the mesh, and lets a citizen’s public standing travel with them onto a server that isn’t home. Two separate identities live here — yours as an operator, and the attested standing of a citizen passing through. They never touch.</p></header>' +
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">The plane wall holds here too.</strong> Operator identity is wholly separate from citizen identity — an operator account has no link to any citizen user. ' + esc(O.plane.plainNote) + '<br />' +
-        '<span class="citation">Art. I · capability, not role · off the constitutional plane</span></div></div>' +
+        '<span class="citation">capability, not role</span></div></div>' +
 
         /* ============ SECTION 1 ============ */
         '<section aria-labelledby="me-h"><h2 id="me-h">Your operator identity</h2>' +
@@ -107,7 +107,7 @@
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">An attestation carries only public standing.</strong> Role codes, the device key, the issuer, a TTL, and a signature — and <em>nothing else</em>. Never credentials, never locations, never ballots. Roles are still derived live, never stored.<br />' +
-        '<span class="citation">Art. I — voting and candidacy are absolute rights, derived from residency, never persisted</span></div></div>' +
+        '<span class="citation">voting and candidacy are absolute rights, derived from residency, never persisted</span></div></div>' +
 
         '<div class="grid-2">' +
         '<div class="card stack">' +
@@ -124,7 +124,7 @@
         '</div>' +
 
         '<h3>The forwarded write — three checks</h3>' +
-        '<p class="page-intro">When a forwarded write arrives, the <code>AttestedForwardedActor</code> must clear all three checks before the engine will authorize it. Any failure is fail-closed.</p>' +
+        '<p class="page-intro">When a forwarded write arrives, it must clear all three checks before the engine will authorize it. Any failure is fail-closed.</p>' +
         '<ol class="stepper" aria-label="The three forwarded-write checks">' + fwSteps + '</ol>' +
         '<ul class="stack" style="font-size:var(--text-sm);padding-inline-start:var(--space-4)">' + fwList + '</ul>' +
         '<p class="advanced-note">Subject: the attested user resolves locally before authorization — citizenship is read live, never trusted from the wire alone.</p>' +
@@ -144,7 +144,7 @@
         '<div class="card stack">' +
           '<h3 style="margin:0">The keystone</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(gid.forwardedActor) + '</p>' +
-          '<span class="citation">Art. I — standing travels; the right itself stays derived, never stored</span>' +
+          '<span class="citation">standing travels; the right itself stays derived, never stored</span>' +
         '</div>' +
         '</div>' +
         '</section>' +

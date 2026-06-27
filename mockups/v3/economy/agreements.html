@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading instruments of agreement…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/agreements', title: 'Instruments of agreement', module: 'economy', nav: 'agreements', citation: 'The freedom to contract · Art. I (Supremacy of Rights)', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/agreements', title: 'Instruments of agreement', module: 'economy', nav: 'agreements', citation: 'The freedom to contract', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,7 +31,7 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-IND-014, F-IND-022/023, F-ORG-005) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     /* The kinds of instrument a party may draft. Each routes to the same detail surface. */
@@ -64,8 +64,8 @@
     }
 
     function formChip(form) {
-      if (!form) return '<span class="form-chip">Free-form instrument <span class="form-id">no registered form</span></span>';
-      return '<span class="form-chip">Instrument of agreement <span class="form-id">' + esc(form) + '</span></span>';
+      if (!form) return '<span class="form-chip">Free-form instrument</span>';
+      return '<span class="form-chip">Instrument of agreement</span>';
     }
 
     function agreementCard(a) {
@@ -94,7 +94,7 @@
           S.icon(k.icon) +
           '<span class="role-name">' + esc(k.label) + '</span>' +
           '<span>' + esc(k.note) + '</span>' +
-          (k.form ? '<span class="citation">' + esc(k.form) + '</span>' : '<span class="citation">no registered form — Art. I freedom to contract</span>') +
+          (k.form ? '' : '<span class="citation">freedom to contract</span>') +
           '<span class="enter-as">Draft ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
       }).join('');
       return '<section class="card" aria-labelledby="draft-h">' +
@@ -112,17 +112,17 @@
         '<p class="page-intro">Contracts on the CGA are an expression of the <strong>freedom to contract</strong> — any two or more parties may freely set terms between themselves. ' +
         'But every instrument sits on a constitutional <strong>floor</strong>: no clause may waive, sell, or sign away a constitutional right. ' +
         'A contract that tries to is void in that part; the rest stands.</p>' +
-        '<p class="citation">Freedom to contract · Art. I — bounded by the Supremacy of Rights · Art. I</p></header>' +
+        '<p class="citation">Freedom to contract — bounded by the Supremacy of Rights.</p></header>' +
         plannedBanner() +
         '<div class="never-federated">' + S.icon('lock', { size: 'sm' }) +
         '<span>The terms of an agreement you are party to are private to the servers of its parties — like a ballot, your instruments never federate to the wider mesh.</span></div>' +
         '<section class="card" aria-labelledby="floor-h">' +
         '<header><span class="eyebrow">The rule under every contract</span><h2 id="floor-h" style="margin-block:0">The constitutional floor</h2></header>' +
         '<ul>' +
-        '<li><strong>No clause can waive a right.</strong> An instrument may not disempower voting, candidacy, residency, petitioning, due process, or any constitutional right · <span class="citation">Art. I Supremacy of Rights</span></li>' +
-        '<li><strong>Both sides must sign.</strong> The engine rejects a single-sided contract — consent of every party is on the record · <span class="citation">Art. I</span></li>' +
-        '<li><strong>No paywall on a civic act.</strong> No agreement may attach a fee or cost to exercising a civic right or obligation · <span class="citation">Art. II §8 · HARDENED</span></li>' +
-        '<li><strong>Shared resources stay jointly controlled.</strong> A joint ledger between jurisdictions moves only by the agreement of its co-owners · <span class="citation">Art. V §2</span></li>' +
+        '<li><strong>No clause can waive a right.</strong> An instrument may not disempower voting, candidacy, residency, petitioning, due process, or any constitutional right.</li>' +
+        '<li><strong>Both sides must sign.</strong> The engine rejects a single-sided contract — consent of every party is on the record.</li>' +
+        '<li><strong>No paywall on a civic act.</strong> No agreement may attach a fee or cost to exercising a civic right or obligation.</li>' +
+        '<li><strong>Shared resources stay jointly controlled.</strong> A joint ledger between jurisdictions moves only by the agreement of its co-owners.</li>' +
         '</ul>' +
         '<p class="gloss">The floor is enforced in the hardened layer — no legislative act, admin panel, or clause can lower it. Compare the upstream control on a worker board: <a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination <span class="v1-tag">v1</span></a>.</p>' +
         '</section>' +

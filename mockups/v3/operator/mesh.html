@@ -35,15 +35,14 @@
         border_settled: { tone: 'neutral', icon: 'scale', label: 'Border settled' }
       };
       var m = map[status] || { tone: 'neutral', icon: 'info', label: status };
-      return S.badge(m.tone, m.label, m.icon) + ' <span class="advanced-note">' + esc(status) + '</span>';
+      return S.badge(m.tone, m.label, m.icon);
     }
 
     function syncResult(r) {
       if (r.result === 'conflict_authoritative_wins') {
-        return S.badge('warning', 'Authority disputed → resolved', 'alert-triangle') +
-          ' <span class="advanced-note">conflict_authoritative_wins</span>';
+        return S.badge('warning', 'Authority disputed → resolved', 'alert-triangle');
       }
-      return S.badge('success', 'Applied', 'check') + ' <span class="advanced-note">' + esc(r.result) + '</span>';
+      return S.badge('success', 'Applied', 'check');
     }
 
     function transportPill(state) {
@@ -73,7 +72,7 @@
         '<span class="pill pill--wait" title="a peer vouches before trust is established">Or join without a key and wait for a vouch</span></div>' +
         '<div class="lr-note">' + S.icon('info', { size: 'sm' }) +
         '<span>A mirror is <strong>read-only</strong>: it cold-syncs the full public corpus and accepts no filings. Joining never moves authority — <strong>authority stays with the origin</strong> until a formal flip.</span></div>' +
-        '<span class="citation">Cluster join is infrastructure, not a constitutional act · Art. V §7</span></section>';
+        '<span class="citation">Cluster join is infrastructure, not a constitutional act.</span></section>';
 
       /* ---- Section 2: Your peers ---- */
       var peerRows = O.peers.map(function (p) {
@@ -91,13 +90,13 @@
 
       var peersSection =
         '<section aria-labelledby="peers-h" class="stack"><h2 id="peers-h">Your peers</h2>' +
-        '<p class="page-intro">Every box this node has handshaked with, and where each one sits in the ESM-20 trust lifecycle. The relation chip records how you stand to each peer: a <strong>host</strong> you joined under, a <strong>mirror</strong> that cold-syncs from you, or a <strong>sovereign</strong> peer with a settled border.</p>' +
+        '<p class="page-intro">Every box this node has handshaked with, and where each one sits in the trust lifecycle. The relation chip records how you stand to each peer: a <strong>host</strong> you joined under, a <strong>mirror</strong> that cold-syncs from you, or a <strong>sovereign</strong> peer with a settled border.</p>' +
         '<div class="table-wrap"><table class="table"><thead><tr>' +
         '<th scope="col">Peer</th><th scope="col">Server ID</th><th scope="col">URL</th>' +
         '<th scope="col">Status</th><th scope="col">Relation</th><th scope="col">Version</th>' +
         '<th scope="col">Heartbeat</th><th scope="col">Sync seq</th>' +
         '</tr></thead><tbody>' + peerRows + '</tbody></table></div>' +
-        '<span class="citation">ESM-20 trust lifecycle: trust_established · syncing · border_settled</span></section>';
+        '<span class="citation">Trust lifecycle: trust established · syncing · border settled</span></section>';
 
       /* ---- Section 3: Full Faith & Credit (the sync ledger) ---- */
       var ledgerRows = O.syncLedger.map(function (l) {
@@ -114,13 +113,13 @@
 
       var ffcSection =
         '<section aria-labelledby="ffc-h" class="stack"><h2 id="ffc-h">Full Faith &amp; Credit</h2>' +
-        '<p class="page-intro">When peers carry one another’s records, the sync ledger is the receipt. Each row is one push or pull, with its result and the record range it covered. A <code class="advanced-note">conflict_authoritative_wins</code> result means authority was disputed and then resolved in favour of the authoritative instance — the constitutional record never forks.</p>' +
+        '<p class="page-intro">When peers carry one another’s records, the sync ledger is the receipt. Each row is one push or pull, with its result and the record range it covered. An "authority disputed → resolved" result means authority was disputed and then resolved in favour of the authoritative instance — the constitutional record never forks.</p>' +
         '<div class="table-wrap"><table class="table"><thead><tr>' +
         '<th scope="col">Entry</th><th scope="col">Direction</th><th scope="col">Result</th>' +
         '<th scope="col">Range</th><th scope="col">At</th>' +
         '</tr></thead><tbody>' + ledgerRows + '</tbody></table></div>' +
         '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) +
-        '<span>The sync ledger is <strong>append-only and public</strong> — like every record on the constitutional plane, it can be read by anyone and never rewritten. <span class="citation">Art. II §2</span></span></div></section>';
+        '<span>The sync ledger is <strong>append-only and public</strong> — like every record on the constitutional plane, it can be read by anyone and never rewritten.</span></div></section>';
 
       /* ---- Section 4: Authority & the read-write petition ---- */
       var fsm =
@@ -136,12 +135,12 @@
       var authoritySection =
         '<section aria-labelledby="auth-h" class="stack"><h2 id="auth-h">Authority &amp; the read-write petition</h2>' +
         '<p class="page-intro">Authority stays with the origin until a formal flip. A mirror that wants to take read-write authority for a jurisdiction files the read-write petition.</p>' +
-        '<div class="form-chip">Read-write authority petition <span class="form-id">Art. V §7</span></div>' +
+        '<div class="form-chip">Read-write authority petition</div>' +
         fsm +
         '<div class="grid-2">' +
         '<div class="card stack"><strong style="color:var(--gov-fg)">Who decides</strong>' +
         '<p style="font-size:var(--text-sm)">A mirror petitions the host, but the <strong>host’s government decides</strong> — by Meter B supermajority of the constituent jurisdictions. This is a constitutional act, not an operator switch.</p>' +
-        '<span class="citation">Meter B supermajority · Art. V §7</span></div>' +
+        '<span class="citation">Meter B supermajority</span></div>' +
         '<div class="card stack meter-card--super"><strong style="color:var(--gov-fg)">What the console can do</strong>' +
         '<p style="font-size:var(--text-sm)">In the operator console the host operator can <strong>deny</strong> a read-write petition outright — but can <strong>never approve</strong> one. Approval lives only with the seated government. The console has no “approve” button by design, not by omission.</p>' +
         '<div class="cluster" style="gap:var(--space-2)">' +
@@ -167,7 +166,7 @@
         '</tr></thead><tbody>' + transportRows + '</tbody></table></div>' +
         '<div class="lr-note">' + S.icon('check', { size: 'sm' }) +
         '<span><code class="advanced-note">mesh:doctor</code> probes every rung on the ladder and reports which transports can actually carry a sync right now.</span></div>' +
-        '<span class="citation">Transport survival mesh · Art. V §7</span></section>';
+        '<span class="citation">Transport survival mesh</span></section>';
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow op-eyebrow">The operator plane · mesh &amp; federation</span>' +

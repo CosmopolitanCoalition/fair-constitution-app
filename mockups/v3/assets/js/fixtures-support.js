@@ -7,7 +7,7 @@
    - bug / accessibility / content -> the operators (Record Keeper, Archivist)
    - translation -> the translation-support interface
    - abuse / illegal -> OFF the support queue, to the moderation & legal plane
-     (the constitutional carve-outs + the M-5 legal floor) — support staff
+     (the constitutional carve-outs + the legal floor) — support staff
      never adjudicate viewpoint.
    - idea -> the product backlog
    ============================================================================ */
@@ -22,7 +22,7 @@
     { id: 'translation', label: 'Wording or translation', icon: 'languages', routesTo: 'Translation support', note: 'A label reads wrong in your language, or is still in English.', deep: 'translation/translation-home.html' },
     { id: 'accessibility', label: 'Accessibility barrier', icon: 'users', routesTo: 'Operators · design', note: 'Hard to read, hard to use with a keyboard or screen reader.' },
     { id: 'content', label: 'Wrong information', icon: 'file-text', routesTo: 'Operators · Archivist', note: 'A rule, citation, or record is stated incorrectly.' },
-    { id: 'abuse', label: 'Abuse or illegal content', icon: 'shield', routesTo: 'Moderation & legal plane', note: 'Routed off the support queue to the carve-outs and the M-5 legal floor — never adjudicated here.', deep: 'operator/moderation.html' },
+    { id: 'abuse', label: 'Abuse or illegal content', icon: 'shield', routesTo: 'Moderation & legal plane', note: 'Routed off the support queue to the carve-outs and the legal floor — never adjudicated here.', deep: 'operator/moderation.html' },
     { id: 'idea', label: 'An idea', icon: 'plus', routesTo: 'Product backlog', note: 'Something that would make the system better.' }
   ];
   var byCategory = {}; categories.forEach(function (c) { byCategory[c.id] = c; });
@@ -65,7 +65,7 @@
       body: 'Our cooperative crossed 100 employees last cycle but no worker seat appeared on the board.',
       thread: [ ev('u-noor', '6 days ago', 'open', 'Headcount is 104, board still shows owner seats only.'),
                 ev('Archivist', '4 days ago', 'status', 'Reproduced — the threshold check used the prior snapshot, not the live headcount.'),
-                ev('Archivist', '2 days ago', 'status', 'Resolved — worker seat now seats on the next board cycle. Art. III §6 holds.') ] },
+                ev('Archivist', '2 days ago', 'status', 'Resolved — worker seat now seats on the next board cycle.') ] },
 
     { id: 'ticket-square-flood', n: 1048, title: 'Repeated identical posts flooding a hall', category: 'abuse', status: 'triaged', severity: 'high',
       reporter: 'u-kenji', assignee: 'Moderation & legal plane', created: '1 day ago', updated: '6 hours ago', page: 'social/social-home.html', votes: 3,
@@ -106,7 +106,7 @@
     { id: 'ticket-content-citation', n: 1027, title: 'Emergency-powers max duration cited as 60 days, should be 90', category: 'content', status: 'closed', severity: 'normal',
       reporter: 'u-pier7', assignee: 'Archivist', created: '9 days ago', updated: '6 days ago', page: 'legislature/emergency-powers.html', votes: 2,
       body: 'A tooltip said emergency powers last at most 60 days. The constitutional ceiling is 90.',
-      thread: [ ev('u-pier7', '9 days ago', 'open', 'Art. II §7 says 90.'),
+      thread: [ ev('u-pier7', '9 days ago', 'open', 'The constitution says 90.'),
                 ev('Archivist', '6 days ago', 'status', 'Closed — corrected to 90 days and added the citation.') ] },
 
     { id: 'ticket-captions-ko', n: 1047, title: 'Korean captions missing on “From a bill to a law”', category: 'translation', status: 'in_progress', severity: 'low',

@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading the agreement…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/agreement-detail', title: 'Agreement', module: 'economy', nav: 'agreements', citation: 'Instruments of agreement — freedom to contract with a constitutional floor · Art. I', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/agreement-detail', title: 'Agreement', module: 'economy', nav: 'agreements', citation: 'Instruments of agreement — freedom to contract with a constitutional floor', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -32,20 +32,20 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
-    /* Form name first, ID second (the house rule). */
+    /* Plain form name (no code shown). */
     function formChip(name, id) {
-      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
     /* The kind enum → a human label + the constitutional anchor it rides on. */
     var KINDS = {
-      labor_recurring: { label: 'Recurring labor', cite: 'Art. III §6 (co-determination headcount)' },
-      ownership_transfer: { label: 'Ownership transfer', cite: 'Art. I (freedom to contract)' },
-      joint_ledger: { label: 'Joint ledger', cite: 'Art. V §2 (shared resources)' },
-      sale: { label: 'Sale on the Open Market', cite: 'Art. III §5 / Art. V §5' }
+      labor_recurring: { label: 'Recurring labor', cite: 'Counts toward co-determination headcount' },
+      ownership_transfer: { label: 'Ownership transfer', cite: 'Freedom to contract' },
+      joint_ledger: { label: 'Joint ledger', cite: 'Shared resources' },
+      sale: { label: 'Sale on the Open Market', cite: '' }
     };
 
     /* Form names for the kinds present in the fixture (name first, ID second). */
@@ -96,7 +96,7 @@
       }).join(' ');
 
       var statusPill = a.status === 'agreed'
-        ? S.pill('pass', 'Agreed — both parties signed', 'org_contracts.status = agreed · the engine has both signatures on record')
+        ? S.pill('pass', 'Agreed — both parties signed', 'The engine has both signatures on record')
         : S.pill('wait', 'Proposed — awaiting a second signature', 'A single-sided contract is rejected at the engine boundary');
 
       var root = document.getElementById('root');
@@ -130,10 +130,9 @@
 
         '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
         '<div class="stack" style="gap:var(--space-1)"><span class="eyebrow">Kind</span>' +
-        '<span>' + esc(kind.label) + '</span><span class="citation">org_contracts.kind = ' + esc(a.kind) + '</span></div>' +
+        '<span>' + esc(kind.label) + '</span></div>' +
         '<div class="stack" style="gap:var(--space-1)"><span class="eyebrow">Status</span>' +
-        '<span>' + (a.signedBoth ? 'Both parties have signed' : 'Awaiting a second signature') + '</span>' +
-        '<span class="citation">status = ' + esc(a.status) + '</span></div></div>' +
+        '<span>' + (a.signedBoth ? 'Both parties have signed' : 'Awaiting a second signature') + '</span></div></div>' +
 
         '<div class="stack" style="gap:var(--space-1);margin-block-start:var(--space-4)"><span class="eyebrow">Terms</span>' +
         '<p>' + esc(a.terms) + '</p></div></section>' +
@@ -154,7 +153,7 @@
         '<div class="cluster" style="gap:var(--space-2);margin-block:var(--space-3)">' + signers + '</div>' +
         '<p class="lr-note">' + S.icon('shield', { size: 'sm' }) +
         '<span>Mutual consent is structural, not advisory: the absence of one signature is the absence of the agreement. ' +
-        '<span class="citation">Art. I — freedom to contract requires the consent of each party · HARDENED at the engine</span></span></p>' +
+        '<span class="citation">Freedom to contract requires the consent of each party</span></span></p>' +
         '</section>' +
 
         /* ------------------------------------------------ the constitutional floor */
@@ -162,9 +161,9 @@
         '<p class="agreement-floor">' + S.icon('scale', { size: 'sm' }) +
         '<span>' + esc(a.floor) + '</span></p>' +
         '<ul style="margin-block-start:var(--space-3)">' +
-        '<li><strong>Supremacy of Rights.</strong> No clause may disempower a constitutional right; a clause that tries is void, not the whole instrument · <span class="citation">Art. I Supremacy of Rights</span></li>' +
-        '<li><strong>No paywall on civic life.</strong> An agreement can never make a right (voting, candidacy, residency, petitioning) conditional on a payment · <span class="citation">Art. II §8 · HARDENED</span></li>' +
-        '<li><strong>Worker protections survive the contract.</strong> Recurring-labor terms cannot waive co-determination representation · <span class="citation">Art. III §6</span></li>' +
+        '<li><strong>Supremacy of Rights.</strong> No clause may disempower a constitutional right; a clause that tries is void, not the whole instrument.</li>' +
+        '<li><strong>No paywall on civic life.</strong> An agreement can never make a right (voting, candidacy, residency, petitioning) conditional on a payment.</li>' +
+        '<li><strong>Worker protections survive the contract.</strong> Recurring-labor terms cannot waive co-determination representation.</li>' +
         '</ul></section>' +
 
         /* ----------------------------------- co-determination consequence (v1) */
@@ -172,14 +171,14 @@
         '<p>Signing a recurring-labor instrument adds a worker to the organization’s headcount. ' +
         'A single hire can cross the <strong>100-worker first-seat threshold</strong> and earn workers their first ' +
         'seat on the board — co-determination is computed from the contracts, not declared.</p>' +
-        '<div class="lever-row"><span class="lever-key">co_determination.headcount</span>' +
+        '<div class="lever-row"><span class="lever-key">Worker headcount</span>' +
         '<span class="lever-val">+1 worker</span>' +
         '<span class="dual-door">' + S.icon('users', { size: 'sm' }) + ' feeds board composition</span></div>' +
         '<p style="margin-block-start:var(--space-3)">' +
         '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('organizations/co-determination.html') + '">' +
         S.icon('briefcase', { size: 'sm' }) + ' Open co-determination on the operations site ' +
         '<span class="v1-tag">v1</span></a></p>' +
-        '<p class="citation">Worker representation thresholds — first seat at 100 employees, parity at 2000 · Art. III §6 (HARDENED math)</p>' +
+        '<p class="citation">Worker representation thresholds — first seat at 100 employees, parity at 2000</p>' +
         '</section>' +
 
         /* ------------------------------------------ sign / decline affordance */

@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the exchange…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'economy/exchange', title: 'The exchange', module: 'economy', nav: 'exchange', citation: 'The Open Market — price discovery · shares fair-market (Art. III §5) · settles private (Art. V §5)', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/exchange', title: 'The exchange', module: 'economy', nav: 'exchange', citation: 'The Open Market — price discovery · shares trade at fair market · settles to private wallets', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -111,7 +111,7 @@
         '<span class="ex-bigprice" data-ex-last>' + fmt(inst.last) + '</span>' +
         '<span class="' + chgCls(inst.change) + '" style="font-size:var(--text-lg)">' + chgStr(inst.change) + '</span>' +
         '<span class="tag-chip">' + esc(inst.kind === 'share' ? 'Share · fair-market' : 'Good') + '</span>' +
-        (inst.cgc ? '<span class="pill pill--info" title="A common-good corp quotes on identical terms · Art. III §5">CGC</span>' : '') + '</div>' +
+        (inst.cgc ? '<span class="pill pill--info" title="A common-good corp quotes on identical terms">CGC</span>' : '') + '</div>' +
         '<span class="citation">' + esc(inst.name) + ' · issued by ' + esc(inst.issuer) + '</span>' +
         spark +
         '<div class="ex-kpis"><span>Last <b>' + fmt(inst.last) + '</b></span><span>Change <b class="' + chgCls(inst.change) + '">' + chgStr(inst.change) + '</b></span>' +

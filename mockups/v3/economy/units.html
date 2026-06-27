@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading units &amp; monetary policy…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/units', title: 'Units & monetary policy', module: 'economy', nav: 'units', citation: 'Currency Production and Regulation · Art. V §5 (reserved to the root jurisdiction, HARDENED)', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/units', title: 'Units & monetary policy', module: 'economy', nav: 'units', citation: 'Making and managing the currency (reserved to the most-encompassing jurisdiction)', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,7 +31,7 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. The unit is abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code. The unit is abstract — no payment rails, no custody.</div></div>';
     }
 
     function kindLabel(k) {
@@ -58,7 +58,7 @@
           '<span class="lever-val">' + esc(k.value) + '</span>' +
           '<span class="dual-door">' + S.icon('lock', { size: 'sm' }) + esc(k.gate) + '</span>' +
           '<span class="pill pill--info" title="' + esc(kindLabel(k.kind)) + ' lever">' + esc(k.label) + '</span>' +
-          '<span class="citation" style="margin-inline-start:auto">' + esc(k.enactingAct) + ' · ' + esc(k.cite) + '</span>' +
+          '<span class="citation" style="margin-inline-start:auto">' + esc(k.enactingAct) + '</span>' +
           '</div>';
       }).join('');
 
@@ -84,7 +84,7 @@
           '<div class="card card--inset"><span class="eyebrow">Kind &amp; issuer</span>' +
             '<p style="color:var(--gov-fg)">' + S.badge('info', c.unitKind.replace(/_/g, ' '), 'sliders') + '</p>' +
             '<p class="gloss">Issued by ' + esc(c.issuerLabel) + ' — no lower jurisdiction may mint.</p>' +
-            '<p class="citation">Art. V §5 · reserved to the root</p></div>' +
+            '<p class="citation">reserved to the most-encompassing jurisdiction</p></div>' +
         '</div>' +
 
         '<h3>Subdivisions — the measurement-standards power</h3>' +
@@ -96,7 +96,7 @@
           '<div class="agreement-floor"><div><strong>Worth basis.</strong> ' + esc(c.worthBasis) + '</div></div>' +
           '<div class="agreement-floor"><div><strong>Standards basis.</strong> ' + esc(c.standardsBasis) + '</div></div>' +
         '</div>' +
-        '<p class="citation" style="margin-block-start:var(--space-3)">Currency Production and Regulation · Art. V §5 — reserved to the root jurisdiction · HARDENED</p>' +
+        '<p class="citation" style="margin-block-start:var(--space-3)">Making and managing the currency — reserved to the most-encompassing jurisdiction</p>' +
         '</section>' +
 
         /* ===================== SECTION 2 — THE MONETARY LEVERS ===================== */
@@ -107,10 +107,9 @@
 
         '<div class="banner banner--warning" role="note">' + S.icon('lock', { size: 'sm' }) +
         '<div>These keys change <strong>only</strong> through a single dual-door act — ' +
-        '<span class="form-chip">Monetary policy act <span class="form-id">F-LEG-031</span></span> — ' +
+        '<span class="form-chip">Monetary policy act</span> — ' +
         'requiring a chamber supermajority <em>and</em> constituent consent. ' +
-        'No operator, admin panel, or unilateral executive order can move them. ' +
-        '<span class="citation">F-LEG-031 · Art. VII (supermajority) · Art. V §5</span></div></div>' +
+        'No operator, admin panel, or unilateral executive order can move them.</div></div>' +
 
         '<div style="margin-block-start:var(--space-4)">' + levers + '</div>' +
 
@@ -122,7 +121,7 @@
         '<div class="econ-clock" style="margin-block-start:var(--space-4)">' +
         '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The interval is itself a lever.</strong> ' + esc(clk.label) + '. ' +
-        '<span class="citation">next run ' + esc(clk.nextRun) + ' · ' + esc(clk.cite) + '</span><br />' +
+        '<span class="citation">next run ' + esc(clk.nextRun) + '</span><br />' +
         '<span class="gloss">The economic clock’s cadence (' + esc(clk.key) + ') is a dual-door key like any other — the legislature can lengthen or shorten it.</span></div></div>' +
 
         '<p class="citation" style="margin-block-start:var(--space-3)">' +

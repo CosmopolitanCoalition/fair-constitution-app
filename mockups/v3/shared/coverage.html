@@ -16,15 +16,15 @@
       <header>
         <span class="eyebrow">Design contract · v2</span>
         <h1>v2 coverage</h1>
-        <p class="page-intro">Built live from the v2 manifest and fixtures. It proves the §13 definition of done as
+        <p class="page-intro">Built live from the v2 manifest and fixtures. It proves the definition of done as
           stages land — at Stage 1 the keystone and its eight meeting types are green; the journeys and economy fill
           in over Stages 2–5.</p>
       </header>
       <div id="cov-stats" class="grid-2"></div>
-      <section aria-labelledby="rooms-h" class="card"><h2 id="rooms-h">Live Civic Room — meeting types (§4)</h2><div id="cov-rooms" class="stack"></div></section>
-      <section aria-labelledby="classes-h" class="card"><h2 id="classes-h">Interaction classes (§7) — each has ≥1 journey</h2><div id="cov-classes" class="stack"></div></section>
-      <section aria-labelledby="journeys-h" class="card"><h2 id="journeys-h">Journeys (§8)</h2><div id="cov-journeys"></div></section>
-      <section aria-labelledby="mech-h" class="card"><h2 id="mech-h">Mechanics that must render (§9 social · §10 economic)</h2><div id="cov-mech" class="stack"></div></section>
+      <section aria-labelledby="rooms-h" class="card"><h2 id="rooms-h">Live Civic Room — meeting types</h2><div id="cov-rooms" class="stack"></div></section>
+      <section aria-labelledby="classes-h" class="card"><h2 id="classes-h">Interaction classes — each has ≥1 journey</h2><div id="cov-classes" class="stack"></div></section>
+      <section aria-labelledby="journeys-h" class="card"><h2 id="journeys-h">Journeys</h2><div id="cov-journeys"></div></section>
+      <section aria-labelledby="mech-h" class="card"><h2 id="mech-h">Mechanics that must render (social · economic)</h2><div id="cov-mech" class="stack"></div></section>
     </div>
   </main>
   <script>
@@ -71,15 +71,15 @@
         }).join('') + '</tbody></table></div>';
 
       var MECH = [
-        ['Residency gates the floor, not the gallery (Art. I)', true],
+        ['Residency gates the floor, not the gallery', true],
         ['Halls exist iff seated; subforums auto-bind to governance objects', true],
         ['Public square uncensorable — four carve-outs only; no viewpoint-removal control', true],
         ['Testimony bridge: a hall statement → a sealed append-only record', true],
         ['Translation + the privacy rail (private rooms never sent to a cloud translator)', true],
         ['Pseudonymity end to end (@u-… handles, never a legal name)', true],
         ['The chair runs the room; the system runs the bureaucracy', true],
-        ['Civic rights are never paywalled (Art. II §8)', true],
-        ['UBI eligibility = residency only (Art. I)', 'Stage 4'],
+        ['Civic rights are never paywalled', true],
+        ['UBI eligibility = residency only', 'Stage 4'],
         ['Individual economic data is private and never federated', 'Stage 4'],
         ['Two-sided market — Offer ↔ Request', 'Stage 4'],
         ['A hire feeds co-determination', true],

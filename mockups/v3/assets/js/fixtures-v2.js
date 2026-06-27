@@ -177,10 +177,10 @@
       ],
       floor: { kind: 'testimony', title: 'Public testimony on the Clean Air Act',
         body: 'Residents of New York County may speak on bill-2031-07. The committee hears testimony into the public record, then decides whether to refer the bill to the floor.',
-        form: 'F-LEG-006', citation: 'Statements entered verbatim into the immutable public record · WF-SYS-03',
+        form: 'F-LEG-006', citation: 'Statements entered verbatim into the immutable public record',
         deepLink: 'legislature/committee-detail.html' },
       vote: { question: 'Refer the Clean Air Act to the floor?',
-        method: { label: 'Passes at a majority of all 3 committee members — not those present', citation: 'Art. II §4 · committee majority' },
+        method: { label: 'Passes at a majority of all 3 committee members — not those present', citation: 'Committee majority' },
         mode: 'unicameral', thresholdClass: 'committee_majority',
         serving: 3, requiredYes: 2, quorum: { present: 3, required: 2 },
         tallies: null, outcome: 'pending',
@@ -233,10 +233,10 @@
       ],
       floor: { kind: 'bill_reading', title: 'Floor reading — New York County Clean Air Act (bill-2031-07)',
         body: 'The bill reported from the Environment & Infrastructure committee. The floor reads, deliberates, and votes. An absent member counts the same as a no; the denominator never shrinks.',
-        form: 'F-LEG-004', citation: 'Floor vote · ordinary majority of all serving · Art. II §2',
+        form: 'F-LEG-004', citation: 'Floor vote · ordinary majority of all serving',
         deepLink: 'legislature/bill-detail.html' },
       vote: { question: 'Pass the New York County Clean Air Act on the floor?',
-        method: { label: 'Passes at a majority of all 8 serving members — peg quorum, never those present', citation: 'Peg quorum · Art. II §2' },
+        method: { label: 'Passes at a majority of all 8 serving members — peg quorum, never those present', citation: 'Peg quorum' },
         mode: 'unicameral', thresholdClass: 'majority',
         serving: 8, requiredYes: 5, quorum: { present: 7, required: 5 },
         tallies: { yes: 4, no: 2, abstain: 1 }, outcome: 'pending',
@@ -265,7 +265,7 @@
       translation: { from: 'English', to: 'Español', isPrivate: false, rail: 'server-local' },
       record: [
         { handle: 'marcus', body: 'I move the Clean Air Act to a floor vote.', sealState: 'recorded', recordHref: 'system/public-records.html' },
-        { handle: 'yuki', body: 'Constitutional matters take slot 2 by order — Art. II §2.', sealState: 'sealing', recordHref: 'system/public-records.html' }
+        { handle: 'yuki', body: 'Constitutional matters take slot 2 by order.', sealState: 'sealing', recordHref: 'system/public-records.html' }
       ],
       residencyGated: true,
       galleryNote: 'You can watch this session. Only seated members vote; only residents of New York County may speak from the floor.',
@@ -291,10 +291,10 @@
       ],
       floor: { kind: 'statement', title: 'Equal-power deliberation — extend emergency-shelter hours',
         body: 'A committee executive: 5+ members of equal voting power deliberate and decide together (the UK model). No single chief; the chair facilitates and votes as an equal.',
-        form: 'F-LEG-007', citation: 'Committee executive — equal voting power · Art. III',
+        form: 'F-LEG-007', citation: 'Committee executive — equal voting power',
         deepLink: 'executive/executive-home.html' },
       vote: { question: 'Extend emergency-shelter operating hours?',
-        method: { label: 'Passes at a majority of all 5 equal members', citation: 'Equal-power executive · Art. III' },
+        method: { label: 'Passes at a majority of all 5 equal members', citation: 'Equal-power executive' },
         mode: 'unicameral', thresholdClass: 'majority',
         serving: 5, requiredYes: 3, quorum: { present: 5, required: 3 },
         tallies: { yes: 3, no: 1, abstain: 1 }, outcome: 'adopted',
@@ -340,10 +340,10 @@
       ],
       floor: { kind: 'motion', title: 'A board meeting is the org’s own rules of order',
         body: 'Bluefin has 740 workers — above the 100-worker first-seat threshold, below the 2,000 parity threshold. The board seats 2 worker representatives and 3 owner representatives; the chair is elected jointly by the whole board. This is not a government, so there is no constitutional agenda lock.',
-        form: 'F-ORG-004', citation: 'Worker representation from 100 employees; parity at 2,000 · Art. III §6',
+        form: 'F-ORG-004', citation: 'Worker representation from 100 employees; parity at 2,000',
         deepLink: 'organizations/board-elections.html' },
       vote: { question: 'Approve the depot hiring plan?',
-        method: { label: 'Passes at a majority of the full 5-seat board', citation: 'The org’s own rules of order · Art. III §6' },
+        method: { label: 'Passes at a majority of the full 5-seat board', citation: 'The org’s own rules of order' },
         mode: 'unicameral', thresholdClass: 'majority',
         serving: 5, requiredYes: 3, quorum: { present: 5, required: 3 },
         tallies: { yes: 4, no: 1, abstain: 0 }, outcome: 'adopted',
@@ -388,7 +388,7 @@
       ],
       floor: { kind: 'argument', title: 'Advocate examining a witness — on the record',
         body: 'The presiding judge chairs; advocates hold the floor in turn to examine and cross-examine. The gallery watches; a jury, if empaneled, is a separate protected presence. The record strip is the court record.',
-        form: 'F-JDG-002', citation: 'Proceedings are public record · Art. II §2',
+        form: 'F-JDG-002', citation: 'Proceedings are public record',
         deepLink: 'judiciary/case-detail.html' },
       vote: null,
       presence: [
@@ -436,7 +436,7 @@
       ],
       floor: { kind: 'statement', title: 'Candidates hold the floor in turn',
         body: 'An election runs in two phases. First the approval phase: anyone — a resident or an organization — may endorse a candidate, for any reason, and in an election that endorsement is your approval. Then the ranking window opens, where you rank the approved field. Here in the forum, candidates each get the floor for a fixed time; approving is a separate, secret act, and nothing here changes your approvals.',
-        form: null, citation: 'Voting and candidacy require nothing beyond residency · Art. I',
+        form: null, citation: 'Voting and candidacy require nothing beyond residency',
         deepLink: 'electoral/open-ballot.html' },
       vote: null,
       presence: [
@@ -486,7 +486,7 @@
       ],
       floor: { kind: 'statement', title: 'Open deliberation before the vote window',
         body: 'A referendum delegated from a petition. Residents deliberate the question openly before the jurisdiction-wide vote. The vote itself happens on the ballot at the matching threshold — this room is for persuasion, not counting.',
-        form: 'F-LEG-006', citation: 'Referendum question · Art. II §2',
+        form: 'F-LEG-006', citation: 'Referendum question',
         deepLink: 'legislature/referendums.html' },
       vote: null,
       presence: [
@@ -534,7 +534,7 @@
       ],
       floor: { kind: 'statement', title: 'A voluntary group, meeting on its own terms',
         body: 'This is an informal affinity group — neighbors who chose to associate. The group picked a facilitated meeting: a chair and a speaker queue, but no binding vote. Whatever the group decides binds only the group, never a jurisdiction.',
-        form: null, citation: 'Freedom of association — voluntary, no constitutional force · Art. I',
+        form: null, citation: 'Freedom of association — voluntary, no constitutional force',
         deepLink: null },
       vote: null,
       decisionNote: 'This is your group’s own decision, not a law.',
@@ -577,22 +577,22 @@
       listings: [
         { id: 'lst-1', title: 'Repaired cargo bikes', kind: 'good', qty: 6, price: 240, seller: 'Bluefin Logistics', sellerKind: 'business', form: 'F-IND-021' },
         { id: 'lst-2', title: 'Rooftop garden consultation', kind: 'service', qty: 'by appointment', price: 35, seller: 'Hudson Mutual Aid', sellerKind: 'nonprofit', form: 'F-IND-021' },
-        { id: 'lst-3', title: 'Water-quality testing kits', kind: 'good', qty: 40, price: 18, seller: 'Manhattan Water & Power', sellerKind: 'common_good_corp', cgc: true, form: 'F-IND-021', note: 'A CGC sells on identical terms to any private seller · Art. III §5' }
+        { id: 'lst-3', title: 'Water-quality testing kits', kind: 'good', qty: 40, price: 18, seller: 'Manhattan Water & Power', sellerKind: 'common_good_corp', cgc: true, form: 'F-IND-021', note: 'A CGC sells on identical terms to any private seller' }
       ]
     },
     requests: {
       planned: true,
       work: [
-        { id: 'wk-1', title: 'Recurring depot loader (40 hires)', org: 'Bluefin Logistics', form: 'F-IND-019', triggers: 'F-IND-014 → org_contracts(labor_recurring) → co-determination headcount' }
+        { id: 'wk-1', title: 'Recurring depot loader (40 hires)', org: 'Bluefin Logistics', form: 'F-IND-019', triggers: 'A recurring labor contract adds to the worker headcount that drives co-determination.' }
       ],
       assistance: [
         { id: 'aid-1', title: 'Help moving a wheelchair-accessible ramp', kind: 'mutual_aid', privacy: 'private by default' }
       ]
     },
     stipend: {
-      planned: true, eligibility: 'Active residency association only — the same gate as voting, no means test, no application · Art. I',
+      planned: true, eligibility: 'Active residency association only — the same gate as voting, no means test, no application',
       lastRun: { id: 'ubi-2031-06', recipients: 1690000, total: '1,690,000 units (public aggregate)', form: 'F-TRE-004', perReceiptPrivate: true },
-      bumps: { enabled: false, keys: ['civic_stipend_enabled', 'stipend_bump_operator', 'stipend_bump_moderator', 'stipend_bump_officeholder'], gate: 'dual-door (F-LEG-031): chamber supermajority + constituent consent' }
+      bumps: { enabled: false, keys: ['civic_stipend_enabled', 'stipend_bump_operator', 'stipend_bump_moderator', 'stipend_bump_officeholder'], gate: 'dual-door: chamber supermajority + constituent consent' }
     },
     treasury: {
       planned: true,
@@ -602,8 +602,8 @@
         { step: 'Revenue', form: 'F-LEG-037' }, { step: 'Budget', form: 'F-LEG-038', note: 'enactment spawns appropriations' },
         { step: 'Disbursement', form: 'F-TRE-001…003', actor: 'Board of Governors' }, { step: 'Public ledger', form: null }
       ],
-      gated: { borrowing: 'F-LEG-039', currency: 'F-LEG-040 (root jurisdiction only — hardened)' },
-      rail: 'No fee may attach to a civic-rights form — rejected with Art. II §8.'
+      gated: { borrowing: 'Borrowing', currency: 'Currency (root jurisdiction only)' },
+      rail: 'No fee may attach to a civic-rights form — such a fee is rejected.'
     }
   };
 
@@ -669,7 +669,7 @@
   var nowMs = Date.now();
   function inMin(m) { return new Date(nowMs + m * 60000).toISOString(); }
   var live = {
-    rail: 'You watch everything; you act where you reside (Art. I residency sweep). A ballot row shows only that voting is OPEN — never how you voted (Art. II).',
+    rail: 'You watch everything; you act where you reside. A ballot row shows only that voting is OPEN — never how you voted.',
     rows: [
       { id: 'lv-session', kind: 'session', icon: 'landmark', title: 'Council — regular session', what: 'The chamber is in session; the locked agenda is on item 2.', part: 'Watch from the gallery, or take the floor if you reside here.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Live now', tip: 'In session · peg quorum = majority of ALL serving' }, form: { name: 'Session', id: 'F-SPK-001' }, target: { kind: 'closesAt', iso: inMin(74) }, to: { rel: 'shared/live-room.html?variant=legislative' }, scenarioFlag: 'liveSession' },
       { id: 'lv-committee', kind: 'committee', icon: 'landmark', title: 'Environment & Infrastructure — hearing', what: 'Public testimony on the Clean Air Act is open.', part: 'Add testimony to the record if you reside in the district.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Taking testimony' }, form: { name: 'Testimony', id: 'F-SOC-002' }, target: { kind: 'closesAt', iso: inMin(38) }, to: { rel: 'shared/live-room.html?variant=committee' }, scenarioFlag: 'liveSession' },
@@ -732,10 +732,10 @@
   var legitimacy = {
     planned: true, phase: 'Phase I',
     note: 'Reach is a display-only transparency gauge. It is NEVER a governance input — it changes no vote, no moderation, no right.',
-    rails: ['Display-only — never a governance input (CI-1)', 'No per-person score', 'No individual leaderboard — jurisdiction scope only', 'Measured from the envelope, not the ballot', 'k-anonymous floor suppresses small counts', 'Reach is named coverage (Preamble consent), not the Art. VI §3 wartime test'],
+    rails: ['Display-only — never a governance input', 'No per-person score', 'No individual leaderboard — jurisdiction scope only', 'Measured from the envelope, not the ballot', 'k-anonymous floor suppresses small counts', 'Reach is named coverage, not the wartime test'],
     jurisdictions: legitJurs,
     byJur: (function () { var m = {}; legitJurs.forEach(function (j) { m[j.slug] = j; }); return m; })(),
-    tierParams: { enabled: false, k: 1, exponent: 3, floor: 5, cap: 9, devDefaultNote: 'disabled → CLK-06 default = 1 verified resident boots a government', samplePops: [27, 216, 343, 512, 729, 1000000], rail: 'Gates when a GOVERNMENT may BOOT, never the franchise (CI-4). Amendable policy authored by founders / the legislature — not a hardcoded ceiling.' },
+    tierParams: { enabled: false, k: 1, exponent: 3, floor: 5, cap: 9, devDefaultNote: 'disabled → default = 1 verified resident boots a government', samplePops: [27, 216, 343, 512, 729, 1000000], rail: 'Gates when a GOVERNMENT may BOOT, never the franchise. Amendable policy authored by founders / the legislature — not a hardcoded ceiling.' },
     sample: legitJurs[0]
   };
 
@@ -745,7 +745,7 @@
      individual default-private. Proposed — founder/legislature-authored policy. */
   var achievements = {
     proposed: true,
-    rails: ['No governance advantage — no vote, no seat, no role, no moderation, no eligibility (CI-1)', 'No per-person score or rank (PI-6)', 'No individual leaderboard — jurisdiction scope only (PI-1)', 'k-anonymous floor (PI-3)', 'From the envelope, never the ballot — no abstention leak (PI-2)', 'Default private for individuals, opt-in to show (PI-4)', 'No economic reward — hard-separate from treasury and the exchange (CI-3)'],
+    rails: ['No governance advantage — no vote, no seat, no role, no moderation, no eligibility', 'No per-person score or rank', 'No individual leaderboard — jurisdiction scope only', 'k-anonymous floor', 'From the envelope, never the ballot — no abstention leak', 'Default private for individuals, opt-in to show', 'No economic reward — hard-separate from treasury and the exchange'],
     inProgress: [{ code: 'ACH-IND-VERIFIED', label: 'Resident → Verified', have: 21, need: 30, unit: 'days' }],
     tiers: [
       { key: 'individual', label: 'Individual', prefix: 'ACH-IND', visibility: 'Default private · opt-in to show', items: [
@@ -758,7 +758,7 @@
       { key: 'organization', label: 'Organization', prefix: 'ACH-ORG', visibility: 'Public · k-anonymous floor', items: [
         { code: 'ACH-ORG-FOUNDED', name: 'Founded an organization', earned: true },
         { code: 'ACH-ORG-FIRST-ENDORSEMENT', name: 'First endorsement', earned: true },
-        { code: 'ACH-ORG-100-MEMBERS', name: '100 members', earned: true, note: 'first worker seat · Art. III §6' },
+        { code: 'ACH-ORG-100-MEMBERS', name: '100 members', earned: true, note: 'first worker seat' },
         { code: 'ACH-ORG-PARITY', name: 'Worker–owner parity', earned: false, note: '2000 employees' },
         { code: 'ACH-ORG-MULTI-JURISDICTION', name: 'Operates across jurisdictions', earned: false } ] },
       { key: 'jurisdiction', label: 'Jurisdiction', prefix: 'ACH-JUR', visibility: 'Public · k-anonymous floor', items: [

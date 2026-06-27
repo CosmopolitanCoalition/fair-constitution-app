@@ -72,7 +72,7 @@
         '<p style="font-size:var(--text-sm)">' + esc(B.perName) + '</p>' +
         '<div class="orc-channels"><span class="channel-chip channel-chip--self">' + S.icon('check', { size: 'sm' }) + ' the only ungated path</span>' +
         '<span class="channel-chip channel-chip--governed">tried first</span></div>' +
-        '<span class="citation">DNS-before-cert, name by name · Art. V §5 — the root defines names and standards</span></div>';
+        '<span class="citation">DNS-before-cert, name by name — the root defines names and standards</span></div>';
 
       var wildcardCard =
         '<div class="meter-card">' +
@@ -83,7 +83,7 @@
         '<span class="channel-chip channel-chip--governed">' + S.icon('shield', { size: 'sm' }) + ' authority-minted grant kind</span>' +
         '<span class="channel-chip channel-chip--governed">per-domain approval flag</span>' +
         '<span class="channel-chip channel-chip--governed">optional higher consent bar</span></div>' +
-        '<span class="citation">authority.grant · Meter C may apply · touches the protected trust core</span></div>';
+        '<span class="citation">peer consent may apply · touches the protected trust core</span></div>';
 
       var fallbackFsm =
         '<div class="fsm">' +
@@ -116,7 +116,7 @@
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
         ' Naming is a capability, never a citizen role; it buys no vote, seat, or say.<br />' +
-        '<span class="citation">Broker channels: broker.dns, broker.tls, authority.grant · governed · Art. V §5 — the root defines names &amp; standards</span></div></div>' +
+        '<span class="citation">Naming runs through governed channels — the root defines names &amp; standards</span></div></div>' +
 
         /* ---------- the model ---------- */
         '<section aria-labelledby="model-h"><h2 id="model-h">The model — DNS is the identity, the cert is the proof</h2>' +
@@ -181,8 +181,8 @@
         /* ---------- separate box + trust core ---------- */
         '<div class="plane-wall"><span>' + S.icon('lock', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">A separate box, a sealed token.</strong> The broker runs as its own service (<span class="form-id">services/mesh-cert-broker</span>). Its write token is encrypted, local-only, and never federates. ' +
-        'Minting a wildcard grant or a promotion grant runs through <span class="form-id">authority.grant</span>, which touches the protected trust core and, where it acts under a peer’s zone, requires that peer’s consent (Meter C).<br />' +
-        '<span class="citation">Art. V §5 — names &amp; standards are reserved to the root · authority ≠ leadership</span></div></div>';
+        'Minting a wildcard grant or a promotion grant runs through the authority, which touches the protected trust core and, where it acts under a peer’s zone, requires that peer’s consent.<br />' +
+        '<span class="citation">Names &amp; standards are reserved to the root · authority ≠ leadership</span></div></div>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

@@ -78,7 +78,7 @@
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' +
         'Upgrading the software is an operator-plane capability, not a citizen privilege. The constitutional rules themselves are never edited from here — a version change is proposed, screened, and only then agreed by the people who actually hold the power.<br />' +
-        '<span class="citation">Art. VII · Art. II §7</span></div></div>' +
+        '</div></div>' +
 
         /* lead — self version */
         '<div class="health-line"><span class="health-dot health-dot--green" aria-hidden="true"></span>' +
@@ -98,7 +98,7 @@
         '<div class="banner banner--warning">' + S.icon('alert-triangle', { size: 'sm' }) +
         '<div><strong>It runs first, and it is reach-independent and ungateable.</strong> ' +
         'A proposal that would lower proportionality, or drop the supermajority floor below majority-plus-one, is refused outright — no meter, no operator, and no amount of reach can wave it through. ' +
-        '<span class="citation">Art. VII · supermajority = ceil(serving × 2/3)</span></div></div>' +
+        '</div></div>' +
         '<p class="advanced-note">The filter reuses the same hardened validator the citizen game runs; it has no separate operator-plane copy to drift.</p>' +
         '</div></section>' +
 
@@ -108,7 +108,7 @@
         '<div class="meter-abc">' + meterCards + '</div>' +
         '<div class="plane-wall" style="margin-block-start:var(--space-4)"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Meter B supersedes Meter A.</strong> ' + esc(O.plane.supersession) +
-        ' <span class="citation">Art. VII</span></div></div>' +
+        '</div></div>' +
         '</section>' +
 
         /* Section 4 — freeze */
@@ -118,7 +118,7 @@
         '<div class="cluster" style="gap:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
         '<strong style="color:var(--gov-fg)">A running election or session pins its version.</strong></div>' +
         '<p style="font-size:var(--text-sm)">When play begins, the contest captures the constitutional version in force at that moment. Any agreed upgrade lands for the next contest — never the one mid-play — so no one can change the rules under the ballots already cast.</p>' +
-        '<span class="citation">Art. II §7 — the game-in-progress freeze</span>' +
+        '<span class="citation">the game-in-progress freeze</span>' +
         '<p class="advanced-note">Pinning is a pure function of the contest record; there is no manual override to thaw a running game.</p>' +
         '</div></section>' +
 
@@ -131,7 +131,7 @@
         '<div class="banner banner--info" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
         '<div><strong>Fail-closed, not best-effort.</strong> ' +
         'A divergent version stops the sync rather than silently merging mismatched rules. The behind peer must agree the upgrade — through the same dual meter — before its tail will flow again. ' +
-        '<span class="citation">Art. VII · Art. II §7</span></div></div>' +
+        '</div></div>' +
         '</section>' +
 
         /* closing plane note */

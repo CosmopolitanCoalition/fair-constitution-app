@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading the work posting…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/request-detail', title: 'Work posting', module: 'economy', nav: 'requests', citation: 'The request board — work postings · Art. I (freedom to contract), Art. III §6', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/request-detail', title: 'Work posting', module: 'economy', nav: 'requests', citation: 'The request board — work postings', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,11 +31,11 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> This surface is design-ahead of code: the forms (F-IND-014, F-IND-019) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> This surface is design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     function chip(name, id) {
-      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
     function render() {
@@ -44,14 +44,14 @@
 
       // Lifecycle stepper — apply -> org accepts -> F-IND-014 -> contract -> headcount
       var steps = [
-        { n: 1, title: 'You apply', actor: 'The worker', cite: 'Art. I — freedom to contract',
+        { n: 1, title: 'You apply', actor: 'The worker', cite: 'Freedom to contract',
           body: 'Any associated resident may apply. There is no means test and no qualification gate — applying never touches a civic right.' },
         { n: 2, title: 'The organization accepts', actor: post.org, cite: 'A mutual act',
           body: 'The hiring org reviews applications and accepts. Acceptance is the trigger — nothing binds until both sides act.' },
         { n: 3, title: 'Worker registration files', actor: 'The engine', form: ['Worker Registration', 'F-IND-014'],
-          body: 'Acceptance runs ' + chip('Worker Registration', 'F-IND-014') + ', which writes an <code>org_contracts</code> row of kind <code>labor_recurring</code>. Both parties sign on the record; the engine rejects a single-sided contract.' },
-        { n: 4, title: 'The hire counts toward co-determination', actor: 'Headcount', cite: 'Art. III §6',
-          body: 'The new <code>labor_recurring</code> contract increments the org’s worker headcount. A single hire can cross the <strong>100-employee first-seat threshold</strong> that earns workers a seat on the board.' }
+          body: 'Acceptance runs ' + chip('Worker Registration', 'F-IND-014') + ', which writes a recurring labor contract. Both parties sign on the record; the engine rejects a single-sided contract.' },
+        { n: 4, title: 'The hire counts toward co-determination', actor: 'Headcount', cite: 'Worker representation',
+          body: 'The new recurring labor contract increments the org’s worker headcount. A single hire can cross the <strong>100-employee first-seat threshold</strong> that earns workers a seat on the board.' }
       ];
 
       function stepRow(s) {
@@ -79,13 +79,13 @@
         '<span class="offer-kind">recurring labor · ' + esc(c.code) + '</span></div></div>' +
         '<div class="cluster" style="gap:var(--space-2)">' +
         S.pill('info', 'Hiring now', 'Open work posting on the request board') +
-        S.pill('info', 'Recurring shifts', 'org_contracts(labor_recurring)') +
+        S.pill('info', 'Recurring shifts', 'Recurring labor contract') +
         chip('Work Posting', post.form) + '</div></div>';
 
       var partyBoth =
         '<div class="agreement-floor">' + S.icon('lock', { size: 'sm' }) +
         '<span>Both parties sign. The worker and ' + esc(post.org) + ' each consent on the record — ' +
-        'the engine rejects any single-sided contract · <span class="citation">Art. I — Supremacy of Rights, no clause may waive a right</span></span></div>';
+        'the engine rejects any single-sided contract. No clause may waive a right.</span></div>';
 
       var parties =
         '<div class="agreement-parties">' +
@@ -96,16 +96,15 @@
       var codeterm =
         '<section class="card stack" aria-labelledby="cd-h">' +
         '<h2 id="cd-h">Why a hire matters — the co-determination threshold</h2>' +
-        '<p>Each accepted application adds a <code>labor_recurring</code> contract to the organization’s worker count. ' +
-        'The constitution earns workers board representation by headcount — the math is hardened and unamendable.</p>' +
+        '<p>Each accepted application adds a recurring labor contract to the organization’s worker count. ' +
+        'The constitution earns workers board representation by headcount — the math is locked and unamendable.</p>' +
         '<ul class="stack" style="gap:var(--space-2)">' +
-        '<li><strong>First worker seat at 100 employees.</strong> The hire that crosses 100 unlocks the org’s first board seat for workers · <span class="citation">Art. III §6 · HARDENED · worker_rep_min_employees</span></li>' +
-        '<li><strong>Worker / owner parity at 2,000 employees.</strong> Above parity, workers and owners hold equal board power · <span class="citation">Art. III §6 · worker_rep_parity_employees</span></li>' +
-        '<li><strong>No clause can waive it.</strong> A labor contract cannot bargain away the worker’s representation right · <span class="citation">Art. I — Supremacy of Rights</span></li>' +
+        '<li><strong>First worker seat at 100 employees.</strong> The hire that crosses 100 unlocks the org’s first board seat for workers.</li>' +
+        '<li><strong>Worker / owner parity at 2,000 employees.</strong> Above parity, workers and owners hold equal board power.</li>' +
+        '<li><strong>No clause can waive it.</strong> A labor contract cannot bargain away the worker’s representation right.</li>' +
         '</ul>' +
         '<p>See the live calculation on the operations site: ' +
-        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">Co-determination math <span class="v1-tag" title="opens the v1 operations site">v1</span></a> ' +
-        '(' + chip('Co-Determination', 'CLK-13/14') + ').</p>' +
+        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">Co-determination math <span class="v1-tag" title="opens the v1 operations site">v1</span></a>.</p>' +
         '</section>';
 
       document.getElementById('root').innerHTML =

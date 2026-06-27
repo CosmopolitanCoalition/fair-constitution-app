@@ -99,7 +99,7 @@
     function agendaHtml() {
       var KIND = { emergency_powers: 'Outstanding emergency powers', constitutional_matters: 'Constitutional matters', committee_report: 'Committee report', priority: 'Member priority', motion: 'Motions', statement: 'Statements', other: 'General' };
       var STATUS = { pending: ['info', 'Pending'], in_progress: ['warning', 'In progress'], done: ['success', 'Done'], none: ['neutral', '—'] };
-      var lockGloss = 'Constitutional order — cannot be reordered or removed · Art. II §2; §7';
+      var lockGloss = 'Constitutional order — cannot be reordered or removed.';
       var items = st.agenda.map(function (a) {
         var stt = STATUS[a.status] || STATUS.pending;
         return '<li class="lr-agenda-item' + (a.locked ? ' ag--locked' : '') + (a.current ? ' ag--current' : '') + (a.status === 'none' ? ' ag--none' : '') + '">' +
@@ -111,7 +111,7 @@
           '</li>';
       }).join('');
       var head = st.constitutionalOrder
-        ? '<p class="citation">slots 1–2 locked: outstanding emergency powers first, constitutional matters second — cannot be reordered · Art. II §2; §7 · hardened</p>'
+        ? '<p class="citation">slots 1–2 locked: outstanding emergency powers first, constitutional matters second — cannot be reordered</p>'
         : '<p class="citation">the chair sets the order; this is not a government, so there is no constitutional lock · the group/body’s own rules of order</p>';
       return '<section class="card"><span class="eyebrow">Agenda — ' + (st.constitutionalOrder ? 'constitutional order' : 'order of business') + '</span>' +
         head + '<ol class="lr-agenda" aria-label="Agenda">' + items + '</ol></section>';
@@ -125,7 +125,7 @@
     function floorHtml() {
       var holder = st.floorHolder ? findPresence(st.floorHolder) : null;
       var formChip = st.floor.form
-        ? '<span class="form-chip">' + esc(formTitle(st.floor.form)) + ' <span class="form-id">' + esc(st.floor.form) + '</span></span>'
+        ? '<span class="form-chip">' + esc(formTitle(st.floor.form)) + '</span>'
         : '';
       var howto = '<details class="about-surface" style="margin-block-start:var(--space-3)"><summary>' +
         S.icon('chevron-right', { size: 'sm' }) + ' How this works</summary><div class="about-surface-body">' +
@@ -147,7 +147,7 @@
       for (var j = 0; j < c.ownerSeats; j++) seats += '<span class="comp-seat comp-seat--owner">' + S.icon('building', { size: 'sm' }) + ' owner</span>';
       return '<div style="margin-block-start:var(--space-2)"><span class="eyebrow">Co-determination composition</span>' +
         '<div class="lr-composition" style="margin-block-start:var(--space-1)">' + seats + '</div>' +
-        '<p class="citation">' + c.workers.toLocaleString('en-US') + ' workers — above ' + c.threshold + ' (first seat), below ' + c.parity.toLocaleString('en-US') + ' (parity) · Art. III §6</p></div>';
+        '<p class="citation">' + c.workers.toLocaleString('en-US') + ' workers — above ' + c.threshold + ' (first seat), below ' + c.parity.toLocaleString('en-US') + ' (parity)</p></div>';
     }
     function formTitle(id) {
       var f = BY.forms[id];
@@ -190,7 +190,7 @@
         /* votes-in-favor meter */
         meterHtml(t.yes, v.serving, v.requiredYes,
           t.yes + ' yes of ' + v.serving + ' (all serving)',
-          'needs ' + v.requiredYes + ' of ' + v.serving + (v.thresholdClass === 'supermajority' ? ' · Art. VII' : ' · Art. II §2'), 'Votes in favor — of all serving') +
+          'needs ' + v.requiredYes + ' of ' + v.serving, 'Votes in favor — of all serving') +
         '<p class="gloss">' + esc(v.gloss || 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.') + '</p>' +
         (!decided && canCast()
           ? '<div class="lr-cast"><span class="citation">cast as ' + esc(window.CGA.state.get('role')) + ':</span>' +
@@ -282,7 +282,7 @@
         ? '<form class="lr-compose" data-act="post"><input class="field-input" aria-label="Post to the room" placeholder="Speak in the room…" /><button type="submit" class="btn btn--secondary btn--sm">Post</button></form>'
         : '<form class="lr-compose" data-act="post"><input class="field-input" aria-label="Post to the room" placeholder="Post to the group…" /><button type="submit" class="btn btn--secondary btn--sm">Post</button></form>';
       return '<div class="lr-chat-list">' + list + '</div>' + compose +
-        '<p class="citation" style="margin-block-start:var(--space-2)">Handles are pseudonymous (@u-…), never a legal name · Art. I' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Handles are pseudonymous (@u-…), never a legal name' +
         (st.variant === 'court' || st.constitutionalOrder || st.variant === 'committee' || st.variant === 'townhall' ? ' · in the halls you may file your own message as testimony' : '') + '</p>';
     }
     function voiceHtml() {
@@ -301,10 +301,10 @@
     function moderationNote() {
       if (st.residencyGated) {
         return '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-          '<strong style="color:var(--gov-fg)">This room cannot be censored.</strong> No operator, legislator, or judge may remove a post on viewpoint. The only removals are four narrow, logged carve-outs — a judicial order, protecting another’s rights, a personal block, or content-neutral anti-spam — and every one is itself a public record. <span class="citation">Art. I · there is no “remove for content” control here</span></div></div>';
+          '<strong style="color:var(--gov-fg)">This room cannot be censored.</strong> No operator, legislator, or judge may remove a post on viewpoint. The only removals are four narrow, logged carve-outs — a judicial order, protecting another’s rights, a personal block, or content-neutral anti-spam — and every one is itself a public record. <span class="citation">there is no “remove for content” control here</span></div></div>';
       }
       return '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">A private group may self-moderate.</strong> This space belongs to the group; its owner sets its house rules. It carries no constitutional force. <span class="citation">Art. I · freedom of association</span></div></div>';
+        '<strong style="color:var(--gov-fg)">A private group may self-moderate.</strong> This space belongs to the group; its owner sets its house rules. It carries no constitutional force. <span class="citation">freedom of association</span></div></div>';
     }
 
     function recordHtml() {
@@ -324,7 +324,7 @@
       return '<section class="lr-record"><div class="cluster" style="justify-content:space-between">' +
         '<span class="eyebrow">The record — testimony bridge</span>' +
         '<span class="never-federated" title="Plane B (Matrix) → Plane A (append-only public record)">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
-        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements in the halls are sealed into the append-only record · F-SOC-002 · Art. II §2 · pseudonymity preserved</p>' +
+        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements in the halls are sealed into the append-only record · pseudonymity preserved</p>' +
         rows + '</section>';
     }
 
@@ -334,7 +334,7 @@
 
     function howThisWorksHtml() {
       var forms = (st.forms || []).map(function (id) {
-        return '<span class="form-chip">' + esc(formTitle(id)) + ' <span class="form-id">' + esc(id) + '</span></span>';
+        return '<span class="form-chip">' + esc(formTitle(id)) + '</span>';
       }).join(' ');
       var reuse = (st.reusesV1 || []).map(function (r) { return '<a class="citation" href="' + S.hrefV1(r) + '">' + esc(r) + ' <span class="v1-tag">v1</span></a>'; }).join(' · ');
       var prod = (st.productionPages || []).map(function (p) { return '<code class="cc-code">' + esc(p) + '</code>'; }).join(' · ');

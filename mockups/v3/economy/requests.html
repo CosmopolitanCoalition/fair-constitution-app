@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading the request board…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/requests', title: 'Request board', module: 'economy', nav: 'requests', citation: 'The mirror of the market — work & mutual aid · Art. I', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/requests', title: 'Request board', module: 'economy', nav: 'requests', citation: 'The mirror of the market — work & mutual aid', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,7 +31,7 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     function offerRequestSwitch() {
@@ -44,7 +44,7 @@
     }
 
     function formChip(name, id) {
-      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
     function workCard(w) {
@@ -59,7 +59,7 @@
           formChip('Work posting', w.form) + '</p>' +
         '<div class="lr-note"><strong>On acceptance</strong> ' + esc(w.triggers) + '</div>' +
         '<p class="citation" style="margin-block-start:var(--space-2)">' +
-          'A hire that crosses the 100-worker line earns the first worker board seat · Art. III §6 · ' +
+          'A hire that crosses the 100-worker line earns the first worker board seat · ' +
           '<a href="' + S.hrefV1('organizations/co-determination.html') + '">this feeds co-determination ' +
           S.icon('arrow-right', { size: 'sm' }) + ' <span class="v1-tag">v1</span></a></p>' +
         '</div>';
@@ -92,7 +92,7 @@
         '<header><span class="eyebrow">The economy · the Open Market</span><h1>Request board</h1>' +
         offerRequestSwitch() +
         '<p class="page-intro">The mirror of the marketplace. A <strong>marketplace</strong> lists what people will <em>give</em> — goods and services for sale. The <strong>request board</strong> lists what people <em>need</em> — work to be done and a hand from a neighbor. Offer ↔ Request, the two sides of the same Open Market.</p>' +
-        '<p class="citation">The right to assemble, associate, and to economic freedom · Art. I</p></header>' +
+        '<p class="citation">The right to assemble, associate, and to economic freedom</p></header>' +
         plannedBanner() +
 
         '<section aria-labelledby="work-h"><h2 id="work-h">' + S.icon('briefcase', { size: 'sm' }) + ' Work board</h2>' +
@@ -106,9 +106,9 @@
 
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails on the request board</h2><ul>' +
         '<li><strong>A job posting is a request, not a contract.</strong> The binding instrument is only written when both sides agree — ' + formChip('Recurring labor agreement', 'F-IND-014') + '</li>' +
-        '<li><strong>Hiring feeds co-determination automatically.</strong> Headcount from accepted recurring-labor contracts is what trips the 100-worker first-seat and 2000-worker parity thresholds · <span class="citation">Art. III §6</span></li>' +
-        '<li><strong>Mutual aid is off the market.</strong> No price, no ledger entry, no federation — a private request between people · <span class="citation">Art. I</span></li>' +
-        '<li><strong>No paywall on participation.</strong> Posting, answering, or asking for help can never cost a fee tied to a civic right · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>Hiring feeds co-determination automatically.</strong> Headcount from accepted recurring-labor contracts is what trips the 100-worker first-seat and 2000-worker parity thresholds.</li>' +
+        '<li><strong>Mutual aid is off the market.</strong> No price, no ledger entry, no federation — a private request between people.</li>' +
+        '<li><strong>No paywall on participation.</strong> Posting, answering, or asking for help can never cost a fee tied to a civic right.</li>' +
         '</ul></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

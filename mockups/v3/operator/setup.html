@@ -113,7 +113,7 @@
           '<div class="orc-channels">' + chans +
             (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') + '</div>' +
           '<span class="citation">' + (r.consent === 'self'
-            ? 'self-asserted — one click' : 'governed — the wizard can only request; then dual-meter approval') + '</span>' +
+            ? 'self-asserted — one click' : 'governed — the wizard can only request; then a vote approves it') + '</span>' +
           (r.recommended
             ? btn('gold', 'Choose Record Keeper', 'check', 'Demo: selected the Record Keeper role — both channels are self-asserted.')
             : btn('secondary', 'Choose ' + r.label, 'arrow-right', 'Demo: requested the ' + r.label + ' role — it now awaits dual-meter approval before it can act.')) +
@@ -150,7 +150,7 @@
             '<input class="field-input" type="password" value="write-only-encrypted-token" autocomplete="off" /></label>' +
           '<p class="advanced-note">' + esc(O.broker.providers.map(function (p) { return p.name + ' (' + p.state + ')'; }).join(' · ')) + '</p>' +
           '<div class="banner banner--warning">' + S.icon('alert-triangle', { size: 'sm' }) +
-            '<div>Identity Broker is <strong>governed</strong>. Dropping a token sets up the channel, but <span class="mono">broker.dns</span> and <span class="mono">authority.grant</span> still await approval — and they touch a peer’s subtree, so co-affected peers must consent too (Meter C). <span class="pill pill--planned">future</span> non-Cloudflare DNS providers and wildcard certs are stubs.</div></div>' +
+            '<div>Identity Broker is <strong>governed</strong>. Dropping a token sets up the channel, but writing DNS and granting authority still await approval — and they touch a peer’s area, so affected peers must consent too. <span class="pill pill--planned">future</span> non-Cloudflare DNS providers and wildcard certs are stubs.</div></div>' +
           '<div class="cluster">' +
             btn('primary', 'Save token & write DNS first', 'globe', 'Demo: token stored write-only; A-record written before any certificate, so no Let’s Encrypt budget is burned on a name that failed.') +
             '<a class="btn btn--secondary" href="' + S.hrefV2('operator/dns.html') + '">' + S.icon('arrow-right', { size: 'sm' }) + ' Open DNS &amp; certificates</a>' +
@@ -159,9 +159,9 @@
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
           '<strong style="color:var(--gov-fg)">The honest truth: only Record Keeper is one-click.</strong> ' +
-          'Record Keeper’s channels are self-asserted, so you turn them on yourself. Archivist, Social Moderator and Identity Broker are <strong>governed</strong> — this wizard can only <em>request</em> them. They then wait for the dual meter: the operator board (Meter A) below a seated legislature, the seated government’s supermajority (Meter B) the moment one exists. ' +
+          'Record Keeper’s channels are self-asserted, so you turn them on yourself. Archivist, Social Moderator and Identity Broker are <strong>governed</strong> — this wizard can only <em>request</em> them. They then wait for approval: the operator board below a seated legislature, and the seated government’s supermajority the moment one exists. ' +
           esc(O.plane.wall) + '<br />' +
-          '<span class="citation">Authority is granted by the government, never self-claimed — Art. V §7 · governed channels = Meter B · co-affected peers = Meter C</span></div></div>';
+          '<span class="citation">Authority is granted by the government, never self-claimed. Governed roles need the government&rsquo;s vote; peers whose area is affected must agree too.</span></div></div>';
     }
 
     /* ---- step 4: you're set ---- */
@@ -202,15 +202,14 @@
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.plainNote) + ' ' +
         esc(O.plane.board) + '<br />' +
-        '<span class="citation">Authority ≠ leadership · earned by population, granted by the government, never self-asserted — Art. V §7</span></div></div>' +
+        '<span class="citation">Authority is not leadership. It is earned by population and granted by the government, never self-asserted.</span></div></div>' +
 
         stepper(active) +
         sections +
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) +
-        '<br /><span class="citation">forms — Identity Broker grant ' +
-        '<span class="form-id">F-SOC-004</span> is the legal floor; governed-role requests ride the dual-meter consent — Art. VII</span></div></div>';
+        '<br /><span class="citation">Governed-role requests need the government&rsquo;s approval before they can act.</span></div></div>';
 
       var root = document.getElementById('root');
       if (!root.__wired) {

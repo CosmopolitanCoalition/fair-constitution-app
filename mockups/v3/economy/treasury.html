@@ -15,7 +15,7 @@
     <div class="stack" id="econ-root"><p class="gloss">Loading public finance…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/treasury', title: 'Public finance', module: 'economy', nav: 'treasury', citation: 'Public finance — the public ledger · Art. II §9, Art. III §4, Art. V §4', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/treasury', title: 'Public finance', module: 'economy', nav: 'treasury', citation: 'Public finance — the public ledger', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,7 +31,7 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — public finance (Phase L).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…039, F-TRE-001…004) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — public finance.</strong> These surfaces are design-ahead of code. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     /* the budget cycle as a horizontal lifecycle / stepper */
@@ -39,8 +39,8 @@
       var steps = E.treasury.cycle.map(function (st, i) {
         // form-chip: the form NAME first, the ID second
         var chip = st.form
-          ? '<span class="form-chip">' + esc(st.detail.split(' · ')[0].split('—')[0].trim().slice(0, 28)) + '<span class="form-id">' + esc(st.form) + '</span></span>'
-          : '<span class="pill pill--info" title="no dedicated form — a derived consequence">derived step</span>';
+          ? '<span class="form-chip">' + esc(st.detail.split(' · ')[0].split('—')[0].trim().slice(0, 28)) + '</span>'
+          : '<span class="pill pill--info" title="a derived consequence">derived step</span>';
         return '<li class="lever-row" style="flex-direction:column;align-items:flex-start;border-inline-start:3px solid var(--gov-primary);padding-inline-start:var(--space-3)">' +
           '<div class="cluster" style="gap:var(--space-2)"><span class="form-id" style="border:1px solid var(--gov-border-strong)">' + (i + 1) + '</span>' +
           '<strong style="color:var(--gov-fg)">' + esc(st.step) + '</strong></div>' +
@@ -90,7 +90,7 @@
         return '<div class="card card--inset"><strong style="color:var(--gov-fg)">' + esc(r.name) + '</strong>' +
           '<div class="lever-val">' + esc(r.rate) + '</div>' +
           '<p class="gloss">' + esc(r.base) + '</p>' +
-          (r.civicExempt ? S.badge('info', 'Never on a civic right', 'shield') + ' <span class="citation">Art. II §8</span>' : '') +
+          (r.civicExempt ? S.badge('info', 'Never on a civic right', 'shield') : '') +
           '</div>';
       }).join('');
     }
@@ -102,7 +102,7 @@
           S.pill('wait', 'Gated', 'dual-door legislative act') + '</div>' +
           '<div class="lever-val">' + esc(b.amount) + '</div>' +
           '<p class="gloss">' + esc(b.basis) + '</p>' +
-          '<div class="cluster" style="gap:var(--space-2)"><span class="form-chip">Borrowing authority<span class="form-id">' + esc(b.form) + '</span></span>' +
+          '<div class="cluster" style="gap:var(--space-2)"><span class="form-chip">Borrowing authority</span>' +
           S.pill('info', b.status, 'drawdown against the authorized facility') + '</div></div>';
       }).join('');
     }
@@ -116,13 +116,12 @@
         '<p class="page-intro">How a jurisdiction raises, budgets, and spends money — entirely in the open. ' +
         'Revenue flows in, the legislature enacts a budget, the Board of Governors disburse it, and every movement lands in the ' +
         '<strong>public ledger</strong>: double-entry, append-only, and hash-chained, on the same audit chain as the rest of the record. ' +
-        'Jurisdiction and department accounts are public; people and organizations keep their own ledgers private.</p>' +
-        '<p class="citation">Public funds &amp; the public ledger · Art. II §9 (records) · Art. III §4 (the Board of Governors execute) · Art. V §4 (taxes &amp; borrowing)</p></header>' +
+        'Jurisdiction and department accounts are public; people and organizations keep their own ledgers private.</p></header>' +
         plannedBanner() +
 
         /* the budget cycle */
         '<section class="card" aria-labelledby="cyc-h"><h2 id="cyc-h">The budget cycle</h2>' +
-        '<p class="gloss">A single journey from revenue to record. Each gated step carries the form that performs it — name first, ID second.</p>' +
+        '<p class="gloss">A single journey from revenue to record. Each gated step carries the step that performs it.</p>' +
         cycleStepper() +
         '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('alert-triangle', { size: 'sm' }) +
         '<span>' + esc(E.treasury.rail) + '</span></p></section>' +
@@ -134,7 +133,7 @@
         '<th scope="col">Seq</th><th scope="col">Date</th><th scope="col">Debit</th><th scope="col">Credit</th>' +
         '<th scope="col" style="text-align:end">Amount</th><th scope="col">Kind</th><th scope="col">Hash</th>' +
         '</tr></thead><tbody>' + ledgerRows() + '</tbody></table></div>' +
-        '<p class="citation">Append-only, hash-chained records · Art. II §9 · same audit chain as <a href="' + S.hrefV1('system/public-records.html') + '">public records <span class="v1-tag">v1</span></a></p></section>' +
+        '<p class="citation">Append-only, hash-chained records · same audit chain as <a href="' + S.hrefV1('system/public-records.html') + '">public records <span class="v1-tag">v1</span></a></p></section>' +
 
         /* public accounts */
         '<section class="card" aria-labelledby="acc-h"><h2 id="acc-h">The accounts</h2>' +
@@ -155,33 +154,33 @@
         '<td style="text-align:end;font-weight:var(--weight-bold);font-family:var(--font-mono)">' + esc(bud.total) + '</td></tr>' +
         '</tbody></table></div>' +
         '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
-        '<span class="form-chip">Enact the budget<span class="form-id">F-LEG-038</span></span>' +
-        '<span class="form-chip">Disburse an appropriation<span class="form-id">F-TRE-001</span></span></div></section>' +
+        '<span class="form-chip">Enact the budget</span>' +
+        '<span class="form-chip">Disburse an appropriation</span></div></section>' +
 
         /* revenue + borrowing */
         '<section class="grid-2" aria-label="Revenue and borrowing">' +
         '<div class="card"><h2>Revenue</h2>' +
-        '<p class="gloss">Levies and fees on resources and assessed value — apportioned via the population records, never attached to a civic right · <span class="citation">Art. V §4</span></p>' +
+        '<p class="gloss">Levies and fees on resources and assessed value — apportioned via the population records, never attached to a civic right.</p>' +
         '<div class="stack">' + revenueCards() + '</div>' +
-        '<div class="cluster" style="margin-block-start:var(--space-2)"><span class="form-chip">Set a revenue levy<span class="form-id">F-LEG-037</span></span></div></div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)"><span class="form-chip">Set a revenue levy</span></div></div>' +
         '<div class="card"><h2>Borrowing</h2>' +
-        '<p class="gloss">A jurisdiction may borrow on its own credit — but only as a gated legislative act, never an administrative drawdown · <span class="citation">Art. V §4</span></p>' +
+        '<p class="gloss">A jurisdiction may borrow on its own credit — but only as a gated legislative act, never an administrative drawdown.</p>' +
         '<div class="stack">' + borrowingCards() + '</div></div>' +
         '</section>' +
 
         /* the economic clock context */
         '<div class="econ-clock"><div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The disbursement cadence</strong> — ' + esc(clk.label) + '. ' +
-        '<span class="citation">next run ' + esc(clk.nextRun) + ' · ' + esc(clk.cite) + '</span><br />' +
-        '<span class="gloss">The Board of Governors execute the budget on this clock · Art. III §4. The interval is itself a dual-door key.</span></div></div>' +
+        '<span class="citation">next run ' + esc(clk.nextRun) + '</span><br />' +
+        '<span class="gloss">The Board of Governors execute the budget on this clock. The interval is itself a dual-door key.</span></div></div>' +
 
         /* the no-paywall rail */
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold everywhere</h2><ul>' +
-        '<li><strong>No paywall on civic rights.</strong> No tax, fee, lien, or cost may ever attach to voting, candidacy, residency, or petitioning — a budget line or levy that does so is rejected · <span class="citation">Art. II §8 · HARDENED</span></li>' +
-        '<li><strong>The public ledger is append-only and hash-chained.</strong> A movement can never be edited or removed; corrections are new, balancing entries · <span class="citation">Art. II §9</span></li>' +
-        '<li><strong>The Board of Governors execute, they do not authorize.</strong> Spending authority comes from the enacted budget; the executive only disburses against it · <span class="citation">Art. III §4</span></li>' +
-        '<li><strong>Taxes and borrowing are legislative acts.</strong> Revenue is set, and credit drawn, only by the legislature — never an admin knob · <span class="citation">Art. V §4</span></li>' +
-        '<li><strong>Currency stays root-reserved.</strong> Only the most-encompassing jurisdiction issues it and sets its worth · <span class="citation">Art. V §5</span></li>' +
+        '<li><strong>No paywall on civic rights.</strong> No tax, fee, lien, or cost may ever attach to voting, candidacy, residency, or petitioning — a budget line or levy that does so is rejected.</li>' +
+        '<li><strong>The public ledger is append-only and hash-chained.</strong> A movement can never be edited or removed; corrections are new, balancing entries.</li>' +
+        '<li><strong>The Board of Governors execute, they do not authorize.</strong> Spending authority comes from the enacted budget; the executive only disburses against it.</li>' +
+        '<li><strong>Taxes and borrowing are legislative acts.</strong> Revenue is set, and credit drawn, only by the legislature — never an admin knob.</li>' +
+        '<li><strong>Currency stays root-reserved.</strong> Only the most-encompassing jurisdiction issues it and sets its worth.</li>' +
         '<li><strong>Individual finances are private.</strong> Wallets, receipts, and tax filings never federate — like ballots.</li>' +
         '</ul><p class="citation">Full constitutional sweep: <a href="../CONSTITUTION-CURRENCY-OPS.md">CONSTITUTION-CURRENCY-OPS.md</a> · ' +
         '<a href="' + S.hrefV2('economy/economy-home.html') + '">Back to the exchange ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></section>';

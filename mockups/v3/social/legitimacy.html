@@ -156,7 +156,7 @@
             (more === 0
               ? '<span class="pill pill--pass">' + S.icon('check', { size: 'sm' }) + ' threshold met — a government may boot</span>'
               : '<span class="pill pill--' + pairTone + '">' + fmt(more) + ' more to activate</span>') +
-            ' <span class="citation">CLK-06 · activation tier</span></div></div>';
+            ' <span class="citation">activation tier</span></div></div>';
         }
       } else {
         pairing = '<p class="lr-note">' + S.icon('info', { size: 'sm' }) +
@@ -183,7 +183,7 @@
         '<p class="cc-small">For each sample population, the threshold is <code class="cc-code">clamp(ceil(k · pop<sup>1/exponent</sup>), floor, cap)</code> — the cube-root mirrors Taagepera, so a giant city and a hamlet both reach a sane, bounded threshold.</p>' +
         table +
         '<div class="lr-note" style="margin-block-start:var(--space-3)"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">Gates a boot, never the franchise.</strong> ' + esc(TP.rail) + ' <span class="citation">CI-4</span></div></div>' +
+        '<strong style="color:var(--gov-fg)">Gates a boot, never the franchise.</strong> ' + esc(TP.rail) + '</div></div>' +
         '</section>';
     }
     function paramCard(label, value) {
@@ -203,7 +203,7 @@
         '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) + '<div><strong>Planned — Phase I (reach &amp; activation tiers).</strong> The denominator (WorldPop vs CivicPopulation) and the k-anonymity floor are still open decisions; this surface is design-ahead.</div></div>' +
         /* CI-1 display-only rail */
         '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">Display only — this never affects governance.</strong> ' + esc(L.note) + ' <span class="citation">CI-1 · no money or reach fact ever gates a governance act</span></div></div>' +
+        '<strong style="color:var(--gov-fg)">Display only — this never affects governance.</strong> ' + esc(L.note) + ' <span class="citation">no money or reach fact ever gates a governance act</span></div></div>' +
         /* picker + gauge + series */
         '<section aria-labelledby="gauge-h"><h2 id="gauge-h">Reach for a jurisdiction</h2>' +
         pickerHtml() +
@@ -216,7 +216,7 @@
         /* what it is used for */
         '<section class="card"><span class="eyebrow">What it is used for</span><ul>' +
         '<li><strong>A transparency badge</strong> on the jurisdiction and the public square.</li>' +
-        '<li><strong>Activation tiers</strong> — a jurisdiction’s government may boot once its verified population crosses the tier threshold (gates the boot, never the franchise · CI-4).</li>' +
+        '<li><strong>Activation tiers</strong> — a jurisdiction’s government may boot once its verified population crosses the tier threshold (gates the boot, never the franchise).</li>' +
         '<li><strong>Full-scale-demo thresholds</strong> — reaching a scale milestone, never advantaging anyone.</li>' +
         '</ul><p class="citation">It changes no vote, no moderation, no eligibility — ever.</p></section>';
 

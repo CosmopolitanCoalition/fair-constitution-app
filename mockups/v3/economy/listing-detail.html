@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading the listing…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/listing-detail', title: 'Listing', module: 'economy', nav: 'marketplace', citation: 'A marketplace offer — Open Market · Art. III §5, Art. V §5', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/listing-detail', title: 'Listing', module: 'economy', nav: 'marketplace', citation: 'A marketplace offer — Open Market', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -31,14 +31,14 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the tools are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
     function neverFederated() {
       return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
         'Your purchase is private — receipts and balance never federate, like a ballot.</span>';
     }
     function formChip(name, id) {
-      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
     function render() {
@@ -77,8 +77,8 @@
 
       var cgcNote = isCgc
         ? '<div class="lr-note">' + S.icon('info', { size: 'sm' }) +
-            '<div><strong>A common-good corporation sells on identical terms.</strong> ' + esc(L.note || ('A CGC sells on identical terms to any private seller · Art. III §5')) +
-            ' Its intellectual property stays perpetually public domain. <span class="citation">Art. III §5</span></div></div>'
+            '<div><strong>A common-good corporation sells on identical terms.</strong> ' + esc(L.note || ('A CGC sells on identical terms to any private seller')) +
+            ' Its intellectual property stays perpetually public domain.</div></div>'
         : '';
 
       var qtyLabel = (typeof L.qty === 'number') ? (L.qty + ' available') : esc(L.qty);
@@ -88,7 +88,7 @@
         '<h1>' + esc(L.title) + '</h1>' +
         '<p class="page-intro">One listing on the Open Market — what it is, who is selling it, and what happens when you order. ' +
         'Priced in the <span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + ' (' + esc(c.code) + '), an abstract unit of account.</p>' +
-        '<p class="citation">A marketplace offer · Open Market · Art. III §5, Art. V §5</p></header>' +
+        '<p class="citation">A marketplace offer · Open Market</p></header>' +
         plannedBanner() +
 
         '<p><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/marketplace.html') + '">' +
@@ -119,10 +119,10 @@
         '<ol class="stack" style="padding-inline-start:0;margin-block-start:var(--space-3)">' + stepperHtml + '</ol></section>' +
 
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails on every order</h2><ul>' +
-        '<li><strong>Both sides must sign.</strong> The engine rejects a single-sided contract — an order is only an agreement once buyer and seller both consent · <span class="citation">Art. I Supremacy of Rights</span></li>' +
-        '<li><strong>Identical terms for everyone.</strong> A CGC trades on the same Open Market as any private seller; its IP stays perpetually public domain · <span class="citation">Art. III §5</span></li>' +
+        '<li><strong>Both sides must sign.</strong> The engine rejects a single-sided contract — an order is only an agreement once buyer and seller both consent.</li>' +
+        '<li><strong>Identical terms for everyone.</strong> A CGC trades on the same Open Market as any private seller; its IP stays perpetually public domain.</li>' +
         '<li><strong>Your purchase is private.</strong> The receipt and the unit movement write only your local ledger — never federated, like a ballot.</li>' +
-        '<li><strong>No paywall on civic rights.</strong> Trading here can never become a cost attached to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>No paywall on civic rights.</strong> Trading here can never become a cost attached to voting, candidacy, residency, or petitioning.</li>' +
         '</ul></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

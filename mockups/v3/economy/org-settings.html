@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading organization economics…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/org-settings', title: 'Organization economics', module: 'economy', nav: 'org-settings', citation: 'Organization economics · Art. III §5–6, Art. II §8', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/org-settings', title: 'Organization economics', module: 'economy', nav: 'org-settings', citation: 'Organization economics', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -34,7 +34,7 @@
 
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-ORG-008, F-IND-018…023, F-TRE-001…004) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     function neverFederated(text) {
@@ -43,7 +43,7 @@
     }
 
     function formChip(name, id) {
-      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+      return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
     function render() {
@@ -85,9 +85,9 @@
         'Now: ' + esc(cd.status) + '.</p></div>' +
 
         '<ul style="margin-block-start:var(--space-3)">' +
-        '<li><strong>First worker seat at ' + esc(cd.threshold) + ' employees.</strong> Below this the board may be owner-only · <span class="citation">Art. III §6 · HARDENED</span></li>' +
-        '<li><strong>Worker/owner parity at ' + esc(cd.parity.toLocaleString('en-US')) + ' employees.</strong> At and above, worker seats equal owner seats · <span class="citation">Art. III §6 · HARDENED</span></li>' +
-        '<li><strong>The split is computed, never set by hand.</strong> Headcount changes (a hire crossing a threshold) recompute composition automatically · <span class="citation">CLK-13 / CLK-14</span></li>' +
+        '<li><strong>First worker seat at ' + esc(cd.threshold) + ' employees.</strong> Below this the board may be owner-only.</li>' +
+        '<li><strong>Worker/owner parity at ' + esc(cd.parity.toLocaleString('en-US')) + ' employees.</strong> At and above, worker seats equal owner seats.</li>' +
+        '<li><strong>The split is computed, never set by hand.</strong> Headcount changes (a hire crossing a threshold) recompute composition automatically.</li>' +
         '</ul>' +
         '<p class="citation">The hardened co-determination math: ' +
         '<a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination.html <span class="v1-tag">v1</span></a></p>' +
@@ -112,9 +112,8 @@
         '<thead><tr><th scope="col">Share class</th><th scope="col" style="text-align:end">Count</th><th scope="col">Holders</th></tr></thead>' +
         '<tbody>' + classRows + '</tbody></table></div>' +
         '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('scale', { size: 'sm' }) +
-        '<div><strong>The conversion rule.</strong> ' + esc(stock.conversion) + ' <span class="citation">Art. III §5</span></div></div>' +
-        '<p class="gloss" style="margin-block-start:var(--space-2)">A common-good corporation’s intellectual property is perpetually public domain and is never privatized · ' +
-        '<span class="citation">Art. III §5 · HARDENED</span></p>' +
+        '<div><strong>The conversion rule.</strong> ' + esc(stock.conversion) + '</div></div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">A common-good corporation’s intellectual property is perpetually public domain and is never privatized.</p>' +
         '</section>';
 
       /* ---- 3. dues ---- */
@@ -132,7 +131,7 @@
         '<div class="lr-note">' + S.icon('shield', { size: 'sm' }) +
         '<div>' + esc(dues.rail) + '</div></div>' +
         '<ul style="margin-block-start:var(--space-3)">' +
-        '<li><strong>Never a civic-right gate.</strong> No due, fee, or cost may attach to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>Never a civic-right gate.</strong> No due, fee, or cost may attach to voting, candidacy, residency, or petitioning.</li>' +
         '<li><strong>Always opt-in.</strong> A member can join and leave; dues lapse, the membership ends — no right is ever withheld.</li>' +
         '</ul>' +
         '</section>';
@@ -145,7 +144,7 @@
         '<p>' + neverFederated('The org’s balances, receipts, and movements live only on this server — never federated, like a ballot.') + '</p>' +
         '<div class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
         '<div><strong>Inter-organizational units within scaling institutions.</strong> Where an organization spans nested jurisdictions, its internal transfers move on the same abstract unit of account ' +
-        'and reconcile through joint, signer-gated ledgers · <span class="citation">Art. V §2 (shared resources) + Art. I</span></div></div>' +
+        'and reconcile through joint, signer-gated ledgers.</div></div>' +
         '<p class="citation" style="margin-block-start:var(--space-2)">Co-owned, signer-gated accounts: ' +
         '<a href="' + S.hrefV2('economy/joint-ledgers.html') + '">Joint ledgers ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
         '</section>';
@@ -168,8 +167,8 @@
         '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('shield', { size: 'sm' }) +
         '<div><strong>The hard rail.</strong> ' + esc(taxes.rail) + '</div></div>' +
         '<ul style="margin-block-start:var(--space-3)">' +
-        '<li><strong>Apportioned by population.</strong> A levy’s share is set against the population records, not by fiat · <span class="citation">Art. II §2</span></li>' +
-        '<li><strong>Never on a civic right.</strong> No tax, fee, lien, or cost may attach to exercising a civic right or obligation · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>Apportioned by population.</strong> A levy’s share is set against the population records, not by fiat.</li>' +
+        '<li><strong>Never on a civic right.</strong> No tax, fee, lien, or cost may attach to exercising a civic right or obligation.</li>' +
         '</ul>' +
         '</section>';
 
@@ -178,7 +177,7 @@
         '<h1>Organization economics</h1>' +
         '<p class="page-intro">How an organization governs its board, holds its shares, charges its dues, keeps its ledger, ' +
         'and settles its taxes — each surface fenced by a constitutional floor. Reading for <strong>' + esc(org.name) + '</strong>.</p>' +
-        '<p class="citation">Co-determination · Art. III §6 · conversion &amp; public-domain IP · Art. III §5 · no civic-right gate · Art. II §8</p>' +
+        '<p class="citation">Co-determination · conversion &amp; public-domain IP · no civic-right gate</p>' +
         '<div class="cluster" style="margin-block-start:var(--space-2)">' +
         formChip('Organization economic settings', 'F-ORG-008') +
         formChip('Ownership transfer', 'F-ORG-005') +

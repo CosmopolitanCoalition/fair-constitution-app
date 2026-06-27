@@ -24,9 +24,9 @@
 
   /* The plane wall + the operator-as-board framing. */
   var plane = {
-    wall: 'Operator-plane vocabulary is "capability", never "role" — it can never collide with the citizen R-01…R-30 system. Operator accounts have no link to citizen users.',
+    wall: 'Operator-plane vocabulary is "capability", never "role" — it can never collide with the citizen role system. Operator accounts have no link to citizen users.',
     board: 'Operators are an overlapping de-facto board, answerable to the in-game government. Authority is earned by population and granted by the seated government — never self-asserted. Authority ≠ leadership.',
-    supersession: 'Below a seated legislature the operator board (R-08-anchored, neutral + logged) relays rights-protection. The moment a legislature seats itself, Meter B supermajority supersedes the operator board — automatically, as a pure function of facts.',
+    supersession: 'Below a seated legislature the operator board (neutral + logged) relays rights-protection. The moment a legislature seats itself, the seated government supersedes the operator board — automatically, as a pure function of facts.',
     plainNote: 'Running a node is infrastructure, not a citizen privilege. It buys you no extra vote, no seat, no say in any constitutional act.'
   };
 
@@ -59,10 +59,10 @@
       what: 'Keeps a copy of the public record and serves the network’s maps and data.',
       duty: 'Stay synced and reachable so peers and newcomers can cold-start from you.',
       cta: 'Establish (one click)', note: 'Both channels are self-asserted — no approval needed. The recommended first node.' },
-    { id: 'archivist', label: 'Archivist', channels: ['client.serve'], extra: 'read-write authority (Art. V §7 petition)', consent: 'governed',
+    { id: 'archivist', label: 'Archivist', channels: ['client.serve'], extra: 'read-write authority (by petition)', consent: 'governed',
       what: 'Serves browser clients, and may petition to take read-write authority for a jurisdiction.',
       duty: 'Serve honestly; read-write is the jurisdiction’s government to grant, never yours to claim.',
-      cta: 'Request', note: 'client.serve is governed; read-write authority is a separate Art. V §7 government decision (Meter B).' },
+      cta: 'Request', note: 'Serving clients is governed; read-write authority is a separate government decision.' },
     { id: 'social_moderator', label: 'Social Moderator', channels: ['matrix.homeserver', 'voice.sfu', 'client.serve'], consent: 'governed',
       what: 'Hosts the live social commons — the square, the halls, voice and video.',
       duty: 'Host the rooms; you hold no power to remove on viewpoint — only the four logged carve-outs and the legal floor act.',
@@ -75,7 +75,7 @@
 
   /* the dual-meter consent. */
   var meters = [
-    { id: 'A', name: 'Meter A — the operator board', who: 'the active operators (anchored to the R-08 election-board kind, neutral)',
+    { id: 'A', name: 'Meter A — the operator board', who: 'the active operators (neutral)',
       threshold: '1 operator → just you · 2 → unanimity · 3+ → two-thirds', applies: 'the bootstrap path, before a government is seated' },
     { id: 'B', name: 'Meter B — the seated government', who: 'the constituent legislatures, by supermajority (a multi-jurisdiction vote)',
       threshold: 'supermajority of constituent jurisdictions', applies: 'the moment a legislature is seated — it SUPERSEDES Meter A' },
@@ -108,7 +108,7 @@
     peerCount: 3, lastSync: '2031-06-21 09:02 UTC'
   };
 
-  /* peers (ESM-20 lifecycle). */
+  /* peers (lifecycle). */
   var peers = [
     { name: 'Box A — Earth root', serverId: 'srv-1a…001', url: 'https://earth.cga.example', status: 'trust_established', relation: 'host', version: 'cv-2031.6', release: 'g-8b', heartbeat: '12s ago', syncSeq: 88412 },
     { name: 'Brooklyn mirror', serverId: 'srv-2b…047', url: 'https://brooklyn.cga.example', status: 'syncing', relation: 'mirror', version: 'cv-2031.6', release: 'g-8b', heartbeat: '40s ago', syncSeq: 88390 },
@@ -153,7 +153,7 @@
 
   /* G-ID identity layer. */
   var gid = {
-    attestation: 'A short-lived (≤ 24h), revocable, instance-signed snapshot of a person’s derived standing (their role codes), bound to a device key. Only the HOME authority attests. It carries only public standing — never credentials, locations, or ballots.',
+    attestation: 'A short-lived (≤ 24h), revocable, instance-signed snapshot of a person’s derived standing, bound to a device key. Only the HOME authority attests. It carries only public standing — never credentials, locations, or ballots.',
     deviceEnrol: 'A device enrols its Ed25519 PUBLIC key — the secret never leaves the device (no escrow).',
     forwardedWrite: [
       { check: 'Attestation', detail: 'The issuer’s pinned key verifies the snapshot — fails closed on expiry, revocation, or mutation.' },
@@ -167,23 +167,23 @@
   /* the operator-plane moderation + the legal floor (M-5). */
   var moderation = {
     flip: {
-      below: 'BELOW the flip (no seated government): the operator board (R-08-anchored, neutral) relays rights-protection (M-2), every removal LOGGED, attestation_id NULL so it can never be mistaken for a judicial order. M-1 judicial is unavailable (no judge yet).',
-      above: 'AT/ABOVE the flip (a seated legislature): only a live judicial attestation (R-19/R-20) acts; the operator is no longer honored.',
+      below: 'BELOW the flip (no seated government): the operator board (neutral) relays rights-protection, every removal logged, with no judicial order attached so it can never be mistaken for one. Judicial removal is unavailable (no judge yet).',
+      above: 'AT/ABOVE the flip (a seated legislature): only a live judicial order acts; the operator is no longer honored.',
       automatic: 'The flip is a pure function of facts — when a legislature seats itself, authority moves from operator-relay to judicial-only, with no manual mode change.'
     },
     carveouts: [
-      { id: 'm1_judicial', label: 'Judicial order', who: 'a judge (R-19/R-20), once seated', logged: true },
+      { id: 'm1_judicial', label: 'Judicial order', who: 'a judge, once seated', logged: true },
       { id: 'm2_rights', label: 'Rights protection', who: 'operator relay (below) → judicial (above)', logged: true },
       { id: 'm3_block', label: 'Per-user block', who: 'each person, client-side (an ignore list)', logged: false, note: 'never an appservice action; never logged' },
       { id: 'm4_antispam', label: 'Content-neutral anti-spam', who: 'the system (behaviour/volume, never viewpoint)', logged: true }
     ],
     viewpointImpossible: 'Viewpoint / community-guidelines removal has NO code path. The carve-out map only knows judicial-order and rights-protection; there is no “remove for content” to invoke.',
     m5: {
-      label: 'M-5 — the physical-law legal-compliance floor',
+      label: 'The physical-law legal-compliance floor',
       what: 'Removal of already-posted ILLEGAL material — off the constitutional plane, content-neutral.',
       auth: 'An operator account by key-possession (an active account) — NOT a standing attestation.',
-      basis: ['csam_hashmatch (purges the bytes — DELETE, not quarantine)', 'court_order_specific (redacts)', 'true_threat (redacts)'],
-      rails: 'A closed enum, grown only by code release — never in-game. It NEVER writes a server-ACL; the matched-list source is recorded, never the hash itself; the sealed evidence trail is append-only.',
+      basis: ['Known illegal-image match (purges the bytes — deletes, not quarantines)', 'Specific court order (redacts)', 'True threat (redacts)'],
+      rails: 'A closed list, grown only by code release — never in-game. It never changes who can post; the matched-list source is recorded, never the image itself; the sealed evidence trail is append-only.',
       form: 'F-SOC-004'
     }
   };
@@ -192,9 +192,9 @@
   var versioning = {
     selfVersion: 'cv-2031.6',
     kinds: ['constitutional bump (the hardened surface)', 'schema bump', 'app release'],
-    admissibility: 'A hardened admissibility filter runs FIRST and is reach-independent and ungateable — a proposal that would lower proportionality or the supermajority floor is refused outright (Art. VII).',
+    admissibility: 'An admissibility filter runs FIRST and is reach-independent and ungateable — a proposal that would lower proportionality or the supermajority floor is refused outright.',
     consent: 'Then the same dual-meter consent: operator board (Meter A) until a government seats, then seated supermajority (Meter B); peer-mesh unanimity (Meter C) for co-affected peers.',
-    freeze: 'A game-in-progress freeze (Art. II §7): an election or session already running pins its version so the rules can’t change mid-play.',
+    freeze: 'A game-in-progress freeze: an election or session already running pins its version so the rules can’t change mid-play.',
     peerMatch: [
       { peer: 'Box A — Earth root', version: 'cv-2031.6', match: true },
       { peer: 'Brooklyn mirror', version: 'cv-2031.6', match: true },

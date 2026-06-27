@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading the civic stipend…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/stipend', title: 'Civic stipend', module: 'economy', nav: 'stipend', citation: 'The civic stipend — residency floor + role differential · Art. I, Art. V §5, Art. II §8', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/stipend', title: 'Civic stipend', module: 'economy', nav: 'stipend', citation: 'The civic stipend — residency floor + role differential', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -35,9 +35,31 @@
       return p ? p.name : id;
     }
 
+    /* strip constitutional codes out of a human-readable display string */
+    function plainify(s) {
+      if (s == null) return s;
+      return String(s)
+        // drop trailing " · Art. …" / " · CLK-…" / " · F-…" style citation tails
+        .replace(/\s*·\s*(Art\.[^·]*|CLK-[^·]*|F-[A-Z]+-[0-9.…]+[^·]*|WF-[^·]*)\s*$/g, '')
+        // drop inline article/section citations
+        .replace(/\s*\(?\bArt\.\s*[IVXLC]+(?:\s*§\s*\d+)?\)?/g, '')
+        // role-code runs like "R-09" or "R-19/R-20", with a trailing label word
+        .replace(/\bR-\d+(?:\s*\/\s*R-\d+)*\s*/g, '')
+        .replace(/\s*\bF-[A-Z]+-[0-9.…]+/g, '')
+        .replace(/\s*\bCLK-\d+\b/g, '')
+        // tidy leftover punctuation / parens / spacing
+        .replace(/\(\s*\)/g, '')
+        .replace(/\(\s*,\s*/g, '(')
+        .replace(/,\s*\)/g, ')')
+        .replace(/\s+([,.;])/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/[\s·,;]+$/g, '')
+        .trim();
+    }
+
     function plannedBanner() {
       return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the stipend keys live in <span class="form-id">constitutional_settings</span> and the run is <span class="form-id">F-TRE-004</span> — reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the stipend keys and the run are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
     }
 
     function neverFederated() {
@@ -77,9 +99,9 @@
       // ----- eligibility floor (residency ONLY) as an lr-note
       var floorNote =
         '<div class="lr-note">' + S.icon('user', { size: 'sm' }) +
-        '<div><strong>Who receives it — residency, and nothing else.</strong> ' + esc(st.eligibilityFloor) +
+        '<div><strong>Who receives it — residency, and nothing else.</strong> ' + esc(plainify(st.eligibilityFloor)) +
         ' It is the same gate that unlocks voting and candidacy: an absolute right, no means test, no application, no qualification of any kind. ' +
-        '<span class="citation">Art. I · the residency floor</span></div></div>';
+        '<span class="citation">the residency floor</span></div></div>';
 
       // ----- econ clock
       var clockBlock =
@@ -87,8 +109,8 @@
         '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The economic clock</strong> — ' + esc(clk.label) + '. ' +
         '<span class="citation">last run ' + esc(clk.lastRunDate) + ' (' + esc(clk.lastRun) + ') · next run ' + esc(clk.nextRun) +
-        ' · ' + esc(clk.form) + ' · ' + esc(clk.cite) + '</span><br />' +
-        '<span class="gloss">' + esc(clk.note) + '</span></div></div>';
+        '</span><br />' +
+        '<span class="gloss">' + esc(plainify(clk.note)) + '</span></div></div>';
 
       // ----- three classes as stipend-class cards
       var classCards = st.classes.map(function (c) {
@@ -96,8 +118,8 @@
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
           '<strong style="color:var(--gov-fg)">' + esc(c.label) + '</strong>' +
           '<span class="sc-bump">+' + esc(c.bump) + ' ' + esc(sym) + '</span></div>' +
-          '<span class="gloss">' + esc(c.basis) + '</span>' +
-          '<span class="citation">Who: ' + esc(c.who) + '</span></div>';
+          '<span class="gloss">' + esc(plainify(c.basis)) + '</span>' +
+          '<span class="citation">Who: ' + esc(plainify(c.who)) + '</span></div>';
       }).join('');
 
       // ----- examples as stipend-example rows
@@ -109,16 +131,15 @@
         return '<div class="stipend-example">' +
           '<span style="color:var(--gov-fg-strong);flex:0 0 9rem;min-inline-size:0">' + esc(name) + '</span>' +
           '<span class="agreement-parties" style="flex:1 1 14rem">' + roleChips + '</span>' +
-          '<span class="gloss" style="flex:1 1 10rem">' + esc(ex.breakdown) + '</span>' +
+          '<span class="gloss" style="flex:1 1 10rem">' + esc(plainify(ex.breakdown)) + '</span>' +
           '<span class="se-amt">' + esc(ex.amount) + ' ' + esc(sym) + '</span></div>';
       }).join('');
 
       // ----- rails as a list with citations
       var railItems = st.rails.map(function (r) {
         var parts = r.split(' · ');
-        var body = esc(parts[0]);
-        var cite = parts.length > 1 ? ' <span class="citation">' + esc(parts.slice(1).join(' · ')) + '</span>' : '';
-        return '<li>' + body + cite + '</li>';
+        var body = esc(plainify(parts[0]));
+        return '<li>' + body + '</li>';
       }).join('');
 
       // ----- last-run aggregate (public) vs receipt (private)
@@ -140,7 +161,7 @@
         '<p class="page-intro">A <strong>differential, not a salary.</strong> Everyone associated by residency receives the same floor; ' +
         'on top of it, those carrying certain duties receive a small recognition bump. Because pay can <em>never</em> become a ' +
         'qualification for office, the differential is add-only, capped, and writes nothing but the private ledger — it grants no ' +
-        'seat, no vote, no advantage. <span class="citation">Art. I Right to Stand</span></p>' +
+        'seat, no vote, no advantage. <span class="citation">the Right to Stand</span></p>' +
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
         plannedBanner() +
 
@@ -157,7 +178,7 @@
         perRoleControls() +
 
         '<section class="card" aria-labelledby="examples-h"><h2 id="examples-h">Worked examples</h2>' +
-        '<p class="gloss">Same floor for all; the spread is only the duty differential. R-08 (election board) is deliberately not in the paid set.</p>' +
+        '<p class="gloss">Same floor for all; the spread is only the duty differential. The election board is deliberately not in the paid set.</p>' +
         exampleRows +
         '<p class="citation">Roles resolved against active office rows — a bump ends the day the duty ends.</p></section>' +
 
@@ -169,7 +190,7 @@
         '<section class="card card--inset" aria-labelledby="keys-h"><h2 id="keys-h">These numbers are dual-door keys</h2>' +
         '<p>The base, the cap, every bump, and the interval itself are <span class="dual-door">' + S.icon('lock', { size: 'sm' }) + 'dual-door</span> ' +
         'monetary keys — adjusted only by the constitutional offices through a chamber supermajority and constituent consent, never an admin knob. ' +
-        'Because constituents’ own money is spent, they must agree (anti-self-dealing). <span class="citation">F-LEG-031 · Art. V §5</span></p>' +
+        'Because constituents’ own money is spent, they must agree (anti-self-dealing).</p>' +
         '<p class="citation">See every key, its value, and its enacting act on ' + S.hrefV2('economy/units.html') + ' — Units &amp; monetary policy.</p></section>';
 
       // wire the per-role pay controls (simulated; updates the published rates)
