@@ -71,8 +71,40 @@
     return [cx + R * Math.cos(a), cy - R * Math.sin(a)];
   }
 
+  function roundChamber(st, opts) {
+    /* THE LEGISLATURE IN THE ROUND (v3): a full circle of seats around a central
+       well, the Speaker at the head. Seats are ordered by TENURE, then relative
+       PERFORMANCE — most senior flank the chair, juniors meet at the bottom; the
+       recognized member steps to the well at the centre. */
+    var seated = st.presence.filter(function (p) { return p.role !== 'gallery' && p.role !== 'chair'; });
+    var chair = st.presence.filter(function (p) { return p.role === 'chair'; })[0] || st.chair;
+    seated.sort(function (a, b) {
+      return (b.tenure || 0) - (a.tenure || 0) || (b.perf || 0) - (a.perf || 0);
+    });
+    var cx = 400, cy = 180, R = 132;
+    var N = seated.length, slots = N + 1, step = 360 / slots;
+    var voters = seated.filter(function (p) { return !p.vacant; }).map(function (p) { return p.handle; });
+    var vm = voteMap(st, opts, voters);
+    var s = '<circle class="cring" cx="' + cx + '" cy="' + cy + '" r="' + R + '"></circle>';
+    /* the well at the centre */
+    s += podium(cx, cy, 'the floor');
+    /* the Speaker at the head (top of the ring) */
+    var headPt = arcPoint(cx, cy, R, 90);
+    s += avatar(headPt[0], headPt[1], chair, { chair: true, chairLabel: chairLabelFor(st), speaking: st.floorHolder === chair.handle });
+    /* members clockwise from the chair, in seniority order */
+    seated.forEach(function (p, i) {
+      var pt = arcPoint(cx, cy, R, 90 - (i + 1) * step);
+      s += avatar(pt[0], pt[1], p, {
+        speaking: st.floorHolder === p.handle, vacant: p.vacant, vote: vm[p.handle], seatNo: p.seat || null
+      });
+    });
+    /* the recognized member at the well */
+    s += wellActor(st, 'the floor', cx, cy - 4);
+    return { viewBox: '0 0 800 380', body: s, sceneLabel: 'chamber in the round, seated by tenure then performance' };
+  }
+
   function hemicycle(st, opts) {
-    /* legislature / exec / townhall: members on a fanned arc facing the front */
+    /* townhall and fallbacks: members on a fanned arc facing the front */
     var members = st.presence.filter(function (p) { return p.role !== 'gallery' && p.role !== 'chair'; });
     var chair = st.presence.filter(function (p) { return p.role === 'chair'; })[0] || st.chair;
     var N = Math.max(members.length, 1);
@@ -118,31 +150,31 @@
   }
 
   function boardTable(st, opts) {
-    var workers = st.presence.filter(function (p) { return p.track === 'worker'; });
-    var owners = st.presence.filter(function (p) { return p.track === 'owner'; });
+    /* co-determination, embodied: the joint chair at the head, WORKER seats down
+       one side and OWNER seats down the other — never stacked one over another. */
     var chair = st.presence.filter(function (p) { return p.role === 'chair'; })[0] || st.chair;
-    var cx = 400, cy = 160;
+    var workers = st.presence.filter(function (p) { return p.track === 'worker' && p.role !== 'gallery' && p.handle !== chair.handle; });
+    var owners = st.presence.filter(function (p) { return p.track === 'owner' && p.role !== 'gallery' && p.handle !== chair.handle; });
+    var cx = 400, cy = 175;
     var voters = st.presence.filter(function (p) { return p.role !== 'gallery'; }).map(function (p) { return p.handle; });
     var vm = voteMap(st, opts, voters);
-    var s = '<rect class="ctable" x="250" y="120" width="300" height="80" rx="40"></rect>' +
-      '<text class="czone-label" x="' + cx + '" y="165" text-anchor="middle">board table</text>';
+    var s = '<ellipse class="ctable" cx="' + cx + '" cy="' + cy + '" rx="118" ry="74"></ellipse>' +
+      '<text class="czone-label" x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle">board table</text>';
     /* joint chair at the head */
-    s += avatar(cx, 70, chair, { chair: true, chairLabel: 'joint chair', speaking: st.floorHolder === chair.handle });
-    /* worker seats along the top edge, owner seats along the bottom edge */
-    var wOther = workers.filter(function (p) { return p.role !== 'chair'; });
-    var oOther = owners.filter(function (p) { return p.role !== 'chair'; });
-    var workerLine = (chair.track === 'worker' ? [] : []).concat(workers.filter(function (p) { return p.handle !== chair.handle; }));
-    workerLine.forEach(function (p, i) {
-      var x = 300 + (i + 1) * (200 / (workerLine.length + 1));
-      s += avatar(x, 105, p, { speaking: st.floorHolder === p.handle, vote: vm[p.handle], tag: 'worker' });
-    });
-    oOther.forEach(function (p, i) {
-      var x = 300 + (i + 1) * (200 / (oOther.length + 1));
-      s += avatar(x, 215, p, { speaking: st.floorHolder === p.handle, vote: vm[p.handle], tag: 'owner' });
-    });
-    s += '<text class="czone-tag czone-tag--worker" x="300" y="95" text-anchor="middle">worker seats</text>';
-    s += '<text class="czone-tag czone-tag--owner" x="300" y="245" text-anchor="middle">owner seats</text>';
-    return { viewBox: '0 0 800 290', body: s, sceneLabel: 'board table' };
+    s += avatar(cx, 62, chair, { chair: true, chairLabel: 'joint chair', speaking: st.floorHolder === chair.handle });
+    /* a column of seats down each flank, vertically spread so none overlaps */
+    function column(list, x, side) {
+      var n = list.length;
+      list.forEach(function (p, i) {
+        var y = cy - (n > 1 ? 48 : 0) + (n > 1 ? (i * (96 / (n - 1))) : 0);
+        s += avatar(x, y, p, { speaking: st.floorHolder === p.handle, vote: vm[p.handle], tag: side });
+      });
+    }
+    column(workers, cx - 175, 'worker');
+    column(owners, cx + 175, 'owner');
+    s += '<text class="czone-tag czone-tag--worker" x="' + (cx - 175) + '" y="86" text-anchor="middle">worker seats</text>';
+    s += '<text class="czone-tag czone-tag--owner" x="' + (cx + 175) + '" y="86" text-anchor="middle">owner seats</text>';
+    return { viewBox: '0 0 800 300', body: s, sceneLabel: 'board table — workers and owners flanking the joint chair' };
   }
 
   function committee(st, opts) {
@@ -242,7 +274,7 @@
   /* ----------------------------------------------------------- dispatch */
   function layout(st, opts) {
     switch (st.variant) {
-      case 'legislative': return hemicycle(st, opts);
+      case 'legislative': return roundChamber(st, opts);
       case 'townhall': return hemicycle(st, opts);
       case 'exec': return roundTable(st, opts, 'equal-power table');
       case 'group': return roundTable(st, opts, 'a circle of chairs');

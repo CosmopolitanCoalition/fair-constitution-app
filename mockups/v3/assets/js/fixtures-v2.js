@@ -242,13 +242,13 @@
         tallies: { yes: 4, no: 2, abstain: 1 }, outcome: 'pending',
         gloss: 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.' },
       presence: [
-        P('yuki-tanaka', 1, 'chair'),
-        P('marcus-chen', 2, 'floor', { speaking: true }),
-        P('kwame-mensah', 3, 'member'),
-        { handle: 'u-seat4', name: null, seat: 4, role: 'vacant', online: false, vacant: true },
-        P('asha-okonkwo', 5, 'member'),
-        G('u-jpetersen', 'member', { seat: 6 }), G('u-msantos', 'member', { seat: 7 }),
-        G('u-anwosu', 'member', { seat: 8 }), G('u-laronov', 'member', { seat: 9 }),
+        P('yuki-tanaka', 1, 'chair', { tenure: 9, perf: 96 }),
+        P('marcus-chen', 2, 'floor', { speaking: true, tenure: 6, perf: 91 }),
+        P('kwame-mensah', 3, 'member', { tenure: 5, perf: 84 }),
+        { handle: 'u-seat4', name: null, seat: 4, role: 'vacant', online: false, vacant: true, tenure: 0, perf: 0 },
+        P('asha-okonkwo', 5, 'member', { tenure: 4, perf: 88 }),
+        G('u-jpetersen', 'member', { seat: 6, tenure: 3, perf: 72 }), G('u-msantos', 'member', { seat: 7, tenure: 2, perf: 78 }),
+        G('u-anwosu', 'member', { seat: 8, tenure: 2, perf: 66 }), G('u-laronov', 'member', { seat: 9, tenure: 1, perf: 61 }),
         G('u-harborwatch', 'gallery'), G('u-tamb', 'gallery')
       ],
       queue: [

@@ -222,6 +222,7 @@
         if (/recognize/i.test(c)) act = ' data-act="recognize"';
         else if (/call the (floor )?vote|call the vote/i.test(c)) act = ' data-act="call-vote"';
         else if (/speaking clock/i.test(c)) act = ' data-act="clock"';
+        else if (/advance the agenda/i.test(c)) act = ' data-act="advance"';
         return '<button type="button" class="btn btn--secondary btn--sm"' + (live ? act : ' disabled') + '>' + esc(c) + '</button>';
       }).join('');
       return '<section class="card"><div class="cluster" style="justify-content:space-between">' +
@@ -364,9 +365,12 @@
         '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> holds the floor</span>' +
         (st.vote ? '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> yes</span><span><span class="lr-legend-dot" style="background:var(--status-danger)"></span> no</span><span><span class="lr-legend-dot" style="background:var(--status-warning)"></span> abstain</span>' : '') +
         '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> chair</span></div>';
+      var orderNote = st.variant === 'legislative'
+        ? '<p class="citation" style="margin-block-start:var(--space-2)">A chamber in the round — the Speaker at the head, members seated by tenure, then by relative performance.</p>'
+        : '';
       return '<section class="lr-chamber"><div class="lr-chamber-head">' +
         '<span class="eyebrow">In ' + esc(SCENE_NAME[st.variant] || 'the room') + ' — you are here</span>' + legend + '</div>' +
-        window.CGA.chamber.svg(st, { voteActive: voteCalled }) + '</section>';
+        window.CGA.chamber.svg(st, { voteActive: voteCalled }) + orderNote + '</section>';
     }
 
     /* ---------------------------- compose the page ---------------------------- */
@@ -455,6 +459,19 @@
       render();
     }
 
+    /* the chair runs the agenda — advance to the next item of business */
+    function advance() {
+      var items = st.agenda, ci = -1, i;
+      for (i = 0; i < items.length; i++) { if (items[i].current) { ci = i; break; } }
+      var ni = ci + 1;
+      while (ni < items.length && items[ni].status === 'none') ni++;
+      if (ni >= items.length) { S.announce('The agenda is complete — the chair may adjourn and seal the minutes.'); return; }
+      if (ci >= 0) { items[ci].current = false; items[ci].status = 'done'; }
+      items[ni].current = true; items[ni].status = 'in_progress';
+      S.announce('Advanced to agenda item ' + items[ni].position + ': ' + items[ni].title);
+      render();
+    }
+
     root.addEventListener('click', function (ev) {
       var b = ev.target.closest ? ev.target.closest('[data-act]') : null;
       if (!b || b.tagName === 'FORM') return;
@@ -464,6 +481,7 @@
       else if (act === 'clock') startClock();
       else if (act === 'cast') cast(b.getAttribute('data-v'));
       else if (act === 'raise') raiseHand();
+      else if (act === 'advance') advance();
     });
     root.addEventListener('submit', function (ev) {
       var f = ev.target.closest ? ev.target.closest('[data-act="post"]') : null;

@@ -163,6 +163,7 @@ a.class-card:hover { border-color: var(--gov-border-strong); text-decoration: no
 
 /* tables / benches / zones / podium / stage */
 .ctable { fill: color-mix(in oklch, var(--gov-surface-2) 80%, var(--gov-bg)); stroke: var(--gov-border-strong); stroke-width: 1.5; }
+.cring { fill: none; stroke: var(--gov-border-strong); stroke-width: 1.5; stroke-dasharray: 2 5; opacity: 0.7; }
 .cbench { fill: color-mix(in oklch, var(--cc-gold-400) 10%, var(--gov-surface-2)); }
 .czone rect { fill: color-mix(in oklch, var(--gov-surface-2) 70%, var(--gov-bg)); stroke: var(--gov-border); stroke-width: 1; }
 .czone.cwitness rect { stroke: var(--status-info); }
