@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jurisdiction Bootstrap — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Jurisdiction Bootstrap <span class="citation">WF-JUR-01</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-01", "title": "Jurisdiction Bootstrap", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-JUR-01"], "forms": [], "citation": "Art. II §1; Art. VI · WF-JUR-01", "flow": "WF-JUR-01", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-01",
+ "name": "Jurisdiction Bootstrap",
+ "timeScale": "Rare",
+ "trigger": "Critical verified population in a loaded boundary",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-JUR"
+ ],
+ "terminal": "Boundary becomes a live self-governing jurisdiction; full bootstrap sequence (Sheet 6 of roles/forms chart) executes",
+ "basis": "Art. II §1; Art. VI",
+ "entity": "Jurisdiction",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "System",
+   "action": "Preloaded boundary accumulates verified residents to critical population",
+   "outcome": "Activation",
+   "engine": "CLK-06",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "System",
+   "action": "Execute bootstrap sequence: first election → legislature constitutes → exec → judiciary",
+   "outcome": "Stages 1–7 of Bootstrap Sequence sheet (roles/forms chart)",
+   "engine": "WF-ELE-02 → WF-LEG-01 → WF-EXE-01 → WF-JUD-01",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "Enable federation participation",
+   "outcome": "Jurisdiction fully live within the nesting stack",
+   "engine": "WF-JUR-06",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

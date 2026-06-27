@@ -23,9 +23,11 @@
   var CGA = window.CGA = window.CGA || {};
 
   var SRC = (document.currentScript && document.currentScript.src) || '';
-  /* …/mockups/v2/assets/js/shell-v2.js → ROOT_V1 = …/mockups/ ; ROOT_V2 = …/mockups/v2/ */
+  /* v2 is now SELF-CONTAINED: it holds its own copy of every v1 asset and page,
+     so both roots resolve INSIDE …/mockups/v2/. hrefV1() points at the
+     operations pages copied into this version — it never escapes to ../ anymore. */
   var ROOT_V2 = SRC.replace(/assets\/js\/shell-v2\.js.*$/, '');
-  var ROOT_V1 = ROOT_V2.replace(/v2\/$/, '');
+  var ROOT_V1 = ROOT_V2;
 
   function fail(msg) {
     var b = document.createElement('div');

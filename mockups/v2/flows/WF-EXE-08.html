@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Investigation Order — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · EXE</span>
+        <h1>Investigation Order <span class="citation">WF-EXE-08</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-EXE-08", "title": "Investigation Order", "module": "flows", "nav": null, "roles": ["R-14"], "workflows": ["WF-EXE-08"], "forms": [], "citation": "Art. III §4 (full & equal investigative power) · WF-EXE-08", "flow": "WF-EXE-08", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-EXE-08",
+ "name": "Investigation Order",
+ "timeScale": "Medium",
+ "trigger": "Executive oversight concern",
+ "actors": [
+  "R-14"
+ ],
+ "institutions": [
+  "I-DEP",
+  "I-BOG"
+ ],
+ "terminal": "Investigation record; findings can feed WF-EXE-06 or legislation",
+ "basis": "Art. III §4 (full & equal investigative power)",
+ "entity": null,
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-14/15/16",
+   "action": "Open investigation into own department (full & equal power per member)",
+   "outcome": "Scope and records access defined",
+   "form": "F-EXE-004",
+   "screen": {
+    "href": "executive/executive-actions.html",
+    "params": {
+     "role": "R-14"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "I-DEP/I-BOG",
+   "action": "Produce records; hearings as needed",
+   "outcome": "Findings published",
+   "engine": "Investigation tooling",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 3,
+   "actor": "R-14/15/16",
+   "action": "Act on findings",
+   "outcome": "BRANCH: policy proposal (WF-EXE-07) | removal request (WF-EXE-06) | legislative referral | close",
+   "engine": "—",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {
+     "role": "R-14"
+    }
+   },
+   "branches": [
+    {
+     "label": "policy proposal (WF-EXE-07)",
+     "goto": {
+      "wf": "WF-EXE-07",
+      "step": 1
+     }
+    },
+    {
+     "label": "removal request (WF-EXE-06)",
+     "goto": {
+      "wf": "WF-EXE-06",
+      "step": 1
+     }
+    },
+    {
+     "label": "legislative referral",
+     "goto": "terminal:legislative referral"
+    },
+    {
+     "label": "close",
+     "goto": "terminal:close"
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

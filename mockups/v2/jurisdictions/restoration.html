@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Constitutional restoration — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="drill-banner"></div>
+      <noscript><p class="gloss">The drill banner needs JavaScript; restoration mode is dormant by default.</p></noscript>
+
+      <header>
+        <span class="eyebrow">Jurisdictions · restoration</span>
+        <h1>Constitutional restoration — Article VI</h1>
+        <p class="page-intro">If a government is countermanded, captured, or destroyed, the constitution does
+          not pause — restoration cascades through three tiers until a legitimate government stands again.
+          Each tier activates only when the one above it cannot act. This page is the standing drill.</p>
+        <p class="citation">Detection → restoration elections cascade · Art. VI §2–3 · WF-JUR-07</p>
+      </header>
+
+      <section class="card" aria-labelledby="conditions-h">
+        <h2 id="conditions-h">Activation conditions</h2>
+        <p class="cc-small">Restoration mode arms when any one of three conditions is detected for a
+          jurisdiction's government. Detection is evidence-based and judicially reviewable — never a
+          unilateral switch.</p>
+        <div class="grid-2" id="condition-cards"></div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Countermanded / captured or disabled / destroyed · Art. VI §2</p>
+      </section>
+
+      <section class="card" aria-labelledby="cascade-h">
+        <h2 id="cascade-h">The restoration cascade</h2>
+        <ol class="flow-steps" id="cascade-steps"></ol>
+        <p class="gloss">Restoration elections reuse the bootstrap election machinery — system-run, STV/Droop,
+          constitutional defaults (<a href="bootstrap.html">bootstrap sequence</a>, WF-ELE-02).</p>
+        <noscript><p class="gloss">Tier 1: constituent jurisdictions elect a new legislature · Tier 2: the
+          encompassing jurisdiction calls elections · Tier 3: individuals self-organize new jurisdictions per
+          the Template.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="legitimacy-h">
+          <h2 id="legitimacy-h">Legitimacy scoring</h2>
+          <p class="cc-small">When more than one body claims to be the government, legitimacy is assessed
+            against three criteria — the same tests the Template applies to all authority.</p>
+          <ul style="padding-inline-start:var(--space-5)">
+            <li><strong>Minimize consent violations</strong> — fewest people governed without their consent.</li>
+            <li><strong>Balance interests uniformly</strong> — no constituency privileged over another.</li>
+            <li><strong>Govern effectively</strong> — actually able to execute the constitutional order.</li>
+          </ul>
+          <p class="citation">Legitimacy criteria · Art. VI §3 · Art. V §1 (Authority by Consent)</p>
+        </section>
+
+        <section class="card" aria-labelledby="defense-h">
+          <h2 id="defense-h">Defensive forces</h2>
+          <p>Defensive forces are bound to protect the <strong>most legitimate</strong> government — the
+            claimant scoring highest on the criteria — not the incumbent, not the strongest, not their own
+            chain of command's preference.</p>
+          <p class="citation">Defensive forces protect the most legitimate government · Art. VI §2–3</p>
+          <p class="gloss">During restoration, elections, sessions, and courts that still function cannot be
+            disrupted — the same hard guarantee that bounds emergency powers (Art. II §7).</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where restoration sits in the Jurisdiction lifecycle</h2>
+        <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Restoration-Mode is a branch, not an end
+          state — the jurisdiction returns to Self-Governing the moment a restored government is seated and
+          certified.</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-07.html">WF-JUR-07 — constitutional restoration (Art. VI)</a>.
+            Tier elections hand off to <a href="../flows/WF-ELE-02.html">WF-ELE-02 — bootstrap first election</a>;
+            tier 3 self-organization re-enters <a href="../flows/WF-JUR-01.html">WF-JUR-01 — jurisdiction bootstrap</a>.</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — the [Restoration-Mode (Art. VI)] branch
+            highlighted above while the drill is active.</p>
+          <p><strong>Drill control:</strong> toggle "Restoration" in the mockup controls to arm the drill
+            (condition: captured · tier 1 active).</p>
+          <p class="citation">Art. VI §2–3 · Art. II §7 · WF-JUR-07</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/restoration',
+      title: 'Constitutional restoration',
+      module: 'jurisdictions',
+      nav: 'jurisdiction-browser',
+      roles: ['R-03', 'R-09'],
+      workflows: ['WF-JUR-07'],
+      forms: [],
+      citation: 'Restoration cascade: constituents → encompassing → individuals · Art. VI §2–3',
+      flow: 'WF-JUR-07',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var DRILL = W.restorationDrill; /* { badge, condition: 'captured', tier: 1, tierLabel } */
+
+      var CONDITIONS = [
+        { id: 'countermanded', name: 'Countermanded', icon: 'alert-triangle',
+          desc: 'The government is overridden contrary to the constitution — its lawful acts are blocked or replaced by an authority with no constitutional basis.' },
+        { id: 'captured', name: 'Captured or disabled', icon: 'shield',
+          desc: 'The institutions exist but no longer answer to their constituents — seized, coerced, or procedurally locked so they cannot act.' },
+        { id: 'destroyed', name: 'Destroyed', icon: 'x',
+          desc: 'The institutions no longer exist — disaster, war, or collapse has removed the government entirely.' }
+      ];
+
+      var TIERS = [
+        { n: 1, name: 'Tier 1 — constituent jurisdictions elect', actor: 'Constituent legislatures + populations',
+          desc: 'The constituent jurisdictions of the affected government jointly call and run elections for a new legislature, using the standard election machinery.' },
+        { n: 2, name: 'Tier 2 — encompassing jurisdiction calls elections', actor: 'Encompassing legislature + election board',
+          desc: 'If the constituents cannot act, the next encompassing jurisdiction calls the restoration elections on their behalf.' },
+        { n: 3, name: 'Tier 3 — individuals self-organize', actor: 'Individuals (R-01 → R-03)',
+          desc: 'If no functioning level remains, individuals self-organize new jurisdictions per the Template — re-entering the bootstrap sequence from a dormant boundary.' }
+      ];
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var active = !!st.scenario.restoration;
+
+        document.getElementById('drill-banner').innerHTML = active
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">' + esc(DRILL.badge) + ' · condition: ' + esc(DRILL.condition) + '</span> ' +
+            esc(DRILL.tierLabel) + ' — restoration elections are being prepared by the constituent ' +
+            'jurisdictions. Functioning elections, sessions, and courts continue undisturbed. ' +
+            '<span class="citation">Art. VI §2–3 · WF-JUR-07</span></div></div>'
+          : '<div class="banner banner--info" role="status">' + S.icon('info') +
+            '<div><span class="banner-title">Restoration mode dormant — no activation condition detected.</span> ' +
+            'The walkthrough below is the standing drill. Toggle "Restoration" in the mockup controls to arm it. ' +
+            '<span class="citation">Art. VI §2 · WF-JUR-07</span></div></div>';
+
+        document.getElementById('condition-cards').innerHTML = CONDITIONS.map(function (c) {
+          var hit = active && c.id === DRILL.condition;
+          var badge = hit
+            ? S.badge('danger', 'Condition met — drill', 'alert-triangle')
+            : S.badge('neutral', 'Not detected', 'check');
+          return '<div class="card card--inset">' +
+            '<h3 style="display:flex;align-items:center;gap:var(--space-2);margin-block-end:var(--space-2)">' +
+            S.icon(c.icon, { size: 'sm' }) + ' ' + esc(c.name) + '</h3>' +
+            '<p class="cc-small">' + esc(c.desc) + '</p>' + badge + '</div>';
+        }).join('');
+
+        document.getElementById('cascade-steps').innerHTML = TIERS.map(function (tier) {
+          var cur = active && tier.n === DRILL.tier;
+          var status = cur
+            ? S.badge('danger', 'Active — drill', 'alert-triangle')
+            : (active && tier.n < DRILL.tier ? S.badge('neutral', 'Bypassed', 'check') : S.badge('neutral', 'Standby', 'clock'));
+          return '<li class="flow-step' + (cur ? ' flow-step--current' : '') + '"' + (cur ? ' aria-current="step"' : '') + '>' +
+            '<div class="flow-step-head"><span class="flow-step-n">' + tier.n + '</span>' +
+            '<span class="flow-actor">' + esc(tier.actor) + '</span>' + status + '</div>' +
+            '<p class="flow-action">' + esc(tier.name) + '</p>' +
+            '<p class="flow-outcome">' + esc(tier.desc) + '</p>' +
+            '</li>';
+        }).join('');
+
+        var entity = BY.entities['Jurisdiction'];
+        document.getElementById('jur-states').innerHTML = entity.states.map(function (s2, i) {
+          var cur = active && s2.indexOf('[Restoration-Mode') === 0;
+          return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(s2) + '</span>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

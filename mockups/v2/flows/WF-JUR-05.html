@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Peer Discovery & Border Settlement — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Peer Discovery & Border Settlement <span class="citation">WF-JUR-05</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-05", "title": "Peer Discovery & Border Settlement", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-JUR-05"], "forms": [], "citation": "Art. V §2, §7 · WF-JUR-05", "flow": "WF-JUR-05", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-05",
+ "name": "Peer Discovery & Border Settlement",
+ "timeScale": "Rare",
+ "trigger": "Two instances both claiming most-encompassing discover each other",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-JUR"
+ ],
+ "terminal": "Recognized peers with settled borders; optional synchronization or union path",
+ "basis": "Art. V §2, §7",
+ "entity": "Federation Peer",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "Instances",
+   "action": "Two most-encompassing claimants discover each other",
+   "outcome": "Identity + authority claims exchanged",
+   "engine": "Federation handshake",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Governments",
+   "action": "Establish communication and trade channels",
+   "outcome": "Peaceful coexistence state",
+   "engine": "Treaty tooling",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 3,
+   "actor": "Governments",
+   "action": "Negotiate and settle boundaries",
+   "outcome": "Recognized borders recorded both sides",
+   "engine": "Boundary negotiation + PostGIS",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 4,
+   "actor": "Governments",
+   "action": "Optionally synchronize records / pursue union",
+   "outcome": "BRANCH: remain peers | merge",
+   "engine": "WF-JUR-06 / WF-JUR-02",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "remain peers",
+     "goto": "terminal:remain peers"
+    },
+    {
+     "label": "merge",
+     "goto": "terminal:merge"
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

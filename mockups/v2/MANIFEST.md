@@ -200,18 +200,31 @@ deep-links to it via `hrefV1()` (carries demo state). Journeys live at `journeys
 
 ---
 
-## 3. Architecture — how v2 wires to v1
+## 3. Architecture — v2 is a self-contained version (v1 + the game layer)
 
-- **No fork.** v2 pages load v1's `colors_and_type.css`, `fonts.css`, `mockup.css`, plus
-  `v2.css`; and v1's `demo-state.js`, `fixtures.js`, `icons.js`, `i18n.js`, plus
-  `fixtures-v2.js` (augments `CGA.fixtures.v2`) and `shell-v2.js` (the sole v2 chrome).
-- **Load order** (every v2 page): `<head>` css (4) + `demo-state.js`; `</body>`
-  `fixtures.js → fixtures-v2.js → manifest.js → icons.js → i18n.js → shell-v2.js`.
+**v2 is NOT a thin overlay on v1 — it is a complete, standalone version.** `mockups/v2/`
+holds its **own copy** of every v1 asset and page (the operations screens live at
+`v2/electoral/…`, `v2/legislature/…`, etc.; the v1 operations index is `v2/operations.html`)
+plus the game-layer additions. Nothing in v2 reaches up to `../`; you can drop `mockups/v2/`
+anywhere on its own and it works completely. (`mockups/` remains the prior v1 version.)
+
+- **Same design system, copied in, never forked.** v2 uses v1's `colors_and_type.css`,
+  `fonts.css`, `mockup.css` (the token + component source) — now living at `v2/assets/css/` —
+  plus `v2.css`; and v1's `demo-state.js`, `fixtures.js`, `icons.js`, `i18n.js`, `shell.js`
+  (for the operations pages), plus `fixtures-v2.js` (augments `CGA.fixtures.v2`), the
+  `fixtures-econ/operator/learn/translation/support.js` spines, `components-v2.js`,
+  `chamber-v2.js`, and `shell-v2.js` (the v2 chrome). All under `v2/assets/`.
+- **Load order** (every v2 game page): `<head>` css + `demo-state.js`; `</body>`
+  `fixtures.js → fixtures-v2.js [→ domain spines] → manifest.js → icons.js → i18n.js →
+  shell-v2.js [→ components-v2.js]` — all from the local `assets/`. The copied operations
+  pages keep their v1 load order (`…/shell.js`).
+- **One merged manifest.** `v2/manifest.js` carries **all 194 records** (the v2 game layer +
+  the operations pages); both `shell.js` and `shell-v2.js` read `window.CGA_MANIFEST` from it.
 - **`CGA.shellV2`** exposes `icon, esc, badge, pill, formatPop, admLabel, hrefV1, hrefV2,
-  isBuiltV2, plannedFlag, announce, activePersona, refresh`. `pill(tone,label,tip)` is the
-  operator-console plain-language pattern (human label, precise term in the tooltip).
-- **Two roots:** `hrefV2(rel)` stays inside `mockups/v2/`; `hrefV1(rel)` crosses back to
-  `mockups/` — both carry demo state through `CGA.state.link()`.
+  isBuiltV2, plannedFlag, announce, activePersona, tour, tourHref, refresh`.
+- **Both roots resolve INSIDE v2.** `hrefV2(rel)` and `hrefV1(rel)` both root at `mockups/v2/`
+  (carrying demo state via `CGA.state.link()`); `hrefV1` points at the operations pages copied
+  into this version — it no longer escapes to `../`.
 - **Demo bar extended additively:** `demo-state.js` `DEFAULTS.scenario` gained five v2 flags
   (`liveSession, marketplace, ubiRun, groupForming, tradeTalk`) — the frozen vocabulary is
   *extended, never renamed*; v1 pages ignore them.

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Department reporting — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Executive · board of governors</span>
+        <h1>Department reporting — Public Works &amp; Utilities</h1>
+        <p class="page-intro">The governor surface. The board implements rules pursuant to the charter and the acts
+          the legislature passes, and files periodic operational and financial reports to both the executive and the
+          legislature. Everything filed here is public record.</p>
+        <p class="citation">Rule implementation &amp; reporting · Art. III §4 — cycle: WF-EXE-09</p>
+      </header>
+
+      <section class="card" aria-labelledby="who-h">
+        <h2 id="who-h">Your appointment</h2>
+        <p><strong>Dr. Samuel Adeyemi</strong> · Board of Governors member and joint-elected chair,
+          Public Works &amp; Utilities.</p>
+        <div class="cluster">
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Seated · R-18</span>
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"></use></svg> Politically neutral office</span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Nominated F-EXE-001 · consented F-LEG-020 · term 2030-07-01 → 2040-07-01 · 10-yr civil-officer term · CLK-09 · Art. III §4</p>
+        <p class="amendable"><span class="amendable-value">10 years</span> civil appointment term
+          <span class="amendable-meta">civil_appointment_years · default 10 · in lockstep with judicial_appointment_years · set at founding (no amending act yet) · Art. II §9</span></p>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="rules-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="rules-h">Rule register</h2>
+          <div id="form-bog-001"></div>
+        </div>
+        <div class="table-wrap" style="margin-block-start:var(--space-3)">
+          <table class="table">
+            <thead><tr><th scope="col">Rule</th><th scope="col">Enabling act</th><th scope="col">Status</th></tr></thead>
+            <tbody id="rule-rows">
+              <tr><td colspan="3">Loading from fixtures…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding-block:var(--space-3);padding-inline:var(--space-6)">
+          <button type="button" class="btn btn--secondary btn--sm" id="rule-btn">Draft a new implementation rule</button>
+          <p id="rule-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          <p class="citation">Rules implement — they cannot exceed — the charter and enabling acts · Art. III §4</p>
+        </div>
+        <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The rule register requires
+          JavaScript. In force: a stormwater discharge standard (enabling act: New York County Clean Air Act) and a
+          storm-debris collection schedule (enabling act: the Hurricane Dorinda emergency declaration).</p></noscript>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="reports-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="reports-h">Report filings</h2>
+          <div id="form-bog-002"></div>
+        </div>
+        <div class="table-wrap" style="margin-block-start:var(--space-3)">
+          <table class="table">
+            <thead><tr><th scope="col">Report</th><th scope="col">Recipients</th><th scope="col">Due</th><th scope="col">Status</th></tr></thead>
+            <tbody id="report-rows">
+              <tr><td colspan="4">Loading from fixtures…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Due dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC — filed reports append to the
+          <a href="../system/public-records.html">public record</a> · Art. III §4</p>
+        <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The report table requires
+          JavaScript. Q1 2031 was filed on time; Q2 2031 is due 2031-07-15; a Hurricane Dorinda special report is due
+          2031-06-30.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-09.html">WF-EXE-09 department reporting cycle</a> —
+            fed by <a href="../flows/WF-EXE-05.html">WF-EXE-05 appointment</a>; findings here can surface in
+            <a href="../flows/WF-EXE-08.html">WF-EXE-08 investigations</a>.</p>
+          <p><strong>Entity state machine:</strong> Department / Board — this surface is the <em>Reporting</em>
+            stage of the cycle: Operating → Reporting → back to Operating (or Re-chartered | Dissolved).</p>
+          <p><strong>Form IDs:</strong> the workflows catalog cites these forms as F-GOV-001/002; the canonical IDs
+            are F-BOG-001/002 — both aliases render on the form cards above.</p>
+          <p class="citation">Art. III §4 · CLK-09</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'executive/department-reporting',
+      title: 'Department reporting',
+      module: 'executive',
+      nav: 'department-reporting',
+      roles: ['R-18'],
+      workflows: ['WF-EXE-09'],
+      forms: ['F-BOG-001', 'F-BOG-002'],
+      citation: 'Implementation rules & reports to executive + legislature · Art. III §4 · CLK-09',
+      flow: 'WF-EXE-09',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+      var sim = { ruleDrafted: false, specialFiled: false }; /* page-local simulated states */
+
+      var rules = [
+        { id: 'PWU-R-2031-03', name: 'Stormwater discharge standard',
+          act: 'New York County Clean Air Act (bill-2031-07)', actHref: '../legislature/bill-detail.html', status: 'in-force' },
+        { id: 'PWU-R-2031-04', name: 'Storm-debris collection schedule',
+          act: 'Emergency Powers Declaration — Hurricane Dorinda (F-LEG-024)', actHref: '../legislature/emergency-powers.html',
+          status: 'in-force', note: 'expires with the emergency power · CLK-03' },
+        { id: 'PWU-R-2030-09', name: 'Water-meter reading cadence',
+          act: 'Department charter (Act 2030-11)', actHref: null, status: 'superseded' }
+      ];
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
+        return '<div class="card card--inset"><h3>' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+      }
+
+      function ruleStatus(r) {
+        if (r.status === 'in-force') return S.badge('success', 'In force', 'check');
+        if (r.status === 'draft') return S.badge('info', 'Draft', 'file-text');
+        return S.badge('neutral', 'Superseded', 'minus');
+      }
+
+      function render() {
+        document.getElementById('form-bog-001').innerHTML = formCard('F-BOG-001');
+        document.getElementById('form-bog-002').innerHTML = formCard('F-BOG-002');
+
+        var allRules = rules.slice();
+        if (sim.ruleDrafted) {
+          allRules.unshift({ id: 'PWU-R-2031-05', name: 'Shelter potable-water supply rule (draft)',
+            act: 'Emergency Powers Declaration — Hurricane Dorinda (F-LEG-024)', actHref: '../legislature/emergency-powers.html', status: 'draft' });
+        }
+        document.getElementById('rule-rows').innerHTML = allRules.map(function (r) {
+          var act = r.actHref ? '<a href="' + r.actHref + '">' + esc(r.act) + '</a>' : esc(r.act);
+          return '<tr><td><span class="mono" data-no-i18n>' + esc(r.id) + '</span> · ' + esc(r.name) + '</td>' +
+            '<td>' + act + (r.note ? '<span class="citation" style="display:block">' + esc(r.note) + '</span>' : '') + '</td>' +
+            '<td>' + ruleStatus(r) + '</td></tr>';
+        }).join('');
+
+        var special = sim.specialFiled
+          ? S.badge('success', 'Filed just now', 'check')
+          : S.badge('warning', 'Due soon', 'clock') +
+            ' <button type="button" class="btn btn--primary btn--sm" id="file-btn">File report</button>';
+        document.getElementById('report-rows').innerHTML =
+          '<tr><td>Q1 2031 operations &amp; finance</td><td>Executive + legislature</td>' +
+          '<td class="mono">2031-04-15</td><td>' + S.badge('success', 'Filed 2031-04-15', 'check') + '</td></tr>' +
+          '<tr><td>Hurricane Dorinda response — special report</td><td>Executive + legislature</td>' +
+          '<td class="mono">2031-06-30</td><td><span class="cluster" style="gap:var(--space-2)">' + special + '</span></td></tr>' +
+          '<tr><td>Q2 2031 operations &amp; finance</td><td>Executive + legislature</td>' +
+          '<td class="mono">2031-07-15</td><td>' + S.badge('info', 'Due', 'clock') + '</td></tr>';
+
+        document.getElementById('rule-confirm').innerHTML = sim.ruleDrafted
+          ? S.badge('info', 'Draft rule added', 'file-text') +
+            ' <span class="cc-small">Drafts publish for comment before taking force — simulated; nothing left this page.</span>' : '';
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#rule-btn,#file-btn') : null;
+        if (!t) return;
+        if (t.id === 'rule-btn') sim.ruleDrafted = true;
+        if (t.id === 'file-btn') sim.specialFiled = true;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

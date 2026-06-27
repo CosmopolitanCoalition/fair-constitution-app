@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audit chain — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">System of record</span>
+        <h1>Audit chain</h1>
+        <p class="page-intro">Every state transition in this instance — civic, electoral, legislative, judicial —
+          passes the constitutional engine and is appended to this cryptographically chained log. Invalid transitions
+          are rejected before commit, and the rejection itself is recorded. Nothing is ever removed.</p>
+        <p class="citation">Constitutional validation &amp; audit chain · Art. VII · CGA §6.2, §6.4 · WF-SYS-04</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-4)">
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh-cw"></use></svg> Head hash published to peers on the federation heartbeat · CLK-20</span>
+      </div>
+
+      <section class="card" aria-labelledby="how-h">
+        <h2 id="how-h">How the chain works</h2>
+        <p>Each entry stores the hash of the previous entry alongside its own payload hash —
+          <code data-no-i18n>hash(n) = H(hash(n−1) ∥ payload(n))</code>. Altering any historical entry breaks every
+          hash after it, so tampering is detectable by anyone who recomputes the chain. Ballot and residency
+          identities are never written to the chain in the clear; only commitments are chained.</p>
+        <p class="citation">Tamper-evident history · CGA §6.4 — ballot secrecy preserved · Art. II §2</p>
+        <div class="cluster">
+          <button type="button" class="btn btn--primary" id="verify-btn">Verify chain integrity</button>
+          <span class="gloss">Recomputes every link hash against the published head checkpoint (simulated here).</span>
+        </div>
+        <div id="verify-result" role="status" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <section class="card" style="padding-block-end:var(--space-3)" aria-labelledby="log-h">
+        <h2 id="log-h">Latest entries <span class="citation">head: <span data-no-i18n>#84,113</span></span></h2>
+        <p class="citation">Times shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+        <div id="chain-list">
+          <noscript><p>The chain viewer renders from fixture data and requires JavaScript. In the application this log is
+            served statically and is independently recomputable.</p></noscript>
+        </div>
+        <p class="gloss">One rejected transition is shown below in its place in the sequence — rejections are appended
+          too, with the constitutional citation that blocked them.</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-SYS-04.html">WF-SYS-04 (constitutional validation &amp;
+            audit chain)</a> — every other workflow terminates through it; the
+            <a href="../flows/WF-SYS-03.html">public records pipeline (WF-SYS-03)</a> publishes the human-readable
+            view; <a href="../flows/WF-JUR-06.html">federation sync (WF-JUR-06)</a> mirrors the head hash to peers.</p>
+          <p><strong>Entity state machine:</strong> the chain has no lifecycle of its own — it is the ledger of every
+            other entity's transitions. The rejected entry below shows the engine guarding the Jurisdiction settings
+            machine.</p>
+          <p class="citation">Art. VII · CGA §6.2, §6.4 · CLK-20</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'system/audit-chain',
+      title: 'Audit chain',
+      module: 'system',
+      nav: 'audit-chain',
+      roles: [],
+      workflows: ['WF-SYS-04'],
+      forms: [],
+      citation: 'Invalid transitions rejected pre-commit; complete tamper-evident history · Art. VII · CGA §6.2, §6.4',
+      flow: 'WF-SYS-04',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Pseudo-hashes — sequence continues to the instance head (auditSeq 84,113). */
+      var entries = [
+        { seq: 84104, time: '2031-06-09 06:00', module: 'Elections', event: 'Daily approval-standing snapshot — New York County general (24 candidates, finalist line at 21)', ref: 'WF-CIV-08 · CLK-21', hash: '9e41c07ab3d2f618' },
+        { seq: 84105, time: '2031-06-09 11:42', module: 'Residency', event: 'Residency verified → associations created at all 4 nesting levels (subject pseudonymous)', ref: 'WF-CIV-02 · CLK-05', hash: '4b8a2e91d5c0f733' },
+        { seq: 84106, time: '2031-06-09 15:08', module: 'Legislature', event: 'Public record statement appended — sponsor statement, New York County Clean Air Act (F-LEG-006)', ref: 'WF-SYS-03', hash: 'c72d50fa18e9b264' },
+        { seq: 84107, time: '2031-06-10 00:00', module: 'Emergency', event: 'Emergency clock roll — Hurricane Dorinda, day 41 of 90 (New York)', ref: 'CLK-03 · Art. II §7', hash: '1fd4a86c92e30b57' },
+        { seq: 84108, time: '2031-06-10 09:21', module: 'Judiciary', event: 'Finding transmitted to legislature — Novák finding on Curfew Ordinance §3; veto window opened', ref: 'F-JDG-004 · CLK-11', hash: 'a05e3bd7c41f9826' },
+        { seq: 84109, time: '2031-06-10 10:02', module: 'Settings', rejected: true,
+          event: 'Amendable-setting change attempted: legislature_max_seats 9 → 12 (F-LEG-031)',
+          blocked: 'blocked: exceeds hardened ceiling 9 · Art. II §2', ref: 'WF-LEG-14', hash: '6c19f4e2a8d07b35' },
+        { seq: 84110, time: '2031-06-10 13:30', module: 'Elections', event: 'Countback engine run — New York County seat 4 vacancy; prior ballots re-tabulated, candidate removed', ref: 'WF-ELE-03 · Art. II §5', hash: 'e84d217f6a93c508' },
+        { seq: 84111, time: '2031-06-10 16:45', module: 'Records', event: 'Translation bundle published — Act 2031-09, 5/5 languages', ref: 'WF-SYS-03', hash: '37b9d05ce6f12a84' },
+        { seq: 84112, time: '2031-06-11 02:00', module: 'Federation', event: 'Sync heartbeat acknowledged — head hash mirrored by 2 peer instances', ref: 'WF-JUR-06 · CLK-20', hash: 'b5f08c3a91d6e472' },
+        { seq: 84113, time: '2031-06-11 08:15', module: 'Sessions', event: 'Session-due notice scheduled — New York County legislature must meet by 2031-06-23', ref: 'WF-SYS-02 · CLK-02', hash: 'd2a67e94b0c8f153' }
+      ];
+
+      function render() {
+        var prev = '08f3c6d1e57a29b4'; /* hash of #84,103 */
+        document.getElementById('chain-list').innerHTML = entries.map(function (e) {
+          var status = e.rejected
+            ? '<span class="badge badge--danger">' + S.icon('x', { size: 'sm' }) + 'Rejected pre-commit</span>'
+            : '<span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + 'Committed</span>';
+          var blocked = e.rejected
+            ? '<span class="citation" style="display:block;color:var(--status-danger-fg)">' + esc(e.blocked) + ' · rejection itself appended (append-only)</span>'
+            : '';
+          var row = '<div class="log-row' + (e.rejected ? ' log-row--rejected' : '') + '">' +
+            '<span class="log-seq" data-no-i18n>#' + e.seq.toLocaleString('en-US') + '</span>' +
+            status +
+            '<div style="flex:1 1 18rem;min-inline-size:0">' +
+            '<strong style="color:var(--gov-fg)">' + esc(e.event) + '</strong>' +
+            '<span class="citation" style="display:block">' + esc(e.module) + ' · ' + esc(e.time) + ' · ' + esc(e.ref) + '</span>' +
+            blocked +
+            '<span class="log-hash" data-no-i18n>prev ' + prev + ' → this ' + e.hash + '</span>' +
+            '</div></div>';
+          prev = e.hash;
+          return row;
+        }).join('');
+        S.refresh();
+      }
+
+      document.getElementById('verify-btn').addEventListener('click', function () {
+        document.getElementById('verify-result').innerHTML =
+          '<div class="banner banner--info" role="status">' + S.icon('check') +
+          '<div><span class="banner-title">Chain verified (simulated).</span> ' +
+          'Recomputed <span data-no-i18n>84,113</span> link hashes in sequence; head hash ' +
+          '<span class="log-hash" data-no-i18n>d2a67e94b0c8f153</span> matches the checkpoint published to peer ' +
+          'instances. No link altered. <span class="citation">WF-SYS-04 · CLK-20</span></div></div>';
+        S.refresh();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

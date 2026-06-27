@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CGA mockups — responsive + accessibility audit harness</title>
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <style>
+    body { background: var(--gov-bg); color: var(--gov-fg-muted); font-family: var(--font-mono); font-size: var(--text-sm); padding: var(--space-4); }
+    h1 { color: var(--gov-fg); font-family: var(--font-sans); font-size: var(--text-xl); }
+    #status { color: var(--gov-link); }
+    #out { white-space: pre-wrap; }
+    #rigs iframe { border: 1px solid var(--gov-border-strong); block-size: 900px; }
+  </style>
+</head>
+<body>
+  <h1>Responsive + accessibility audit harness (QA instrument — not a product page)</h1>
+  <p id="status">loading manifest…</p>
+  <pre id="out"></pre>
+  <div id="rigs" aria-hidden="true"></div>
+  <script>
+  (function () {
+    'use strict';
+    var WIDTHS = [320, 360, 412, 768, 1024, 1440, 1920];
+    var CONCURRENCY = 6;
+    var results = [];
+    var statusEl = document.getElementById('status');
+    var outEl = document.getElementById('out');
+    window.__status = { done: false, completed: 0, total: 0 };
+    window.__results = results;
+
+    function descr(el) {
+      var d = el.tagName.toLowerCase();
+      if (el.id) d += '#' + el.id;
+      if (el.className && typeof el.className === 'string') d += '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.');
+      var txt = (el.textContent || '').trim().slice(0, 30);
+      return d + (txt ? ' "' + txt + '"' : '');
+    }
+
+    function worstOffender(doc, w) {
+      var worst = null, worstRight = w;
+      var all = doc.querySelectorAll('body *');
+      for (var i = 0; i < all.length; i++) {
+        var r = all[i].getBoundingClientRect();
+        if (r.width === 0) continue;
+        var right = r.left + r.width + doc.defaultView.pageXOffset;
+        if (right > worstRight + 1) { worstRight = right; worst = all[i]; }
+      }
+      return worst ? descr(worst) + ' (' + Math.round(worstRight - w) + 'px past)' : 'document';
+    }
+
+    function isVisible(el) {
+      if (!el.getClientRects().length) return false;
+      var cs = el.ownerDocument.defaultView.getComputedStyle(el);
+      return cs.visibility !== 'hidden';
+    }
+
+    function accName(el) {
+      if (el.getAttribute('aria-label')) return true;
+      if (el.getAttribute('aria-labelledby')) return true;
+      if (el.getAttribute('title')) return true;
+      if ((el.textContent || '').trim()) return true;
+      var img = el.querySelector('img[alt]');
+      if (img && img.getAttribute('alt')) return true;
+      var svg = el.querySelector('svg[role="img"][aria-label], svg [role="img"]');
+      if (svg) return true;
+      if (el.tagName === 'INPUT' && (el.value || el.placeholder) && /^(submit|button|reset)$/.test(el.type)) return true;
+      return false;
+    }
+
+    function labelled(ctl, doc) {
+      if (ctl.getAttribute('aria-label') || ctl.getAttribute('aria-labelledby') || ctl.getAttribute('title')) return true;
+      if (ctl.id && doc.querySelector('label[for="' + CSS.escape(ctl.id) + '"]')) return true;
+      if (ctl.closest('label')) return true;
+      return false;
+    }
+
+    function a11yChecks(doc, w) {
+      var f = [];
+      if (!doc.title || !doc.title.trim()) f.push('TITLE missing/empty');
+      if (!doc.documentElement.getAttribute('lang')) f.push('LANG missing on <html>');
+      var h1s = doc.querySelectorAll('main h1, body > h1');
+      if (doc.querySelectorAll('h1').length === 0) f.push('H1 none on page');
+      if (doc.querySelectorAll('h1').length > 1) f.push('H1 count=' + doc.querySelectorAll('h1').length);
+      var hs = doc.querySelectorAll('h1,h2,h3,h4,h5,h6'), last = 0;
+      for (var i = 0; i < hs.length; i++) {
+        var lvl = +hs[i].tagName[1];
+        if (last && lvl > last + 1) { f.push('HEADING skip h' + last + '→h' + lvl + ' at ' + descr(hs[i])); break; }
+        last = lvl;
+      }
+      var ids = {}, dup = null;
+      var withId = doc.querySelectorAll('[id]');
+      for (i = 0; i < withId.length; i++) {
+        if (ids[withId[i].id]) { dup = withId[i].id; break; }
+        ids[withId[i].id] = 1;
+      }
+      if (dup) f.push('DUP id "' + dup + '"');
+      var imgs = doc.querySelectorAll('img:not([alt])');
+      if (imgs.length) f.push('IMG no alt: ' + descr(imgs[0]) + ' (' + imgs.length + ')');
+      var ctls = doc.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]), select, textarea');
+      for (i = 0; i < ctls.length; i++) {
+        if (isVisible(ctls[i]) && !labelled(ctls[i], doc)) { f.push('UNLABELLED ' + descr(ctls[i])); break; }
+      }
+      var acts = doc.querySelectorAll('a[href], button, [role="button"], summary');
+      var unnamed = [], small = [];
+      for (i = 0; i < acts.length; i++) {
+        var el = acts[i];
+        if (!isVisible(el)) continue;
+        if (!accName(el)) unnamed.push(descr(el));
+        var cs = doc.defaultView.getComputedStyle(el);
+        if (cs.display === 'inline') continue; /* WCAG 2.5.8 inline exception */
+        var r = el.getBoundingClientRect();
+        if ((r.height > 0 && r.height < 23.5) || (r.width > 0 && r.width < 23.5)) small.push(descr(el) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height));
+      }
+      if (unnamed.length) f.push('UNNAMED control: ' + unnamed.slice(0, 3).join(' | ') + (unnamed.length > 3 ? ' +' + (unnamed.length - 3) : ''));
+      if (small.length) f.push('SMALL target <24px: ' + small.slice(0, 4).join(' | ') + (small.length > 4 ? ' +' + (small.length - 4) : ''));
+      var svgs = doc.querySelectorAll('svg:not([aria-hidden="true"])');
+      for (i = 0; i < svgs.length; i++) {
+        if (!isVisible(svgs[i])) continue;
+        if (!svgs[i].getAttribute('aria-label') && !svgs[i].getAttribute('aria-labelledby') && svgs[i].getAttribute('role') !== 'presentation' && !svgs[i].querySelector('title')) {
+          f.push('SVG unnamed, not hidden: ' + descr(svgs[i])); break;
+        }
+      }
+      var posTab = doc.querySelector('[tabindex]:not([tabindex="0"]):not([tabindex="-1"])');
+      if (posTab) f.push('TABINDEX>0 ' + descr(posTab));
+      return f;
+    }
+
+    /* NO timers anywhere: rAF never fires in offscreen iframes and chained
+       setTimeout is clamped to 1/minute in backgrounded tabs. Reading
+       scrollWidth forces a synchronous style+layout flush, so measurements
+       need no settling delay; iframe load events are not throttled. */
+    function loadPage(iframe, url) {
+      return new Promise(function (resolve, reject) {
+        iframe.onerror = function () { reject(new Error('load failed ' + url)); };
+        iframe.onload = function () { resolve(); };
+        iframe.src = url;
+      });
+    }
+
+    function settle() { return Promise.resolve(); }
+
+    function auditPage(iframe, file) {
+      var rec = { file: file, overflow: [], a11y: [], error: null };
+      try { localStorage.clear(); } catch (e) {}
+      return loadPage(iframe, '../' + file).then(function () {
+        var doc = iframe.contentDocument;
+        var chain = Promise.resolve();
+        WIDTHS.forEach(function (wd) {
+          chain = chain.then(function () {
+            iframe.style.inlineSize = wd + 'px';
+            return settle(iframe).then(function () {
+              var de = doc.documentElement;
+              if (de.scrollWidth > wd + 1) rec.overflow.push(wd + 'px +' + (de.scrollWidth - wd) + ' @ ' + worstOffender(doc, wd));
+            });
+          });
+        });
+        chain = chain.then(function () {
+          iframe.style.inlineSize = '1024px';
+          return settle(iframe).then(function () { rec.a11y = a11yChecks(doc, 1024); });
+        });
+        /* pseudo-locale expansion pass (text +35%) at 360px */
+        chain = chain.then(function () {
+          iframe.style.inlineSize = '360px';
+          return loadPage(iframe, '../' + file + '?locale=en-XA').then(function () {
+            var de = iframe.contentDocument.documentElement;
+            if (de.scrollWidth > 361) rec.overflow.push('en-XA 360px +' + (de.scrollWidth - 360) + ' @ ' + worstOffender(iframe.contentDocument, 360));
+          });
+        });
+        /* RTL pass at 360px */
+        chain = chain.then(function () {
+          return loadPage(iframe, '../' + file + '?dir=rtl').then(function () {
+            var de = iframe.contentDocument.documentElement;
+            if (de.scrollWidth > 361) rec.overflow.push('rtl 360px +' + (de.scrollWidth - 360) + ' @ ' + worstOffender(iframe.contentDocument, 360));
+          });
+        });
+        return chain;
+      }).catch(function (e) {
+        rec.error = String(e && e.message || e);
+      }).then(function () {
+        results.push(rec);
+        window.__status.completed = results.length;
+        statusEl.textContent = results.length + ' / ' + window.__status.total + ' pages audited';
+      });
+    }
+
+    fetch('../manifest.json', { cache: 'reload' }).then(function (r) { return r.json(); }).then(function (manifest) {
+      var files = manifest.map(function (r) { return r.file; });
+      window.__status.total = files.length;
+      var queue = files.slice();
+      var rigs = document.getElementById('rigs');
+      function worker() {
+        var iframe = document.createElement('iframe');
+        iframe.style.inlineSize = '1024px';
+        rigs.appendChild(iframe);
+        function next() {
+          var file = queue.shift();
+          if (!file) { iframe.remove(); return Promise.resolve(); }
+          return auditPage(iframe, file).then(next);
+        }
+        return next();
+      }
+      var workers = [];
+      for (var i = 0; i < CONCURRENCY; i++) workers.push(worker());
+      Promise.all(workers).then(function () {
+        window.__status.done = true;
+        var bad = results.filter(function (r) { return r.error || r.overflow.length || r.a11y.length; });
+        statusEl.textContent = 'DONE — ' + results.length + ' pages, ' + bad.length + ' with findings';
+        outEl.textContent = bad.map(function (r) {
+          return r.file + (r.error ? '\n  ERROR ' + r.error : '') +
+            r.overflow.map(function (o) { return '\n  OVERFLOW ' + o; }).join('') +
+            r.a11y.map(function (a) { return '\n  A11Y ' + a; }).join('');
+        }).join('\n') || 'all clean';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

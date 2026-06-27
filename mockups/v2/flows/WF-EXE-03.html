@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive Office Modification — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · EXE</span>
+        <h1>Executive Office Modification <span class="citation">WF-EXE-03</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-EXE-03", "title": "Executive Office Modification", "module": "flows", "nav": null, "roles": [], "workflows": ["WF-EXE-03"], "forms": [], "citation": "Art. III §3 · WF-EXE-03", "flow": "WF-EXE-03", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-EXE-03",
+ "name": "Executive Office Modification",
+ "timeScale": "Long",
+ "trigger": "Proposal to alter existing elected office",
+ "actors": [
+  "System"
+ ],
+ "institutions": [
+  "I-EEO",
+  "I-LEG"
+ ],
+ "terminal": "Office altered only on supermajority of constituent jurisdictions",
+ "basis": "Art. III §3",
+ "entity": "Executive Office",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "Proposer",
+   "action": "Executive Office Modification Act drafted",
+   "outcome": "Alteration of existing elected office",
+   "engine": "Modification act",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Constituent legislatures",
+   "action": "Supermajority of constituent jurisdictions vote",
+   "outcome": "BRANCH: passes → office altered with transition rules; fails → unchanged",
+   "engine": "Cross-jurisdiction engine",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "passes → office altered with transition rules",
+     "goto": "terminal:passes → office altered with transition rules"
+    },
+    {
+     "label": "fails → unchanged",
+     "goto": "terminal:fails → unchanged"
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

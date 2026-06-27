@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instance setup — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+  <style>
+    .etl-bar { position: relative; block-size: .625rem; background: var(--gov-surface-2); border: 1px solid var(--gov-border); border-radius: var(--radius-full); overflow: hidden; }
+    .etl-fill { position: absolute; inset-block: 0; inset-inline-start: 0; background: var(--status-success); border-radius: var(--radius-full); }
+    .etl-fill--pop { background: var(--status-info); }
+    .etl-row { margin-block-end: var(--space-3); }
+    .etl-row .meter-caption { margin-block-start: 2px; }
+    .stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: var(--space-2); }
+    .stat-tile { background: var(--gov-surface-2); border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-2); }
+    .stat-tile .n { display: block; font-size: var(--text-lg); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; color: var(--gov-fg); }
+  </style>
+</head>
+<body>
+  <main id="main" class="main--wide">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">System · founding loop</span>
+        <h1>Instance setup</h1>
+        <p class="page-intro">The placement contract for the developed setup wizard — the five-step founding loop that
+          takes a fresh instance from cosmic address to seated institutions. Same steps, same order, same handoffs; the
+          shipped wizard adopts this design system (round peg, round hole).</p>
+        <p class="citation">Founding values are set here as reference defaults, never locks — after setup, amendments go through valid legislative acts · Art. VII</p>
+      </header>
+
+      <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg>
+        Developed component slot — the shipped setup wizard (Steps 0–4) mounts exactly here and adopts this design
+        system; the stepper below shows its placement, content, and handoffs in mockup form.</p>
+
+      <ol class="stepper" id="wiz-stepper" aria-label="Setup steps"></ol>
+
+      <div id="wiz-body"></div>
+
+      <div class="cluster" style="justify-content:space-between">
+        <button type="button" class="btn btn--ghost" id="wiz-back">Back</button>
+        <button type="button" class="btn btn--primary" id="wiz-next">Continue
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> the founding loop precedes play — it charters the structure that
+            <a href="../flows/WF-JUR-01.html">WF-JUR-01 (jurisdiction bootstrap)</a> and the elections engine then bring
+            to life as player populations reach critical mass (CLK-06).</p>
+          <p><strong>Handoffs:</strong> Step 2 opens <a href="../jurisdictions/jurisdiction-browser.html">the Jurisdiction
+            viewer</a> to review the imported world; Step 3 hands off to
+            <a href="../jurisdictions/district-mapper.html">the Legislature Browser</a> for districting and returns when a
+            map is activated; Step 4's export feeds Step 0's restore-from-backup on another instance — the federation
+            seed.</p>
+          <p class="citation">Art. VII · CLK-01 · CLK-06 · WF-JUR-01</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'system/setup-wizard',
+      title: 'Instance setup — the founding loop',
+      module: 'system',
+      nav: 'setup-wizard',
+      roles: [],
+      workflows: ['WF-JUR-01'],
+      forms: [],
+      citation: 'Founding defaults are reference, not locks · amendments via acts thereafter · Art. VII',
+      flow: 'WF-JUR-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell;
+      var esc = S.esc;
+      var step = 0;
+      var STEPS = ['Cosmic address', 'Constitutional defaults', 'Map data', 'Build districts', 'Confirm & seat'];
+
+      var fieldSeq = 0;
+      function field(label, value, hint, opts) {
+        opts = opts || {};
+        var id = 'wiz-f' + (++fieldSeq);
+        return '<div class="field"><label class="field-label" for="' + id + '">' + esc(label) + '</label>' +
+          (opts.select
+            ? '<select class="select" id="' + id + '">' + opts.select.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>'
+            : '<input class="field-input" id="' + id + '" type="' + (opts.type || 'text') + '" value="' + esc(value) + '" />') +
+          (hint ? '<span class="field-hint citation">' + esc(hint) + '</span>' : '') + '</div>';
+      }
+
+      var BODIES = [
+        /* ---- Step 0 — Cosmic address ---- */
+        function () {
+          return '<div class="stack">' +
+            '<section class="card"><h2>Welcome to the Cosmopolitan Coalition</h2>' +
+            '<p>This is the Cosmopolitan Governance App — a federated, open-source platform implementing <em>A Fair Constitution</em>. It models every institution the Template defines (residency, elections, legislatures, executives, judiciaries, organizations) as interactive, automatable software, from neighborhood scale up to planetary scale and beyond.</p>' +
+            '<p>Let’s set your cosmic address — the anchor your instance will federate under.</p></section>' +
+
+            '<section class="card card--inset"><h3>Or restore from a backup</h3>' +
+            '<p class="cc-small">Already have a <code class="cc-code" data-no-i18n>.tar.gz</code> exported from another instance? Upload it here to skip ahead. The backend validates the manifest’s schema version before restoring — older snapshots are refused with a clear message. After a successful restore you’ll land on whichever wizard step matches the bundle’s saved progress (a backup taken at Step 3 drops you back at Step 3).</p>' +
+            '<p class="citation"><a href="#" onclick="return false">Choose which tables to restore (20 / 20)</a></p>' +
+            '<div class="cluster"><button type="button" class="btn btn--secondary btn--sm">Choose file</button>' +
+            '<span class="citation">No file chosen</span>' +
+            '<button type="button" class="btn btn--secondary btn--sm" data-sim="restore">Upload &amp; restore</button>' +
+            '<span class="citation" id="sim-restore" hidden>Simulated — the bundle’s saved progress decides the landing step</span></div></section>' +
+
+            '<section class="card"><h3>Instance</h3>' +
+            field('Instance name', 'United Earth', 'A friendly label for this install — shown in nav and federation directories.') +
+            '<h3 style="margin-block-start:var(--space-4)">Cosmic address</h3>' +
+            '<p class="citation">Multiverse ▸ fixed root</p>' +
+            field('Universe', '', '', { select: ['Observable Universe'] }) +
+            field('Supercluster', '', '', { select: ['Laniakea Supercluster'] }) +
+            field('Galaxy group', '', '', { select: ['Local Group'] }) +
+            field('Galaxy', '', '', { select: ['Milky Way'] }) +
+            field('Galactic region', '', '', { select: ['Orion Arm (Orion Spur)'] }) +
+            field('Star system', '', '', { select: ['Solar System'] }) +
+            field('World', '', '', { select: ['Earth (planet)', 'Luna (moon) — future scope', 'New world…'] }) +
+            '<p class="citation">Multiverse · Observable Universe · Laniakea Supercluster · Local Group · Milky Way · Orion Arm (Orion Spur) · Solar System · Earth (planet)</p>' +
+            '<h3 style="margin-block-start:var(--space-4)">Time mode</h3>' +
+            '<div class="grid-2">' +
+            '<button type="button" class="card card--inset" aria-pressed="true" style="text-align:start;cursor:pointer;border-color:var(--gov-primary)"><strong>Real-time</strong><br /><span class="cc-small">Elections on wall-clock — 5-year default cycle.</span><br /><span class="citation">CLK-01 · election_interval_months 60</span></button>' +
+            '<button type="button" class="card card--inset" aria-pressed="false" style="text-align:start;cursor:pointer"><strong>Accelerated</strong><br /><span class="cc-small">Compressed simulation — pick seconds per simulated year.</span></button>' +
+            '</div></section></div>';
+        },
+
+        /* ---- Step 1 — Constitutional defaults ---- */
+        function () {
+          return '<div class="stack">' +
+            '<section class="card"><h2>Per-jurisdiction constitutional defaults</h2>' +
+            '<p>These are the constitutional settings for your instance’s root jurisdiction. You are founding the constitution now — the values below are the Fair Constitution Template’s suggested defaults (the “defaults of defaults”), shown as reference. You can depart from them here. After setup, any further amendments must go through valid legislative acts.</p>' +
+            '<p class="citation">Reference, not locks · Art. VII — see <a href="../legislature/settings.html">the amendable-settings register</a> for life after founding</p></section>' +
+
+            '<section class="card"><h3>Legislature</h3><div class="grid-2">' +
+            field('Minimum seats per legislature', '5', 'Default of defaults: 5 · Art. II §2', { type: 'number' }) +
+            field('Maximum seats per legislature', '9', 'Default of defaults: 9 (before mandatory subdivision) · Art. II §2', { type: 'number' }) +
+            field('Legislature sizing law', '', 'Total seats = max(min, round(population^(1/3))) · as implemented (ledger #3)', { select: ['Cube-Root Law — round(population^(1/3))'] }) +
+            field('Max days between meetings', '90', 'Default of defaults: 90 days · Art. II §2', { type: 'number' }) +
+            '</div></section>' +
+
+            '<section class="card"><h3>Elections</h3><div class="grid-2">' +
+            field('Election interval (months)', '60', 'Default of defaults: 60 (5 years) · Art. II §2 · CLK-01', { type: 'number' }) +
+            field('Voting method', '', 'Replaceable only by a MORE proportional method · Art. VII', { select: ['STV with Droop Quota'] }) +
+            field('Special election — min days after vacancy', '90', 'Default of defaults: 90 · Art. II §5 · CLK-04', { type: 'number' }) +
+            field('Special election — max days after vacancy', '180', 'Default of defaults: 180 · Art. II §5 · CLK-04', { type: 'number' }) +
+            '</div></section>' +
+
+            '<section class="card"><h3>Governance thresholds</h3><div class="grid-2">' +
+            field('Supermajority (numerator / denominator)', '2 / 3', '≈ 66.7% · cannot fall below majority + 1 · Art. VII', {}) +
+            field('Emergency powers max duration (days)', '90', 'Default of defaults: 90 · Art. II §7 · CLK-03', { type: 'number' }) +
+            field('Citizen initiative petition threshold (% of population)', '5', 'Default of defaults: 5.00 · CLK-17', { type: 'number' }) +
+            '</div></section>' +
+
+            '<section class="card"><h3>Appointments &amp; judiciary</h3><div class="grid-2">' +
+            field('Civil appointment term (years)', '10', 'Default of defaults: 10 · Art. II §9 · lockstep with judicial · CLK-09', { type: 'number' }) +
+            field('Judicial appointment term (years)', '10', 'Default of defaults: 10 · Art. IV §4 · lockstep with civil · CLK-10', { type: 'number' }) +
+            field('Minimum judges per race', '5', 'Default of defaults: 5 · Art. IV §4 · CLK-15', { type: 'number' }) +
+            '<div class="field"><span class="field-label">Judiciary selection method</span>' +
+            '<div class="radio-group"><label class="radio"><input type="radio" name="jud" checked /> Appointed</label>' +
+            '<label class="radio"><input type="radio" name="jud" /> Elected</label></div>' +
+            '<span class="field-hint citation">Default of defaults: appointed · Art. IV §2–3</span></div>' +
+            '</div></section>' +
+
+            '<section class="card"><h3>Organizations &amp; workers</h3><div class="grid-2">' +
+            field('Worker rep — first seat (employees)', '100', 'Default of defaults: 100 · Art. III §6 · CLK-13', { type: 'number' }) +
+            field('Worker / shareholder parity (employees)', '2000', 'Default of defaults: 2000 · Art. III §6 · CLK-14', { type: 'number' }) +
+            '</div></section>' +
+
+            '<section class="card"><h3>Residency</h3>' +
+            field('Residency confirmation window (days)', '30', 'Default of defaults: 30 days of qualifying GPS pings before residency is confirmed and rights unlock · CLK-05', { type: 'number' }) +
+            '</section></div>';
+        },
+
+        /* ---- Step 2 — Map data (ETL) ---- */
+        function () {
+          function bar(label, done, total, unit, pop) {
+            return '<div class="etl-row"><div class="etl-bar"><span class="etl-fill' + (pop ? ' etl-fill--pop' : '') + '" style="inline-size:100%"></span></div>' +
+              '<div class="meter-caption"><span>' + esc(label) + '</span><span data-no-i18n>' + done + ' / ' + total + ' ' + esc(unit) + ' (100%)</span></div></div>';
+          }
+          return '<div class="stack">' +
+            '<section class="card"><h2>Load boundaries + population data</h2>' +
+            '<p>Pick a data source and run the ETL pipeline. Progress streams live from the ETL container. Once the run completes, review any flagged discrepancies before continuing to districting.</p></section>' +
+
+            '<section class="card"><h3>1 · Data source</h3><div class="radio-group">' +
+            '<label class="radio"><input type="radio" name="src" checked /> Local archive (default) — the bind-mounted map-files volume; fastest path, no network</label>' +
+            '<label class="radio"><input type="radio" name="src" /> Custom folder — an alternate path inside the ETL container</label>' +
+            '<label class="radio"><input type="radio" name="src" disabled /> Custom URL <span class="planned-flag">planned</span></label>' +
+            '<label class="radio"><input type="radio" name="src" disabled /> Browser upload <span class="planned-flag">planned</span></label>' +
+            '</div></section>' +
+
+            '<section class="card"><h3>2 · Run options</h3><div class="cluster" style="gap:var(--space-4)">' +
+            '<label class="checkbox"><input type="checkbox" /> Fresh (purge existing rows first)</label>' +
+            '<label class="checkbox"><input type="checkbox" /> Pause on first exception</label>' +
+            '<label class="checkbox"><input type="checkbox" /> Skip Phase 2 (population)</label>' +
+            '<label class="demo-control" style="color:var(--gov-fg-muted)">Only countries (ISO3, comma-separated; empty = all) <input class="field-input" style="inline-size:9rem;padding-block:var(--space-1)" /></label>' +
+            '<button type="button" class="btn btn--primary btn--sm">Start ETL run</button></div></section>' +
+
+            '<section class="card"><h3>3 · Live progress</h3>' +
+            '<p class="eyebrow">Boundary</p>' +
+            bar('Boundary — countries', '251', '251', 'countries') +
+            bar('Boundary — states / provinces', '3,382', '3,382', 'states / provinces') +
+            bar('Boundary — counties', '49,345', '49,345', 'counties') +
+            bar('Boundary — municipalities', '105,772', '105,772', 'municipalities') +
+            bar('Boundary — townships', '98,757', '98,757', 'townships') +
+            bar('Boundary — neighborhoods', '899,786', '899,786', 'neighborhoods') +
+            '<p class="eyebrow" style="margin-block-start:var(--space-3)">Population</p>' +
+            bar('Countries', '232', '232', 'countries', true) +
+            '<p class="eyebrow" style="margin-block-start:var(--space-3)">Cleanup</p>' +
+            bar('Topological raster fallback rescue', '3', '3', 'passes') +
+            '<div class="stat-tiles" style="margin-block-start:var(--space-3)">' +
+            '<div class="stat-tile"><span class="n">232</span><span class="citation">countries</span></div>' +
+            '<div class="stat-tile"><span class="n">3,339</span><span class="citation">states / provinces</span></div>' +
+            '<div class="stat-tile"><span class="n">49,385</span><span class="citation">counties</span></div>' +
+            '<div class="stat-tile"><span class="n">105,856</span><span class="citation">municipalities</span></div>' +
+            '<div class="stat-tile"><span class="n">94,876</span><span class="citation">townships</span></div>' +
+            '<div class="stat-tile"><span class="n">699,737</span><span class="citation">neighborhoods</span></div>' +
+            '<div class="stat-tile"><span class="n">951,636</span><span class="citation">total rows</span></div></div>' +
+            '<p class="badge badge--success" style="margin-block-start:var(--space-3)"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Run completed. Finished <span data-no-i18n>2026-05-22T17:17:04+00:00</span></p></section>' +
+
+            '<section class="card"><h3>4 · Review &amp; accept</h3>' +
+            '<p>The import finished. Open the jurisdiction viewer to inspect boundaries, populations, raster overlays, dual-footprint relationships, and any flagged discrepancies. Click Continue below when satisfied — that triggers apportionment.</p>' +
+            '<a class="btn btn--secondary" href="../jurisdictions/jurisdiction-browser.html">Open jurisdiction viewer <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></section></div>';
+        },
+
+        /* ---- Step 3 — Build districts ---- */
+        function () {
+          return '<div class="stack">' +
+            '<section class="card"><h2>Build your districts</h2>' +
+            '<p>This is where your instance gets its first shape. Every legislature needs a map — a partition of its jurisdiction into districts sized within the constitutional min/max seat range.</p></section>' +
+
+            '<section class="card" style="background:color-mix(in oklch, var(--status-success) 10%, var(--gov-bg));border-color:color-mix(in oklch, var(--status-success) 40%, transparent)">' +
+            '<h3 style="color:var(--status-success-fg)"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Apportionment complete</h3>' +
+            '<div class="cluster" style="gap:var(--space-8)">' +
+            '<div class="stat"><span class="stat-number">1</span><span class="stat-label">legislatures sized</span></div>' +
+            '<div class="stat stat--accent"><span class="stat-number">1,999</span><span class="stat-label">total seats apportioned</span></div>' +
+            '<div class="stat"><span class="stat-number">Earth</span><span class="stat-label">largest legislature · 1,999 seats</span></div></div>' +
+            '<p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing applied per Taagepera’s law — every parent jurisdiction with direct children now has a sized legislature ready for districting.</p>' +
+            '<p class="citation">Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p></section>' +
+
+            '<section class="card"><p>The <strong>Earth</strong> legislature is ready for districting. You’ll be handed off to the interactive district mapper — a map + sidebar where you can auto-seed districts from the cube-root sizing law, hand-edit any you want to adjust, review quality metrics, and activate the map.</p>' +
+            '<ul class="cc-small"><li>A banner at the top of the mapper reminds you that you’re in setup mode.</li>' +
+            '<li>When you activate a district map, the banner turns into a “Back to setup” button.</li>' +
+            '<li>You can always come back here by visiting <code class="cc-code" data-no-i18n>/setup</code>.</li></ul>' +
+            '<a class="btn btn--primary" href="../jurisdictions/district-mapper.html">Go to district mapper <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></section></div>';
+        },
+
+        /* ---- Step 4 — Confirm & seat ---- */
+        function () {
+          return '<div class="stack">' +
+            '<section class="card"><h2>Confirm &amp; seat institutions</h2>' +
+            '<p>Review the shape of your instance, then seat the executive and judicial institutions for every jurisdiction with a legislature. They start <strong>forming</strong> — actual members get elected once the elections engine ships in Phase 2 of the master roadmap.</p></section>' +
+
+            '<div class="grid-2">' +
+            '<section class="card"><div class="stat"><span class="stat-number">1</span><span class="stat-label">legislatures formed</span></div>' +
+            '<p class="gloss">One per jurisdiction with direct children, sized by cube-root law.</p></section>' +
+            '<section class="card"><div class="stat"><span class="stat-number">393</span><span class="stat-label">districts drawn</span></div>' +
+            '<p class="gloss">Per the maps you built or auto-composited in Step 3.</p></section></div>' +
+
+            '<section class="card"><h3>What happens when you click Finish</h3><ul class="cc-small">' +
+            '<li>For every jurisdiction with a legislature we’ll insert one <code class="cc-code">executives</code> row (default type: <em>committee</em>) and one <code class="cc-code">judiciaries</code> row (default type: <em>appointed</em>, min 5 judges, 10-year terms).</li>' +
+            '<li>No members or seats are populated — those land via the elections engine. Status stays <em>forming</em> until Phase 2.</li>' +
+            '<li>We’ll record <code class="cc-code">setup_completed_at</code> on the instance settings. From this point <code class="cc-code" data-no-i18n>/setup</code> redirects home.</li></ul>' +
+            '<p class="gloss">Existing institution rows detected (1 executives, 1 judiciaries) — they’ll be left alone.</p>' +
+            '<p class="citation">Executive default: committee · Art. III §2 — Judiciary default: appointed · Art. IV §2 · 5 judges · 10-year terms</p></section>' +
+
+            '<section class="card"><h3>Export this instance (backup / sync)</h3>' +
+            '<p class="cc-small">Build a portable <code class="cc-code" data-no-i18n>.tar.gz</code> snapshot of this instance — every table that’s part of the FK-downstream graph of jurisdictions, plus settings and rasters. Restoring this bundle on another instance via Step 0’s <em>Restore from a backup</em> panel reproduces the full state, including district maps. Large exports (full rasters) take 20–40 minutes.</p>' +
+            '<button type="button" class="btn btn--secondary btn--sm" data-sim="export">Start full export</button>' +
+            '<span class="citation" id="sim-export" hidden>Simulated — export queued</span>' +
+            '<p class="eyebrow" style="margin-block-start:var(--space-3)">Recent exports</p>' +
+            '<div class="log-row"><span class="log-seq" data-no-i18n>map-data-…57a8208f</span>' +
+            '<span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> done</span>' +
+            '<span class="citation" data-no-i18n>started 5/30/2026, 9:24:34 AM · finished 10:09:22 AM · 11.30 GB</span>' +
+            '<a href="#" onclick="return false">download</a></div>' +
+            '<p class="citation">This bundle is the federation seed — Step 0 of a peer instance restores it · WF-JUR-05</p></section></div>';
+        }
+      ];
+
+      function render() {
+        document.getElementById('wiz-stepper').innerHTML = STEPS.map(function (name, i) {
+          var cls = i < step ? 'stepper-step stepper-step--done' : i === step ? 'stepper-step stepper-step--active' : 'stepper-step';
+          return '<li class="' + cls + '"' + (i === step ? ' aria-current="step"' : '') + '>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-step="' + i + '" style="padding:0;color:inherit;font-size:inherit">' +
+            (i < step ? S.icon('check', { size: 'sm' }) + ' ' : i + ' · ') + esc(name) + '</button></li>';
+        }).join('');
+        document.getElementById('wiz-body').innerHTML = BODIES[step]();
+        document.getElementById('wiz-back').disabled = step === 0;
+        document.getElementById('wiz-next').innerHTML = (step === 4 ? 'Finish setup ' : 'Continue ') +
+          '<svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg>';
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-step],#wiz-back,#wiz-next,[data-sim]') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-step')) { step = +t.getAttribute('data-step'); render(); }
+        else if (t.id === 'wiz-back' && step > 0) { step--; render(); }
+        else if (t.id === 'wiz-next') {
+          if (step < 4) { step++; render(); }
+          else {
+            document.getElementById('wiz-body').insertAdjacentHTML('beforeend',
+              '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('check') +
+              '<div><span class="banner-title">Setup complete (simulated).</span> Institutions are scaffolded and forming; ' +
+              'play begins as player populations reach critical mass (CLK-06). <a href="../civic/civic-home.html">Go home</a>.</div></div>');
+            S.refresh();
+          }
+        }
+        else if (t.hasAttribute('data-sim')) {
+          var el = document.getElementById('sim-' + t.getAttribute('data-sim'));
+          if (el) el.hidden = false;
+        }
+      });
+
+      render();
+      document.addEventListener('cga:statechange', function () { S.refresh(); });
+    })();
+  </script>
+</body>
+</html>

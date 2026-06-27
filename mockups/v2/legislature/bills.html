@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bills — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Legislature · lawmaking</span>
+        <h1>Bills — New York County legislature</h1>
+        <p class="page-intro">Every bill declares its scale (which jurisdictions are bound) and scope (which judiciary
+          level hears disputes) at introduction. Acts pass by majority of all serving members — the peg quorum — and
+          some act types require a supermajority.</p>
+        <p class="citation">Enact laws · Art. II §2 via Art. V §4 (scale &amp; scope) · WF-LEG-06</p>
+      </header>
+
+      <section class="card" aria-labelledby="lifecycle-h">
+        <h2 id="lifecycle-h">The bill lifecycle</h2>
+        <p class="gloss">Every stage of the Bill state machine, in order. Bracketed stages are conditional.</p>
+        <ol id="lifecycle-legend" class="lifecycle" aria-label="Bill lifecycle stages"></ol>
+        <noscript><p>Lifecycle renders with JavaScript: Introduced → Referred → In-Committee → Reported | Tabled →
+          On-Floor → [Amended] → Passed | Failed → Enacted → Published → [Challenged] → [Edited per Art. IV §5] →
+          Repealed/Superseded.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">Bicameral legislatures: Passed requires independent agreement of both seat kinds at committee AND floor · Art. V §3</p>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="registry-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="registry-h">Bill registry</h2>
+        </div>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Bills before the New York County legislature</caption>
+          <thead><tr><th>Bill</th><th>Sponsor</th><th>State</th><th>Scale · scope</th><th class="mono">Introduced</th></tr></thead>
+          <tbody id="bill-rows"></tbody>
+        </table></div>
+        <noscript><p style="padding:var(--space-4) var(--space-6)">The registry renders with JavaScript. Flagship fixture: New York County Clean Air Act, in committee.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="intro-h">
+        <h2 id="intro-h">Introduce a bill <span class="form-chip">Bill introduction <span class="form-id">F-LEG-003</span></span></h2>
+        <p class="cc-small">Submit a bill for consideration by the legislature or a committee.
+          <span class="citation">available to R-09 Legislative Representative · Art. II §2 (Enact Laws via Art. V §4)</span></p>
+        <form id="intro-form">
+          <div class="field">
+            <label class="field-label" for="bill-title">Title</label>
+            <input class="field-input" id="bill-title" type="text" placeholder="e.g. New York County sidewalk repair act" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="bill-text">Law text</label>
+            <textarea class="field-input" id="bill-text" rows="3" placeholder="The operative text that will be versioned and published on enactment"></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="bill-scale">Scale — which jurisdictions are bound</label>
+              <select class="select" id="bill-scale">
+                <option>New York County (usa-3-new-york-county) — whole jurisdiction</option>
+              </select>
+              <span class="field-hint">A New York County act cannot bind jurisdictions outside New York County's authority. The dataset
+                carries no subdivisions below county, so the whole jurisdiction is the only scale here; a state-level act
+                could instead bind named constituent counties.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="bill-scope">Scope — which judiciary level hears disputes</label>
+              <select class="select" id="bill-scope">
+                <option>New York County court</option>
+                <option>New York State court</option>
+              </select>
+              <span class="field-hint">Defined at introduction so enforcement and review are unambiguous · Art. V §4.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="bill-type">Act type — sets the passage threshold</label>
+            <select class="select" id="bill-type">
+              <option value="majority">Ordinary act — majority of all serving (5 of 9)</option>
+              <option value="setting">Amendable-setting change — majority + engine range validation (F-LEG-031)</option>
+              <option value="super">Supermajority-class act — 6 of 9 (committees, judiciary, referendum delegation, emergency powers…)</option>
+              <option value="cultural">Cultural institution recognition — supermajority + constituent jurisdiction supermajority</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Introduce bill</button>
+        </form>
+        <div id="intro-confirm" style="margin-block-start:var(--space-3)"></div>
+      </section>
+
+      <section class="card" aria-labelledby="types-h">
+        <h2 id="types-h">Act types &amp; thresholds</h2>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Act types and their passage thresholds</caption>
+          <thead><tr><th>Act type</th><th>Threshold</th><th class="mono">Basis</th></tr></thead>
+          <tbody>
+            <tr><td>Ordinary act</td><td>Majority of all serving members — 5 of 9</td><td class="mono">Art. II §2 (Peg Quorum)</td></tr>
+            <tr><td>Amendable-setting change</td><td>Majority + hardened range validation pre-vote</td><td class="mono">Art. VII · F-LEG-031</td></tr>
+            <tr><td>Supermajority-class act</td><td>ceil(serving × 2/3) = 6 of 9</td><td class="mono">Art. VII</td></tr>
+            <tr><td>Cultural institution recognition</td><td>Supermajority + supermajority of constituent jurisdictions</td><td class="mono">Art. V §6</td></tr>
+          </tbody>
+        </table></div>
+        <div class="card card--inset" style="margin-block-start:var(--space-4)">
+          <h3 style="font-size:var(--text-base)">Cultural institution recognition vote <span class="form-chip"><span class="form-id">F-LEG-028</span></span></h3>
+          <p class="cc-small">Vote by supermajority to recognize a Cultural Institution of State.
+            <span class="citation">available to R-09 Legislative Representative · Art. V §6</span></p>
+          <p class="cc-small">Requires the legislature's supermajority <strong>and</strong> a supermajority of constituent
+            jurisdictions where they exist — both meters must fill before the act is recognized.</p>
+        </div>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-06.html">WF-LEG-06 (bill lifecycle, unicameral)</a>
+            starts at the introduction form above; the bicameral variant is
+            <a href="../flows/WF-LEG-07.html">WF-LEG-07 (dual-agreement lifecycle)</a> — see the toggle on the
+            <a href="bill-detail.html">bill detail page</a>. Setting-targeted bills continue in
+            <a href="../flows/WF-LEG-14.html">WF-LEG-14 (amendable setting change)</a>.</p>
+          <p><strong>Entity state machine:</strong> Bill — the lifecycle legend above; the Curfew Ordinance row shows the
+            [Challenged] stage feeding <a href="../flows/WF-JUD-05.html">WF-JUD-05 (Art. IV §5)</a>.</p>
+          <p class="citation">Art. II §2 · Art. V §3–4 · Art. V §6 · Art. VII</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/bills',
+      title: 'Bills — registry & introduction',
+      module: 'legislature',
+      nav: 'bills',
+      roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13'],
+      workflows: ['WF-LEG-06', 'WF-LEG-07', 'WF-LEG-14'],
+      forms: ['F-LEG-003', 'F-LEG-028'],
+      citation: 'Scale & scope declared at introduction · Art. II §2 via Art. V §4',
+      flow: 'WF-LEG-06',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Registry = the world fixture bill + page-local bills in varied states. */
+      var fixture = W.bills[0]; /* bill-2031-07 New York County Clean Air Act — In committee */
+      var bills = [
+        { id: fixture.id, title: fixture.title, sponsor: BY.personas[fixture.sponsor].name,
+          state: 'In committee', tone: 'info', icon: 'users', detail: true,
+          scale: fixture.scale, scope: fixture.scope, introduced: fixture.introduced,
+          note: 'Environment & Infrastructure committee' },
+        { id: 'bill-2031-09', title: 'New York County transit lane expansion act', sponsor: 'Adaeze Nwosu',
+          state: 'On floor', tone: 'warning', icon: 'clock',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-04-20',
+          note: 'Floor vote scheduled — majority of all serving (5 of 9)' },
+        { id: 'bill-2031-04', title: 'Short-term rental registration act', sponsor: 'Jonas Petersen',
+          state: 'Tabled', tone: 'neutral', icon: 'minus',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-02-11',
+          note: 'Tabled in Budget & Revenue — may be revived by motion' },
+        { id: 'bill-2031-01', title: 'Open data standard act', sponsor: 'Maribel Santos',
+          state: 'Enacted · Published', tone: 'success', icon: 'check',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-01-15',
+          note: 'Passed 7–1 of 8 serving · versioned and published (WF-SYS-03)' },
+        { id: 'law-2029-12', title: 'Curfew Ordinance §3', sponsor: '(enacted 2029)',
+          state: 'Challenged', tone: 'danger', icon: 'scale',
+          scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears the challenge', introduced: '2029-08-03',
+          note: 'Novák finding — veto window closes ' + W.challenge.vetoCloses, challengeLink: true }
+      ];
+
+      function render() {
+        /* Lifecycle legend from the registry entity. */
+        document.getElementById('lifecycle-legend').innerHTML = BY.entities['Bill'].states.map(function (st) {
+          return '<li class="lifecycle-stage">' + esc(st) + '</li>';
+        }).join('');
+
+        document.getElementById('bill-rows').innerHTML = bills.map(function (b) {
+          var title = b.detail
+            ? '<a href="bill-detail.html">' + esc(b.title) + '</a>'
+            : '<strong style="color:var(--gov-fg)">' + esc(b.title) + '</strong>';
+          var note = b.challengeLink
+            ? '<a href="../judiciary/constitutional-challenge.html">' + esc(b.note) + '</a>'
+            : esc(b.note);
+          return '<tr><td>' + title +
+            '<span class="citation" style="display:block">' + esc(b.id) + ' · ' + note + '</span></td>' +
+            '<td>' + esc(b.sponsor) + '</td>' +
+            '<td>' + S.badge(b.tone, b.state, b.icon) + '</td>' +
+            '<td><span class="citation">' + esc(b.scale) + '</span><span class="citation" style="display:block">' + esc(b.scope) + '</span></td>' +
+            '<td class="mono">' + esc(b.introduced) + '</td></tr>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.getElementById('intro-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var title = document.getElementById('bill-title').value.trim();
+        if (!title) return;
+        var typeSel = document.getElementById('bill-type');
+        bills.push({
+          id: 'bill-2031-12', title: title, sponsor: S.activePersona().name,
+          state: 'Introduced', tone: 'info', icon: 'file-text',
+          scale: document.getElementById('bill-scale').value.split(' — ')[0],
+          scope: document.getElementById('bill-scope').value + ' hears disputes',
+          introduced: '2031-06-11',
+          note: typeSel.options[typeSel.selectedIndex].text
+        });
+        document.getElementById('intro-confirm').innerHTML =
+          '<div class="banner banner--info" role="status">' + S.icon('check') +
+          '<div><span class="banner-title">Bill introduced</span>Entered the lifecycle at Introduced — the Speaker will ' +
+          'refer it to committee. <span class="citation">F-LEG-003 · Art. II §2 · WF-LEG-06</span></div></div>';
+        document.getElementById('bill-title').value = '';
+        document.getElementById('bill-text').value = '';
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

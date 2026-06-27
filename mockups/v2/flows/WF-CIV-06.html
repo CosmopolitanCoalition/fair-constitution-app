@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Petition Lifecycle (Law by Petition) — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · CIV</span>
+        <h1>Petition Lifecycle (Law by Petition) <span class="citation">WF-CIV-06</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-CIV-06", "title": "Petition Lifecycle (Law by Petition)", "module": "flows", "nav": null, "roles": ["R-05", "R-03", "R-08"], "workflows": ["WF-CIV-06"], "forms": [], "citation": "Art. II §6 · WF-CIV-06", "flow": "WF-CIV-06", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-CIV-06",
+ "name": "Petition Lifecycle (Law by Petition)",
+ "timeScale": "Long (signature gathering)",
+ "trigger": "R-05 files Petition Creation",
+ "actors": [
+  "R-05",
+  "R-03",
+  "R-08"
+ ],
+ "institutions": [
+  "I-ELB",
+  "I-JUD",
+  "I-ELE"
+ ],
+ "terminal": "Initiative on next jurisdiction-wide ballot, or invalidated (unconstitutional / failed signature audit)",
+ "basis": "Art. II §6",
+ "entity": "Petition",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-05",
+   "action": "Create petition with proposed law text (scale/scope defined)",
+   "outcome": "Petition open for signatures",
+   "form": "F-IND-009",
+   "screen": {
+    "href": "civic/petitions.html",
+    "params": {
+     "role": "R-05"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-03",
+   "action": "Sign petition",
+   "outcome": "Signature count accumulates toward CLK-17 threshold",
+   "form": "F-IND-010",
+   "screen": {
+    "href": "civic/petition-detail.html",
+    "params": {
+     "role": "R-03"
+    }
+   }
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "Threshold % of jurisdiction population reached",
+   "outcome": "Submitted to election board",
+   "engine": "Petition engine",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 4,
+   "actor": "R-08",
+   "action": "Independent transparent signature audit",
+   "outcome": "BRANCH: too many invalid → petition invalidated (terminal)",
+   "form": "F-ELB-005",
+   "screen": {
+    "href": "civic/petition-detail.html",
+    "params": {
+     "role": "R-08"
+    }
+   },
+   "branches": [
+    {
+     "label": "too many invalid → petition invalidated (terminal)",
+     "goto": "terminal:too many invalid → petition invalidated (terminal)"
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "actor": "Constitutional court",
+   "action": "Constitutionality review",
+   "outcome": "BRANCH: unconstitutional → invalidated (terminal); constitutional → validated",
+   "engine": "WF-JUD-09",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "unconstitutional → invalidated (terminal)",
+     "goto": "terminal:unconstitutional → invalidated (terminal)"
+    },
+    {
+     "label": "constitutional → validated",
+     "goto": "terminal:constitutional → validated"
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor": "System",
+   "action": "Place initiative on next jurisdiction-wide ballot",
+   "outcome": "Voted at the threshold matching the act type (majority/supermajority)",
+   "engine": "WF-ELE-07",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

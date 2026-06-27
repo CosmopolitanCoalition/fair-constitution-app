@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Candidate profile — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script>/* Capture ?candidate=&name=&race= before demo-state.js mirrors the URL (it strips page-local params). */
+    window.CGA_PAGE_PARAMS = new URLSearchParams(window.location.search);</script>
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="phase-banner"></div>
+
+      <header>
+        <span class="eyebrow">Elections · public profile</span>
+        <h1 id="cand-name">Diego Ramos</h1>
+        <p class="page-intro" id="cand-statement">Frequent buses, fewer evictions, open books.</p>
+        <p class="cc-small" id="race-line"></p>
+        <p class="gloss">A candidate page is just a public profile — every officeholder and candidate has one; it follows you into office.</p>
+        <p class="citation">Campaign profile setup · F-CAN-001 · available to R-06 Candidate · Art. I (Freedom of Expression)</p>
+        <noscript><p class="gloss">Standings, endorsements, and the public record on this page render from fixture data and need JavaScript.</p></noscript>
+      </header>
+
+      <section class="card" aria-labelledby="standing-h">
+        <h2 id="standing-h">Approval standing</h2>
+        <div id="standing-fixture">
+          <div class="cluster" style="gap:var(--space-6)">
+            <div class="stat stat--accent"><span class="stat-number" id="stat-rank">—</span><span class="stat-label">rank in the race</span></div>
+            <div class="stat"><span class="stat-number" id="stat-approvals">—</span><span class="stat-label">approvals (aggregate · updated daily)</span></div>
+            <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalist places · top X advance</span></div>
+          </div>
+          <div class="meter-block" style="margin-block-start:var(--space-3)">
+            <div class="meter"><span class="meter-fill" id="standing-fill" style="inline-size:0%"></span><span class="meter-threshold" id="standing-line" style="inset-inline-start:27%"></span></div>
+            <div class="meter-caption"><span id="standing-caption">—</span><span>gold tick = finalist line · top 21 of 24 · CLK-21</span></div>
+          </div>
+          <p class="gloss">Finalists: the top X candidates by approval standing when the phase closes; X = f(seats) — here 3 × 7 seats. Non-finalists stay write-in eligible.</p>
+          <p class="citation" id="standing-cite">Finalist count per race · X = f(seats) · CLK-21 · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+        </div>
+        <div id="standing-generic" hidden>
+          <p class="cc-small">Approval standing applies only during the approval phase. For this race, standing lives in the
+            public count record — every round, every transfer, fully auditable.</p>
+          <p><a href="results.html">Standing: see the count
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+          <p class="citation">Round-by-round PR-STV count record · Droop quota · Art. II §2</p>
+        </div>
+        <div class="state-strip" id="cand-state" style="margin-block-start:var(--space-3)" aria-label="Candidacy state machine"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="endorse-h">
+          <h2 id="endorse-h">Endorsements</h2>
+          <p class="cc-small">Organizations <strong>and</strong> individuals endorse candidates directly — there is no party or faction registration anywhere in the system.</p>
+          <div id="endorse-graph-wrap">
+            <svg viewBox="0 0 340 190" role="img" aria-labelledby="graph-title" style="inline-size:100%;block-size:auto">
+              <title id="graph-title">Endorsement graph — organizations and individuals linked to the candidate</title>
+              <g id="graph-edges" stroke="var(--gov-border-strong)" stroke-width="1.5"></g>
+              <g id="graph-nodes"></g>
+            </svg>
+            <p class="gloss">Stylized stand-in — the running game renders the live endorsement graph from the polymorphic endorsements table.</p>
+          </div>
+          <div id="endorse-list" class="cluster" style="margin-block-start:var(--space-2)"></div>
+          <h3 style="margin-block-start:var(--space-4)">Public individual endorsers — the public web</h3>
+          <p class="cc-small" id="endorse-split"></p>
+          <div id="endorse-web" class="stack" style="gap:var(--space-2)"></div>
+          <p class="citation" style="margin-block-start:var(--space-3)">Nobody is required to disclose; endorsements are public only by choice. Approval votes are always secret. · Art. II §2 · Ensure Election Security and Integrity</p>
+          <p class="citation" style="margin-block-start:var(--space-2)">Any organization or individual can endorse any candidate · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+        </section>
+
+        <section class="card" aria-labelledby="requests-h">
+          <h2 id="requests-h">Endorsement requests</h2>
+          <p class="citation">Endorsement request · F-CAN-002 · available to R-06 Candidate · Art. I (Freedom of Assembly)</p>
+          <div class="table-wrap"><table class="table">
+            <caption class="visually-hidden">Endorsement request status</caption>
+            <thead><tr><th>Organization</th><th>Requested</th><th>Status</th></tr></thead>
+            <tbody id="request-rows"></tbody>
+          </table></div>
+          <p class="gloss" id="request-note">A granted organizational endorsement upgrades the candidacy to R-07 Endorsed Candidate. Candidates with no endorsements are first-class throughout.</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="record-h">
+        <h2 id="record-h">Public record <span class="citation">auto-attached — not editable by the candidate</span></h2>
+        <p class="cc-small">Every candidacy carries the individual's public record with it: legislative votes (for incumbents),
+          civic actions, and public statements. Voters compare records, not advertising.</p>
+        <div id="record-empty" hidden>
+          <p class="gloss">No public record entries yet — votes attended, statements, and civic actions appear here automatically.</p>
+        </div>
+        <div id="record-known">
+          <h3>Legislative votes</h3>
+          <div id="record-votes"></div>
+          <h3 style="margin-block-start:var(--space-4)">Civic actions</h3>
+          <div id="record-actions"></div>
+          <h3 style="margin-block-start:var(--space-4)">Public statements</h3>
+          <div id="record-statements"></div>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-3)">Profile auto-attaches the public record · WF-CIV-05 · Art. II §2 (transparency)</p>
+      </section>
+
+      <section class="card" id="manage-card" aria-labelledby="manage-h">
+        <h2 id="manage-h">Manage this candidacy <span class="citation">visible to the candidate only</span></h2>
+        <form id="profile-form">
+          <div class="field">
+            <label class="field-label" for="f-statement">Platform statement</label>
+            <textarea class="field-input" id="f-statement" rows="2"></textarea>
+            <span class="field-hint">Shown on the open ballot and the ranked ballot. Position tags are edited on the registration record.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary btn--sm">Save profile</button>
+            <span class="citation">Campaign profile setup · F-CAN-001 · modifies the candidate record</span>
+          </div>
+          <p class="citation" id="profile-saved" role="status" hidden>Profile saved — change appended to the public record · simulated</p>
+        </form>
+        <hr />
+        <h3>Withdraw candidacy</h3>
+        <p class="cc-small">Withdrawal is allowed until ballot lock at the finalist cutoff. It is recorded permanently on the public record.</p>
+        <p class="citation">Candidacy withdrawal · F-CAN-003 · available to R-06 Candidate · Art. I (Autonomy)</p>
+        <div id="withdraw-area" class="cluster"></div>
+      </section>
+
+      <p id="back-ballot"><a href="open-ballot.html">Back to the open ballot
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+      <p id="back-count" hidden><a href="results.html">Back to the count
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-05.html">WF-CIV-05 (candidacy lifecycle)</a> — profile,
+            endorsement requests, withdrawal; standings feed <a href="../flows/WF-CIV-08.html">WF-CIV-08 (open ballot)</a>.</p>
+          <p><strong>Entity state machine:</strong> Candidacy — Registered → Validated → In-Approval-Pool → [Endorsed] →
+            Finalist | Non-finalist (write-in eligible) → On-Ranked-Ballot / Written-In → Elected | Not elected | Withdrawn.
+            The strip above highlights this candidate's current state.</p>
+          <p><strong>Deep linking:</strong> this page honors <code data-no-i18n>?candidate=</code> — every name on the open ballot
+            links here. The count and ranked-ballot pages link non-fixture names with
+            <code data-no-i18n>?candidate=&lt;slug&gt;&amp;name=&lt;display name&gt;&amp;race=&lt;election id&gt;</code>, which renders
+            the same public-profile layout with the race context and an empty-but-honest record.</p>
+          <p class="citation">Art. I · Art. II §2 · F-CAN-001 · F-CAN-002 · F-CAN-003 · CLK-21</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/candidate-profile',
+      title: 'Candidate profile',
+      module: 'electoral',
+      nav: 'open-ballot',
+      roles: ['R-03', 'R-04', 'R-06', 'R-07'],
+      workflows: ['WF-CIV-05', 'WF-CIV-08'],
+      forms: ['F-CAN-001', 'F-CAN-002', 'F-CAN-003'],
+      citation: 'Candidacy lifecycle · F-CAN-001/002/003 · Art. I; Art. II §2',
+      flow: 'WF-CIV-05',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var byApprovals = W.candidates.slice().sort(function (a, b) { return b.approvals - a.approvals; });
+      var byCandId = {};
+      W.candidates.forEach(function (c) { byCandId[c.id] = c; });
+
+      /* ?candidate=&name=&race= (captured in <head> before demo-state rewrites the
+         URL) with a #candidate= hash fallback — the hash survives link rewriting. */
+      var hashParams = new URLSearchParams(window.location.hash.replace(/^#/, '?'));
+      function param(k) {
+        return (window.CGA_PAGE_PARAMS && window.CGA_PAGE_PARAMS.get(k)) || hashParams.get(k);
+      }
+      var wanted = param('candidate');
+
+      /* Two branches, one layout. A fixture id renders the full demo candidacy;
+         a non-fixture id + ?name= renders the generic public profile — every
+         officeholder and candidate has one, and it follows them into office. */
+      var generic = !!(wanted && !byCandId[wanted] && param('name'));
+      var cand = generic
+        ? { id: wanted, name: param('name'), election: param('race'), endorsedBy: [], individualEndorsements: 0 }
+        : (byCandId[wanted] || byCandId['diego-ramos']);
+
+      function findElection(id) {
+        var hit = null;
+        W.elections.forEach(function (e) { if (e.id === id) hit = e; });
+        return hit;
+      }
+      var election = findElection(cand.election) || (generic ? null : W.elections[0]);
+      var FINALISTS = election ? election.finalistCount : 0;
+      var raceJur = election ? BY.jurisdictions[election.jurisdiction] : null;
+      var raceLabel = election
+        ? raceJur.name + ' general election · ' + election.seats.toLocaleString('en-US') + ' seats'
+        : 'Race not in the demo fixture set';
+      var PHASE_LABEL = { approval: 'approval phase', ranked: 'ranked window open', certifying: 'certifying' };
+      var rank = generic ? 0 : byApprovals.indexOf(cand) + 1;
+
+      /* Page-local simulated state. */
+      var withdrawn = false, confirming = false;
+
+      /* Public individual endorsers — the public web. Endorsements are public
+         only by the endorser's choice; approval votes are always secret. Each
+         entry lists everyone that endorser chose to endorse publicly, so any
+         profile can be reached by walking the web. */
+      var ENDORSER_WEB = [
+        { name: 'Omar Farouk', endorses: ['diego-ramos', 'fatou-ndiaye', 'linh-pham'] },
+        { name: 'Wren Ashby', candidate: 'wren-ashby', endorses: ['diego-ramos', 'nadia-haq'] },
+        { name: 'Dalia Mansour', candidate: 'dalia-mansour', endorses: ['diego-ramos', 'fatou-ndiaye', 'yara-haddad'] },
+        { name: 'Amara Okafor', endorses: ['diego-ramos', 'keisha-boyd', 'linh-pham'] },
+        { name: 'Priya Sharma', endorses: ['keisha-boyd', 'nadia-haq'] },
+        { name: 'Tomás Ferreira', endorses: ['linh-pham', 'june-okada'] }
+      ];
+      function publicSplit(c) {
+        var named = ENDORSER_WEB.filter(function (e) { return e.endorses.indexOf(c.id) >= 0; });
+        var pub = Math.max(named.length, Math.round((c.individualEndorsements || 0) * 0.3));
+        return { named: named, pub: pub, priv: Math.max(0, (c.individualEndorsements || 0) - pub) };
+      }
+
+      /* Endorsement-request fixtures keyed by candidate; derived rows otherwise. */
+      var REQUESTS = {
+        'diego-ramos': [
+          { org: 'commons-party', date: '2031-02-14', status: 'granted' },
+          { org: 'green-horizon', date: '2031-04-30', status: 'pending' },
+          { org: 'hudson-mutual-aid', date: '2031-03-22', status: 'declined' }
+        ]
+      };
+
+      var RECORD = {
+        votes: [
+          { label: 'Aye — New York County Clean Air Act, committee referral', date: '2031-04-09' },
+          { label: 'Aye — FY2031 county budget, floor vote', date: '2030-12-15' },
+          { label: 'Nay — Curfew Ordinance §3 amendment, floor vote', date: '2030-09-03' }
+        ],
+        actions: [
+          { label: 'Signed petition — Manhattan traffic calming (pet-2031-04)', date: '2031-03-18' },
+          { label: 'Ranked ballot cast — New York County general election', date: '2030-11-05' },
+          { label: 'Residency verified — New York County, New York', date: '2028-07-02' }
+        ],
+        statements: [
+          { label: 'Testimony to the Environment & Infrastructure committee on transit frequency', date: '2031-04-21' },
+          { label: 'Open letter on participatory budgeting, published to the public record', date: '2031-01-12' }
+        ]
+      };
+
+      function recordRows(items) {
+        return items.map(function (r) {
+          return '<div class="log-row"><span class="log-seq">' + esc(r.date) + '</span><span>' + esc(r.label) + '</span></div>';
+        }).join('');
+      }
+
+      function profileLink(id, label) {
+        return '<a href="candidate-profile.html?candidate=' + esc(id) + '">' + esc(label) + '</a>';
+      }
+
+      function graph(split) {
+        var orgs = (cand.endorsedBy || []).map(function (oid) { return BY.organizations[oid]; });
+        var fills = ['var(--wong-orange)', 'var(--wong-skyblue)', 'var(--wong-green)', 'var(--wong-purple)'];
+        var cx = 170, cy = 95, edges = '', nodes = '';
+        var spokes = orgs.map(function (o, i) { return { label: o.name, fill: fills[i % fills.length] }; });
+        spokes.push({ label: split.pub + ' public individual endorsers', fill: 'var(--wong-yellow)' });
+        spokes.push({ label: split.priv + ' private individual endorsers', fill: 'var(--gov-border-strong)' });
+        spokes.forEach(function (n, i) {
+          var a = (Math.PI * 2 / spokes.length) * i - Math.PI / 2;
+          var x = cx + Math.cos(a) * 105, y = cy + Math.sin(a) * 62;
+          edges += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(0) + '" y2="' + y.toFixed(0) + '"></line>';
+          nodes += '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="7" fill="' + n.fill + '"></circle>' +
+            '<text x="' + x.toFixed(0) + '" y="' + (y + (y > cy ? 20 : -12)).toFixed(0) + '" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">' + esc(n.label) + '</text>';
+        });
+        nodes += '<circle cx="' + cx + '" cy="' + cy + '" r="11" fill="var(--wong-blue)"></circle>' +
+          '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-size="10" fill="var(--gov-fg)" font-weight="600">' + esc(cand.name.split(' ')[0]) + '</text>';
+        document.getElementById('graph-edges').innerHTML = edges;
+        document.getElementById('graph-nodes').innerHTML = nodes;
+      }
+
+      /* The public web: each public endorser expands to show who else they
+         publicly endorse, each name linking to that candidate's profile. */
+      function endorserWeb(split) {
+        var html = split.named.map(function (e) {
+          var others = e.endorses.filter(function (id) { return id !== cand.id; });
+          var links = others.map(function (id) {
+            var oc = byCandId[id];
+            return profileLink(id, oc ? oc.name : id);
+          }).join(' · ');
+          var tag = e.candidate ? ' <span class="tag-chip">also a candidate in this race</span>' : '';
+          return '<details class="about-surface"><summary>' + S.icon('chevron-right', { size: 'sm' }) + ' ' + esc(e.name) + tag + '</summary>' +
+            '<div class="about-surface-body"><p class="cc-small" style="margin-block-end:var(--space-1)">' +
+            (others.length ? 'Also publicly endorses: ' + links : 'Publicly endorses only this candidate.') + '</p>' +
+            (e.candidate ? '<p class="cc-small" style="margin-block-end:0">' + profileLink(e.candidate, 'Open ' + e.name + '’s own public profile') + '</p>' : '') +
+            '</div></details>';
+        }).join('');
+        if (split.pub > split.named.length) {
+          var more = split.pub - split.named.length;
+          html += '<p class="gloss" style="margin-block-end:0">+ ' + more + ' more public ' +
+            (more === 1 ? 'endorser' : 'endorsers') +
+            ' — the full list renders from the endorsements table; this mockup names the web for the leading candidates.</p>';
+        }
+        return html;
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var phase = generic ? (election ? election.phase : null) : st.scenario.election;
+        var phaseOpen = phase === 'approval';
+        var isFinalist = rank > 0 && rank <= FINALISTS;
+        var split = publicSplit(cand);
+
+        /* Phase banner */
+        if (generic) {
+          document.getElementById('phase-banner').innerHTML = !phase || phaseOpen ? '' :
+            '<div class="banner banner--info" role="status">' + S.icon('info') +
+            '<div><span class="banner-title">' + esc(raceLabel) + ' — ' + esc(PHASE_LABEL[phase] || phase) + '.</span> ' +
+            (phase === 'ranked'
+              ? 'The ranked window is open — this name appears on <a href="ranked-ballot.html">the ranked ballot</a>.'
+              : 'The count is public — standing: <a href="results.html">see the count</a>.') +
+            ' <span class="citation">Art. II §2</span></div></div>';
+        } else {
+          document.getElementById('phase-banner').innerHTML = phaseOpen ? '' :
+            '<div class="banner banner--warning" role="status">' + S.icon('clock') +
+            '<div><span class="banner-title">The approval phase has closed — this standing is frozen at the finalist cutoff.</span> ' +
+            (isFinalist ? 'This candidate is a finalist on the ranked ballot.' : 'This candidate did not reach the finalist line and remains write-in eligible.') +
+            ' <span class="citation">CLK-21 · finalist cutoff · Art. II §2</span></div></div>';
+        }
+
+        document.getElementById('cand-name').textContent = cand.name + (withdrawn ? ' — withdrawn' : '');
+        document.getElementById('cand-statement').textContent = cand.statement || 'No platform statement published yet.';
+        document.getElementById('race-line').textContent = raceLabel +
+          (phase ? ' · ' + (PHASE_LABEL[phase] || phase) : '');
+        document.getElementById('f-statement').value = cand.statement || '';
+
+        /* Standing: fixture candidates get the approval meter; generic profiles
+           point at the count record instead. */
+        document.getElementById('standing-fixture').hidden = generic;
+        document.getElementById('standing-generic').hidden = !generic;
+        document.getElementById('standing-h').textContent = generic ? 'Standing' : 'Approval standing';
+        if (!generic) {
+          document.getElementById('stat-rank').textContent = '#' + rank + ' of ' + W.candidates.length;
+          document.getElementById('stat-approvals').textContent = cand.approvals.toLocaleString('en-US');
+          var topApprovals = byApprovals[0].approvals;
+          var lineApprovals = (byApprovals[FINALISTS - 1] || byApprovals[byApprovals.length - 1]).approvals;
+          document.getElementById('standing-fill').style.inlineSize = Math.round(cand.approvals / topApprovals * 100) + '%';
+          document.getElementById('standing-line').style.insetInlineStart = Math.round(lineApprovals / topApprovals * 100) + '%';
+          document.getElementById('standing-fill').className = 'meter-fill' + (isFinalist ? ' meter-fill--met' : '');
+          document.getElementById('standing-caption').textContent = isFinalist
+            ? 'rank #' + rank + ' — inside the top ' + FINALISTS + ' (finalist track)'
+            : 'rank #' + rank + ' — below the finalist line · write-in eligible';
+        }
+
+        /* Candidacy state strip. The registry's terminal-state key predates the
+           outcome wording rule; the page displays "Elected | Not elected | Withdrawn". */
+        var states = BY.entities['Candidacy'].states;
+        var TERMINAL = states[states.length - 1];
+        function stateLabel(s) { return s === TERMINAL ? 'Elected | Not elected | Withdrawn' : s; }
+        var current = withdrawn ? TERMINAL
+          : generic ? (!phase ? 'Validated' : phaseOpen ? 'In-Approval-Pool' : 'On-Ranked-Ballot / Written-In')
+          : !phaseOpen ? 'Finalist | Non-finalist (write-in eligible)'
+          : (cand.endorsedBy || []).length ? '[Endorsed]' : 'In-Approval-Pool';
+        document.getElementById('cand-state').innerHTML = states.map(function (s, i) {
+          return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(stateLabel(s)) + '</span>';
+        }).join('');
+
+        /* Endorsements: org chips + the public/private individual split.
+           Endorsements are public by choice; approvals are always secret. */
+        document.getElementById('endorse-graph-wrap').hidden = generic;
+        if (!generic) graph(split);
+        var chips = (cand.endorsedBy || []).map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join('');
+        if (generic) {
+          chips += '<span class="tag-chip">no public endorsements recorded</span>';
+        } else {
+          chips += '<span class="tag-chip">' + cand.individualEndorsements + ' individual · ' + split.pub + ' public, ' + split.priv + ' private</span>';
+          if (!(cand.endorsedBy || []).length) chips += '<span class="tag-chip">no organizational endorsements — first-class</span>';
+        }
+        document.getElementById('endorse-list').innerHTML = chips;
+        document.getElementById('endorse-split').innerHTML = generic
+          ? 'No public individual endorsers on this profile yet. Private endorsements never appear here — disclosure is the endorser’s choice, always.'
+          : '<strong>' + cand.individualEndorsements + ' individual</strong> · ' + split.pub + ' public, ' + split.priv +
+            ' private. Expand a public endorser to see the rest of their public web.';
+        document.getElementById('endorse-web').innerHTML = generic ? '' : endorserWeb(split);
+
+        /* Endorsement requests (F-CAN-002) */
+        var reqs = generic ? [] : (REQUESTS[cand.id] || (cand.endorsedBy || []).map(function (oid) {
+          return { org: oid, date: '2031-03-01', status: 'granted' };
+        }));
+        var tone = { granted: ['success', 'check'], pending: ['warning', 'clock'], declined: ['neutral', 'x'] };
+        document.getElementById('request-rows').innerHTML = reqs.length ? reqs.map(function (r) {
+          var o = BY.organizations[r.org];
+          return '<tr><td>' + esc(o.name) + '</td><td class="mono">' + esc(r.date) + '</td>' +
+            '<td>' + S.badge(tone[r.status][0], r.status + (r.status === 'granted' ? ' · grants R-07' : ''), tone[r.status][1]) + '</td></tr>';
+        }).join('') : '<tr><td colspan="3">' + (generic
+          ? 'No endorsement requests on the public record.'
+          : 'No requests filed — this candidacy runs on individual endorsements only.') + '</td></tr>';
+
+        /* Public record — empty but honest on a fresh public profile. */
+        document.getElementById('record-empty').hidden = !generic;
+        document.getElementById('record-known').hidden = generic;
+        if (!generic) {
+          document.getElementById('record-votes').innerHTML = cand.incumbent
+            ? recordRows(RECORD.votes)
+            : '<p class="gloss">None — not an incumbent. Legislative votes attach automatically once seated.</p>';
+          document.getElementById('record-actions').innerHTML = recordRows(RECORD.actions);
+          document.getElementById('record-statements').innerHTML = recordRows(RECORD.statements);
+        }
+
+        /* Manage panel is the candidate's own view — hidden on someone else's
+           generic public profile. Back link follows the referring surface. */
+        document.getElementById('manage-card').hidden = generic;
+        document.getElementById('back-ballot').hidden = generic;
+        document.getElementById('back-count').hidden = !generic;
+
+        /* Withdraw (F-CAN-003) with confirm state; locked after the finalist cutoff. */
+        var area = document.getElementById('withdraw-area');
+        if (withdrawn) {
+          area.innerHTML = S.badge('danger', 'Withdrawn — recorded on the public record', 'x') +
+            '<span class="citation">F-CAN-003 committed · simulated</span>';
+        } else if (!phaseOpen) {
+          area.innerHTML = '<button type="button" class="btn btn--secondary btn--sm" disabled>Withdraw candidacy</button>' +
+            '<span class="citation">ballot locked at the finalist cutoff — withdrawal closed · CLK-21</span>';
+        } else if (confirming) {
+          area.innerHTML = '<span class="cc-small" style="color:var(--gov-fg-strong)">Withdraw from the ' + esc(raceJur ? raceJur.name : 'current') + ' race? This cannot be undone.</span>' +
+            '<button type="button" class="btn btn--danger btn--sm" id="withdraw-yes">Yes, withdraw</button>' +
+            '<button type="button" class="btn btn--ghost btn--sm" id="withdraw-no">Keep running</button>';
+        } else {
+          area.innerHTML = '<button type="button" class="btn btn--secondary btn--sm" id="withdraw-btn">Withdraw candidacy</button>';
+        }
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('#withdraw-btn,#withdraw-yes,#withdraw-no') : null;
+        if (!t) return;
+        if (t.id === 'withdraw-btn') confirming = true;
+        else if (t.id === 'withdraw-yes') { withdrawn = true; confirming = false; }
+        else if (t.id === 'withdraw-no') confirming = false;
+        render();
+      });
+
+      document.getElementById('profile-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        cand.statement = document.getElementById('f-statement').value;
+        document.getElementById('profile-saved').hidden = false;
+        render();
+      });
+
+      /* Register reactivity first, then paint. The initial render waits for
+         DOMContentLoaded because S.refresh() needs the shell chrome to exist. */
+      document.addEventListener('cga:statechange', render);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+      else render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Committee detail — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Committee · <span data-no-i18n>com-env</span></span>
+        <h1>Environment &amp; Infrastructure committee</h1>
+        <p class="page-intro">Three seats, chaired by Marcus Chen with Asha Okonkwo as alternate. Currently hearing the
+          <a href="bill-detail.html">New York County Clean Air Act</a>. Everything said in a hearing enters the public record.</p>
+        <p class="citation">Committee proceedings · Art. II §4 · created by Act 2031-01 (supermajority) · F-LEG-009</p>
+      </header>
+
+      <section class="card" aria-labelledby="members-h">
+        <h2 id="members-h">Members</h2>
+        <div id="member-list" class="stack" style="gap:var(--space-2)"></div>
+        <noscript><p>Member list renders with JavaScript — Marcus Chen (chair), Maribel Santos, Lev Aronov.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">Chair + alternate by whole-legislature RCV · F-LEG-011 · Art. II §4 —
+          mid-term refills stay proportion-safe · WF-LEG-13</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="call-h">
+          <h2 id="call-h">Meeting call <span class="form-chip">Committee meeting call <span class="form-id">F-CHR-001</span></span></h2>
+          <p class="cc-small">Schedule and call a committee meeting.
+            <span class="citation">available to R-12 Committee Chair · Art. II §4 · catalog alias: F-COM-001 · workflows catalog</span></p>
+          <div class="cluster">
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Meeting called</span>
+            <span class="citation">2031-06-14 10:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="agenda-h">
+          <h2 id="agenda-h">Agenda <span class="form-chip">Committee agenda setting <span class="form-id">F-CHR-002</span></span></h2>
+          <p class="cc-small">Set the order of business for a committee meeting.
+            <span class="citation">available to R-12 Committee Chair · Art. II §4 · catalog alias: F-COM-002 · workflows catalog</span></p>
+          <ol style="margin-block-end:0">
+            <li>Public testimony — New York County Clean Air Act</li>
+            <li>Committee vote on the act (F-LEG-005)</li>
+            <li>Referral to floor if reported (F-CHR-003)</li>
+            <li>Report filing (F-CHR-004)</li>
+          </ol>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="testimony-h">
+        <h2 id="testimony-h">Testimony — to the public record</h2>
+        <div id="testimony" class="stack" style="gap:var(--space-2)"></div>
+        <noscript><p>Testimony entries render with JavaScript.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">All testimony, debate, and votes publish to the immutable public record · Art. II §2 (Publish Public Records) · WF-SYS-03</p>
+      </section>
+
+      <section class="card" aria-labelledby="vote-h">
+        <h2 id="vote-h">Committee vote — New York County Clean Air Act <span class="form-chip">Committee vote <span class="form-id">F-LEG-005</span></span></h2>
+        <p class="cc-small">Cast a vote on a bill or matter within a committee. Passage requires a majority of
+          <strong>all committee members</strong> — 2 of 3, regardless of who is present.
+          <span class="citation">available to R-11 Committee Member · Art. II §4</span></p>
+        <div id="vote-rows" class="stack" style="gap:var(--space-2)"></div>
+        <div id="vote-tally" style="margin-block-start:var(--space-4)"></div>
+        <noscript><p>Vote simulation needs JavaScript.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="refer-h">
+          <h2 id="refer-h">Referral to floor <span class="form-chip">Bill referral to floor <span class="form-id">F-CHR-003</span></span></h2>
+          <p class="cc-small">Report a bill out of committee to the full legislature floor.
+            <span class="citation">available to R-12 Committee Chair · Art. II §4 · catalog alias: F-COM-003 · workflows catalog</span></p>
+          <div id="refer-state"></div>
+        </section>
+
+        <section class="card" aria-labelledby="report-h">
+          <h2 id="report-h">Committee report <span class="form-chip">Committee report filing <span class="form-id">F-CHR-004</span></span></h2>
+          <p class="cc-small">File an official committee report on findings, recommendations, or bill analysis.
+            <span class="citation">available to R-12 Committee Chair · Art. II §4 · catalog alias: F-COM-004 · workflows catalog</span></p>
+          <form id="report-form">
+            <div class="field">
+              <label class="field-label" for="report-text">Report summary</label>
+              <textarea class="field-input" id="report-text" rows="3" placeholder="Findings and recommendation to the floor"></textarea>
+            </div>
+            <button type="submit" class="btn btn--secondary btn--sm">File report</button>
+          </form>
+          <div id="report-confirm" style="margin-block-start:var(--space-2)"></div>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-08.html">WF-LEG-08 (committee hearing)</a> — call,
+            agenda, testimony, vote, referral, report; vacancies and proportionality re-checks run
+            <a href="../flows/WF-LEG-13.html">WF-LEG-13</a>; a reported bill continues in
+            <a href="../flows/WF-LEG-06.html">WF-LEG-06 (bill lifecycle)</a>.</p>
+          <p><strong>Entity state machines:</strong> Bill (In-Committee → Reported | Tabled) and Committee Seat
+            (Seated → Vacated → Refilled).</p>
+          <p class="citation">Art. II §4 · F-CHR-001…004 (catalog aliases F-COM-001…004) · F-LEG-005</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/committee-detail',
+      title: 'Committee detail — Environment & Infrastructure',
+      module: 'legislature',
+      nav: 'committees',
+      roles: ['R-11', 'R-12', 'R-13'],
+      workflows: ['WF-LEG-08', 'WF-LEG-13'],
+      forms: ['F-CHR-001', 'F-CHR-002', 'F-CHR-003', 'F-CHR-004', 'F-LEG-005'],
+      citation: 'Committee hearing — testimony, vote, referral, report · Art. II §4',
+      flow: 'WF-LEG-08',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var com = W.committees[0]; /* com-env */
+
+      /* Page-local vote state: name -> 'yes' | 'no' | undefined. Chair pre-voted yes. */
+      var votes = { 'Marcus Chen': 'yes' };
+      var referred = false;
+
+      var TESTIMONY = [
+        { who: 'Dr. Samuel Adeyemi · Board of Governors, Public Works & Utilities', text: 'Stationary-source standards are enforceable with current monitoring; the CGC grid data supports the thresholds.' },
+        { who: 'Keisha Boyd · resident, incumbent candidate', text: 'Tree canopy and clean air are infrastructure — the act aligns county standards with the Hudson watershed baseline.' },
+        { who: 'Five Boroughs Chamber of Commerce (business)', text: 'Requests a 24-month compliance window for small stationary sources.' }
+      ];
+
+      function personaOrName(ref) { return BY.personas[ref] ? BY.personas[ref].name : ref; }
+
+      function memberOrgChips(name) {
+        var m = null;
+        W.chamber.members.forEach(function (x) {
+          if (x.vacant) return;
+          if ((x.persona && BY.personas[x.persona].name === name) || x.name === name) m = x;
+        });
+        if (!m || !m.endorsedBy || !m.endorsedBy.length) return '<span class="tag-chip">no endorsements</span>';
+        return m.endorsedBy.map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip" style="padding-block:0;font-size:var(--text-xs)">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join(' ');
+      }
+
+      function render() {
+        /* Members. */
+        document.getElementById('member-list').innerHTML = com.members.map(function (ref) {
+          var name = personaOrName(ref);
+          var roleBadge = name === personaOrName(com.chair)
+            ? S.badge('info', 'Chair · R-12', 'landmark')
+            : '<span class="citation">R-11 · committee member</span>';
+          return '<div class="cluster" style="justify-content:space-between">' +
+            '<span><strong style="color:var(--gov-fg)">' + esc(name) + '</strong> ' + roleBadge + '</span>' +
+            '<span>' + memberOrgChips(name) + '</span></div>';
+        }).join('') +
+        '<div class="cluster" style="justify-content:space-between"><span>' + esc(personaOrName(com.alternate)) +
+        ' ' + S.badge('neutral', 'Alternate chair · R-13', 'user') + '</span>' +
+        '<span class="citation">steps in when the chair is unavailable</span></div>';
+
+        /* Testimony. */
+        document.getElementById('testimony').innerHTML = TESTIMONY.map(function (t) {
+          return '<div class="card card--inset"><strong style="color:var(--gov-fg)">' + esc(t.who) + '</strong>' +
+            '<p class="cc-small" style="margin-block:var(--space-1) 0">' + esc(t.text) + '</p>' +
+            '<span class="citation">entered into the public record</span></div>';
+        }).join('');
+
+        /* Vote rows — each member gets yes/no toggles. */
+        document.getElementById('vote-rows').innerHTML = com.members.map(function (ref) {
+          var name = personaOrName(ref);
+          var v = votes[name];
+          return '<div class="cluster" style="justify-content:space-between">' +
+            '<span>' + esc(name) + '</span><span class="cluster" role="group" aria-label="Vote of ' + esc(name) + '">' +
+            '<button type="button" class="chip-toggle" data-vote="' + esc(name) + ',yes" aria-pressed="' + (v === 'yes') + '">Yes</button>' +
+            '<button type="button" class="chip-toggle" data-vote="' + esc(name) + ',no" aria-pressed="' + (v === 'no') + '">No</button>' +
+            (v ? '' : '<span class="citation">not yet recorded — counts toward the denominator</span>') +
+            '</span></div>';
+        }).join('');
+
+        var yes = com.members.filter(function (r) { return votes[personaOrName(r)] === 'yes'; }).length;
+        var total = com.members.length, need = 2;
+        var passed = yes >= need;
+        document.getElementById('vote-tally').innerHTML =
+          '<div class="meter-block"><div class="meter">' +
+          '<span class="meter-fill' + (passed ? ' meter-fill--met' : '') + '" style="inline-size:' + Math.round(yes / total * 100) + '%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:' + Math.round(need / total * 100) + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + yes + ' yes of ' + total + ' members (all members, not those present)</span>' +
+          '<span>passage: ' + need + ' of ' + total + ' · Art. II §4</span></div></div>' +
+          (passed ? '<div style="margin-block-start:var(--space-2)">' + S.badge('success', 'Reported — referral to floor available', 'check') + '</div>' : '');
+
+        /* Referral gate — enabled only after the committee vote passes. */
+        document.getElementById('refer-state').innerHTML = referred
+          ? '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">Referred to the floor</span>Bill status → Reported · the floor vote is next. ' +
+            '<span class="citation">F-CHR-003 · Art. II §4 · WF-LEG-06</span></div></div>'
+          : '<button type="button" class="btn btn--primary btn--sm" id="refer-btn"' + (passed ? '' : ' disabled title="Requires a passed committee vote (2 of 3)"') + '>Refer bill to floor</button>' +
+            (passed ? '' : '<p class="gloss" style="margin-block-start:var(--space-2)">Enabled once the committee vote passes (2 of 3).</p>');
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-vote],#refer-btn') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-vote')) {
+          var parts = t.getAttribute('data-vote').split(',');
+          votes[parts[0]] = votes[parts[0]] === parts[1] ? undefined : parts[1];
+          render();
+        } else if (t.id === 'refer-btn' && !t.disabled) {
+          referred = true;
+          render();
+        }
+      });
+
+      document.getElementById('report-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var ta = document.getElementById('report-text');
+        if (!ta.value.trim()) return;
+        ta.value = '';
+        document.getElementById('report-confirm').innerHTML =
+          '<div class="banner banner--info" role="status">' + S.icon('check') +
+          '<div><span class="banner-title">Report filed</span>Published with the bill record. ' +
+          '<span class="citation">F-CHR-004 · Art. II §4 · WF-SYS-03</span></div></div>';
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

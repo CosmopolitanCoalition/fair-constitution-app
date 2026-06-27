@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bill Lifecycle (Unicameral) — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Bill Lifecycle (Unicameral) <span class="citation">WF-LEG-06</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-06", "title": "Bill Lifecycle (Unicameral)", "module": "flows", "nav": null, "roles": ["R-09", "R-11", "R-12", "R-10"], "workflows": ["WF-LEG-06"], "forms": [], "citation": "Art. II §2; Art. V §4 · WF-LEG-06", "flow": "WF-LEG-06", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-06",
+ "name": "Bill Lifecycle (Unicameral)",
+ "timeScale": "Medium (weeks)",
+ "trigger": "F-LEG-003 Bill Introduction",
+ "actors": [
+  "R-09",
+  "R-11",
+  "R-12",
+  "R-10"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-COM"
+ ],
+ "terminal": "Enacted law (peg-quorum majority of all serving members) with scale/scope definitions, versioned and published; or failed/tabled",
+ "basis": "Art. II §2; Art. V §4",
+ "entity": "Bill",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Introduce bill with text, scale & scope definitions",
+   "outcome": "Bill record enters lifecycle; published",
+   "form": "F-LEG-003",
+   "screen": {
+    "href": "legislature/bills.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-10 / R-09",
+   "action": "Refer to committee (or motion to consider whole)",
+   "outcome": "BRANCH: committee path or direct floor",
+   "form": "F-LEG-007",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-10"
+    }
+   },
+   "branches": [
+    {
+     "label": "committee path or direct floor",
+     "goto": "terminal:committee path or direct floor"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "I-COM",
+   "action": "Hearing, debate, amendments, committee vote (majority of all committee members)",
+   "outcome": "BRANCH: reported to floor (F-COM-003) | tabled | amended & reported",
+   "form": "F-LEG-005",
+   "screen": {
+    "href": "legislature/bill-detail.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "reported to floor (F-COM-003)",
+     "goto": "terminal:reported to floor (F-COM-003)"
+    },
+    {
+     "label": "tabled",
+     "goto": "terminal:tabled"
+    },
+    {
+     "label": "amended & reported",
+     "goto": "terminal:amended & reported"
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "actor": "R-09",
+   "action": "Floor debate; amendments via motions",
+   "outcome": "Public record statements attached (F-LEG-006)",
+   "form": "F-LEG-007",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 5,
+   "actor": "R-09",
+   "action": "Floor vote — peg quorum: majority (or stated supermajority) of ALL serving members",
+   "outcome": "BRANCH: passed → enacted; failed → archived with votes/explanations",
+   "form": "F-LEG-004",
+   "screen": {
+    "href": "legislature/bill-detail.html",
+    "params": {
+     "role": "R-09"
+    }
+   },
+   "branches": [
+    {
+     "label": "passed → enacted",
+     "goto": "terminal:passed → enacted"
+    },
+    {
+     "label": "failed → archived with votes/explanations",
+     "goto": "terminal:failed → archived with votes/explanations"
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "actor": "System",
+   "action": "Enact: version law, link any settings changes, publish",
+   "outcome": "Effective date set; open to Art. IV §5 challenge",
+   "engine": "Legislation module + WF-LEG-14",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

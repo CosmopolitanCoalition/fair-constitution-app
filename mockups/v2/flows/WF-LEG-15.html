@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rules of Order & Ethics Adoption — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Rules of Order & Ethics Adoption <span class="citation">WF-LEG-15</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-15", "title": "Rules of Order & Ethics Adoption", "module": "flows", "nav": null, "roles": ["R-09", "R-10"], "workflows": ["WF-LEG-15"], "forms": [], "citation": "Art. II §2 · WF-LEG-15", "flow": "WF-LEG-15", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-15",
+ "name": "Rules of Order & Ethics Adoption",
+ "timeScale": "Short",
+ "trigger": "First sessions of each legislature",
+ "actors": [
+  "R-09",
+  "R-10"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-ADM"
+ ],
+ "terminal": "Binding rules + ethics code applying to all elected officials and civil officers",
+ "basis": "Art. II §2",
+ "entity": null,
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Debate and adopt Rules of Order",
+   "outcome": "Procedural law for sessions/motions",
+   "form": "F-LEG-032",
+   "screen": {
+    "href": "legislature/legislature-home.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-09",
+   "action": "Adopt Ethics Code applying to all elected officials AND civil officers",
+   "outcome": "Enforced by I-ADM",
+   "form": "F-LEG-033",
+   "screen": {
+    "href": "legislature/legislature-home.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ranked Ballot Cast & Verify — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · CIV</span>
+        <h1>Ranked Ballot Cast & Verify <span class="citation">WF-CIV-04</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-CIV-04", "title": "Ranked Ballot Cast & Verify", "module": "flows", "nav": null, "roles": ["R-04"], "workflows": ["WF-CIV-04"], "forms": [], "citation": "Art. II §2 (secret ballot, chain of custody) · WF-CIV-04", "flow": "WF-CIV-04", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-CIV-04",
+ "name": "Ranked Ballot Cast & Verify",
+ "timeScale": "Short (ranked voting window)",
+ "trigger": "Finalist cutoff executes; ranked voting period opens",
+ "actors": [
+  "R-04"
+ ],
+ "institutions": [
+  "I-ELE",
+  "I-ELB"
+ ],
+ "terminal": "Encrypted ranked ballot (finalist block + free write-in of any validated candidate) committed; voter receipt hash; anonymized hash published for self-audit",
+ "basis": "Art. II §2 (secret ballot, chain of custody)",
+ "entity": "Ballot (Ranked)",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "System",
+   "action": "Finalist cutoff executes; ranked ballot built per race: finalist block (top X by approval standing) + free write-in field for any validated candidate",
+   "outcome": "Multi-winner races: voters rank for ALL seats in the district; eligible voters notified in their language/timezone",
+   "engine": "Elections module",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-04",
+   "action": "Rank finalists and/or write in any validated candidate / answer referendum question",
+   "outcome": "Ballot marked; accessibility (WCAG) interface; write-ins tabulated identically to finalists  [also: F-IND-008]",
+   "form": "F-IND-007",
+   "screen": {
+    "href": "electoral/ranked-ballot.html",
+    "params": {
+     "role": "R-04"
+    }
+   }
+  },
+  {
+   "n": 3,
+   "actor": "R-04",
+   "action": "Submit ballot",
+   "outcome": "Encrypted ballot committed; voter receives receipt hash",
+   "engine": "Commitment scheme",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {
+     "role": "R-04"
+    }
+   }
+  },
+  {
+   "n": 4,
+   "actor": "System",
+   "action": "Publish anonymized ballot hashes",
+   "outcome": "Voter can verify inclusion without revealing content",
+   "engine": "Audit pipeline",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 5,
+   "actor": "System",
+   "action": "Ranked voting closes",
+   "outcome": "Hand-off to instant multi-winner PR-STV/Droop tabulation (WF-ELE-01 step 6)",
+   "engine": "Elections module",
+   "screen": {
+    "href": "civic/civic-home.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "Continues in WF-ELE-01",
+     "goto": {
+      "wf": "WF-ELE-01",
+      "step": 1
+     }
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

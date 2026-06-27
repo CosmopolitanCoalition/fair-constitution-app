@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Judiciary home — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Judiciary · I-JUD</span>
+        <h1>New York State judiciary</h1>
+        <p class="page-intro">An independent, appointed court serving New York and its constituent
+          counties. Created by supermajority act of the state legislature; judges nominated by the
+          constituent counties in equal numbers and confirmed by legislative consent vote.</p>
+        <p class="citation">Appointed is the default judiciary type · Art. IV §2 — conversion to elected requires dual supermajorities · Art. IV §3</p>
+      </header>
+
+      <section class="card" aria-labelledby="structure-h">
+        <h2 id="structure-h">How this court sits</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-scale"></use></svg> 5 judges on the bench</span>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Panel size by case severity</caption>
+            <thead><tr><th>Case severity</th><th>Panel</th><th class="mono">Rule</th></tr></thead>
+            <tbody>
+              <tr><td>Minor</td><td>3 judges</td><td class="mono">never below 3, always odd · CLK-16</td></tr>
+              <tr><td>Moderate</td><td>3 judges</td><td class="mono">CLK-16</td></tr>
+              <tr><td>Serious</td><td>3–5 judges (+ jury where the accused is entitled)</td><td class="mono">severity-scaled · CLK-16 · Art. IV §4</td></tr>
+              <tr><td>Major constitutional question</td><td>Full court — all 5 judges</td><td class="mono">CLK-16 · hardened · Art. IV §4</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="gloss">Severity scaling: the heavier the possible consequence, the more judges must hear it — the panel is always odd so no case can deadlock.</p>
+        <p class="citation">Panels of at least 3, odd, scaled to severity; full court for major constitutional questions · Art. IV §4 · CLK-16 — elected judges (if converted) run in groups of at least 5 · Art. IV §4 · CLK-15</p>
+      </section>
+
+      <section class="card" aria-labelledby="creation-h">
+        <h2 id="creation-h">How this court was created</h2>
+        <div id="fc-leg-017" class="stack" style="gap:var(--space-3)"></div>
+        <noscript><p class="gloss">Form details render with JavaScript enabled — the form is Judiciary Creation Act (F-LEG-017), available to R-09 Legislative Representative · Art. IV §2.</p></noscript>
+        <div class="card card--inset" style="margin-block-start:var(--space-3)">
+          <p><strong>Judiciary Creation Act 2027-02</strong> — passed 213 of 272 serving members
+            (supermajority required: 182 of 272) · New York State legislature · effective 2027-09-01.</p>
+          <p class="gloss">Supermajority: two thirds of all serving members — counted against everyone holding a seat, never just those present.</p>
+          <p class="citation">ceil(serving × 2/3) = 182 of 272 · Art. VII — scope: state law and below · Art. IV §2</p>
+        </div>
+        <h3 style="margin-block-start:var(--space-4)">Nomination — equal numbers from every constituent jurisdiction</h3>
+        <p>Each of the 62 constituent counties of New York nominated exactly one candidate —
+          equal numbers are mandatory. Westchester County declined to nominate, so the legislature's judicial committee
+          supplied the nomination in its stead (the constitutional fallback).</p>
+        <p class="gloss">The county-level bench — the New York County court, where most of the demo docket sits — was
+          seated by the same machinery: New York County has no constituent jurisdictions in the dataset, so its
+          judicial committee supplied every nomination (the same fallback).</p>
+        <p class="citation">Constituent jurisdictions nominate equal numbers; judicial committee as fallback · Art. IV §2</p>
+      </section>
+
+      <section class="card" aria-labelledby="confirm-h">
+        <h2 id="confirm-h">Confirmation record — consent votes for the bench</h2>
+        <div id="fc-leg-021" class="stack" style="gap:var(--space-3)"></div>
+        <div class="table-wrap" style="margin-block-start:var(--space-3)">
+          <table class="table">
+            <caption class="visually-hidden">Judicial nomination consent votes, one per nominee</caption>
+            <thead><tr><th>Nominee</th><th>Nominated by</th><th>Consent vote</th><th>Outcome</th><th>Term</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Kofi Asante</td><td>New York County</td><td class="mono">248 of 272 serving</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed</span></td>
+                <td class="mono">2027-09-01 → 2037-09-01</td>
+              </tr>
+              <tr>
+                <td>Mira Haugen</td><td>Kings County</td><td class="mono">261 of 272 serving</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed</span></td>
+                <td class="mono">2027-09-01 → 2037-09-01</td>
+              </tr>
+              <tr>
+                <td>Beatriz Alemán</td><td>Queens County</td><td class="mono">230 of 272 serving</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed</span></td>
+                <td class="mono">2027-09-01 → 2037-09-01</td>
+              </tr>
+              <tr>
+                <td>Janek Kowalski</td><td>Westchester County · judicial committee fallback</td><td class="mono">197 of 272 serving</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed</span></td>
+                <td class="mono">2027-09-01 → 2037-09-01</td>
+              </tr>
+              <tr>
+                <td>Amara Diop</td><td>Bronx County</td><td class="mono">188 of 272 serving</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Confirmed</span></td>
+                <td class="mono">2027-09-01 → 2037-09-01</td>
+              </tr>
+              <tr>
+                <td>Tessa Brody</td><td>Richmond County</td><td class="mono">154 of 272 serving</td>
+                <td><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-x"></use></svg> Not confirmed</span></td>
+                <td class="mono">—</td>
+              </tr>
+              <tr>
+                <td>Rubén Ortiz</td><td>Erie County</td><td class="mono">121 of 272 serving</td>
+                <td><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-x"></use></svg> Not confirmed</span></td>
+                <td class="mono">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Confirmation needs the same supermajority as creation — 182 of 272 serving members. Sixty-two consent votes were held, one per nominee; the seven decisive votes are shown (the 55 not shown fell short of the threshold). Richmond and Erie counties keep their nomination rights; replacement nominees go to a fresh consent vote when a seat next opens (WF-JUD-07).</p>
+        <p class="citation">Judicial nomination consent vote, one per nominee · F-LEG-021 ×62 · Art. IV §2</p>
+      </section>
+
+      <section class="card" aria-labelledby="convert-h">
+        <h2 id="convert-h">Conversion to an elected judiciary</h2>
+        <p>Converting this appointed court to a directly elected one needs <strong>two independent
+          supermajorities</strong>: the state legislature, and the constituent counties themselves.
+          Neither alone is enough.</p>
+        <div id="fc-leg-018" class="stack" style="gap:var(--space-3)"></div>
+        <div id="conv-meters" class="stack" style="gap:var(--space-4);margin-block-start:var(--space-4)"></div>
+        <noscript><p class="gloss">The dual supermajority meters are interactive and render with JavaScript enabled. Current state: legislature 180 of 272 (182 required) · constituent counties 40 of 62 (42 required) — neither threshold met.</p></noscript>
+        <p style="margin-block-start:var(--space-3)">If conversion passes, judges are thereafter elected in groups of at least 5 via STV, and judicial
+          terms sync to the general election clock.</p>
+        <p class="gloss">STV: single transferable vote — a proportional ranked-choice count where surplus votes transfer fractionally so no ballot is wasted.</p>
+        <p class="citation">Supermajority of legislature + supermajority of constituent jurisdictions · Art. IV §3 — groups of at least 5 per race · CLK-15 · Art. IV §4 — terms synced · CLK-10</p>
+      </section>
+
+      <section class="card" aria-labelledby="lockstep-h">
+        <h2 id="lockstep-h">Term length — judicial appointments</h2>
+        <p class="amendable"><span class="amendable-value">10 years</span> per judicial appointment
+          <span class="amendable-meta">Set at founding · must stay in lockstep with civil appointments (also 10 years) · CLK-09 · CLK-10 · Art. IV §4; Art. II §9</span></p>
+        <p>Judicial and civil appointment lengths move together — a legislative act changing one changes both.
+          Renewals re-run the nomination and consent process (WF-JUD-07).</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-01.html">WF-JUD-01 — appointed judiciary creation &amp; confirmation</a>;
+            <a href="../flows/WF-JUD-02.html">WF-JUD-02 — conversion to elected judiciary</a>;
+            vacancies refill via <a href="../flows/WF-JUD-07.html">WF-JUD-07</a>.</p>
+          <p><strong>Institutions:</strong> I-JUD (appointed) converts to I-JDE (elected) only through the dual-supermajority
+            act — there is no per-case entity behind this surface; cases live on the
+            <a href="case-docket.html">docket</a>.</p>
+          <p class="citation">Art. IV §2 · Art. IV §3 · Art. IV §4 · CLK-09 · CLK-10 · CLK-15 · CLK-16</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'judiciary/judiciary-home',
+      title: 'Judiciary home',
+      module: 'judiciary',
+      nav: 'judiciary-home',
+      roles: ['R-19', 'R-20'],
+      workflows: ['WF-JUD-01', 'WF-JUD-02'],
+      forms: ['F-LEG-017', 'F-LEG-018', 'F-LEG-021'],
+      citation: 'Appointed judiciary · panels ≥3 odd, full court for major questions · Art. IV §2; Art. IV §4 · CLK-16',
+      flow: 'WF-JUD-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Page-local conversion simulation: votes recorded toward the dual supermajority.
+         New York State legislature: 272 serving (cube-root sizing) → ceil(272 × 2/3) = 182.
+         Constituent counties: 62 → ceil(62 × 2/3) = 42. Both start two consents short. */
+      var conv = { leg: 180, legOf: 272, legNeed: 182, jur: 40, jurOf: 62, jurNeed: 42 };
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          alias + (extra || '') + '</div>';
+      }
+
+      function meter(label, count, of, need, simKey) {
+        var pct = Math.min(100, Math.round(count / of * 100));
+        var markPct = Math.round(need / of * 1000) / 10;
+        var met = count >= need;
+        return '<div class="meter-block">' +
+          '<div class="cluster" style="justify-content:space-between">' +
+          '<strong style="color:var(--gov-fg);font-size:var(--text-sm)">' + esc(label) + '</strong>' +
+          (met
+            ? '<span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' Supermajority met</span>'
+            : '<span class="badge badge--neutral">' + S.icon('clock', { size: 'sm' }) + ' Below threshold</span>') +
+          '</div>' +
+          '<div class="meter"><span class="meter-fill' + (met ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:' + markPct + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + count + ' of ' + of + ' consents recorded</span>' +
+          '<span>needs ' + need + ' of ' + of + ' · ceil(' + of + ' × 2/3) · Art. VII</span></div>' +
+          '<div><button type="button" class="btn btn--secondary btn--sm" data-sim="' + simKey + '"' + (met ? ' disabled' : '') + '>Simulate one more consent</button></div>' +
+          '</div>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Courts cannot be disrupted by emergency powers — enforced in code. Judicial review of the active power is ' + esc(W.emergency.judicialReview) + '. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        document.getElementById('fc-leg-017').innerHTML = formCard('F-LEG-017');
+        document.getElementById('fc-leg-021').innerHTML = formCard('F-LEG-021');
+        document.getElementById('fc-leg-018').innerHTML = formCard('F-LEG-018');
+
+        var bothMet = conv.leg >= conv.legNeed && conv.jur >= conv.jurNeed;
+        document.getElementById('conv-meters').innerHTML =
+          meter('New York State legislature', conv.leg, conv.legOf, conv.legNeed, 'leg') +
+          meter('Constituent counties (New York, Kings, Queens, Bronx, Richmond + 57 more)', conv.jur, conv.jurOf, conv.jurNeed, 'jur') +
+          (bothMet
+            ? '<div class="banner banner--info" role="status">' + S.icon('check') +
+              '<div><span class="banner-title">Conversion act passes (simulation)</span>' +
+              'I-JUD converts to I-JDE; a judicial election is scheduled (WF-ELE-09) with judges in groups of at least 5 per race. ' +
+              '<span class="citation">Art. IV §3 · CLK-15</span></div></div>'
+            : '<p class="citation">Both meters must independently reach their supermajority before the conversion act can pass · Art. IV §3</p>');
+
+        S.refresh();
+      }
+
+      document.getElementById('main').addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-sim]') : null;
+        if (!t) return;
+        var k = t.getAttribute('data-sim');
+        if (k === 'leg' && conv.leg < conv.legOf) conv.leg++;
+        if (k === 'jur' && conv.jur < conv.jurOf) conv.jur++;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>
