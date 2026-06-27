@@ -865,3 +865,27 @@ a.ticket-row:hover { border-color: var(--gov-border-strong); text-decoration: no
 .learn-drawer .ld-body { padding: 0 var(--space-4) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .learn-drawer .ld-video { max-inline-size: 40rem; }
 @media (prefers-reduced-motion: reduce) { .learn-drawer .ld-caret { transition: none; } }
+
+/* ============================================================ UNIFIED PROFILE (v3)
+   One person, any role — the same tabbed profile for you, a neighbour, or the
+   people who hold your seats. A horizontal tab strip; panels swap below it. */
+.profile-avatar--sm { inline-size: 2.5rem; block-size: 2.5rem; font-size: var(--text-base); }
+.profile-tabs {
+  display: flex; gap: var(--space-1); overflow-x: auto; margin-block-start: var(--space-4);
+  border-block-end: 1px solid var(--gov-border); -webkit-overflow-scrolling: touch;
+}
+.profile-tab {
+  display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap;
+  padding: var(--space-2) var(--space-3); border: 0; background: none; cursor: pointer;
+  color: var(--gov-fg-muted); font: inherit; font-size: var(--text-sm);
+  border-block-end: 2px solid transparent; margin-block-end: -1px;
+  transition: color var(--dur) var(--ease-standard), border-color var(--dur) var(--ease-standard);
+}
+.profile-tab:hover { color: var(--gov-fg); }
+.profile-tab .icon { color: currentColor; }
+.profile-tab.is-active { color: var(--gov-link); border-block-end-color: var(--gov-link); font-weight: var(--weight-medium); }
+.profile-tab:focus-visible { outline: 2px solid var(--gov-focus); outline-offset: 2px; border-radius: var(--radius-sm); }
+.profile-panels { margin-block-start: var(--space-4); }
+.rep-card { display: flex; flex-direction: column; }
+.rep-card:hover { border-color: var(--gov-link); }
+@media (prefers-reduced-motion: reduce) { .profile-tab { transition: none; } }

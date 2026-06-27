@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My civic life — CGA mockups v2</title>
+  <title>My profile — CGA mockups v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -12,10 +12,10 @@
 </head>
 <body>
   <main id="main">
-    <div class="stack" id="root"><p class="gloss">Loading your civic life…</p></div>
+    <div class="stack" id="root"><p class="gloss">Loading your profile…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'civic/my-civic-life', title: 'My civic life', module: 'civic', nav: 'my-civic-life', citation: 'My civic life — a personal home base · Art. I (residency unlocks every right)', register: 'governance' };
+    window.CGA_PAGE = { id: 'civic/my-civic-life', title: 'My profile', module: 'civic', nav: 'my-civic-life', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -24,302 +24,18 @@
   <script src="../assets/js/icons.js"></script>
   <script src="../assets/js/i18n.js"></script>
   <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/profile-v2.js"></script>
   <script>
   (function () {
     'use strict';
-    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
-    var BY = window.CGA.fixtures.byId;
-    var L = V2.live;
-
-    var tick = null; // the single re-diffing countdown interval, cleared each render
-
-    /* prefers-reduced-motion: render remaining-time once, do not start ticking. */
-    var reduce = false;
-    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-
-    function neverFederated(text) {
-      return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + '<span>' + esc(text) + '</span></p>';
-    }
-
-    /* deadline(iso) → a remaining string: "closes in 2h 14m" / "opens in 38m";
-       the dayOf shape reads "day 4 of 90" carrying max from the fixture. */
-    function remaining(ms) {
-      if (ms <= 0) return null;
-      var totalMin = Math.floor(ms / 60000);
-      var d = Math.floor(totalMin / 1440), h = Math.floor((totalMin % 1440) / 60), m = totalMin % 60;
-      var parts = [];
-      if (d) parts.push(d + 'd');
-      if (h) parts.push(h + 'h');
-      if (m || !parts.length) parts.push(m + 'm');
-      return parts.join(' ');
-    }
-    function countdownText(target) {
-      if (!target) return null;
-      if (target.kind === 'dayOf') return 'day ' + target.day + ' of ' + target.max;
-      var rem = remaining(new Date(target.iso).getTime() - Date.now());
-      if (target.kind === 'opensAt') return rem ? 'opens in ' + rem : 'opening now';
-      return rem ? 'closes in ' + rem : 'closing now';
-    }
-    function countdownHtml(target) {
-      if (!target) return '';
-      var text = countdownText(target);
-      if (target.kind === 'dayOf') return '<span class="countdown">' + esc(text) + '</span>';
-      return '<span class="countdown" data-countdown="' + esc(target.iso) +
-        '" data-kind="' + esc(target.kind) + '">' + esc(text) + '</span>';
-    }
-    function updateCountdowns() {
-      var nodes = document.querySelectorAll('#root [data-countdown]');
-      Array.prototype.forEach.call(nodes, function (n) {
-        var text = countdownText({ kind: n.getAttribute('data-kind'), iso: n.getAttribute('data-countdown') });
-        if (text != null) n.textContent = text;
-      });
-    }
-
-    /* the ballot slice of the live feed — votes only. A ballot row shows only
-       that voting is OPEN, never any choice (Art. II ballot secrecy). */
-    function ballotRows() {
-      var flags;
-      try { flags = window.CGA.state.get('scenario') || {}; } catch (e) { flags = {}; }
-      var kinds = { election: 1, petition: 1, referendum: 1 };
-      return L.forFootprint().filter(function (r) {
-        return kinds[r.kind] && (!r.scenarioFlag || flags[r.scenarioFlag]);
-      });
-    }
-
-    // A section card with a heading + an "open" deep link.
-    function sectionCard(opts) {
-      // opts: { id, icon, title, badge, intro, body, links[] }
-      var links = (opts.links || []).map(function (l) {
-        var tag = l.v1 ? ' <span class="v1-tag">v1</span>' : '';
-        return '<a class="btn btn--' + (l.primary ? 'primary' : 'secondary') + '" href="' + l.href + '">' +
-          (l.icon ? S.icon(l.icon, { size: 'sm' }) + ' ' : '') + esc(l.label) + tag +
-          ' ' + S.icon('arrow-right', { size: 'sm' }) + '</a>';
-      }).join('');
-      return '<section class="card" aria-labelledby="' + opts.id + '-h">' +
-        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
-        '<h2 id="' + opts.id + '-h">' + S.icon(opts.icon, { size: 'sm' }) + ' ' + esc(opts.title) + '</h2>' +
-        (opts.badge || '') + '</div>' +
-        (opts.intro ? '<p class="gloss">' + opts.intro + '</p>' : '') +
-        (opts.body || '') +
-        (links ? '<div class="cluster" style="margin-block-start:var(--space-3)">' + links + '</div>' : '') +
-        '</section>';
-    }
-
-    function render() {
-      if (tick) { clearInterval(tick); tick = null; }
-      var prof = E.profiles.personal;
-      var persona = BY.personas[prof.persona] || { name: 'Resident', initials: 'R' };
-      var w = E.wallet;
-      var c = E.currency;
-      var st = E.stipend;
-
-      // Amara's representative thread: she is a New York County resident, served
-      // by the speaker (Yuki) and her committee chair (Marcus).
-      var rep = E.byRep['yuki-tanaka'];
-
-      // Her stipend example row (residency floor only).
-      var myStipend = st.examples.filter(function (x) { return x.persona === prof.persona; })[0] ||
-        { amount: st.base, breakdown: 'base ' + st.base };
-
-      // The groups + orgs she belongs to (look up display names).
-      var myGroups = (prof.groups || []).map(function (gid) {
-        var g = (V2.groups.spaces || []).filter(function (s2) { return s2.id === gid; })[0];
-        return g || { id: gid, name: gid, members: null, purpose: '' };
-      });
-      var myOrgs = (prof.orgs || []).map(function (oid) {
-        var o = BY.organizations[oid];
-        return o || { name: oid, organization_type: '' };
-      });
-
-      /* -------- profile header -------- */
-      var stats =
-        '<span class="profile-stat"><b>' + esc(persona.home ? 'New York County' : '—') + '</b> home jurisdiction</span>' +
-        '<span class="profile-stat"><b>' + esc(prof.followersCount) + '</b> followers</span>' +
-        '<span class="profile-stat"><b>' + esc(prof.followsCount) + '</b> following</span>' +
-        '<span class="profile-stat"><b>' + esc(myGroups.length) + '</b> groups</span>' +
-        '<span class="profile-stat"><b>' + esc(myOrgs.length) + '</b> organizations</span>';
-      var head =
-        '<div class="profile-head">' +
-        '<span class="profile-avatar" aria-hidden="true">' + esc(persona.initials) + '</span>' +
-        '<div class="stack" style="gap:var(--space-1)">' +
-        '<h1 style="margin:0">' + esc(persona.name) + '</h1>' +
-        '<p class="gloss" style="margin:0">@' + esc(prof.handle) + ' · ' + esc(prof.bio) + '</p>' +
-        '<div class="profile-stats">' + stats + '</div></div></div>';
-
-      /* -------- the "now" line — counts your open ballots from the live feed -------- */
-      var ballots = ballotRows();
-      var openBallots = ballots.filter(function (r) { return r.status === 'open'; }).length;
-      var ballotPhrase = openBallots
-        ? openBallots + ' ballot' + (openBallots === 1 ? ' is' : 's are') + ' open for you'
-        : 'nothing needs your vote this minute';
-      var nowLine =
-        '<div class="banner banner--info">' + S.icon('clock', { size: 'sm' }) +
-        '<div><strong>Right now</strong> — ' + esc(ballotPhrase) + ', and your civic stipend last credited your wallet on ' +
-        esc(w.transactions[0].date) + '. Your ballot never shows how you voted — only that voting is open · ' +
-        '<span class="citation">Art. II (ballot secrecy)</span></div></div>';
-
-      /* -------- My groups -------- */
-      var groupBody = '<ul style="list-style:none;padding:0;margin:0">' + myGroups.map(function (g) {
-        return '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
-          '<span><strong style="color:var(--gov-fg)">' + esc(g.name) + '</strong>' +
-          (g.purpose ? '<span class="gloss"> · ' + esc(g.purpose) + '</span>' : '') + '</span>' +
-          (g.members != null ? S.badge('neutral', g.members + ' members') : '') + '</li>';
-      }).join('') + '</ul>';
-      var groupsCard = sectionCard({
-        id: 'groups', icon: 'users', title: 'My groups',
-        intro: 'Voluntary associations you joined. A group confers no governance power — membership is private to each member and never federates · <span class="citation">Art. I (freedom of association)</span>',
-        body: groupBody,
-        links: [{ label: 'All groups', href: S.hrefV2('groups/groups-home.html'), icon: 'users', primary: true }]
-      });
-
-      /* -------- My organizations -------- */
-      var orgBody = '<ul style="list-style:none;padding:0;margin:0">' + myOrgs.map(function (o) {
-        var typeLabel = (o.organization_type || o.type || '').replace(/_/g, ' ') || 'organization';
-        return '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
-          '<span><strong style="color:var(--gov-fg)">' + esc(o.name) + '</strong></span>' +
-          S.badge('info', typeLabel) + '</li>';
-      }).join('') + '</ul>';
-      var orgsCard = sectionCard({
-        id: 'orgs', icon: 'building', title: 'My organizations',
-        intro: 'Organizations you belong to as a worker or member. Boards seat workers from 100 employees and reach worker–owner parity at 2,000 · <span class="citation">Art. III §6</span>',
-        body: orgBody,
-        links: [
-          { label: 'My organization profile', href: S.hrefV2('social/org-profile.html'), icon: 'building', primary: true },
-          { label: 'Co-determination', href: S.hrefV1('organizations/co-determination.html'), icon: 'users', v1: true }
-        ]
-      });
-
-      /* -------- My open votes — the ballot slice of the live feed.
-         A row shows only that voting is OPEN, never any choice (Art. II). -------- */
-      var votesRows = ballots.map(function (r) {
-        return '<li class="cluster" style="justify-content:space-between;padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
-          '<span><strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' +
-          '<span class="gloss"> · ' + esc(r.what) + '</span></span>' +
-          '<span class="cluster" style="gap:var(--space-2);align-items:center">' +
-          (r.pill ? S.pill(r.pill.tone, r.pill.label, r.pill.tip) : '') +
-          countdownHtml(r.target) + '</span></li>';
-      }).join('');
-      var votesBody =
-        (votesRows
-          ? '<ul style="list-style:none;padding:0;margin:0">' + votesRows + '</ul>'
-          : '<p class="gloss">No ballot is open for you right now — your galleries stay open.</p>') +
-        '<p class="citation" style="margin-block-start:var(--space-2)">Your ballot is cryptographically separated from your identity — nobody can link your vote to you · Art. II (ballot secrecy, HARDENED)</p>';
-      var votesCard = sectionCard({
-        id: 'votes', icon: 'vote', title: 'My open votes',
-        intro: 'Everything awaiting your ballot. Voting and candidacy require nothing beyond residency — it is an absolute right · <span class="citation">Art. I</span>',
-        body: votesBody,
-        links: [
-          { label: 'Open ballot', href: S.hrefV1('electoral/open-ballot.html'), icon: 'vote', primary: true, v1: true },
-          { label: 'Ranked ballot', href: S.hrefV1('electoral/ranked-ballot.html'), icon: 'vote', v1: true }
-        ]
-      });
-
-      /* -------- My record -------- */
-      var recordBody =
-        '<p>Every act you take on the record — a testimony, a sponsored petition, an endorsement — is written into the immutable, hash-chained public record. It is the receipt for your civic life, and it cannot be quietly edited.</p>' +
-        '<p>' + S.icon('file-text', { size: 'sm' }) + ' Most recent: <strong style="color:var(--gov-fg)">testimony filed</strong> on the Clean Air Act, ' +
-        'and a public endorsement of ' + esc((BY.personas['diego-ramos'] || {}).name || 'a candidate') + '.</p>';
-      var recordCard = sectionCard({
-        id: 'record', icon: 'file-text', title: 'My record',
-        intro: 'Your public civic history — testimonies, endorsements, and the offices you have held · <span class="citation">Art. II §2 (proceedings are public record)</span>',
-        body: recordBody,
-        links: [{ label: 'My record', href: S.hrefV1('civic/my-record.html'), icon: 'file-text', primary: true, v1: true }]
-      });
-
-      /* -------- My representative -------- */
-      var repBody =
-        '<p><strong style="color:var(--gov-fg)">' + esc((BY.personas[rep.persona] || {}).name || 'Your representative') + '</strong> — ' + esc(rep.office) + '.</p>' +
-        '<p class="gloss">Upcoming: ' + rep.surgeries.map(function (s2) {
-          return esc(s2.kind) + ' (' + esc(s2.date) + ')';
-        }).join(' · ') + '. You can request a meeting, send a message, or watch them work in the live room.</p>';
-      var repCard = sectionCard({
-        id: 'rep', icon: 'landmark', title: 'My representative',
-        intro: 'The seated members who serve your jurisdiction, and how to reach them. An absent member counts as a no — the denominator never shrinks · <span class="citation">Art. II §2 (peg quorum)</span>',
-        body: repBody,
-        links: [{ label: 'My representative', href: S.hrefV2('social/rep.html'), icon: 'landmark', primary: true }]
-      });
-
-      /* -------- My wallet (Planned, private/never-federated) -------- */
-      var walletBody =
-        neverFederated(w.neverFederated) +
-        '<p class="wallet-balance">' + esc(w.balance) + '</p>' +
-        '<p class="gloss">In ' + esc(c.name) + ' (<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.code) + '). ' +
-        esc(c.abstractNote) + '</p>';
-      var walletCard = sectionCard({
-        id: 'wallet', icon: 'lock', title: 'My wallet',
-        badge: S.badge('warning', 'Planned', 'clock'),
-        intro: 'Your private balance and receipts — private the same way a ballot is private. No payment rails, no custody · <span class="citation">Art. I, never federated</span>',
-        body: walletBody,
-        links: [{ label: 'Open my wallet', href: S.hrefV2('economy/wallet.html'), icon: 'lock', primary: true }]
-      });
-
-      /* -------- My civic stipend (Planned) -------- */
-      var stipendBody =
-        '<p class="stipend-formula">amount = base <span class="se-amt">' + esc(st.base) + ' ' + esc(c.symbol) + '</span> (residency floor) + your role differential</p>' +
-        '<p>Yours this period: <strong style="color:var(--gov-fg)">' + esc(myStipend.amount) + ' ' + esc(c.symbol) + '</strong> ' +
-        '<span class="gloss">(' + esc(myStipend.breakdown) + ')</span>. The floor reaches everyone with an active residency association — no means test, no application.</p>';
-      var stipendCard = sectionCard({
-        id: 'stipend', icon: 'refresh-cw', title: 'My civic stipend',
-        badge: S.badge('warning', 'Planned', 'clock'),
-        intro: 'A residency floor plus a recognition differential, credited on the economic clock. It is a payment TO you, never required OF you, and never a qualification for office · <span class="citation">Art. I · Art. II §8</span>',
-        body: stipendBody,
-        links: [{ label: 'Open my stipend', href: S.hrefV2('economy/stipend.html'), icon: 'refresh-cw', primary: true }]
-      });
-
-      /* -------- Achievements (Proposed) — chips link to the catalog -------- */
-      var achHref = S.hrefV2('social/achievements.html');
-      var chips = (prof.achievements || []).map(function (a) {
-        return '<a class="achievement-chip" href="' + achHref + '" title="' + esc(a.note || 'Decorative — confers no power') + '">' +
-          S.icon('check', { size: 'sm' }) + esc(a.name) + '</a>';
-      }).join('');
-      var achievementsCard =
-        '<section class="card card--inset" aria-labelledby="ach-h">' +
-        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
-        '<h2 id="ach-h">' + S.icon('award', { size: 'sm' }) + ' Achievements</h2>' +
-        S.badge('neutral', 'Proposed') + '</div>' +
-        '<p class="gloss">Decorative markers of participation — grounded in the Preamble’s consent of the governed. They confer no governance advantage: no vote, no seat, no role, no standing · <span class="citation">Preamble (named reach, not consent)</span></p>' +
-        '<div class="cluster" style="margin-block-start:var(--space-3)">' + chips + '</div>' +
-        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
-        '<a class="btn btn--secondary" href="' + achHref + '">' + S.icon('award', { size: 'sm' }) +
-        ' The achievement catalog ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
-        '<p class="citation" style="margin-block-start:var(--space-3)">Awarded from the envelope, never the ballot; small recipient classes are k-anonymous and never published.</p>' +
-        '</section>';
-
-      /* -------- the rails that hold a personal home base -------- */
-      var railsCard =
-        '<section class="card card--inset" aria-labelledby="rails-h"><h2 id="rails-h">' + S.icon('shield', { size: 'sm' }) + ' What stays yours</h2><ul>' +
-        '<li><strong>Residency unlocks everything.</strong> Voting, candidacy, and petitioning require nothing beyond living here — an absolute right · <span class="citation">Art. I</span></li>' +
-        '<li><strong>Your ballot is secret.</strong> Identity is cryptographically separated from your vote, on this instance and any other · <span class="citation">Art. II (HARDENED)</span></li>' +
-        '<li><strong>Your wallet is private, like a ballot.</strong> Balances and receipts never federate — they live only on this server.</li>' +
-        '<li><strong>No paywall on civic rights.</strong> No tax, fee, or cost may ever attach to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
-        '<li><strong>Achievements and reach are decorative.</strong> They change no vote, no role, and no moderation outcome.</li>' +
-        '</ul>' +
-        neverFederated('Your private threads — wallet, group membership, follows — never leave this instance.') +
-        '</section>';
-
-      document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">Start here · your personal home base</span>' +
-        head +
-        '<p class="page-intro" style="margin-block-start:var(--space-3)">One place that ties your civic life together — the groups you joined, the organizations you belong to, the votes awaiting your ballot, the record you have built, your representative, and the money between you and your government. Public threads are on the record; private threads stay on this server alone.</p>' +
-        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
-        nowLine +
-        '<section aria-labelledby="threads-h"><h2 id="threads-h" class="visually-hidden">Your civic threads</h2>' +
-        '<div class="grid-2">' +
-        groupsCard + orgsCard + votesCard + recordCard + repCard +
-        walletCard + stipendCard +
-        '</div></section>' +
-        achievementsCard +
-        railsCard;
-
-      // one re-diffing interval for all ballot countdowns, unless reduced motion.
-      if (!reduce && document.querySelector('#root [data-countdown]')) {
-        tick = setInterval(updateCountdowns, 1000);
-      }
-
+    var root = document.getElementById('root');
+    function paint() {
+      root.innerHTML = CGA.profileV2.render({ self: true });   // your own profile; ?tab= still honoured
+      CGA.profileV2.wire(root);
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
-    render();
-    document.addEventListener('cga:v2:rerender', render);
+    paint();
+    document.addEventListener('cga:v2:rerender', paint);
   })();
   </script>
 </body>

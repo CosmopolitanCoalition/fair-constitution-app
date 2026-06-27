@@ -120,7 +120,7 @@
     { act: 'Found an instance', rel: 'system/setup.html', title: 'Found the instance', blurb: 'From cosmic address to a seated constitution — the five-step founding loop.' },
     { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'The five kinds of civic interaction — the whole map on one screen.' },
     { act: 'Arrive', rel: 'civic/today.html', title: 'Today', blurb: 'Everything live right now in the places you belong to.' },
-    { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My civic life', blurb: 'Your home base: groups, orgs, open votes, record, wallet.' },
+    { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My profile', blurb: 'Your whole civic life in one tabbed profile — record, wallet, your reps, groups, and more.' },
 
     { act: 'An election', rel: 'journeys/journey.html?id=election', title: 'An election, end to end', blurb: 'The flagship journey — now, your part, next.' },
     { act: 'An election', rel: 'shared/live-room.html?variant=forum', title: 'The candidate forum', blurb: 'Candidates take the floor in turn — a Live Civic Room.' },
@@ -134,9 +134,9 @@
     { act: 'Organizations', rel: 'journeys/journey.html?id=start-org', title: 'Found an organization', blurb: 'Register a party, business, nonprofit, or common-good corp.' },
     { act: 'Organizations', rel: 'shared/live-room.html?variant=board', title: 'A board meeting', blurb: 'Worker and owner seats; co-determination in the room.' },
 
-    { act: 'People & social', rel: 'social/profile.html', title: 'My profile', blurb: 'Your public page — endorsements, groups, orgs, achievements.' },
+    { act: 'People & social', rel: 'social/profile.html?who=marcus-chen&tab=office', title: 'Anyone’s profile', blurb: 'The same profile, for a neighbour who holds a seat — one person, any role.' },
     { act: 'People & social', rel: 'social/org-profile.html', title: 'An organization', blurb: 'Type, charter, workers, board, listings, the org ledger.' },
-    { act: 'People & social', rel: 'social/rep.html', title: 'My representative', blurb: 'Office hours, a meeting request, a constituent message.' },
+    { act: 'People & social', rel: 'social/rep.html', title: 'My representatives', blurb: 'The several people who hold your seats — open anyone to reach them.' },
     { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed and the halls — uncensorable, pseudonymous.' },
     { act: 'People & social', rel: 'groups/groups-home.html', title: 'Informal groups', blurb: 'Voluntary affinity groups — meet on your own terms.' },
     { act: 'People & social', rel: 'social/achievements.html', title: 'Achievements', blurb: 'A decorative catalog of participation — fenced: no vote, no seat, no advantage.' },
@@ -250,7 +250,7 @@
       '<div class="ld-video" data-ld-video><p class="gloss">Loading the guide…</p></div>' +
       '<div class="cluster" style="gap:var(--space-1)">' +
       '<a class="form-chip" href="' + hrefV2('learn/learn-home.html') + '">' + icon('graduation-cap', { size: 'sm' }) + ' Full lessons</a>' +
-      '<a class="form-chip form-chip--report" href="' + hrefV2('support/report.html', { ref: PAGE.id || 'page' }) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a></div>';
+      '<a class="form-chip form-chip--report" href="' + hrefV2('support/report.html?ref=' + encodeURIComponent(PAGE.id || 'page')) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a></div>';
     ensureLearnDeps(function (ok) {
       var slot = body.querySelector('[data-ld-video]');
       if (!slot) return;
@@ -286,7 +286,7 @@
     linkV2('tour', 'Guided tour', 'map', 'tour.html');
     linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
     linkV2('today', 'Today', 'home', 'civic/today.html');
-    linkV2('my-civic-life', 'My civic life', 'file-text', 'civic/my-civic-life.html');
+    linkV2('my-civic-life', 'My profile', 'user', 'civic/my-civic-life.html');
     endSection();
 
     section('The Live Civic Room');
@@ -318,9 +318,8 @@
     endSection();
 
     section('People & social');
-    linkV2('profile', 'My profile', 'user', 'social/profile.html');
     linkV2('org-profile', 'Organizations', 'building', 'social/org-profile.html');
-    linkV2('rep', 'My representative', 'landmark', 'social/rep.html');
+    linkV2('rep', 'My representatives', 'landmark', 'social/rep.html');
     linkV2('social-home', 'Social', 'users', 'social/social-home.html');
     linkV2('groups', 'Informal groups', 'users', 'groups/groups-home.html', 'Stage 3');
     linkV2('achievements', 'Achievements', 'award', 'social/achievements.html', 'Proposed');
@@ -416,7 +415,7 @@
     return '<span class="footer-citation">' + esc(PAGE.citation || 'CGA mockups v2 · the game layer') + '</span>' +
       '<span class="header-spacer"></span>' +
       '<a href="' + hrefV1('shared/accessibility.html') + '">Accessibility</a>' +
-      '<a href="' + hrefV2('support/report.html', { ref: PAGE.id || PAGE.nav || 'page' }) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a>' +
+      '<a href="' + hrefV2('support/report.html?ref=' + encodeURIComponent(PAGE.id || PAGE.nav || 'page')) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a>' +
       '<span class="footer-instance">' + esc(instanceLine) + '</span>' +
       '<span class="audit-chip">Audit #' + W.instance.auditSeq.toLocaleString('en-US') + ' · chained ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
   }

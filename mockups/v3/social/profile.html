@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile — CGA mockups v2</title>
+  <title>Profile — CGA mockups v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading profile…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'social/profile', title: 'Profile', module: 'social', nav: 'my-civic-life', citation: 'A profile — pseudonymity by choice · Art. I (a profile choice never gates a right)', register: 'governance' };
+    window.CGA_PAGE = { id: 'social/profile', title: 'Profile', module: 'social', nav: 'my-civic-life', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -24,156 +24,18 @@
   <script src="../assets/js/icons.js"></script>
   <script src="../assets/js/i18n.js"></script>
   <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/profile-v2.js"></script>
   <script>
   (function () {
     'use strict';
-    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
-    var BY = window.CGA.fixtures.byId;
-
-    function nm(id, fb) { var p = BY.personas[id]; return p ? p.name : (fb || id); }
-    function initialsOf(id, fb) { var p = BY.personas[id]; return p ? p.initials : (fb || '?'); }
-    function orgName(id, fb) { var o = BY.organizations[id]; return o ? o.name : (fb || id); }
-
-    function neverFederated(text) {
-      return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) + esc(text) + '</span>';
-    }
-
-    function render() {
-      var prof = E.profiles.personal;
-      var persona = BY.personas[prof.persona];
-      var name = persona ? persona.name : prof.persona;
-      var initials = persona ? persona.initials : '?';
-
-      /* ---- profile head ---------------------------------------------- */
-      var head =
-        '<div class="card profile-head">' +
-        '<span class="profile-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
-        '<div class="stack" style="gap:var(--space-1);flex:1 1 16rem">' +
-        '<div class="cluster" style="align-items:baseline;gap:var(--space-2)">' +
-        '<strong style="font-size:var(--text-xl)">' + esc(name) + '</strong>' +
-        '<span class="citation">@' + esc(prof.handle) + '</span>' +
-        S.pill('info', 'Pseudonymous', 'The legal name is shown only because this resident chose to show it. A handle is the default on the social wire.') +
-        '</div>' +
-        '<p class="gloss" style="margin:0">' + esc(prof.bio) + '</p>' +
-        '<div class="profile-stats" style="margin-block-start:var(--space-2)">' +
-        '<span class="profile-stat"><b>' + esc(prof.followsCount) + '</b> following</span>' +
-        '<span class="profile-stat"><b>' + esc(prof.followersCount) + '</b> followers</span>' +
-        '</div></div>' +
-        '<div class="cluster" style="gap:var(--space-2);align-self:flex-start">' +
-        '<button type="button" class="btn btn--primary btn--sm" data-act="follow">' + S.icon('user', { size: 'sm' }) + ' Follow</button>' +
-        '<button type="button" class="btn btn--secondary btn--sm" data-act="message">' + S.icon('file-text', { size: 'sm' }) + ' Message</button>' +
-        '</div></div>';
-
-      /* ---- pseudonymity / rights note -------------------------------- */
-      var rightsNote =
-        '<div class="banner banner--info">' + S.icon('shield', { size: 'sm' }) +
-        '<div><strong>A profile choice never gates a right.</strong> Showing a name or a handle, following or being followed, having a full timeline or an empty one — none of it changes the right to reside, vote, stand, or petition. Identity on the wire is presentation; rights are absolute · <span class="citation">Art. I</span></div></div>';
-
-      /* ---- endorsements given ---------------------------------------- */
-      var endChips = (prof.endorsementsGiven || []).map(function (en) {
-        return '<a class="role-card" href="' + S.hrefV1('electoral/candidate-profile.html') + '" style="text-decoration:none">' +
-          S.icon('vote') +
-          '<span class="role-name">' + esc(nm(en.to)) + '</span>' +
-          '<span>' + (en.public ? 'Endorsed publicly — shown here by choice.' : 'Endorsed privately.') + '</span>' +
-          '<span class="enter-as">' + S.pill(en.public ? 'pass' : 'closed', en.public ? 'Public by choice' : 'Private') + '</span>' +
-          '</a>';
-      }).join('');
-      var endorsements =
-        '<section class="card" aria-labelledby="end-h">' +
-        '<h2 id="end-h">Endorsements given</h2>' +
-        '<p class="gloss">An endorsement is a public political act a resident may choose to make. ' +
-        'It is wholly separate from a <strong>ballot approval</strong>, which is always secret — the cryptographic separation of voter identity from ballot is never relaxed, no matter what a profile shows · <span class="citation">Art. II (ballot secrecy · HARDENED)</span></p>' +
-        (endChips ? '<div class="role-grid">' + endChips + '</div>' : '<p class="gloss">No public endorsements.</p>') +
-        '<p class="lr-note">Approvals are always secret; endorsements are public only if the resident chooses to publish them. Showing one here never reveals the other.</p>' +
-        '</section>';
-
-      /* ---- groups ---------------------------------------------------- */
-      var grpRows = (prof.groups || []).map(function (gid) {
-        var g = (V2.groups.spaces || []).filter(function (s) { return s.id === gid; })[0];
-        var label = g ? g.name : gid;
-        var purpose = g ? g.purpose : '';
-        var members = g ? g.members : null;
-        return '<tr><th scope="row">' + esc(label) + '</th>' +
-          '<td>' + esc(purpose) + '</td>' +
-          '<td>' + (members != null ? esc(members) + ' members' : '—') + '</td>' +
-          '<td>' + S.pill('info', g && g.privacy === 'open' ? 'Open' : 'Invite', 'A voluntary association · Art. I') + '</td></tr>';
-      }).join('');
-      var groups =
-        '<section class="card" aria-labelledby="grp-h">' +
-        '<h2 id="grp-h">Groups</h2>' +
-        '<p class="gloss">Voluntary affinity groups. Membership is private to each member and confers no governance power · <span class="citation">Art. I (freedom of association)</span></p>' +
-        '<div class="table-wrap"><table class="table"><thead><tr>' +
-        '<th scope="col">Group</th><th scope="col">Purpose</th><th scope="col">Size</th><th scope="col">Privacy</th>' +
-        '</tr></thead><tbody>' + (grpRows || '<tr><td colspan="4" class="gloss">No groups.</td></tr>') + '</tbody></table></div>' +
-        '<p style="margin-block-start:var(--space-3)"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('groups/groups-home.html') + '">' +
-        S.icon('users', { size: 'sm' }) + ' Browse all groups ' + S.icon('arrow-right', { size: 'sm' }) +
-        ' ' + S.plannedFlag('Stage 3') + '</a></p>' +
-        '</section>';
-
-      /* ---- org memberships ------------------------------------------- */
-      var orgRows = (prof.orgs || []).map(function (oid) {
-        var o = BY.organizations[oid];
-        return '<tr><th scope="row">' + esc(orgName(oid)) + '</th>' +
-          '<td>' + esc(o && o.type ? o.type : 'organization') + '</td>' +
-          '<td><a href="' + S.hrefV2('social/org-profile.html') + '">View organization ' + S.icon('arrow-right', { size: 'sm' }) + '</a></td></tr>';
-      }).join('');
-      var orgs =
-        '<section class="card" aria-labelledby="org-h">' +
-        '<h2 id="org-h">Organization memberships</h2>' +
-        '<p class="gloss">Organizations this resident belongs to as a worker or member. The org pages are public; an individual membership is the resident’s own disclosure.</p>' +
-        '<div class="table-wrap"><table class="table"><thead><tr>' +
-        '<th scope="col">Organization</th><th scope="col">Type</th><th scope="col"></th>' +
-        '</tr></thead><tbody>' + (orgRows || '<tr><td colspan="3" class="gloss">No memberships shown.</td></tr>') + '</tbody></table></div>' +
-        '</section>';
-
-      /* ---- achievements ---------------------------------------------- */
-      var achChips = (prof.achievements || []).map(function (a) {
-        return '<span class="achievement-chip" title="' + esc(a.note || 'Decorative — confers no power') + '">' +
-          S.icon('check', { size: 'sm' }) + esc(a.name) +
-          ' <span class="form-id">Proposed</span></span>';
-      }).join(' ');
-      var achievements =
-        '<section class="card" aria-labelledby="ach-h">' +
-        '<h2 id="ach-h">Achievements</h2>' +
-        '<p class="gloss">Decorative recognitions — each is <strong>Proposed</strong>, design-ahead of code. ' +
-        'An achievement confers no governance advantage: it changes no vote, no role, no seat, no right · <span class="citation">Phase I · reach is display-only, never a gate</span></p>' +
-        '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap">' + (achChips || '<span class="gloss">No achievements.</span>') + '</div>' +
-        '</section>';
-
-      /* ---- full record link ------------------------------------------ */
-      var recordLink =
-        '<section class="card card--inset" aria-labelledby="rec-h">' +
-        '<h2 id="rec-h" style="font-size:var(--text-lg)">The authoritative record</h2>' +
-        '<p class="gloss">This profile is the social presentation. The complete, audited civic record — residency, votes cast (counts, never contents), offices, filings — lives in the operations site.</p>' +
-        '<p>' + neverFederated('Your private timeline and drafts live only on this server — never federated, like a ballot.') + '</p>' +
-        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('civic/my-record.html') + '">' +
-        S.icon('file-text', { size: 'sm' }) + ' Open my full record <span class="v1-tag">v1</span> ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
-        '</section>';
-
-      document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">The social layer · a profile</span><h1>Profile</h1>' +
-        '<p class="page-intro">How a resident appears to others on the public square and in the halls — by their own choosing. A profile is presentation; it never confers, gates, or measures a right.</p>' +
-        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
-        head +
-        rightsNote +
-        endorsements +
-        groups +
-        orgs +
-        achievements +
-        recordLink;
-
-      var root = document.getElementById('root');
-      root.querySelectorAll('[data-act]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          var a = b.getAttribute('data-act');
-          S.announce(a === 'follow' ? 'You now follow ' + name + ' (demo only).' : 'Message composer opened (demo only).');
-        });
-      });
-
+    var root = document.getElementById('root');
+    function paint() {
+      root.innerHTML = CGA.profileV2.render({});   // who/tab read from the URL; self by default
+      CGA.profileV2.wire(root);
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
-    render();
-    document.addEventListener('cga:v2:rerender', render);
+    paint();
+    document.addEventListener('cga:v2:rerender', paint);
   })();
   </script>
 </body>
