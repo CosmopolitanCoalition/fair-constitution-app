@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My wallet — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="econ-root"><p class="gloss">Loading your wallet…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/wallet', title: 'My wallet', module: 'economy', nav: 'wallet', citation: 'My wallet — a private account, like a ballot · Art. I, never federated', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-IND-018…023, F-TRE-001…004) are reserved, not yet registered. The unit is abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function neverFederated(text) {
+      return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + '<span>' + esc(text) + '</span></p>';
+    }
+
+    function render() {
+      var w = E.wallet, c = E.currency;
+
+      // Split a signed amount string into its sign for class selection.
+      var rows = w.transactions.map(function (tx) {
+        var isIn = /^[+]/.test(tx.amount.trim());
+        var amtCls = isIn ? 'wallet-amt--in' : 'wallet-amt--out';
+        return '<div class="wallet-row">' +
+          '<span>' + S.badge('neutral', tx.kind) + '</span>' +
+          '<span><strong style="color:var(--gov-fg)">' + esc(tx.counterparty) + '</strong>' +
+          '<span class="gloss"> · ' + esc(tx.memo) + '</span></span>' +
+          '<span class="citation">' + esc(tx.date) + '</span>' +
+          '<span class="wallet-amt ' + amtCls + '">' + esc(tx.amount) + '</span>' +
+          '</div>';
+      }).join('');
+
+      // The currency + abstract-unit note: show the subdivisions as unit-chips.
+      var units = c.subdivisions.map(function (u) {
+        return '<span class="unit-chip"><span class="u-sym">' + esc(u.symbol) + '</span>' +
+          '<span>' + esc(u.name) + '</span>' +
+          '<span class="u-factor">×' + esc(u.factor) + '</span></span>';
+      }).join('');
+
+      document.getElementById('econ-root').innerHTML =
+        '<header><span class="eyebrow">The economy · your private account</span><h1>My wallet</h1>' +
+        '<p class="page-intro">Everything you hold, earn, spend, and send — for your eyes only. Your balance and every receipt live on this server alone. ' +
+        'They are private the same way a ballot is private: nobody else, on this instance or any other, can read them.</p>' +
+        '<p class="citation">My wallet — a private account · Art. I (the right to privacy of one’s economic life), never federated</p></header>' +
+
+        // Lead with the never-federated guarantee (this is a PERSONAL surface).
+        neverFederated(w.neverFederated) +
+
+        plannedBanner() +
+
+        // The big balance.
+        '<section class="card" aria-labelledby="bal-h">' +
+        '<span class="eyebrow" id="bal-h">Available balance</span>' +
+        '<p class="wallet-balance">' + esc(w.balance) + '</p>' +
+        '<p class="gloss">In ' + esc(c.name) + ' (<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.code) + '). ' +
+        esc(c.abstractNote) + '</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+        '<a class="btn btn--primary" href="#transfer">' + S.icon('arrow-right', { size: 'sm' }) + ' Transfer</a>' +
+        '<a class="btn btn--secondary" href="' + S.hrefV2('economy/joint-ledgers.html') + '">' + S.icon('users', { size: 'sm' }) + ' Joint ledgers</a>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV1('system/public-records.html') + '">Public ledger <span class="v1-tag">v1</span></a>' +
+        '</div></section>' +
+
+        // The currency + abstract-unit note.
+        '<section class="card card--inset" aria-labelledby="unit-h">' +
+        '<h2 id="unit-h">The unit you hold</h2>' +
+        '<p class="gloss">The <span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + ' is reserved to ' + esc(c.issuerLabel) + ', ' +
+        'which sets its worth and defines its subdivisions. It is an abstract unit of account — it never touches outside finance.</p>' +
+        '<div class="unit-stack" style="margin-block-start:var(--space-3)">' + units + '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-3)">' + esc(c.citation) + '</p>' +
+        '<p class="citation">Worth: ' + esc(c.worthBasis) + '</p></section>' +
+
+        // The transactions list.
+        '<section aria-labelledby="tx-h"><h2 id="tx-h">Recent activity</h2>' +
+        '<p class="gloss">Money in is shown in green, money out in red. This list is yours alone.</p>' +
+        '<div class="card" style="margin-block-start:var(--space-3)">' + rows + '</div></section>' +
+
+        // Transfer CTA + form chip.
+        '<section class="card" id="transfer" aria-labelledby="xfer-h">' +
+        '<h2 id="xfer-h">Send a transfer</h2>' +
+        '<p>Move ' + esc(c.symbol) + ' to another resident or organization. Both the sending and the form are recorded on ' +
+        '<strong>your</strong> private ledger only — the recipient sees the credit on theirs. There is no shared custodian and no payment rail in between.</p>' +
+        '<p>' + S.icon('file-text', { size: 'sm' }) + ' <span class="form-chip">Transfer of value <span class="form-id">F-IND-023</span></span> ' +
+        S.badge('warning', 'Planned', 'clock') + '</p>' +
+        '<p class="citation">A transfer is a private agreement between two parties · Art. V §2 (joint &amp; shared value) + Art. I</p>' +
+        '<a class="btn btn--primary" aria-disabled="true" href="#transfer" title="Planned — F-IND-023 is reserved, not yet registered">Start a transfer ' +
+        S.icon('arrow-right', { size: 'sm' }) + '</a></section>' +
+
+        // The rails that protect a personal wallet.
+        '<section class="card card--inset" aria-labelledby="rails-h"><h2 id="rails-h">Why your wallet stays yours</h2><ul>' +
+        '<li><strong>Private, like a ballot.</strong> Balances, receipts, and transactions never federate — they live only on this server.</li>' +
+        '<li><strong>No payment rails, no custody.</strong> The unit is abstract; nothing here moves real money or holds it for you.</li>' +
+        '<li><strong>No paywall on civic rights.</strong> No tax, fee, or cost may ever attach to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>A stipend can only credit you,</strong> never withhold — and it writes only this ledger, never a role, seat, or vote · <span class="citation">Art. I (residency floor)</span></li>' +
+        '<li><strong>Every transfer needs both parties.</strong> The engine rejects a single-sided agreement; no clause can waive a right · <span class="citation">Art. I Supremacy of Rights</span></li>' +
+        '</ul>' +
+        neverFederated('This page never leaves this instance — there is nothing here to sync.') +
+        '</section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Achievements — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'social/achievements', title: 'Achievements', module: 'social', nav: 'achievements', citation: 'A decorative catalog — fenced, never a governance advantage', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc, A = V2.achievements;
+
+    function progressMeter(p) {
+      var pct = p.need > 0 ? Math.round((p.have / p.need) * 100) : 0;
+      pct = Math.max(0, Math.min(pct, 100));
+      return '<div class="meter-block">' +
+        '<div class="cluster" style="justify-content:space-between"><span class="eyebrow">' + esc(p.label) + '</span>' +
+        '<span class="ach-code">' + esc(p.code) + '</span></div>' +
+        '<div class="meter" role="meter" aria-valuemin="0" aria-valuemax="' + p.need + '" aria-valuenow="' + p.have + '" aria-label="' + esc(p.label) + ' — ' + p.have + ' of ' + p.need + ' ' + esc(p.unit) + '">' +
+        '<span class="meter-fill" style="inline-size:' + pct + '%"></span></div>' +
+        '<div class="meter-caption"><span>' + p.have + ' / ' + p.need + ' ' + esc(p.unit) + '</span><span>' + pct + '%</span></div></div>';
+    }
+
+    function medal(item) {
+      var earned = !!item.earned;
+      var cls = earned ? 'ach-medal ach-medal--earned' : 'ach-medal ach-medal--locked';
+      var disc = '<div class="ach-disc">' + (earned ? S.icon('award', { size: 'sm' }) : S.icon('lock', { size: 'sm' })) + '</div>';
+      var note = item.note ? '<p class="gloss">' + esc(item.note) + '</p>' : '';
+      return '<div class="' + cls + '" aria-label="' + esc(item.name) + (earned ? ' — earned' : ' — locked') + '">' +
+        disc + '<span class="ach-name">' + esc(item.name) + '</span>' + note +
+        '<span class="ach-code">' + esc(item.code) + '</span></div>';
+    }
+
+    function tierSection(tier) {
+      var grid = tier.items.map(medal).join('');
+      var system = tier.key === 'system';
+      var heading = system
+        ? '<header><span class="eyebrow">' + S.icon('globe', { size: 'sm' }) + ' Global milestones</span>' +
+            '<h2>' + esc(tier.label) + '</h2>' +
+            '<p class="page-intro">Whole-system firsts — celebrated for everyone, attributed to no one.</p></header>'
+        : '<header><h2>' + esc(tier.label) + '</h2></header>';
+      var card = system ? 'card ach-fence' : 'card';
+      return '<section class="' + card + '">' + heading +
+        '<p class="citation">' + esc(tier.visibility) + ' · prefix ' + esc(tier.prefix) + '</p>' +
+        '<div class="ach-grid" style="margin-block-start:var(--space-3)">' + grid + '</div></section>';
+    }
+
+    function render() {
+      var rails = A.rails.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('');
+      var progress = A.inProgress.map(progressMeter).join('');
+      var tiers = A.tiers.map(tierSection).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Government with people · recognition</span><h1>Achievements</h1>' +
+        '<p class="page-intro">A decorative catalog of civic firsts and milestones. It is a keepsake — it confers nothing.</p></header>' +
+
+        '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) + '<div>' +
+        '<strong>Proposed — founder / legislature-authored policy, not in code.</strong> The catalog below is an amendable cosmetic layer a jurisdiction may adopt. Nothing here is a constitutional form or a hardcoded rule.</div></div>' +
+
+        '<section class="card ach-fence"><div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">No governance advantage — changes no vote, no seat, no role, no moderation, no eligibility.</strong> ' +
+        'These badges are visual only. The rest of the fence:</div></div>' +
+        '<ul style="margin-block-start:var(--space-3)">' + rails + '</ul>' +
+        '<p class="citation">There is no per-person total, no score, no rank, and no individual leaderboard — anywhere. Individuals are private by default and opt in to show a badge; nothing is ever summed or ranked.</p></section>' +
+
+        '<section class="card"><span class="eyebrow">In progress</span>' +
+        '<p class="page-intro">Derived live from your own activity — no progress is stored, no number is published.</p>' +
+        progress +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Computed from qualifying events at view time · PI-6 no stored per-person score · PI-2 from the envelope, never the ballot</p></section>' +
+
+        tiers;
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

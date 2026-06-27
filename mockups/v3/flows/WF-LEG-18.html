@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Term Expiration & Renewal — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Term Expiration & Renewal <span class="citation">WF-LEG-18</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-18", "title": "Term Expiration & Renewal", "module": "flows", "nav": null, "roles": ["R-08"], "workflows": ["WF-LEG-18"], "forms": [], "citation": "Art. II §2; Art. III §3; Art. IV §3 · WF-LEG-18", "flow": "WF-LEG-18", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-18",
+ "name": "Term Expiration & Renewal",
+ "timeScale": "Long (term length)",
+ "trigger": "Term-sync clock reaches expiration",
+ "actors": [
+  "R-08"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-ELB"
+ ],
+ "terminal": "New general election; lockstep renewal of legislature + elected executives + elected judges; referendum acts from prior sessions become ordinary law",
+ "basis": "Art. II §2; Art. III §3; Art. IV §3",
+ "entity": "Election",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "System",
+   "action": "Term expiration approaches (CLK-01/10)",
+   "outcome": "Election pre-scheduled at constitutional lead time",
+   "engine": "WF-SYS-01",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "All",
+   "action": "General election (legislative + synced exec + synced judicial races)",
+   "outcome": "All branches renew in lockstep",
+   "engine": "WF-ELE-01/08/09",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "Outgoing records sealed; referendum-act protections lapse (CLK-19)",
+   "outcome": "New legislature constitutes (WF-LEG-01)",
+   "engine": "Legislation module",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "Continues in WF-LEG-01",
+     "goto": {
+      "wf": "WF-LEG-01",
+      "step": 1
+     }
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

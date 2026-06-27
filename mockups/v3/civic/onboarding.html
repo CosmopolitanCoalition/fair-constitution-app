@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Onboarding — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Civic onboarding · step 1 of 3</span>
+        <h1>Create your account</h1>
+        <p class="page-intro">Anyone can register — being a person is the only requirement. Your rights are inherent;
+          this account simply gives them a record to attach to. Voting and candidacy unlock later, automatically,
+          when your residency is verified.</p>
+        <p class="citation">Registration is open to any person — rights are inherent · Art. I</p>
+      </header>
+
+      <ol class="stepper">
+        <li class="stepper-step stepper-step--active" aria-current="step">1 · Account &amp; profile</li>
+        <li class="stepper-step"><a href="identity-verification.html">2 · Identity verification</a></li>
+        <li class="stepper-step"><a href="residency.html">3 · Residency</a></li>
+      </ol>
+
+      <section class="card" aria-labelledby="reg-h">
+        <h2 id="reg-h">Individual registration <span class="form-chip"><span class="form-id">F-IND-001</span></span></h2>
+        <p class="cc-small">Create an account and identity record in the system.
+          <span class="citation" style="display:block">available to R-01 Individual · creates the Individual record · Art. I (inherent rights)</span></p>
+        <form id="reg-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="reg-name">Full name</label>
+            <input class="field-input" id="reg-name" name="name" type="text" autocomplete="name" value="Amara Okafor" />
+            <span class="field-hint">Use the name you want on your public civic record.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="reg-langs">Languages</label>
+            <select class="select" id="reg-langs" multiple size="5">
+              <option value="en" selected>English (en)</option>
+              <option value="es">Español (es)</option>
+              <option value="ar">العربية (ar)</option>
+              <option value="zh-Hans">中文 — 简体 (zh-Hans)</option>
+              <option value="hi">हिन्दी (hi)</option>
+            </select>
+            <span class="field-hint">Multiselect stub — the production list covers every supported locale. Records are translated per your selection.</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="reg-tz">Timezone</label>
+            <select class="select" id="reg-tz">
+              <option value="America/New_York" selected>America/New_York (UTC−5)</option>
+              <option value="UTC">UTC</option>
+              <option value="Europe/Rome">Europe/Rome (UTC+1)</option>
+              <option value="Asia/Kolkata">Asia/Kolkata (UTC+5:30)</option>
+            </select>
+            <span class="field-hint">Dates are shown in your timezone · stored as UTC.</span>
+          </div>
+          <div class="field" id="terms-field">
+            <label class="checkbox"><input type="checkbox" id="reg-terms" />
+              I understand my account record is mine, my location pings stay encrypted, and my civic actions become part of an append-only public record.</label>
+            <span class="field-error" id="terms-error" hidden><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
+              Confirm the terms to continue.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Create account</button>
+            <span id="reg-status"></span>
+          </div>
+        </form>
+        <div class="banner banner--info" id="reg-confirm" hidden style="margin-block-start:var(--space-4)">
+          <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
+          <div><span class="banner-title">Account created — your Individual record now exists.</span>
+            Next step: <a href="identity-verification.html">identity verification</a> (where supported), then
+            <a href="residency.html">declare residency</a> to start unlocking your rights.
+            <span class="citation">Creates: Individual record · Art. I</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="prof-h">
+        <h2 id="prof-h">Profile management <span class="form-chip"><span class="form-id">F-IND-002</span></span></h2>
+        <p class="cc-small">Edit personal information, communication preferences, language settings — any time after registration.
+          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 · Art. I (Autonomy)</span></p>
+        <form id="prof-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="prof-display">Display name</label>
+            <input class="field-input" id="prof-display" type="text" autocomplete="nickname" value="Amara Okafor" />
+          </div>
+          <fieldset class="field" style="border:0;padding:0;margin-inline:0">
+            <legend class="field-label">Communication preferences</legend>
+            <div class="radio-group">
+              <label class="checkbox"><input type="checkbox" checked /> Election reminders (approval phase, ranked window, results)</label>
+              <label class="checkbox"><input type="checkbox" checked /> Petition milestones in my jurisdictions</label>
+              <label class="checkbox"><input type="checkbox" /> Session digests from my legislatures</label>
+            </div>
+          </fieldset>
+          <div class="cluster">
+            <button type="submit" class="btn btn--secondary">Save profile</button>
+            <span id="prof-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <div id="ind-strip" class="state-strip"></div>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Registered → Identity-Verified → Residency-Declared → Resident (R-02) → Jurisdictionally Associated (R-03).</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock at R-03 with no other requirements.</p>
+        <p class="citation">Art. I · Art. V §1</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-01.html">WF-CIV-01 onboarding &amp; identity verification</a> —
+            leads into <a href="../flows/WF-CIV-02.html">WF-CIV-02 residency establishment</a>.</p>
+          <p><strong>Entity state machine:</strong> Individual — this surface covers <em>Registered</em>; the strip above tracks the rest.</p>
+          <p class="citation">Art. I (inherent rights; Autonomy)</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/onboarding',
+      title: 'Onboarding',
+      module: 'civic',
+      nav: 'civic-home',
+      roles: ['R-01'],
+      workflows: ['WF-CIV-01'],
+      forms: ['F-IND-001', 'F-IND-002'],
+      citation: 'Registration is open to any person — rights are inherent · Art. I',
+      flow: 'WF-CIV-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var registered = false;
+
+      function render() {
+        /* Individual lifecycle strip — current state advances after simulated submit. */
+        var current = registered ? 'Identity-Verified' : 'Registered';
+        var states = BY.entities['Individual'].states;
+        document.getElementById('ind-strip').innerHTML = states.map(function (st, i) {
+          var cls = 'state-node' + (st.indexOf(current) === 0 ? ' state-node--current' : '');
+          return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
+            '<span class="' + cls + '">' + esc(st) + '</span>';
+        }).join('');
+        S.refresh();
+      }
+
+      document.getElementById('reg-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var terms = document.getElementById('reg-terms');
+        var err = document.getElementById('terms-error');
+        if (!terms.checked) { err.hidden = false; terms.focus(); return; }
+        err.hidden = true;
+        registered = true;
+        document.getElementById('reg-confirm').hidden = false;
+        document.getElementById('reg-status').innerHTML = S.badge('success', 'Account created', 'check');
+        render();
+      });
+
+      document.getElementById('prof-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        document.getElementById('prof-status').innerHTML = S.badge('success', 'Profile saved', 'check');
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

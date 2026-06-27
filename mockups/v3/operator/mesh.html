@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mesh &amp; federation — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/mesh', title: 'Mesh & federation', module: 'operator', nav: 'operator-mesh', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    /* status badge for a peer (ESM-20 lifecycle). */
+    function peerStatusBadge(status) {
+      var map = {
+        trust_established: { tone: 'success', icon: 'check', label: 'Trust established' },
+        syncing: { tone: 'info', icon: 'refresh-cw', label: 'Syncing' },
+        border_settled: { tone: 'neutral', icon: 'scale', label: 'Border settled' }
+      };
+      var m = map[status] || { tone: 'neutral', icon: 'info', label: status };
+      return S.badge(m.tone, m.label, m.icon) + ' <span class="advanced-note">' + esc(status) + '</span>';
+    }
+
+    function syncResult(r) {
+      if (r.result === 'conflict_authoritative_wins') {
+        return S.badge('warning', 'Authority disputed → resolved', 'alert-triangle') +
+          ' <span class="advanced-note">conflict_authoritative_wins</span>';
+      }
+      return S.badge('success', 'Applied', 'check') + ' <span class="advanced-note">' + esc(r.result) + '</span>';
+    }
+
+    function transportPill(state) {
+      var p = O.STATE_PILL[state] || O.STATE_PILL.qualifiable;
+      return '<span class="pill pill--' + p.pill + '" title="' + esc(state) + '">' + esc(p.label) + '</span>';
+    }
+
+    function render() {
+      /* ---- Section 1: Join a cluster (the stepper) ---- */
+      var stepPills = O.joinWizard.map(function (s, i) {
+        var cls = i === 0 ? ' stepper-step--active' : ' stepper-step--done';
+        return '<li class="stepper-step' + cls + '"><strong>' + s.step + '</strong>&nbsp;' + esc(s.title) + '</li>';
+      }).join('');
+      var stepDetail = O.joinWizard.map(function (s) {
+        return '<div class="card stack"><div class="cluster" style="gap:var(--space-2)">' +
+          '<span class="relation-chip">Step ' + s.step + '</span><strong style="color:var(--gov-fg)">' + esc(s.title) + '</strong></div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(s.detail) + '</p></div>';
+      }).join('');
+
+      var joinSection =
+        '<section aria-labelledby="join-h" class="stack"><h2 id="join-h">Join a cluster</h2>' +
+        '<p class="page-intro">A new node joins an existing cluster through a four-step wizard. You either hold a one-shot join-key the host operator minted for you, or you join without one and wait for a peer to vouch for you.</p>' +
+        '<ol class="stepper">' + stepPills + '</ol>' +
+        '<div class="grid-2">' + stepDetail + '</div>' +
+        '<div class="cluster" style="gap:var(--space-2)">' +
+        '<span class="pill pill--info" title="federation:cold-sync &lt;url&gt;">One-shot join-key — minted by the host operator</span>' +
+        '<span class="pill pill--wait" title="a peer vouches before trust is established">Or join without a key and wait for a vouch</span></div>' +
+        '<div class="lr-note">' + S.icon('info', { size: 'sm' }) +
+        '<span>A mirror is <strong>read-only</strong>: it cold-syncs the full public corpus and accepts no filings. Joining never moves authority — <strong>authority stays with the origin</strong> until a formal flip.</span></div>' +
+        '<span class="citation">Cluster join is infrastructure, not a constitutional act · Art. V §7</span></section>';
+
+      /* ---- Section 2: Your peers ---- */
+      var peerRows = O.peers.map(function (p) {
+        return '<tr>' +
+          '<td><strong>' + esc(p.name) + '</strong></td>' +
+          '<td><code class="advanced-note">' + esc(p.serverId) + '</code></td>' +
+          '<td><span class="advanced-note">' + esc(p.url) + '</span></td>' +
+          '<td>' + peerStatusBadge(p.status) + '</td>' +
+          '<td><span class="relation-chip">' + esc(p.relation) + '</span></td>' +
+          '<td><span class="advanced-note">' + esc(p.version) + ' · ' + esc(p.release) + '</span></td>' +
+          '<td>' + esc(p.heartbeat) + '</td>' +
+          '<td><span class="advanced-note">' + esc(p.syncSeq.toLocaleString('en-US')) + '</span></td>' +
+          '</tr>';
+      }).join('');
+
+      var peersSection =
+        '<section aria-labelledby="peers-h" class="stack"><h2 id="peers-h">Your peers</h2>' +
+        '<p class="page-intro">Every box this node has handshaked with, and where each one sits in the ESM-20 trust lifecycle. The relation chip records how you stand to each peer: a <strong>host</strong> you joined under, a <strong>mirror</strong> that cold-syncs from you, or a <strong>sovereign</strong> peer with a settled border.</p>' +
+        '<div class="table-wrap"><table class="table"><thead><tr>' +
+        '<th scope="col">Peer</th><th scope="col">Server ID</th><th scope="col">URL</th>' +
+        '<th scope="col">Status</th><th scope="col">Relation</th><th scope="col">Version</th>' +
+        '<th scope="col">Heartbeat</th><th scope="col">Sync seq</th>' +
+        '</tr></thead><tbody>' + peerRows + '</tbody></table></div>' +
+        '<span class="citation">ESM-20 trust lifecycle: trust_established · syncing · border_settled</span></section>';
+
+      /* ---- Section 3: Full Faith & Credit (the sync ledger) ---- */
+      var ledgerRows = O.syncLedger.map(function (l) {
+        return '<tr>' +
+          '<td><span class="advanced-note">#' + l.seq + '</span></td>' +
+          '<td>' + (l.dir === 'outbound'
+            ? S.badge('info', 'Outbound', 'arrow-right')
+            : S.badge('neutral', 'Inbound', 'arrow-right')) + '</td>' +
+          '<td>' + syncResult(l) + (l.note ? '<br /><span class="advanced-note">' + esc(l.note) + '</span>' : '') + '</td>' +
+          '<td><span class="advanced-note">' + esc(l.range) + '</span></td>' +
+          '<td>' + esc(l.at) + '</td>' +
+          '</tr>';
+      }).join('');
+
+      var ffcSection =
+        '<section aria-labelledby="ffc-h" class="stack"><h2 id="ffc-h">Full Faith &amp; Credit</h2>' +
+        '<p class="page-intro">When peers carry one another’s records, the sync ledger is the receipt. Each row is one push or pull, with its result and the record range it covered. A <code class="advanced-note">conflict_authoritative_wins</code> result means authority was disputed and then resolved in favour of the authoritative instance — the constitutional record never forks.</p>' +
+        '<div class="table-wrap"><table class="table"><thead><tr>' +
+        '<th scope="col">Entry</th><th scope="col">Direction</th><th scope="col">Result</th>' +
+        '<th scope="col">Range</th><th scope="col">At</th>' +
+        '</tr></thead><tbody>' + ledgerRows + '</tbody></table></div>' +
+        '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) +
+        '<span>The sync ledger is <strong>append-only and public</strong> — like every record on the constitutional plane, it can be read by anyone and never rewritten. <span class="citation">Art. II §2</span></span></div></section>';
+
+      /* ---- Section 4: Authority & the read-write petition ---- */
+      var fsm =
+        '<div class="fsm">' +
+        '<span class="fsm-node">mirror (read-only)</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">read-write petition filed</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">host government decides (Meter B)</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">authority flips, or denied</span></div>';
+
+      var authoritySection =
+        '<section aria-labelledby="auth-h" class="stack"><h2 id="auth-h">Authority &amp; the read-write petition</h2>' +
+        '<p class="page-intro">Authority stays with the origin until a formal flip. A mirror that wants to take read-write authority for a jurisdiction files the read-write petition.</p>' +
+        '<div class="form-chip">Read-write authority petition <span class="form-id">Art. V §7</span></div>' +
+        fsm +
+        '<div class="grid-2">' +
+        '<div class="card stack"><strong style="color:var(--gov-fg)">Who decides</strong>' +
+        '<p style="font-size:var(--text-sm)">A mirror petitions the host, but the <strong>host’s government decides</strong> — by Meter B supermajority of the constituent jurisdictions. This is a constitutional act, not an operator switch.</p>' +
+        '<span class="citation">Meter B supermajority · Art. V §7</span></div>' +
+        '<div class="card stack meter-card--super"><strong style="color:var(--gov-fg)">What the console can do</strong>' +
+        '<p style="font-size:var(--text-sm)">In the operator console the host operator can <strong>deny</strong> a read-write petition outright — but can <strong>never approve</strong> one. Approval lives only with the seated government. The console has no “approve” button by design, not by omission.</p>' +
+        '<div class="cluster" style="gap:var(--space-2)">' +
+        S.badge('danger', 'Operator may deny', 'x') +
+        S.badge('neutral', 'Operator cannot approve', 'lock') + '</div></div></div>' +
+        '<div class="advanced-note">' + esc(O.plane.supersession) + '</div></section>';
+
+      /* ---- Section 5: Transports ---- */
+      var transportRows = O.transports.map(function (t) {
+        return '<tr>' +
+          '<td><code class="advanced-note">' + esc(t.transport) + '</code></td>' +
+          '<td><span class="advanced-note">' + esc(t.address) + '</span></td>' +
+          '<td>' + t.priority + '</td>' +
+          '<td>' + transportPill(t.state) + '</td>' +
+          '</tr>';
+      }).join('');
+
+      var transportsSection =
+        '<section aria-labelledby="trans-h" class="stack"><h2 id="trans-h">Transports</h2>' +
+        '<p class="page-intro">The same signed bytes ride any of five channels, tried in priority order — so the mesh survives even when the open internet does not. A node advertises whichever rungs it can reach.</p>' +
+        '<div class="table-wrap"><table class="table"><thead><tr>' +
+        '<th scope="col">Transport</th><th scope="col">Address</th><th scope="col">Priority</th><th scope="col">State</th>' +
+        '</tr></thead><tbody>' + transportRows + '</tbody></table></div>' +
+        '<div class="lr-note">' + S.icon('check', { size: 'sm' }) +
+        '<span><code class="advanced-note">mesh:doctor</code> probes every rung on the ladder and reports which transports can actually carry a sync right now.</span></div>' +
+        '<span class="citation">Transport survival mesh · Art. V §7</span></section>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · mesh &amp; federation</span>' +
+        '<h1>Mesh &amp; federation</h1>' +
+        '<p class="page-intro">How your node finds its peers, carries their records, and survives a hostile network — the federation layer the citizen game rides on.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
+        ' Joining, syncing and naming peers are <strong>capabilities</strong> — they buy no vote, no seat, and no say in any constitutional act.<br />' +
+        '<span class="citation">' + esc(O.plane.board) + '</span></div></div>' +
+
+        '<div class="health-line"><span class="health-dot health-dot--' + O.readiness.rollup + '" aria-hidden="true"></span>' +
+        '<strong style="color:var(--gov-fg)">Peers &amp; sync at a glance</strong>' +
+        '<span class="citation">' + O.readiness.peerCount + ' trusted peers · last sync ' + esc(O.readiness.lastSync) + '</span></div>' +
+
+        joinSection +
+        peersSection +
+        ffcSection +
+        authoritySection +
+        transportsSection;
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

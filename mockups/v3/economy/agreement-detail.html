@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agreement — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the agreement…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/agreement-detail', title: 'Agreement', module: 'economy', nav: 'agreements', citation: 'Instruments of agreement — freedom to contract with a constitutional floor · Art. I', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    /* Form name first, ID second (the house rule). */
+    function formChip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    /* The kind enum → a human label + the constitutional anchor it rides on. */
+    var KINDS = {
+      labor_recurring: { label: 'Recurring labor', cite: 'Art. III §6 (co-determination headcount)' },
+      ownership_transfer: { label: 'Ownership transfer', cite: 'Art. I (freedom to contract)' },
+      joint_ledger: { label: 'Joint ledger', cite: 'Art. V §2 (shared resources)' },
+      sale: { label: 'Sale on the Open Market', cite: 'Art. III §5 / Art. V §5' }
+    };
+
+    /* Form names for the kinds present in the fixture (name first, ID second). */
+    var FORM_NAMES = {
+      'F-IND-014': 'Instrument of agreement',
+      'F-ORG-005': 'Transfer of ownership',
+      'F-IND-023': 'Joint-ledger compact',
+      'F-IND-022': 'Bill of sale'
+    };
+
+    function render() {
+      var a = E.agreements[0]; /* the labor contract — agr-1, F-IND-014 */
+      var kind = KINDS[a.kind] || { label: a.kind, cite: '' };
+
+      /* Parties — each as a party-chip with its role (the .party-role mono). */
+      var parties = a.parties.map(function (p) {
+        return '<span class="party-chip">' + S.icon('user', { size: 'sm' }) + esc(p.name) +
+          ' <span class="party-role">' + esc(p.role) + '</span></span>';
+      }).join('');
+
+      /* The both-must-sign signer ledger — F-IND-014 is rejected single-sided. */
+      var signers = a.parties.map(function (p) {
+        var cls = a.signedBoth ? 'signer-chip--approved' : (p.role === 'worker' ? 'signer-chip--approved' : 'signer-chip--pending');
+        var label = a.signedBoth ? 'signed' : (p.role === 'worker' ? 'signed' : 'awaiting');
+        return '<span class="signer-chip ' + cls + '">' + S.icon(a.signedBoth ? 'check' : 'clock', { size: 'sm' }) +
+          esc(p.name) + ' · ' + esc(label) + '</span>';
+      }).join(' ');
+
+      var statusPill = a.status === 'agreed'
+        ? S.pill('pass', 'Agreed — both parties signed', 'org_contracts.status = agreed · the engine has both signatures on record')
+        : S.pill('wait', 'Proposed — awaiting a second signature', 'A single-sided contract is rejected at the engine boundary');
+
+      var root = document.getElementById('root');
+      root.innerHTML =
+
+        /* -------------------------------------------------------- header */
+        '<nav aria-label="Breadcrumb" class="gloss" style="margin-block-end:var(--space-2)">' +
+          '<a href="' + S.hrefV2('economy/economy-home.html') + '">The exchange</a> ' +
+          S.icon('chevron-right', { size: 'sm' }) +
+          ' <a href="' + S.hrefV2('economy/agreements.html') + '">Instruments of agreement</a> ' +
+          S.icon('chevron-right', { size: 'sm' }) + ' ' + esc(a.title) + '</nav>' +
+
+        '<header><span class="eyebrow">Instruments of agreement · ' + esc(kind.label) + '</span>' +
+        '<h1>' + esc(a.title) + '</h1>' +
+        '<p class="page-intro">A binding instrument between agreeing parties, recorded on this server. ' +
+        'Every agreement carries a constitutional floor — no clause can ever waive a right.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);align-items:center">' + statusPill +
+        S.badge('neutral', kind.label, 'file-text') + '<span class="citation">' + esc(kind.cite) + '</span></div>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+
+        plannedBanner() +
+
+        /* The never-federated guarantee — this is a personal economic surface. */
+        '<p><span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        ' The parties’ private ledgers never federate, like a ballot</span></p>' +
+
+        /* ----------------------------------------------- the instrument card */
+        '<section class="card" aria-labelledby="inst-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 id="inst-h">The instrument</h2>' + formChip(FORM_NAMES[a.form] || 'Instrument of agreement', a.form) + '</div>' +
+
+        '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
+        '<div class="stack" style="gap:var(--space-1)"><span class="eyebrow">Kind</span>' +
+        '<span>' + esc(kind.label) + '</span><span class="citation">org_contracts.kind = ' + esc(a.kind) + '</span></div>' +
+        '<div class="stack" style="gap:var(--space-1)"><span class="eyebrow">Status</span>' +
+        '<span>' + (a.signedBoth ? 'Both parties have signed' : 'Awaiting a second signature') + '</span>' +
+        '<span class="citation">status = ' + esc(a.status) + '</span></div></div>' +
+
+        '<div class="stack" style="gap:var(--space-1);margin-block-start:var(--space-4)"><span class="eyebrow">Terms</span>' +
+        '<p>' + esc(a.terms) + '</p></div></section>' +
+
+        /* ------------------------------------------------------- the parties */
+        '<section class="card" aria-labelledby="party-h"><h2 id="party-h">Parties to the agreement</h2>' +
+        '<p class="gloss">Each party signs in their own role. Identity comes from the residency-confirmed record — never a paywall.</p>' +
+        '<div class="agreement-parties" style="margin-block-start:var(--space-2)">' + parties + '</div></section>' +
+
+        /* ------------------------------------- the both-parties-must-sign rule */
+        '<section class="card" aria-labelledby="sign-h"><h2 id="sign-h">Both parties must sign</h2>' +
+        '<p>The engine will not record a one-sided promise. ' +
+        'An instrument exists only when <strong>every named party has signed</strong> — a single-sided contract is ' +
+        'rejected at the boundary, before it can ever bind anyone.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block:var(--space-3)">' + signers + '</div>' +
+        '<p class="lr-note">' + S.icon('shield', { size: 'sm' }) +
+        '<span>Mutual consent is structural, not advisory: the absence of one signature is the absence of the agreement. ' +
+        '<span class="citation">Art. I — freedom to contract requires the consent of each party · HARDENED at the engine</span></span></p>' +
+        '</section>' +
+
+        /* ------------------------------------------------ the constitutional floor */
+        '<section class="card card--inset" aria-labelledby="floor-h"><h2 id="floor-h">The constitutional floor</h2>' +
+        '<p class="agreement-floor">' + S.icon('scale', { size: 'sm' }) +
+        '<span>' + esc(a.floor) + '</span></p>' +
+        '<ul style="margin-block-start:var(--space-3)">' +
+        '<li><strong>Supremacy of Rights.</strong> No clause may disempower a constitutional right; a clause that tries is void, not the whole instrument · <span class="citation">Art. I Supremacy of Rights</span></li>' +
+        '<li><strong>No paywall on civic life.</strong> An agreement can never make a right (voting, candidacy, residency, petitioning) conditional on a payment · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>Worker protections survive the contract.</strong> Recurring-labor terms cannot waive co-determination representation · <span class="citation">Art. III §6</span></li>' +
+        '</ul></section>' +
+
+        /* ----------------------------------- co-determination consequence (v1) */
+        '<section class="card" aria-labelledby="codet-h"><h2 id="codet-h">What this agreement sets in motion</h2>' +
+        '<p>Signing a recurring-labor instrument adds a worker to the organization’s headcount. ' +
+        'A single hire can cross the <strong>100-worker first-seat threshold</strong> and earn workers their first ' +
+        'seat on the board — co-determination is computed from the contracts, not declared.</p>' +
+        '<div class="lever-row"><span class="lever-key">co_determination.headcount</span>' +
+        '<span class="lever-val">+1 worker</span>' +
+        '<span class="dual-door">' + S.icon('users', { size: 'sm' }) + ' feeds board composition</span></div>' +
+        '<p style="margin-block-start:var(--space-3)">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('organizations/co-determination.html') + '">' +
+        S.icon('briefcase', { size: 'sm' }) + ' Open co-determination on the operations site ' +
+        '<span class="v1-tag">v1</span></a></p>' +
+        '<p class="citation">Worker representation thresholds — first seat at 100 employees, parity at 2000 · Art. III §6 (HARDENED math)</p>' +
+        '</section>' +
+
+        /* ------------------------------------------ sign / decline affordance */
+        '<section class="card" aria-labelledby="act-h"><h2 id="act-h">Your decision</h2>' +
+        '<p class="gloss">You are viewing this as a named party. Signing or declining is recorded against your own identity only.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
+        '<button type="button" class="btn btn--primary" data-sign>' + S.icon('check', { size: 'sm' }) + ' Sign this agreement</button>' +
+        '<button type="button" class="btn btn--ghost" data-decline>' + S.icon('x', { size: 'sm' }) + ' Decline</button>' +
+        '</div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">Simulated — these surfaces are design-ahead of code; nothing is written.</p>' +
+        '</section>' +
+
+        /* ----------------------------------------------------------- back link */
+        '<p style="margin-block-start:var(--space-4)"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/agreements.html') + '">' +
+        S.icon('arrow-right', { size: 'sm' }) + ' Back to all instruments of agreement</a></p>';
+
+      /* simulated sign / decline */
+      var signBtn = root.querySelector('[data-sign]');
+      var declineBtn = root.querySelector('[data-decline]');
+      if (signBtn) signBtn.addEventListener('click', function () {
+        S.announce('Simulated: your signature was recorded. The agreement still waits on every other named party before it binds.');
+      });
+      if (declineBtn) declineBtn.addEventListener('click', function () {
+        S.announce('Simulated: you declined. With no signature from you, the instrument does not exist — nothing binds.');
+      });
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open ballot — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="phase-banner"></div>
+
+      <header>
+        <span class="eyebrow">Elections · approval phase</span>
+        <h1>Open ballot — New York County general election</h1>
+        <p class="page-intro">The continuous approval phase: any associated resident can stand, any voter can approve —
+          and revoke — at any time. The top <strong id="finalist-x">21</strong> candidates when the phase closes lock onto
+          the ranked ballot. Approving here costs you nothing on election day: you will still rank freely among the
+          finalists, and write-ins always remain open.</p>
+        <p class="citation">Registration is open the entire inter-election period · CLK-18 — finalists: X = f(seats) · CLK-21 — Art. II §2 · as implemented
+          (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-finalists">21</span><span class="stat-label">finalist places · top X advance</span></div>
+        <div class="stat"><span class="stat-number" id="stat-candidates">24</span><span class="stat-label">validated candidates</span></div>
+        <div class="stat"><span class="stat-number" id="stat-approvals">—</span><span class="stat-label">your active approvals (revocable)</span></div>
+      </div>
+
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        <div><span class="banner-title">Your approvals are secret; standings are aggregate.</span>
+          Nobody — including candidates — can see who approved whom. Counts update on a daily cycle.
+          <span class="citation">Ballot secrecy · Art. II §2 · Ensure Election Security and Integrity</span></div>
+      </div>
+
+      <div class="filter-bar" role="group" aria-label="Filter candidates">
+        <label class="demo-control" style="color:var(--gov-fg-muted)">Endorser
+          <select class="select" style="inline-size:auto" id="f-endorser">
+            <option value="">Any</option>
+            <option value="__individuals">Individually endorsed</option>
+            <option value="__none">No endorsements</option>
+          </select>
+        </label>
+        <span class="eyebrow">Positions</span>
+        <span id="f-tags" class="cluster" style="gap:var(--space-1)"></span>
+        <button type="button" class="chip-toggle" id="f-incumbent" aria-pressed="false">Incumbents only</button>
+        <label class="demo-control" style="color:var(--gov-fg-muted)">
+          <span class="visually-hidden">Search candidates</span>
+          <input class="field-input" style="inline-size:11rem;padding-block:var(--space-1)" type="search" id="f-search" placeholder="Search candidates" />
+        </label>
+        <button type="button" class="btn btn--ghost btn--sm" id="f-clear">Clear filters</button>
+      </div>
+
+      <section class="card" style="padding:0" aria-labelledby="standings-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="standings-h">Live standings <span class="citation" id="standings-asof">aggregate · updated daily</span></h2>
+        </div>
+        <div id="standings" aria-live="polite"></div>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="alignment-h">
+          <h2 id="alignment-h">Alignment questionnaire <span class="planned-flag">Future scope</span></h2>
+          <p class="cc-small">Answer a short policy questionnaire and the open ballot will suggest the candidates whose
+            public records and statements best fit your answers. Suggestions never auto-approve — you stay in control.</p>
+          <button type="button" class="btn btn--secondary btn--sm" disabled>Not yet available</button>
+        </section>
+
+        <section class="card" aria-labelledby="stand-h">
+          <h2 id="stand-h">Stand for office yourself</h2>
+          <p class="cc-small">Any jurisdictionally associated resident can register — there are no other requirements.
+            Validated candidates enter this pool immediately.</p>
+          <p class="citation">Your right to stand and to vote for anyone is preserved · Art. I · Right to Stand for Office</p>
+          <a class="btn btn--primary btn--sm" href="candidacy-registration.html">Register candidacy
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> WF-CIV-08 (open ballot & approval phase) — feeds WF-ELE-01 (general cycle);
+            candidates arrive via WF-CIV-05 (candidacy registration & validation).</p>
+          <p><strong>Entity state machine:</strong> Approval Standing — approvals accumulate continuously; the finalist
+            cutoff freezes the top X per race when the ranked window is scheduled.</p>
+          <p><strong>Filters & factions:</strong> there is no faction layer — filtering is by endorsing organization or
+            individual endorsements; candidates with neither are first-class
+            (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
+          <p class="citation">Art. II §2 · CLK-18 · CLK-21</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'electoral/open-ballot',
+      title: 'Open ballot — approval phase',
+      module: 'electoral',
+      nav: 'open-ballot',
+      roles: ['R-03', 'R-04', 'R-06'],
+      workflows: ['WF-CIV-08', 'WF-ELE-01', 'WF-CIV-05'],
+      forms: [],
+      citation: 'Approval phase · finalists X = f(seats) · CLK-21 · Art. II §2',
+      flow: 'WF-CIV-08',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var election = W.elections[0]; /* elec-manhattan-2031 */
+      var FINALISTS = election.finalistCount;
+
+      /* Page-local interaction state (simulated; nothing leaves the page). */
+      var myApprovals = {};        /* candidateId -> true */
+      var filters = { endorser: '', tags: {}, incumbent: false, q: '' };
+
+      var ALL_TAGS = [];
+      W.candidates.forEach(function (c) {
+        (c.tags || []).forEach(function (t) { if (ALL_TAGS.indexOf(t) < 0) ALL_TAGS.push(t); });
+      });
+      ALL_TAGS.sort();
+
+      /* ---- filter bar ---- */
+      var endorserSel = document.getElementById('f-endorser');
+      W.organizations.filter(function (o) { return o.endorsementCount !== undefined; }).forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o.id;
+        opt.textContent = o.name + ' (' + o.type.replace(/_/g, ' ') + ')';
+        endorserSel.appendChild(opt);
+      });
+      document.getElementById('f-tags').innerHTML = ALL_TAGS.map(function (t) {
+        return '<button type="button" class="chip-toggle" data-tag="' + esc(t) + '" aria-pressed="false">' + esc(t) + '</button>';
+      }).join('');
+
+      function matches(c) {
+        if (filters.endorser === '__none' && ((c.endorsedBy || []).length || c.individualEndorsements)) return false;
+        if (filters.endorser === '__individuals' && !c.individualEndorsements) return false;
+        if (filters.endorser && filters.endorser.charAt(0) !== '_' && (c.endorsedBy || []).indexOf(filters.endorser) < 0) return false;
+        var activeTags = Object.keys(filters.tags).filter(function (t) { return filters.tags[t]; });
+        if (activeTags.length && !activeTags.some(function (t) { return (c.tags || []).indexOf(t) >= 0; })) return false;
+        if (filters.incumbent && !c.incumbent) return false;
+        if (filters.q && (c.name || '').toLowerCase().indexOf(filters.q.toLowerCase()) < 0) return false;
+        return true;
+      }
+
+      function deltaHtml(d) {
+        if (d > 0) return '<span class="standing-delta standing-delta--up">▲ ' + d + ' since yesterday</span>';
+        if (d < 0) return '<span class="standing-delta standing-delta--down">▼ ' + Math.abs(d) + ' since yesterday</span>';
+        return '<span class="standing-delta standing-delta--flat">— steady</span>';
+      }
+
+      function rowHtml(c, rank, approved, phaseOpen) {
+        var orgs = (c.endorsedBy || []).map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip" style="padding-block:0;font-size:var(--text-xs)">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join('');
+        var indiv = c.individualEndorsements
+          ? '<span class="tag-chip">' + c.individualEndorsements + ' individual endorsements</span>' : '';
+        var none = !(c.endorsedBy || []).length && !c.individualEndorsements
+          ? '<span class="tag-chip">no endorsements</span>' : '';
+        var tags = (c.tags || []).map(function (t) { return '<span class="tag-chip">' + esc(t) + '</span>'; }).join('');
+        var inc = c.incumbent ? '<span class="badge badge--neutral">incumbent</span>' : '';
+        var approvals = c.approvals + (approved ? 1 : 0);
+        return '<div class="candidate-row" data-rank="' + rank + '">' +
+          '<button type="button" class="switch" data-approve="' + esc(c.id) + '" aria-pressed="' + (approved ? 'true' : 'false') + '"' +
+          (phaseOpen ? '' : ' disabled title="Approval phase is closed"') + '>' + (approved ? 'Approved' : 'Approve') + '</button>' +
+          '<div class="candidate-main">' +
+          '<span class="citation" style="margin-inline-end:var(--space-2)">#' + rank + '</span>' +
+          '<a class="candidate-name" href="candidate-profile.html?candidate=' + esc(c.id) + '" title="' + esc(c.name) + ' — open public profile · rank ' + rank + ' · ' + approvals.toLocaleString('en-US') + ' approvals">' + esc(c.name) + '</a> ' + inc +
+          (c.statement ? '<span class="cc-small" style="display:block;color:var(--gov-fg-muted)">' + esc(c.statement) + '</span>' : '') +
+          '<span class="candidate-meta">' + orgs + indiv + none + tags + '</span>' +
+          '</div>' +
+          '<div class="standing"><span class="standing-approvals">' + approvals.toLocaleString('en-US') + '</span>' + deltaHtml(c.deltaDay) + '</div>' +
+          '</div>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var phase = st.scenario.election;
+        var phaseOpen = phase === 'approval';
+
+        document.getElementById('phase-banner').innerHTML = phaseOpen ? '' :
+          '<div class="banner banner--warning" role="status">' + S.icon('clock') +
+          '<div><span class="banner-title">The approval phase has closed — finalists are locked.</span> ' +
+          (phase === 'ranked'
+            ? 'The ranked window is open: <a href="ranked-ballot.html">rank your ballot now</a>. Standings below are the frozen cutoff.'
+            : 'Tabulation is under way: <a href="results.html">watch the count</a>. Standings below are the frozen cutoff.') +
+          ' <span class="citation">CLK-21 · finalist cutoff</span></div></div>';
+
+        /* sort by standing (incl. the viewer's simulated approvals), draw the line after X */
+        var sorted = W.candidates.slice().sort(function (a, b) {
+          return (b.approvals + (myApprovals[b.id] ? 1 : 0)) - (a.approvals + (myApprovals[a.id] ? 1 : 0));
+        });
+        var html = '';
+        var shown = 0, hidden = 0;
+        sorted.forEach(function (c, i) {
+          var rank = i + 1;
+          if (rank === FINALISTS + 1) {
+            html += '<div class="finalist-line" role="separator" aria-label="Finalist line">finalist line — top ' + FINALISTS +
+              ' advance to the ranked ballot · CLK-21</div>';
+          }
+          if (matches(c)) { html += rowHtml(c, rank, !!myApprovals[c.id], phaseOpen); shown++; }
+          else hidden++;
+        });
+        if (!shown) html = '<p style="padding:var(--space-6)">No candidates match the current filters.</p>';
+        else if (hidden) html += '<p class="citation" style="padding-block:var(--space-2);padding-inline:var(--space-4)">' + hidden + ' candidate(s) hidden by filters — ranks reflect the full race.</p>';
+        document.getElementById('standings').innerHTML = html;
+
+        var mine = Object.keys(myApprovals).filter(function (k) { return myApprovals[k]; }).length;
+        document.getElementById('stat-approvals').textContent = mine;
+        document.getElementById('stat-candidates').textContent = W.candidates.length;
+        document.getElementById('stat-finalists').textContent = FINALISTS;
+        document.getElementById('finalist-x').textContent = FINALISTS;
+        document.getElementById('standings-asof').textContent = phaseOpen ? 'aggregate · updated daily' : 'frozen at the finalist cutoff';
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-approve],[data-tag],#f-incumbent,#f-clear') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-approve')) {
+          var id = t.getAttribute('data-approve');
+          myApprovals[id] = !myApprovals[id];
+          render();
+        } else if (t.hasAttribute('data-tag')) {
+          var tag = t.getAttribute('data-tag');
+          filters.tags[tag] = !filters.tags[tag];
+          t.setAttribute('aria-pressed', filters.tags[tag] ? 'true' : 'false');
+          render();
+        } else if (t.id === 'f-incumbent') {
+          filters.incumbent = !filters.incumbent;
+          t.setAttribute('aria-pressed', filters.incumbent ? 'true' : 'false');
+          render();
+        } else if (t.id === 'f-clear') {
+          filters = { endorser: '', tags: {}, incumbent: false, q: '' };
+          endorserSel.value = '';
+          document.getElementById('f-search').value = '';
+          document.getElementById('f-incumbent').setAttribute('aria-pressed', 'false');
+          document.querySelectorAll('[data-tag]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+          render();
+        }
+      });
+      endorserSel.addEventListener('change', function () { filters.endorser = endorserSel.value; render(); });
+      document.getElementById('f-search').addEventListener('input', function (ev) { filters.q = ev.target.value; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

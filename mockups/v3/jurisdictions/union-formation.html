@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Union formation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div class="banner banner--demo" role="note">
+        <svg class="icon" aria-hidden="true"><use href="#i-globe"></use></svg>
+        <div><span class="banner-title">Edge-case walkthrough — no live case: Earth starts united.</span>
+          The instances below — Aurelia and Meridia — are hypothetical, with hypothetical figures. The
+          constitutional workflow is real and stays available for any future independent jurisdictions.
+          <span class="citation">Art. V §7</span></div>
+      </div>
+
+      <header>
+        <span class="eyebrow">Jurisdictions · union formation</span>
+        <h1>Union formation — compatibility, codification, ratification</h1>
+        <p class="page-intro">Two or more independent jurisdictions form a union by analyzing where their
+          amendable variables and institutions diverge, codifying one shared set, and ratifying by
+          supermajority — of the applicant population and of the union's constituent jurisdictions.
+          Exit mirrors entry.</p>
+        <p class="citation">Compatibility analysis → variable codification → ratification votes · Art. V §7; Art. VII</p>
+      </header>
+
+      <section class="card" aria-labelledby="instances-h">
+        <h2 id="instances-h">Parties to the hypothetical union</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Hypothetical instances and populations</caption>
+            <thead><tr><th scope="col">Jurisdiction</th><th scope="col">Instance</th><th scope="col">Population (hypothetical)</th><th scope="col">Role</th></tr></thead>
+            <tbody id="instance-rows"></tbody>
+          </table>
+        </div>
+        <p class="gloss">Both instances federate on union — see <a href="federation.html">federation</a> for the
+          peer mechanics (WF-JUR-05).</p>
+      </section>
+
+      <section class="card" aria-labelledby="compat-h">
+        <h2 id="compat-h">Compatibility analyzer</h2>
+        <p class="cc-small">Diff of amendable variables and institutional alignment. Hardened mechanics never
+          diverge — both instances run the same constitutional test suite.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="visually-hidden">Amendable variable and institution differences</caption>
+            <thead><tr><th scope="col">Variable / institution</th><th scope="col">Aurelia</th><th scope="col">Meridia</th><th scope="col">Status</th></tr></thead>
+            <tbody id="compat-rows"></tbody>
+          </table>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Amendable variables live in constitutional settings · Art. VII; "Unless otherwise amended" clauses</p>
+        <p class="cluster"><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="citation">voting method stv_droop · 5–9 seat range · supermajority = ceil(serving × 2/3) — identical on both instances by construction</span></p>
+      </section>
+
+      <section class="card" aria-labelledby="codify-h">
+        <h2 id="codify-h">Variable codification workspace</h2>
+        <p class="cc-small">For each divergent variable the founding act codifies one value for the union.
+          Constituents keep their own values for their own scope where the power is joint.</p>
+        <div id="codify-rows" class="stack" style="gap:var(--space-4)"></div>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <button type="button" class="btn btn--primary" id="codify-record">Record codification</button>
+          <span id="codify-status"></span>
+        </div>
+        <noscript><p class="gloss">The codification workspace needs JavaScript; divergent variables are listed
+          in the compatibility table above.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="ratify-h">
+        <h2 id="ratify-h">Ratification meters</h2>
+        <p>Union formation requires a supermajority of individuals in each applicant population <strong>and</strong>
+          a supermajority of constituent jurisdictions already in the union (none yet — this is a founding
+          union of two). Denominators are whole populations, never just those voting.</p>
+        <div id="ratify-meters" class="stack" style="gap:var(--space-4)"></div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Supermajority of applicant individuals + supermajority of union constituents · Art. V §7 · supermajority = ceil(N × 2/3) · Art. VII</p>
+        <p class="gloss">Toggle "Union drill" in the mockup controls to simulate votes in progress.</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="mirror-h">
+          <h2 id="mirror-h">Join and exit mirror each other</h2>
+          <p>Joining an existing union runs the same entrance-clause process: the applicant aligns its
+            institutions, then admission passes on a supermajority of the applicant's individuals plus a
+            supermajority of the union's constituent jurisdictions. <strong>Departure requires the same
+            supermajorities</strong> — no one-way doors.</p>
+          <p class="citation">Entrance clause; exit mirrors entry · Art. V §7 · WF-JUR-03</p>
+        </section>
+
+        <section class="card" aria-labelledby="bicam-h">
+          <h2 id="bicam-h">Bicameral apportionment preview</h2>
+          <p class="cc-small">The union legislature seats both kinds of members; acts pass only when both kinds
+            independently agree.</p>
+          <div class="table-wrap">
+            <table class="table">
+              <caption class="visually-hidden">Preview of union seats by kind</caption>
+              <thead><tr><th scope="col">Constituent</th><th scope="col">type_a · population seats</th><th scope="col">type_b · equal seats</th></tr></thead>
+              <tbody>
+                <tr><td>Aurelia</td><td class="mono">114</td><td class="mono">1</td></tr>
+                <tr><td>Meridia</td><td class="mono">78</td><td class="mono">1</td></tr>
+                <tr><th scope="row">Union total</th><td class="mono">192</td><td class="mono">2</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="gloss">type_a = max(5, round(∛ 7,100,000)) = 192, Webster-split by population; type_b = one
+            equal seat per constituent. Both kinds must agree independently, in committee and on the floor.</p>
+          <p class="citation">Art. V §3 — Independent Agreement · cube-root sizing · as implemented
+            (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="form-h">
+        <h2 id="form-h">The founding act</h2>
+        <div id="union-form-card"></div>
+        <form id="union-form" style="margin-block-start:var(--space-4)">
+          <div class="field">
+            <label class="field-label" for="union-partner">Partner jurisdiction(s)</label>
+            <select class="select" id="union-partner">
+              <option>Meridia (meridia.example) — hypothetical</option>
+              <option>Aurelia (aurelia.example) — hypothetical</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="union-name">Name of the encompassing jurisdiction</label>
+            <input class="field-input" id="union-name" value="Aurelia–Meridia Union" />
+            <span class="field-hint">Creates a new encompassing jurisdiction; both parties become its constituents.</span>
+          </div>
+          <div class="cluster">
+            <button type="submit" class="btn btn--primary">Open the ratification vote</button>
+            <span id="union-status"></span>
+          </div>
+        </form>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-02.html">WF-JUR-02 — union formation</a> and
+            <a href="../flows/WF-JUR-03.html">WF-JUR-03 — join existing union</a> (entrance clause; exit mirrors).
+            Peer discovery and instance federation happen in <a href="../flows/WF-JUR-05.html">WF-JUR-05</a>.</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — the [In-Union | Intermediary] state; the new
+            encompassing jurisdiction is born directly into Self-Governing once ratified.</p>
+          <p class="citation">Art. V §3, §7 · Art. VII</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/union-formation',
+      title: 'Union formation',
+      module: 'jurisdictions',
+      nav: 'jurisdiction-browser',
+      roles: ['R-09', 'R-04'],
+      workflows: ['WF-JUR-02', 'WF-JUR-03'],
+      forms: ['F-LEG-029'],
+      citation: 'Union formation · supermajority of applicant population + constituent jurisdictions · Art. V §7; Art. VII',
+      flow: 'WF-JUR-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Hypothetical parties (W.unionDrill) with hypothetical figures. */
+      var PARTIES = [
+        { name: 'Aurelia (hypothetical)', host: 'aurelia.example', pop: 4200000, role: 'Founding applicant' },
+        { name: 'Meridia (hypothetical)', host: 'meridia.example', pop: 2900000, role: 'Founding applicant' }
+      ];
+
+      /* Compatibility diff: amendable variables + institutional alignment. */
+      var DIFF = [
+        { k: 'election_interval_months', a: '60', b: '48', conflict: true },
+        { k: 'supermajority (numerator/denominator)', a: '2/3', b: '2/3', conflict: false },
+        { k: 'max_days_between_meetings', a: '90', b: '60', conflict: true },
+        { k: 'initiative_petition_threshold_pct', a: '5.00', b: '4.00', conflict: true },
+        { k: 'judiciary_is_elected', a: 'false', b: 'true', conflict: true },
+        { k: 'Executive model (institution)', a: 'committee (delegated)', b: 'individual (elected)', conflict: true },
+        { k: 'Voting method', a: 'stv_droop', b: 'stv_droop', conflict: false, hardened: true }
+      ];
+      var codified = {}; /* k -> 'a' | 'b' | 'new' */
+      var codifyDone = false, voteOpen = false;
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var drill = !!st.scenario.unionDrill;
+
+        document.getElementById('instance-rows').innerHTML = PARTIES.map(function (p) {
+          return '<tr><td>' + esc(p.name) + '</td><td class="mono">' + esc(p.host) + '</td>' +
+            '<td class="mono">' + p.pop.toLocaleString('en-US') + '</td><td>' + esc(p.role) + '</td></tr>';
+        }).join('');
+
+        document.getElementById('compat-rows').innerHTML = DIFF.map(function (d) {
+          var status = d.hardened
+            ? '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened — identical</span>'
+            : d.conflict
+              ? (codified[d.k]
+                ? S.badge('success', 'Codified', 'check')
+                : S.badge('warning', 'Requires codification', 'alert-triangle'))
+              : S.badge('success', 'Aligned', 'check');
+          return '<tr><td class="mono">' + esc(d.k) + '</td><td class="mono">' + esc(d.a) + '</td>' +
+            '<td class="mono">' + esc(d.b) + '</td><td>' + status + '</td></tr>';
+        }).join('');
+
+        document.getElementById('codify-rows').innerHTML = DIFF.filter(function (d) { return d.conflict; })
+          .map(function (d, i) {
+            var name = 'codify-' + i;
+            return '<fieldset style="border:1px solid var(--gov-border);border-radius:var(--radius-md);padding:var(--space-3)">' +
+              '<legend class="field-label" style="padding-inline:var(--space-1)">' + esc(d.k) + '</legend>' +
+              '<div class="radio-group">' +
+              '<label class="radio"><input type="radio" name="' + name + '" data-codify="' + esc(d.k) + '" value="a"' + (codified[d.k] === 'a' ? ' checked' : '') + ' /> Adopt Aurelia value — <span class="citation">' + esc(d.a) + '</span></label>' +
+              '<label class="radio"><input type="radio" name="' + name + '" data-codify="' + esc(d.k) + '" value="b"' + (codified[d.k] === 'b' ? ' checked' : '') + ' /> Adopt Meridia value — <span class="citation">' + esc(d.b) + '</span></label>' +
+              '<label class="radio"><input type="radio" name="' + name + '" data-codify="' + esc(d.k) + '" value="new"' + (codified[d.k] === 'new' ? ' checked' : '') + ' /> Propose a new value in the founding act</label>' +
+              '</div></fieldset>';
+          }).join('');
+
+        var conflicts = DIFF.filter(function (d) { return d.conflict; }).length;
+        var chosen = Object.keys(codified).length;
+        document.getElementById('codify-status').innerHTML = codifyDone
+          ? S.badge('success', 'Codification recorded — ' + conflicts + ' of ' + conflicts + ' variables', 'check')
+          : S.badge('neutral', chosen + ' of ' + conflicts + ' variables chosen', 'clock');
+
+        /* Ratification meters — react to the union-drill scenario toggle. */
+        var meters = PARTIES.map(function (p) {
+          var need = Math.ceil(p.pop * 2 / 3);
+          var votes = drill ? Math.round(need * (p.host === 'aurelia.example' ? 1.06 : 0.81)) : 0;
+          var pct = Math.min(100, Math.round(votes / p.pop * 100));
+          var threshold = Math.round(need / p.pop * 100);
+          var met = votes >= need;
+          return '<div class="meter-block">' +
+            '<div class="meter" role="img" aria-label="' + esc(p.name) + ' ratification progress">' +
+            '<span class="meter-fill' + (met ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
+            '<span class="meter-threshold" style="inset-inline-start:' + threshold + '%"></span></div>' +
+            '<div class="meter-caption"><span>' + esc(p.name) + ' — ' + votes.toLocaleString('en-US') + ' of ' +
+            need.toLocaleString('en-US') + ' needed (population ' + p.pop.toLocaleString('en-US') + ')</span>' +
+            '<span>' + (drill ? (met ? 'supermajority met' : 'in progress — drill') : 'not started — drill dormant') + '</span></div></div>';
+        }).join('');
+        meters += '<div class="meter-block">' +
+          '<div class="meter" role="img" aria-label="Union constituent jurisdictions"><span class="meter-fill" style="inline-size:0%"></span></div>' +
+          '<div class="meter-caption"><span>Constituent jurisdictions of the union: none yet — founding union of two</span>' +
+          '<span>requirement applies from the first join (WF-JUR-03)</span></div></div>';
+        document.getElementById('ratify-meters').innerHTML = meters;
+
+        /* F-LEG-029 form card */
+        var f = BY.forms['F-LEG-029'];
+        document.getElementById('union-form-card').innerHTML = '<div class="card card--inset">' +
+          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + ' <span class="citation">F-LEG-029</span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">Available to: ' + esc(f.availableToRaw) + ' · prereq: ' + esc(f.prereq) + ' · ' + esc(f.basis) + '</p></div>';
+
+        document.getElementById('union-status').innerHTML = voteOpen
+          ? S.badge('info', 'Ratification vote opened — meters above track it', 'clock')
+          : '';
+
+        S.refresh();
+      }
+
+      document.getElementById('main').addEventListener('change', function (ev) {
+        var t = ev.target;
+        if (t.hasAttribute && t.hasAttribute('data-codify')) {
+          codified[t.getAttribute('data-codify')] = t.value;
+          codifyDone = false;
+          render();
+        }
+      });
+      document.getElementById('codify-record').addEventListener('click', function () {
+        DIFF.forEach(function (d) { if (d.conflict && !codified[d.k]) codified[d.k] = 'a'; });
+        codifyDone = true;
+        render();
+      });
+      document.getElementById('union-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        voteOpen = true;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

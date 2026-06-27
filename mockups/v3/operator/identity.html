@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Identity (G-ID) — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/identity', title: 'Identity (G-ID)', module: 'operator', nav: 'operator-identity', citation: 'The operator plane — capability, not role · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    function render() {
+      var acct = O.account;
+      var gid = O.gid;
+
+      /* ---- Section 1: operator identity + devices ---- */
+      var deviceRows = acct.devices.map(function (d) {
+        return '<tr>' +
+          '<td>' + esc(d.name) + '</td>' +
+          '<td class="mono">' + esc(d.keyFp) + '</td>' +
+          '<td>' + (d.active ? S.badge('success', 'Active', 'check') : S.badge('neutral', 'Inactive')) + '</td>' +
+          '<td class="mono">' + esc(d.enrolledVia) + '</td>' +
+          '</tr>';
+      }).join('');
+
+      var accountFacts =
+        '<div class="grid-2">' +
+        '<div class="stack" style="gap:var(--space-2)">' +
+          '<div><span class="citation">Username</span><br /><strong style="color:var(--gov-fg)">' + esc(acct.username) + '</strong></div>' +
+          '<div><span class="citation">Server ID</span><br /><code>' + esc(acct.serverId) + '</code></div>' +
+        '</div>' +
+        '<div class="stack" style="gap:var(--space-2)">' +
+          '<div><span class="citation">Mesh operator ID</span><br /><code>' + esc(acct.meshOperatorId) + '</code></div>' +
+          '<div><span class="citation">Status</span><br />' + S.badge('success', 'Active', 'check') +
+            ' <span class="citation">last login ' + esc(acct.lastLogin) + '</span></div>' +
+        '</div>' +
+        '</div>';
+
+      /* ---- Section 2: forwarded-write checks as a stepper ---- */
+      var fwSteps = gid.forwardedWrite.map(function (c, i) {
+        return '<li class="stepper-step' + (i === 0 ? ' stepper-step--active' : '') + '">' + esc(c.check) + '</li>';
+      }).join('');
+      var fwList = gid.forwardedWrite.map(function (c) {
+        return '<li><strong style="color:var(--gov-fg)">' + esc(c.check) + '.</strong> ' + esc(c.detail) + '</li>';
+      }).join('');
+
+      var attestationFsm =
+        '<div class="fsm">' +
+        '<span class="fsm-node">home authority attests</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">device signs the write</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">non-home engine verifies</span>' +
+        '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">≤ 24h TTL · expiry sweep</span>' +
+        '</div>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · identity</span><h1>Identity (G-ID)</h1>' +
+        '<p class="page-intro">The identity layer that lets a server know who you are across the mesh, and lets a citizen’s public standing travel with them onto a server that isn’t home. Two separate identities live here — yours as an operator, and the attested standing of a citizen passing through. They never touch.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">The plane wall holds here too.</strong> Operator identity is wholly separate from citizen identity — an operator account has no link to any citizen user. ' + esc(O.plane.plainNote) + '<br />' +
+        '<span class="citation">Art. I · capability, not role · off the constitutional plane</span></div></div>' +
+
+        /* ============ SECTION 1 ============ */
+        '<section aria-labelledby="me-h"><h2 id="me-h">Your operator identity</h2>' +
+        '<p class="page-intro">Who this box is on the mesh. This is infrastructure identity — it grants no vote, no seat, no constitutional say.</p>' +
+        '<div class="card stack">' + accountFacts + '</div>' +
+
+        '<h3>Devices</h3>' +
+        '<p class="page-intro">Each device enrols its own key. Possession of a device key — never a password — is what other servers recognise.</p>' +
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Device</th><th scope="col">Key fingerprint</th><th scope="col">State</th><th scope="col">Enrolled via</th></tr></thead>' +
+        '<tbody>' + deviceRows + '</tbody></table></div>' +
+
+        '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + '<div>' + esc(acct.authNote) + '</div></div>' +
+
+        '<div class="cluster" style="gap:var(--space-2)">' +
+        '<button type="button" class="btn btn--primary" data-act="enrol">' + S.icon('user', { size: 'sm' }) + ' Enrol a device</button>' +
+        '<button type="button" class="btn btn--ghost" data-act="link">' + S.icon('lock', { size: 'sm' }) + ' Link by possession</button>' +
+        '</div>' +
+        '<p class="advanced-note">Enrolment publishes a device’s public key; linking proves possession of an already-enrolled key on a new box. No secret ever leaves the device.</p>' +
+        '</section>' +
+
+        /* ============ SECTION 2 ============ */
+        '<section aria-labelledby="travel-h"><h2 id="travel-h">Citizen standing on the move</h2>' +
+        '<p class="page-intro">A person on a journey can act through a server that isn’t their home, because their public standing travels as a signed, short-lived <strong>attestation</strong>. This is the keystone the ' + esc(gid.forwardedActor.split(' — ')[0]) + ' turns on.</p>' +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">An attestation carries only public standing.</strong> Role codes, the device key, the issuer, a TTL, and a signature — and <em>nothing else</em>. Never credentials, never locations, never ballots. Roles are still derived live, never stored.<br />' +
+        '<span class="citation">Art. I — voting and candidacy are absolute rights, derived from residency, never persisted</span></div></div>' +
+
+        '<div class="grid-2">' +
+        '<div class="card stack">' +
+          '<h3 style="margin:0">What an attestation is</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(gid.attestation) + '</p>' +
+          attestationFsm +
+          '<span class="citation">Only the home authority attests · ≤ 24h · revocable · instance-signed</span>' +
+        '</div>' +
+        '<div class="card stack">' +
+          '<h3 style="margin:0">Device enrolment — no escrow</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(gid.deviceEnrol) + '</p>' +
+          '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + '<div>The Ed25519 <strong>public</strong> key is published; the secret half never leaves the device. There is nowhere for a private key to be escrowed.</div></div>' +
+        '</div>' +
+        '</div>' +
+
+        '<h3>The forwarded write — three checks</h3>' +
+        '<p class="page-intro">When a forwarded write arrives, the <code>AttestedForwardedActor</code> must clear all three checks before the engine will authorize it. Any failure is fail-closed.</p>' +
+        '<ol class="stepper" aria-label="The three forwarded-write checks">' + fwSteps + '</ol>' +
+        '<ul class="stack" style="font-size:var(--text-sm);padding-inline-start:var(--space-4)">' + fwList + '</ul>' +
+        '<p class="advanced-note">Subject: the attested user resolves locally before authorization — citizenship is read live, never trusted from the wire alone.</p>' +
+
+        '<div class="grid-2">' +
+        '<div class="card stack">' +
+          '<h3 style="margin:0">The expiry sweep</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(gid.sweep) + '</p>' +
+          '<div class="fsm">' +
+          '<span class="fsm-node">expired</span>' +
+          '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+          '<span class="fsm-node">already fail-closed</span>' +
+          '<span class="fsm-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+          '<span class="fsm-node">soft-deleted for forensics</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card stack">' +
+          '<h3 style="margin:0">The keystone</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(gid.forwardedActor) + '</p>' +
+          '<span class="citation">Art. I — standing travels; the right itself stays derived, never stored</span>' +
+        '</div>' +
+        '</div>' +
+        '</section>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Two identities, one wall.</strong> Your operator account proves which box is talking; a citizen’s attestation proves what they may do. Neither can be read as the other — and neither buys a constitutional privilege.<br />' +
+        '<span class="citation">' + esc(O.plane.wall) + '</span></div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest ? ev.target.closest('[data-act]') : null;
+      if (!btn) return;
+      if (btn.getAttribute('data-act') === 'enrol') S.announce('Demo: device enrolment would publish a new Ed25519 public key — the secret stays on the device.');
+      else if (btn.getAttribute('data-act') === 'link') S.announce('Demo: linking by possession would prove this box holds an already-enrolled device key — no password replay.');
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

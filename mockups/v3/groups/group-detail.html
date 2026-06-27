@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Group — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the group…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'groups/group-detail', title: 'Group', module: 'groups', nav: 'groups', citation: 'A voluntary group, on its own terms · Art. I', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/chamber-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc, G = V2.groups;
+    function gid() { try { return new URLSearchParams(location.search).get('id') || 'grp-harbor'; } catch (e) { return 'grp-harbor'; } }
+    var grp = G.spaces.filter(function (s) { return s.id === gid(); })[0] || G.spaces[0];
+    var isPublic = grp.privacy === 'open';
+    /* a group with a live room gets the embodied scene; only the harbor crew maps today */
+    var room = grp.room ? V2.rooms[grp.room] : null;
+
+    /* a pseudonymous handle: always @u-<localpart>, never doubled */
+    function mxid(h) { return h && h.indexOf('u-') === 0 ? '@' + h : '@u-' + h; }
+    function nameOf(p) { return p.name || p.handleName || mxid(p.handle); }
+
+    /* the embodied scene + the accessible presence roster below it */
+    function embodimentHtml() {
+      if (!room || !window.CGA.chamber) return '';
+      var here = room.presence.filter(function (p) { return p.online !== false; });
+      var rows = room.presence.map(function (p) {
+        var tags = [];
+        if (p.role === 'chair') tags.push('facilitator');
+        else if (p.role === 'gallery') tags.push('watching');
+        else tags.push('member');
+        return '<div class="presence-row' + (p.speaking ? ' presence-row--speaking' : '') + '">' +
+          '<span class="presence-dot" aria-hidden="true"></span>' +
+          (p.role === 'chair' ? S.icon('user', { size: 'sm' }) : (p.speaking ? S.icon('vote', { size: 'sm' }) : '')) +
+          '<span class="presence-name">' + esc(nameOf(p)) + '</span>' +
+          '<span class="handle">' + esc(mxid(p.handle)) + '</span>' +
+          '<span class="presence-tag">' + esc(tags.join(' · ')) + (p.speaking ? ' · has the floor' : '') + '</span></div>';
+      }).join('');
+      return '<section class="lr-chamber"><div class="lr-chamber-head">' +
+        '<span class="eyebrow">In the circle — you are here</span>' +
+        '<div class="lr-chamber-legend">' +
+        '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> has the floor</span>' +
+        '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> facilitator</span></div></div>' +
+        window.CGA.chamber.svg(room, {}) +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline;margin-block-start:var(--space-3)">' +
+        '<span class="eyebrow">Who is here now</span>' +
+        '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span>' + here.length + ' here now</span></div>' +
+        '<div class="stack" style="gap:var(--space-1);margin-block-start:var(--space-2)">' + rows + '</div>' +
+        '<p class="never-federated" style="margin-block-start:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
+        ' Presence is server-local — who is in the room is never federated and confers no governance power. <span class="citation">Art. I</span></p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=group') + '">' +
+        S.icon('users', { size: 'sm' }) + ' Step into the live room ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
+        '</section>';
+    }
+
+    function render() {
+      var meetingTypes = G.meetingTypes.map(function (m) {
+        return '<label class="radio"><input type="radio" name="mt" ' + (m.kind === 'facilitated' ? 'checked' : '') + ' data-mt="' + m.kind + '" /> ' +
+          '<strong style="color:var(--gov-fg)">' + esc(m.label) + '</strong> — ' + esc(m.machinery) + (m.binding ? ' · binds ' + esc(m.binding) : '') + '</label>';
+      }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><div class="cluster" style="justify-content:space-between">' +
+        '<span class="eyebrow">People, together · a group</span>' +
+        '<span class="tag-chip">' + esc(grp.privacy) + (isPublic ? ' · public space' : ' · private space') + '</span></div>' +
+        '<h1>' + esc(grp.name) + '</h1><p class="page-intro">' + esc(grp.purpose) + '</p>' +
+        '<p class="citation">' + grp.members + ' members · ' + esc(G.note) + '</p></header>' +
+
+        embodimentHtml() +
+
+        '<div class="grid-2">' +
+        '<section class="card"><span class="eyebrow">Discussion</span>' +
+        '<p>Threads and a live chat & voice room for members.</p>' +
+        '<div class="cluster"><a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=group') + '">' + S.icon('users', { size: 'sm' }) + ' Open the live room</a>' +
+        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV1('civic/civic-home.html') + '">Threads <span class="v1-tag">v1</span></a></div>' +
+        '<h3 style="margin-block-start:var(--space-3)">Pinned</h3><p class="gloss">First cleanup: first Saturday next month, Pier 7. Bring gloves.</p></section>' +
+
+        '<section class="card"><span class="eyebrow">Members &amp; meetings</span>' +
+        '<p class="cc-small">Membership is private to each member — it never federates.</p>' +
+        '<h3>Upcoming</h3><p class="gloss">First meeting — tonight, facilitated.</p>' +
+        '<h3 style="margin-block-start:var(--space-3)">Call a meeting</h3>' +
+        '<p class="cc-small">Choose how formal it should be:</p>' +
+        '<div class="radio-group">' + meetingTypes + '</div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)"><button type="button" class="btn btn--primary btn--sm" id="call-mtg">Call the meeting</button></div>' +
+        '<p id="mtg-confirm" role="status" class="gloss" style="margin-block-start:var(--space-1)"></p></section>' +
+        '</div>' +
+
+        /* moderation note — public square carve-outs vs private self-moderation */
+        (isPublic
+          ? '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+            '<strong style="color:var(--gov-fg)">This is a public space — it cannot be censored.</strong> No one may remove a post on viewpoint; the only removals are the four narrow, logged carve-outs (a judicial order, protecting another’s rights, a personal block, content-neutral anti-spam). There is no “remove for content” control. <span class="citation">Art. I</span></div></div>'
+          : '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+            '<strong style="color:var(--gov-fg)">This is a private space — the group self-moderates.</strong> The members set their own house rules; it carries no constitutional force. <span class="citation">Art. I freedom of association</span></div></div>') +
+
+        /* optional next steps */
+        '<section class="card"><span class="eyebrow">Optional next steps</span>' +
+        '<p class="cc-small">If the group grows and wants standing, it can — but never must:</p>' +
+        '<div class="cluster">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('organizations/org-registry.html') + '">Register as an organization <span class="v1-tag">v1</span></a>' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('civic/petitions.html') + '">File a petition <span class="v1-tag">v1</span></a></div>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">A group decision binds only the group. A petition or an org is how a group reaches into the formal machinery — by choice.</p></section>' +
+        '<p><a href="' + S.hrefV2('groups/groups-home.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All groups</a></p>';
+
+      var btn = document.getElementById('call-mtg');
+      if (btn) btn.addEventListener('click', function () {
+        var sel = document.querySelector('[data-mt]:checked');
+        var kind = sel ? sel.getAttribute('data-mt') : 'facilitated';
+        document.getElementById('mtg-confirm').textContent = 'Called a ' + kind + ' meeting (simulated) — opening the live room. Whatever the group decides binds only the group, not a law.';
+        S.announce('Meeting called: ' + kind);
+      });
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

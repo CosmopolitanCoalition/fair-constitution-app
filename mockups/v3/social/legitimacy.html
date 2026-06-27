@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reach &amp; legitimacy — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'social/legitimacy', title: 'Reach & legitimacy', module: 'social', nav: 'legitimacy', citation: 'Reach gauge · display-only, never a governance input', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc, L = V2.legitimacy;
+    var TP = L.tierParams;
+    /* the selected jurisdiction (in-page state; defaults to the sample) */
+    var selected = (L.sample && L.sample.slug) || (L.jurisdictions[0] && L.jurisdictions[0].slug);
+
+    function fmt(n) { return n == null ? '—' : Number(n).toLocaleString('en-US'); }
+
+    /* the canonical tier formula — clamp(ceil(k·pop^(1/exponent)), floor, cap) */
+    function tierThreshold(pop) {
+      return Math.max(TP.floor, Math.min(TP.cap, Math.ceil(TP.k * Math.pow(pop, 1 / TP.exponent))));
+    }
+
+    /* an inline sparkline path from the reachPct series (display-cap aware) */
+    function sparkPath(arr, w, h) {
+      var capped = arr.map(function (v) { return Math.min(v, 100); });
+      var min = Math.min.apply(null, capped), max = Math.max.apply(null, capped), range = (max - min) || 1;
+      return capped.map(function (v, i) {
+        var x = arr.length > 1 ? (i / (arr.length - 1)) * w : w / 2;
+        var y = h - ((v - min) / range) * (h - 6) - 3;
+        return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }).join(' ');
+    }
+
+    /* ---- the reach gauge for one jurisdiction, with HONEST semantics ---- */
+    function gaugeHtml(j) {
+      var admPrefix = '';
+      /* unmeasurable: no denominator → never 0% */
+      if (j.populationEstimate == null) {
+        return gaugeShell(j, 'unmeasurable', '<span class="pill pill--info">No estimate</span>',
+          '<p class="gloss" style="margin-block:var(--space-2)">There is no population estimate for this place, so reach is <strong>unmeasurable</strong> — never reported as 0%. ' +
+          fmt(j.verifiedResidents) + ' residents are verified here; the denominator simply does not exist yet.</p>',
+          'No reach ratio is published without a denominator — absence of an estimate is shown as unmeasurable, never as zero.');
+      }
+      /* activating: suppressed numerator (sub-k or not yet counting) */
+      if (j.suppressed || j.verifiedResidents == null) {
+        return gaugeShell(j, 'activating', '<span class="pill pill--wait">Activating</span>',
+          '<p class="gloss" style="margin-block:var(--space-2)">This jurisdiction is <strong>activating</strong>. The verified count is below the k-anonymous floor, so no number — and no series — is published yet. It will appear once enough residents are verified to be safe to count.</p>',
+          'k-anonymous floor: a sub-k count is suppressed on both the numerator and the series — never a raw small number.');
+      }
+      /* measured: cap the bar at 100% but show the raw value when over the cap */
+      var raw = j.reachPct;
+      var shown = j.displayCap != null ? Math.min(raw, j.displayCap) : raw;
+      var capped = j.displayCap != null && raw > j.displayCap;
+      var fillPct = Math.min(shown, 100);
+      var tierPill = j.tier ? '<span class="pill pill--pass">' + esc(j.tier) + '</span>' : '';
+      var meter = '<div class="meter-block" style="margin-block:var(--space-2)">' +
+        '<div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + fillPct.toFixed(1) + '" aria-label="Reach — verified residents of the population estimate, display-capped at 100 percent">' +
+        '<span class="meter-fill' + (fillPct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + fillPct + '%"></span></div>' +
+        '<div class="meter-caption"><span>' + fmt(j.verifiedResidents) + ' verified residents</span>' +
+        '<span>of ' + fmt(j.populationEstimate) + (j.provenance ? ' · ' + esc(j.provenance) + (j.populationYear ? ' ' + j.populationYear : '') : '') + '</span></div></div>';
+      var bignum = '<div class="stat" style="margin-block:var(--space-2)"><span class="stat-number" style="color:var(--cc-gold-400)">' +
+        (capped ? '100%' : raw + '%') + '</span><span class="stat-label">reach' + (capped ? ' (display-capped)' : '') + '</span></div>';
+      var capNote = capped
+        ? '<p class="citation">Display-capped at ' + j.displayCap + '% — raw reach is ' + raw + '% (more verified residents than the estimate; the estimate lags this place).</p>'
+        : '<p class="citation">reachRatio = verified residents ÷ population estimate · published nightly · small counts suppressed</p>';
+      return gaugeShell(j, 'measured', tierPill, bignum + meter, null, capNote);
+    }
+    function gaugeShell(j, state, pill, body, railNote, footNote) {
+      return '<section class="card"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<span class="eyebrow">' + S.icon('map', { size: 'sm' }) + ' ' + esc(j.name) + '</span>' + (pill || '') + '</div>' +
+        body +
+        (footNote || '') +
+        (railNote ? '<p class="citation">' + esc(railNote) + '</p>' : '') +
+        '</section>';
+    }
+
+    /* ---- the time-series spark for the selected jurisdiction ---- */
+    function seriesHtml(j) {
+      if (!j.snapshots || !j.snapshots.length) {
+        return '<section class="card"><span class="eyebrow">' + S.icon('bar-chart', { size: 'sm' }) + ' Reach over time</span>' +
+          '<p class="gloss" style="margin-block-start:var(--space-2)">' +
+          (j.populationEstimate == null
+            ? 'No series — reach is unmeasurable without a population estimate.'
+            : 'No series yet — the k-anonymous floor suppresses the curve until enough residents are verified.') +
+          '</p></section>';
+      }
+      var pcts = j.snapshots.map(function (p) { return p.reachPct; });
+      var first = j.snapshots[0], last = j.snapshots[j.snapshots.length - 1];
+      var days = j.snapshots.length;
+      var w = 280, h = 60;
+      var spark = '<svg class="legit-spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" ' +
+        'aria-label="Reach trend for ' + esc(j.name) + ' over the last ' + days + ' days, from ' + first.reachPct + ' percent to ' + last.reachPct + ' percent">' +
+        '<path d="' + sparkPath(pcts, w, h) + '" /></svg>';
+      var delta = +(last.reachPct - first.reachPct).toFixed(2);
+      var deltaTone = delta > 0 ? 'pass' : (delta < 0 ? 'wait' : 'info');
+      return '<section class="card"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<span class="eyebrow">' + S.icon('bar-chart', { size: 'sm' }) + ' Reach over time</span>' +
+        '<span class="pill pill--' + deltaTone + '">' + (delta > 0 ? '+' : '') + delta + ' pts over ' + days + ' days</span></div>' +
+        spark +
+        '<div class="cluster" style="justify-content:space-between;margin-block-start:var(--space-1)">' +
+        '<span class="citation tier-readout">' + first.reachPct + '% · day −' + (days - 1) + '</span>' +
+        '<span class="citation tier-readout">' + last.reachPct + '% · today</span></div>' +
+        '<p class="citation">Nightly snapshots · the curve is suppressed on any night the count falls below the k-anonymous floor.</p></section>';
+    }
+
+    /* ---- the jurisdiction picker ---- */
+    function pickerHtml() {
+      var opts = L.jurisdictions.map(function (j) {
+        return '<option value="' + esc(j.slug) + '"' + (j.slug === selected ? ' selected' : '') + '>' + esc(j.name) + '</option>';
+      }).join('');
+      return '<div class="field" style="max-inline-size:24rem"><label class="field-label" for="jur-pick">Jurisdiction</label>' +
+        '<select class="select" id="jur-pick" aria-label="Choose a jurisdiction">' + opts + '</select></div>';
+    }
+
+    /* ---- the activation-tier console: the one tierParams row + the curve ---- */
+    function tierConsoleHtml(j) {
+      /* the curve table over the sample populations */
+      var rows = TP.samplePops.map(function (pop) {
+        return '<tr><td class="tier-readout">' + fmt(pop) + '</td>' +
+          '<td class="tier-readout">' + tierThreshold(pop) + '</td>' +
+          '<td class="citation">ceil(' + TP.k + ' × ' + fmt(pop) + '<sup>1/' + TP.exponent + '</sup>) → clamp [' + TP.floor + ', ' + TP.cap + ']</td></tr>';
+      }).join('');
+      var table = '<table class="table"><caption class="visually-hidden">Activation-tier threshold by population</caption>' +
+        '<thead><tr><th>Population</th><th>Verified needed to boot</th><th>How it is computed</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table>';
+
+      /* the selected jurisdiction paired against its own tier threshold */
+      var pairing = '';
+      if (j.populationEstimate != null) {
+        var thr = tierThreshold(j.populationEstimate);
+        var have = j.verifiedResidents;
+        if (have == null) {
+          pairing = '<p class="lr-note">' + S.icon('info', { size: 'sm' }) +
+            ' <span><strong>' + esc(j.name) + '</strong> needs <strong>' + thr + '</strong> verified residents to boot a government — the current count is suppressed below the k-anonymous floor, so the remaining number is not shown.</span></p>';
+        } else {
+          var more = Math.max(0, thr - have);
+          var pairTone = more === 0 ? 'pass' : 'wait';
+          pairing = '<div class="lr-note"><div>' + S.icon('landmark', { size: 'sm' }) + '</div><div>' +
+            '<strong style="color:var(--gov-fg)">' + esc(j.name) + ':</strong> verified <span class="tier-readout">' + fmt(have) + '</span> of tier threshold <span class="tier-readout">' + thr + '</span> → ' +
+            (more === 0
+              ? '<span class="pill pill--pass">' + S.icon('check', { size: 'sm' }) + ' threshold met — a government may boot</span>'
+              : '<span class="pill pill--' + pairTone + '">' + fmt(more) + ' more to activate</span>') +
+            ' <span class="citation">CLK-06 · activation tier</span></div></div>';
+        }
+      } else {
+        pairing = '<p class="lr-note">' + S.icon('info', { size: 'sm' }) +
+          ' <span><strong>' + esc(j.name) + '</strong> has no population estimate, so no boot threshold can be computed — the tier is unmeasurable here.</span></p>';
+      }
+
+      var stateRow = TP.enabled
+        ? '<span class="pill pill--pass">' + S.icon('check', { size: 'sm' }) + ' Enabled</span>'
+        : '<span class="pill pill--info">Disabled (dev default)</span>';
+
+      return '<section class="card"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 style="margin:0">The activation-tier console</h2>' + stateRow + '</div>' +
+        '<p class="page-intro">A tier sets how many <em>verified</em> residents a place needs before its government may <strong>boot</strong>. It gates only that first activation — never anyone’s vote, candidacy, or right.</p>' +
+        /* the single tierParams row */
+        '<div class="grid-2" style="margin-block:var(--space-3)">' +
+        paramCard('k (coefficient)', String(TP.k)) +
+        paramCard('exponent', '1 / ' + TP.exponent + ' (cube-root by default)') +
+        paramCard('floor', String(TP.floor) + ' verified') +
+        paramCard('cap', String(TP.cap) + ' verified') +
+        '</div>' +
+        '<p class="citation">' + esc(TP.devDefaultNote) + '</p>' +
+        pairing +
+        '<h3 style="margin-block-start:var(--space-3)">The tier curve</h3>' +
+        '<p class="cc-small">For each sample population, the threshold is <code class="cc-code">clamp(ceil(k · pop<sup>1/exponent</sup>), floor, cap)</code> — the cube-root mirrors Taagepera, so a giant city and a hamlet both reach a sane, bounded threshold.</p>' +
+        table +
+        '<div class="lr-note" style="margin-block-start:var(--space-3)"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">Gates a boot, never the franchise.</strong> ' + esc(TP.rail) + ' <span class="citation">CI-4</span></div></div>' +
+        '</section>';
+    }
+    function paramCard(label, value) {
+      return '<div class="card card--inset"><span class="eyebrow">' + esc(label) + '</span>' +
+        '<div class="tier-readout" style="font-size:var(--text-lg);color:var(--gov-fg-strong);margin-block-start:var(--space-1)">' + esc(value) + '</div></div>';
+    }
+
+    function render() {
+      var j = L.byJur[selected] || L.jurisdictions[0];
+      var rails = L.rails.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Government with people · reach</span><h1>Reach &amp; legitimacy</h1>' +
+        '<p class="page-intro">A jurisdiction-level gauge of how many of its people are actually here and verified. It is a transparency signal — and nothing more.</p></header>' +
+        /* verbatim Planned — Phase I banner */
+        '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) + '<div><strong>Planned — Phase I (reach &amp; activation tiers).</strong> The denominator (WorldPop vs CivicPopulation) and the k-anonymity floor are still open decisions; this surface is design-ahead.</div></div>' +
+        /* CI-1 display-only rail */
+        '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
+        '<strong style="color:var(--gov-fg)">Display only — this never affects governance.</strong> ' + esc(L.note) + ' <span class="citation">CI-1 · no money or reach fact ever gates a governance act</span></div></div>' +
+        /* picker + gauge + series */
+        '<section aria-labelledby="gauge-h"><h2 id="gauge-h">Reach for a jurisdiction</h2>' +
+        pickerHtml() +
+        '<div class="grid-2">' + gaugeHtml(j) + seriesHtml(j) + '</div></section>' +
+        /* the activation-tier console */
+        tierConsoleHtml(j) +
+        /* the hard rails (verbatim from legitimacy.rails) */
+        '<section class="card"><h2>The hard rails</h2><p class="page-intro">Reach is the most temptation-prone number in the system — so it is fenced:</p><ul>' + rails + '</ul>' +
+        '<p class="citation">Grounded in the Preamble’s consent of the governed — a named, k-anonymous count of who is here, never a per-person score and never a lever on anyone’s rights.</p></section>' +
+        /* what it is used for */
+        '<section class="card"><span class="eyebrow">What it is used for</span><ul>' +
+        '<li><strong>A transparency badge</strong> on the jurisdiction and the public square.</li>' +
+        '<li><strong>Activation tiers</strong> — a jurisdiction’s government may boot once its verified population crosses the tier threshold (gates the boot, never the franchise · CI-4).</li>' +
+        '<li><strong>Full-scale-demo thresholds</strong> — reaching a scale milestone, never advantaging anyone.</li>' +
+        '</ul><p class="citation">It changes no vote, no moderation, no eligibility — ever.</p></section>';
+
+      var sel = document.getElementById('jur-pick');
+      if (sel) sel.addEventListener('change', function () {
+        selected = sel.value;
+        var nm = (L.byJur[selected] || {}).name || selected;
+        S.announce('Showing reach for ' + nm);
+        render();
+      });
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

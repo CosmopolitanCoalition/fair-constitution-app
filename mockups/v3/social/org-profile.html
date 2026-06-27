@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organization profile — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the organization profile…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'social/org-profile', title: 'Organization profile', module: 'social', nav: 'organizations', citation: 'Organizations & co-determination · Art. III §5–6', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+    var BY = window.CGA.fixtures.byId;
+
+    function orgName(id, fb) { var o = BY.organizations[id]; return o ? o.name : (fb || id); }
+    function personaName(id, fb) { var p = BY.personas[id]; return p ? p.name : (fb || id); }
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> The marketplace, contracts, and ledger surfaces are design-ahead of code: the forms (F-IND-021, F-IND-014, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody. The governance facts below (charter, board, co-determination) ride the built v1 organization module.</div></div>';
+    }
+
+    function neverFederated(text) {
+      return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        esc(text || 'The org’s balance, receipts, and transactions live only on this server — never federated, like a ballot.') + '</p>';
+    }
+
+    function typeLabel(t) {
+      return ({ business: 'Business', nonprofit: 'Nonprofit', common_good_corp: 'Common Good Corporation', informal: 'Informal association', political_party: 'Political party' })[t] || t;
+    }
+
+    function render() {
+      var o = E.profiles.org;
+      var name = orgName(o.org);
+      var initials = name.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
+      var cd = o.coDetermination;
+      var board = o.board;
+      var chairName = personaName(board.chair);
+
+      /* --- board seats (worker / owner) + joint chair -------------------- */
+      var seatRows = '';
+      for (var i = 0; i < board.workerSeats; i++) {
+        seatRows += '<tr><td>Worker seat ' + (i + 1) + '</td><td>' + S.badge('info', 'Worker representative', 'users') +
+          (i === 0 ? ' ' + (board.jointChair ? S.badge('success', 'Joint chair · ' + esc(chairName), 'user') : '') : '') +
+          '</td><td class="citation">elected by the workforce · Art. III §6</td></tr>';
+      }
+      for (var j = 0; j < board.ownerSeats; j++) {
+        seatRows += '<tr><td>Owner seat ' + (j + 1) + '</td><td>' + S.badge('neutral', 'Owner representative', 'briefcase') +
+          '</td><td class="citation">elected by ownership · Art. III §6</td></tr>';
+      }
+
+      /* --- marketplace listings ----------------------------------------- */
+      var listings = (o.listings || []).map(function (id) {
+        return E.marketplace.filter(function (m) { return m.id === id; })[0];
+      }).filter(Boolean);
+      var offerCards = listings.map(function (m) {
+        return '<div class="offer-card">' +
+          '<span class="offer-kind">' + S.icon(m.kind === 'service' ? 'briefcase' : 'building', { size: 'sm' }) + esc(m.kind) + '</span>' +
+          '<strong>' + esc(m.title) + '</strong>' +
+          '<span class="offer-price">' + esc(m.price) + '</span>' +
+          '<span class="offer-seller">qty ' + esc(String(m.qty)) + '</span>' +
+          '<span class="form-chip">' + esc('Marketplace listing') + ' <span class="form-id">' + esc(m.form) + '</span></span>' +
+          '</div>';
+      }).join('');
+
+      /* --- contracts ---------------------------------------------------- */
+      var contracts = (o.contracts || []).map(function (id) {
+        return E.agreements.filter(function (a) { return a.id === id; })[0];
+      }).filter(Boolean);
+      var contractRows = contracts.map(function (a) {
+        var partyChips = a.parties.map(function (p) {
+          return '<span class="party-chip">' + esc(p.name) + ' <span class="party-role">' + esc(p.role) + '</span></span>';
+        }).join('');
+        var tone = a.status === 'agreed' || a.status === 'active' || a.status === 'completed' ? 'success' : 'warning';
+        return '<div class="card card--inset stack">' +
+          '<div class="cluster" style="justify-content:space-between">' +
+          '<strong>' + esc(a.title) + '</strong>' + S.badge(tone, a.status, a.signedBoth ? 'check' : 'clock') + '</div>' +
+          '<div class="agreement-parties">' + partyChips + '</div>' +
+          '<p class="gloss">' + esc(a.terms) + '</p>' +
+          '<p class="form-chip">' + esc('Instrument of agreement') + ' <span class="form-id">' + esc(a.form) + '</span></p>' +
+          '<p class="agreement-floor">' + S.icon('shield', { size: 'sm' }) + esc(a.floor) + '</p>' +
+          '</div>';
+      }).join('');
+
+      /* --- private ledger (org account) --------------------------------- */
+      var orgAccount = E.accounts.filter(function (a) { return a.kind === 'org'; })[0];
+      var ledgerRows = E.wallet.transactions.slice(0, 3).map(function (tx) {
+        var inn = tx.amount.trim().charAt(0) === '+';
+        return '<div class="wallet-row"><span>' + esc(tx.date) + '</span>' +
+          '<span>' + esc(tx.kind) + '</span>' +
+          '<span class="gloss">' + esc(tx.counterparty) + '</span>' +
+          '<span class="wallet-amt ' + (inn ? 'wallet-amt--in' : 'wallet-amt--out') + '">' + esc(tx.amount) + '</span></div>';
+      }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">Organizations &amp; people · public profile</span><h1>' + esc(name) + '</h1>' +
+        '<p class="page-intro">' + esc(o.charter) + '</p></header>' +
+        plannedBanner() +
+
+        /* identity head */
+        '<section class="card" aria-labelledby="head-h">' +
+        '<h2 id="head-h" class="visually-hidden">Organization summary</h2>' +
+        '<div class="profile-head">' +
+        '<span class="profile-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+        '<div class="stack" style="gap:var(--space-2)">' +
+        '<div class="cluster">' +
+        S.badge('neutral', typeLabel(o.type), 'building') +
+        S.badge('info', 'Ownership: ' + (o.ownership === 'stock' ? 'stock / shareholders' : esc(o.ownership)), 'briefcase') +
+        S.pill('info', S.formatPop(o.workers) + ' workers', 'Headcount drives the co-determination thresholds · Art. III §6') +
+        '</div>' +
+        '<div class="profile-stats">' +
+        '<span class="profile-stat">Board <b>' + (board.workerSeats + board.ownerSeats) + '</b> seats</span>' +
+        '<span class="profile-stat">Worker seats <b>' + board.workerSeats + '</b></span>' +
+        '<span class="profile-stat">Owner seats <b>' + board.ownerSeats + '</b></span>' +
+        '<span class="profile-stat">Listings <b>' + listings.length + '</b></span>' +
+        '<span class="profile-stat">Contracts <b>' + contracts.length + '</b></span>' +
+        '</div></div></div>' +
+        '<p class="lr-note" style="margin-block-start:var(--space-3)">This profile shows the public governance facts of the organization. ' +
+        'Its internal ledger and balances are private — see below. ' +
+        '<a href="' + S.hrefV1('organizations/org-detail.html') + '">Open the full org detail <span class="v1-tag">v1</span></a> · ' +
+        '<a href="' + S.hrefV2('economy/org-settings.html') + '">Manage economics ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>' +
+
+        /* charter */
+        '<section class="card" aria-labelledby="charter-h"><h2 id="charter-h">Charter</h2>' +
+        '<p>' + esc(o.charter) + '</p>' +
+        '<p class="citation">A registered organization with a public charter · Art. III §5 (the Common Good standard governs CGCs; private orgs trade on identical terms).</p>' +
+        '</section>' +
+
+        /* co-determination */
+        '<section class="card" aria-labelledby="cd-h"><h2 id="cd-h">Co-determination status</h2>' +
+        '<p>' + esc(cd.status) + '. Worker representation begins at the first-seat threshold and reaches owner parity at the parity threshold.</p>' +
+        '<div class="meter-block">' +
+        '<div class="meter"><div class="meter-fill ' + (o.workers >= cd.threshold ? 'meter-fill--met' : '') + '" style="inline-size:' +
+          Math.min(100, Math.round(o.workers / cd.parity * 100)) + '%"></div>' +
+        '<span class="meter-threshold" style="inset-inline-start:' + Math.round(cd.threshold / cd.parity * 100) + '%"></span></div>' +
+        '<p class="meter-caption">' + S.formatPop(o.workers) + ' of ' + S.formatPop(cd.parity) + ' workers · ' +
+        'first worker seat at ' + cd.threshold + ' · worker–owner parity at ' + cd.parity + '</p>' +
+        '</div>' +
+        '<ul>' +
+        '<li><strong>First seat:</strong> a worker representative is seated once the org passes ' + cd.threshold + ' employees · <span class="citation">Art. III §6 · CLK-13</span></li>' +
+        '<li><strong>Parity:</strong> worker and owner seats reach parity at ' + cd.parity + ' employees · <span class="citation">Art. III §6 · CLK-14</span></li>' +
+        '<li><strong>Hardened math:</strong> the seat counts are computed by the protected co-determination service — no admin override.</li>' +
+        '</ul>' +
+        '<p class="citation"><a href="' + S.hrefV1('organizations/co-determination.html') + '">Open the co-determination console <span class="v1-tag">v1</span></a></p>' +
+        '</section>' +
+
+        /* the board */
+        '<section class="card" aria-labelledby="board-h"><h2 id="board-h">The board</h2>' +
+        '<p>The board seats ' + board.workerSeats + ' worker representative' + (board.workerSeats === 1 ? '' : 's') +
+        ' and ' + board.ownerSeats + ' owner representative' + (board.ownerSeats === 1 ? '' : 's') + '. ' +
+        (board.jointChair ? 'The chair, ' + esc(chairName) + ', is elected jointly by the whole board — worker and owner seats together.' : '') + '</p>' +
+        '<div class="table-wrap"><table class="table"><thead><tr><th>Seat</th><th>Holder type</th><th>Basis</th></tr></thead>' +
+        '<tbody>' + seatRows + '</tbody></table></div>' +
+        '<p class="citation">Worker representation from ' + cd.threshold + ' employees; parity at ' + cd.parity + ' · Art. III §6.</p>' +
+        '<p class="citation"><a href="' + S.hrefV1('organizations/board-elections.html') + '">Open board elections <span class="v1-tag">v1</span></a></p>' +
+        '</section>' +
+
+        /* marketplace listings */
+        '<section class="card" aria-labelledby="mkt-h"><h2 id="mkt-h">Marketplace listings</h2>' +
+        '<p class="gloss">What this organization is offering on the Open Market. A private seller trades on identical terms to a CGC · <span class="citation">Art. III §5</span>.</p>' +
+        (offerCards ? '<div class="offer-grid">' + offerCards + '</div>' : '<p class="gloss">No active listings.</p>') +
+        '<p class="citation" style="margin-block-start:var(--space-3)"><a href="' + S.hrefV2('economy/marketplace.html') + '">Open the marketplace ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>' +
+
+        /* contracts */
+        '<section class="card" aria-labelledby="con-h"><h2 id="con-h">Contracts &amp; instruments of agreement</h2>' +
+        '<p class="gloss">Every agreement carries a constitutional floor — no clause can waive a right · <span class="citation">Art. I Supremacy of Rights</span>.</p>' +
+        (contractRows ? '<div class="stack">' + contractRows + '</div>' : '<p class="gloss">No instruments on file.</p>') +
+        '<p class="citation" style="margin-block-start:var(--space-3)"><a href="' + S.hrefV2('economy/agreements.html') + '">Open the instruments of agreement ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>' +
+
+        /* private ledger */
+        '<section class="card" aria-labelledby="ledger-h"><h2 id="ledger-h">The org ledger</h2>' +
+        neverFederated('This organization’s balance, receipts, and transactions are private — they live only on this server and never federate, like a ballot.') +
+        '<p class="wallet-balance">' + esc(orgAccount ? String(orgAccount.balance) : 'private') + '</p>' +
+        '<p class="gloss">Balance is visible to the org’s own members. Recent movements:</p>' +
+        '<div class="stack" style="gap:0">' + ledgerRows + '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-3)">Org accounts are PRIVATE; jurisdiction and department accounts are PUBLIC and double-entry, append-only, hash-chained.</p>' +
+        '<p class="citation"><a href="' + S.hrefV2('economy/org-settings.html') + '">Manage economics, shares &amp; dues ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>' +
+
+        /* rails */
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold</h2><ul>' +
+        '<li><strong>Co-determination is hardened.</strong> Seat math is computed by the protected service from headcount alone · <span class="citation">Art. III §6</span></li>' +
+        '<li><strong>Every contract has a floor.</strong> No clause may disempower a constitutional right · <span class="citation">Art. I Supremacy of Rights</span></li>' +
+        '<li><strong>Private sellers and CGCs trade on identical terms;</strong> a CGC’s IP stays perpetually public domain · <span class="citation">Art. III §5</span></li>' +
+        '<li><strong>The org ledger is private,</strong> never federated — like a ballot.</li>' +
+        '</ul></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

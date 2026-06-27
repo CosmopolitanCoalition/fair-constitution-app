@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your representative — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading your representative…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'social/rep', title: 'Your representative', module: 'social', nav: 'my-civic-life', citation: 'Fair Representation · Art. I, Art. II §3', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+    var byId = window.CGA.fixtures.byId;
+
+    function personaName(id) { var p = byId.personas[id]; return p ? p.name : id; }
+    function personaInitials(id) {
+      var p = byId.personas[id];
+      if (p && p.initials) return p.initials;
+      return personaName(id).split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    }
+    function jurName(slug) {
+      var j = byId.jurisdictions[slug];
+      return j ? j.name : slug;
+    }
+
+    function statusPill(status) {
+      var map = {
+        accepted: ['pass', 'Accepted', 'The representative agreed to this meeting'],
+        open: ['wait', 'Open', 'Awaiting a response from the representative'],
+        declined: ['closed', 'Declined', 'The representative could not take this request']
+      };
+      var m = map[status] || ['info', status, ''];
+      return S.pill(m[0], m[1], m[2]);
+    }
+
+    /* A representative card — the heart of rep<->citizen contact. */
+    function repCard(rep, primary) {
+      var name = personaName(rep.persona);
+      var initials = personaInitials(rep.persona);
+
+      var head =
+        '<div class="profile-head">' +
+        '<span class="profile-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+        '<div class="stack" style="gap:var(--space-1)">' +
+        '<strong style="font-size:var(--text-xl);color:var(--gov-fg)">' + esc(name) + '</strong>' +
+        '<span class="gloss">' + esc(rep.office) + '</span>' +
+        '<div class="profile-stats">' +
+        '<span class="profile-stat">' + S.icon('landmark', { size: 'sm' }) + ' <b>' + esc(jurName(rep.jurisdiction)) + '</b></span>' +
+        '<span class="profile-stat">' + S.icon('users', { size: 'sm' }) + ' Serves every resident equally</span>' +
+        '</div></div></div>';
+
+      /* Their public record (v1) + their forum (live room) */
+      var connect =
+        '<div class="cluster" style="gap:var(--space-3);margin-block-start:var(--space-3)">' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1(rep.record) + '">' +
+        S.icon('file-text', { size: 'sm' }) + ' Their public record <span class="v1-tag" title="opens the v1 operations site">v1</span></a>' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=' + esc(rep.forum)) + '">' +
+        S.icon('users', { size: 'sm' }) + ' Their forum — open a live room ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+        '</div>';
+
+      /* Office hours & open meetings — each one-tap into a live room. */
+      var surgeryCards = rep.surgeries.map(function (sg) {
+        return '<a class="role-card" href="' + S.hrefV2('shared/live-room.html?variant=' + esc(rep.forum)) + '">' +
+          S.icon('clock') +
+          '<span class="role-name">' + esc(sg.kind) + '</span>' +
+          '<span>' + esc(sg.date) + ' · ' + esc(sg.where) + '</span>' +
+          '<span class="enter-as">Enter the room ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }).join('');
+      var surgeries =
+        '<section aria-labelledby="oh-' + esc(rep.persona) + '" style="margin-block-start:var(--space-4)">' +
+        '<h3 id="oh-' + esc(rep.persona) + '">Office hours &amp; open meetings</h3>' +
+        '<p class="gloss">Every session is open to watch. Each is one tap into the relevant live room — ' +
+        'only residents of ' + esc(jurName(rep.jurisdiction)) + ' may take the floor.</p>' +
+        '<div class="role-grid">' + surgeryCards + '</div></section>';
+
+      /* Reach your representative — affordances (simulated). */
+      var msgId = 'msg-' + esc(rep.persona);
+      var reach =
+        '<section class="card card--inset" aria-labelledby="reach-' + esc(rep.persona) + '" style="margin-block-start:var(--space-4)">' +
+        '<h3 id="reach-' + esc(rep.persona) + '">Reach your representative</h3>' +
+        '<p class="gloss">Fair Representation means you can actually reach the person who holds your seat — ' +
+        'not a form that disappears. <span class="citation">Art. I · Fair Representation</span></p>' +
+        '<div class="cluster" style="gap:var(--space-3)">' +
+        '<button type="button" class="btn btn--primary btn--sm" data-meeting="' + esc(name) + '">' +
+        S.icon('clock', { size: 'sm' }) + ' Request a meeting</button>' +
+        '</div>' +
+        '<div class="stack" style="gap:var(--space-2);margin-block-start:var(--space-3)">' +
+        '<label for="' + msgId + '"><strong>Send a constituent message</strong></label>' +
+        '<textarea id="' + msgId + '" class="field-input" rows="3" data-msg-for="' + esc(name) + '" ' +
+        'placeholder="Tell ' + esc(name) + ' what matters to you. Messages from residents are read into the constituent queue."></textarea>' +
+        '<div class="cluster" style="gap:var(--space-3)">' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-send-msg="' + esc(rep.persona) + '">' +
+        S.icon('arrow-right', { size: 'sm' }) + ' Send message</button>' +
+        '<span class="gloss">Simulated — nothing leaves this mockup.</span>' +
+        '</div></div></section>';
+
+      /* The current requests queue. */
+      var rows = rep.requests.map(function (r) {
+        return '<tr><td><code>' + esc(r.from) + '</code></td>' +
+          '<td>' + esc(r.kind) + '</td>' +
+          '<td>' + esc(r.topic) + '</td>' +
+          '<td>' + statusPill(r.status) + '</td></tr>';
+      }).join('');
+      var queue =
+        '<section aria-labelledby="q-' + esc(rep.persona) + '" style="margin-block-start:var(--space-4)">' +
+        '<h3 id="q-' + esc(rep.persona) + '">The constituent requests queue</h3>' +
+        '<p class="gloss">The Speaker facilitates each member’s priorities, so a resident request reaches the floor in its turn. ' +
+        '<span class="citation">Art. II §3 · the Speaker facilitates member priorities</span></p>' +
+        '<table class="table"><thead><tr><th>From</th><th>Kind</th><th>Topic</th><th>Status</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></section>';
+
+      return '<section class="card" aria-labelledby="rep-' + esc(rep.persona) + '"' +
+        (primary ? '' : ' style="margin-block-start:var(--space-5)"') + '>' +
+        '<span class="eyebrow" id="rep-' + esc(rep.persona) + '">' +
+        (primary ? 'Your seat’s representative' : 'Also representing you') + '</span>' +
+        head + connect + surgeries + reach + queue + '</section>';
+    }
+
+    function render() {
+      var reps = E.reps;
+      var primary = reps[0];
+
+      var cards = reps.map(function (rep, i) { return repCard(rep, i === 0); }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">My civic life · the people who hold your seats</span>' +
+        '<h1>Your representative</h1>' +
+        '<p class="page-intro">The seats elected under proportional STV in ' + esc(jurName(primary.jurisdiction)) +
+        ' are accountable to every resident, not only to those who ranked them. This is where you reach the people who serve you — ' +
+        'read their record, walk into their open meetings, and send a message that lands in their queue.</p>' +
+        '<p class="citation">Fair Representation · Art. I · the Speaker facilitates each member’s priorities · Art. II §3</p></header>' +
+        '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Equal representation is an absolute right.</strong> Every seated member answers to all residents of the jurisdiction. ' +
+        'No payment, membership, or status may be required to reach them — contact is never a paywall. ' +
+        '<span class="citation">Art. I · Art. II §8</span></div></div>' +
+        cards +
+        '<section class="card" aria-labelledby="how-h"><h2 id="how-h">How reaching a representative works</h2><ul>' +
+        '<li><strong>Open meetings are genuinely open.</strong> Office hours and town halls run in the Live Civic Room — anyone may watch; residents may take the floor.</li>' +
+        '<li><strong>The Speaker orders the queue, not the politics.</strong> A member’s priorities are facilitated onto the agenda in turn — the chair never decides whose request has merit · <span class="citation">Art. II §3</span></li>' +
+        '<li><strong>Your message is yours.</strong> A constituent message is a private channel to your representative; it is not a public post and never federates.</li>' +
+        '<li><strong>Representation does not depend on your vote.</strong> Proportional STV seats answer to every resident, including those who ranked someone else · <span class="citation">Art. I</span></li>' +
+        '</ul></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    /* Simulated affordances. */
+    document.addEventListener('click', function (ev) {
+      var mb = ev.target.closest ? ev.target.closest('[data-meeting]') : null;
+      if (mb) {
+        S.announce('Meeting request drafted for ' + mb.getAttribute('data-meeting') + ' — it would join their constituent queue. (Simulated.)');
+        return;
+      }
+      var sb = ev.target.closest ? ev.target.closest('[data-send-msg]') : null;
+      if (sb) {
+        var ta = document.getElementById('msg-' + sb.getAttribute('data-send-msg'));
+        var name = ta ? ta.getAttribute('data-msg-for') : 'your representative';
+        S.announce('Message sent to ' + name + ' — it lands in their constituent queue as Open. (Simulated.)');
+        if (ta) ta.value = '';
+        return;
+      }
+    });
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

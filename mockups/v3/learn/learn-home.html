@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learn — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading Learn…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'learn/learn-home', title: 'Learn', module: 'learn', nav: 'learn-home', citation: 'Education modules · a video, a procedure, and a check for every workflow', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, C = window.CGA.v2c, L = window.CGA.fixtures.v2.learn, esc = S.esc;
+    var DONE = { 'what-is-wos': true, 'your-civic-record': true };
+    var featured = L.byLesson['find-whats-live'];
+
+    function progressBar() {
+      var done = L.lessons.filter(function (l) { return DONE[l.id]; }).length;
+      var pct = Math.round(done / L.lessons.length * 100);
+      return '<div class="card"><div class="cluster" style="justify-content:space-between"><span class="eyebrow">Your progress</span>' +
+        '<span class="citation">' + done + ' of ' + L.lessons.length + ' lessons</span></div>' +
+        '<div class="learn-progress" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Lessons complete"><i style="inline-size:' + pct + '%"></i></div></div>';
+    }
+
+    function featuredBlock() {
+      return '<section class="card" aria-labelledby="feat-h">' +
+        '<div class="cluster" style="justify-content:space-between"><span class="eyebrow">' + S.icon('play', { size: 'sm' }) + ' Featured lesson</span>' +
+        '<span class="tag-chip">' + esc(L.byTrack[featured.track].title) + '</span></div>' +
+        '<h2 id="feat-h" style="margin-block:var(--space-1)">' + esc(featured.title) + '</h2>' +
+        '<p class="gloss">' + esc(featured.summary) + '</p>' +
+        C.videoPlayer(featured.videoId) +
+        '<a class="btn btn--primary" href="' + S.hrefV2('learn/lesson.html?id=' + featured.id) + '">Start the lesson ' + S.icon('arrow-right', { size: 'sm' }) + '</a></section>';
+    }
+
+    function trackSection(t) {
+      var lessons = t.lessons.map(function (lid, i) {
+        var l = L.byLesson[lid], done = DONE[lid];
+        return '<a class="lesson-row' + (done ? ' lesson--done' : '') + '" href="' + S.hrefV2('learn/lesson.html?id=' + lid) + '">' +
+          '<span class="lesson-n">' + (done ? S.icon('check', { size: 'sm' }) : (i + 1)) + '</span>' +
+          '<span class="lesson-title">' + esc(l.title) + (l.planned ? ' <span class="pill pill--planned">Planned</span>' : '') + '</span>' +
+          '<span class="lesson-meta">' + S.icon('play', { size: 'sm' }) + ' ' + L.fmtDuration(l.seconds) + '</span>' +
+          '<span class="lesson-meta">' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }).join('');
+      return '<section class="stack" aria-labelledby="trk-' + t.id + '">' +
+        '<div class="track-card"><span class="track-name">' + S.icon(t.icon, { cls: 'track-icon' }) + '<span id="trk-' + t.id + '">' + esc(t.title) + '</span></span>' +
+        '<div class="cluster"><span class="pill pill--' + (t.level === 'Planned' ? 'planned' : 'info') + '">' + esc(t.level) + '</span>' +
+        '<span class="citation">' + t.lessons.length + ' lessons</span></div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(t.summary) + '</p></div>' +
+        '<div class="lesson-list">' + lessons + '</div></section>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('graduation-cap', { size: 'sm' }) + ' Learn</span><h1>Learn World of Statecraft</h1>' +
+        '<p class="page-intro">Every tool comes with a short lesson: a <strong>video</strong> in your language, the <strong>standard procedure</strong>, a quick <strong>check</strong>, and a door straight into the live activity. ' +
+        'Six tracks, ' + L.totals.lessons + ' lessons, narrated in many languages.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        progressBar() +
+        featuredBlock() +
+        '<section aria-labelledby="tracks-h"><h2 id="tracks-h">Tracks</h2>' +
+        '<p class="page-intro">Start anywhere — every lesson stands on its own.</p></section>' +
+        L.tracks.map(trackSection).join('') +
+        '<section aria-labelledby="more-h"><h2 id="more-h">More ways in</h2><div class="role-grid">' +
+        '<a class="role-card" href="' + S.hrefV2('learn/guides.html') + '">' + S.icon('list-checks') + '<span class="role-name">Guides &amp; procedures</span><span>Every workflow’s standard procedure, on one page.</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('shared/video-player.html') + '">' + S.icon('play') + '<span class="role-name">Video library</span><span>Every guide film, in many languages.</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('translation/translation-home.html') + '">' + S.icon('languages') + '<span class="role-name">Translation status</span><span>Help your language reach published.</span></a>' +
+        '</div></section>';
+
+      C.initVideo(document.getElementById('root'));
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

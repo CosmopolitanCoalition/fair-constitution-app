@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speaker tools — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Office of the Speaker · I-SPK</span>
+        <h1>Speaker tools</h1>
+        <p class="page-intro">The console for Yuki Tanaka, Speaker of the New York County legislature. The Speaker is
+          politically neutral, votes only to break ties, and presides over removal proceedings — except their own
+          case. Elected by supermajority RCV at the first session; replaceable the same way.</p>
+        <div class="cluster">
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">YT</span> Yuki Tanaka <span class="persona-roles">R-10 · Speaker</span></span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Politically neutral · votes only to break ties · Art. II §3 — elected and replaced by supermajority RCV · F-LEG-008 · WF-LEG-02</p>
+      </header>
+
+      <section class="card" aria-labelledby="forms-h">
+        <h2 id="forms-h">The Speaker's nine forms</h2>
+        <p class="cc-small">Every power the office holds, in one place. Each card names the form first, its ID second,
+          who may file it, and its constitutional basis.</p>
+        <div id="spk-grid" class="grid-2"></div>
+        <noscript><p>The form cards render with JavaScript — F-SPK-001 through F-SPK-009.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="tie-h">
+        <h2 id="tie-h">Tie-break record <span class="form-chip">Tie-breaking vote <span class="form-id">F-SPK-004</span></span></h2>
+        <p class="cc-small">The Speaker otherwise never votes. One tie has been broken this term:</p>
+        <div class="log-row">
+          <span class="log-seq" data-no-i18n>2031-05-19</span>
+          <span>Motion to extend testimony time on the Clean Air Act hearing — tied 4–4 of 8 serving</span>
+          <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Speaker voted yes — adopted 5–4</span>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Cast the deciding vote when a vote results in a tie · available to R-10 Speaker · Art. II §3 (Tie-Breaking Vote)</p>
+      </section>
+
+      <section class="card" aria-labelledby="prio-h">
+        <h2 id="prio-h">Member priorities <span class="form-chip">Member priority communication facilitation <span class="form-id">F-SPK-006</span></span></h2>
+        <p class="cc-small">Ensure each member can bring priorities to the legislature's attention — every member, with
+          or without endorsing organizations, gets the same channel.
+          <span class="citation">available to R-10 Speaker · Art. II §3 (Facilitation)</span></p>
+        <div id="prio-list" class="stack" style="gap:var(--space-2)"></div>
+        <form id="prio-form" class="cluster" style="margin-block-start:var(--space-3)">
+          <label class="visually-hidden" for="prio-text">New priority item</label>
+          <input class="field-input" style="inline-size:18rem" id="prio-text" type="text" placeholder="e.g. Stormwater backlog briefing" />
+          <button type="submit" class="btn btn--secondary btn--sm">Queue for next agenda</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="imp-h">
+        <h2 id="imp-h">Presiding over removals <span class="form-chip">Impeachment/censure/expulsion presiding <span class="form-id">F-SPK-007</span></span></h2>
+        <p class="cc-small">The Speaker presides as judge over impeachment, censure, or expulsion proceedings —
+          <strong>except their own case</strong>, where the legislature designates another presiding member.
+          <span class="citation">available to R-10 Speaker · Art. II §3 (Judicial Role)</span></p>
+        <div class="cluster">
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"></use></svg> No proceeding currently before the Speaker</span>
+          <a href="oversight.html">Open oversight &amp; proceedings
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
+        </div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Removal vote itself: supermajority of all serving · F-LEG-022 · Art. III §3; Art. IV §4 (removal parity) · WF-LEG-17</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-02.html">WF-LEG-02 (Speaker election /
+            replacement)</a> seats this office; <a href="../flows/WF-LEG-05.html">WF-LEG-05 (regular session)</a> uses
+            F-SPK-001…003 and 009; <a href="../flows/WF-LEG-17.html">WF-LEG-17 (impeachment / censure / expulsion)</a>
+            uses F-SPK-007; <a href="../flows/WF-LEG-20.html">WF-LEG-20</a> uses F-SPK-008.</p>
+          <p><strong>Entity state machine:</strong> Motion — the Speaker recognizes, schedules, and (only on ties)
+            decides; everything else is recorded against the member who moved it.</p>
+          <p class="citation">Art. II §2–3 · F-SPK-001…009</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/speaker-tools',
+      title: 'Speaker tools',
+      module: 'legislature',
+      nav: 'speaker-tools',
+      roles: ['R-10'],
+      workflows: ['WF-LEG-02', 'WF-LEG-05', 'WF-LEG-17', 'WF-LEG-20'],
+      forms: ['F-SPK-001', 'F-SPK-002', 'F-SPK-003', 'F-SPK-004', 'F-SPK-005', 'F-SPK-006', 'F-SPK-007', 'F-SPK-008', 'F-SPK-009'],
+      citation: 'Politically neutral · votes only to break ties · Art. II §3',
+      flow: 'WF-LEG-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var priorities = [
+        { who: 'Marcus Chen', text: 'Clean Air Act committee report to the floor', when: 'next session' },
+        { who: 'Maribel Santos', text: 'Open-data act implementation review', when: 'queued' },
+        { who: 'Lev Aronov', text: 'Hudson River greenway maintenance funding', when: 'queued' }
+      ];
+
+      /* All nine F-SPK forms in one grid — name first, ID second, role, citation; plus a context line/link. */
+      var SPK = [
+        { fid: 'F-SPK-001', extra: '<a href="session-console.html">Open the session console</a>' },
+        { fid: 'F-SPK-002', extra: '<span class="citation">order locked: 1. emergency powers · 2. constitutional matters · 3. general</span>' },
+        { fid: 'F-SPK-003', extra: '<span class="citation">' + 'Peg quorum: 5 of 9 serving · published each session' + '</span>' },
+        { fid: 'F-SPK-004', extra: '<span class="citation">1 tie broken this term — see the record below</span>' },
+        { fid: 'F-SPK-005', extra: '<a href="committees.html">Run on the committees page</a>' },
+        { fid: 'F-SPK-006', extra: '<span class="citation">3 member priorities queued — see below</span>' },
+        { fid: 'F-SPK-007', extra: '<span class="citation">except-own-case rule — see the presiding panel below</span>' },
+        { fid: 'F-SPK-008', extra: '<span class="citation">appears on the quorum-failure branch · WF-LEG-20</span>' },
+        { fid: 'F-SPK-009', extra: '<span class="citation">publishes automatically on adjournment · WF-SYS-03</span>' }
+      ];
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block">catalog alias: ' + esc(f.aliases.join('; ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
+          '<span class="citation" style="display:block">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          aliases +
+          (extra ? '<div style="margin-block-start:var(--space-2)">' + extra + '</div>' : '') +
+          '</div>';
+      }
+
+      function render() {
+        document.getElementById('spk-grid').innerHTML = SPK.map(function (s) { return formCard(s.fid, s.extra); }).join('');
+
+        document.getElementById('prio-list').innerHTML = priorities.map(function (p) {
+          return '<div class="cluster" style="justify-content:space-between">' +
+            '<span><strong style="color:var(--gov-fg)">' + esc(p.who) + '</strong> — ' + esc(p.text) + '</span>' +
+            S.badge(p.when === 'next session' ? 'info' : 'neutral', p.when, 'clock') + '</div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.getElementById('prio-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var input = document.getElementById('prio-text');
+        if (!input.value.trim()) return;
+        priorities.push({ who: S.activePersona().name, text: input.value.trim(), when: 'queued' });
+        input.value = '';
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

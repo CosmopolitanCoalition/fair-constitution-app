@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Juror view — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Jury service · WF-JUD-04</span>
+        <h1>Juror summons — State v. Whitfield</h1>
+        <p class="page-intro">You were drawn at random from the eligible pool of jurisdictionally associated
+          residents of New York. Service is a protected civic obligation — nobody can interfere with
+          it, and nothing about it can ever cost you a fee.</p>
+        <p class="citation">Jury of peers · Art. IV §4 — service protected · Art. II §8</p>
+      </header>
+
+      <section class="card" aria-labelledby="status-h">
+        <h2 id="status-h">Your service status</h2>
+        <ol class="stepper">
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Summoned</li>
+          <li class="stepper-step stepper-step--active" aria-current="step">Conflict screening</li>
+          <li class="stepper-step">Empaneled</li>
+          <li class="stepper-step">Trial</li>
+          <li class="stepper-step">Deliberation</li>
+          <li class="stepper-step">Discharged</li>
+        </ol>
+      </section>
+
+      <section class="card" aria-labelledby="summons-h">
+        <h2 id="summons-h">The summons</h2>
+        <div class="grid-2">
+          <div>
+            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Drawn:</strong> <span class="citation">2031-06-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
+            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Pool:</strong> 14,733,408 eligible jurisdictionally associated residents of New York</p>
+            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Draw integrity:</strong> the random-selection seed is published to the <a href="../system/audit-chain.html">audit chain</a> — anyone can verify the draw</p>
+            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Report:</strong> <span class="citation">2031-06-24 09:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
+            <p><strong style="color:var(--gov-fg)">Where:</strong> New York State court, courtroom 3 — 12 jurors + 2 alternates will be empaneled</p>
+            <p class="citation">Random selection from the eligible pool · Art. IV §4 (jury of peers)</p>
+          </div>
+          <div id="fc-jdg-002"></div>
+        </div>
+        <noscript><p class="gloss">The source form card renders with JavaScript enabled — your summons was created by a Jury Selection Order (F-JDG-002), issued by R-19/R-20 Judge · Art. IV §4.</p></noscript>
+        <p style="margin-block-start:var(--space-3)"><a href="case-detail.html">See the case this summons belongs to
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+      </section>
+
+      <section class="card" aria-labelledby="screening-h">
+        <h2 id="screening-h">Conflict screening questionnaire</h2>
+        <p>Answer honestly — screening removes conflicts of interest, never opinions, demographics, or
+          politics. Your answers go to the panel judges only.</p>
+        <form id="screening-form">
+          <fieldset style="border:0;padding:0;margin:0" id="screening-fields">
+            <legend class="visually-hidden">Conflict screening questions</legend>
+          </fieldset>
+          <div class="cluster" style="margin-block-start:var(--space-3)">
+            <button type="submit" class="btn btn--primary">Submit screening answers</button>
+            <span class="gloss">Simulation — answers stay on this page.</span>
+          </div>
+        </form>
+        <div id="screening-result" role="status" style="margin-block-start:var(--space-3)"></div>
+        <noscript><p class="gloss">The questionnaire renders with JavaScript enabled. Questions cover: relationship to the parties, financial interest, prior involvement, formed opinions from coverage, and related prior service.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="protections-h">
+        <h2 id="protections-h">Your service is protected</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        </div>
+        <ul>
+          <li><strong style="color:var(--gov-fg)">No interference.</strong> Your employer cannot penalize, dismiss, or obstruct you for serving; nobody —
+            public or private — may impede a civic obligation.
+            <span class="citation" style="display:block">Art. II §8 · Non-Interference with Civic Obligations</span></li>
+          <li style="margin-block-start:var(--space-3)"><strong style="color:var(--gov-fg)">No fees, ever.</strong> No payment, fee, or fine can be required of you to exercise a civic right or
+            fulfill this obligation — attendance, filings, and verification cost you nothing.
+            <span class="citation" style="display:block">Art. II §8 · Prohibition of Compulsory Payments for Civic Rights</span></li>
+        </ul>
+        <p class="gloss">Art. II §8 is the constitution's list of actions forbidden to legislatures — these two subsections shield jurors from both interference and charges.</p>
+      </section>
+
+      <section class="card" aria-labelledby="room-h">
+        <h2 id="room-h">Jury deliberation room</h2>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Locked — opens when the case reaches deliberation</span>
+        </div>
+        <p>The deliberation room is access-controlled: jurors only. The jury deliberates separately from the
+          judges' chambers, with no contact from parties, advocates, or judges. Deliberation is the only
+          unrecorded space in the trial — the verdict itself is recorded.</p>
+        <button type="button" class="btn btn--secondary" disabled title="The case is at jury selection — the room unlocks at the deliberation stage">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Enter deliberation room</button>
+        <p class="citation" style="margin-block-start:var(--space-3)">Separate deliberation preserves the independence of the jury of peers · Art. IV §4</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-04.html">WF-JUD-04 — jury paneling</a>
+            (random draw → conflict screening → empanelment), inside the
+            <a href="../flows/WF-JUD-03.html">WF-JUD-03 case lifecycle</a>.</p>
+          <p><strong>Entity state machine:</strong> Case — your service spans the [Jury-Empaneled] →
+            Deliberation → Decided states; see the playable strip on the
+            <a href="case-detail.html">case detail page</a>.</p>
+          <p class="citation">Art. IV §4 · Art. II §8 · Non-Interference with Civic Obligations · Prohibition of Compulsory Payments for Civic Rights</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'judiciary/juror-view',
+      title: 'Juror view',
+      module: 'judiciary',
+      nav: 'juror-view',
+      roles: ['R-22'],
+      workflows: ['WF-JUD-04'],
+      forms: ['F-JDG-002'],
+      citation: 'Jury of peers · Art. IV §4 — no interference, no fees · Art. II §8',
+      flow: 'WF-JUD-04',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+
+      var QUESTIONS = [
+        { id: 'q1', text: 'Do you know the accused, the advocates, or any listed witness personally?' },
+        { id: 'q2', text: 'Do you have any financial interest in the outcome of this case?' },
+        { id: 'q3', text: 'Were you involved in the events at issue, or in the investigation?' },
+        { id: 'q4', text: 'Have you formed a fixed opinion about this case from coverage or conversation?' },
+        { id: 'q5', text: 'Have you served on a jury or panel in a related case?' }
+      ];
+
+      function formCard(fid, extra) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<span class="eyebrow">Source of this summons</span>' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline;margin-block-start:var(--space-1)">' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
+          alias + (extra || '') + '</div>';
+      }
+
+      function render() {
+        document.getElementById('fc-jdg-002').innerHTML = formCard('F-JDG-002');
+
+        document.getElementById('screening-fields').innerHTML = QUESTIONS.map(function (q, i) {
+          return '<div class="field" style="margin-block-end:var(--space-3)">' +
+            '<span class="field-label" id="lbl-' + q.id + '">' + (i + 1) + '. ' + esc(q.text) + '</span>' +
+            '<div class="radio-group" role="radiogroup" aria-labelledby="lbl-' + q.id + '" style="flex-direction:row;gap:var(--space-4)">' +
+            '<label class="radio"><input type="radio" name="' + q.id + '" value="no" checked /> No</label>' +
+            '<label class="radio"><input type="radio" name="' + q.id + '" value="yes" /> Yes</label>' +
+            '</div></div>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      document.getElementById('screening-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var flagged = QUESTIONS.some(function (q) {
+          var el = document.querySelector('input[name="' + q.id + '"]:checked');
+          return el && el.value === 'yes';
+        });
+        document.getElementById('screening-result').innerHTML = flagged
+          ? '<div class="banner banner--warning" role="status">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Flagged for voir dire review (simulation)</span>' +
+            'A panel judge will follow up on the answers you flagged. If a conflict is confirmed you are excused without penalty and the draw selects a replacement. ' +
+            '<span class="citation">conflict screening · Art. IV §4 · WF-JUD-04</span></div></div>'
+          : '<div class="banner banner--info" role="status">' + S.icon('check') +
+            '<div><span class="banner-title">No conflicts declared (simulation)</span>' +
+            'You remain in the panel pool. Report on 2031-06-24 — empanelment is confirmed at voir dire. ' +
+            '<span class="citation">conflict screening · Art. IV §4 · WF-JUD-04</span></div></div>';
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

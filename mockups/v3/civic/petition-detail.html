@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Petition detail — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Petition · <span data-no-i18n>pet-2030-11</span></span>
+        <h1>Hudson watershed protection act</h1>
+        <p class="page-intro">A citizen-drafted law at state scale. The signature threshold has been met; the petition
+          is now in constitutionality review — the last gate before ballot placement.</p>
+        <p class="citation">Petitions face two kill-paths: failed audit, unconstitutional finding · Art. II §6</p>
+      </header>
+
+      <section class="card" aria-labelledby="life-h">
+        <h2 id="life-h">Lifecycle</h2>
+        <ol class="lifecycle" id="pet-lifecycle"></ol>
+        <noscript><p class="gloss">Lifecycle tracker renders with JavaScript — current state: Constitutional-Review.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">Created → … → Constitutional-Review → Validated → On-Ballot · Art. II §6</p>
+      </section>
+
+      <section class="card" aria-labelledby="law-h">
+        <h2 id="law-h">Proposed law text</h2>
+        <blockquote style="margin-inline:0;margin-block:0;border-inline-start:3px solid var(--gov-border-strong);padding-inline-start:var(--space-4);color:var(--gov-fg-strong)">
+          <p>Prohibit industrial discharge into the Hudson watershed beyond the planetary baseline.</p>
+        </blockquote>
+        <p class="gloss" style="margin-block-start:var(--space-3)">This is the binding text voters ratify — not a summary.</p>
+        <div class="grid-2" style="margin-block-start:var(--space-4)">
+          <div>
+            <h3>Scale</h3>
+            <p><span class="adm-chip adm-chip--2">New York</span></p>
+            <p class="citation">usa-2-new-york · adopted state-wide if passed</p>
+          </div>
+          <div>
+            <h3>Scope</h3>
+            <p class="cc-small">State judiciary hears disputes.</p>
+            <p class="citation">scale &amp; scope travel with the law · Art. II §6; Art. V §4</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="sig-h">
+        <h2 id="sig-h">Signatures</h2>
+        <div id="sig-meter" class="meter-block"></div>
+        <noscript><p class="gloss">Meter renders with JavaScript — 1,044,310 of 1,010,062 required signatures (threshold met).</p></noscript>
+        <div class="cluster" style="margin-block-start:var(--space-4)">
+          <button type="button" class="switch" id="sign-btn" aria-pressed="false">Sign this petition</button>
+          <span id="sign-status"></span>
+        </div>
+        <p class="cc-small" style="margin-block-start:var(--space-2)">Petition signature <span class="form-chip"><span class="form-id">F-IND-010</span></span> —
+          sign an existing citizen petition. Signatures stay open while review proceeds; the audited count is frozen at
+          the threshold check.
+          <span class="citation" style="display:block">available to R-03 Jurisdictionally Associated · appends signature to petition · Art. II §6</span></p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="audit-h">
+          <h2 id="audit-h">Signature audit</h2>
+          <div id="audit-card"></div>
+          <noscript><p class="gloss">Audit card renders with JavaScript — F-ELB-005, audit complete, threshold confirmed.</p></noscript>
+          <p style="margin-block-start:var(--space-3)">
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Audit complete — threshold confirmed</span>
+          </p>
+          <p class="cc-small">1,031,778 of 1,044,310 signatures valid (98.8%) — still above the 1,010,062 threshold.
+            Completed 2031-04-30 by the New York State election board · shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
+          <p class="citation">independent audit · Art. II §6 · CLK-17</p>
+        </section>
+
+        <section class="card" aria-labelledby="review-h">
+          <h2 id="review-h">Constitutionality review</h2>
+          <div id="review-card"></div>
+          <noscript><p class="gloss">Review card renders with JavaScript — F-JDG-008, under review by the New York State court.</p></noscript>
+          <p style="margin-block-start:var(--space-3)">
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-scale"></use></svg> Under review — New York State court</span>
+          </p>
+          <p class="cc-small">Threshold met; referred for constitutional review before ballot placement. If the proposed
+            law unjustly impedes rights, the petition is invalidated; otherwise it is validated for the next
+            jurisdiction-wide ballot.</p>
+          <p class="citation">petitions invalidated if unconstitutional · Art. II §6 · <a href="../flows/WF-JUD-09.html">WF-JUD-09</a></p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-06.html">WF-CIV-06 petition lifecycle</a> (this petition
+            is at the review step) · <a href="../flows/WF-JUD-09.html">WF-JUD-09 petition constitutionality review</a> ·
+            if validated, the vote runs through <a href="../flows/WF-ELE-07.html">WF-ELE-07</a> at the threshold matching
+            the act type.</p>
+          <p><strong>Entity state machine:</strong> Petition — currently <em>Constitutional-Review</em>; kill-paths are a
+            failed audit or an unconstitutional finding.</p>
+          <p><strong>Back to:</strong> <a href="petitions.html">all petitions</a>.</p>
+          <p class="citation">Art. II §6 · CLK-17</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/petition-detail',
+      title: 'Petition detail',
+      module: 'civic',
+      nav: 'petitions',
+      roles: ['R-03', 'R-05', 'R-08', 'R-19'],
+      workflows: ['WF-CIV-06', 'WF-JUD-09'],
+      forms: ['F-IND-010', 'F-ELB-005', 'F-JDG-008'],
+      citation: 'Petitions face two kill-paths: failed audit, unconstitutional finding · Art. II §6',
+      flow: 'WF-CIV-06',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var pet = W.petitions.filter(function (p) { return p.id === 'pet-2030-11'; })[0];
+      var signed = false;
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        var alias = (f.aliases && f.aliases.length)
+          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        return '<div class="card card--inset">' +
+          '<p style="margin-block-end:var(--space-1)"><strong>' + esc(f.name) + '</strong> ' +
+          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></p>' +
+          '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
+          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' + alias +
+          '</div>';
+      }
+
+      function render() {
+        /* Lifecycle tracker — current: Constitutional-Review */
+        var states = BY.entities['Petition'].states;
+        var currentIdx = states.indexOf('Constitutional-Review');
+        document.getElementById('pet-lifecycle').innerHTML = states.map(function (st, i) {
+          var cls = 'lifecycle-stage' + (i < currentIdx ? ' lifecycle-stage--done' : i === currentIdx ? ' lifecycle-stage--current' : '');
+          return '<li class="' + cls + '"' + (i === currentIdx ? ' aria-current="step"' : '') + '>' + esc(st) + '</li>';
+        }).join('');
+
+        /* Signature meter — threshold already met */
+        var sigs = pet.signatures + (signed ? 1 : 0);
+        var pct = Math.min(100, Math.round(sigs / pet.threshold * 100));
+        document.getElementById('sig-meter').innerHTML =
+          '<div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:' + pct + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + sigs.toLocaleString('en-US') + ' of ' + pet.threshold.toLocaleString('en-US') +
+          ' signatures — threshold met</span><span>5% of 20,201,249 (New York) · CLK-17</span></div>';
+
+        /* Form-cards for the two institutional gates */
+        document.getElementById('audit-card').innerHTML = formCard('F-ELB-005');
+        document.getElementById('review-card').innerHTML = formCard('F-JDG-008');
+
+        var btn = document.getElementById('sign-btn');
+        btn.setAttribute('aria-pressed', signed ? 'true' : 'false');
+        btn.textContent = signed ? 'Signed' : 'Sign this petition';
+        document.getElementById('sign-status').innerHTML = signed
+          ? S.badge('success', 'Your signature is appended to the record', 'check') : '';
+
+        S.refresh();
+      }
+
+      document.getElementById('sign-btn').addEventListener('click', function () { signed = !signed; render(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

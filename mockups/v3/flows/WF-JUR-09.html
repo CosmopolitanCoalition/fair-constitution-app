@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Population Records & Apportionment — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUR</span>
+        <h1>Population Records & Apportionment <span class="citation">WF-JUR-09</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUR-09", "title": "Population Records & Apportionment", "module": "flows", "nav": null, "roles": ["R-08"], "workflows": ["WF-JUR-09"], "forms": [], "citation": "Art. II §2, §8; Art. V §3 · WF-JUR-09", "flow": "WF-JUR-09", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUR-09",
+ "name": "Population Records & Apportionment",
+ "timeScale": "Cyclical",
+ "trigger": "Residency verifications change counts; pre-election apportionment run",
+ "actors": [
+  "R-08"
+ ],
+ "institutions": [
+  "I-JUR",
+  "I-ELB",
+  "I-LEG"
+ ],
+ "terminal": "Accurate resident counts; seats/taxes/resources apportioned; subdivision triggered if max exceeded",
+ "basis": "Art. II §2, §8; Art. V §3",
+ "entity": "Jurisdiction",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "System",
+   "action": "Residency verifications continuously update population counts",
+   "outcome": "Accurate per-jurisdiction census",
+   "engine": "Residency engine",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 2,
+   "actor": "System",
+   "action": "Pre-election apportionment: seats by relative population (+ equal seats if bicameral)",
+   "outcome": "BRANCH: seats > max (CLK-07) → WF-ELE-06 subdivision",
+   "engine": "Apportionment engine",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "seats > max (CLK-07) → WF-ELE-06 subdivision",
+     "goto": {
+      "wf": "WF-ELE-06",
+      "step": 1
+     }
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "R-09",
+   "action": "Records also drive taxes/resources apportionment per acts",
+   "outcome": "Published via WF-SYS-03",
+   "engine": "Legislation linkage",
+   "screen": {
+    "href": "jurisdictions/jurisdiction-browser.html",
+    "params": {
+     "role": "R-09"
+    }
+   },
+   "branches": [
+    {
+     "label": "Continues in WF-SYS-03",
+     "goto": {
+      "wf": "WF-SYS-03",
+      "step": 1
+     }
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

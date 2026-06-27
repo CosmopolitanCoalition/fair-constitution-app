@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Set up your node — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/setup', title: 'Set up your node', module: 'operator', nav: 'operator-setup', citation: 'The operator plane — first-run setup · capability, not role', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+
+    var STEPS = [
+      { n: 0, key: 'account', label: 'Claim your account' },
+      { n: 1, key: 'name', label: 'Name the instance' },
+      { n: 2, key: 'role', label: 'Pick a role' },
+      { n: 3, key: 'configure', label: 'Role-specific setup' },
+      { n: 4, key: 'done', label: 'You’re set' }
+    ];
+
+    function stepper(active) {
+      return '<ol class="stepper" aria-label="Setup progress">' + STEPS.map(function (s) {
+        var cls = s.n === active ? ' stepper-step--active' : '';
+        return '<li class="stepper-step' + cls + '">' +
+          '<span class="mc-id" aria-hidden="true">' + (s.n + 1) + '</span>' + esc(s.label) +
+          (s.n === active ? ' <span class="visually-hidden">(current step)</span>' : '') + '</li>';
+      }).join('') + '</ol>';
+    }
+
+    function btn(tone, label, icon, msg) {
+      return '<button type="button" class="btn btn--' + tone + '" data-announce="' + esc(msg) + '">' +
+        (icon ? S.icon(icon, { size: 'sm' }) : '') + esc(label) + '</button>';
+    }
+
+    /* ---- step 0: claim your operator account ---- */
+    function stepAccount() {
+      var a = O.account;
+      var devices = a.devices.map(function (d) {
+        return '<tr><td>' + esc(d.name) + '</td><td class="mono">' + esc(d.keyFp) + '</td>' +
+          '<td><span class="relation-chip">' + esc(d.enrolledVia) + '</span></td>' +
+          '<td>' + S.badge(d.active ? 'success' : 'neutral', d.active ? 'active' : 'inactive') + '</td></tr>';
+      }).join('');
+
+      return '<div class="grid-2">' +
+        '<div class="card stack">' +
+          '<span class="eyebrow">Path A · a fresh local account</span>' +
+          '<label class="stack" style="gap:var(--space-1)"><span>Operator username</span>' +
+            '<input class="field-input" type="text" value="' + esc(a.username) + '" autocomplete="off" /></label>' +
+          '<label class="stack" style="gap:var(--space-1)"><span>Local password</span>' +
+            '<input class="field-input" type="password" value="local-only-secret" autocomplete="off" /></label>' +
+          '<div class="banner banner--info">' + S.icon('lock', { size: 'sm' }) +
+            '<div>This password authenticates you <strong>here only</strong>. It never federates — no other box ever sees it. ' +
+            esc(a.authNote) + '</div></div>' +
+          btn('primary', 'Create operator account', 'user', 'Demo: operator account “' + a.username + '” created — local password set, never federated.') +
+        '</div>' +
+        '<div class="card stack">' +
+          '<span class="eyebrow">Path B · link an existing mesh identity</span>' +
+          '<p style="font-size:var(--text-sm)">Already run a box elsewhere? Recognise yourself across the mesh by <strong>device-key possession</strong> — present a key your identity already trusts. No password is ever replayed between boxes.</p>' +
+          '<div class="table-wrap"><table class="table"><thead><tr>' +
+            '<th>Device</th><th>Public key</th><th>Enrolled via</th><th>State</th></tr></thead>' +
+            '<tbody>' + devices + '</tbody></table></div>' +
+          '<p class="advanced-note">mesh operator id ' + esc(a.meshOperatorId) + ' · only the Ed25519 public key enrols; the secret never leaves the device.</p>' +
+          btn('secondary', 'Link by device key', 'shield', 'Demo: linked an existing mesh identity by device-key proof — no password crossed the wire.') +
+        '</div></div>';
+    }
+
+    /* ---- step 1: name the instance ---- */
+    function stepName() {
+      return '<div class="card stack" style="max-inline-size:42rem">' +
+        '<label class="stack" style="gap:var(--space-1)"><span>Instance name</span>' +
+          '<input class="field-input" type="text" value="Manhattan node" autocomplete="off" /></label>' +
+        '<label class="stack" style="gap:var(--space-1)"><span>Self-URL <span class="gloss">(how peers reach you)</span></span>' +
+          '<input class="field-input" type="text" value="https://manhattan.cga.example" autocomplete="off" /></label>' +
+        '<p style="font-size:var(--text-sm)">The name is a friendly label for the box; the self-URL is the reachable address peers dial to sync. A stable server id (' +
+          '<span class="mono">' + esc(O.account.serverId) + '</span>) is minted on first run and stays constant across renames.</p>' +
+        btn('primary', 'Save instance name', 'check', 'Demo: instance named “Manhattan node”, self-URL set to https://manhattan.cga.example.') +
+        '</div>';
+    }
+
+    /* ---- step 2: pick a role ---- */
+    function stepRole() {
+      var cards = O.namedRoles.map(function (r) {
+        var st = O.byChannel[r.channels[0]];
+        var pill = O.STATE_PILL[st ? st.state : 'qualifiable'];
+        var chans = r.channels.map(function (c) {
+          var ch = O.byChannel[c];
+          return '<span class="channel-chip channel-chip--' + (ch && ch.kind === 'self' ? 'self' : 'governed') + '">' + esc(c) + '</span>';
+        }).join('');
+        return '<div class="op-role-card' + (r.recommended ? ' op-role--recommended' : '') + '">' +
+          '<div class="cluster" style="justify-content:space-between">' +
+            '<span class="orc-title">' + esc(r.label) + '</span>' +
+            (r.recommended ? '<span class="pill pill--planned">Recommended for a first node</span>'
+                           : '<span class="pill pill--' + pill.pill + '">' + esc(pill.label) + '</span>') + '</div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
+          '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
+          '<div class="orc-channels">' + chans +
+            (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') + '</div>' +
+          '<span class="citation">' + (r.consent === 'self'
+            ? 'self-asserted — one click' : 'governed — the wizard can only request; then dual-meter approval') + '</span>' +
+          (r.recommended
+            ? btn('gold', 'Choose Record Keeper', 'check', 'Demo: selected the Record Keeper role — both channels are self-asserted.')
+            : btn('secondary', 'Choose ' + r.label, 'arrow-right', 'Demo: requested the ' + r.label + ' role — it now awaits dual-meter approval before it can act.')) +
+          '</div>';
+      }).join('');
+      return '<div class="op-role-grid">' + cards + '</div>';
+    }
+
+    /* ---- step 3: role-specific setup ---- */
+    function stepConfigure() {
+      var rk = O.byRole.record_keeper;
+      var ib = O.byRole.identity_broker;
+      var rkChans = rk.channels.map(function (c) { return '<span class="channel-chip channel-chip--self">' + esc(c) + '</span>'; }).join('');
+      var providerLive = O.broker.providers.filter(function (p) { return p.state === 'live'; })[0];
+
+      return '<div class="grid-2">' +
+        '<div class="card stack">' +
+          '<span class="eyebrow">If you chose Record Keeper</span>' +
+          '<h3 style="margin:0;color:var(--gov-fg)">Establish, one click</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(rk.what) + ' Both of its channels are self-asserted — no one needs to approve them.</p>' +
+          '<div class="orc-channels">' + rkChans + '</div>' +
+          '<div class="fsm" aria-label="Channel lifecycle">' +
+            '<span class="fsm-node">qualifiable</span><span class="fsm-arrow" aria-hidden="true">→</span>' +
+            '<span class="fsm-node">establishing</span><span class="fsm-arrow" aria-hidden="true">→</span>' +
+            '<span class="fsm-node">established</span></div>' +
+          '<p class="advanced-note">etl serves the geodata archive; the raster bytes themselves land in Phase H.</p>' +
+          btn('gold', 'Establish both channels', 'check', 'Demo: mirror and etl established — your node is now a Record Keeper, no approval needed.') +
+        '</div>' +
+        '<div class="card stack">' +
+          '<span class="eyebrow">If you chose Identity Broker</span>' +
+          '<h3 style="margin:0;color:var(--gov-fg)">DNS before cert</h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(O.broker.model) + '</p>' +
+          '<label class="stack" style="gap:var(--space-1)"><span>' + esc(providerLive.name) + ' API token</span>' +
+            '<input class="field-input" type="password" value="write-only-encrypted-token" autocomplete="off" /></label>' +
+          '<p class="advanced-note">' + esc(O.broker.providers.map(function (p) { return p.name + ' (' + p.state + ')'; }).join(' · ')) + '</p>' +
+          '<div class="banner banner--warning">' + S.icon('alert-triangle', { size: 'sm' }) +
+            '<div>Identity Broker is <strong>governed</strong>. Dropping a token sets up the channel, but <span class="mono">broker.dns</span> and <span class="mono">authority.grant</span> still await approval — and they touch a peer’s subtree, so co-affected peers must consent too (Meter C). <span class="pill pill--planned">future</span> non-Cloudflare DNS providers and wildcard certs are stubs.</div></div>' +
+          '<div class="cluster">' +
+            btn('primary', 'Save token & write DNS first', 'globe', 'Demo: token stored write-only; A-record written before any certificate, so no Let’s Encrypt budget is burned on a name that failed.') +
+            '<a class="btn btn--secondary" href="' + S.hrefV2('operator/dns.html') + '">' + S.icon('arrow-right', { size: 'sm' }) + ' Open DNS &amp; certificates</a>' +
+          '</div>' +
+        '</div></div>' +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+          '<strong style="color:var(--gov-fg)">The honest truth: only Record Keeper is one-click.</strong> ' +
+          'Record Keeper’s channels are self-asserted, so you turn them on yourself. Archivist, Social Moderator and Identity Broker are <strong>governed</strong> — this wizard can only <em>request</em> them. They then wait for the dual meter: the operator board (Meter A) below a seated legislature, the seated government’s supermajority (Meter B) the moment one exists. ' +
+          esc(O.plane.wall) + '<br />' +
+          '<span class="citation">Authority is granted by the government, never self-claimed — Art. V §7 · governed channels = Meter B · co-affected peers = Meter C</span></div></div>';
+    }
+
+    /* ---- step 4: you're set ---- */
+    function stepDone() {
+      return '<div class="card stack" style="max-inline-size:42rem">' +
+        '<div class="cluster">' + S.badge('success', 'Setup complete', 'check') +
+          S.pill('live', 'Record Keeper active', 'mirror + etl, self-asserted') + '</div>' +
+        '<p>Your node is alive and holding the public record. From here, the console shows your roles at a glance, the health line, and everything advanced behind one toggle.</p>' +
+        '<ul style="font-size:var(--text-sm);padding-inline-start:var(--space-5)">' +
+          '<li>Record Keeper is established now.</li>' +
+          '<li>Any governed role you requested is <strong>waiting for approval</strong> — track it on the console.</li>' +
+          '<li>Join a cluster, see your peers, and watch Full Faith &amp; Credit sync from the mesh page.</li></ul>' +
+        '<div class="cluster">' +
+          '<a class="btn btn--primary" href="' + S.hrefV2('operator/console.html') + '">' + S.icon('landmark', { size: 'sm' }) + ' Open the operator console</a>' +
+          '<a class="btn btn--secondary" href="' + S.hrefV2('operator/mesh.html') + '">' + S.icon('globe', { size: 'sm' }) + ' Join a cluster</a>' +
+        '</div></div>';
+    }
+
+    var BODIES = { 0: stepAccount, 1: stepName, 2: stepRole, 3: stepConfigure, 4: stepDone };
+
+    function section(s, active) {
+      var body = BODIES[s.n]();
+      return '<section class="stack" aria-labelledby="step-' + s.n + '-h"' + (s.n === active ? ' aria-current="step"' : '') + '>' +
+        '<h2 id="step-' + s.n + '-h"><span class="mc-id" aria-hidden="true">' + (s.n + 1) + '</span> ' + esc(s.label) +
+          (s.n === active ? ' <span class="pill pill--live">You are here</span>' : '') + '</h2>' +
+        body + '</section>';
+    }
+
+    function render() {
+      var active = 0;
+      var sections = STEPS.map(function (s) { return section(s, active); }).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · first-run setup</span>' +
+        '<h1>Set up your node</h1>' +
+        '<p class="page-intro">Five steps from a bare box to a live node on the mesh: claim an operator account, name the instance, pick a role, run any role-specific setup, and go. Every step is shown below; the first is active.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.plainNote) + ' ' +
+        esc(O.plane.board) + '<br />' +
+        '<span class="citation">Authority ≠ leadership · earned by population, granted by the government, never self-asserted — Art. V §7</span></div></div>' +
+
+        stepper(active) +
+        sections +
+
+        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) +
+        '<br /><span class="citation">forms — Identity Broker grant ' +
+        '<span class="form-id">F-SOC-004</span> is the legal floor; governed-role requests ride the dual-meter consent — Art. VII</span></div></div>';
+
+      var root = document.getElementById('root');
+      if (!root.__wired) {
+        root.addEventListener('click', function (ev) {
+          var b = ev.target.closest ? ev.target.closest('[data-announce]') : null;
+          if (b) S.announce(b.getAttribute('data-announce'));
+        });
+        root.__wired = true;
+      }
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

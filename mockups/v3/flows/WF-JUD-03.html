@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Case Lifecycle — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · JUD</span>
+        <h1>Case Lifecycle <span class="citation">WF-JUD-03</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-JUD-03", "title": "Case Lifecycle", "module": "flows", "nav": null, "roles": ["R-03", "R-22", "R-19", "R-21"], "workflows": ["WF-JUD-03"], "forms": [], "citation": "Art. IV §4 · WF-JUD-03", "flow": "WF-JUD-03", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-JUD-03",
+ "name": "Case Lifecycle",
+ "timeScale": "Medium (weeks–months)",
+ "trigger": "F-IND-016/017 case filing",
+ "actors": [
+  "R-03",
+  "R-22",
+  "R-19",
+  "R-21"
+ ],
+ "institutions": [
+  "I-JUD"
+ ],
+ "terminal": "Panel ≥3 and odd, scaled to severity (full court for major constitutional questions); jury where accused entitled; published opinion",
+ "basis": "Art. IV §4",
+ "entity": "Case",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-03 / R-22",
+   "action": "File case with claimed scale & severity",
+   "outcome": "Intake validation",
+   "form": "F-IND-016",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {
+     "role": "R-03"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "I-JUD",
+   "action": "Validate justiciability; classify severity from law's scale/scope definitions",
+   "outcome": "BRANCH: dismissed with reasons | accepted",
+   "engine": "Case engine",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "dismissed with reasons",
+     "goto": "terminal:dismissed with reasons"
+    },
+    {
+     "label": "accepted",
+     "goto": "terminal:accepted"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "Assign panel: ≥3 judges, odd, scaled to severity; full court for major constitutional questions",
+   "outcome": "Conflict screening applied",
+   "engine": "Panel engine (hardened, CLK-16)",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 4,
+   "actor": "Court / parties",
+   "action": "Initial hearing: scheduling, advocate appearances, pre-trial motions (dismiss, consolidate, protective orders)",
+   "outcome": "Case calendar set; motions ruled on the record — a playable meeting",
+   "engine": "Hearing session tooling",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 5,
+   "actor": "Parties",
+   "action": "Evidence submission & discovery: exhibits filed, witness lists exchanged, admissibility challenges ruled by panel",
+   "outcome": "Versioned evidence record; objections + rulings logged",
+   "engine": "Evidence docket",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 6,
+   "actor": "System / court / advocates",
+   "action": "If accused entitled: jury selection — random draw, voir dire filters, seating",
+   "outcome": "Jury empaneled as a live multi-player phase",
+   "engine": "WF-JUD-04",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 7,
+   "actor": "Parties / court",
+   "action": "Arguments: openings, witness examination & cross, closings — all on public record",
+   "outcome": "The deliberative human core; advocates must be zealous and competent",
+   "engine": "Hearing session tooling",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 8,
+   "actor": "Panel / jury",
+   "action": "Chambers & deliberation: panel confers in chambers; jury deliberates separately where seated",
+   "outcome": "Records sealed or published per law; verdict/judgement formed",
+   "engine": "Deliberation rooms (access-controlled)",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 9,
+   "actor": "Court",
+   "action": "Enter judgement / verdict",
+   "outcome": "Double-jeopardy flag set for criminal outcomes; remedies defined",
+   "engine": "Decision engine",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 10,
+   "actor": "Court",
+   "action": "Publish opinion",
+   "outcome": "Opinion linked as commentary to laws at issue; appeal path per court hierarchy",
+   "engine": "WF-SYS-03",
+   "screen": {
+    "href": "judiciary/case-docket.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

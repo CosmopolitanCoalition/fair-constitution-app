@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Translation status — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading translation status…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'translation/translation-home', title: 'Translation status', module: 'translation', nav: 'translation-home', citation: 'Languages × modalities · AI first round, then community-verified', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, T = window.CGA.fixtures.v2.tr, esc = S.esc;
+
+    function legend() {
+      return '<div class="tlegend">' + T.states.map(function (st) {
+        return '<span class="leg"><span class="swatch swatch--' + st.id + '"></span>' + esc(st.label) + '</span>';
+      }).join('') + '</div>';
+    }
+
+    function engineCard() {
+      var e = T.engine;
+      return '<section class="card card--inset" aria-labelledby="eng-h"><h2 id="eng-h">How a language gets translated</h2>' +
+        '<p class="gloss">' + esc(e.note) + '</p>' +
+        '<ol class="sop-steps">' + T.addLanguageSteps.map(function (s) {
+          return '<li><span class="sop-do">' + esc(s.do) + '</span><span class="sop-detail">' + esc(s.detail) + '</span>' +
+            (s.cite ? '<span class="citation">' + esc(s.cite) + '</span>' : '') + '</li>';
+        }).join('') + '</ol>' +
+        '<div class="grid-2">' +
+        '<p class="citation">' + S.icon('languages', { size: 'sm' }) + ' Engine: ' + esc(e.tier1) + ' + ' + esc(e.tail) + ' — pluggable.</p>' +
+        '<p class="citation">' + S.icon('lock', { size: 'sm' }) + ' ' + esc(e.privacy) + '</p>' +
+        '<p class="citation">' + S.icon('file-text', { size: 'sm' }) + ' Files: ' + esc(e.naming) + '</p>' +
+        '<p class="citation">' + S.icon('users', { size: 'sm' }) + ' Verified by people who read the interface in that language.</p>' +
+        '</div></section>';
+    }
+
+    function matrix() {
+      var head = '<tr><th scope="col">Language</th>' +
+        T.modalities.map(function (m) { return '<th scope="col" title="' + esc(m.basis) + '">' + esc(m.label) + '</th>'; }).join('') +
+        '<th scope="col">Overall</th></tr>';
+      var rows = T.matrix.map(function (r) {
+        var l = T.byLang[r.code];
+        var cells = T.modalities.map(function (m) {
+          var c = r.cells[m.id], st = T.byState[c.state];
+          var label = c.state === 'none' ? '—' : c.pct + '%';
+          return '<td class="tcell tcell--' + c.state + '" aria-label="' + esc(m.label + ': ' + st.label + (c.state === 'none' ? '' : ', ' + c.pct + ' percent')) + '">' +
+            '<span class="tdot" title="' + esc(st.label) + '">' + label + '</span></td>';
+        }).join('');
+        return '<tr><th scope="row" class="lang-cell"><a href="' + S.hrefV2('translation/language.html?code=' + r.code) + '">' +
+          '<span class="lang-native"' + (l.dir === 'rtl' ? ' dir="rtl"' : '') + '>' + esc(l.native) + '</span>' +
+          '<span class="lang-code">' + esc(r.code) + '</span></a>' + (l.source ? ' <span class="pill pill--pass">Source</span>' : '') + '</th>' +
+          cells +
+          '<td class="tcell"><div class="tprog" title="' + r.overall + '% overall"><i style="inline-size:' + r.overall + '%"></i></div>' +
+          '<span class="lang-code">' + r.overall + '%</span></td></tr>';
+      }).join('');
+      return '<div class="table-wrap"><table class="tmatrix"><caption class="visually-hidden">Translation coverage by language and modality</caption>' +
+        '<thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('languages', { size: 'sm' }) + ' Translation support</span><h1>Translation status</h1>' +
+        '<p class="page-intro">World of Statecraft speaks every language its people do. <strong>' + T.totals.mapped + '</strong> are mapped from the geodata, <strong>' + T.totals.shipped + '</strong> shipped on the marketing site, and the rest are queued. ' +
+        'The machine writes the first round; the people who read each language verify it from there.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + ' · showing the ' + T.totals.curated + ' most-complete</p></header>' +
+
+        '<section aria-labelledby="cov-h"><div class="cluster" style="justify-content:space-between"><h2 id="cov-h">Coverage</h2>' +
+        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('translation/language.html?code=es') + '">Open a language ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
+        '<p class="page-intro">Six modalities per language. A cell shows how complete it is and where it sits in the lifecycle — pick a language to help.</p>' +
+        legend() + matrix() + '</section>' +
+
+        '<section aria-labelledby="mod-h"><h2 id="mod-h">The six modalities</h2><div class="role-grid">' +
+        T.modalities.map(function (m) {
+          return '<div class="role-card"><span class="role-name">' + S.icon(m.icon, { size: 'sm' }) + ' ' + esc(m.label) + '</span>' +
+            '<span>' + esc(m.basis) + '</span><span class="citation">' + esc(m.source) + '</span></div>';
+        }).join('') + '</div></section>' +
+
+        engineCard() +
+
+        '<section class="card" aria-labelledby="add-h"><h2 id="add-h">Add a language</h2>' +
+        '<p>Don’t see yours? Any of the ' + T.totals.mapped + ' mapped languages can be opened for translation, and a new one can be requested. The machine seeds every modality at once, then it opens for your review.</p>' +
+        '<div class="cluster"><a class="btn btn--primary" href="' + S.hrefV2('support/report.html?ref=' + encodeURIComponent('Add a language')) + '">Request a language ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('learn/lesson.html?sop=verify-translation') + '">' + S.icon('play', { size: 'sm' }) + ' How verification works</a></div></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

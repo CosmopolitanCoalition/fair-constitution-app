@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guided tour — World of Statecraft (CGA mockups v2)</title>
+  <meta name="description" content="A single linear path through the World of Statecraft game layer — walk it step by step, in order, with Back / Next on every screen." />
+  <link rel="icon" href="assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="assets/css/mockup.css" />
+  <link rel="stylesheet" href="assets/css/v2.css" />
+  <script src="assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the tour…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'tour', title: 'Guided tour', module: 'shared', nav: 'tour', citation: 'A linear walkthrough · Back / Next on every screen', register: 'governance' };
+  </script>
+  <script src="assets/js/fixtures.js"></script>
+  <script src="assets/js/fixtures-v2.js"></script>
+  <script src="manifest.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, esc = S.esc, TOUR = S.tour;
+
+    function acts() {
+      var order = [], groups = {};
+      TOUR.forEach(function (stop, i) {
+        if (!groups[stop.act]) { groups[stop.act] = []; order.push(stop.act); }
+        groups[stop.act].push({ stop: stop, i: i });
+      });
+      return order.map(function (a) { return { act: a, stops: groups[a] }; });
+    }
+
+    function render() {
+      var groups = acts();
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('map', { size: 'sm' }) + ' Guided tour</span>' +
+        '<h1>Walk the whole thing, in order</h1>' +
+        '<p class="page-intro">One linear path through World of Statecraft — ' + TOUR.length + ' stops across ' + groups.length + ' acts. ' +
+        'Start at the top and a <strong>Back / Next</strong> bar rides along at the top of every screen, so you can step through the whole experience and iterate as you go. Jump in anywhere.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+        '<a class="btn btn--primary" href="' + S.tourHref(0) + '">Start the tour ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+        '<span class="citation">or pick any step below</span></div></header>' +
+
+        groups.map(function (g) {
+          return '<section class="tour-act" aria-labelledby="act-' + esc(g.act.replace(/\s+/g, '-')) + '">' +
+            '<h2 id="act-' + esc(g.act.replace(/\s+/g, '-')) + '">' + esc(g.act) + '</h2>' +
+            g.stops.map(function (o) {
+              return '<a class="tour-stop" href="' + S.tourHref(o.i) + '">' +
+                '<span class="tour-stop-n">' + (o.i + 1) + '</span>' +
+                '<span class="tour-stop-title">' + esc(o.stop.title) + '</span>' +
+                '<span class="tour-stop-blurb">' + esc(o.stop.blurb) + '</span>' +
+                '<span class="lesson-meta">' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+            }).join('') + '</section>';
+        }).join('') +
+
+        '<div class="lr-note">' + S.icon('info', { size: 'sm' }) +
+        '<div>The tour never traps you — each screen is the real mockup, fully usable, with the Back / Next bar added on top. ' +
+        'Leave the tour any time by using the normal menu, or come back here for the full list.</div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

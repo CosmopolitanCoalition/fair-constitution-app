@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legislature Constitution — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Legislature Constitution <span class="citation">WF-LEG-01</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-01", "title": "Legislature Constitution", "module": "flows", "nav": null, "roles": ["R-09", "R-10"], "workflows": ["WF-LEG-01"], "forms": [], "citation": "Art. II §1–4 · WF-LEG-01", "flow": "WF-LEG-01", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-01",
+ "name": "Legislature Constitution",
+ "timeScale": "Short (first sessions)",
+ "trigger": "Election results certified",
+ "actors": [
+  "R-09",
+  "R-10"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-SPK",
+  "I-ADM",
+  "I-ELB"
+ ],
+ "terminal": "Fully organized legislature: seated, speaker, rules/ethics, admin office, proper election board, committees",
+ "basis": "Art. II §1–4",
+ "entity": null,
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Winners accept seats / oath",
+   "outcome": "Legislature constituted; access provisioned",
+   "form": "F-LEG-001",
+   "screen": {
+    "href": "legislature/legislature-home.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "R-09",
+   "action": "Elect Speaker (supermajority RCV)",
+   "outcome": "R-10 seated",
+   "engine": "WF-LEG-02",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 3,
+   "actor": "R-09",
+   "action": "Adopt Rules of Order + Ethics Code",
+   "outcome": "Binding procedures live",
+   "engine": "WF-LEG-15",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 4,
+   "actor": "R-09",
+   "action": "Create independent Administrative Office",
+   "outcome": "I-ADM staffed",
+   "form": "F-LEG-013",
+   "screen": {
+    "href": "legislature/legislature-home.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 5,
+   "actor": "R-09",
+   "action": "Create proper Election Board",
+   "outcome": "Bootstrap retired",
+   "engine": "WF-ELE-10",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 6,
+   "actor": "R-09",
+   "action": "Create committees; run seat assignment; elect chairs",
+   "outcome": "Legislature fully operational; bill lifecycle opens",
+   "engine": "WF-LEG-03 + WF-LEG-04",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Joint ledgers — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading joint ledgers…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/joint-ledgers', title: 'Joint ledgers', module: 'economy', nav: 'joint-ledgers', citation: 'Joint-controlled ledgers — shared resources · Art. V §2 + freedom to contract · Art. I', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-LEG-037…040, F-IND-018…023, F-TRE-001…004, F-ORG-008) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function neverFederated() {
+      return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        'A private ledger lives only on this server — never federated, like a ballot.</span>';
+    }
+
+    function signerChip(name, state) {
+      var cls = state === 'approved' ? ' signer-chip--approved' : (state === 'pending' ? ' signer-chip--pending' : '');
+      var ic = state === 'approved' ? 'check' : (state === 'pending' ? 'clock' : 'user');
+      return '<span class="signer-chip' + cls + '">' + S.icon(ic, { size: 'sm' }) + esc(name) + '</span>';
+    }
+
+    function ledgerCard(jl, idx) {
+      var visTone = jl.public ? 'info' : 'neutral';
+      var visLabel = jl.public ? 'Public ledger' : 'Private ledger';
+      var visTip = jl.public
+        ? 'A jurisdiction-owned shared fund is recorded on the public, hash-chained ledger.'
+        : 'A ledger between people or organizations is private — never federated.';
+
+      var owners = jl.coOwners.map(function (o) {
+        var kindLabel = o.kind === 'jurisdiction' ? 'jurisdiction' : (o.kind === 'org' ? 'organization' : o.kind);
+        return '<span class="party-chip">' + S.icon(o.kind === 'jurisdiction' ? 'landmark' : (o.kind === 'org' ? 'building' : 'user'), { size: 'sm' }) +
+          esc(o.party) + ' <span class="party-role">' + esc(kindLabel) + ' · ' + esc(o.role) + '</span></span>';
+      }).join('');
+
+      var pending = jl.pending.length ? jl.pending.map(function (mv, mi) {
+        var approved = (mv.approvals || []).map(function (n) { return signerChip(n, 'approved'); }).join('');
+        var needs = (mv.needs || []).map(function (n) { return signerChip(n, 'pending'); }).join('');
+        var total = (mv.approvals || []).length + (mv.needs || []).length;
+        var got = (mv.approvals || []).length;
+        var btnId = 'approve-' + idx + '-' + mi;
+        return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+          '<strong style="color:var(--gov-fg)">' + esc(mv.movement) + '</strong>' +
+          S.pill('wait', got + ' of ' + total + ' agreed', 'A movement waits until every required signer has approved.') + '</div>' +
+          '<p class="gloss" style="margin-block:var(--space-2)">This movement is held until the agreement is complete. Approvals so far, and who is still needed:</p>' +
+          '<div class="cluster" style="gap:var(--space-2)">' + approved + needs + '</div>' +
+          '<div style="margin-block-start:var(--space-3)">' +
+          '<button type="button" class="btn btn--primary btn--sm" data-approve="' + esc(btnId) + '" data-mv="' + esc(mv.movement) + '" data-ledger="' + esc(jl.name) + '">' +
+          S.icon('check', { size: 'sm' }) + 'Approve this movement</button> ' +
+          '<span class="lr-note">Simulated — your signature is one of several required.</span></div></div>';
+      }).join('') :
+        '<p class="gloss">' + S.icon('check', { size: 'sm' }) + ' No movements waiting. The account is settled — any new movement will need the agreement of every signer above.</p>';
+
+      return '<section class="card" aria-label="' + esc(jl.name) + '">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+        '<div><h3 style="margin:0">' + esc(jl.name) + '</h3>' +
+        '<p class="gloss" style="margin-block:var(--space-1) 0">' + esc(jl.purpose) + '</p></div>' +
+        S.badge(visTone === 'info' ? 'info' : 'neutral', visLabel, jl.public ? 'globe' : 'lock') + '</div>' +
+        '<div class="cluster" style="gap:var(--space-3);margin-block:var(--space-3)">' +
+        '<span class="wallet-balance" style="font-size:var(--text-2xl)">' + esc(jl.balance) + '</span>' +
+        S.pill('info', jl.approvalRule, 'The approval rule that gates every movement on this ledger.') + '</div>' +
+        (jl.public ? '' : '<div style="margin-block-end:var(--space-2)">' + neverFederated() + '</div>') +
+        '<div class="eyebrow" style="margin-block-start:var(--space-2)">Co-owners (signers)</div>' +
+        '<div class="agreement-parties">' + owners + '</div>' +
+        '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('shield', { size: 'sm' }) +
+        '<div>Joint control by agreement — a co-owned account whose movements need the consent of the co-owners. ' +
+        'Grounded in shared, indivisible resources <span class="citation">Art. V §2</span> and the freedom to contract <span class="citation">Art. I</span>.</div></div>' +
+        '<div class="eyebrow" style="margin-block-start:var(--space-4)">Movements waiting on agreement</div>' +
+        '<div class="stack" style="margin-block-start:var(--space-2)">' + pending + '</div>' +
+        '<p class="citation" style="margin-block-start:var(--space-3)">Joint ledger <span class="form-id">F-IND-023</span> · movements <span class="form-id">F-TRE-002</span></p>' +
+        '</section>';
+    }
+
+    function render() {
+      var ledgers = E.jointLedgers;
+      var cards = ledgers.map(ledgerCard).join('');
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the exchange</span><h1>Joint ledgers</h1>' +
+        '<p class="page-intro">A joint ledger is a co-owned account: its balance belongs to more than one party, and no movement leaves it ' +
+        'until <strong>every required co-owner agrees</strong>. It is the economic form of joint control between agreeing users, ' +
+        'organizations, and jurisdictions — the same idea as a two-signature account, written into the constitution.</p>' +
+        '<p class="page-intro">Two roots hold it up: <strong>shared, indivisible resources</strong> that flow between jurisdictions ' +
+        '<span class="citation">Art. V §2</span>, and the plain <strong>freedom to contract</strong> between consenting parties ' +
+        '<span class="citation">Art. I</span>. A movement is proposed, sits in waiting, and only settles once the ledger’s ' +
+        'approval rule is satisfied — one signer can never move shared money alone.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        plannedBanner() +
+
+        '<section class="card card--inset" aria-labelledby="how-h"><h2 id="how-h">How a joint movement settles</h2>' +
+        '<ol class="stack" style="margin:0;padding-inline-start:var(--space-4)">' +
+        '<li><strong>Propose.</strong> Any co-owner proposes a movement — a payment out, a transfer, a drawdown — with a description and amount.</li>' +
+        '<li><strong>Wait.</strong> The movement is held. Each co-owner who agrees appears as an approved signer; those still required appear as pending.</li>' +
+        '<li><strong>Settle.</strong> Once the ledger’s approval rule is met — all signers, or a majority, as agreed — the movement posts. ' +
+        'A public ledger writes it to the hash-chained record; a private one keeps it local.</li>' +
+        '</ol>' +
+        '<p class="gloss" style="margin-block-start:var(--space-3)">No clause in any joint agreement can waive a constitutional right ' +
+        '<span class="citation">Art. I Supremacy of Rights</span> — the same floor that guards every instrument on the ' +
+        '<a href="' + S.hrefV2('economy/agreements.html') + '">Instruments of agreement</a> surface.</p></section>' +
+
+        '<section aria-labelledby="led-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 id="led-h">Your joint ledgers</h2>' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-new-ledger>' + S.icon('users', { size: 'sm' }) + 'New joint ledger</button></div>' +
+        '<p class="gloss" style="margin-block-start:0">A new ledger names its co-owners and an approval rule up front; every co-owner must accept before it opens.</p>' +
+        '<div class="stack" style="margin-block-start:var(--space-3)">' + cards + '</div></section>' +
+
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold a joint ledger</h2><ul>' +
+        '<li><strong>No movement without agreement.</strong> A single co-owner can never move shared money — the engine holds it until the approval rule is met · <span class="citation">Art. V §2</span></li>' +
+        '<li><strong>Freedom to contract, with a floor.</strong> Parties set their own approval rule and purpose, but no clause may waive a right · <span class="citation">Art. I Supremacy of Rights</span></li>' +
+        '<li><strong>Public when public, private when private.</strong> A jurisdiction-owned shared fund posts to the hash-chained public ledger; a ledger between people or orgs stays private and never federates.</li>' +
+        '<li><strong>Shared resources are indivisible.</strong> The model exists for resources that flow between jurisdictions and cannot be cleanly split · <span class="citation">Art. V §2</span></li>' +
+        '<li><strong>Currency stays root-reserved.</strong> A joint ledger holds and moves the unit; it never issues it · <span class="citation">Art. V §5</span></li>' +
+        '</ul>' +
+        '<p class="citation">Related: <a href="' + S.hrefV2('economy/agreements.html') + '">Instruments of agreement</a> · ' +
+        '<a href="' + S.hrefV2('economy/wallet.html') + '">My wallet</a> · ' +
+        '<a href="' + S.hrefV2('economy/treasury.html') + '">Public finance</a></p>' +
+        '<p class="citation">Org-side joint accounts also surface on <a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination <span class="v1-tag">v1</span></a>.</p>' +
+        '</section>';
+
+      var root = document.getElementById('root');
+      root.querySelectorAll('[data-approve]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          S.announce('Your approval was recorded for “' + btn.getAttribute('data-mv') + '” on ' + btn.getAttribute('data-ledger') +
+            '. The movement still waits on the remaining signers before it settles. (Simulated.)');
+          btn.disabled = true;
+          btn.innerHTML = S.icon('check', { size: 'sm' }) + 'You approved — awaiting others';
+        });
+      });
+      var nb = root.querySelector('[data-new-ledger]');
+      if (nb) nb.addEventListener('click', function () {
+        S.announce('New joint ledger: name the co-owners and an approval rule. Every co-owner must accept before the ledger opens. (Simulated.)');
+      });
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

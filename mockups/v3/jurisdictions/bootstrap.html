@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jurisdiction bootstrap — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Jurisdictions · bootstrap</span>
+        <h1>Jurisdiction bootstrap — dormant boundary to self-governing</h1>
+        <p class="page-intro">Every loaded boundary starts dormant. When enough verified residents accumulate,
+          the system triggers the first election and the full institutional stack assembles in a fixed
+          30-step sequence. This tracker shows New York County mid-bootstrap, at step 19 of 30.</p>
+        <p class="citation">Critical population → first election → full governance stack · Art. II §1; Art. VI · CLK-06</p>
+      </header>
+
+      <div class="banner banner--warning" role="status">
+        <svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
+        <div><span class="banner-title">Bootstrap election board — temporary, replacement queued.</span>
+          Until a legislature exists, the system itself acts as the election board using constitutional
+          defaults (STV/Droop, 5-year terms, 5–9 seats). Step 14 creates the proper independent board and
+          retires this one. <span class="citation">Art. II §2 · WF-ELE-02</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where New York County sits in the Jurisdiction lifecycle</h2>
+        <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
+        <noscript><p class="gloss">Boundary-Loaded (dormant) → Critical-Population → <strong>Bootstrapping</strong> →
+          Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode (Art. VI)]</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="clk-h">
+        <h2 id="clk-h">Critical population threshold</h2>
+        <p>The first election triggers automatically once verified residents pass the threshold for the
+          jurisdiction's tier. New York County crossed it on 2030-09-12 — shown in your timezone
+          (UTC−5 · America/New_York) · stored as UTC.</p>
+        <div class="meter-block">
+          <div class="meter" role="img" aria-label="Verified residents: threshold met">
+            <span class="meter-fill meter-fill--met" style="inline-size:100%"></span>
+          </div>
+          <div class="meter-caption"><span>512 of 500 verified residents at trigger time</span>
+            <span>critical population threshold · CLK-06</span></div>
+        </div>
+        <p class="amendable" style="margin-block-start:var(--space-3)">
+          <span class="amendable-value">500 verified residents</span> (local tier)
+          <span class="amendable-meta">Set by Act 2030-02 · effective 2030-03-01 · range 100–10,000 · amendable per jurisdiction tier · CLK-06 · Art. II §1</span>
+        </p>
+        <p class="gloss">Gloss: the threshold counts verified residencies (R-02), not raw registrations — the
+          live census from residency verifications drives it (WF-JUR-09).</p>
+        <p style="margin-block-start:var(--space-3)">Activation is pegged to real-world population: institutions
+          go live wherever enough people actually play. A county can reach critical population before its state;
+          Earth-wide mechanisms can activate first. The player base grows into the final structure chartered at
+          setup — every boundary is already loaded, waiting for its residents.</p>
+        <p class="citation">Critical population per jurisdiction tier · CLK-06</p>
+      </section>
+
+      <section class="card" aria-labelledby="seq-h">
+        <h2 id="seq-h">The 30-step bootstrap sequence <span class="citation" id="seq-progress"></span></h2>
+        <p class="cc-small">Seven stages, fixed order. Steps run automatically where the constitution allows
+          it; elected humans take over from stage 4. Form names link the sequence to the surfaces that
+          render them.</p>
+        <div id="seq" class="stack" style="gap:var(--space-4)"></div>
+        <noscript><p class="gloss">The interactive tracker needs JavaScript. The stages are: 1 System genesis ·
+          2 Population onboarding · 3 First election · 4 Legislature constitutes · 5 Executive branch established ·
+          6 Judiciary established · 7 Full governance achieved.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-01.html">WF-JUR-01 — jurisdiction bootstrap</a>
+            (this whole sequence) and <a href="../flows/WF-ELE-02.html">WF-ELE-02 — bootstrap first election</a>
+            (steps 3–9). Restoration mode (Art. VI) reuses this machinery — see
+            <a href="restoration.html">the restoration drill</a>.</p>
+          <p><strong>Entity state machine:</strong> Jurisdiction — this page renders the <em>Bootstrapping</em>
+            state; the strip above shows the full lifecycle.</p>
+          <p class="citation">Art. II §1 · Art. VI · CLK-06</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'jurisdictions/bootstrap',
+      title: 'Jurisdiction bootstrap',
+      module: 'jurisdictions',
+      nav: 'jurisdiction-browser',
+      roles: ['R-01', 'R-03', 'R-08'],
+      workflows: ['WF-JUR-01', 'WF-ELE-02'],
+      forms: [],
+      citation: 'Critical population → first election → full stack · CLK-06 · Art. II §1; Art. VI',
+      flow: 'WF-JUR-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+      var CURRENT = 19; /* New York County's position in the drill */
+      var FID = /F-[A-Z]{3}-\d{3}/g;
+
+      function stageLabel(raw) {
+        /* "STAGE 4: LEGISLATURE CONSTITUTES" → "Stage 4 — Legislature constitutes" */
+        var parts = raw.split(':');
+        var n = parts[0].trim().replace(/^STAGE/i, 'Stage');
+        var label = (parts[1] || '').trim().toLowerCase();
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+        return n + ' — ' + label;
+      }
+
+      function formChips(formsStr) {
+        var ids = formsStr.match(FID) || [];
+        var chips = ids.map(function (fid) {
+          var f = BY.forms[fid];
+          return '<span class="form-chip">' + esc(f ? f.name : fid) + ' <span class="form-id">' + fid + '</span></span>';
+        }).join(' ');
+        if (!ids.length) chips = '<span class="engine-chip">' + esc(formsStr) + '</span>';
+        return chips;
+      }
+
+      function render() {
+        /* Jurisdiction state strip — Bootstrapping highlighted */
+        var entity = BY.entities['Jurisdiction'];
+        document.getElementById('jur-states').innerHTML = entity.states.map(function (st, i) {
+          var cur = st.indexOf('Bootstrapping') === 0;
+          return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+        }).join('');
+
+        /* 30 steps grouped by their 7 stages */
+        var groups = [];
+        F.registry.bootstrap.forEach(function (step) {
+          var last = groups[groups.length - 1];
+          if (!last || last.stage !== step.stage) { last = { stage: step.stage, steps: [] }; groups.push(last); }
+          last.steps.push(step);
+        });
+
+        var curStep = F.registry.bootstrap[CURRENT - 1];
+        document.getElementById('seq-progress').textContent =
+          'step ' + CURRENT + ' of 30 · ' + stageLabel(curStep.stage);
+
+        document.getElementById('seq').innerHTML = groups.map(function (g) {
+          var done = g.steps.every(function (s) { return s.step < CURRENT; });
+          var active = g.steps.some(function (s) { return s.step === CURRENT; });
+          var badge = done ? S.badge('success', 'Complete', 'check')
+            : active ? S.badge('info', 'In progress', 'clock')
+            : S.badge('neutral', 'Pending', 'clock');
+          var items = g.steps.map(function (s) {
+            var cls = s.step < CURRENT ? '' : (s.step === CURRENT ? ' flow-step--current' : '');
+            var mark = s.step < CURRENT
+              ? S.icon('check', { size: 'sm', label: 'done' })
+              : (s.step === CURRENT ? S.icon('arrow-right', { size: 'sm', label: 'current step' }) : S.icon('clock', { size: 'sm', label: 'pending' }));
+            return '<li class="flow-step' + cls + '"' + (s.step === CURRENT ? ' aria-current="step"' : '') + '>' +
+              '<div class="flow-step-head"><span class="flow-step-n">' + s.step + '</span> ' + mark +
+              ' <span class="flow-action">' + esc(s.action) + '</span></div>' +
+              '<p class="flow-outcome">' + esc(s.details) + '</p>' +
+              '<div class="cluster" style="gap:var(--space-1);margin-block-start:var(--space-1)">' + formChips(s.forms) + '</div>' +
+              '</li>';
+          }).join('');
+          return '<section aria-label="' + esc(stageLabel(g.stage)) + '">' +
+            '<h3 style="display:flex;align-items:center;gap:var(--space-2)">' + esc(stageLabel(g.stage)) + ' ' + badge + '</h3>' +
+            '<ol class="flow-steps">' + items + '</ol></section>';
+        }).join('');
+
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

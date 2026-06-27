@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Department Creation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · EXE</span>
+        <h1>Department Creation <span class="citation">WF-EXE-04</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-EXE-04", "title": "Department Creation", "module": "flows", "nav": null, "roles": ["R-09", "R-14"], "workflows": ["WF-EXE-04"], "forms": [], "citation": "Art. III §4 (context); CGA Phase 4 · WF-EXE-04", "flow": "WF-EXE-04", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-EXE-04",
+ "name": "Department Creation",
+ "timeScale": "Medium",
+ "trigger": "Department Creation Act (legislative vote)",
+ "actors": [
+  "R-09",
+  "R-14"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-DEP"
+ ],
+ "terminal": "Department with charter + oversight assignment (Chief Exec, Treasury, Defense, State, Justice, custom)",
+ "basis": "Art. III §4 (context); CGA Phase 4",
+ "entity": "Department / Board",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Department Creation Act: charter + which executive oversees",
+   "outcome": "I-DEP created (Chief Exec, Treasury, Defense, State, Justice, custom)",
+   "form": "F-LEG-016",
+   "screen": {
+    "href": "executive/departments.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "System",
+   "action": "Provision department workspace, reporting hooks, board seats",
+   "outcome": "Hand-off to WF-EXE-05",
+   "engine": "Executive module",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "Continues in WF-EXE-05",
+     "goto": {
+      "wf": "WF-EXE-05",
+      "step": 1
+     }
+    }
+   ]
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive actions — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Executive · actions</span>
+        <h1>Executive actions</h1>
+        <p class="page-intro">Orders, policy proposals, and investigations — all within the authority the legislature
+          delegated. The engine validates scope before anything takes effect: an order outside the delegated scope is
+          rejected before issuance, and the rejection itself goes on the public record. Every issued order remains
+          judicially reviewable.</p>
+        <p class="citation">Within delegated authority · Art. III §2–3 — judicially reviewable · Art. IV §5</p>
+      </header>
+
+      <div class="banner banner--info">
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        <div><span class="banner-title">Scope validation happens before issuance.</span>
+          The Constitutional Engine checks every order against the delegation act and the constitutional order —
+          elections, sessions, and courts cannot be disrupted, even under emergency powers.
+          <span class="hardened" style="margin-inline-start:var(--space-2)"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="citation" style="display:block">Civic-process protection · Art. II §7 — delegated scope · Art. III §2</span></div>
+      </div>
+
+      <section class="card" aria-labelledby="compose-h">
+        <h2 id="compose-h">Issue an order</h2>
+        <div id="form-exe-005"></div>
+        <form id="order-form" style="margin-block-start:var(--space-4)">
+          <div class="field">
+            <label class="field-label" for="ord-title">Order title</label>
+            <input class="field-input" id="ord-title" type="text" value="Extend emergency shelter operating hours" />
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="ord-dept">Department</label>
+              <select class="select" id="ord-dept">
+                <option>Emergency Management</option>
+                <option>Public Works &amp; Utilities</option>
+                <option>Treasury</option>
+                <option>Justice Administration</option>
+                <option>Chief Executive Office</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="ord-scope">Demo: claimed scope</label>
+              <select class="select" id="ord-scope">
+                <option value="in">Storm response — within delegated scope</option>
+                <option value="out">Election scheduling — outside delegated scope</option>
+              </select>
+              <span class="field-hint">Two demo paths: the engine issues the first and rejects the second pre-issuance.</span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary">Submit order for validation</button>
+          <p id="order-confirm" role="status" style="margin-block-start:var(--space-3)"></p>
+        </form>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="register-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="register-h">Order register</h2>
+        </div>
+        <div id="order-register" aria-live="polite"></div>
+        <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The order register is
+          rendered from fixtures and requires JavaScript. It contains issued storm-response orders and one rejected
+          attempt to defer the New York County ranked window (rejected pre-issuance · Art. II §7).</p></noscript>
+        <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Timestamps shown in your timezone (UTC−5 · America/New_York) · stored as UTC — rejected orders never take
+          effect; the attempt is recorded · Art. III §2</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="policy-h">
+          <h2 id="policy-h">Policy proposals</h2>
+          <div id="form-exe-002"></div>
+          <div class="card card--inset" style="margin-block-start:var(--space-3)">
+            <p><strong>Lead service-line replacement standard</strong></p>
+            <p class="cc-small">Proposed to the Public Works &amp; Utilities board 2031-05-20; the board adopts,
+              amends, or declines — proposals do not bypass the board.</p>
+            <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> With the board</span>
+          </div>
+          <button type="button" class="btn btn--secondary btn--sm" id="policy-btn" style="margin-block-start:var(--space-3)">Simulate a proposal</button>
+          <p id="policy-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+        </section>
+
+        <section class="card" aria-labelledby="invest-h">
+          <h2 id="invest-h">Investigations</h2>
+          <div id="form-exe-004"></div>
+          <div class="card card--inset" style="margin-block-start:var(--space-3)">
+            <p><strong>Treasury disbursement latency</strong></p>
+            <p class="cc-small">Opened 2031-05-02. Findings can feed a governor-removal request
+              (<a href="../flows/WF-EXE-06.html">WF-EXE-06</a>) or new legislation.</p>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"></use></svg> Under investigation</span>
+          </div>
+          <button type="button" class="btn btn--secondary btn--sm" id="invest-btn" style="margin-block-start:var(--space-3)">Simulate an investigation order</button>
+          <p id="invest-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          <p class="citation" style="margin-block-start:var(--space-2)">Full and equal investigative power over overseen departments · Art. III §4</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="grants-h">
+        <h2 id="grants-h">Grants &amp; appropriations</h2>
+        <p class="cc-small">The legislature appropriates funds by act; the executive administers applications against
+          those appropriations. Every award and disbursement is appended to the audit chain — anyone can trace each
+          unit from act to payee.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Appropriation line</th><th scope="col" class="mono">Act</th><th scope="col">Appropriated</th><th scope="col">Remaining</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Clean air retrofit fund</td><td class="mono" data-no-i18n>Act 2031-09</td><td data-no-i18n>12,000,000</td><td data-no-i18n>7,250,000</td></tr>
+              <tr><td>Civic education micro-grants</td><td class="mono" data-no-i18n>Act 2030-22</td><td data-no-i18n>1,500,000</td><td data-no-i18n>640,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <form id="grant-form" style="margin-block-start:var(--space-4)" novalidate>
+          <h3 style="font-size:var(--text-base)">Apply against an appropriation</h3>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="grant-line">Appropriation line</label>
+              <select class="select" id="grant-line">
+                <option>Clean air retrofit fund · Act 2031-09</option>
+                <option>Civic education micro-grants · Act 2030-22</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="grant-org">Applying organization</label>
+              <select class="select" id="grant-org"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label class="field-label" for="grant-amount">Amount requested</label>
+              <input class="field-input" id="grant-amount" type="number" value="250000" min="1" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="grant-purpose">Purpose</label>
+              <input class="field-input" id="grant-purpose" type="text" value="Retrofit HVAC filtration in three depot buildings" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary">Submit application</button>
+          <p id="grant-confirm" role="status" style="margin-block-start:var(--space-3)"></p>
+        </form>
+        <p class="citation">Funds appropriated by legislative act · Art. II §2 — applications administered by the
+          executive · Art. III §2 — disbursements audit-chained · WF-SYS-04</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-07.html">WF-EXE-07 executive order / policy proposal</a> ·
+            <a href="../flows/WF-EXE-08.html">WF-EXE-08 investigation order</a>. Constitutional-challenge outcomes are
+            enforced from here (<a href="../judiciary/constitutional-challenge.html">Art. IV §5 tracker</a>).</p>
+          <p><strong>Entity state machine:</strong> Executive Office — this surface operates inside whichever state
+            the office is in (delegated or elected); the order lifecycle itself is Drafted → Scope-Validated →
+            Issued | Rejected-pre-issuance → [Judicially Reviewed].</p>
+          <p class="citation">Art. III §2–4 · Art. IV §5 · Art. II §7</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'executive/executive-actions',
+      title: 'Executive actions',
+      module: 'executive',
+      nav: 'executive-actions',
+      roles: ['R-14', 'R-15', 'R-16'],
+      workflows: ['WF-EXE-07', 'WF-EXE-08'],
+      forms: ['F-EXE-005', 'F-EXE-002', 'F-EXE-004'],
+      citation: 'Orders within delegated scope · Art. III §2–3 — judicially reviewable · Art. IV §5',
+      flow: 'WF-EXE-07',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      /* Page-local register; pre-seeded with realistic orders. */
+      var orders = [
+        { id: 'EO-2031-14', title: 'Activate emergency shelter network', dept: 'Emergency Management',
+          when: '2031-05-04 09:12', status: 'issued',
+          note: 'Within delegated emergency oversight · Hurricane Dorinda response' },
+        { id: 'EO-2031-13', title: 'Reassign Public Works crews to storm-debris removal', dept: 'Public Works & Utilities',
+          when: '2031-05-03 16:40', status: 'issued',
+          note: 'Within delegated scope · charter function' },
+        { id: 'EO-2031-11', title: 'Defer the New York County ranked-window opening by 14 days', dept: 'Chief Executive Office',
+          when: '2031-05-02 11:05', status: 'rejected',
+          note: 'Rejected pre-issuance: elections cannot be disrupted (Art. II §7) and election scheduling is outside the delegated scope (Art. III §2)' }
+      ];
+      var sim = { policy: false, invest: false };
+      var seq = 15;
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
+        return '<div class="card card--inset"><h3>' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+      }
+
+      function orderRow(o) {
+        var statusHtml = o.status === 'issued'
+          ? S.badge('success', 'Issued', 'check') +
+            ' <span class="tag-chip">judicially reviewable · Art. IV §5</span>'
+          : S.badge('danger', 'Rejected pre-issuance', 'x');
+        return '<div class="log-row' + (o.status === 'rejected' ? ' log-row--rejected' : '') + '">' +
+          '<span class="log-seq" data-no-i18n>' + esc(o.id) + '</span>' +
+          '<div style="flex:1 1 16rem;min-inline-size:0"><strong>' + esc(o.title) + '</strong>' +
+          '<span class="cc-small" style="display:block;color:var(--gov-fg-muted)">' + esc(o.dept) + ' · ' + esc(o.when) + '</span>' +
+          '<span class="citation" style="display:block">' + esc(o.note) + '</span></div>' +
+          '<span class="cluster" style="gap:var(--space-2)">' + statusHtml + '</span></div>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Emergency methods widen the delegated scope only within the declared area and duration; the civic-process protections still apply. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        document.getElementById('form-exe-005').innerHTML = formCard('F-EXE-005');
+        document.getElementById('form-exe-002').innerHTML = formCard('F-EXE-002');
+        document.getElementById('form-exe-004').innerHTML = formCard('F-EXE-004');
+
+        document.getElementById('order-register').innerHTML =
+          '<div style="padding-inline:var(--space-2)">' + orders.map(orderRow).join('') + '</div>';
+
+        document.getElementById('policy-confirm').innerHTML = sim.policy
+          ? S.badge('info', 'Proposal recorded', 'file-text') + ' <span class="cc-small">Routed to the department board — simulated.</span>' : '';
+        document.getElementById('invest-confirm').innerHTML = sim.invest
+          ? S.badge('warning', 'Investigation opened', 'search') + ' <span class="cc-small">Investigation record created — simulated.</span>' : '';
+
+        S.refresh();
+      }
+
+      document.getElementById('order-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var title = document.getElementById('ord-title').value || 'Untitled order';
+        var dept = document.getElementById('ord-dept').value;
+        var inScope = document.getElementById('ord-scope').value === 'in';
+        var o = {
+          id: 'EO-2031-' + seq++,
+          title: title, dept: dept, when: '2031-06-11 (just now)',
+          status: inScope ? 'issued' : 'rejected',
+          note: inScope
+            ? 'Within delegated scope — engine-validated against the delegation act (Art. III §2)'
+            : 'Rejected pre-issuance: outside the delegated scope (Art. III §2); election interference barred by Art. II §7'
+        };
+        orders.unshift(o);
+        document.getElementById('order-confirm').innerHTML = inScope
+          ? S.badge('success', 'Issued', 'check') + ' <span class="cc-small">Order recorded and in effect — judicially reviewable at any time. Simulated; nothing left this page.</span>'
+          : S.badge('danger', 'Rejected pre-issuance', 'x') + ' <span class="cc-small">The order never took effect; the rejected attempt is on the public record. Simulated.</span>';
+        render();
+      });
+      document.getElementById('policy-btn').addEventListener('click', function () { sim.policy = true; render(); });
+      document.getElementById('invest-btn').addEventListener('click', function () { sim.invest = true; render(); });
+
+      /* Grants & appropriations — organization select from the fixture world. */
+      var grantOrgSel = document.getElementById('grant-org');
+      W.organizations.forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o.id;
+        opt.textContent = o.name + ' (' + o.type.replace(/_/g, ' ') + ')';
+        if (o.id === 'hudson-mutual-aid') opt.selected = true;
+        grantOrgSel.appendChild(opt);
+      });
+      document.getElementById('grant-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var line = document.getElementById('grant-line').value;
+        var org = BY.organizations[grantOrgSel.value];
+        var amount = parseInt(document.getElementById('grant-amount').value, 10);
+        var box = document.getElementById('grant-confirm');
+        if (isNaN(amount) || amount < 1) {
+          box.innerHTML = '<span class="field-error">' + S.icon('alert-triangle', { size: 'sm' }) + ' Enter an amount to apply.</span>';
+          return;
+        }
+        box.innerHTML = S.badge('info', 'Received · pending review', 'clock') +
+          ' <span class="cc-small">Simulated: application by ' + esc(org.name) + ' for ' +
+          amount.toLocaleString('en-US') + ' against ' + esc(line) +
+          ' is on the queue — review and any disbursement are appended to the audit chain (WF-SYS-04). Nothing left this page.</span>';
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

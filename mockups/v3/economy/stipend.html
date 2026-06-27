@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Civic stipend — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading the civic stipend…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/stipend', title: 'Civic stipend', module: 'economy', nav: 'stipend', citation: 'The civic stipend — residency floor + role differential · Art. I, Art. V §5, Art. II §8', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+    var byId = window.CGA.fixtures.byId;
+
+    function personaName(id) {
+      var p = byId.personas[id];
+      return p ? p.name : id;
+    }
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the stipend keys live in <span class="form-id">constitutional_settings</span> and the run is <span class="form-id">F-TRE-004</span> — reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function neverFederated() {
+      return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        'Your receipt is private — never federated, like a ballot.</span>';
+    }
+
+    function render() {
+      var st = E.stipend, clk = E.economicClock, sym = E.currency.symbol;
+
+      // ----- formula
+      var formula =
+        '<div class="stipend-formula">' + esc(st.formula) + '<br />' +
+        '= ' + esc(st.base) + ' ' + esc(sym) + ' base + min( &Sigma; eligible-role bumps, ' + esc(st.cap) + ' ' + esc(sym) + ' cap )</div>';
+
+      // ----- eligibility floor (residency ONLY) as an lr-note
+      var floorNote =
+        '<div class="lr-note">' + S.icon('user', { size: 'sm' }) +
+        '<div><strong>Who receives it — residency, and nothing else.</strong> ' + esc(st.eligibilityFloor) +
+        ' It is the same gate that unlocks voting and candidacy: an absolute right, no means test, no application, no qualification of any kind. ' +
+        '<span class="citation">Art. I · the residency floor</span></div></div>';
+
+      // ----- econ clock
+      var clockBlock =
+        '<div class="econ-clock">' +
+        '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
+        '<div><strong style="color:var(--gov-fg)">The economic clock</strong> — ' + esc(clk.label) + '. ' +
+        '<span class="citation">last run ' + esc(clk.lastRunDate) + ' (' + esc(clk.lastRun) + ') · next run ' + esc(clk.nextRun) +
+        ' · ' + esc(clk.form) + ' · ' + esc(clk.cite) + '</span><br />' +
+        '<span class="gloss">' + esc(clk.note) + '</span></div></div>';
+
+      // ----- three classes as stipend-class cards
+      var classCards = st.classes.map(function (c) {
+        return '<div class="stipend-class">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<strong style="color:var(--gov-fg)">' + esc(c.label) + '</strong>' +
+          '<span class="sc-bump">+' + esc(c.bump) + ' ' + esc(sym) + '</span></div>' +
+          '<span class="gloss">' + esc(c.basis) + '</span>' +
+          '<span class="citation">Who: ' + esc(c.who) + '</span></div>';
+      }).join('');
+
+      // ----- examples as stipend-example rows
+      var exampleRows = st.examples.map(function (ex) {
+        var name = personaName(ex.persona);
+        var roleChips = ex.roles.map(function (r) {
+          return '<span class="party-chip"><span class="party-role">' + esc(r) + '</span></span>';
+        }).join(' ');
+        return '<div class="stipend-example">' +
+          '<span style="color:var(--gov-fg-strong);flex:0 0 9rem;min-inline-size:0">' + esc(name) + '</span>' +
+          '<span class="agreement-parties" style="flex:1 1 14rem">' + roleChips + '</span>' +
+          '<span class="gloss" style="flex:1 1 10rem">' + esc(ex.breakdown) + '</span>' +
+          '<span class="se-amt">' + esc(ex.amount) + ' ' + esc(sym) + '</span></div>';
+      }).join('');
+
+      // ----- rails as a list with citations
+      var railItems = st.rails.map(function (r) {
+        var parts = r.split(' · ');
+        var body = esc(parts[0]);
+        var cite = parts.length > 1 ? ' <span class="citation">' + esc(parts.slice(1).join(' · ')) + '</span>' : '';
+        return '<li>' + body + cite + '</li>';
+      }).join('');
+
+      // ----- last-run aggregate (public) vs receipt (private)
+      var lr = st.lastRun;
+      var aggregateBlock =
+        '<div class="grid-2">' +
+        '<div class="card card--inset"><span class="eyebrow">Public — the aggregate</span>' +
+        '<p style="margin-block:var(--space-2)"><strong style="font-size:var(--text-xl);color:var(--gov-fg)">' + esc(lr.totalMinted) + '</strong> minted</p>' +
+        '<p class="gloss">Across roughly ' + S.formatPop(lr.recipientsAggregate) + ' recipients in run ' + esc(lr.id) + ' (' + esc(lr.date) + '). ' +
+        'Only the total and a k-anonymous head-count post to the public ledger.</p>' +
+        '<p class="citation">' + S.hrefV1('system/public-records.html') + ' — the run posts as one double-entry line <span class="v1-tag">v1</span></p></div>' +
+        '<div class="card card--inset"><span class="eyebrow">Private — your receipt</span>' +
+        '<p style="margin-block:var(--space-2)">' + neverFederated() + '</p>' +
+        '<p class="gloss">Each person’s own amount writes only to their private wallet on this server. A small recipient class is folded into the general aggregate and never published on its own.</p>' +
+        '<p class="citation">' + S.hrefV2('economy/wallet.html') + ' — see your own line</p></div></div>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the civic stipend</span><h1>Civic stipend</h1>' +
+        '<p class="page-intro">A <strong>differential, not a salary.</strong> Everyone associated by residency receives the same floor; ' +
+        'on top of it, those carrying certain duties receive a small recognition bump. Because pay can <em>never</em> become a ' +
+        'qualification for office, the differential is add-only, capped, and writes nothing but the private ledger — it grants no ' +
+        'seat, no vote, no advantage. <span class="citation">Art. I Right to Stand</span></p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+        plannedBanner() +
+
+        '<section aria-labelledby="formula-h"><h2 id="formula-h">How an amount is computed</h2>' +
+        formula + floorNote + '</section>' +
+
+        '<section aria-labelledby="clock-h"><h2 id="clock-h">When it runs</h2>' + clockBlock + '</section>' +
+
+        '<section aria-labelledby="classes-h"><h2 id="classes-h">The three differential classes</h2>' +
+        '<p class="gloss">A bump attaches to a fact about what a person is doing — never to who they are. ' +
+        'None of these is a constitutional role, and stacking them can never exceed the ' + esc(st.cap) + ' ' + esc(sym) + ' cap.</p>' +
+        '<div class="grid-2">' + classCards + '</div></section>' +
+
+        '<section class="card" aria-labelledby="examples-h"><h2 id="examples-h">Worked examples</h2>' +
+        '<p class="gloss">Same floor for all; the spread is only the duty differential. R-08 (election board) is deliberately not in the paid set.</p>' +
+        exampleRows +
+        '<p class="citation">Roles resolved against active office rows — a bump ends the day the duty ends.</p></section>' +
+
+        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold everywhere</h2>' +
+        '<ul>' + railItems + '</ul></section>' +
+
+        '<section aria-labelledby="agg-h"><h2 id="agg-h">Public aggregate vs private receipt</h2>' + aggregateBlock + '</section>' +
+
+        '<section class="card card--inset" aria-labelledby="keys-h"><h2 id="keys-h">These numbers are dual-door keys</h2>' +
+        '<p>The base, the cap, every bump, and the interval itself are <span class="dual-door">' + S.icon('lock', { size: 'sm' }) + 'dual-door</span> ' +
+        'monetary keys — adjusted only by the constitutional offices through a chamber supermajority and constituent consent, never an admin knob. ' +
+        'Because constituents’ own money is spent, they must agree (anti-self-dealing). <span class="citation">F-LEG-031 · Art. V §5</span></p>' +
+        '<p class="citation">See every key, its value, and its enacting act on ' + S.hrefV2('economy/units.html') + ' — Units &amp; monetary policy.</p></section>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

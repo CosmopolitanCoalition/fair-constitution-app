@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive Committee Delegation — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · EXE</span>
+        <h1>Executive Committee Delegation <span class="citation">WF-EXE-01</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-EXE-01", "title": "Executive Committee Delegation", "module": "flows", "nav": null, "roles": ["R-09", "R-14"], "workflows": ["WF-EXE-01"], "forms": [], "citation": "Art. III §2 · WF-EXE-01", "flow": "WF-EXE-01", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-EXE-01",
+ "name": "Executive Committee Delegation",
+ "timeScale": "Medium",
+ "trigger": "Supermajority delegation act",
+ "actors": [
+  "R-09",
+  "R-14"
+ ],
+ "institutions": [
+  "I-LEG",
+  "I-EXC"
+ ],
+ "terminal": "Executive Committee composed proportionally from legislature members (same selection method as legislative committees)",
+ "basis": "Art. III §2",
+ "entity": "Executive Office",
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Executive Committee Delegation Act (supermajority) defining delegated portions of executive authority",
+   "outcome": "I-EXC chartered with explicit scope",
+   "form": "F-LEG-014",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "System",
+   "action": "Compose committee from legislature members in same factional proportions / selection manner as legislative committees",
+   "outcome": "R-14 members seated (Westminster-style: members remain legislators)",
+   "engine": "Assignment engine",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   }
+  },
+  {
+   "n": 3,
+   "actor": "R-14",
+   "action": "Operate: nominations, policy proposals, orders, investigations",
+   "outcome": "All actions engine-validated against delegated scope",
+   "form": "F-EXE-001",
+   "screen": {
+    "href": "executive/department-detail.html",
+    "params": {
+     "role": "R-14"
+    }
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

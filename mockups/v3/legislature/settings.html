@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Constitutional settings — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Legislature · amendable settings</span>
+        <h1>Constitutional settings — New York County</h1>
+        <p class="page-intro">The flexible layer of the two-layer model: every value here can be changed by a valid
+          legislative act — but only inside hardened bounds the act cannot touch. Out-of-range values are rejected
+          before any vote is taken.</p>
+        <div class="cluster">
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="citation">bounds enforced pre-vote by the Constitutional Engine · Art. VII · WF-LEG-14</span>
+        </div>
+      </header>
+
+      <section class="card" style="padding:0" aria-labelledby="register-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="register-h">The register</h2>
+          <p class="cc-small">Current value · hardened bounds · enacting act with effective date. "Propose change"
+            opens the bill flow pre-targeted at that key.</p>
+        </div>
+        <div class="table-wrap"><table class="table">
+          <caption class="visually-hidden">Amendable constitutional settings for New York County</caption>
+          <thead><tr><th>Setting</th><th>Current value</th><th>Hardened bounds</th><th>Set by</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+          <tbody id="settings-rows"></tbody>
+        </table></div>
+        <noscript><p style="padding:var(--space-4) var(--space-6)">The register renders with JavaScript — 16 settings from election_interval_months to worker_rep_parity_employees.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="propose-h">
+        <h2 id="propose-h">Propose a change <span class="form-chip">Amendable setting change (via bill) <span class="form-id">F-LEG-031</span></span></h2>
+        <p class="cc-small">Pass a bill that changes a constitutional amendable variable. The engine validates the
+          proposed value against the hardened range before the bill can reach a vote.
+          <span class="citation">available to R-09 Legislative Representative · Art. VII; various "Unless otherwise amended" clauses</span></p>
+        <div id="propose-panel">
+          <p class="gloss">Pick "Propose change" on any row above to pre-target a bill at that setting.</p>
+        </div>
+        <noscript><p>The proposal panel needs JavaScript.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="rules-h">
+          <h2 id="rules-h">Rules of order <span class="form-chip">Rules of order adoption <span class="form-id">F-LEG-032</span></span></h2>
+          <p class="cc-small">Adopt or modify parliamentary rules of order.
+            <span class="citation">available to R-09 Legislative Representative · Art. II §2</span></p>
+          <p class="amendable" style="margin-block-end:0">
+            <span class="amendable-value">New York County standing rules, 3rd edition</span>
+            <span class="amendable-meta">Adopted by Act 2030-01 · effective 2030-12-09 · modifiable by motion at any session</span>
+          </p>
+        </section>
+
+        <section class="card" aria-labelledby="ethics-h">
+          <h2 id="ethics-h">Ethics code <span class="form-chip">Ethics code adoption <span class="form-id">F-LEG-033</span></span></h2>
+          <p class="cc-small">Adopt or modify the ethics code for all elected officials and civil officers.
+            <span class="citation">available to R-09 Legislative Representative · Art. II §2</span></p>
+          <p class="amendable" style="margin-block-end:0">
+            <span class="amendable-value">New York County ethics code, 1st edition</span>
+            <span class="amendable-meta">Adopted by Act 2030-02 · effective 2030-12-09 · enforced by the administrative office (I-ADM)</span>
+          </p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-14.html">WF-LEG-14 (amendable setting change)</a> —
+            engine range validation wraps the ordinary <a href="../flows/WF-LEG-06.html">WF-LEG-06 bill flow</a>;
+            rules and ethics adoption is <a href="../flows/WF-LEG-15.html">WF-LEG-15</a>; hardened-layer changes have
+            only one door: <a href="../flows/WF-SYS-05.html">WF-SYS-05 (constitutional amendment)</a>.</p>
+          <p><strong>Entity state machine:</strong> Bill — a setting change is a bill whose enactment writes the
+            constitutional_settings record, linked to the act with its effective date.</p>
+          <p class="citation">Art. VII · Art. II §2 · CLK-01…04 · CLK-07…09 · CLK-13 · CLK-14 · CLK-17</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/settings',
+      title: 'Constitutional settings register',
+      module: 'legislature',
+      nav: 'settings',
+      roles: ['R-09', 'R-10'],
+      workflows: ['WF-LEG-14', 'WF-LEG-15'],
+      forms: ['F-LEG-031', 'F-LEG-032', 'F-LEG-033'],
+      citation: 'Amendable within hardened bounds · out-of-range rejected pre-vote · Art. VII',
+      flow: 'WF-LEG-14',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+
+      var FOUNDING = 'Template default · in force since founding (2030-12-02)';
+
+      /* Every amendable key. min/max present only where a numeric hardened bound exists. */
+      var SETTINGS = [
+        { key: 'election_interval_months', value: '60', meta: '5-year default · CLK-01',
+          bounds: 'Elections cannot be skipped or delayed by officials — hardened scheduler', basis: 'Art. II §2', act: FOUNDING },
+        { key: 'voting_method', value: 'stv_droop', meta: 'PR-STV with Droop quota',
+          bounds: 'May only be replaced by a MORE proportional method — never FPTP or plurality', basis: 'Art. II §2', act: FOUNDING },
+        { key: 'legislature_min_seats', value: '5', meta: 'CLK-08', min: 5, max: 9,
+          bounds: 'Floor 5 — cannot go below', basis: 'Art. II §2; Art. V §3', act: FOUNDING },
+        { key: 'legislature_max_seats', value: '9', meta: 'CLK-07', min: 5, max: 9,
+          bounds: 'Ceiling 9 — mandatory subdivision above', basis: 'Art. II §2, §8', act: FOUNDING },
+        { key: 'special_election_min_days', value: '90', meta: 'CLK-04', min: 1, max: 180,
+          bounds: 'Window must stay inside the 90–180-day vacancy rule', basis: 'Art. II §5', act: FOUNDING },
+        { key: 'special_election_max_days', value: '180', meta: 'CLK-04', min: 90, max: 180,
+          bounds: 'Window must stay inside the 90–180-day vacancy rule', basis: 'Art. II §5', act: FOUNDING },
+        { key: 'supermajority_numerator', value: '2', meta: 'with denominator: 2/3',
+          bounds: 'Resulting threshold can never fall below majority + 1', basis: 'Art. VII', act: FOUNDING },
+        { key: 'supermajority_denominator', value: '3', meta: 'ceil(serving × 2/3) = 6 of 9',
+          bounds: 'Resulting threshold can never fall below majority + 1', basis: 'Art. VII', act: FOUNDING },
+        { key: 'max_days_between_meetings', value: '90', meta: 'CLK-02', min: 1, max: 90,
+          bounds: 'Ceiling 90 days between sessions', basis: 'Art. II §2', act: FOUNDING },
+        { key: 'emergency_powers_max_days', value: '90', meta: 'CLK-03', min: 1, max: 90,
+          bounds: 'Constitutional ceiling 90 days', basis: 'Art. II §7', act: FOUNDING },
+        { key: 'civil_appointment_years', value: '10', meta: 'CLK-09', min: 1, max: 10,
+          bounds: 'Must stay in lockstep with judicial_appointment_years · range 1–10 years', basis: 'Art. II §9',
+          act: 'Set by Act 2031-14 · effective 2031-03-01' },
+        { key: 'judicial_appointment_years', value: '10', meta: 'CLK-09 · lockstep', min: 1, max: 10,
+          bounds: 'Must stay in lockstep with civil_appointment_years · range 1–10 years', basis: 'Art. IV §1–2',
+          act: 'Set by Act 2031-14 · effective 2031-03-01' },
+        { key: 'residency_confirmation_days', value: '30', meta: 'CLK-05 threshold',
+          bounds: 'Must remain achievable by ordinary residence — no exclusionary thresholds', basis: 'Art. I; Art. V §1', act: FOUNDING },
+        { key: 'initiative_petition_threshold_pct', value: '5.00', meta: '% of jurisdiction population · CLK-17',
+          bounds: 'Must leave the petition right practically exercisable', basis: 'Art. II §6', act: FOUNDING },
+        { key: 'judiciary_is_elected', value: 'false', meta: 'appointed is the default',
+          bounds: 'Conversion requires supermajority + constituent jurisdiction supermajority (F-LEG-018)', basis: 'Art. IV §1–3', act: FOUNDING },
+        { key: 'worker_rep_min_employees', value: '100', meta: 'first worker board seat · CLK-13',
+          bounds: 'Scale must reach parity at the parity threshold', basis: 'Art. III §6', act: FOUNDING },
+        { key: 'worker_rep_parity_employees', value: '2000', meta: 'worker/shareholder parity · CLK-14',
+          bounds: 'Must remain ≥ the minimum threshold', basis: 'Art. III §6', act: FOUNDING }
+      ];
+
+      var target = null; /* key of the setting being proposed against */
+
+      function render() {
+        document.getElementById('settings-rows').innerHTML = SETTINGS.map(function (s) {
+          return '<tr><td class="mono" data-no-i18n>' + esc(s.key) + '</td>' +
+            '<td><span class="amendable"><span class="amendable-value" data-no-i18n>' + esc(s.value) + '</span>' +
+            '<span class="amendable-meta">' + esc(s.meta) + '</span></span></td>' +
+            '<td><span class="cc-small">' + esc(s.bounds) + '</span>' +
+            '<span class="citation" style="display:block">' + esc(s.basis) + '</span></td>' +
+            '<td><span class="citation">' + esc(s.act) + '</span></td>' +
+            '<td><button type="button" class="btn btn--ghost btn--sm" data-propose="' + esc(s.key) + '">Propose change</button></td></tr>';
+        }).join('');
+
+        renderPanel();
+        S.refresh();
+      }
+
+      function renderPanel(checked) {
+        var panel = document.getElementById('propose-panel');
+        if (!target) {
+          panel.innerHTML = '<p class="gloss">Pick "Propose change" on any row above to pre-target a bill at that setting.</p>';
+          return;
+        }
+        var s = SETTINGS.filter(function (x) { return x.key === target; })[0];
+        var numeric = typeof s.min === 'number';
+        var result = '';
+        if (checked !== undefined) {
+          var ok = !numeric || (checked >= s.min && checked <= s.max);
+          result = ok
+            ? '<div class="banner banner--info" role="status">' + S.icon('check') +
+              '<div><span class="banner-title">In range — the bill may proceed to a vote</span>' +
+              'Proposed value ' + esc(String(checked)) + ' sits inside the hardened bounds. Continue in the ' +
+              '<a href="bills.html">bill flow</a> (see the <a href="bill-detail.html">bill surface</a> for the vote tiles). ' +
+              '<span class="citation">F-LEG-031 · WF-LEG-14 · Art. VII</span></div></div>'
+            : '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+              '<div><span class="banner-title">Rejected pre-vote — outside hardened bounds</span>' +
+              'Proposed value ' + esc(String(checked)) + ' violates the range ' + s.min + '–' + s.max + ' for ' +
+              '<span data-no-i18n>' + esc(s.key) + '</span>. The Constitutional Engine blocks the bill before any vote is taken — ' +
+              'no UI, admin panel, or legislative act can carry an out-of-range value. ' +
+              '<span class="citation">' + esc(s.bounds) + ' · ' + esc(s.basis) + ' · hardened · WF-LEG-14</span></div></div>';
+        }
+        panel.innerHTML =
+          '<div class="card card--inset">' +
+          '<p style="margin-block-end:var(--space-2)">Bill pre-targeted at <span class="kbd" data-no-i18n>' + esc(s.key) + '</span>' +
+          ' — current value <strong data-no-i18n>' + esc(s.value) + '</strong>. <span class="citation">' + esc(s.bounds) + ' · ' + esc(s.basis) + '</span></p>' +
+          (numeric
+            ? '<div class="cluster"><label class="field-label" for="prop-value">Proposed value</label>' +
+              '<input class="field-input" style="inline-size:8rem" id="prop-value" type="number" value="' + esc(s.value) + '" />' +
+              '<button type="button" class="btn btn--primary btn--sm" id="prop-check">Validate against bounds</button>' +
+              '<span class="citation">try 12 on legislature_max_seats to see the pre-vote block</span></div>'
+            : '<p class="gloss">This setting is non-numeric — the engine validates the proposal against its rule (' +
+              esc(s.bounds) + ') the same way. <a href="bills.html">Continue in the bill flow</a>.</p>') +
+          '</div>' + result;
+
+        var btn = document.getElementById('prop-check');
+        if (btn) btn.addEventListener('click', function () {
+          renderPanel(Number(document.getElementById('prop-value').value));
+          S.refresh();
+        });
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-propose]') : null;
+        if (!t) return;
+        target = t.getAttribute('data-propose');
+        renderPanel();
+        S.refresh();
+        document.getElementById('propose-h').scrollIntoView({ block: 'nearest' });
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

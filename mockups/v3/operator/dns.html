@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DNS &amp; certificates — the operator plane — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading the operator plane…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'operator/dns', title: 'DNS & certificates', module: 'operator', nav: 'operator-dns', citation: 'The Identity Broker — DNS is the identity, the cert is the proof · off the constitutional plane', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-operator.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, O = window.CGA.fixtures.v2.op, esc = S.esc;
+    var B = O.broker;
+
+    function render() {
+      /* ---- the model FSM: A-record before cert ---- */
+      var modelFsm =
+        '<div class="fsm">' +
+        '<span class="fsm-node">name chosen</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">A-record written (DNS = identity)</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">pre-flight budget check</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">ACME / Let’s Encrypt cert (the proof)</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">serving on a real cert</span>' +
+        '</div>';
+
+      /* ---- domains table ---- */
+      var domainRows = B.domains.map(function (d) {
+        var wb = d.wildcardBackup
+          ? S.badge('success', 'Yes', 'check')
+          : S.badge('neutral', 'No');
+        return '<tr>' +
+          '<td><span class="form-id">' + esc(d.domain) + '</span>' + (d.note ? '<br /><span class="gloss">' + esc(d.note) + '</span>' : '') + '</td>' +
+          '<td><span class="advanced-note">' + esc(d.zone) + '</span></td>' +
+          '<td><span class="channel-chip channel-chip--governed">' + S.icon('lock', { size: 'sm' }) + ' ' + esc(d.token) + '</span></td>' +
+          '<td>' + esc(d.certs) + '</td>' +
+          '<td>' + wb + '</td>' +
+          '<td><span class="advanced-note">' + esc(d.budget) + '</span></td>' +
+          '</tr>';
+      }).join('');
+
+      var domainsTable =
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Domain</th><th scope="col">Zone</th><th scope="col">Write token</th>' +
+        '<th scope="col">Certs</th><th scope="col">Wildcard backup</th><th scope="col">Budget (7 days)</th></tr></thead>' +
+        '<tbody>' + domainRows + '</tbody></table></div>';
+
+      /* ---- per-name vs wildcard ---- */
+      var perNameCard =
+        '<div class="meter-card meter-card--super">' +
+        '<div class="cluster" style="justify-content:space-between">' +
+        '<span class="orc-title">Per-name</span>' + S.pill('live', 'Default · ungated', 'Per-name is the only path that needs no extra grant — one cert for exactly one name.') + '</div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(B.perName) + '</p>' +
+        '<div class="orc-channels"><span class="channel-chip channel-chip--self">' + S.icon('check', { size: 'sm' }) + ' the only ungated path</span>' +
+        '<span class="channel-chip channel-chip--governed">tried first</span></div>' +
+        '<span class="citation">DNS-before-cert, name by name · Art. V §5 — the root defines names and standards</span></div>';
+
+      var wildcardCard =
+        '<div class="meter-card">' +
+        '<div class="cluster" style="justify-content:space-between">' +
+        '<span class="orc-title">Wildcard backup (<code>*.domain</code>)</span>' + S.pill('planned', 'Stub · future', 'A distinct grant kind; touches the protected trust core — not yet implemented.') + '</div>' +
+        '<p style="font-size:var(--text-sm)">' + esc(B.wildcard) + '</p>' +
+        '<div class="orc-channels">' +
+        '<span class="channel-chip channel-chip--governed">' + S.icon('shield', { size: 'sm' }) + ' authority-minted grant kind</span>' +
+        '<span class="channel-chip channel-chip--governed">per-domain approval flag</span>' +
+        '<span class="channel-chip channel-chip--governed">optional higher consent bar</span></div>' +
+        '<span class="citation">authority.grant · Meter C may apply · touches the protected trust core</span></div>';
+
+      var fallbackFsm =
+        '<div class="fsm">' +
+        '<span class="fsm-node">client needs a cert</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">try per-name (ungated)</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">only if pre-approved → wildcard backup</span>' +
+        '</div>';
+
+      /* ---- providers ---- */
+      var providerRows = B.providers.map(function (p) {
+        var live = /^live/.test(p.state);
+        var tone = live ? 'success' : (/manual|returns/i.test(p.name + p.state) ? 'info' : 'neutral');
+        var iconName = live ? 'check' : (/stub/i.test(p.state) ? 'clock' : 'info');
+        return '<tr>' +
+          '<td><span class="form-id">' + esc(p.name) + '</span></td>' +
+          '<td>' + S.badge(tone, p.state, iconName) + '</td></tr>';
+      }).join('');
+      var providersTable =
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Provider</th><th scope="col">Status</th></tr></thead>' +
+        '<tbody>' + providerRows + '</tbody></table></div>';
+
+      /* ---- root composition ---- */
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow op-eyebrow">The operator plane · the Identity Broker</span><h1>DNS &amp; certificates</h1>' +
+        '<p class="page-intro">The Identity Broker gives peers their names and the certificates that prove them. This is the heaviest operator capability — naming a peer touches that peer’s own subtree — so it lives behind governed channels and, on two of them, peer consent.</p></header>' +
+
+        '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
+        ' Naming is a capability, never a citizen role; it buys no vote, seat, or say.<br />' +
+        '<span class="citation">Broker channels: broker.dns, broker.tls, authority.grant · governed · Art. V §5 — the root defines names &amp; standards</span></div></div>' +
+
+        /* ---------- the model ---------- */
+        '<section aria-labelledby="model-h"><h2 id="model-h">The model — DNS is the identity, the cert is the proof</h2>' +
+        '<div class="about-surface"><div class="about-surface-body stack">' +
+        '<p>' + esc(B.model) + '</p>' + modelFsm +
+        '<p class="lr-note">' + S.icon('info', { size: 'sm' }) + '<span>The order is the whole point: write the A-record <em>first</em>, so a certificate never points at nothing and no Let’s Encrypt attempt is spent on a name that failed to resolve.</span></p>' +
+        '</div></div></section>' +
+
+        /* ---------- domains ---------- */
+        '<section aria-labelledby="domains-h"><h2 id="domains-h">Domains</h2>' +
+        '<p class="page-intro">Each registered domain carries its own zone, an encrypted write-only token, the cert posture, and a 7-day budget. The token is set once and never shown again — the broker reads it to write records; no surface ever reads it back.</p>' +
+        domainsTable +
+        '<p class="gloss">The write token is encrypted at rest, local-only, and never federates — it lives only on the broker box (services/mesh-cert-broker).</p>' +
+        '</section>' +
+
+        /* ---------- per-name vs wildcard ---------- */
+        '<section aria-labelledby="kinds-h"><h2 id="kinds-h">Per-name vs wildcard</h2>' +
+        '<p class="page-intro">Per-name is the default and the only ungated path. The client always tries it first and only falls back to a wildcard that was already approved for the domain.</p>' +
+        '<div class="grid-2">' + perNameCard + wildcardCard + '</div>' +
+        '<div class="about-surface" style="margin-block-start:var(--space-4)"><div class="about-surface-body stack">' +
+        '<span class="eyebrow">The fallback order</span>' + fallbackFsm +
+        '<p class="lr-note">' + S.icon('alert-triangle', { size: 'sm' }) + '<span>Wildcard backup is a <strong>stub / future</strong> grant kind that touches the protected trust core. The authority must explicitly mint it, a per-domain approval flag must be set, and a higher consent bar may apply before the client will ever use it.</span></p>' +
+        '</div></div></section>' +
+
+        /* ---------- DDNS ---------- */
+        '<section aria-labelledby="ddns-h"><h2 id="ddns-h">Dynamic DNS — moving nodes re-point themselves</h2>' +
+        '<div class="about-surface"><div class="about-surface-body stack">' +
+        '<p>' + esc(B.ddns) + '</p>' +
+        '<div class="fsm">' +
+        '<span class="fsm-node">node moves / IP changes</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">signed DDNS update</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">A-record re-points</span>' +
+        '<span class="fsm-arrow">' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
+        '<span class="fsm-node">same cert — no new cert, no budget</span>' +
+        '</div>' +
+        '<p class="gloss">The existing certificate already covers the name, so re-pointing it consumes no Let’s Encrypt budget at all.</p>' +
+        '</div></div></section>' +
+
+        /* ---------- providers ---------- */
+        '<section aria-labelledby="providers-h"><h2 id="providers-h">DNS providers</h2>' +
+        '<p class="page-intro">The broker writes records through a pluggable provider. Cloudflare is live; Route53 and DigitalOcean are stubs; Manual hands the record back for the operator to set by hand.</p>' +
+        providersTable +
+        '<p class="lr-note">' + S.icon('info', { size: 'sm' }) + '<span>Non-Cloudflare providers (Route53, DigitalOcean) are <strong>stubs</strong> today. The Manual provider is always available — it simply returns the exact record to set, so the model still works with no automated provider at all.</span></p>' +
+        '</section>' +
+
+        /* ---------- budget rails ---------- */
+        '<section aria-labelledby="budget-h"><h2 id="budget-h">The budget rails</h2>' +
+        '<p class="page-intro">' + esc(B.budgetRails) + '</p>' +
+        '<div class="grid-2">' +
+        '<div class="meter-card"><div class="cluster" style="justify-content:space-between"><span class="orc-title">Per domain</span>' +
+        '<span class="pill pill--info">50 / 7 days</span></div>' +
+        '<p style="font-size:var(--text-sm)">The registered-domain ceiling — the broker tracks every issued name under the domain across a rolling week.</p></div>' +
+        '<div class="meter-card"><div class="cluster" style="justify-content:space-between"><span class="orc-title">Per exact name</span>' +
+        '<span class="pill pill--info">5 / 7 days</span></div>' +
+        '<p style="font-size:var(--text-sm)">A tighter per-name ceiling so one flapping host can never exhaust the whole domain budget.</p></div>' +
+        '</div>' +
+        '<p class="lr-note" style="margin-block-start:var(--space-4)">' + S.icon('check', { size: 'sm' }) + '<span>The pre-flight refuses with remediation <strong>before</strong> burning an ACME attempt — the budget check sits between the A-record and the cert in the model above, so a refusal costs nothing.</span></p>' +
+        '</section>' +
+
+        /* ---------- separate box + trust core ---------- */
+        '<div class="plane-wall"><span>' + S.icon('lock', { size: 'sm' }) + '</span><div>' +
+        '<strong style="color:var(--gov-fg)">A separate box, a sealed token.</strong> The broker runs as its own service (<span class="form-id">services/mesh-cert-broker</span>). Its write token is encrypted, local-only, and never federates. ' +
+        'Minting a wildcard grant or a promotion grant runs through <span class="form-id">authority.grant</span>, which touches the protected trust core and, where it acts under a peer’s zone, requires that peer’s consent (Meter C).<br />' +
+        '<span class="citation">Art. V §5 — names &amp; standards are reserved to the root · authority ≠ leadership</span></div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

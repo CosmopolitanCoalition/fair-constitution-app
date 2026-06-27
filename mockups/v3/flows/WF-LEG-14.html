@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amendable Setting Change — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · LEG</span>
+        <h1>Amendable Setting Change <span class="citation">WF-LEG-14</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-LEG-14", "title": "Amendable Setting Change", "module": "flows", "nav": null, "roles": ["R-09"], "workflows": ["WF-LEG-14"], "forms": [], "citation": "Art. VII; CGA §6.3 · WF-LEG-14", "flow": "WF-LEG-14", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-LEG-14",
+ "name": "Amendable Setting Change",
+ "timeScale": "Medium",
+ "trigger": "Bill targeting a constitutional_settings key",
+ "actors": [
+  "R-09"
+ ],
+ "institutions": [
+  "I-LEG"
+ ],
+ "terminal": "Setting updated within hardened min/max, linked to enacting act with effective date; out-of-range values rejected",
+ "basis": "Art. VII; CGA §6.3",
+ "entity": null,
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-09",
+   "action": "Bill targets a constitutional_settings key (e.g., election interval, max seats)",
+   "outcome": "Normal lifecycle at the threshold the setting requires",
+   "engine": "WF-LEG-06",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {
+     "role": "R-09"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Constitutional Engine",
+   "action": "Validate proposed value against hardened min/max",
+   "outcome": "BRANCH: out of range → bill blocked pre-vote with explanation; in range → proceed",
+   "engine": "Settings validator",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "out of range → bill blocked pre-vote with explanation",
+     "goto": "terminal:out of range → bill blocked pre-vote with explanation"
+    },
+    {
+     "label": "in range → proceed",
+     "goto": "terminal:in range → proceed"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "System",
+   "action": "On enactment: update setting with act linkage + effective date",
+   "outcome": "All dependent clocks/engines re-derive automatically",
+   "engine": "jurisdiction_settings",
+   "screen": {
+    "href": "legislature/session-console.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

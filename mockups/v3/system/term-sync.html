@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Term lockstep — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">System of record</span>
+        <h1>Term lockstep</h1>
+        <p class="page-intro">Legislative, elected executive, and elected judicial terms all expire together, and every
+          election derives from one clock. There is no calendar to manipulate: the next general election exists in the
+          scheduler from the moment the last one certifies.</p>
+        <p class="citation">Terms always equal the legislative term · Art. III §3; Art. IV §3 — derived schedule · CLK-10 — interval · CLK-01</p>
+      </header>
+
+      <div class="cluster" style="gap:var(--space-4)">
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · no election can be skipped or delayed by officials</span>
+      </div>
+
+      <div class="cluster" style="gap:var(--space-6)">
+        <div class="stat stat--accent"><span class="stat-number" id="stat-days">1,604</span><span class="stat-label">days to the next general election</span></div>
+        <div class="stat"><span class="stat-number">2035-11-01</span><span class="stat-label">next general election · derived from CLK-01</span></div>
+        <div class="stat"><span class="stat-number">60</span><span class="stat-label">months per term (election_interval_months)</span></div>
+      </div>
+      <p class="citation">Countdown as of the demo date 2031-06-11 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+
+      <section class="card" aria-labelledby="timeline-h">
+        <h2 id="timeline-h">The lockstep timeline</h2>
+        <p class="cc-small">All three elected branches in the New York County stack run on the same term, certified
+          2030-11-01 → expiring 2035-11-01. Appointed officers run on their own 10-year clocks and are shown for
+          contrast — appointment terms are deliberately decoupled from election cycles.</p>
+        <svg viewBox="0 0 720 268" role="img" xmlns="http://www.w3.org/2000/svg"
+             aria-label="Timeline from 2030 to 2036. Three bars — legislature, elected executive, elected judiciary — all start at the 2030 general election and all end at the 2035 general election. A fourth dashed bar for appointed officers spans the whole axis on its own ten-year clock. A today marker sits at June 2031.">
+          <!-- axis -->
+          <line x1="60" y1="36" x2="696" y2="36" stroke="var(--gov-border-strong)" stroke-width="1" />
+          <g font-size="11" fill="var(--gov-fg-subtle)" text-anchor="middle">
+            <text x="60" y="24">2030</text><text x="166" y="24">2031</text><text x="272" y="24">2032</text>
+            <text x="378" y="24">2033</text><text x="484" y="24">2034</text><text x="590" y="24">2035</text>
+            <text x="696" y="24">2036</text>
+          </g>
+          <!-- election markers: one clock, two events -->
+          <line x1="148" y1="36" x2="148" y2="210" stroke="var(--cc-gold-400)" stroke-width="2" stroke-dasharray="4 3" />
+          <line x1="678" y1="36" x2="678" y2="210" stroke="var(--cc-gold-400)" stroke-width="2" stroke-dasharray="4 3" />
+          <text x="148" y="226" font-size="10" fill="var(--cc-gold-300)" text-anchor="middle">general election · certified 2030-11-01</text>
+          <text x="600" y="240" font-size="10" fill="var(--cc-gold-300)" text-anchor="middle">next general election · 2035-11-01 (CLK-01)</text>
+          <!-- today -->
+          <line x1="213" y1="36" x2="213" y2="210" stroke="var(--gov-fg-subtle)" stroke-width="1" stroke-dasharray="2 3" />
+          <text x="213" y="254" font-size="10" fill="var(--gov-fg-subtle)" text-anchor="middle">today · 2031-06-11 (demo date)</text>
+          <!-- legislative term -->
+          <rect x="148" y="58" width="530" height="18" rx="3" fill="var(--wong-blue)" />
+          <text x="154" y="71" font-size="11" fill="var(--cc-white)">Legislature — 9 seats · New York County</text>
+          <!-- elected executive term -->
+          <rect x="148" y="94" width="530" height="18" rx="3" fill="var(--wong-orange)" />
+          <text x="154" y="107" font-size="11" fill="var(--gov-bg)">Elected executive — individual type · New York</text>
+          <!-- elected judicial term -->
+          <rect x="148" y="130" width="530" height="18" rx="3" fill="var(--wong-green)" />
+          <text x="154" y="143" font-size="11" fill="var(--cc-white)">Elected judiciary — where converted · Art. IV §3</text>
+          <!-- appointed contrast -->
+          <rect x="60" y="172" width="636" height="18" rx="3" fill="none" stroke="var(--gov-border-strong)" stroke-dasharray="5 4" />
+          <text x="66" y="185" font-size="11" fill="var(--gov-fg-muted)">Appointed judges &amp; civil officers — 10-year appointment clocks (CLK-09) · not election-locked</text>
+        </svg>
+        <p class="gloss">Stylized stand-in — production renders this timeline from the term registry (WF-SYS-01).</p>
+        <p style="margin-block-start:var(--space-2)">Jurisdictions activate independently as their player
+          populations reach critical mass (CLK-06), so clocks start staggered — a county's first term can begin
+          years before its neighbors'. Lockstep alignment is the end-state: harmonizing election days toward a
+          shared general-election day is an encompassing-level normalization that arrives as participation grows.</p>
+        <p class="citation">Lockstep expiry · Art. III §3; Art. IV §3 — appointments · Art. II §9; Art. IV §1 · CLK-09</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="clock-h">
+          <h2 id="clock-h">One clock, every trigger</h2>
+          <p class="cc-small">The general election interval is the single source: legislative terms define it, elected
+            executive and elected judicial terms equal it, and the scheduler derives every election trigger from it.
+            Officials never touch the calendar.</p>
+          <div class="amendable">
+            <span class="amendable-value">election_interval_months = 60</span>
+            <span class="amendable-meta">CLK-01 · amendable · template default at founding · a change applies from the next cycle, never the running one · Art. II §2</span>
+          </div>
+          <p style="margin-block-start:var(--space-3)"><a href="../shared/clocks.html">All 21 clocks &amp; triggers
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+
+        <section class="card" aria-labelledby="vacancy-h">
+          <h2 id="vacancy-h">Vacancies never reset the clock</h2>
+          <p class="cc-small">A countback or special-election winner serves the <em>remainder</em> of the term —
+            New York County's seat 4 replacement will still face the voters on 2035-11-01 with everyone else. Special
+            elections fit inside the lockstep; they never move it.</p>
+          <p class="citation">Countback then special election within 90–180 days · Art. II §5 · as implemented (<a href="../shared/constitutional-questions.html#q6">ledger #6</a>) · CLK-04</p>
+          <p><a href="../electoral/vacancy-countback.html">Watch the seat 4 countback
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="protect-h">
+        <h2 id="protect-h">What the engine refuses to do</h2>
+        <ul style="margin-block-end:var(--space-2)">
+          <li>Skip, delay, or reschedule a derived election — there is no API for it; the trigger fires from CLK-01 regardless of who holds office.</li>
+          <li>Extend any elected term past the common expiry, including under active emergency powers — elections cannot be disrupted. <span class="citation">Art. II §7</span></li>
+          <li>Let executive or judicial terms drift from the legislative term when an office converts to elected. <span class="citation">Art. III §3; Art. IV §3</span></li>
+        </ul>
+        <p class="citation">Attempted violations are rejected pre-commit and recorded · <a href="audit-chain.html">audit chain</a> · WF-SYS-04</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-SYS-01.html">WF-SYS-01 (term synchronization engine)</a>
+            — fires <a href="../flows/WF-ELE-01.html">WF-ELE-01 (general cycle)</a>,
+            <a href="../flows/WF-ELE-08.html">WF-ELE-08</a> and <a href="../flows/WF-ELE-09.html">WF-ELE-09</a>
+            (executive and judicial elections) from the same derived schedule.</p>
+          <p><strong>Entity state machine:</strong> Election — Prior-Cycle-Certified → Approval-Phase-Open → … →
+            Certified; the lockstep clock is what moves every race into Approval-Phase-Open at once.</p>
+          <p class="citation">Art. III §3 · Art. IV §3 · CLK-01 · CLK-10</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'system/term-sync',
+      title: 'Term lockstep',
+      module: 'system',
+      nav: 'term-sync',
+      roles: [],
+      workflows: ['WF-SYS-01'],
+      forms: [],
+      citation: 'Terms expire in lockstep; election triggers derive from one clock · Art. III §3; Art. IV §3 · CLK-01 · CLK-10',
+      flow: 'WF-SYS-01',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world;
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + S.esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'The lockstep is unaffected: emergency powers cannot delay or disrupt any election. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+        S.refresh();
+      }
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

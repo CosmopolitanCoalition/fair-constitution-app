@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organization economics — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" id="root"><p class="gloss">Loading organization economics…</p></div>
+  </main>
+  <script>
+    window.CGA_PAGE = { id: 'economy/org-settings', title: 'Organization economics', module: 'economy', nav: 'org-settings', citation: 'Organization economics · Art. III §5–6, Art. II §8', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-econ.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
+    var BY = window.CGA.fixtures.byId;
+    function orgName(id, fb) { var o = BY.organizations[id]; return o ? o.name : (fb || id); }
+    function nm(id, fb) { var p = BY.personas[id]; return p ? p.name : (fb || id); }
+
+    function plannedBanner() {
+      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms (F-ORG-008, F-IND-018…023, F-TRE-001…004) are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
+    }
+
+    function neverFederated(text) {
+      return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
+        esc(text || 'The org’s ledger is private to this server — never federated, like a ballot.') + '</span>';
+    }
+
+    function formChip(name, id) {
+      return '<span class="form-chip">' + esc(name) + ' <span class="form-id">' + esc(id) + '</span></span>';
+    }
+
+    function render() {
+      var prof = E.profiles.org;
+      var org = { name: orgName(prof.org, 'Bluefin Logistics'), type: prof.type, ownership: prof.ownership, workers: prof.workers };
+      var cd = prof.coDetermination;
+      var board = prof.board;
+      var stock = E.stock, dues = E.dues, taxes = E.taxes;
+
+      /* ---- 1. governance & board ---- */
+      var compSeats = '';
+      for (var i = 0; i < board.ownerSeats; i++) {
+        compSeats += '<span class="comp-seat comp-seat--owner">' + S.icon('briefcase', { size: 'sm' }) + 'Owner seat</span>';
+      }
+      for (var w = 0; w < board.workerSeats; w++) {
+        compSeats += '<span class="comp-seat comp-seat--worker">' + S.icon('users', { size: 'sm' }) + 'Worker seat</span>';
+      }
+
+      var cdMet = org.workers >= cd.threshold;
+      var parityMet = org.workers >= cd.parity;
+      var cdPct = Math.min(100, Math.round((org.workers / cd.parity) * 100));
+      var firstSeatPct = Math.round((cd.threshold / cd.parity) * 100);
+
+      var governanceSection =
+        '<section class="card" aria-labelledby="gov-h">' +
+        '<h2 id="gov-h">Governance &amp; board</h2>' +
+        '<p>' + esc(org.name) + ' is a ' + esc(org.type) + ' with <b>' + esc(org.workers.toLocaleString('en-US')) + '</b> workers. ' +
+        'Its board is co-determined — owner seats and worker seats sit together as the workforce grows.</p>' +
+        '<div class="lr-composition" style="margin-block:var(--space-3)">' + compSeats + '</div>' +
+        '<p class="gloss">Chair: ' + esc(nm(board.chair, board.chair)) + (board.jointChair ? ' · joint chair (worker &amp; owner co-sign)' : '') + '. ' +
+        'Board elections seat the worker bloc by PR-STV among the workforce.</p>' +
+
+        '<div class="meter-block" style="margin-block-start:var(--space-4)">' +
+        '<div class="meter" role="img" aria-label="Workforce ' + esc(org.workers) + ' of ' + esc(cd.parity) + ' toward parity">' +
+        '<div class="meter-fill' + (parityMet ? ' meter-fill--met' : '') + '" style="inline-size:' + cdPct + '%"></div>' +
+        '<span class="meter-threshold" style="inset-inline-start:' + firstSeatPct + '%" title="First worker seat at 100 employees"></span>' +
+        '</div>' +
+        '<p class="meter-caption">First worker seat at <b>' + esc(cd.threshold) + '</b> employees · worker/owner parity at <b>' + esc(cd.parity.toLocaleString('en-US')) + '</b>. ' +
+        'Now: ' + esc(cd.status) + '.</p></div>' +
+
+        '<ul style="margin-block-start:var(--space-3)">' +
+        '<li><strong>First worker seat at ' + esc(cd.threshold) + ' employees.</strong> Below this the board may be owner-only · <span class="citation">Art. III §6 · HARDENED</span></li>' +
+        '<li><strong>Worker/owner parity at ' + esc(cd.parity.toLocaleString('en-US')) + ' employees.</strong> At and above, worker seats equal owner seats · <span class="citation">Art. III §6 · HARDENED</span></li>' +
+        '<li><strong>The split is computed, never set by hand.</strong> Headcount changes (a hire crossing a threshold) recompute composition automatically · <span class="citation">CLK-13 / CLK-14</span></li>' +
+        '</ul>' +
+        '<p class="citation">The hardened co-determination math: ' +
+        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination.html <span class="v1-tag">v1</span></a></p>' +
+        '</section>';
+
+      /* ---- 2. shares ---- */
+      var classRows = stock.classes.map(function (c) {
+        return '<tr><td>' + esc(c.cls) + '</td><td style="text-align:end;font-variant-numeric:tabular-nums">' + esc(c.count.toLocaleString('en-US')) + '</td>' +
+          '<td><span class="pill pill--info">' + esc(c.holders) + '</span></td></tr>';
+      }).join('');
+
+      var sharesSection =
+        '<section class="card" aria-labelledby="sh-h">' +
+        '<h2 id="sh-h">Shares</h2>' +
+        '<p>' + esc(stock.orgName) + ' is a stock-held enterprise. Equal-partnership and member-owned orgs carry <strong>no shares</strong> — ownership follows the org’s charter, not a share count.</p>' +
+        '<div class="cluster" style="margin-block:var(--space-3)">' +
+        '<span class="pill pill--info" title="Total issued shares">Total issued <b>' + esc(stock.total.toLocaleString('en-US')) + '</b></span>' +
+        '<span class="pill pill--info" title="Fair market price per share">Fair market <b>' + esc(stock.fairMarket) + '</b></span>' +
+        (stock.flags && stock.flags.indexOf('monopoly_target') >= 0 ? '<span class="pill pill--wait" title="Flagged as a possible monopoly for review">Monopoly target</span>' : '') +
+        '</div>' +
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Share class</th><th scope="col" style="text-align:end">Count</th><th scope="col">Holders</th></tr></thead>' +
+        '<tbody>' + classRows + '</tbody></table></div>' +
+        '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('scale', { size: 'sm' }) +
+        '<div><strong>The conversion rule.</strong> ' + esc(stock.conversion) + ' <span class="citation">Art. III §5</span></div></div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">A common-good corporation’s intellectual property is perpetually public domain and is never privatized · ' +
+        '<span class="citation">Art. III §5 · HARDENED</span></p>' +
+        '</section>';
+
+      /* ---- 3. dues ---- */
+      var duesRows = dues.examples.map(function (d) {
+        return '<div class="wallet-row"><span>' + esc(d.org) + '</span>' +
+          '<span class="gloss">' + esc(d.kind) + (d.voluntary ? ' · voluntary' : '') + '</span>' +
+          '<span class="wallet-amt">' + esc(d.amount) + '</span></div>';
+      }).join('');
+
+      var duesSection =
+        '<section class="card" aria-labelledby="du-h">' +
+        '<h2 id="du-h">Dues</h2>' +
+        '<p>Voluntary membership dues are a private agreement between a member and an organization that chooses to charge them.</p>' +
+        '<div style="margin-block:var(--space-3)">' + duesRows + '</div>' +
+        '<div class="lr-note">' + S.icon('shield', { size: 'sm' }) +
+        '<div>' + esc(dues.rail) + '</div></div>' +
+        '<ul style="margin-block-start:var(--space-3)">' +
+        '<li><strong>Never a civic-right gate.</strong> No due, fee, or cost may attach to voting, candidacy, residency, or petitioning · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '<li><strong>Always opt-in.</strong> A member can join and leave; dues lapse, the membership ends — no right is ever withheld.</li>' +
+        '</ul>' +
+        '</section>';
+
+      /* ---- 4. the org ledger ---- */
+      var ledgerSection =
+        '<section class="card" aria-labelledby="led-h">' +
+        '<h2 id="led-h">The org ledger</h2>' +
+        '<p>An organization keeps its own double-entry ledger — append-only and hash-chained, like the public one, but <strong>private</strong>.</p>' +
+        '<p>' + neverFederated('The org’s balances, receipts, and movements live only on this server — never federated, like a ballot.') + '</p>' +
+        '<div class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
+        '<div><strong>Inter-organizational units within scaling institutions.</strong> Where an organization spans nested jurisdictions, its internal transfers move on the same abstract unit of account ' +
+        'and reconcile through joint, signer-gated ledgers · <span class="citation">Art. V §2 (shared resources) + Art. I</span></div></div>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Co-owned, signer-gated accounts: ' +
+        '<a href="' + S.hrefV2('economy/joint-ledgers.html') + '">Joint ledgers ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>';
+
+      /* ---- 5. taxes the org settles ---- */
+      var leviesRows = taxes.levies.map(function (l) {
+        return '<tr><td>' + esc(l.name) + '</td><td>' + esc(l.base) + '</td>' +
+          '<td style="text-align:end;font-variant-numeric:tabular-nums">' + esc(l.rate) + '</td>' +
+          '<td>' + (l.civicExempt ? S.badge('success', 'Civic-rights exempt', 'check') : '—') + '</td></tr>';
+      }).join('');
+
+      var taxesSection =
+        '<section class="card" aria-labelledby="tx-h">' +
+        '<h2 id="tx-h">Taxes the org settles</h2>' +
+        '<p>Levies an organization owes are apportioned via population records, never assessed against a civic right.</p>' +
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Levy</th><th scope="col">Base</th><th scope="col" style="text-align:end">Rate</th><th scope="col">Civic-rights</th></tr></thead>' +
+        '<tbody>' + leviesRows + '</tbody></table></div>' +
+        '<p>' + neverFederated(taxes.filing.note) + '</p>' +
+        '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('shield', { size: 'sm' }) +
+        '<div><strong>The hard rail.</strong> ' + esc(taxes.rail) + '</div></div>' +
+        '<ul style="margin-block-start:var(--space-3)">' +
+        '<li><strong>Apportioned by population.</strong> A levy’s share is set against the population records, not by fiat · <span class="citation">Art. II §2</span></li>' +
+        '<li><strong>Never on a civic right.</strong> No tax, fee, lien, or cost may attach to exercising a civic right or obligation · <span class="citation">Art. II §8 · HARDENED</span></li>' +
+        '</ul>' +
+        '</section>';
+
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">The economy · the organization</span>' +
+        '<h1>Organization economics</h1>' +
+        '<p class="page-intro">How an organization governs its board, holds its shares, charges its dues, keeps its ledger, ' +
+        'and settles its taxes — each surface fenced by a constitutional floor. Reading for <strong>' + esc(org.name) + '</strong>.</p>' +
+        '<p class="citation">Co-determination · Art. III §6 · conversion &amp; public-domain IP · Art. III §5 · no civic-right gate · Art. II §8</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+        formChip('Organization economic settings', 'F-ORG-008') +
+        formChip('Ownership transfer', 'F-ORG-005') +
+        '</div></header>' +
+        plannedBanner() +
+        governanceSection +
+        sharesSection +
+        duesSection +
+        ledgerSection +
+        taxesSection;
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

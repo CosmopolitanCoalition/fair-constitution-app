@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive home — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Executive</span>
+        <h1>Executive home</h1>
+        <p class="page-intro">Every executive starts as a committee delegated by the legislature. A supermajority —
+          plus a supermajority of constituent jurisdictions where they exist — can convert it to a directly elected
+          office, as either a committee of five or more equal officers, or a single individual with four advisors.
+          Executive terms always equal the legislative term.</p>
+        <p class="citation">Delegated by default · conversion by supermajority · Art. III §2–3 — terms locked to the legislative term · CLK-10</p>
+      </header>
+
+      <div class="cluster">
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        <span class="citation">Supermajority = ceil(serving × 2/3) — counted against all serving members, never those present · Art. VII</span>
+      </div>
+
+      <section class="card" aria-labelledby="model-h">
+        <h2 id="model-h">Executive models</h2>
+        <p class="gloss">One office, three shapes. The toggle below switches the view — the delegated committee is
+          live in New York County, the elected individual is live in New York State, and the elected committee is an
+          illustrative walkthrough.</p>
+        <div class="cluster" role="group" aria-label="Choose executive model" style="margin-block-end:var(--space-4)">
+          <button type="button" class="btn btn--secondary btn--sm" data-model="delegated" aria-pressed="true">Delegated committee</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-model="elected-committee" aria-pressed="false">Elected committee</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-model="elected-individual" aria-pressed="false">Elected individual</button>
+        </div>
+        <div id="model-panel" aria-live="polite"></div>
+        <noscript><p>This model explorer requires JavaScript. Summary: New York County runs a delegated executive committee
+          (members remain legislators, Westminster-style); New York State converted to an individually elected
+          executive — RCV winner Ingrid Solberg plus four ranked advisors; an elected committee is five or more
+          officers with equal power chosen by PR-STV.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="f014-h">
+          <h2 id="f014-h">Creation act</h2>
+          <div id="form-leg-014"></div>
+          <div class="card--inset card" style="margin-block-start:var(--space-3)">
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Enacted</span>
+            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-02 — New York County executive committee delegation</strong><br />
+              Enacted 2030-01-12 · members remain seated legislators.</p>
+            <div class="meter-block">
+              <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:87.5%"></span><span class="meter-threshold" style="inset-inline-start:75%"></span></div>
+              <div class="meter-caption"><span>7 of 8 serving in favor</span><span>threshold 6 = ceil(8 × 2/3) · Art. VII</span></div>
+            </div>
+            <p class="citation" style="margin-block-start:var(--space-2)">Dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="f015-h">
+          <h2 id="f015-h">Conversion act</h2>
+          <div id="form-leg-015"></div>
+          <div class="card--inset card" style="margin-block-start:var(--space-3)">
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Enacted</span>
+            <p style="margin-block-start:var(--space-2)"><strong>Act 2030-21 — New York State conversion to elected individual office</strong><br />
+              Enacted 2030-03-10 · triggered the executive election won by Ingrid Solberg.</p>
+            <div class="meter-block" style="margin-block-end:var(--space-3)">
+              <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:88.9%"></span><span class="meter-threshold" style="inset-inline-start:66.7%"></span></div>
+              <div class="meter-caption"><span>State legislature: 8 of 9 serving in favor</span><span>threshold 6 = ceil(9 × 2/3) · Art. VII</span></div>
+            </div>
+            <div class="meter-block">
+              <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:82.3%"></span><span class="meter-threshold" style="inset-inline-start:67.7%"></span></div>
+              <div class="meter-caption"><span>Constituent jurisdictions: 51 of 62 counties in favor (New York, Kings, Queens, Bronx, Richmond, Westchester, Erie + 55 more)</span>
+                <span>threshold 42 = ceil(62 × 2/3) · Art. III §3</span></div>
+            </div>
+            <p class="gloss" style="margin-block-start:var(--space-2)">Both meters must clear their threshold — the legislature's own
+              supermajority and a supermajority of the constituent jurisdictions, each counted independently.</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="lockstep-h">
+        <h2 id="lockstep-h">Term lockstep</h2>
+        <p>Elected executive terms expire with the legislative term — one clock drives both elections, and officials
+          cannot skip or delay it. Current term ends <strong>2035-11-01</strong>.</p>
+        <p class="citation">Terms always equal the legislative term · Art. III §3 · CLK-10 — schedule view: <a href="../system/term-sync.html">term synchronization</a></p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-01.html">WF-EXE-01 executive committee delegation</a> ·
+            <a href="../flows/WF-EXE-02.html">WF-EXE-02 conversion to elected office</a> ·
+            <a href="../flows/WF-EXE-03.html">WF-EXE-03 office modification (constituent supermajority)</a>.
+            Orders and oversight live on <a href="executive-actions.html">executive actions</a>; departments on
+            <a href="departments.html">the department registry</a>.</p>
+          <p><strong>Entity state machine:</strong> Executive Office — Delegated (committee) → [Conversion-Voted] →
+            Elected-Office (committee 5+ STV | individual RCV+4 advisors) → [Modified by constituent supermajority] →
+            Dissolved/Reverted. The strip inside each model panel highlights the live state.</p>
+          <p class="citation">Art. III §2–3 · Art. VII · CLK-10</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'executive/executive-home',
+      title: 'Executive home',
+      module: 'executive',
+      nav: 'executive-home',
+      roles: ['R-14', 'R-15', 'R-16', 'R-17'],
+      workflows: ['WF-EXE-01', 'WF-EXE-02', 'WF-EXE-03'],
+      forms: ['F-LEG-014', 'F-LEG-015'],
+      citation: 'Delegated by default · conversion by dual supermajority · Art. III §2–3 · CLK-10',
+      flow: 'WF-EXE-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var model = 'delegated'; /* page-local interaction state */
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        var aliases = (f.aliases && f.aliases.length)
+          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
+        return '<div class="card card--inset"><h3>' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+          '<p class="cc-small">' + esc(f.desc) + '</p>' +
+          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+      }
+
+      function stateStrip(currentIdx) {
+        var ent = BY.entities['Executive Office'];
+        return '<div class="state-strip" style="margin-block-start:var(--space-3)">' +
+          ent.states.map(function (st, i) {
+            return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
+              '<span class="state-node' + (i === currentIdx ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+          }).join('') + '</div>';
+      }
+
+      function orgChips(ids) {
+        if (!ids || !ids.length) return '<span class="tag-chip">no endorsements</span>';
+        return ids.map(function (oid) {
+          var o = BY.organizations[oid];
+          return '<span class="org-chip" style="padding-block:0;font-size:var(--text-xs)">' + esc(o.name) + ' <span class="org-type">' + esc(o.type) + '</span></span>';
+        }).join(' ');
+      }
+
+      function memberRow(name, seatNote, orgs, extra) {
+        return '<li style="padding-block:var(--space-2);border-block-end:1px solid var(--gov-border)">' +
+          '<strong>' + esc(name) + '</strong> ' + (extra || '') +
+          '<span class="cc-small" style="display:block;color:var(--gov-fg-muted)">' + esc(seatNote) + '</span>' +
+          '<span class="cluster" style="gap:var(--space-1);margin-block-start:var(--space-1)">' + orgs + '</span></li>';
+      }
+
+      function delegatedPanel() {
+        var picks = [
+          { p: 'kwame-mensah', seat: 3 }, { p: 'marcus-chen', seat: 2 }, { p: 'asha-okonkwo', seat: 5 },
+          { name: 'Jonas Petersen', seat: 6 }, { name: 'Adaeze Nwosu', seat: 8 }
+        ];
+        var bySeat = {};
+        W.chamber.members.forEach(function (m) { bySeat[m.seat] = m; });
+        var rows = picks.map(function (pk) {
+          var m = bySeat[pk.seat];
+          var name = pk.p ? BY.personas[pk.p].name : pk.name;
+          return memberRow(name, 'Remains a seated legislator · New York County chamber seat ' + pk.seat, orgChips(m.endorsedBy));
+        }).join('');
+        return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
+          S.badge('success', 'Live — New York County', 'check') +
+          '<span class="citation">composed 2030-01-12 via Act 2030-02 (F-LEG-014)</span></div>' +
+          '<p>Westminster-style: a committee of the legislature holds executive authority. The five members were ' +
+          'selected proportionally from the chamber — the same method as legislative committees — and keep their ' +
+          'seats and floor votes.</p>' +
+          '<p class="citation">Proportional selection from the legislature · Art. III §2 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>' +
+          '<ul style="list-style:none;padding:0;margin:0">' + rows + '</ul>' + stateStrip(0);
+      }
+
+      function electedCommitteePanel() {
+        var officers = [
+          { p: 'mei-lin-zhou' }, { name: 'Tunde Bakare' }, { name: 'Sigrid Halvorsen' },
+          { name: 'Rafael Ibarra' }, { name: 'Chioma Eze' }
+        ];
+        var rows = officers.map(function (o, i) {
+          var name = o.p ? BY.personas[o.p].name : o.name;
+          return memberRow(name, 'Office ' + (i + 1) + ' of 5 · equal decision-making power · directly elected',
+            '<span class="tag-chip">PR-STV winner</span>');
+        }).join('');
+        return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
+          S.badge('neutral', 'Illustrative — no live instance in the demo world', 'info') + '</div>' +
+          '<p>Five or more officers elected by the whole population in one proportional count, each with equal ' +
+          'decision-making power. Created (or converted to) only by the dual supermajority in F-LEG-015.</p>' +
+          '<p class="gloss">PR-STV with the Droop quota: every office in the race is filled in a single ranked count, ' +
+          'with surplus votes transferring fractionally — proportional by design.</p>' +
+          '<p class="citation">Committee type: 5+ offices via PR-STV/Droop · Art. III §3</p>' +
+          '<ul style="list-style:none;padding:0;margin:0">' + rows + '</ul>' + stateStrip(2);
+      }
+
+      function electedIndividualPanel() {
+        var winner = BY.personas['ingrid-solberg'];
+        var advisors = W.personas.filter(function (p) { return (p.roles || []).indexOf('R-17') >= 0; })
+          .sort(function (a, b) { return a.advisorRank - b.advisorRank; });
+        var advRows = advisors.map(function (a) {
+          return memberRow(a.name, 'Advisor · steps in for the remainder of the term if the office vacates',
+            '<span class="tag-chip">RCV runner-up</span>',
+            '<span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-user"></use></svg> rank ' + a.advisorRank + '</span>');
+        }).join('');
+        return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
+          S.badge('success', 'Live — New York State', 'check') +
+          '<span class="citation">created 2030-03-10 via Act 2030-21 (F-LEG-015) → executive election 2030-06</span></div>' +
+          '<p><strong>' + esc(winner.name) + '</strong> — single-winner RCV victor (R-16). The top four runners-up ' +
+          'serve as advisors and alternates: the step-in rule promotes them in rank order if the office vacates, ' +
+          'so the popular count — not an appointment — always decides succession.</p>' +
+          '<p class="gloss">Single-winner RCV is used only for the individual executive model; every other race in ' +
+          'the system is multi-winner PR-STV.</p>' +
+          '<p class="citation">Individual type: RCV winner + top-4 advisors with step-in · Art. III §3</p>' +
+          '<ul style="list-style:none;padding:0;margin:0">' + advRows + '</ul>' + stateStrip(2);
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Executive emergency methods stay within the declared scope; elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        var panels = { 'delegated': delegatedPanel, 'elected-committee': electedCommitteePanel, 'elected-individual': electedIndividualPanel };
+        document.getElementById('model-panel').innerHTML = panels[model]();
+
+        document.querySelectorAll('[data-model]').forEach(function (b) {
+          b.setAttribute('aria-pressed', b.getAttribute('data-model') === model ? 'true' : 'false');
+        });
+
+        document.getElementById('form-leg-014').innerHTML = formCard('F-LEG-014');
+        document.getElementById('form-leg-015').innerHTML = formCard('F-LEG-015');
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-model]') : null;
+        if (!t) return;
+        model = t.getAttribute('data-model');
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

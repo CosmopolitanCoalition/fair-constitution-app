@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organization profile — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Organizations · profile</span>
+        <h1 id="org-h1">The Commons Party</h1>
+        <p class="page-intro">An organization profile is a public record: charter, structure, endorsements granted, and
+          membership channels. Political parties and businesses are the same entity type with the same rights — switch
+          between the two examples below.</p>
+        <p class="citation">Organizations, not factions · Art. I · Art. II §2 · as implemented
+          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+      </header>
+
+      <div class="cluster" role="group" aria-label="Choose example organization">
+        <button type="button" class="chip-toggle" data-org="commons-party" aria-pressed="true">The Commons Party · political party</button>
+        <button type="button" class="chip-toggle" data-org="bluefin-logistics" aria-pressed="false">Bluefin Logistics · business</button>
+      </div>
+
+      <section class="card" aria-labelledby="profile-h">
+        <h2 id="profile-h">Profile <span class="form-chip">Organization Profile Management <span class="form-id">F-ORG-001</span></span></h2>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-23 Org Agent · Modifies: Organization record ·
+          <span class="citation">Art. I (Economic Freedom)</span></p>
+        <div id="profile-body"></div>
+        <noscript><p>The profile region is rendered by JavaScript from the fixture world. The Commons Party is a
+          registered political party in New York County; Bluefin Logistics is a stock-owned business with 740 workers.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="endorse-h">
+        <h2 id="endorse-h">Endorsements</h2>
+        <p style="font-size:var(--text-sm)">Two forms meet here: a candidate files an
+          <strong>endorsement request</strong> <span class="form-chip">Endorsement Request <span class="form-id">F-CAN-002</span></span>
+          (available to R-06 Candidate · <span class="citation">Art. I (Freedom of Assembly)</span>), and the organization answers with a
+          <strong>grant</strong> <span class="form-chip">Candidate Endorsement Grant <span class="form-id">F-ORG-002</span></span>
+          (available to R-23 Org Agent · creates the endorsement record · <span class="citation">Art. I (Freedom of Assembly)</span>).
+          Granting confers R-07 Endorsed Candidate.</p>
+        <div class="banner banner--info">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><span class="banner-title">Endorsement linkage feeds proportionality.</span>
+            There is no faction layer — committee assignment and observer proportionality read the polymorphic
+            endorsement graph instead. Individuals endorse the same way organizations do.
+            <span class="citation">Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</span></div>
+        </div>
+        <div class="grid-2" style="margin-block-start:var(--space-4)">
+          <div>
+            <h3>Incoming requests</h3>
+            <div id="request-queue" class="stack" style="gap:var(--space-3)" aria-live="polite"></div>
+          </div>
+          <div>
+            <h3>Endorsed candidates — New York County general election</h3>
+            <div id="endorsed-list" class="stack" style="gap:var(--space-2)"></div>
+            <p class="citation" style="margin-block-start:var(--space-2)" id="endorse-total"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="join-h">
+        <h2 id="join-h">Join this organization</h2>
+        <div class="grid-2">
+          <form id="member-form" novalidate>
+            <h3>As member / shareholder / partner
+              <span class="form-chip">Organization Membership Application <span class="form-id">F-IND-013</span></span></h3>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-01 Individual · Creates: Membership record (R-24) ·
+              <span class="citation">Art. I (Freedom of Assembly)</span></p>
+            <div class="field">
+              <label class="field-label" for="member-class">Membership class</label>
+              <select class="select" id="member-class" name="member-class">
+                <option value="member">Member</option>
+                <option value="shareholder">Shareholder</option>
+                <option value="partner">Partner</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn--primary btn--sm">Apply to join</button>
+            <div id="member-confirm" aria-live="polite" style="margin-block-start:var(--space-2)"></div>
+          </form>
+          <form id="worker-form" novalidate>
+            <h3>As worker
+              <span class="form-chip">Worker Registration <span class="form-id">F-IND-014</span></span></h3>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: R-01 Individual · Creates: Worker record (R-25) ·
+              <span class="citation">Art. III §6 (Work Councils)</span></p>
+            <div class="field">
+              <label class="field-label" for="worker-contract">Employment contract reference</label>
+              <input class="field-input" id="worker-contract" name="worker-contract" type="text" placeholder="e.g. BL-2031-0741" />
+              <span class="field-hint">Worker headcount feeds the <a href="co-determination.html">co-determination scale</a> · CLK-13 / CLK-14.</span>
+            </div>
+            <button type="submit" class="btn btn--secondary btn--sm">Register as worker</button>
+            <div id="worker-confirm" aria-live="polite" style="margin-block-start:var(--space-2)"></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="docs-h">
+        <h2 id="docs-h">Document packages</h2>
+        <p class="cc-small">The constitutional forms are the floor every organization shares. Above that floor, each
+          organization self-manages its internal document packages — adopted, versioned, and amended by its own rules.</p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th scope="col">Package</th><th scope="col" class="mono">Version</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Charter</td><td class="mono" data-no-i18n>v1</td>
+                <td><span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Adopted</span></td></tr>
+              <tr><td>HR handbook</td><td class="mono" data-no-i18n>v3</td>
+                <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Current</span></td></tr>
+              <tr><td>Compensation policy</td><td class="mono" data-no-i18n>v2</td>
+                <td><span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Current</span></td></tr>
+              <tr><td>Custom forms</td><td class="mono" data-no-i18n>2</td>
+                <td><span class="badge badge--neutral">Self-managed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cluster" style="margin-block-start:var(--space-3)">
+          <button type="button" class="btn btn--secondary btn--sm" id="pkg-upload">Upload a package</button>
+          <button type="button" class="btn btn--secondary btn--sm" id="pkg-adopt">Adopt a new version</button>
+        </div>
+        <p id="pkg-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+        <p class="gloss">Internal packages never override the constitutional forms — the shared floor applies to every
+          organization regardless of what it adopts internally.</p>
+        <p class="citation">Internal self-governance above the constitutional floor · Art. I (Economic Freedom) · Art. III §6</p>
+      </section>
+
+      <section class="card" aria-labelledby="contracts-h">
+        <h2 id="contracts-h">Contracts</h2>
+        <p class="cc-small">Organizations and individuals engage in contracts: terms are drafted, both parties
+          co-sign, and the executed contract is recorded and audit-chained.</p>
+        <div class="stack" style="gap:var(--space-3)">
+          <div class="card card--inset">
+            <strong>Recurring labor — counts toward the worker headcount</strong>
+            <span class="form-chip"><span class="form-id">F-IND-014</span></span>
+            <p class="cc-small" style="margin-block-start:var(--space-1)">Worker contracts registered against this
+              organization feed the co-determination scale · CLK-13 / CLK-14.</p>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Active · co-signed by both parties</span>
+          </div>
+          <div class="card card--inset">
+            <strong>Storage bay sublease — Pier 36 annex</strong>
+            <p class="cc-small" style="margin-block-start:var(--space-1)">Terms agreed with Northstar Equal Partners;
+              awaiting this organization's co-signature.</p>
+            <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg> Pending co-signature</span>
+            <div style="margin-block-start:var(--space-2)">
+              <button type="button" class="btn btn--primary btn--sm" id="contract-sign">Co-sign contract</button>
+            </div>
+            <p id="contract-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
+          </div>
+        </div>
+        <p class="citation">Freedom to contract · Art. I — terms → co-signatures → recorded and audit-chained · WF-SYS-04</p>
+      </section>
+
+      <section class="card" aria-labelledby="state-h">
+        <h2 id="state-h">Where this organization sits in its lifecycle</h2>
+        <div id="org-state-strip"></div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Organization entity state machine · Art. III §5–6</p>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-02.html">WF-ORG-02 (candidate endorsement)</a> and
+            <a href="../flows/WF-ORG-03.html">WF-ORG-03 (membership / worker joining)</a> run on this surface;
+            registration arrives from <a href="../flows/WF-ORG-01.html">WF-ORG-01</a>, and headcount changes hand off to
+            <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling)</a>.</p>
+          <p><strong>Entity state machine:</strong> Organization — the profile renders the <em>Active / [Endorsing]</em> states;
+            Bluefin additionally sits in <em>[Co-determination tiers]</em>.</p>
+          <p><strong>Endorsement effects:</strong> grant → candidate gains R-07; counts surface on the
+            <a href="../electoral/open-ballot.html">open ballot</a> filters and the candidate profile.</p>
+          <p class="citation">Art. I · Art. II §2 · Art. III §6</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'organizations/org-detail',
+      title: 'Organization profile',
+      module: 'organizations',
+      nav: 'org-registry',
+      roles: ['R-23', 'R-24', 'R-06', 'R-07'],
+      workflows: ['WF-ORG-02', 'WF-ORG-03'],
+      forms: ['F-ORG-001', 'F-CAN-002', 'F-ORG-002', 'F-IND-013', 'F-IND-014'],
+      citation: 'Endorsements are polymorphic — granting confers R-07 · Art. I · Art. II §2',
+      flow: 'WF-ORG-02',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+
+      var current = 'commons-party';
+      /* Page-local extension of fixture orgs (demo flavor only — fictional). */
+      var detail = {
+        'commons-party': {
+          purpose: 'Advance shared infrastructure — housing, transit, and open public records — through candidates who publish their reasoning.',
+          structure: 'member-owned', members: 12480, membersLabel: 'members', workers: 36,
+          agentPersona: 'priya-sharma',
+          requests: [
+            { id: 'sun-li-park', note: 'Independent — currently no organizational endorsements.' },
+            { id: 'felix-abara', note: 'Platform: watershed protection.' }
+          ]
+        },
+        'bluefin-logistics': {
+          purpose: 'Regional freight and last-mile logistics across the New York metro area. Stock-owned; shares trade privately.',
+          structure: 'stock', members: 1204, membersLabel: 'shareholders', workers: 740,
+          agentPersona: null,
+          requests: []
+        }
+      };
+      var granted = {}; /* requestCandidateId -> true (page-local simulation) */
+
+      function persona(id) {
+        var p = BY.personas[id];
+        return p ? '<span class="persona-chip"><span class="avatar" aria-hidden="true">' + esc(p.initials) + '</span> ' +
+          esc(p.name) + ' <span class="persona-roles">' + p.roles.join(' · ') + '</span></span>' : '';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        var org = BY.organizations[current], d = detail[current];
+        document.getElementById('org-h1').textContent = org.name;
+
+        /* profile */
+        document.getElementById('profile-body').innerHTML =
+          '<div class="cluster" style="gap:var(--space-6);margin-block-end:var(--space-4)">' +
+          '<div class="stat"><span class="stat-number">' + d.members.toLocaleString('en-US') + '</span><span class="stat-label">' + esc(d.membersLabel) + '</span></div>' +
+          '<div class="stat"><span class="stat-number">' + d.workers.toLocaleString('en-US') + '</span><span class="stat-label">workers (R-25)</span></div>' +
+          '<div class="stat"><span class="stat-number">' + (org.endorsementCount !== undefined ? org.endorsementCount.toLocaleString('en-US') : '0') + '</span><span class="stat-label">endorsements granted (all races)</span></div></div>' +
+          '<div class="field"><span class="field-label">Type</span><p><span class="org-chip">' + esc(org.name) +
+          ' <span class="org-type">' + esc(org.type) + '</span></span> <span class="tag-chip">structure: ' + esc(d.structure.replace(/_/g, ' ')) + '</span></p></div>' +
+          '<div class="field"><span class="field-label">Registered jurisdiction</span><p>New York County (usa-3-new-york-county) — records public across the federation · <span class="citation">Art. V §2 (Full Faith &amp; Credit)</span></p></div>' +
+          '<div class="field"><span class="field-label">Charter / purpose</span><p>' + esc(d.purpose) + '</p></div>' +
+          (d.agentPersona
+            ? '<div class="field"><span class="field-label">Organization agent (R-23)</span><p>' + persona(d.agentPersona) + '</p></div>'
+            : '<div class="field"><span class="field-label">Organization agent (R-23)</span><p>Agent of record on file with the registry office.</p></div>') +
+          (d.workers >= 100
+            ? '<p>' + S.badge('info', 'co-determination scaling · ' + d.workers + ' workers', 'users') +
+              ' <a href="co-determination.html">See the scaling meter</a> <span class="citation">Art. III §6 · CLK-13 / CLK-14</span></p>'
+            : '<p>' + S.badge('neutral', 'below co-determination threshold', 'users') + ' <span class="citation">first worker seat at 100 · CLK-13</span></p>');
+
+        /* endorsement panel */
+        var reqHtml = d.requests.map(function (r) {
+          var c = W.candidates.filter(function (x) { return x.id === r.id; })[0];
+          if (!c) return '';
+          if (granted[r.id]) {
+            return '<div class="card card--inset"><strong>' + esc(c.name) + '</strong> ' +
+              S.badge('success', 'Endorsement granted — now R-07', 'check') +
+              '<p style="font-size:var(--text-xs);margin-block-start:var(--space-1)">Simulated: the endorsement record was created and the candidate profile updated. ' +
+              '<span class="citation">F-ORG-002 · Art. I (Freedom of Assembly)</span></p></div>';
+          }
+          return '<div class="card card--inset"><strong>' + esc(c.name) + '</strong> ' +
+            '<span class="tag-chip">' + c.approvals.toLocaleString('en-US') + ' approvals</span>' +
+            '<p style="font-size:var(--text-xs);margin-block-start:var(--space-1)">' + esc(r.note) +
+            ' <span class="citation">request via F-CAN-002 (R-06 Candidate)</span></p>' +
+            '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+            '<button type="button" class="btn btn--primary btn--sm" data-grant="' + esc(r.id) + '">Grant endorsement</button>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-decline="' + esc(r.id) + '">Decline</button></div></div>';
+        }).join('');
+        document.getElementById('request-queue').innerHTML = reqHtml ||
+          '<p style="font-size:var(--text-sm)">No open requests. Businesses hold the same endorsement rights as parties — any organization may endorse any candidate.</p>';
+
+        var mine = W.candidates.filter(function (c) { return (c.endorsedBy || []).indexOf(current) >= 0; });
+        document.getElementById('endorsed-list').innerHTML = mine.length
+          ? mine.map(function (c) {
+              return '<div class="cluster" style="justify-content:space-between"><span><a href="../electoral/candidate-profile.html">' + esc(c.name) + '</a> ' +
+                (c.incumbent ? S.badge('neutral', 'incumbent') : '') + '</span>' +
+                '<span class="citation">' + c.approvals.toLocaleString('en-US') + ' approvals · R-07</span></div>';
+            }).join('')
+          : '<p style="font-size:var(--text-sm)">None in this race. An endorsement here would confer R-07 on the candidate.</p>';
+        document.getElementById('endorse-total').textContent = org.endorsementCount !== undefined
+          ? org.endorsementCount.toLocaleString('en-US') + ' endorsements granted across all races · aggregate is public; ballots stay secret'
+          : 'No endorsements granted yet by this organization.';
+
+        /* lifecycle strip */
+        var ent = BY.entities['Organization'];
+        var currentIdx = (current === 'bluefin-logistics') ? 3 : 2; /* [Co-determination tiers] vs [Endorsing] */
+        document.getElementById('org-state-strip').innerHTML = '<div class="state-strip">' +
+          ent.states.map(function (s, i) {
+            return '<span class="state-node' + (i === currentIdx ? ' state-node--current' : '') + '">' + esc(s) + '</span>';
+          }).join('<span class="state-arrow">→</span>') + '</div>';
+
+        S.refresh();
+      }
+
+      document.body.addEventListener('click', function (ev) {
+        var t = ev.target.closest ? ev.target.closest('[data-org],[data-grant],[data-decline]') : null;
+        if (!t) return;
+        if (t.hasAttribute('data-org')) {
+          current = t.getAttribute('data-org');
+          document.querySelectorAll('[data-org]').forEach(function (b) {
+            b.setAttribute('aria-pressed', b === t ? 'true' : 'false');
+          });
+          render();
+        } else if (t.hasAttribute('data-grant')) {
+          granted[t.getAttribute('data-grant')] = true;
+          render();
+        } else if (t.hasAttribute('data-decline')) {
+          detail[current].requests = detail[current].requests.filter(function (r) {
+            return r.id !== t.getAttribute('data-decline');
+          });
+          render();
+        }
+      });
+
+      document.getElementById('member-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var cls = document.getElementById('member-class').value;
+        document.getElementById('member-confirm').innerHTML =
+          S.badge('success', 'Application submitted', 'check') +
+          ' <span style="font-size:var(--text-xs)">Simulated: a ' + esc(cls) + ' record (R-24) will be created when the organization accepts. <span class="citation">F-IND-013 · Art. I</span></span>';
+      });
+      document.getElementById('worker-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        document.getElementById('worker-confirm').innerHTML =
+          S.badge('success', 'Worker registration recorded', 'check') +
+          ' <span style="font-size:var(--text-xs)">Simulated: worker record (R-25) created; headcount updated for the co-determination scale. <span class="citation">F-IND-014 · Art. III §6 · CLK-13</span></span>';
+      });
+
+      /* Document packages — upload / adopt stubs (simulated; internal packages never override constitutional forms). */
+      document.getElementById('pkg-upload').addEventListener('click', function () {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('info', 'Package received', 'file-text') +
+          ' <span class="cc-small">Simulated: draft package staged for internal adoption by the organization’s own rules — it cannot override the constitutional forms.</span>';
+      });
+      document.getElementById('pkg-adopt').addEventListener('click', function () {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('success', 'Version adopted', 'check') +
+          ' <span class="cc-small">Simulated: HR handbook v4 adopted under the organization’s own rules; v3 archived with its history preserved.</span>';
+      });
+
+      /* Contracts — simulated co-sign. */
+      document.getElementById('contract-sign').addEventListener('click', function () {
+        this.setAttribute('disabled', '');
+        document.getElementById('contract-confirm').innerHTML = S.badge('success', 'Co-signed — recorded', 'check') +
+          ' <span class="cc-small">Simulated: both signatures on record; the executed contract was appended to the audit chain (WF-SYS-04).</span>';
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

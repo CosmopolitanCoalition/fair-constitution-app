@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bill detail — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Bill · <span data-no-i18n>bill-2031-07</span></span>
+        <h1>New York County Clean Air Act</h1>
+        <p class="page-intro">Sponsored by Marcus Chen, in the Environment &amp; Infrastructure committee. The act sets
+          county air-quality standards for stationary sources and binds New York County only; the county judiciary
+          hears disputes.</p>
+        <div class="cluster">
+          <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> In committee</span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">MC</span> Marcus Chen <span class="persona-roles">R-09 · sponsor</span></span>
+          <span class="citation">introduced 2031-04-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>
+        </div>
+      </header>
+
+      <section class="card" aria-labelledby="lc-h">
+        <h2 id="lc-h">Lifecycle</h2>
+        <ol id="lifecycle" class="lifecycle" aria-label="Bill lifecycle — currently In-Committee"></ol>
+        <noscript><p>Lifecycle renders with JavaScript — this bill is at In-Committee.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-2)">Bill state machine · Introduced and Referred complete · In-Committee current · WF-LEG-06</p>
+      </section>
+
+      <section class="card" aria-labelledby="scope-h">
+        <h2 id="scope-h">Scale &amp; scope</h2>
+        <div class="grid-2">
+          <div>
+            <span class="eyebrow">Scale — jurisdictions bound</span>
+            <p style="margin-block-start:var(--space-1)">New York County (usa-3-new-york-county) — the whole
+              jurisdiction. The dataset carries no subdivisions below county, so no constituent jurisdictions are
+              named.</p>
+          </div>
+          <div>
+            <span class="eyebrow">Scope — judiciary for disputes</span>
+            <p style="margin-block-start:var(--space-1)">County judiciary hears disputes; binds New York County only.</p>
+          </div>
+        </div>
+        <p class="citation">Scale &amp; scope declared at introduction · F-LEG-003 · Art. V §4</p>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="com-h">
+          <h2 id="com-h">Committee stage <span class="form-chip">Committee vote <span class="form-id">F-LEG-005</span></span></h2>
+          <p class="cc-small">Cast a vote on a bill or matter within a committee.
+            <span class="citation">available to R-11 Committee Member · Art. II §4</span></p>
+          <p>Environment &amp; Infrastructure · 3 members · passage = majority of <strong>all committee members</strong>: 2 of 3.</p>
+          <div class="meter-block">
+            <div class="meter"><span class="meter-fill" style="inline-size:33%"></span>
+              <span class="meter-threshold" style="inset-inline-start:67%"></span></div>
+            <div class="meter-caption"><span>1 of 3 recorded so far (chair: yes)</span><span>needs 2 of 3 — all members, not those present</span></div>
+          </div>
+          <p style="margin-block-start:var(--space-3)"><a href="committee-detail.html">Cast committee votes in the hearing surface
+            <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+        </section>
+
+        <section class="card" aria-labelledby="floor-h">
+          <h2 id="floor-h">Floor vote <span class="form-chip">Floor vote <span class="form-id">F-LEG-004</span></span></h2>
+          <p class="cc-small">Cast a vote on a bill, appointment, act, or other matter before the full legislature.
+            <span class="citation">available to R-09 Legislative Representative · Art. II §2 (Peg Quorum)</span></p>
+          <p>Ordinary act — passes by <strong>majority of all serving members: 5 of 9</strong>, never a majority of
+            those present. Projected whip count: 6 yes.</p>
+          <div class="meter-block">
+            <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:67%"></span>
+              <span class="meter-threshold" style="inset-inline-start:56%"></span></div>
+            <div class="meter-caption"><span>6 projected yes of 9</span><span>majority gate: 5 of 9 · Art. II §2</span></div>
+          </div>
+          <div class="meter-block" style="margin-block-start:var(--space-3)">
+            <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:67%"></span>
+              <span class="meter-threshold" style="inset-inline-start:67%"></span></div>
+            <div class="meter-caption"><span>supermajority gate (if the act class required it)</span><span>ceil(9 × 2/3) = 6 of 9 · Art. VII</span></div>
+          </div>
+          <p class="gloss" style="margin-block-start:var(--space-2)">Peg quorum: the denominator is every serving seat.
+            An absent member counts the same as a no.</p>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="bicam-h">
+        <h2 id="bicam-h">Bicameral dual-agreement view</h2>
+        <p class="cc-small">The New York County legislature is unicameral. This preview shows how the same act would
+          tally in a legislature with constituent jurisdictions — New York (state), say, whose constituents are its
+          counties — where population-apportioned (type A) and equal-apportioned (type B) members must
+          <strong>both</strong> agree independently — at committee and on the floor. Each kind agrees by a majority of
+          all its serving members.</p>
+        <div class="cluster" style="margin-block-end:var(--space-3)">
+          <button type="button" class="btn btn--secondary btn--sm" id="bicam-toggle" aria-pressed="false">Preview bicameral tally</button>
+          <span class="citation">also driven by the demo-bar "Bicameral" toggle · Art. V §3 · as implemented
+            (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>)</span>
+        </div>
+        <div id="bicam-body"></div>
+        <noscript><p>The dual-tally preview renders with JavaScript.</p></noscript>
+      </section>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-06.html">WF-LEG-06 (bill lifecycle)</a> — this bill is
+            at the committee step; <a href="../flows/WF-LEG-07.html">WF-LEG-07 (bicameral dual agreement)</a> — the
+            toggle above; the committee hearing runs <a href="../flows/WF-LEG-08.html">WF-LEG-08</a>.</p>
+          <p><strong>Entity state machine:</strong> Bill — Introduced → Referred → <em>In-Committee</em> → Reported →
+            On-Floor → Passed → Enacted → Published. If it is later challenged, the [Challenged] / [Edited per
+            Art. IV §5] stages apply.</p>
+          <p class="citation">Art. II §2 · Art. II §4 · Art. V §3–4 · Art. VII</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'legislature/bill-detail',
+      title: 'Bill detail — New York County Clean Air Act',
+      module: 'legislature',
+      nav: 'bills',
+      roles: ['R-09', 'R-10', 'R-11', 'R-12'],
+      workflows: ['WF-LEG-06', 'WF-LEG-07'],
+      forms: ['F-LEG-004', 'F-LEG-005'],
+      citation: 'Majority of all serving = 5 of 9 · supermajority 6 of 9 · Art. II §2; Art. V §3',
+      flow: 'WF-LEG-06',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, BY = F.byId;
+      var esc = S.esc;
+      var localBicam = false; /* page-local toggle; scenario.bicameral also activates the view */
+
+      var CURRENT = 'In-Committee';
+
+      function dualMeter(label, yes, total, basisNote) {
+        var need = Math.floor(total / 2) + 1; /* majority of ALL members of that kind */
+        var met = yes >= need;
+        return '<div class="card card--inset"><span class="eyebrow">' + esc(label) + '</span>' +
+          '<div class="meter-block" style="margin-block-start:var(--space-2)">' +
+          '<div class="meter"><span class="meter-fill' + (met ? ' meter-fill--met' : '') + '" style="inline-size:' + Math.round(yes / total * 100) + '%"></span>' +
+          '<span class="meter-threshold" style="inset-inline-start:' + Math.round(need / total * 100) + '%"></span></div>' +
+          '<div class="meter-caption"><span>' + yes + ' yes of ' + total + ' (all serving of this kind)</span>' +
+          '<span>needs ' + need + ' of ' + total + ' · ' + esc(basisNote) + '</span></div></div>' +
+          '<div style="margin-block-start:var(--space-2)">' + S.badge(met ? 'success' : 'danger', met ? 'This kind agrees' : 'This kind does not agree', met ? 'check' : 'x') + '</div></div>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        var bicam = localBicam || !!st.scenario.bicameral;
+
+        /* Lifecycle tracker at In-Committee. */
+        var states = BY.entities['Bill'].states;
+        var reached = true;
+        document.getElementById('lifecycle').innerHTML = states.map(function (s) {
+          var cls = 'lifecycle-stage';
+          if (s === CURRENT) { cls += ' lifecycle-stage--current'; reached = false; }
+          else if (reached) cls += ' lifecycle-stage--done';
+          return '<li class="' + cls + '"' + (s === CURRENT ? ' aria-current="step"' : '') + '>' + esc(s) + '</li>';
+        }).join('');
+
+        /* Bicameral dual-agreement tally — TWO independent meters, committee AND floor. */
+        document.getElementById('bicam-toggle').setAttribute('aria-pressed', localBicam ? 'true' : 'false');
+        document.getElementById('bicam-body').innerHTML = !bicam
+          ? '<p class="gloss">Toggle the preview to see the dual tally. In a bicameral legislature this act only ' +
+            'passes when both seat kinds independently agree — twice.</p>'
+          : '<h3 style="font-size:var(--text-base)">Committee stage — both kinds must agree</h3>' +
+            '<div class="grid-2">' +
+            dualMeter('Type A · population-apportioned members on committee', 2, 3, 'Art. V §3') +
+            dualMeter('Type B · equal-apportioned members on committee', 2, 2, 'Art. V §3') +
+            '</div>' +
+            '<h3 style="font-size:var(--text-base);margin-block-start:var(--space-4)">Floor stage — both kinds must agree again</h3>' +
+            '<div class="grid-2">' +
+            dualMeter('Type A · population-apportioned members (6 seats)', 4, 6, 'Art. V §3') +
+            dualMeter('Type B · equal-apportioned members (3 seats)', 2, 3, 'Art. V §3') +
+            '</div>' +
+            '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('check') +
+            '<div><span class="banner-title">Both kinds agree at committee and on the floor — the act passes</span>' +
+            'A failure in either kind, at either stage, fails the act. ' +
+            '<span class="citation">Independent agreement of both seat kinds — majority of all serving of each kind · ' +
+            'Art. V §3 · as implemented (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>) · WF-LEG-07</span></div></div>';
+
+        S.refresh();
+      }
+
+      document.getElementById('bicam-toggle').addEventListener('click', function () {
+        localBicam = !localBicam;
+        render();
+      });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

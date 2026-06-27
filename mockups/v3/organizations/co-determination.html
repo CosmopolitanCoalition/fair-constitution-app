@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Co-determination — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <div id="emergency-banner"></div>
+
+      <header>
+        <span class="eyebrow">Organizations · work councils</span>
+        <h1>Co-determination scaling</h1>
+        <p class="page-intro">When an organization employs 100 or more workers, its workers elect board members. The
+          first worker seat arrives at 100 workers, and worker representation scales uniformly until it reaches parity
+          with owner-side seats at 2,000 workers. The same scale binds private enterprises, Common Good Corporations,
+          and executive departments.</p>
+        <p class="citation">First seat at 100 (CLK-13) · parity at 2,000 (CLK-14) · Art. III §6 (Work Councils)</p>
+      </header>
+
+      <section class="card" aria-labelledby="meter-h">
+        <h2 id="meter-h">The scaling meter — Bluefin Logistics, live example</h2>
+        <p style="font-size:var(--text-sm)">Bluefin Logistics employs <strong>740 workers</strong> against a board of
+          <strong>9 owner-elected seats</strong>. Move the headcount to explore the scale; Bluefin's real position is preset.</p>
+        <div class="field">
+          <label class="field-label" for="headcount">Worker headcount</label>
+          <input type="range" id="headcount" min="0" max="2400" step="10" value="740"
+            style="inline-size:100%;accent-color:var(--gov-primary)"
+            aria-describedby="meter-readout" />
+        </div>
+        <div class="meter-block" style="margin-block-start:var(--space-2)">
+          <div class="meter" style="block-size:.875rem">
+            <span class="meter-fill" id="meter-fill" style="inline-size:31%"></span>
+            <span class="meter-threshold" style="inset-inline-start:4.2%" title="CLK-13 first worker seat"></span>
+            <span class="meter-threshold" style="inset-inline-start:83.3%" title="CLK-14 parity"></span>
+          </div>
+          <div class="meter-caption">
+            <span>0</span>
+            <span>100 · first worker seat · CLK-13</span>
+            <span>2,000 · parity · CLK-14</span>
+          </div>
+        </div>
+        <div id="meter-readout" class="cluster" style="gap:var(--space-6);margin-block-start:var(--space-4)" aria-live="polite"></div>
+        <div class="receipt" style="margin-block-start:var(--space-4)" data-no-i18n id="formula-block"></div>
+        <p class="citation" style="margin-block-start:var(--space-2)">Scales uniformly between the first seat (100) and parity (2,000) · Art. III §6</p>
+        <p class="gloss">Parity means worker-elected seats equal owner-elected seats. "Scales uniformly" is read plainly:
+          seats grow proportionally between the two constitutional endpoints, in even steps, so no headcount jump is ever
+          rewarded or punished. The worker count is simply everyone signed on through the worker form
+          (Worker registration · F-IND-014) — recurring labor counts regardless of organization type. The owner side runs
+          on the share system; in a Common Good Corporation the board of governors stands where shareholders would.</p>
+        <noscript><p>With JavaScript on, this meter recomputes live. Bluefin at 740 workers:
+          max(1, round((740 − 100) ÷ 1,900 × 9)) = 3 worker seats beside 9 owner seats.</p></noscript>
+      </section>
+
+      <section class="card" aria-labelledby="trigger-h">
+        <h2 id="trigger-h">Composition change → joint chair election</h2>
+        <p style="font-size:var(--text-sm)">Every time the scale adds (or removes) a worker seat, the board's composition
+          changes — and a composition change triggers a fresh <strong>joint chair election by the entire board</strong>,
+          owner-elected and worker-elected members voting together. The board is valid only while its composition matches
+          the scale.</p>
+        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span></p>
+        <p class="citation">Chair elected jointly by the entire Board · Art. III §6 · WF-ORG-04 → WF-ORG-05</p>
+        <div id="worker-election-formcard" style="margin-block-start:var(--space-3)"></div>
+        <p style="margin-block-start:var(--space-3)"><a href="board-elections.html">Open board elections
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+      </section>
+
+      <section class="card" style="padding:0" aria-labelledby="applies-h">
+        <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
+          <h2 id="applies-h">Applies equally — private enterprises, CGCs, and executive departments</h2>
+          <p style="font-size:var(--text-sm);max-inline-size:44rem">The scale does not care who owns the entity. Owner-side
+            seats are shareholder-elected on a private board, appointed governors on a CGC or
+            <a href="../executive/departments.html">executive department</a> board.
+            <span class="citation">Art. III §6</span></p>
+        </div>
+        <div class="table-wrap" style="padding-block-end:var(--space-2)">
+          <table class="table">
+            <thead><tr><th scope="col">Entity</th><th scope="col">Kind</th><th scope="col">Workers</th>
+              <th scope="col">Owner-side seats</th><th scope="col">Worker seats</th><th scope="col">State</th></tr></thead>
+            <tbody id="applies-body"></tbody>
+          </table>
+        </div>
+        <noscript><p style="padding:var(--space-4)">JavaScript renders this table: Bluefin Logistics 740 workers → 3 of 9;
+          Manhattan Water &amp; Power (CGC) 1,450 → 5 of 7; Public Works &amp; Utilities (department) 1,240 → 4 of 7;
+          Treasury 152 → 1 of 5; Cobalt Grid Co. 510 → 2 of 9; Northstar Equal Partners 38 → below threshold.</p></noscript>
+      </section>
+
+      <div class="grid-2">
+        <section class="card" aria-labelledby="clk13-h">
+          <h2 id="clk13-h">CLK-13 · Co-determination minimum</h2>
+          <p class="amendable"><span class="amendable-value">100 workers</span> — headcount at which the first
+            worker-elected board seat is required.
+            <span class="amendable-meta">Template default · no enacting act yet on this instance · amendable by legislative
+              act within Art. III §6 (must stay below the parity threshold)</span></p>
+          <p class="citation">CLK-13 · fires WF-ORG-04 (first worker seat) · Art. III §6</p>
+        </section>
+        <section class="card" aria-labelledby="clk14-h">
+          <h2 id="clk14-h">CLK-14 · Co-determination parity</h2>
+          <p class="amendable"><span class="amendable-value">2,000 workers</span> — headcount at which worker-elected
+            seats reach parity with owner-side seats.
+            <span class="amendable-meta">Template default · no enacting act yet on this instance · amendable by legislative
+              act within Art. III §6 (must stay above the minimum threshold)</span></p>
+          <p class="citation">CLK-14 · fires WF-ORG-04 (board parity) · Art. III §6</p>
+        </section>
+      </div>
+
+      <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
+        <div class="about-surface-body">
+          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling event)</a> —
+            threshold-driven, system-triggered; it opens worker-track elections via
+            <a href="../flows/WF-ORG-05.html">WF-ORG-05 (board elections)</a>. Headcount arrives from
+            <a href="../flows/WF-ORG-03.html">WF-ORG-03 (worker joining)</a>.</p>
+          <p><strong>Entity state machine:</strong> Organization — this surface renders the
+            <em>[Co-determination tiers]</em> state; the same recalculation binds I-CGC and I-DEP boards.</p>
+          <p class="citation">Art. III §6 · CLK-13 · CLK-14</p>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'organizations/co-determination',
+      title: 'Co-determination scaling',
+      module: 'organizations',
+      nav: 'co-determination',
+      roles: ['R-25', 'R-27', 'R-23'],
+      workflows: ['WF-ORG-04', 'WF-ORG-05'],
+      forms: ['F-ORG-004'],
+      citation: 'First worker seat at 100 (CLK-13) · parity at 2,000 (CLK-14) · Art. III §6',
+      flow: 'WF-ORG-04',
+      register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var esc = S.esc;
+      var MIN = 100, PAR = 2000, OWNER = 9; /* Bluefin board: 9 owner-elected seats */
+
+      function workerSeats(w, ownerSeats) {
+        if (w < MIN) return 0;
+        return Math.max(1, Math.min(ownerSeats, Math.round((w - MIN) / (PAR - MIN) * ownerSeats)));
+      }
+      /* Smallest headcount at which the seat count increases past `seats`. */
+      function nextStep(seats, ownerSeats) {
+        if (seats >= ownerSeats) return null;
+        var w = Math.ceil((seats + 0.5) / ownerSeats * (PAR - MIN) + MIN);
+        return Math.min(w, PAR);
+      }
+
+      function formCard(fid) {
+        var f = BY.forms[fid];
+        if (!f) return '';
+        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) +
+          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(f.availableToRaw) + ' · ' + esc(f.creates) + '</p>' +
+          '<p class="citation">' + esc(f.basis) + '</p></div>';
+      }
+
+      function appliesRow(name, href, kind, workers, ownerSeats, ownerLabel) {
+        var seats = ownerSeats == null ? null : workerSeats(workers, ownerSeats);
+        var state;
+        if (workers < MIN) state = S.badge('neutral', 'below first-seat threshold');
+        else if (workers >= PAR) state = S.badge('success', 'parity', 'users');
+        else state = S.badge('info', 'scaling', 'users');
+        return '<tr><td>' + (href ? '<a href="' + href + '">' + esc(name) + '</a>' : esc(name)) + '</td>' +
+          '<td>' + esc(kind) + '</td><td>' + workers.toLocaleString('en-US') + '</td>' +
+          '<td>' + (ownerSeats == null ? '—' : ownerSeats + ' ' + ownerLabel) + '</td>' +
+          '<td>' + (seats == null ? '—' : (workers < MIN ? '0' : seats)) + '</td>' +
+          '<td>' + state + '</td></tr>';
+      }
+
+      function renderMeter() {
+        var w = parseInt(document.getElementById('headcount').value, 10);
+        var seats = workerSeats(w, OWNER);
+        var pct = Math.min(100, Math.round(w / 2400 * 100));
+        document.getElementById('meter-fill').style.inlineSize = pct + '%';
+        document.getElementById('meter-fill').className = 'meter-fill' + (w >= PAR ? ' meter-fill--met' : '');
+
+        var status = w < MIN
+          ? S.badge('neutral', 'no worker seats yet — first seat at 100 · CLK-13')
+          : w >= PAR
+            ? S.badge('success', 'parity — worker seats equal owner seats · CLK-14', 'users')
+            : S.badge('info', 'scaling between CLK-13 and CLK-14', 'users');
+        var next = nextStep(seats, OWNER);
+        document.getElementById('meter-readout').innerHTML =
+          '<div class="stat"><span class="stat-number">' + w.toLocaleString('en-US') + '</span><span class="stat-label">workers (R-25)</span></div>' +
+          '<div class="stat stat--accent"><span class="stat-number">' + seats + '</span><span class="stat-label">worker-elected seats (R-27)</span></div>' +
+          '<div class="stat"><span class="stat-number">' + OWNER + '</span><span class="stat-label">owner-elected seats (R-26)</span></div>' +
+          '<div>' + status + (next && w >= MIN
+            ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">next seat at ' + next.toLocaleString('en-US') + ' workers (projection)</span>'
+            : '') + '</div>';
+
+        document.getElementById('formula-block').innerHTML =
+          'worker_seats = max(1, round((W − 100) ÷ (2,000 − 100) × owner_seats))   for W ≥ 100<br />' +
+          '             = max(1, round((' + w.toLocaleString('en-US') + ' − 100) ÷ 1,900 × ' + OWNER + ')) = <strong>' +
+          (w < MIN ? '0 (below CLK-13)' : seats) + '</strong>';
+      }
+
+      function render() {
+        var st = window.CGA.state.getAll();
+        document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
+          ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
+            '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
+            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+          : '';
+
+        renderMeter();
+
+        var bluefin = BY.organizations['bluefin-logistics'];
+        var mwp = BY.organizations['manhattan-water-power'];
+        var cobalt = BY.organizations['cobalt-grid'];
+        var northstar = BY.organizations['northstar-equal-partners'];
+        var works = W.departments.filter(function (d) { return d.id === 'dep-works'; })[0];
+        var treasury = W.departments.filter(function (d) { return d.id === 'dep-treasury'; })[0];
+
+        document.getElementById('applies-body').innerHTML =
+          appliesRow(bluefin.name, 'org-detail.html', 'Private enterprise (stock)', bluefin.workers, 9, 'shareholder-elected') +
+          appliesRow(cobalt.name, 'transfers-conversions.html', 'Private enterprise (stock)', cobalt.workers, 9, 'shareholder-elected') +
+          appliesRow(mwp.name, 'cgc-detail.html', 'Common Good Corporation', mwp.workers, 7, 'appointed governors') +
+          appliesRow(works.name, '../executive/department-detail.html', 'Executive department', works.workers, works.governors, 'appointed governors') +
+          appliesRow(treasury.name, '../executive/departments.html', 'Executive department', treasury.workers, treasury.governors, 'appointed governors') +
+          appliesRow(northstar.name, 'org-detail.html', 'Private enterprise (equal partnership)', northstar.workers, null, '');
+
+        document.getElementById('worker-election-formcard').innerHTML = formCard('F-ORG-004');
+
+        S.refresh();
+      }
+
+      document.getElementById('headcount').addEventListener('input', function () { renderMeter(); });
+
+      render();
+      document.addEventListener('cga:statechange', render);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Executive Order / Policy Proposal — CGA mockups</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack">
+      <header>
+        <span class="eyebrow">Flow walkthrough · EXE</span>
+        <h1>Executive Order / Policy Proposal <span class="citation">WF-EXE-07</span></h1>
+        <p class="page-intro">Every step, actor, form, and branch below is transcribed from the workflows catalog
+          (Sheet 2). Branch buttons take the alternate path — including failure and terminal paths.
+          "Open in app" jumps to the screen where a step happens, with the demo state preset.</p>
+        <noscript><p>This walkthrough is rendered by JavaScript from its flowData object.</p></noscript>
+      </header>
+      <div id="flow-root"></div>
+      <p><a href="../index.html#wf-h">All 80 workflows
+        <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {"id": "flows/WF-EXE-07", "title": "Executive Order / Policy Proposal", "module": "flows", "nav": null, "roles": ["R-14"], "workflows": ["WF-EXE-07"], "forms": [], "citation": "Art. III §2–4; Art. IV §5 · WF-EXE-07", "flow": "WF-EXE-07", "register": "governance"};
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var flowData = {
+ "id": "WF-EXE-07",
+ "name": "Executive Order / Policy Proposal",
+ "timeScale": "Short",
+ "trigger": "Executive initiative within delegated authority",
+ "actors": [
+  "R-14"
+ ],
+ "institutions": [
+  "I-EXC",
+  "I-EEO",
+  "I-DEP"
+ ],
+ "terminal": "Order issued within delegated scope (engine-validated); policy changes proposed to boards/legislature; judicially reviewable",
+ "basis": "Art. III §2–4; Art. IV §5",
+ "entity": null,
+ "steps": [
+  {
+   "n": 1,
+   "actor": "R-14/15/16",
+   "action": "Draft executive order or policy proposal",
+   "outcome": "Scope declared  [also: F-EXE-002]",
+   "form": "F-EXE-005",
+   "screen": {
+    "href": "executive/executive-actions.html",
+    "params": {
+     "role": "R-14"
+    }
+   }
+  },
+  {
+   "n": 2,
+   "actor": "Constitutional Engine",
+   "action": "Validate within delegated authority + constitutional order",
+   "outcome": "BRANCH: out of scope → rejected pre-issuance; valid → issued & published",
+   "engine": "Hardened check",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   },
+   "branches": [
+    {
+     "label": "out of scope → rejected pre-issuance",
+     "goto": "terminal:out of scope → rejected pre-issuance"
+    },
+    {
+     "label": "valid → issued & published",
+     "goto": "terminal:valid → issued & published"
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "actor": "I-JUD",
+   "action": "Subject to judicial review on challenge",
+   "outcome": "Executives uphold constitutional order and Art. IV §5 outcomes",
+   "engine": "WF-JUD-05 analog",
+   "screen": {
+    "href": "executive/executive-home.html",
+    "params": {}
+   }
+  }
+ ]
+};
+      window.CGA.shell.renderFlowStepper(flowData, document.getElementById('flow-root'));
+      document.addEventListener('cga:statechange', function () { window.CGA.shell.refresh(); });
+    })();
+  </script>
+</body>
+</html>

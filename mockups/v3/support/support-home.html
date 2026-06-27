@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Help &amp; support — CGA mockups v2</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main"><div class="stack" id="root"><p class="gloss">Loading support…</p></div></main>
+  <script>
+    window.CGA_PAGE = { id: 'support/support-home', title: 'Help & support', module: 'support', nav: 'support-home', citation: 'Help, report an issue, and track tickets', register: 'governance' };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../assets/js/fixtures-learn.js"></script>
+  <script src="../assets/js/fixtures-translation.js"></script>
+  <script src="../assets/js/fixtures-support.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script src="../assets/js/components-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, U = window.CGA.fixtures.v2.support, esc = S.esc;
+
+    function routeCards() {
+      return '<div class="cat-grid">' + U.categories.map(function (c) {
+        return '<div class="cat-card' + (c.id === 'abuse' ? ' cat--abuse' : '') + '"><span class="cat-name">' + S.icon(c.icon, { size: 'sm' }) + ' ' + esc(c.label) + '</span>' +
+          '<span style="font-size:var(--text-sm)">' + esc(c.note) + '</span>' +
+          '<span class="cat-route">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(c.routesTo) + '</span></div>';
+      }).join('') + '</div>';
+    }
+
+    function render() {
+      document.getElementById('root').innerHTML =
+        '<header><span class="eyebrow">' + S.icon('life-buoy', { size: 'sm' }) + ' Help &amp; support</span><h1>Help &amp; support</h1>' +
+        '<p class="page-intro">Stuck, or something’s wrong? Learn how a tool works, report an issue, or follow a ticket as it’s fixed. ' +
+        'Every report <strong>routes itself</strong> — to the operators, the translators, or the moderation plane — so it reaches the right people.</p>' +
+        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
+
+        '<section aria-labelledby="do-h"><h2 id="do-h">What do you need?</h2><div class="role-grid">' +
+        '<a class="role-card" style="border-block-start:3px solid var(--cc-gold-400)" href="' + S.hrefV2('support/report.html') + '">' + S.icon('flag') +
+        '<span class="role-name">Report an issue</span><span>Tell us what’s wrong. The page you’re on is attached for you.</span>' +
+        '<span class="enter-as">Open the form ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('support/tickets.html') + '">' + S.icon('ticket') +
+        '<span class="role-name">Track tickets</span><span>' + U.counts.open + ' open of ' + U.counts.total + '. Watch one as it moves to resolved.</span>' +
+        '<span class="enter-as">Open the queue ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('learn/guides.html') + '">' + S.icon('list-checks') +
+        '<span class="role-name">Read a guide</span><span>Every workflow’s standard procedure, with a video.</span>' +
+        '<span class="enter-as">Open guides ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('translation/translation-home.html') + '">' + S.icon('languages') +
+        '<span class="role-name">Translations</span><span>A label wrong in your language? Help fix it.</span>' +
+        '<span class="enter-as">Open translation ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>' +
+        '</div></section>' +
+
+        '<section aria-labelledby="route-h"><h2 id="route-h">Where a report goes</h2>' +
+        '<p class="page-intro">You pick a category; the system sends it to the right place. Abuse and illegal content never sit in this queue — they go straight to the moderation and legal plane.</p>' +
+        routeCards() + '</section>' +
+
+        '<div class="route-note">' + S.icon('shield', { size: 'sm' }) +
+        '<div><strong style="color:var(--gov-fg)">Abuse and illegal content are handled off this plane.</strong> ' +
+        'Support staff fix bugs and wording — they never decide what speech is allowed. Viewpoint can’t be removed at all; the four content-neutral carve-outs and the M-5 legal floor live on the ' +
+        '<a href="' + S.hrefV2('operator/moderation.html') + '">moderation &amp; legal plane</a>.</div></div>';
+
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>
