@@ -158,7 +158,7 @@
     function voteHtml() {
       if (!st.vote) {
         return '<section class="lr-vote"><span class="eyebrow">No vote in this room</span>' +
-          '<p class="lr-vote-method">' + esc(st.floor.kind === 'argument' ? 'A hearing decides by judgment and opinion, not a floor vote.' : st.variant === 'forum' ? 'A forum has no vote — approving candidates happens on the open ballot and is always secret.' : st.variant === 'townhall' ? 'A town hall is deliberation — the referendum is decided on the ballot, not here.' : st.variant === 'group' ? (st.decisionNote || 'This group chose a facilitated discussion — no binding vote.') : 'Deliberation only.') + '</p></section>';
+          '<p class="lr-vote-method">' + esc(st.floor.kind === 'argument' ? 'A hearing decides by judgment and opinion, not a floor vote.' : st.variant === 'forum' ? 'A forum has no vote — first you endorse (approve) the candidates you support, then a ranking window opens; both are secret.' : st.variant === 'townhall' ? 'A town hall is deliberation — the referendum is decided on the ballot, not here.' : st.variant === 'group' ? (st.decisionNote || 'This group chose a facilitated discussion — no binding vote.') : 'Deliberation only.') + '</p></section>';
       }
       var v = st.vote;
       if (!voteCalled) {

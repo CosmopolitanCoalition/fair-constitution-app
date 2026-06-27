@@ -135,6 +135,41 @@
         '</div>';
     }
 
+    /* the community calendar — upcoming events grouped by day, with a chip for
+       who is hosting: the jurisdiction, an organization, or residents. */
+    function calendarSection() {
+      var cal = L.calendar || [];
+      if (!cal.length) return '';
+      var KIND = {
+        jurisdiction: ['Jurisdiction', 'landmark'],
+        org: ['Organization', 'building'],
+        citizen: ['Residents', 'users']
+      };
+      var days = [];
+      cal.forEach(function (e) { if (days.indexOf(e.day) < 0) days.push(e.day); });
+      var body = days.map(function (d) {
+        var rows = cal.filter(function (e) { return e.day === d; }).map(function (e) {
+          var k = KIND[e.kind] || ['Event', 'clock'];
+          var inner =
+            '<span class="cal-when">' + S.icon('clock', { size: 'sm' }) + '</span>' +
+            '<span class="cal-main"><strong>' + esc(e.title) + '</strong>' +
+            '<span class="gloss">' + esc(e.where || '') + '</span></span>' +
+            S.badge('info', k[0], k[1]) +
+            (e.to ? ' <span class="enter-as">Open ' + S.icon('arrow-right', { size: 'sm' }) + '</span>' : '');
+          return e.to
+            ? '<a class="cal-row" href="' + S.hrefV2(e.to.rel) + '">' + inner + '</a>'
+            : '<div class="cal-row">' + inner + '</div>';
+        }).join('');
+        return '<div class="cal-day"><h3 class="cal-day-head">' + esc(d) + '</h3>' + rows + '</div>';
+      }).join('');
+      return '<section class="card" aria-labelledby="cal-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h2 id="cal-h">' + S.icon('clock', { size: 'sm' }) + ' Community calendar</h2>' +
+        '<span class="gloss">Jurisdiction, organization &amp; resident events</span></div>' +
+        '<p class="gloss">What’s coming up in the places you belong to.</p>' +
+        body + '</section>';
+    }
+
     function render() {
       if (tick) { clearInterval(tick); tick = null; }
 
@@ -162,6 +197,8 @@
         (list.length ? list.map(liveRow).join('') : emptyState()) +
         '</section>';
 
+      var calendar = calendarSection();
+
       var foot =
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">How today works</h2><ul>' +
         '<li><strong>You watch everything; you act where you reside.</strong> Galleries are open to all — the floor, testimony, and the vote belong to residents · <span class="citation">Art. I · Art. II §2</span></li>' +
@@ -171,7 +208,7 @@
         '<li><strong>Groups confer no power.</strong> A voluntary association binds only its own members · <span class="citation">Art. I</span></li>' +
         '</ul><p class="citation">The economic items in this feed are <strong>Planned</strong> (Phases L &amp; M) — abstract units, no payment rails.</p></section>';
 
-      document.getElementById('root').innerHTML = header + rail + feed + foot;
+      document.getElementById('root').innerHTML = header + rail + feed + calendar + foot;
 
       // start the single re-diffing interval unless reduced motion is requested.
       if (!reduce && document.querySelector('#root [data-countdown]')) {

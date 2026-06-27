@@ -435,7 +435,7 @@
         { position: 3, locked: false, kind: 'committee_report', title: 'Closing & where to approve', status: 'pending' }
       ],
       floor: { kind: 'statement', title: 'Candidates hold the floor in turn',
-        body: 'During the approval phase candidates each get the floor for a fixed time; residents watch from the gallery and ask questions. Approving a candidate is a separate, secret act on the open ballot — nothing here changes your approvals.',
+        body: 'An election runs in two phases. First the approval phase: anyone — a resident or an organization — may endorse a candidate, for any reason, and in an election that endorsement is your approval. Then the ranking window opens, where you rank the approved field. Here in the forum, candidates each get the floor for a fixed time; approving is a separate, secret act, and nothing here changes your approvals.',
         form: null, citation: 'Voting and candidacy require nothing beyond residency · Art. I',
         deepLink: 'electoral/open-ballot.html' },
       vote: null,
@@ -463,7 +463,7 @@
         { handle: 'diego', body: 'Opening statement — transit, housing, transparency.', sealState: 'live', recordHref: null }
       ],
       residencyGated: true,
-      galleryNote: 'Anyone may watch the forum. Only residents may ask from the floor; approving candidates happens on the open ballot and is always secret.',
+      galleryNote: 'Anyone may watch the forum. Only residents may ask from the floor; endorsing — your approval — happens on the ballot and is always secret. After approval comes the ranking window.',
       forms: [],
       chairControls: ['Open the forum', 'Recognize the next candidate', 'Start the speaking clock', 'Open resident questions', 'Close & link the ballot'],
       reusesV1: ['electoral/open-ballot.html', 'electoral/candidate-profile.html'],
@@ -673,14 +673,24 @@
     rows: [
       { id: 'lv-session', kind: 'session', icon: 'landmark', title: 'Council — regular session', what: 'The chamber is in session; the locked agenda is on item 2.', part: 'Watch from the gallery, or take the floor if you reside here.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Live now', tip: 'In session · peg quorum = majority of ALL serving' }, form: { name: 'Session', id: 'F-SPK-001' }, target: { kind: 'closesAt', iso: inMin(74) }, to: { rel: 'shared/live-room.html?variant=legislative' }, scenarioFlag: 'liveSession' },
       { id: 'lv-committee', kind: 'committee', icon: 'landmark', title: 'Environment & Infrastructure — hearing', what: 'Public testimony on the Clean Air Act is open.', part: 'Add testimony to the record if you reside in the district.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Taking testimony' }, form: { name: 'Testimony', id: 'F-SOC-002' }, target: { kind: 'closesAt', iso: inMin(38) }, to: { rel: 'shared/live-room.html?variant=committee' }, scenarioFlag: 'liveSession' },
-      { id: 'lv-ballot', kind: 'election', icon: 'vote', title: 'Manhattan approval race — ballot open', what: 'The approval phase is open; ranking closes soon.', part: 'Cast your ballot — secret, like always.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'vote', label: 'Ballot open' }, form: { name: 'Open ballot', id: null }, target: { kind: 'closesAt', iso: inMin(220) }, to: { rel: 'electoral/open-ballot.html', v1: true } },
+      { id: 'lv-ballot', kind: 'election', icon: 'vote', title: 'Manhattan election — approval phase', what: 'Endorse the candidates you approve of; the ranking window opens next.', part: 'Endorse who you support — it’s your approval, and it stays secret.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'vote', label: 'Approval open' }, form: { name: 'Open ballot', id: null }, target: { kind: 'closesAt', iso: inMin(220) }, to: { rel: 'electoral/open-ballot.html', v1: true } },
       { id: 'lv-forum', kind: 'forum', icon: 'vote', title: 'Candidate forum — tonight', what: 'Candidates speak in turn before the vote window opens.', part: 'Listen, ask, decide.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Starts soon' }, form: null, target: { kind: 'opensAt', iso: inMin(95) }, to: { rel: 'shared/live-room.html?variant=forum' } },
       { id: 'lv-veto', kind: 'challenge', icon: 'scale', title: 'A signed bill is in its veto window', what: 'The executive may sign or veto.', part: 'Track the clock; an override needs a supermajority of ALL serving.', jurisdiction: 'usa-3-new-york-county', status: 'window', pill: { tone: 'wait', label: 'Window open' }, form: null, target: { kind: 'dayOf', day: 4, max: 90 }, to: { rel: 'legislature/bills.html', v1: true } },
       { id: 'lv-group', kind: 'group', icon: 'users', title: 'Harbor Cleanup Crew — meeting', what: 'The group is calling a facilitated meeting.', part: 'Join if you are a member.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Meeting soon' }, form: null, target: { kind: 'opensAt', iso: inMin(150) }, to: { rel: 'shared/live-room.html?variant=group' }, scenarioFlag: 'groupForming' },
       { id: 'lv-stipend', kind: 'stipend', icon: 'refresh-cw', title: 'Civic-stipend run posted', what: 'The economic clock posted this period’s stipend.', part: 'See your private receipt in your wallet.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'planned', label: 'Planned · L/M' }, form: { name: 'Stipend run', id: 'F-TRE-004' }, target: null, to: { rel: 'economy/stipend.html' }, planned: true, scenarioFlag: 'ubiRun' },
       { id: 'lv-trade', kind: 'trade', icon: 'globe', title: 'Cross-government trade talk', what: 'Two governments are negotiating terms.', part: 'Observe the talks; only the governments act.', jurisdiction: 'earth', status: 'soon', pill: { tone: 'planned', label: 'Planned · L/M' }, form: null, target: { kind: 'opensAt', iso: inMin(300) }, to: { rel: 'economy/economy-home.html' }, planned: true, scenarioFlag: 'tradeTalk' }
     ],
-    forFootprint: function () { return live.rows; }
+    forFootprint: function () { return live.rows; },
+    /* ---- COMMUNITY CALENDAR (today.html) — what's coming up, across the three
+       kinds of host: the jurisdiction itself, organizations, and residents. */
+    calendar: [
+      { day: 'Tomorrow', kind: 'jurisdiction', title: 'Council — regular session', where: 'New York County · the chamber', to: { rel: 'shared/live-room.html?variant=legislative' } },
+      { day: 'Tomorrow', kind: 'org', title: 'Bluefin Logistics — board meeting', where: 'Five-borough depot', to: { rel: 'shared/live-room.html?variant=board' } },
+      { day: 'Saturday', kind: 'citizen', title: 'Harbor Cleanup Crew — Pier 7', where: 'Pier 7 · bring gloves', to: { rel: 'groups/group-detail.html?id=party-harbor' } },
+      { day: 'Saturday', kind: 'org', title: 'Hudson Mutual Aid — volunteer day', where: 'Lower East Side' },
+      { day: 'Next week', kind: 'jurisdiction', title: 'Participatory-budget town hall', where: 'New York County · town hall', to: { rel: 'shared/live-room.html?variant=townhall' } },
+      { day: 'Next week', kind: 'citizen', title: 'Riverside Reading Circle', where: 'A member’s home' }
+    ]
   };
 
   /* ---- JOURNEY LIVE STATE (journey.html) — the true current step + a snapshot,

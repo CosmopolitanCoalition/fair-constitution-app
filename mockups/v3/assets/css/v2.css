@@ -957,3 +957,17 @@ a.ticket-row:hover { border-color: var(--gov-border-strong); text-decoration: no
 .learn-inline > summary::before { content: '▸ '; }
 .learn-inline[open] > summary::before { content: '▾ '; }
 .learn-inline[open] > summary { margin-block-end: var(--space-2); }
+
+/* ============================================================ COMMUNITY CALENDAR (v3)
+   Upcoming events on Today, grouped by day; a chip marks the host kind. */
+.cal-day { margin-block-start: var(--space-3); }
+.cal-day-head { font-size: var(--text-sm); color: var(--gov-fg-subtle); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 var(--space-2); }
+.cal-row {
+  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--gov-border); border-radius: var(--radius-md); margin-block-end: var(--space-2);
+  text-decoration: none; color: inherit;
+}
+a.cal-row:hover { border-color: var(--gov-link); }
+.cal-when { color: var(--gov-fg-subtle); flex-shrink: 0; }
+.cal-main { display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-inline-size: 0; }
+.cal-main strong { color: var(--gov-fg); }
