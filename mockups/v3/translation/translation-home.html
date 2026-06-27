@@ -75,6 +75,48 @@
         '<thead>' + head + '</thead><tbody>' + rows + '</tbody></table></div>';
     }
 
+    /* the languages a person knows — collected at federation-account creation,
+       they default the interface and weight that person's verifications. */
+    var myLangs = [
+      { code: 'en', native: 'English', fluency: 'Native' },
+      { code: 'es', native: 'Español', fluency: 'Fluent' }
+    ];
+    /* contributions awaiting a verifier who reads the language */
+    var contributions = [
+      { id: 'tc1', lang: 'es', surface: 'The public square', original: 'Report an issue', machine: 'Reportar un problema', by: 'machine' },
+      { id: 'tc2', lang: 'es', surface: 'Your wallet', original: 'Send a transfer', machine: 'Enviar una transferencia', by: '@u-greenwood' },
+      { id: 'tc3', lang: 'fr', surface: 'A live room', original: 'Take the floor', machine: 'Prendre la parole', by: 'machine' }
+    ];
+
+    function verifierSection() {
+      var myCodes = myLangs.map(function (l) { return l.code; });
+      var langChips = myLangs.map(function (l) {
+        return '<span class="party-chip">' + esc(l.native) + ' <span class="party-role">' + esc(l.fluency) + '</span></span>';
+      }).join('');
+      var mine = contributions.filter(function (c) { return myCodes.indexOf(c.lang) >= 0; });
+      var rows = mine.map(function (c) {
+        return '<div class="card card--inset stack" data-tc="' + esc(c.id) + '" style="gap:var(--space-1)">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+          '<span class="eyebrow">' + esc(c.surface) + ' · ' + esc(c.lang) + '</span>' +
+          S.badge('neutral', c.by === 'machine' ? 'Machine draft' : 'From ' + c.by) + '</div>' +
+          '<p style="margin:0"><span class="gloss">' + esc(c.original) + '</span> → <strong style="color:var(--gov-fg)">' + esc(c.machine) + '</strong></p>' +
+          '<div class="cluster" style="gap:var(--space-2)"><button type="button" class="btn btn--secondary btn--sm" data-verify="' + esc(c.id) + '">' + S.icon('check', { size: 'sm' }) + ' Verify</button>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-report-tc="' + esc(c.id) + '">' + S.icon('flag', { size: 'sm' }) + ' Report</button></div></div>';
+      }).join('');
+      return '<section class="card" aria-labelledby="ver-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+        '<h2 id="ver-h">' + S.icon('users', { size: 'sm' }) + ' Become a verifier</h2>' + S.badge('info', 'Verifier role', 'languages') + '</div>' +
+        '<p class="gloss">Anyone who reads a language can sign up to verify its translations. The languages you know — and how fluent you are — come from your federation account; they default your interface and give weight to your verifications.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-end:var(--space-2)"><span class="gloss">Your languages:</span> ' + langChips +
+        ' <a class="btn btn--ghost btn--sm" href="' + S.hrefV2('translation/language.html?code=es') + '">Edit in your profile ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
+        '<button type="button" class="btn btn--primary btn--sm" id="ver-signup">' + S.icon('check', { size: 'sm' }) + ' Sign up as a verifier</button>' +
+        '<p id="ver-confirm" role="status" class="gloss" style="margin-block-start:var(--space-1)"></p>' +
+        '<h3 style="margin-block-start:var(--space-4)">Awaiting verification in your languages</h3>' +
+        '<p class="gloss">Drafts and contributions a verifier can confirm or flag.</p>' +
+        (rows || '<p class="gloss">Nothing waiting right now.</p>') +
+        '</section>';
+    }
+
     function render() {
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('languages', { size: 'sm' }) + ' Translation support</span><h1>Translation status</h1>' +
@@ -95,10 +137,26 @@
 
         engineCard() +
 
+        verifierSection() +
+
         '<section class="card" aria-labelledby="add-h"><h2 id="add-h">Add a language</h2>' +
         '<p>Don’t see yours? Any of the ' + T.totals.mapped + ' mapped languages can be opened for translation, and a new one can be requested. The machine seeds every modality at once, then it opens for your review.</p>' +
         '<div class="cluster"><a class="btn btn--primary" href="' + S.hrefV2('support/report.html?ref=' + encodeURIComponent('Add a language')) + '">Request a language ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
         '<a class="btn btn--ghost" href="' + S.hrefV2('learn/lesson.html?sop=verify-translation') + '">' + S.icon('play', { size: 'sm' }) + ' How verification works</a></div></section>';
+
+      // wire the verifier sign-up + verify/report contributions (simulated)
+      var signup = document.getElementById('ver-signup');
+      if (signup) signup.addEventListener('click', function () {
+        var out = document.getElementById('ver-confirm');
+        if (out) out.textContent = 'You’re signed up as a verifier for ' + myLangs.map(function (l) { return l.native; }).join(' and ') + ' (simulated). Your confirmations now carry extra weight in those languages.';
+        S.announce('Signed up as a verifier.');
+      });
+      document.getElementById('root').addEventListener('click', function (ev) {
+        var v = ev.target.closest ? ev.target.closest('[data-verify]') : null;
+        if (v) { var card = document.querySelector('[data-tc="' + v.getAttribute('data-verify') + '"]'); if (card) { card.style.opacity = '0.55'; } S.announce('Verified — confirmed into the published translation (simulated).'); return; }
+        var r = ev.target.closest ? ev.target.closest('[data-report-tc]') : null;
+        if (r) { S.announce('Reported — sent to the translation queue for another verifier (simulated).'); }
+      });
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

@@ -45,6 +45,27 @@
         'Your receipt is private — never federated, like a ballot.</span>';
     }
 
+    /* an editable per-role pay control — the policy controllers' view */
+    function payField(id, label, val, sym) {
+      return '<div class="field" style="margin:0"><label class="field-label" for="' + id + '">' + esc(label) + '</label>' +
+        '<div class="cluster" style="gap:var(--space-1);align-items:center"><input class="field-input" id="' + id + '" type="number" min="0" step="1" value="' + esc(val) + '" style="max-inline-size:6rem" />' +
+        '<span class="gloss">' + esc(sym) + '</span></div></div>';
+    }
+    function perRoleControls() {
+      var st = E.stipend, sym = E.currency.symbol;
+      var roleFields = st.classes.map(function (c) { return payField('bump-' + c.key, c.label, c.bump, sym); }).join('');
+      return '<section class="card" aria-labelledby="ctrl-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+        '<h2 id="ctrl-h">' + S.icon('sliders', { size: 'sm' }) + ' Per-role pay controls</h2>' + S.badge('neutral', 'Policy controllers', 'user') + '</div>' +
+        '<p class="gloss">The offices that own civic-duty pay set the amount for each role. These are this jurisdiction’s defaults — set once at founding, they cascade to new child jurisdictions, and each jurisdiction can edit its own once its legitimacy gate activates.</p>' +
+        '<form id="pay-form" class="stack" style="gap:var(--space-3)">' +
+        '<div class="cluster" style="gap:var(--space-4)">' + payField('pay-base', 'Residency floor', st.base, sym) + payField('pay-cap', 'Bump cap (max stacked)', st.cap, sym) + '</div>' +
+        '<div><span class="eyebrow">Per-role bumps</span><div class="cluster" style="gap:var(--space-4);margin-block-start:var(--space-2)">' + roleFields + '</div></div>' +
+        '<div class="cluster"><button type="submit" class="btn btn--primary btn--sm">' + S.icon('check', { size: 'sm' }) + ' Save defaults</button>' +
+        '<span class="gloss">Simulated — in the real app this is a dual-door change (the offices propose, the constituents consent).</span></div>' +
+        '<p id="pay-confirm" role="status" class="gloss" style="margin:0"></p></form></section>';
+    }
+
     function render() {
       var st = E.stipend, clk = E.economicClock, sym = E.currency.symbol;
 
@@ -133,6 +154,8 @@
         'None of these is a constitutional role, and stacking them can never exceed the ' + esc(st.cap) + ' ' + esc(sym) + ' cap.</p>' +
         '<div class="grid-2">' + classCards + '</div></section>' +
 
+        perRoleControls() +
+
         '<section class="card" aria-labelledby="examples-h"><h2 id="examples-h">Worked examples</h2>' +
         '<p class="gloss">Same floor for all; the spread is only the duty differential. R-08 (election board) is deliberately not in the paid set.</p>' +
         exampleRows +
@@ -148,6 +171,24 @@
         'monetary keys — adjusted only by the constitutional offices through a chamber supermajority and constituent consent, never an admin knob. ' +
         'Because constituents’ own money is spent, they must agree (anti-self-dealing). <span class="citation">F-LEG-031 · Art. V §5</span></p>' +
         '<p class="citation">See every key, its value, and its enacting act on ' + S.hrefV2('economy/units.html') + ' — Units &amp; monetary policy.</p></section>';
+
+      // wire the per-role pay controls (simulated; updates the published rates)
+      var payForm = document.getElementById('pay-form');
+      if (payForm) payForm.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var base = parseInt(document.getElementById('pay-base').value, 10);
+        var cap = parseInt(document.getElementById('pay-cap').value, 10);
+        if (!isNaN(base)) st.base = base;
+        if (!isNaN(cap)) st.cap = cap;
+        st.classes.forEach(function (c) {
+          var v = parseInt((document.getElementById('bump-' + c.key) || {}).value, 10);
+          if (!isNaN(v)) { c.bump = v; if (st.bumps && st.bumps[c.key] != null) st.bumps[c.key] = v; }
+        });
+        S.announce('Per-role pay defaults saved (simulated).');
+        render();
+        var out = document.getElementById('pay-confirm');
+        if (out) out.textContent = 'Saved — the published floor, cap, and per-role bumps now reflect your changes. New child jurisdictions inherit these.';
+      });
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
