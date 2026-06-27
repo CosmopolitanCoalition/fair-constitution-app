@@ -116,11 +116,11 @@
     function render() {
       var entries = [
         { kind: 'v1', rel: 'civic/civic-home.html', icon: 'globe', title: 'The public square',
-          note: 'Open resident discourse — uncensorable, pseudonymous, governed only by the four carve-outs.' },
+          note: 'Open resident discussion — pseudonymous, and governed by your jurisdiction’s community standards.' },
         { kind: 'v2', rel: 'shared/live-room.html?variant=townhall', icon: 'landmark', title: 'The halls of governance',
-          note: 'The testimony bridge — speak into the public record at a hearing, town hall, or floor session.' },
-        { kind: 'v2', rel: 'groups/groups-home.html', icon: 'users', title: 'Groups',
-          note: 'Voluntary associations — start a crew, join a circle. Membership is private and confers no governance power.' }
+          note: 'Speak into the public record at a hearing, a town hall, or a floor session.' },
+        { kind: 'v2', rel: 'groups/groups-home.html', icon: 'message-square', title: 'Messages & parties',
+          note: 'Direct messages and temporary parties — talk, files, voice, and video. Private to you, never federated.' }
       ];
       var cards = entries.map(function (e) {
         var href = e.kind === 'v1' ? S.hrefV1(e.rel) : S.hrefV2(e.rel);
@@ -135,23 +135,9 @@
 
       document.getElementById('social-root').innerHTML =
         '<header><span class="eyebrow">My civic life · the public square</span><h1>Social</h1>' +
-        '<p class="page-intro">Where residents talk. Follow your neighbors and your representatives, ' +
-        'read the square, and step into the halls when you want your words on the record. ' +
-        'The square is for talk; <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> is for trade — they never mix.</p>' +
-        '<p class="citation">The public square — open resident discourse · Art. I</p></header>' +
-
-        /* follows / following summary */
-        '<section class="card" aria-labelledby="me-h">' +
-        '<div class="profile-head">' +
-        '<span class="profile-avatar" aria-hidden="true">' + esc(me.name.slice(0, 1)) + '</span>' +
-        '<div><h2 id="me-h" style="margin:0">' + esc(me.name) +
-        ' <span class="rec-handle" style="font-size:var(--text-base)">@u-' + esc(me.handle) + '</span></h2>' +
-        '<div class="profile-stats" style="margin-block-start:var(--space-2)">' +
-        '<span class="profile-stat"><b>' + me.followsCount + '</b> following</span>' +
-        '<span class="profile-stat"><b>' + me.followersCount + '</b> followers</span>' +
-        '<span class="profile-stat"><b>2</b> groups</span></div></div></div>' +
-        '<p class="never-federated" style="margin-block-start:var(--space-3)">' + S.icon('lock', { size: 'sm' }) +
-        ' Who you follow is private to this server — never federated, like a ballot.</p></section>' +
+        '<p class="page-intro">Where residents talk. Follow your neighbours and your representatives, ' +
+        'read the square, send a message, and step into the halls when you want your words on the record. ' +
+        'The square is for talk; <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> is for trade — they never mix.</p></header>' +
 
         /* entry cards */
         '<section aria-labelledby="go-h"><h2 id="go-h">Where to go</h2><div class="role-grid">' + cards + '</div></section>' +
@@ -166,15 +152,12 @@
         S.icon('globe', { size: 'sm' }) + ' Open the full square <span class="v1-tag">v1</span></a></div>' +
         '<div class="stack">' + posts + '</div>' +
         '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
-        ' A post is talk, not an act. To enter words into the immutable public record, testify in the halls — ' +
-        'render with the testimony form ' +
-        '<span class="form-chip">Public statement <span class="form-id">F-SOC-002</span></span>.</p></section>' +
+        ' A post is talk, not an act. To put words into the permanent public record, testify in the halls.</p></section>' +
 
-        /* the uncensorable + pseudonymity guarantee */
-        '<section class="card" aria-labelledby="rights-h"><h2 id="rights-h">The square is uncensorable</h2>' +
-        '<p>The public square is a constitutional right of speech. There is no viewpoint-removal control — ' +
-        'no operator, moderator, admin, or legislative act can take a post down for what it says. ' +
-        'Only four content-neutral carve-outs ever apply.</p>' +
+        /* community standards — jurisdiction-scoped, plain; the constitutional
+           "why" is tucked into a collapsible (learning material, not chrome). */
+        '<section class="card" aria-labelledby="rights-h"><h2 id="rights-h">Community standards</h2>' +
+        '<p>Every square belongs to a jurisdiction, and each sets its own community standards. Here, a post is only ever removed for these narrow reasons — never for the opinion it holds:</p>' +
         '<ul>' +
         '<li><strong>True threats &amp; incitement</strong> — speech that is itself a crime of violence, not an opinion.</li>' +
         '<li><strong>Targeted harassment</strong> — conduct aimed at silencing another resident, not a viewpoint.</li>' +
@@ -183,9 +166,9 @@
         '</ul>' +
         '<p class="lr-note">' + S.icon('shield', { size: 'sm' }) +
         ' <span><strong>Pseudonymous by default.</strong> You speak as your <span class="rec-handle">@u-handle</span>, ' +
-        'never your legal name on the wire. Seated representatives may carry a seat badge so constituents can ' +
-        'recognize them — that is a choice, not a requirement.</span></p>' +
-        '<p class="citation">Uncensorable public square — speech &amp; association · Art. I (HARDENED) · four content-neutral carve-outs only</p>' +
+        'never your legal name. Seated representatives may add a seat badge so neighbours can recognise them — a choice, not a requirement.</span></p>' +
+        '<details class="learn-inline"><summary>Why these are the only limits</summary>' +
+        '<p class="gloss">Speaking freely in the square is a guaranteed right. That is why no operator, moderator, or even a new law can take a post down for what it says — the only removals are the few content-neutral limits above, and every one of them is logged. You can read the full grounding in the learn panel below.</p></details>' +
         '</section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

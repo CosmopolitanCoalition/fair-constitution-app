@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create a group — CGA mockups v2</title>
+  <title>New message or party — CGA mockups v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'groups/group-create', title: 'Create a group', module: 'groups', nav: 'groups', citation: 'Freedom of association · Art. I', register: 'governance' };
+    window.CGA_PAGE = { id: 'groups/group-create', title: 'New message or party', module: 'groups', nav: 'groups', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -27,29 +27,43 @@
     var S = window.CGA.shellV2, esc = S.esc;
     function render() {
       document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">People, together · informal groups</span><h1>Create a group</h1>' +
-        '<p class="page-intro">Two steps and you have a group with a discussion room. No registration, no charter, no governance power — just neighbours choosing to associate.</p></header>' +
-        '<section class="card"><form id="g-form" novalidate>' +
-        '<div class="field"><label class="field-label" for="g-name">Name</label>' +
-        '<input class="field-input" id="g-name" type="text" placeholder="e.g. Harbor Cleanup Crew" value="Harbor Cleanup Crew" /></div>' +
-        '<div class="field"><label class="field-label" for="g-purpose">Purpose</label>' +
-        '<input class="field-input" id="g-purpose" type="text" placeholder="What is this group for?" value="Keep the Manhattan waterfront clean" /></div>' +
-        '<fieldset class="field" style="border:0;padding:0;margin-inline:0"><legend class="field-label">Who can join</legend>' +
-        '<div class="radio-group"><label class="radio"><input type="radio" name="g-priv" checked /> Open — anyone may join (the space is public; the four carve-outs apply)</label>' +
-        '<label class="radio"><input type="radio" name="g-priv" /> Invite only — a private space the members self-moderate</label></div></fieldset>' +
-        '<label class="checkbox"><input type="checkbox" id="g-room" checked /> Spin up a discussion room (threads + a live chat and voice room)</label>' +
-        '<div class="cluster" style="margin-block-start:var(--space-4)"><button type="submit" class="btn btn--primary">' + S.icon('users', { size: 'sm' }) + ' Create the group</button>' +
+        '<header><span class="eyebrow">People, together · start a conversation</span><h1>New message or party</h1>' +
+        '<p class="page-intro">Message one person, or start a party with a few. A party is just a temporary group — talk, files, voice, and video. You can do this from anywhere you see someone, the same way you would on any social app.</p></header>' +
+        '<section class="card"><form id="c-form" novalidate>' +
+        '<fieldset class="field" style="border:0;padding:0;margin-inline:0"><legend class="field-label">Who is this with</legend>' +
+        '<p class="cc-small">Add one person for a direct message, or several for a party.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap" id="people">' +
+        '<span class="party-chip">@u-pier7 <button type="button" class="chip-x" data-rm aria-label="remove">' + S.icon('x', { size: 'sm' }) + '</button></span>' +
+        '<span class="party-chip">@u-greenwood <button type="button" class="chip-x" data-rm aria-label="remove">' + S.icon('x', { size: 'sm' }) + '</button></span>' +
+        '</div>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
+        '<input class="field-input" id="c-add" type="text" placeholder="Add by @handle…" autocomplete="off" />' +
+        '<button type="button" class="btn btn--secondary btn--sm" id="c-add-btn">' + S.icon('plus', { size: 'sm' }) + ' Add</button></div></fieldset>' +
+        '<div class="field"><label class="field-label" for="c-name">Name (optional, for a party)</label>' +
+        '<input class="field-input" id="c-name" type="text" placeholder="e.g. Saturday crew" /></div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-4)"><button type="submit" class="btn btn--primary">' + S.icon('message-square', { size: 'sm' }) + ' Start the conversation</button>' +
         '<a class="btn btn--ghost" href="' + S.hrefV2('groups/groups-home.html') + '">Cancel</a></div>' +
-        '<p id="g-confirm" role="status" class="gloss" style="margin-block-start:var(--space-2)"></p>' +
+        '<p id="c-confirm" role="status" class="gloss" style="margin-block-start:var(--space-2)"></p>' +
         '</form></section>' +
         '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">This confers no governance power.</strong> A group is a voluntary association (Art. I). Its decisions bind only the group, never a jurisdiction. Membership is private to each member and never federates. If the group grows and wants standing, it can — but never must — register as an organization or file a petition.</div></div>';
-      var form = document.getElementById('g-form');
-      if (form) form.addEventListener('submit', function (ev) {
+        '<strong style="color:var(--gov-fg)">A party is temporary and private.</strong> It confers no governance power, who is in it is private to each member, and it never federates. When everyone leaves, it is gone. If a party wants to last, it can become an organization — but it never has to.</div></div>';
+
+      var people = document.getElementById('people');
+      document.getElementById('c-add-btn').addEventListener('click', function () {
+        var inp = document.getElementById('c-add'); var v = (inp.value || '').trim(); if (!v) return;
+        if (v.charAt(0) !== '@') v = '@' + v;
+        var span = document.createElement('span'); span.className = 'party-chip';
+        span.innerHTML = esc(v) + ' <button type="button" class="chip-x" data-rm aria-label="remove">' + S.icon('x', { size: 'sm' }) + '</button>';
+        people.appendChild(span); inp.value = '';
+      });
+      people.addEventListener('click', function (ev) { var b = ev.target.closest('[data-rm]'); if (b) b.parentNode.remove(); });
+      document.getElementById('c-form').addEventListener('submit', function (ev) {
         ev.preventDefault();
-        var name = (document.getElementById('g-name').value || 'Your group').trim();
-        document.getElementById('g-confirm').textContent = '“' + name + '” created (simulated) — a discussion room was spun up. Open it from the groups list.';
-        S.announce('Group created: ' + name);
+        var n = people.querySelectorAll('.party-chip').length;
+        var name = (document.getElementById('c-name').value || '').trim();
+        var label = n > 1 ? (name || 'New party') + ' started with ' + n + ' people' : 'Direct message started';
+        document.getElementById('c-confirm').textContent = label + ' (simulated) — opening the conversation.';
+        S.announce(label);
       });
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

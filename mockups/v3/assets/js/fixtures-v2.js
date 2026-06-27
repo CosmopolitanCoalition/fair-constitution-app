@@ -618,7 +618,47 @@
       { kind: 'facilitated', label: 'Facilitated discussion', binding: false, machinery: 'a chair + a speaker queue + timers' },
       { kind: 'formal', label: 'Formal meeting', binding: 'the group only', machinery: 'chair + agenda + motions + a recorded internal vote by the group’s own rule' }
     ],
-    note: 'Groups are voluntary associations (Art. I). No governance power is conferred; membership is private to each member and never federates.'
+    /* ---- EPHEMERAL CONVERSATIONS (v3) — direct messages + parties.
+       A "group" here is a transient conversation, like an MMO party/raid: text,
+       files, voice, and video, just like a standing room but temporary. The same
+       toolkit serves a 1:1 DM and a multi-person party. A party that wants to
+       last can coalesce into a standing organization (a guild / community). */
+    toolkit: [
+      { key: 'text', label: 'Message', icon: 'message-square' },
+      { key: 'file', label: 'File', icon: 'file-text' },
+      { key: 'voice', label: 'Voice', icon: 'volume' },
+      { key: 'video', label: 'Video', icon: 'play' },
+      { key: 'share', label: 'Share', icon: 'external-link' }
+    ],
+    conversations: [
+      { id: 'dm-marcus', kind: 'dm', with: 'marcus', title: 'Marcus Chen', when: '2m', unread: 1, live: false,
+        participants: ['amara', 'marcus'],
+        messages: [
+          { from: 'marcus', when: '9:02', text: 'Got your depot readings — bringing them to the committee tonight.' },
+          { from: 'amara', when: '9:04', text: 'Thank you. Attached the still-day numbers.', attach: { type: 'file', label: 'depot-air-readings.csv' } },
+          { from: 'marcus', when: '9:05', text: 'Perfect. Want to call in for two minutes during testimony?' }
+        ] },
+      { id: 'dm-pier7', kind: 'dm', with: 'u-pier7', title: '@u-pier7', when: '1h', unread: 0, live: false,
+        participants: ['amara', 'u-pier7'],
+        messages: [
+          { from: 'u-pier7', when: '8:10', text: 'Pier 7 looks great after Saturday. Same time next week?' },
+          { from: 'amara', when: '8:15', text: 'Yes! Shared the cleanup map.', attach: { type: 'share', label: 'Harbor cleanup map' } }
+        ] },
+      { id: 'party-harbor', kind: 'party', linkSpace: 'grp-harbor', title: 'Harbor Cleanup Crew', members: 23, when: '12m', unread: 3, live: true,
+        participants: ['amara', 'u-pier7', 'u-harborwatch', 'u-greenwood'],
+        messages: [
+          { from: 'u-harborwatch', when: '8:40', text: 'Gloves and bags sorted for Saturday.' },
+          { from: 'u-greenwood', when: '8:51', text: 'I can bring the cargo bike for hauling.', attach: { type: 'file', label: 'route.gpx' } },
+          { from: 'amara', when: '9:00', text: 'Calling a quick voice huddle at 7 — jump in.', attach: { type: 'voice', label: 'Voice huddle · 0:42' } }
+        ] },
+      { id: 'party-saturday', kind: 'party', title: 'Saturday crew (planning)', members: 5, when: '3h', unread: 0, live: false, ephemeral: true,
+        participants: ['amara', 'u-pier7', 'noor', 'diego'],
+        messages: [
+          { from: 'noor', when: '6:30', text: 'Who’s in for the early start?' },
+          { from: 'diego', when: '6:45', text: 'Me. I’ll record a clip of the route.', attach: { type: 'video', label: 'Route walkthrough · 1:12' } }
+        ] }
+    ],
+    note: 'A group is an ephemeral conversation — a party for talk, files, voice, and video, just like a standing room but temporary. It confers no governance power, membership is private to each member, and it never federates. A party that wants to last can become an organization.'
   };
 
   /* ---- LIVE FEED (today.html / my-civic-life.html) ----------------------

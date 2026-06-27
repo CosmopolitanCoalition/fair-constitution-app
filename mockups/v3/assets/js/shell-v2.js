@@ -137,8 +137,8 @@
     { act: 'People & social', rel: 'social/profile.html?who=marcus-chen&tab=office', title: 'Anyone’s profile', blurb: 'The same profile, for a neighbour who holds a seat — one person, any role.' },
     { act: 'People & social', rel: 'social/org-profile.html', title: 'An organization', blurb: 'Type, charter, workers, board, listings, the org ledger.' },
     { act: 'People & social', rel: 'social/rep.html', title: 'My representatives', blurb: 'The several people who hold your seats — open anyone to reach them.' },
-    { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed and the halls — uncensorable, pseudonymous.' },
-    { act: 'People & social', rel: 'groups/groups-home.html', title: 'Informal groups', blurb: 'Voluntary affinity groups — meet on your own terms.' },
+    { act: 'People & social', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed, the halls, and your jurisdiction’s community standards.' },
+    { act: 'People & social', rel: 'groups/groups-home.html', title: 'Messages & parties', blurb: 'Direct messages and temporary parties — talk, files, voice, video.' },
     { act: 'People & social', rel: 'social/achievements.html', title: 'Achievements', blurb: 'A decorative catalog of participation — fenced: no vote, no seat, no advantage.' },
 
     { act: 'The economy', rel: 'economy/economy-home.html', title: 'The economy', blurb: 'The hub — the Open Market, the live tape, and the economic clock.' },
@@ -321,7 +321,7 @@
     linkV2('org-profile', 'Organizations', 'building', 'social/org-profile.html');
     linkV2('rep', 'My representatives', 'landmark', 'social/rep.html');
     linkV2('social-home', 'Social', 'users', 'social/social-home.html');
-    linkV2('groups', 'Informal groups', 'users', 'groups/groups-home.html', 'Stage 3');
+    linkV2('groups', 'Messages', 'message-square', 'groups/groups-home.html');
     linkV2('achievements', 'Achievements', 'award', 'social/achievements.html', 'Proposed');
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
     endSection();

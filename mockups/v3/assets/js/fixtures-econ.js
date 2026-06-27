@@ -268,7 +268,13 @@
       charter: 'Move goods across the five boroughs; repair and resell.',
       board: { workerSeats: 2, ownerSeats: 3, chair: 'tomas-ferreira', jointChair: true },
       coDetermination: { threshold: 100, parity: 2000, status: '740 workers — above first-seat, below parity' },
-      listings: ['lst-1', 'lst-5'], contracts: ['agr-1'], settingsHref: 'economy/org-settings.html'
+      listings: ['lst-1', 'lst-5'], contracts: ['agr-1'], settingsHref: 'economy/org-settings.html',
+      /* the org's public job board — co-determined pay lives behind each posting */
+      jobs: [
+        { title: 'Bike mechanic', kind: 'Full-time', where: 'Five-borough depot', note: 'Repair and recondition cargo bikes. Pay set by the co-determined package.' },
+        { title: 'Dispatch coordinator', kind: 'Part-time', where: 'Remote + depot', note: 'Coordinate cross-borough runs and schedules.' },
+        { title: 'Weekend loader', kind: 'Shift', where: 'Pier 7', note: 'Load and haul on Saturday mornings.' }
+      ]
     }
   };
 
