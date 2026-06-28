@@ -258,7 +258,9 @@ services:
     ports:
       - "${LIVEKIT_HOST_PORT:-7880}:7880"
       - "7881:7881"
-      - "50000-50100:50000-50100/udp"
+      # Single muxed UDP media port (matches rtc.udp_port in livekit.yaml). The old 50000-50100 range
+      # collides with Windows/Hyper-V reserved UDP exclusions; one low port is portable + enough for dev.
+      - "${LIVEKIT_UDP_PORT:-7882}:7882/udp"
     volumes:
       - ./docker/livekit/livekit.yaml:/etc/livekit.yaml:ro
     networks:

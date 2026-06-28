@@ -21,6 +21,12 @@ return [
     // Internal URL the appservice uses to reach the homeserver's client/admin API (Docker DNS).
     'synapse_url' => env('MATRIX_SYNAPSE_URL', 'http://matrix:8008'),
 
+    // The MESH-FACING homeserver URL this node ADVERTISES it will host for the mesh (peer S2S +
+    // a light node's make_join/send_join). DISTINCT from synapse_url (the always-present internal
+    // appservice→Synapse link): this is an explicit operator opt-in to HOST Plane B for peers, so the
+    // matrix.homeserver capability channel reads it (null => not offered => the channel stays needs-config).
+    'homeserver_url' => env('MATRIX_HOMESERVER_URL'),
+
     // K3-N P1 — a Synapse ADMIN access token, supplied by the OPERATOR (rig). NULL on the dev stack, so
     // the M-5 byte-DELETE is DEFERRED honestly (a redaction strips content but does NOT destroy media
     // bytes — only the admin media-DELETE does). Never expose this token to a client.

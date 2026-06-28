@@ -4,10 +4,15 @@
 port: 7880
 rtc:
   tcp_port: 7881
-  port_range_start: 50000
-  port_range_end: 50100
+  # Single muxed UDP port (LiveKit's recommended simple setup) instead of a 50000-50100 range — the high
+  # range collides with Windows/Hyper-V reserved UDP port exclusions (49395+). 7882 is below all of them.
+  udp_port: 7882
   # Dev/LAN: advertise the host's reachable IP. A real deployment sets use_external_ip true + a node_ip.
   use_external_ip: false
+  # SOLO browser test: the SFU runs in a bridge-network container, so it must advertise a host-reachable
+  # ICE address. 127.0.0.1 maps to the published 7881/tcp + 50000-50100/udp ports for a browser ON THIS host.
+  # FOR THE RIG: change to Box A's LAN IP (e.g. 192.168.1.202) so Box B's browser can reach the media path.
+  node_ip: 127.0.0.1
 keys:
   cga_dev_livekit_key: cga_dev_livekit_secret_5c1d8e3a9f47026b
 logging:
