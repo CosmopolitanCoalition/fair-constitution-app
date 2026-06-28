@@ -171,6 +171,34 @@ return [
     'federation_probe_timeout_seconds' => env('CGA_FEDERATION_PROBE_TIMEOUT_SECONDS', 5),
 
     /*
+    | Zero-foreknowledge auto-discovery (roles campaign). A fresh node (no peers, no
+    | host address) finds an existing federation two ways, both of which only LOCATE
+    | nodes serving the public GET /.well-known/cga-federation descriptor — the signed
+    | adopt handshake + authority checks that actually admit a mirror are unchanged, and
+    | NO secret is ever published.
+    |
+    |  • FRONT DOOR (suspenders) — `bootstrap_urls`: the public canonical entry point(s),
+    |    defaulting to https://worldofstatecraft.org (the broker naming-root). A node with
+    |    zero LAN and zero config still discovers the canonical federation. A bootstrap host
+    |    may also vouch for other entry points via the descriptor's `known_federations`.
+    |  • LAN SWEEP (belt) — an OPT-IN, operator-triggered probe of the operator's OWN private
+    |    subnet (RFC1918, capped at a /24) for the same descriptor. This is how Box B finds
+    |    Box A on a LAN "from jump". Bounded to private ranges + the well-known path only.
+    |
+    | These are PUBLIC addresses, not secrets. The Cloudflare token, join keys, and any
+    | Box-specific instructions are never part of discovery.
+    */
+    'federation_bootstrap_urls' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('CGA_FEDERATION_BOOTSTRAP_URLS', 'https://worldofstatecraft.org'))
+    ))),
+    'federation_lan_discovery' => env('CGA_FEDERATION_LAN_DISCOVERY', true),
+    'federation_lan_discovery_ports' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('CGA_FEDERATION_LAN_DISCOVERY_PORTS', '8080,8081'))
+    ))),
+
+    /*
     | Geodata origin (Phase G, G3c — decision N3). The upstream that serves the
     | signed geospatial-dataset MANIFEST channel (WorldPop rasters + geoBoundaries
     | — large + license-bound, so deliberately OFF the audit-tail sync a mirror

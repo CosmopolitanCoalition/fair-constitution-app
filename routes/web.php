@@ -54,6 +54,10 @@ Route::get('/', function (Request $request) {
 Route::get('/.well-known/matrix/server', [\App\Http\Controllers\Matrix\WellKnownController::class, 'server']);
 Route::get('/.well-known/matrix/client', [\App\Http\Controllers\Matrix\WellKnownController::class, 'client']);
 
+// Roles-campaign — zero-foreknowledge discovery descriptor (public, no auth). How a cold node (or the
+// canonical front door) self-identifies as a CGA federation entry point. Public facts only, never a secret.
+Route::get('/.well-known/cga-federation', [\App\Http\Controllers\Federation\WellKnownFederationController::class, 'descriptor']);
+
 // Setup wizard — WordPress-style install flow.
 Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::get('/setup/step/{n}', [SetupController::class, 'step'])
@@ -66,6 +70,13 @@ Route::get('/setup/mode', [SetupController::class, 'mode'])->name('setup.mode');
 Route::get('/setup/join', [SetupController::class, 'join'])->name('setup.join');
 Route::post('/api/setup/mode', [SetupController::class, 'setMode'])->name('api.setup.mode');
 Route::post('/api/setup/join', [SetupController::class, 'joinFromSetup'])->name('api.setup.join');
+// Zero-foreknowledge auto-discovery — the JOIN screen asks the node to FIND a federation (front door +
+// opt-in LAN sweep) instead of the operator having to know a host address up front. AUTH-gated: this
+// drives server-side outbound probing (incl. an opt-in LAN sweep), so it must never be an unauthenticated
+// trigger — the operator already has a session (createFounder logs them in). Throttled against retry loops.
+Route::post('/api/setup/discover', [SetupController::class, 'discover'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('api.setup.discover');
 
 // Phase M — self-bootstrap (schema migrations + founder account).
 // /setup/bootstrap is reachable even when the schema is empty — the page

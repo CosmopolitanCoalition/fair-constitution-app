@@ -7,6 +7,7 @@ use App\Models\CosmicAddress;
 use App\Models\InstanceSettings;
 use App\Models\Jurisdiction;
 use App\Models\User;
+use App\Services\Federation\FederationDiscoveryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -332,6 +333,42 @@ class SetupController extends Controller
             'state'    => $live ? 'ready' : 'syncing',
             'settings' => $this->serializeSettings($settings->fresh()),
             'next'     => $live ? '/' : '/setup/join',
+        ]);
+    }
+
+    /**
+     * POST /api/setup/discover — find an existing federation with no foreknowledge of an address. Runs the
+     * public front-door probe always, and (opt-in) an operator-triggered LAN sweep of the operator's OWN
+     * private subnet. Returns advisory candidates the operator can pick to populate the host URL; admission
+     * is still the signed adopt handshake. Gated to a node actually in join mode (same trust class as
+     * joinFromSetup, which already dials an operator-supplied host_url during setup).
+     */
+    public function discover(Request $request, FederationDiscoveryService $discovery): JsonResponse
+    {
+        $settings = InstanceSettings::current();
+        if ($this->needsBootstrap() || User::query()->doesntExist()) {
+            return response()->json(['error' => 'Finish bootstrap first.'], 409);
+        }
+        if ($settings->setup_mode !== 'join') {
+            return response()->json(['error' => 'This instance is not in join mode.'], 409);
+        }
+
+        $data = $request->validate([
+            'lan'  => ['nullable', 'boolean'],
+            'cidr' => ['nullable', 'string', 'max:64'],
+        ]);
+
+        $includeLan = (bool) ($data['lan'] ?? false);
+        $cidr = $data['cidr'] ?? null;
+
+        // The front-door probe always runs; a bad LAN CIDR comes back as `lan_error` WITHOUT discarding
+        // the front-door results (the SSRF guard rejects an out-of-bounds range inside discover()).
+        $result = $discovery->discover($includeLan, $includeLan ? $cidr : null);
+
+        return response()->json([
+            'federations'   => $result['federations'],
+            'lan_error'     => $result['lan_error'],
+            'lan_available' => (bool) config('cga.federation_lan_discovery'),
         ]);
     }
 
