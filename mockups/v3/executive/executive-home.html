@@ -22,12 +22,12 @@
           plus a supermajority of constituent jurisdictions where they exist — can convert it to a directly elected
           office, as either a committee of five or more equal officers, or a single individual with four advisors.
           Executive terms always equal the legislative term.</p>
-        <p class="citation">Delegated by default · conversion by supermajority · Art. III §2–3 — terms locked to the legislative term · CLK-10</p>
+        <p class="citation">Delegated by default · conversion by supermajority · terms locked to the legislative term.</p>
       </header>
 
       <div class="cluster">
-        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-        <span class="citation">Supermajority = ceil(serving × 2/3) — counted against all serving members, never those present · Art. VII</span>
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+        <span class="citation">A supermajority is two-thirds of all serving members — counted against everyone serving, never just those present.</span>
       </div>
 
       <section class="card" aria-labelledby="model-h">
@@ -57,7 +57,7 @@
               Enacted 2030-01-12 · members remain seated legislators.</p>
             <div class="meter-block">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:87.5%"></span><span class="meter-threshold" style="inset-inline-start:75%"></span></div>
-              <div class="meter-caption"><span>7 of 8 serving in favor</span><span>threshold 6 = ceil(8 × 2/3) · Art. VII</span></div>
+              <div class="meter-caption"><span>7 of 8 serving in favor</span><span>threshold 6 of 8 (two-thirds)</span></div>
             </div>
             <p class="citation" style="margin-block-start:var(--space-2)">Dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
           </div>
@@ -72,12 +72,12 @@
               Enacted 2030-03-10 · triggered the executive election won by Ingrid Solberg.</p>
             <div class="meter-block" style="margin-block-end:var(--space-3)">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:88.9%"></span><span class="meter-threshold" style="inset-inline-start:66.7%"></span></div>
-              <div class="meter-caption"><span>State legislature: 8 of 9 serving in favor</span><span>threshold 6 = ceil(9 × 2/3) · Art. VII</span></div>
+              <div class="meter-caption"><span>State legislature: 8 of 9 serving in favor</span><span>threshold 6 of 9 (two-thirds)</span></div>
             </div>
             <div class="meter-block">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:82.3%"></span><span class="meter-threshold" style="inset-inline-start:67.7%"></span></div>
               <div class="meter-caption"><span>Constituent jurisdictions: 51 of 62 counties in favor (New York, Kings, Queens, Bronx, Richmond, Westchester, Erie + 55 more)</span>
-                <span>threshold 42 = ceil(62 × 2/3) · Art. III §3</span></div>
+                <span>threshold 42 of 62 (two-thirds)</span></div>
             </div>
             <p class="gloss" style="margin-block-start:var(--space-2)">Both meters must clear their threshold — the legislature's own
               supermajority and a supermajority of the constituent jurisdictions, each counted independently.</p>
@@ -89,21 +89,21 @@
         <h2 id="lockstep-h">Term lockstep</h2>
         <p>Elected executive terms expire with the legislative term — one clock drives both elections, and officials
           cannot skip or delay it. Current term ends <strong>2035-11-01</strong>.</p>
-        <p class="citation">Terms always equal the legislative term · Art. III §3 · CLK-10 — schedule view: <a href="../system/term-sync.html">term synchronization</a></p>
+        <p class="citation">Terms always equal the legislative term — schedule view: <a href="../system/term-sync.html">term synchronization</a></p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-01.html">WF-EXE-01 executive committee delegation</a> ·
-            <a href="../flows/WF-EXE-02.html">WF-EXE-02 conversion to elected office</a> ·
-            <a href="../flows/WF-EXE-03.html">WF-EXE-03 office modification (constituent supermajority)</a>.
+          <p>This screen shows how an executive office is set up and how it can change shape: the
+            <a href="../flows/WF-EXE-01.html">delegated committee</a>, its
+            <a href="../flows/WF-EXE-02.html">conversion to an elected office</a>, and later
+            <a href="../flows/WF-EXE-03.html">modification by a supermajority of constituent jurisdictions</a>.
             Orders and oversight live on <a href="executive-actions.html">executive actions</a>; departments on
             <a href="departments.html">the department registry</a>.</p>
-          <p><strong>Entity state machine:</strong> Executive Office — Delegated (committee) → [Conversion-Voted] →
-            Elected-Office (committee 5+ STV | individual RCV+4 advisors) → [Modified by constituent supermajority] →
-            Dissolved/Reverted. The strip inside each model panel highlights the live state.</p>
-          <p class="citation">Art. III §2–3 · Art. VII · CLK-10</p>
+          <p><strong>How the office moves:</strong> it starts as a committee delegated by the legislature, can convert
+            to an elected office — either a committee of five or more equal officers, or a single individual with four
+            advisors — and can later be modified or wound down. The strip inside each model panel highlights the live state.</p>
         </div>
       </details>
     </div>
@@ -118,7 +118,7 @@
       roles: ['R-14', 'R-15', 'R-16', 'R-17'],
       workflows: ['WF-EXE-01', 'WF-EXE-02', 'WF-EXE-03'],
       forms: ['F-LEG-014', 'F-LEG-015'],
-      citation: 'Delegated by default · conversion by dual supermajority · Art. III §2–3 · CLK-10',
+      citation: 'Delegated by default · conversion by dual supermajority',
       flow: 'WF-EXE-02',
       register: 'governance'
     };
@@ -139,12 +139,9 @@
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
-        return '<div class="card card--inset"><h3>' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+        return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+          '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p></div>';
       }
 
       function stateStrip(currentIdx) {
@@ -185,11 +182,11 @@
         }).join('');
         return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
           S.badge('success', 'Live — New York County', 'check') +
-          '<span class="citation">composed 2030-01-12 via Act 2030-02 (F-LEG-014)</span></div>' +
+          '<span class="citation">composed 2030-01-12 via Act 2030-02</span></div>' +
           '<p>Westminster-style: a committee of the legislature holds executive authority. The five members were ' +
           'selected proportionally from the chamber — the same method as legislative committees — and keep their ' +
           'seats and floor votes.</p>' +
-          '<p class="citation">Proportional selection from the legislature · Art. III §2 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>' +
+          '<p class="citation">Proportional selection from the legislature · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>' +
           '<ul style="list-style:none;padding:0;margin:0">' + rows + '</ul>' + stateStrip(0);
       }
 
@@ -206,10 +203,10 @@
         return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
           S.badge('neutral', 'Illustrative — no live instance in the demo world', 'info') + '</div>' +
           '<p>Five or more officers elected by the whole population in one proportional count, each with equal ' +
-          'decision-making power. Created (or converted to) only by the dual supermajority in F-LEG-015.</p>' +
+          'decision-making power. Created (or converted to) only by the dual supermajority conversion act.</p>' +
           '<p class="gloss">PR-STV with the Droop quota: every office in the race is filled in a single ranked count, ' +
           'with surplus votes transferring fractionally — proportional by design.</p>' +
-          '<p class="citation">Committee type: 5+ offices via PR-STV/Droop · Art. III §3</p>' +
+          '<p class="citation">Committee type: 5+ offices via proportional ranked-choice count</p>' +
           '<ul style="list-style:none;padding:0;margin:0">' + rows + '</ul>' + stateStrip(2);
       }
 
@@ -224,13 +221,13 @@
         }).join('');
         return '<div class="cluster" style="margin-block-end:var(--space-2)">' +
           S.badge('success', 'Live — New York State', 'check') +
-          '<span class="citation">created 2030-03-10 via Act 2030-21 (F-LEG-015) → executive election 2030-06</span></div>' +
-          '<p><strong>' + esc(winner.name) + '</strong> — single-winner RCV victor (R-16). The top four runners-up ' +
+          '<span class="citation">created 2030-03-10 via Act 2030-21 → executive election 2030-06</span></div>' +
+          '<p><strong>' + esc(winner.name) + '</strong> — single-winner ranked-choice victor. The top four runners-up ' +
           'serve as advisors and alternates: the step-in rule promotes them in rank order if the office vacates, ' +
           'so the popular count — not an appointment — always decides succession.</p>' +
           '<p class="gloss">Single-winner RCV is used only for the individual executive model; every other race in ' +
           'the system is multi-winner PR-STV.</p>' +
-          '<p class="citation">Individual type: RCV winner + top-4 advisors with step-in · Art. III §3</p>' +
+          '<p class="citation">Individual type: ranked-choice winner + top-4 advisors with step-in</p>' +
           '<ul style="list-style:none;padding:0;margin:0">' + advRows + '</ul>' + stateStrip(2);
       }
 
@@ -239,7 +236,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Executive emergency methods stay within the declared scope; elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Executive emergency methods stay within the declared scope; elections, sessions, and courts cannot be disrupted — enforced in code.</div></div>'
           : '';
 
         var panels = { 'delegated': delegatedPanel, 'elected-committee': electedCommitteePanel, 'elected-individual': electedIndividualPanel };

@@ -14,42 +14,42 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Office of the Speaker · I-SPK</span>
+        <span class="eyebrow">Office of the Speaker</span>
         <h1>Speaker tools</h1>
         <p class="page-intro">The console for Yuki Tanaka, Speaker of the New York County legislature. The Speaker is
           politically neutral, votes only to break ties, and presides over removal proceedings — except their own
           case. Elected by supermajority RCV at the first session; replaceable the same way.</p>
         <div class="cluster">
-          <span class="persona-chip"><span class="avatar" aria-hidden="true">YT</span> Yuki Tanaka <span class="persona-roles">R-10 · Speaker</span></span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">YT</span> Yuki Tanaka <span class="persona-roles">Speaker</span></span>
           <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Politically neutral · votes only to break ties · Art. II §3 — elected and replaced by supermajority RCV · F-LEG-008 · WF-LEG-02</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Politically neutral · votes only to break ties · elected and replaced by supermajority ranked-choice vote.</p>
       </header>
 
       <section class="card" aria-labelledby="forms-h">
         <h2 id="forms-h">The Speaker's nine forms</h2>
-        <p class="cc-small">Every power the office holds, in one place. Each card names the form first, its ID second,
-          who may file it, and its constitutional basis.</p>
+        <p class="cc-small">Every power the office holds, in one place. Each card names the form,
+          who may file it, and what it does.</p>
         <div id="spk-grid" class="grid-2"></div>
-        <noscript><p>The form cards render with JavaScript — F-SPK-001 through F-SPK-009.</p></noscript>
+        <noscript><p>The form cards render with JavaScript.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="tie-h">
-        <h2 id="tie-h">Tie-break record <span class="form-chip">Tie-breaking vote <span class="form-id">F-SPK-004</span></span></h2>
+        <h2 id="tie-h">Tie-break record <span class="form-chip">Tie-breaking vote</span></h2>
         <p class="cc-small">The Speaker otherwise never votes. One tie has been broken this term:</p>
         <div class="log-row">
           <span class="log-seq" data-no-i18n>2031-05-19</span>
           <span>Motion to extend testimony time on the Clean Air Act hearing — tied 4–4 of 8 serving</span>
           <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Speaker voted yes — adopted 5–4</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Cast the deciding vote when a vote results in a tie · available to R-10 Speaker · Art. II §3 (Tie-Breaking Vote)</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Cast the deciding vote when a vote results in a tie · available to the Speaker</p>
       </section>
 
       <section class="card" aria-labelledby="prio-h">
-        <h2 id="prio-h">Member priorities <span class="form-chip">Member priority communication facilitation <span class="form-id">F-SPK-006</span></span></h2>
+        <h2 id="prio-h">Member priorities <span class="form-chip">Member priority communication facilitation</span></h2>
         <p class="cc-small">Ensure each member can bring priorities to the legislature's attention — every member, with
           or without endorsing organizations, gets the same channel.
-          <span class="citation">available to R-10 Speaker · Art. II §3 (Facilitation)</span></p>
+          <span class="citation">available to the Speaker</span></p>
         <div id="prio-list" class="stack" style="gap:var(--space-2)"></div>
         <form id="prio-form" class="cluster" style="margin-block-start:var(--space-3)">
           <label class="visually-hidden" for="prio-text">New priority item</label>
@@ -59,28 +59,29 @@
       </section>
 
       <section class="card" aria-labelledby="imp-h">
-        <h2 id="imp-h">Presiding over removals <span class="form-chip">Impeachment/censure/expulsion presiding <span class="form-id">F-SPK-007</span></span></h2>
+        <h2 id="imp-h">Presiding over removals <span class="form-chip">Impeachment/censure/expulsion presiding</span></h2>
         <p class="cc-small">The Speaker presides as judge over impeachment, censure, or expulsion proceedings —
           <strong>except their own case</strong>, where the legislature designates another presiding member.
-          <span class="citation">available to R-10 Speaker · Art. II §3 (Judicial Role)</span></p>
+          <span class="citation">available to the Speaker</span></p>
         <div class="cluster">
           <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"></use></svg> No proceeding currently before the Speaker</span>
           <a href="oversight.html">Open oversight &amp; proceedings
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Removal vote itself: supermajority of all serving · F-LEG-022 · Art. III §3; Art. IV §4 (removal parity) · WF-LEG-17</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Removal vote itself: supermajority of all serving members.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-02.html">WF-LEG-02 (Speaker election /
-            replacement)</a> seats this office; <a href="../flows/WF-LEG-05.html">WF-LEG-05 (regular session)</a> uses
-            F-SPK-001…003 and 009; <a href="../flows/WF-LEG-17.html">WF-LEG-17 (impeachment / censure / expulsion)</a>
-            uses F-SPK-007; <a href="../flows/WF-LEG-20.html">WF-LEG-20</a> uses F-SPK-008.</p>
-          <p><strong>Entity state machine:</strong> Motion — the Speaker recognizes, schedules, and (only on ties)
+          <p><strong>What this screen does:</strong> it's the Speaker's console — electing and replacing the Speaker,
+            running a regular session, presiding over impeachment, censure, or expulsion, and handling a session that
+            can't reach quorum. Related flows: <a href="../flows/WF-LEG-02.html">Speaker election / replacement</a>,
+            <a href="../flows/WF-LEG-05.html">regular session</a>,
+            <a href="../flows/WF-LEG-17.html">impeachment / censure / expulsion</a>, and
+            <a href="../flows/WF-LEG-20.html">quorum failure</a>.</p>
+          <p><strong>How a motion moves:</strong> the Speaker recognizes, schedules, and (only on ties)
             decides; everything else is recorded against the member who moved it.</p>
-          <p class="citation">Art. II §2–3 · F-SPK-001…009</p>
         </div>
       </details>
     </div>
@@ -95,7 +96,7 @@
       roles: ['R-10'],
       workflows: ['WF-LEG-02', 'WF-LEG-05', 'WF-LEG-17', 'WF-LEG-20'],
       forms: ['F-SPK-001', 'F-SPK-002', 'F-SPK-003', 'F-SPK-004', 'F-SPK-005', 'F-SPK-006', 'F-SPK-007', 'F-SPK-008', 'F-SPK-009'],
-      citation: 'Politically neutral · votes only to break ties · Art. II §3',
+      citation: 'Politically neutral · votes only to break ties',
       flow: 'WF-LEG-02',
       register: 'governance'
     };
@@ -118,7 +119,7 @@
         { who: 'Lev Aronov', text: 'Hudson River greenway maintenance funding', when: 'queued' }
       ];
 
-      /* All nine F-SPK forms in one grid — name first, ID second, role, citation; plus a context line/link. */
+      /* All nine Speaker forms in one grid — name, role, what it does; plus a context line/link. */
       var SPK = [
         { fid: 'F-SPK-001', extra: '<a href="session-console.html">Open the session console</a>' },
         { fid: 'F-SPK-002', extra: '<span class="citation">order locked: 1. emergency powers · 2. constitutional matters · 3. general</span>' },
@@ -127,21 +128,22 @@
         { fid: 'F-SPK-005', extra: '<a href="committees.html">Run on the committees page</a>' },
         { fid: 'F-SPK-006', extra: '<span class="citation">3 member priorities queued — see below</span>' },
         { fid: 'F-SPK-007', extra: '<span class="citation">except-own-case rule — see the presiding panel below</span>' },
-        { fid: 'F-SPK-008', extra: '<span class="citation">appears on the quorum-failure branch · WF-LEG-20</span>' },
-        { fid: 'F-SPK-009', extra: '<span class="citation">publishes automatically on adjournment · WF-SYS-03</span>' }
+        { fid: 'F-SPK-008', extra: '<span class="citation">appears on the quorum-failure branch</span>' },
+        { fid: 'F-SPK-009', extra: '<span class="citation">publishes automatically on adjournment</span>' }
       ];
+
+      /* Strip a leading role code (e.g. "R-10 Speaker" -> "Speaker") from display text. */
+      function plainRole(raw) {
+        return String(raw || '').replace(/\bR-\d+\s*/g, '').trim();
+      }
 
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<span class="citation" style="display:block">catalog alias: ' + esc(f.aliases.join('; ')) + '</span>' : '';
         return '<div class="card card--inset">' +
-          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) + '</h3>' +
           '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
-          '<span class="citation" style="display:block">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
-          aliases +
+          '<span class="citation" style="display:block">available to ' + esc(plainRole(f.availableToRaw)) + '</span>' +
           (extra ? '<div style="margin-block-start:var(--space-2)">' + extra + '</div>' : '') +
           '</div>';
       }

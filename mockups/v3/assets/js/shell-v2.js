@@ -53,6 +53,23 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  /* strip constitutional codes out of a display string built from v1 data
+     (role/form refs in availableTo / creates / prereq fields). Plain language
+     for the player; the data keys themselves are untouched. */
+  function plainCodes(s) {
+    return String(s == null ? '' : s)
+      .replace(/\bImplied by\s+/gi, '')
+      .replace(/\(?\b[RIF]-[A-Z0-9]{2,3}(?:-\d{3})?\)?/g, '')   /* role / form / institution codes */
+      .replace(/\b(?:CLK|WF)-[A-Z0-9-]{2,7}/g, '')              /* clock / workflow codes */
+      .replace(/\bArt\.\s*[IVX]+/g, '')                          /* article numbers */
+      .replace(/§\s*\d+/g, '')                                   /* section numbers */
+      .replace(/\(([^()]*)\)/g, '$1')                            /* unwrap a remaining plain-language gloss */
+      .replace(/\(\s*\)/g, '')                                   /* drop any empty parens */
+      .replace(/\s*[;,]\s*(?=[;,]|$)/g, '')                      /* drop dangling separators */
+      .replace(/^[\s;,/·]+|[\s;,/·]+$/g, '')                     /* trim stray leading/trailing separators */
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
   function icon(name, opts) {
     opts = opts || {};
     if (!CGA.icons.has(name)) name = 'info';
@@ -572,7 +589,7 @@
       '<select class="select" style="inline-size:auto" data-set-locale>' + locales + '</select></label>' +
       '<span class="role-badge" title="Active persona and role">' +
       '<span class="avatar" aria-hidden="true">' + esc(p.initials) + '</span><span>' + esc(p.name) + '</span>' +
-      '<span class="citation">' + esc(role.id) + ' · ' + esc(role.shortName) + '</span></span>';
+      '<span class="citation">' + esc(role.shortName || role.name) + '</span></span>';
   }
 
   /* ------------------------------------------------------------- footer */
@@ -595,7 +612,7 @@
       return '<option value="' + p.id + '"' + (s.persona === p.id ? ' selected' : '') + '>' + esc(p.name) + (p.standIn ? ' *' : '') + '</option>';
     }).join('');
     var roleOpts = R.roles.map(function (r) {
-      return '<option value="' + r.id + '"' + (s.role === r.id ? ' selected' : '') + '>' + r.id + ' · ' + esc(r.name) + '</option>';
+      return '<option value="' + r.id + '"' + (s.role === r.id ? ' selected' : '') + '>' + esc(r.name) + '</option>';
     }).join('');
     var jurOpts = W.jurisdictions.map(function (j) {
       return '<option value="' + j.slug + '"' + (s.jurisdiction === j.slug ? ' selected' : '') + '>' + esc(j.name) + ' (' + esc(admLabel(j.admLevel)) + ')</option>';
@@ -829,7 +846,7 @@
 
   CGA.shellV2 = {
     ROOT_V1: ROOT_V1, ROOT_V2: ROOT_V2, ROOT: ROOT_V2,
-    icon: icon, esc: esc, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
+    icon: icon, esc: esc, plainCodes: plainCodes, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
     hrefV1: hrefV1, hrefV2: hrefV2, href: hrefV2, isBuiltV2: isBuiltV2, isBuilt: isBuiltV2, plannedFlag: plannedFlag,
     announce: announce, activePersona: activePersona, jurisdictionChain: jurisdictionChain, t: t,
     tour: TOUR, tourHref: tourHref,

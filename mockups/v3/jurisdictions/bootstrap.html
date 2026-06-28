@@ -19,7 +19,7 @@
         <p class="page-intro">Every loaded boundary starts dormant. When enough verified residents accumulate,
           the system triggers the first election and the full institutional stack assembles in a fixed
           30-step sequence. This tracker shows New York County mid-bootstrap, at step 19 of 30.</p>
-        <p class="citation">Critical population → first election → full governance stack · Art. II §1; Art. VI · CLK-06</p>
+        <p class="citation">Critical population → first election → full governance stack.</p>
       </header>
 
       <div class="banner banner--warning" role="status">
@@ -27,14 +27,14 @@
         <div><span class="banner-title">Bootstrap election board — temporary, replacement queued.</span>
           Until a legislature exists, the system itself acts as the election board using constitutional
           defaults (STV/Droop, 5-year terms, 5–9 seats). Step 14 creates the proper independent board and
-          retires this one. <span class="citation">Art. II §2 · WF-ELE-02</span></div>
+          retires this one.</div>
       </div>
 
       <section class="card" aria-labelledby="state-h">
         <h2 id="state-h">Where New York County sits in the Jurisdiction lifecycle</h2>
         <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
         <noscript><p class="gloss">Boundary-Loaded (dormant) → Critical-Population → <strong>Bootstrapping</strong> →
-          Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode (Art. VI)]</p></noscript>
+          Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode]</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="clk-h">
@@ -47,19 +47,19 @@
             <span class="meter-fill meter-fill--met" style="inline-size:100%"></span>
           </div>
           <div class="meter-caption"><span>512 of 500 verified residents at trigger time</span>
-            <span>critical population threshold · CLK-06</span></div>
+            <span>critical population threshold</span></div>
         </div>
         <p class="amendable" style="margin-block-start:var(--space-3)">
           <span class="amendable-value">500 verified residents</span> (local tier)
-          <span class="amendable-meta">Set by Act 2030-02 · effective 2030-03-01 · range 100–10,000 · amendable per jurisdiction tier · CLK-06 · Art. II §1</span>
+          <span class="amendable-meta">Set by Act 2030-02 · effective 2030-03-01 · range 100–10,000 · amendable per jurisdiction tier</span>
         </p>
-        <p class="gloss">Gloss: the threshold counts verified residencies (R-02), not raw registrations — the
-          live census from residency verifications drives it (WF-JUR-09).</p>
+        <p class="gloss">Gloss: the threshold counts verified residencies, not raw registrations — the
+          live census from residency verifications drives it.</p>
         <p style="margin-block-start:var(--space-3)">Activation is pegged to real-world population: institutions
           go live wherever enough people actually play. A county can reach critical population before its state;
           Earth-wide mechanisms can activate first. The player base grows into the final structure chartered at
           setup — every boundary is already loaded, waiting for its residents.</p>
-        <p class="citation">Critical population per jurisdiction tier · CLK-06</p>
+        <p class="citation">Critical population per jurisdiction tier.</p>
       </section>
 
       <section class="card" aria-labelledby="seq-h">
@@ -76,13 +76,11 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-01.html">WF-JUR-01 — jurisdiction bootstrap</a>
-            (this whole sequence) and <a href="../flows/WF-ELE-02.html">WF-ELE-02 — bootstrap first election</a>
-            (steps 3–9). Restoration mode (Art. VI) reuses this machinery — see
+          <p>This screen tracks the full jurisdiction bootstrap sequence (this whole 30-step list) and the
+            bootstrap first election within it (steps 3–9). Restoration mode reuses the same machinery — see
             <a href="restoration.html">the restoration drill</a>.</p>
-          <p><strong>Entity state machine:</strong> Jurisdiction — this page renders the <em>Bootstrapping</em>
+          <p><strong>Lifecycle:</strong> Jurisdiction — this page renders the <em>Bootstrapping</em>
             state; the strip above shows the full lifecycle.</p>
-          <p class="citation">Art. II §1 · Art. VI · CLK-06</p>
         </div>
       </details>
     </div>
@@ -97,7 +95,7 @@
       roles: ['R-01', 'R-03', 'R-08'],
       workflows: ['WF-JUR-01', 'WF-ELE-02'],
       forms: [],
-      citation: 'Critical population → first election → full stack · CLK-06 · Art. II §1; Art. VI',
+      citation: 'Critical population → first election → full stack.',
       flow: 'WF-JUR-01',
       register: 'governance'
     };
@@ -129,7 +127,7 @@
         var ids = formsStr.match(FID) || [];
         var chips = ids.map(function (fid) {
           var f = BY.forms[fid];
-          return '<span class="form-chip">' + esc(f ? f.name : fid) + ' <span class="form-id">' + fid + '</span></span>';
+          return '<span class="form-chip">' + esc(f ? f.name : fid) + '</span>';
         }).join(' ');
         if (!ids.length) chips = '<span class="engine-chip">' + esc(formsStr) + '</span>';
         return chips;

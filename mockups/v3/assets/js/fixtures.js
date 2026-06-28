@@ -22,7 +22,7 @@
      "id": "R-01",
      "name": "Individual",
      "tier": "INDIVIDUAL",
-     "desc": "Any person. The foundational role from which all others derive. Possesses all Art. I rights inherently.",
+     "desc": "Any person. The foundational role from which all others derive. Possesses all rights inherently.",
      "basis": "Art. I (all rights)",
      "prereq": "None — inherent by nature",
      "acquisition": "System registration",
@@ -2610,7 +2610,7 @@
     {
      "id": "WF-JUD-05",
      "family": "JUD",
-     "name": "Constitutional Challenge & Law Remedy (Art. IV §5)",
+     "name": "Constitutional Challenge & Law Remedy",
      "timeScale": "Long",
      "trigger": "F-IND-013 challenge filed by any inhabitant",
      "actors": "R-03, full court, R-09, Executives",
@@ -2904,7 +2904,7 @@
     {
      "id": "WF-JUR-07",
      "family": "JUR",
-     "name": "Constitutional Restoration (Art. VI)",
+     "name": "Constitutional Restoration",
      "timeScale": "Rare",
      "trigger": "Government countermanded, captured/disabled, or destroyed",
      "actors": "Constituents → encompassing → individuals",
@@ -3002,7 +3002,7 @@
     {
      "id": "WF-SYS-05",
      "family": "SYS",
-     "name": "Constitutional Amendment (Art. VII)",
+     "name": "Constitutional Amendment",
      "timeScale": "Rare",
      "trigger": "Amendment proposal meeting Art. VII requirements",
      "actors": "R-09, populations, constituent jurisdictions",
@@ -3208,13 +3208,13 @@
    "entities": [
     {
      "id": "Individual",
-     "statesRaw": "Registered → Identity-Verified → Residency-Declared → Resident (R-02) → Jurisdictionally Associated (R-03) → [Relocating] → Re-associated | Deceased/Closed",
+     "statesRaw": "Registered → Identity-Verified → Residency-Declared → Resident → Jurisdictionally Associated → [Relocating] → Re-associated | Deceased/Closed",
      "states": [
       "Registered",
       "Identity-Verified",
       "Residency-Declared",
-      "Resident (R-02)",
-      "Jurisdictionally Associated (R-03)",
+      "Resident",
+      "Jurisdictionally Associated",
       "[Relocating]",
       "Re-associated | Deceased/Closed"
      ],
@@ -3290,7 +3290,7 @@
     },
     {
      "id": "Bill",
-     "statesRaw": "Introduced → Referred → In-Committee → Reported | Tabled → On-Floor → [Amended] → Passed | Failed → Enacted → Published → [Challenged] → [Edited per Art. IV §5] → Repealed/Superseded",
+     "statesRaw": "Introduced → Referred → In-Committee → Reported | Tabled → On-Floor → [Amended] → Passed | Failed → Enacted → Published → [Challenged] → [Edited by the judiciary] → Repealed/Superseded",
      "states": [
       "Introduced",
       "Referred",
@@ -3302,7 +3302,7 @@
       "Enacted",
       "Published",
       "[Challenged]",
-      "[Edited per Art. IV §5]",
+      "[Edited by the judiciary]",
       "Repealed/Superseded"
      ],
      "notes": "Bicameral: Passed requires independent agreement of both seat kinds at committee AND floor"
@@ -3463,7 +3463,7 @@
     },
     {
      "id": "Jurisdiction",
-     "statesRaw": "Boundary-Loaded (dormant) → Critical-Population → Bootstrapping → Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode (Art. VI)]",
+     "statesRaw": "Boundary-Loaded (dormant) → Critical-Population → Bootstrapping → Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode]",
      "states": [
       "Boundary-Loaded (dormant)",
       "Critical-Population",
@@ -3472,7 +3472,7 @@
       "[Subdivided]",
       "[In-Union | Intermediary]",
       "[Disintermediated]",
-      "[Restoration-Mode (Art. VI)]"
+      "[Restoration-Mode]"
      ],
      "notes": "Nesting: every individual associated at all levels simultaneously"
     },
@@ -3811,14 +3811,14 @@
      "step": 8,
      "stage": "STAGE 3: FIRST ELECTION",
      "action": "Voting period",
-     "details": "All R-03 individuals cast ranked-choice ballots.",
+     "details": "All eligible individuals cast ranked-choice ballots.",
      "forms": "F-IND-007"
     },
     {
      "step": 9,
      "stage": "STAGE 3: FIRST ELECTION",
      "action": "Results certified",
-     "details": "STV/Droop tabulation runs. Winners certified. System grants R-09 Legislative Representative role.",
+     "details": "STV/Droop tabulation runs. Winners certified. The system grants the Legislative Representative role.",
      "forms": "F-ELB-004 (auto)"
     },
     {
@@ -4141,7 +4141,7 @@
        Seat 4 vacant. */
     chamber: {
       jurisdiction: 'usa-3-new-york-county', seats: 9, serving: 8,
-      quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving · Art. II §2',
+      quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving',
       supermajority: 6, supermajorityGloss: 'ceil(serving × 2/3) = 6 of 9 · Art. VII',
       termEnds: '2035-11-01', nextSessionDue: '2031-06-23',
       /* Seating: circular chamber, most senior to least senior every other
@@ -4153,7 +4153,7 @@
         { persona: 'yuki-tanaka', seat: 1, endorsedBy: ['commons-party'], speaker: true, voteShareNorm: 1.12, daysServed: 212 },
         { persona: 'marcus-chen', seat: 2, endorsedBy: ['green-horizon'], voteShareNorm: 1.08, daysServed: 212 },
         { persona: 'kwame-mensah', seat: 3, endorsedBy: ['commons-party'], voteShareNorm: 1.04, daysServed: 212 },
-        { seat: 4, vacant: true, note: 'Renata Silva resigned — countback running (WF-ELE-03)' },
+        { seat: 4, vacant: true, note: 'Renata Silva resigned — countback running' },
         { persona: 'asha-okonkwo', seat: 5, endorsedBy: ['hudson-mutual-aid', 'green-horizon'], voteShareNorm: 0.99, daysServed: 212 },
         { name: 'Jonas Petersen', seat: 6, endorsedBy: ['five-boroughs-chamber'], voteShareNorm: 0.97, daysServed: 212 },
         { name: 'Maribel Santos', seat: 7, endorsedBy: [], voteShareNorm: 0.95, note: 'No endorsing organization', daysServed: 212 },
@@ -4176,17 +4176,17 @@
     /* Case docket (WF-JUD-03). */
     cases: [
       { id: 'case-2031-088', title: 'Novák finding on Curfew Ordinance §3', kind: 'Constitutional challenge',
-        court: 'New York County court', panel: 'Full court (5 judges)', panelGloss: 'Major constitutional question — full court · CLK-16, hardened',
+        court: 'New York County court', panel: 'Full court (5 judges)', panelGloss: 'Major constitutional question — full court',
         state: 'Remedy recommended', filedVia: 'F-IND-016', jury: false },
       { id: 'case-2031-104', title: 'Tenant association v. Crown Ridge LLC', kind: 'Civil',
         court: 'New York County court', panel: '3 judges', state: 'Evidence docket', filedVia: 'F-ADV-001', jury: false,
         severity: 'Moderate', claimedScale: 'New York County' },
       { id: 'case-2031-097', title: 'State v. Whitfield', kind: 'Criminal',
         court: 'New York State court', panel: '3 judges + jury', state: 'Jury selection', filedVia: 'F-IND-017', jury: true,
-        severity: 'Serious', doubleJeopardy: 'Outcome will carry the double-jeopardy flag · Art. II §8' },
+        severity: 'Serious', doubleJeopardy: 'Outcome will carry the double-jeopardy flag' },
       { id: 'case-2031-101', title: 'Pham v. New York County election board', kind: 'Administrative',
         court: 'New York County court', panel: '3 judges', state: 'Deliberation', filedVia: 'F-ADV-001', jury: false,
-        severity: 'Minor', note: 'Candidacy-validation appeal (WF-CIV-05 rejection path)' }
+        severity: 'Minor', note: 'Candidacy-validation appeal (rejection path)' }
     ],
 
     /* Executive departments (Art. II §9; boards per Art. III §4) — New York
@@ -4292,7 +4292,7 @@
     vacancy: {
       office: 'New York County legislature · seat 4', member: 'Renata Silva (resigned)',
       declaredVia: 'F-LEG-036', status: 'countback-running',
-      gloss: 'Prior ballots re-run with the vacated member removed · Art. II §5 · as implemented (ledger #q6)'
+      gloss: 'Prior ballots re-run with the vacated member removed · as implemented (ledger #q6)'
     },
     specialElection: {
       trigger: 'countback-exhausted', windowDays: [90, 180], clock: 'CLK-04',
@@ -4378,7 +4378,7 @@
       ]
     },
     'WF-JUD-05': {
-      id: 'WF-JUD-05', name: 'Constitutional Challenge & Law Remedy (Art. IV §5)',
+      id: 'WF-JUD-05', name: 'Constitutional Challenge & Law Remedy',
       timeScale: 'Long', trigger: 'Challenge filed by any inhabitant',
       actors: ['R-03', 'R-19', 'R-09'], institutions: ['I-JUD', 'I-LEG'],
       terminal: 'Law amended by legislature, judgement overruled by supermajority, or law edited by the judiciary; executives enforce the outcome',
@@ -4387,7 +4387,7 @@
         { n: 1, actor: 'R-03', action: 'Any inhabitant files challenge: law unjustly impedes rights under the Constitution or other valid law', form: 'F-IND-016',
           outcome: 'Challenge docketed',
           screen: { href: 'judiciary/constitutional-challenge.html', params: { sc: { challenge: true } } } },
-        { n: 2, actor: 'R-19', action: 'Hear (full court for significant constitutional questions · CLK-16, hardened)', engine: 'WF-JUD-03 machinery',
+        { n: 2, actor: 'R-19', action: 'Hear (full court for significant constitutional questions)', engine: 'WF-JUD-03 machinery',
           outcome: 'Contradiction found, or law stands',
           screen: { href: 'judiciary/case-detail.html', params: { role: 'R-19' } },
           branches: [

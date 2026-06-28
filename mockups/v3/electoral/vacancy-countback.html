@@ -19,17 +19,16 @@
         <p class="page-intro">Renata Silva resigned. No new election is needed yet: the countback engine re-runs the
           prior election's ballots with the vacated member removed as a candidate. The voters' original preferences
           decide the replacement — only if those ballots exhaust does a special election follow.</p>
-        <p class="citation">Vacancies filled by countback of prior ballots · Art. II §5 · countback engine — hardened</p>
+        <p class="citation">Vacancies are filled by re-counting the prior ballots, not by a new election.</p>
         <noscript><p class="gloss">The countback visualization renders from fixture data and needs JavaScript.</p></noscript>
       </header>
 
       <section class="card" aria-labelledby="trigger-h">
         <h2 id="trigger-h">Trigger</h2>
         <div class="card card--inset">
-          <p style="margin-block-end:var(--space-1)"><strong>Vacancy declaration</strong> <span class="form-chip"><span class="form-id">F-LEG-036</span></span></p>
+          <p style="margin-block-end:var(--space-1)"><strong>Vacancy declaration</strong></p>
           <p class="cc-small" style="margin-block-end:var(--space-1)">Declare a seat vacant due to death, resignation, removal, or incapacity.</p>
-          <p class="citation">available to R-09 Legislative Representative / R-10 Speaker · creates a vacancy record → triggers countback · Art. II §5</p>
-          <p class="citation">catalog alias: F-LEG-030 · workflows catalog (renumbering drift)</p>
+          <p class="citation">Available to a legislator or the speaker · creates a vacancy record and starts the re-count.</p>
         </div>
         <p class="cc-small" style="margin-block-start:var(--space-3)">Declared by the Speaker on 2031-05-28 14:12 —
           shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
@@ -45,27 +44,27 @@
         <div id="engine-bars"></div>
         <p class="gloss" style="margin-block-start:var(--space-2)">Gold tick = the Droop quota. A continuing candidate
           who reaches it fills the seat; ballots with no remaining preference become exhausted.</p>
-        <p class="citation">Re-run of prior ballots with the vacated member removed · Art. II §5 · as implemented (<a href="../shared/constitutional-questions.html#q6">ledger #6</a>) · STV with Droop quota — hardened</p>
+        <p class="citation">Re-counts the prior ballots with the vacated member removed (see <a href="../shared/constitutional-questions.html#q6">ledger #6</a>).</p>
       </section>
 
       <div class="grid-2">
         <section class="card" id="branch-found" aria-labelledby="found-h">
           <h2 id="found-h">Branch: winner found <span id="found-flag"></span></h2>
-          <p class="cc-small">The countback yields a replacement. The election board certifies, the winner is seated by
-            oath (F-LEG-001), and committee proportionality is re-checked.</p>
+          <p class="cc-small">The re-count yields a replacement. The election board certifies, the winner is seated by
+            oath, and committee proportionality is re-checked.</p>
           <div class="card card--inset" style="margin-block-end:var(--space-3)">
-            <p style="margin-block-end:var(--space-1)"><strong>Election results certification</strong> <span class="form-chip"><span class="form-id">F-ELB-004</span></span></p>
-            <p class="citation">available to R-08 Election Board Member · Art. II §2 (transparent election process)</p>
+            <p style="margin-block-end:var(--space-1)"><strong>Election results certification</strong></p>
+            <p class="citation">Available to an election board member · part of the transparent election process.</p>
           </div>
           <div class="cluster" id="certify-area"></div>
-          <p class="citation" style="margin-block-start:var(--space-3)">Committee proportionality re-checked after seating · WF-LEG-13</p>
+          <p class="citation" style="margin-block-start:var(--space-3)">Committee proportionality is re-checked after the replacement is seated.</p>
         </section>
 
         <section class="card" id="branch-failed" aria-labelledby="failed-h">
           <h2 id="failed-h">Branch: ballots exhausted <span id="failed-flag"></span></h2>
-          <p class="cc-small">No continuing candidate can reach the quota — the countback fails and a special election
+          <p class="cc-small">No continuing candidate can reach the quota — the re-count fails and a special election
             must be held no sooner than 90 and no later than 180 days after the vacancy.</p>
-          <p class="citation">Special election window · 90–180 days · CLK-04 · Art. II §5</p>
+          <p class="citation">Special election window: 90–180 days after the vacancy.</p>
           <form id="se-form">
             <div class="field">
               <label class="field-label" for="se-date">Special election date</label>
@@ -75,11 +74,11 @@
             </div>
             <div class="cluster">
               <button type="submit" class="btn btn--primary btn--sm" id="se-btn">Schedule special election</button>
-              <span class="form-chip">Election scheduling order <span class="form-id">F-ELB-001</span></span>
+              <span class="form-chip">Election scheduling order</span>
             </div>
             <p class="citation" id="se-confirm" role="status" hidden></p>
           </form>
-          <p class="citation" style="margin-block-start:var(--space-3)">Opens WF-ELE-04 · forms F-ELB-001, F-IND-011, F-IND-007, F-ELB-004</p>
+          <p class="citation" style="margin-block-start:var(--space-3)">Opens the special-election process: scheduling, candidacy, voting, and certification.</p>
         </section>
       </div>
 
@@ -88,11 +87,11 @@
         <div class="stack" style="gap:var(--space-3)">
           <div class="card card--inset">
             <strong>Committee proportionality re-check pending</strong>
-            <span class="citation" style="display:block">Public Safety &amp; Justice committee — Renata Silva's seat vacated · re-check runs when the replacement is seated · WF-LEG-13 · Art. II §4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</span>
+            <span class="citation" style="display:block">Public Safety &amp; Justice committee — Renata Silva's seat vacated · re-check runs when the replacement is seated (see <a href="../shared/constitutional-questions.html#q2">ledger #2</a>).</span>
           </div>
           <div class="card card--inset">
             <strong>Live example of the failed branch</strong>
-            <span class="citation" style="display:block">Kings County legislature · seat 2 — countback exhausted · special election scheduled 2031-09-14 (inside the 90–180 day window · CLK-04)</span>
+            <span class="citation" style="display:block">Kings County legislature · seat 2 — re-count exhausted · special election scheduled 2031-09-14 (inside the 90–180 day window)</span>
           </div>
         </div>
       </section>
@@ -100,14 +99,13 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-03.html">WF-ELE-03 (vacancy countback)</a> with its
-            failure branch into <a href="../flows/WF-ELE-04.html">WF-ELE-04 (special election)</a>; seating hands off to
-            WF-LEG-13 (committee proportionality re-check). The declaration arrives from
+          <p><strong>What this screen does:</strong> it walks the <a href="../flows/WF-ELE-03.html">vacancy re-count</a>, with its
+            failure branch into a <a href="../flows/WF-ELE-04.html">special election</a>; seating hands off to a
+            committee proportionality re-check. The declaration arrives from
             <a href="../legislature/oversight.html">legislature oversight</a>.</p>
-          <p><strong>Entity state machine:</strong> Vacancy — Detected → Declared → Countback-Running →
-            Filled | Countback-Failed → Special-Election-Scheduled (90–180d) → Filled. The strip above tracks the live
+          <p><strong>How a vacancy moves:</strong> Detected → Declared → Re-count running →
+            Filled or Re-count failed → Special election scheduled (90–180 days) → Filled. The strip above tracks the live
             record; toggle "countback failed" in the mockup controls to walk the failure branch.</p>
-          <p class="citation">Art. II §5 · F-LEG-036 · F-ELB-004 · F-ELB-001 · CLK-04</p>
         </div>
       </details>
     </div>
@@ -122,7 +120,7 @@
       roles: ['R-08'],
       workflows: ['WF-ELE-03', 'WF-ELE-04'],
       forms: ['F-LEG-036', 'F-ELB-004', 'F-ELB-001'],
-      citation: 'Countback re-runs prior ballots · special election 90–180 d on failure · Art. II §5 · CLK-04',
+      citation: 'A vacancy re-counts the prior ballots; if that fails, a special election follows 90–180 days later.',
       flow: 'WF-ELE-03',
       register: 'governance'
     };
@@ -208,8 +206,8 @@
         document.getElementById('certify-area').innerHTML = failed
           ? '<button type="button" class="btn btn--secondary btn--sm" disabled title="No winner in this scenario">Certify countback winner</button>'
           : certified
-            ? S.badge('success', 'Camille Verhoeven certified · seated via oath F-LEG-001', 'check') +
-              '<span class="citation">F-ELB-004 committed · proportionality re-check queued (WF-LEG-13) · simulated</span>'
+            ? S.badge('success', 'Camille Verhoeven certified · seated by oath', 'check') +
+              '<span class="citation">Certification recorded · proportionality re-check queued · simulated</span>'
             : '<button type="button" class="btn btn--primary btn--sm" id="certify-btn">Certify countback winner</button>' +
               '<span class="citation">certifies Camille Verhoeven for seat 4</span>';
 
@@ -236,9 +234,9 @@
         c.hidden = false;
         if (d.value >= '2031-08-26' && d.value <= '2031-11-24') {
           scheduled = true;
-          c.textContent = 'Special election scheduled for ' + d.value + ' · scheduling order issued (F-ELB-001) · WF-ELE-04 opened · simulated';
+          c.textContent = 'Special election scheduled for ' + d.value + ' · scheduling order issued · special-election process opened · simulated';
         } else {
-          c.textContent = 'Rejected: ' + d.value + ' is outside the constitutional 90–180 day window (2031-08-26 → 2031-11-24) · CLK-04';
+          c.textContent = 'Rejected: ' + d.value + ' is outside the 90–180 day window (2031-08-26 → 2031-11-24)';
         }
         render();
       });

@@ -19,7 +19,7 @@
         <p class="page-intro">Anyone can register — being a person is the only requirement. Your rights are inherent;
           this account simply gives them a record to attach to. Voting and candidacy unlock later, automatically,
           when your residency is verified.</p>
-        <p class="citation">Registration is open to any person — rights are inherent · Art. I</p>
+        <p class="citation">Registration is open to any person — rights are inherent.</p>
       </header>
 
       <ol class="stepper">
@@ -29,9 +29,9 @@
       </ol>
 
       <section class="card" aria-labelledby="reg-h">
-        <h2 id="reg-h">Individual registration <span class="form-chip"><span class="form-id">F-IND-001</span></span></h2>
+        <h2 id="reg-h">Individual registration</h2>
         <p class="cc-small">Create an account and identity record in the system.
-          <span class="citation" style="display:block">available to R-01 Individual · creates the Individual record · Art. I (inherent rights)</span></p>
+          <span class="citation" style="display:block">Open to anyone — creates your personal record.</span></p>
         <form id="reg-form" novalidate>
           <div class="field">
             <label class="field-label" for="reg-name">Full name</label>
@@ -75,14 +75,14 @@
           <div><span class="banner-title">Account created — your Individual record now exists.</span>
             Next step: <a href="identity-verification.html">identity verification</a> (where supported), then
             <a href="residency.html">declare residency</a> to start unlocking your rights.
-            <span class="citation">Creates: Individual record · Art. I</span></div>
+            <span class="citation">Creates your personal record.</span></div>
         </div>
       </section>
 
       <section class="card" aria-labelledby="prof-h">
-        <h2 id="prof-h">Profile management <span class="form-chip"><span class="form-id">F-IND-002</span></span></h2>
+        <h2 id="prof-h">Profile management</h2>
         <p class="cc-small">Edit personal information, communication preferences, language settings — any time after registration.
-          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 · Art. I (Autonomy)</span></p>
+          <span class="citation" style="display:block">Available once you have an account.</span></p>
         <form id="prof-form" novalidate>
           <div class="field">
             <label class="field-label" for="prof-display">Display name</label>
@@ -106,18 +106,16 @@
       <section class="card" aria-labelledby="state-h">
         <h2 id="state-h">Where you are in the Individual lifecycle</h2>
         <div id="ind-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Registered → Identity-Verified → Residency-Declared → Resident (R-02) → Jurisdictionally Associated (R-03).</p></noscript>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock at R-03 with no other requirements.</p>
-        <p class="citation">Art. I · Art. V §1</p>
+        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Registered → Identity-Verified → Residency-Declared → Resident → Jurisdictionally Associated.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock once you are jurisdictionally associated, with no other requirements.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-01.html">WF-CIV-01 onboarding &amp; identity verification</a> —
-            leads into <a href="../flows/WF-CIV-02.html">WF-CIV-02 residency establishment</a>.</p>
-          <p><strong>Entity state machine:</strong> Individual — this surface covers <em>Registered</em>; the strip above tracks the rest.</p>
-          <p class="citation">Art. I (inherent rights; Autonomy)</p>
+          <p>This screen handles <a href="../flows/WF-CIV-01.html">onboarding &amp; identity verification</a> —
+            which leads into <a href="../flows/WF-CIV-02.html">establishing residency</a>.</p>
+          <p>It covers the first step of your journey — creating your account; the strip above tracks the steps that follow.</p>
         </div>
       </details>
     </div>
@@ -132,7 +130,7 @@
       roles: ['R-01'],
       workflows: ['WF-CIV-01'],
       forms: ['F-IND-001', 'F-IND-002'],
-      citation: 'Registration is open to any person — rights are inherent · Art. I',
+      citation: 'Registration is open to any person — rights are inherent.',
       flow: 'WF-CIV-01',
       register: 'governance'
     };

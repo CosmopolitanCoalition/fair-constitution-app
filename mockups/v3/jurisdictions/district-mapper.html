@@ -39,9 +39,9 @@
           navigation; the shipped tool adopts this design system (round peg, round hole). One legislature — Earth, 1,999 seats — seen at two scopes: the planetary root, and Mexico,
           a member jurisdiction whose seat share exceeds the 9-seat ceiling and therefore subdivides further. Mexico's own
           election board draws those districts over its own scope, inside the parent budget.</p>
-        <p class="citation">Sizing: cube-root law · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)
-          — districts: composites of real jurisdictional lines · Art. II §8 · Subdivision of Legislatures
-          (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>) — board oversight: Subdivision boundary drawing · F-ELB-003 · available to R-08 · Art. II §2</p>
+        <p class="citation">Sizing: cube-root law, as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)
+          — districts are composites of real jurisdictional lines, so legislatures subdivide cleanly
+          (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>) — the election board draws the subdivision boundaries.</p>
       </header>
 
       <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Legislature Browser (district mapper) mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
@@ -58,8 +58,8 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-06.html">WF-ELE-06 (subdivision boundary drawing)</a> ·
-            <a href="../flows/WF-JUR-09.html">WF-JUR-09 (population records &amp; apportionment)</a>.</p>
+          <p><strong>What this screen does:</strong> draws the subdivision boundaries for a legislature
+            and keeps population records and seat apportionment in sync.</p>
           <p><strong>What the views share:</strong> versioned plans (draft → Activate → active, prior plans archived);
             the map-quality ledger (community integrity, constitutional contiguity, population equality with extremes,
             shape compactness, uniform political diversity); per-district quality strips (Dev · CHR · Contig · Intact);
@@ -67,7 +67,6 @@
           <p><strong>Vocabulary:</strong> seats budget and quota (population ÷ seats) shown at every scope; "intact" =
             drawn along real jurisdictional lines; free-drawn lines are needed only where a jurisdiction exceeds the
             ceiling with no subdivisions in the dataset.</p>
-          <p class="citation">Art. II §2 · Art. II §8 · F-ELB-003 · CLK-07 · CLK-08</p>
         </div>
       </details>
     </div>
@@ -82,7 +81,7 @@
       roles: ['R-03', 'R-08'],
       workflows: ['WF-ELE-06', 'WF-JUR-09'],
       forms: ['F-ELB-003'],
-      citation: 'Cube-root seats · Webster composites of real lines · Art. II §2, §8',
+      citation: 'Cube-root seats, built from composites of real jurisdictional lines',
       flow: 'WF-ELE-06',
       register: 'governance'
     };
@@ -271,7 +270,7 @@
           '<div class="lb-row" style="color:var(--gov-fg-subtle);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:var(--tracking-wide)">' +
           '<span style="flex:1">Name</span><span style="inline-size:3rem;text-align:end">Seats ↓</span><span style="inline-size:4.5rem;text-align:end">Population</span><span style="inline-size:3.5rem;text-align:end">Rep</span><span style="inline-size:1.75rem"></span></div>' +
           SCOPES[state.scope].members.map(memberRow).join('') +
-          '<p id="activate-note" class="citation" style="padding:var(--space-2) var(--space-4)" hidden>Draft activated (simulated) — the previous active plan is archived; the election board observes the change · F-ELB-003 · R-08</p>';
+          '<p id="activate-note" class="citation" style="padding:var(--space-2) var(--space-4)" hidden>Draft activated (simulated) — the previous active plan is archived; the election board observes the change.</p>';
       }
 
       function renderMap() {

@@ -18,11 +18,11 @@
 
       <header>
         <span class="eyebrow">Jurisdictions · restoration</span>
-        <h1>Constitutional restoration — Article VI</h1>
+        <h1>Constitutional restoration</h1>
         <p class="page-intro">If a government is countermanded, captured, or destroyed, the constitution does
           not pause — restoration cascades through three tiers until a legitimate government stands again.
           Each tier activates only when the one above it cannot act. This page is the standing drill.</p>
-        <p class="citation">Detection → restoration elections cascade · Art. VI §2–3 · WF-JUR-07</p>
+        <p class="citation">Detection triggers a restoration elections cascade.</p>
       </header>
 
       <section class="card" aria-labelledby="conditions-h">
@@ -31,14 +31,14 @@
           jurisdiction's government. Detection is evidence-based and judicially reviewable — never a
           unilateral switch.</p>
         <div class="grid-2" id="condition-cards"></div>
-        <p class="citation" style="margin-block-start:var(--space-3)">Countermanded / captured or disabled / destroyed · Art. VI §2</p>
+        <p class="citation" style="margin-block-start:var(--space-3)">Three conditions: countermanded, captured or disabled, or destroyed.</p>
       </section>
 
       <section class="card" aria-labelledby="cascade-h">
         <h2 id="cascade-h">The restoration cascade</h2>
         <ol class="flow-steps" id="cascade-steps"></ol>
         <p class="gloss">Restoration elections reuse the bootstrap election machinery — system-run, STV/Droop,
-          constitutional defaults (<a href="bootstrap.html">bootstrap sequence</a>, WF-ELE-02).</p>
+          constitutional defaults (<a href="bootstrap.html">bootstrap sequence</a>).</p>
         <noscript><p class="gloss">Tier 1: constituent jurisdictions elect a new legislature · Tier 2: the
           encompassing jurisdiction calls elections · Tier 3: individuals self-organize new jurisdictions per
           the Template.</p></noscript>
@@ -54,7 +54,7 @@
             <li><strong>Balance interests uniformly</strong> — no constituency privileged over another.</li>
             <li><strong>Govern effectively</strong> — actually able to execute the constitutional order.</li>
           </ul>
-          <p class="citation">Legitimacy criteria · Art. VI §3 · Art. V §1 (Authority by Consent)</p>
+          <p class="citation">Legitimacy criteria — authority by consent.</p>
         </section>
 
         <section class="card" aria-labelledby="defense-h">
@@ -62,9 +62,9 @@
           <p>Defensive forces are bound to protect the <strong>most legitimate</strong> government — the
             claimant scoring highest on the criteria — not the incumbent, not the strongest, not their own
             chain of command's preference.</p>
-          <p class="citation">Defensive forces protect the most legitimate government · Art. VI §2–3</p>
+          <p class="citation">Defensive forces protect the most legitimate government.</p>
           <p class="gloss">During restoration, elections, sessions, and courts that still function cannot be
-            disrupted — the same hard guarantee that bounds emergency powers (Art. II §7).</p>
+            disrupted — the same hard guarantee that bounds emergency powers.</p>
         </section>
       </div>
 
@@ -79,14 +79,14 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-07.html">WF-JUR-07 — constitutional restoration (Art. VI)</a>.
-            Tier elections hand off to <a href="../flows/WF-ELE-02.html">WF-ELE-02 — bootstrap first election</a>;
-            tier 3 self-organization re-enters <a href="../flows/WF-JUR-01.html">WF-JUR-01 — jurisdiction bootstrap</a>.</p>
-          <p><strong>Entity state machine:</strong> Jurisdiction — the [Restoration-Mode (Art. VI)] branch
-            highlighted above while the drill is active.</p>
+          <p><strong>What this screen does:</strong> it walks through constitutional restoration — how a new
+            government is elected when the existing one is countermanded, captured, or destroyed. Tier elections
+            hand off to the <a href="../flows/WF-ELE-02.html">bootstrap first election</a>; tier 3 self-organization
+            re-enters the <a href="../flows/WF-JUR-01.html">jurisdiction bootstrap</a>.</p>
+          <p><strong>Lifecycle:</strong> Jurisdiction — the Restoration-Mode branch is highlighted above while the
+            drill is active.</p>
           <p><strong>Drill control:</strong> toggle "Restoration" in the mockup controls to arm the drill
             (condition: captured · tier 1 active).</p>
-          <p class="citation">Art. VI §2–3 · Art. II §7 · WF-JUR-07</p>
         </div>
       </details>
     </div>
@@ -101,7 +101,7 @@
       roles: ['R-03', 'R-09'],
       workflows: ['WF-JUR-07'],
       forms: [],
-      citation: 'Restoration cascade: constituents → encompassing → individuals · Art. VI §2–3',
+      citation: 'Restoration cascade: constituents, then the encompassing jurisdiction, then individuals.',
       flow: 'WF-JUR-07',
       register: 'governance'
     };
@@ -133,7 +133,7 @@
           desc: 'The constituent jurisdictions of the affected government jointly call and run elections for a new legislature, using the standard election machinery.' },
         { n: 2, name: 'Tier 2 — encompassing jurisdiction calls elections', actor: 'Encompassing legislature + election board',
           desc: 'If the constituents cannot act, the next encompassing jurisdiction calls the restoration elections on their behalf.' },
-        { n: 3, name: 'Tier 3 — individuals self-organize', actor: 'Individuals (R-01 → R-03)',
+        { n: 3, name: 'Tier 3 — individuals self-organize', actor: 'Individuals',
           desc: 'If no functioning level remains, individuals self-organize new jurisdictions per the Template — re-entering the bootstrap sequence from a dormant boundary.' }
       ];
 
@@ -145,12 +145,12 @@
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">' + esc(DRILL.badge) + ' · condition: ' + esc(DRILL.condition) + '</span> ' +
             esc(DRILL.tierLabel) + ' — restoration elections are being prepared by the constituent ' +
-            'jurisdictions. Functioning elections, sessions, and courts continue undisturbed. ' +
-            '<span class="citation">Art. VI §2–3 · WF-JUR-07</span></div></div>'
+            'jurisdictions. Functioning elections, sessions, and courts continue undisturbed.' +
+            '</div></div>'
           : '<div class="banner banner--info" role="status">' + S.icon('info') +
             '<div><span class="banner-title">Restoration mode dormant — no activation condition detected.</span> ' +
-            'The walkthrough below is the standing drill. Toggle "Restoration" in the mockup controls to arm it. ' +
-            '<span class="citation">Art. VI §2 · WF-JUR-07</span></div></div>';
+            'The walkthrough below is the standing drill. Toggle "Restoration" in the mockup controls to arm it.' +
+            '</div></div>';
 
         document.getElementById('condition-cards').innerHTML = CONDITIONS.map(function (c) {
           var hit = active && c.id === DRILL.condition;

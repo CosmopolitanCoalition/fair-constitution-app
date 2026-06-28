@@ -19,7 +19,7 @@
         <p class="page-intro">The governor surface. The board implements rules pursuant to the charter and the acts
           the legislature passes, and files periodic operational and financial reports to both the executive and the
           legislature. Everything filed here is public record.</p>
-        <p class="citation">Rule implementation &amp; reporting · Art. III §4 — cycle: WF-EXE-09</p>
+        <p class="citation">Rule implementation and reporting cycle.</p>
       </header>
 
       <section class="card" aria-labelledby="who-h">
@@ -27,12 +27,12 @@
         <p><strong>Dr. Samuel Adeyemi</strong> · Board of Governors member and joint-elected chair,
           Public Works &amp; Utilities.</p>
         <div class="cluster">
-          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Seated · R-18</span>
+          <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Seated</span>
           <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"></use></svg> Politically neutral office</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-3)">Nominated F-EXE-001 · consented F-LEG-020 · term 2030-07-01 → 2040-07-01 · 10-yr civil-officer term · CLK-09 · Art. III §4</p>
+        <p class="citation" style="margin-block-start:var(--space-3)">Nominated by the executive, consented by the legislature · term 2030-07-01 → 2040-07-01 · 10-year civil-officer term.</p>
         <p class="amendable"><span class="amendable-value">10 years</span> civil appointment term
-          <span class="amendable-meta">civil_appointment_years · default 10 · in lockstep with judicial_appointment_years · set at founding (no amending act yet) · Art. II §9</span></p>
+          <span class="amendable-meta">default 10 years · stays in step with the judicial term · set at founding (no amending act yet).</span></p>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="rules-h">
@@ -51,7 +51,7 @@
         <div style="padding-block:var(--space-3);padding-inline:var(--space-6)">
           <button type="button" class="btn btn--secondary btn--sm" id="rule-btn">Draft a new implementation rule</button>
           <p id="rule-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
-          <p class="citation">Rules implement — they cannot exceed — the charter and enabling acts · Art. III §4</p>
+          <p class="citation">Rules implement — they cannot exceed — the charter and enabling acts.</p>
         </div>
         <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The rule register requires
           JavaScript. In force: a stormwater discharge standard (enabling act: New York County Clean Air Act) and a
@@ -72,7 +72,7 @@
           </table>
         </div>
         <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Due dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC — filed reports append to the
-          <a href="../system/public-records.html">public record</a> · Art. III §4</p>
+          <a href="../system/public-records.html">public record</a>.</p>
         <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The report table requires
           JavaScript. Q1 2031 was filed on time; Q2 2031 is due 2031-07-15; a Hurricane Dorinda special report is due
           2031-06-30.</p></noscript>
@@ -81,14 +81,13 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-09.html">WF-EXE-09 department reporting cycle</a> —
-            fed by <a href="../flows/WF-EXE-05.html">WF-EXE-05 appointment</a>; findings here can surface in
-            <a href="../flows/WF-EXE-08.html">WF-EXE-08 investigations</a>.</p>
-          <p><strong>Entity state machine:</strong> Department / Board — this surface is the <em>Reporting</em>
-            stage of the cycle: Operating → Reporting → back to Operating (or Re-chartered | Dissolved).</p>
-          <p><strong>Form IDs:</strong> the workflows catalog cites these forms as F-GOV-001/002; the canonical IDs
-            are F-BOG-001/002 — both aliases render on the form cards above.</p>
-          <p class="citation">Art. III §4 · CLK-09</p>
+          <p><strong>How it connects:</strong> this is the <a href="../flows/WF-EXE-09.html">department reporting cycle</a> —
+            it begins once a governor is <a href="../flows/WF-EXE-05.html">appointed</a>, and findings here can lead to an
+            <a href="../flows/WF-EXE-08.html">investigation</a>.</p>
+          <p><strong>Where this sits:</strong> a department and its board move through Operating → Reporting → back to
+            Operating (or get re-chartered or dissolved). This screen is the <em>Reporting</em> stage.</p>
+          <p>From here a governor keeps the rule register, drafts new implementation rules, and files the department's
+            periodic operational and financial reports.</p>
         </div>
       </details>
     </div>
@@ -103,7 +102,7 @@
       roles: ['R-18'],
       workflows: ['WF-EXE-09'],
       forms: ['F-BOG-001', 'F-BOG-002'],
-      citation: 'Implementation rules & reports to executive + legislature · Art. III §4 · CLK-09',
+      citation: 'Implementation rules and reports to the executive and legislature.',
       flow: 'WF-EXE-09',
       register: 'governance'
     };
@@ -125,8 +124,8 @@
         { id: 'PWU-R-2031-03', name: 'Stormwater discharge standard',
           act: 'New York County Clean Air Act (bill-2031-07)', actHref: '../legislature/bill-detail.html', status: 'in-force' },
         { id: 'PWU-R-2031-04', name: 'Storm-debris collection schedule',
-          act: 'Emergency Powers Declaration — Hurricane Dorinda (F-LEG-024)', actHref: '../legislature/emergency-powers.html',
-          status: 'in-force', note: 'expires with the emergency power · CLK-03' },
+          act: 'Emergency Powers Declaration — Hurricane Dorinda', actHref: '../legislature/emergency-powers.html',
+          status: 'in-force', note: 'expires with the emergency power' },
         { id: 'PWU-R-2030-09', name: 'Water-meter reading cadence',
           act: 'Department charter (Act 2030-11)', actHref: null, status: 'superseded' }
       ];
@@ -134,12 +133,9 @@
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
-        return '<div class="card card--inset"><h3>' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+        return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+          '<p class="citation">available to ' + esc(f.availableToRaw.replace(/R-\d+\s*/g, '')) + '</p></div>';
       }
 
       function ruleStatus(r) {
@@ -155,7 +151,7 @@
         var allRules = rules.slice();
         if (sim.ruleDrafted) {
           allRules.unshift({ id: 'PWU-R-2031-05', name: 'Shelter potable-water supply rule (draft)',
-            act: 'Emergency Powers Declaration — Hurricane Dorinda (F-LEG-024)', actHref: '../legislature/emergency-powers.html', status: 'draft' });
+            act: 'Emergency Powers Declaration — Hurricane Dorinda', actHref: '../legislature/emergency-powers.html', status: 'draft' });
         }
         document.getElementById('rule-rows').innerHTML = allRules.map(function (r) {
           var act = r.actHref ? '<a href="' + r.actHref + '">' + esc(r.act) + '</a>' : esc(r.act);

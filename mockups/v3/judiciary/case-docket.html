@@ -19,7 +19,7 @@
         <p class="page-intro">Every case filed in your jurisdictions, from local civil disputes to full-court
           constitutional questions. Anyone jurisdictionally associated can file; panels are assigned by the
           court with conflict screening.</p>
-        <p class="citation">Panels of at least 3, odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16</p>
+        <p class="citation">Panels of at least 3 judges, always an odd number, scaled to severity — the full court hears major constitutional questions.</p>
       </header>
 
       <div class="filter-bar" role="group" aria-label="Filter cases">
@@ -46,7 +46,7 @@
             <tbody id="docket-body" aria-live="polite"></tbody>
           </table>
         </div>
-        <noscript><p style="padding:var(--space-4)" class="gloss">The docket table renders with JavaScript enabled. Live fixture cases include State v. Whitfield (criminal, 3 judges + jury, jury selection) and the Novák finding on Curfew Ordinance §3 (constitutional challenge, full court).</p></noscript>
+        <noscript><p style="padding:var(--space-4)" class="gloss">The docket table renders with JavaScript enabled. Live fixture cases include State v. Whitfield (criminal, 3 judges + jury, jury selection) and the Novák finding on the Curfew Ordinance (constitutional challenge, full court).</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="file-h">
@@ -89,7 +89,7 @@
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--primary">Submit filing</button>
-            <span class="citation">Civil/criminal case filing · F-IND-017 · available to R-03 (or via advocate R-21) · Art. I (Right to Fair Trial)</span>
+            <span class="citation">File a civil or criminal case yourself, or through a registered advocate — your right to a fair trial.</span>
           </div>
         </form>
         <div id="filing-result" role="status" style="margin-block-start:var(--space-3)"></div>
@@ -99,7 +99,7 @@
         <section class="card" aria-labelledby="entry-h">
           <h2 id="entry-h">Other ways cases arrive</h2>
           <div id="entry-forms" class="stack" style="gap:var(--space-3)"></div>
-          <noscript><p class="gloss">Entry-point form cards render with JavaScript enabled: Constitutional Challenge Filing (F-IND-016, R-03 · Art. IV §5) and Case Filing on behalf of client (F-ADV-001, R-21 · Art. I).</p></noscript>
+          <noscript><p class="gloss">Entry-point cards render with JavaScript enabled: filing a constitutional challenge, and an advocate filing a case on behalf of a client.</p></noscript>
         </section>
 
         <section class="card" aria-labelledby="accept-h">
@@ -108,7 +108,7 @@
           <p style="margin-block-start:var(--space-3)"><strong>Conflict screening:</strong> before a panel is fixed, every candidate judge is screened for
             personal, financial, or prior-involvement conflicts; conflicted judges are excluded and the draw
             re-runs. Screening results attach to the case record.</p>
-          <p class="citation">Panel assignment with conflict screening · Art. IV §4 — full court for major constitutional questions · CLK-16 · hardened</p>
+          <p class="citation">Panel assignment with conflict screening — the full court hears major constitutional questions.</p>
           <p style="margin-block-start:var(--space-3)"><a href="case-detail.html">Walk a case through the full lifecycle
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         </section>
@@ -117,12 +117,12 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-03.html">WF-JUD-03 — case lifecycle</a>;
-            constitutional challenges branch into <a href="../flows/WF-JUD-05.html">WF-JUD-05</a>;
-            jury paneling runs as <a href="../flows/WF-JUD-04.html">WF-JUD-04</a>.</p>
-          <p><strong>Entity state machine:</strong> Case —</p>
+          <p><strong>How cases move:</strong> <a href="../flows/WF-JUD-03.html">the case lifecycle</a>;
+            constitutional challenges branch into <a href="../flows/WF-JUD-05.html">their own path</a>;
+            jury paneling runs as <a href="../flows/WF-JUD-04.html">a separate flow</a>.</p>
+          <p><strong>Stages a case passes through:</strong></p>
           <div class="state-strip" id="case-strip"></div>
-          <p class="citation" style="margin-block-start:var(--space-3)">Art. IV §4 · Art. IV §5 · Art. I · CLK-16</p>
+          <p class="citation" style="margin-block-start:var(--space-3)">Filing, panel assignment with conflict screening, and the right to a fair trial.</p>
         </div>
       </details>
     </div>
@@ -137,7 +137,7 @@
       roles: ['R-19', 'R-20', 'R-21', 'R-03'],
       workflows: ['WF-JUD-03'],
       forms: ['F-IND-016', 'F-IND-017', 'F-ADV-001', 'F-JDG-001'],
-      citation: 'Panel ≥3 and odd, scaled to severity · full court for major constitutional questions · Art. IV §4 · CLK-16',
+      citation: 'Panels of at least 3 judges, always an odd number, scaled to severity — the full court hears major constitutional questions.',
       flow: 'WF-JUD-03',
       register: 'governance'
     };
@@ -161,15 +161,12 @@
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var alias = (f.aliases && f.aliases.length)
-          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
         return '<div class="card card--inset">' +
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
-          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '</div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
-          alias + (extra || '') + '</div>';
+          (extra || '') + '</div>';
       }
 
       var STATE_BADGE = {
@@ -190,7 +187,7 @@
         var sb = STATE_BADGE[c.state] || ['neutral', 'info'];
         var sev = c.severity || 'Major constitutional question';
         return '<tr>' +
-          '<td>' + caseLink(c) + '<span class="citation" style="display:block">' + esc(c.id) + (c.filedVia ? ' · filed via ' + esc(c.filedVia) : '') + '</span>' +
+          '<td>' + caseLink(c) + '<span class="citation" style="display:block">' + esc(c.id) + '</span>' +
           (c.doubleJeopardy ? '<span class="citation" style="display:block">' + esc(c.doubleJeopardy) + '</span>' : '') +
           (c.note ? '<span class="gloss" style="display:block">' + esc(c.note) + '</span>' : '') + '</td>' +
           '<td>' + esc(c.kind) + '</td>' +
@@ -250,13 +247,13 @@
         localFilings.push({
           id: id, title: title, kind: kind === 'Criminal' ? 'Criminal' : kind,
           court: scale.admLevel >= 3 ? 'New York County court' : 'New York State court',
-          panel: 'Pending acceptance (F-JDG-001)', state: 'Filed', severity: sev + ' (claimed)', filedVia: 'F-IND-017'
+          panel: 'Pending acceptance', state: 'Filed', severity: sev + ' (claimed)'
         });
         document.getElementById('filing-result').innerHTML =
           '<div class="banner banner--info">' + S.icon('check') +
           '<div><span class="banner-title">Filing accepted for review (simulation — nothing leaves this page)</span>' +
           'Docket number <span class="citation" data-no-i18n>' + esc(id) + '</span> assigned. The court will classify justiciability and severity, then assign a panel with conflict screening. ' +
-          '<span class="citation">F-IND-017 → F-JDG-001 · Art. IV §4</span></div></div>';
+          '<span class="citation">Your filing moves to the court for review and panel assignment.</span></div></div>';
         render();
       });
 

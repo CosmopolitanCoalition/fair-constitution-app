@@ -14,14 +14,14 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Administrative office · I-ADM</span>
+        <span class="eyebrow">Administrative office</span>
         <h1>Oversight &amp; ethics</h1>
         <p class="page-intro">The independent administrative office enforces parliamentary procedure and the ethics
           code. It takes misconduct complaints, investigates, and refers findings to removal proceedings — and it
           declares vacancies when seats fall empty.</p>
         <div class="cluster">
-          <span class="persona-chip"><span class="avatar" aria-hidden="true">HD</span> Halima Diallo <span class="persona-roles">R-29 · administrative officer</span></span>
-          <span class="citation">politically neutral office · created by F-LEG-013 · Art. II §2 (Establish Independent Administrative Office)</span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">HD</span> Halima Diallo <span class="persona-roles">administrative officer</span></span>
+          <span class="citation">a politically neutral, independent office</span>
         </div>
       </header>
 
@@ -29,7 +29,7 @@
         <h2 id="intake-h">Misconduct intake &amp; investigation</h2>
         <p class="cc-small">Complaints arrive from any resident, any member, or the office's own motion. Findings are
           published; referral to impeachment, censure, or expulsion is one possible outcome.
-          <span class="citation">WF-LEG-16 · Art. II §2 (independent admin office) — standard: Ethics code · F-LEG-033 · adopted Act 2030-02</span></p>
+          <span class="citation">judged against the ethics code adopted in Act 2030-02</span></p>
         <div id="inv-list" class="stack" style="gap:var(--space-2)"></div>
         <noscript><p>The investigation docket renders with JavaScript.</p></noscript>
         <form id="intake-form" style="margin-block-start:var(--space-4)">
@@ -54,55 +54,52 @@
       </section>
 
       <section class="card" aria-labelledby="proceeding-h">
-        <h2 id="proceeding-h">Removal proceeding <span class="form-chip">Removal/impeachment/censure/expulsion vote <span class="form-id">F-LEG-022</span></span></h2>
+        <h2 id="proceeding-h">Removal proceeding <span class="form-chip">Removal, impeachment, censure, or expulsion vote</span></h2>
         <p class="cc-small">Vote to remove an officeholder by supermajority.
-          <span class="citation">available to R-09 Legislative Representative · Art. III §3; Art. IV §4; Art. II §3 · catalog alias: F-LEG-034 · workflows catalog</span></p>
+          <span class="citation">available to legislative representatives</span></p>
         <div class="card card--inset">
           <strong style="color:var(--gov-fg)">Demonstration proceeding — censure motion (gifts-disclosure lapse)</strong>
           <p class="cc-small" style="margin-block:var(--space-1) var(--space-3)">Referred from investigation INV-2031-03.
             The Speaker presides as judge — except in their own case, where another member is designated
-            (Impeachment/censure/expulsion presiding · F-SPK-007 · R-10 · Art. II §3).</p>
+            (the Speaker presides over impeachment, censure, and expulsion).</p>
           <div id="removal-meter"></div>
           <div class="cluster" style="margin-block-start:var(--space-3)">
             <button type="button" class="btn btn--secondary btn--sm" id="cast-vote">Record one more yes vote (simulation)</button>
             <span id="vote-note" class="citation"></span>
           </div>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-3)">Removal parity: legislators, executives, and judges are removed by the same supermajority standard ·
-          Art. III §3 · Art. IV §4 (same duties and removal procedures) · WF-LEG-17</p>
+        <p class="citation" style="margin-block-start:var(--space-3)">Removal parity: legislators, executives, and judges are removed by the same supermajority standard, under the same removal procedures.</p>
       </section>
 
       <section class="card" aria-labelledby="vacancy-h">
-        <h2 id="vacancy-h">Vacancy declaration <span class="form-chip">Vacancy declaration <span class="form-id">F-LEG-036</span></span></h2>
+        <h2 id="vacancy-h">Vacancy declaration <span class="form-chip">Vacancy declaration</span></h2>
         <p class="cc-small">Declare a seat vacant due to death, resignation, removal, or incapacity — the declaration
           triggers the countback automatically.
-          <span class="citation">available to R-09 / R-10 Speaker · Art. II §5 · catalog alias: F-LEG-030 · workflows catalog</span></p>
+          <span class="citation">available to legislative representatives and the Speaker</span></p>
         <div class="card card--inset">
           <div class="cluster" style="justify-content:space-between">
             <span><strong style="color:var(--gov-fg)" id="vac-office">New York County legislature · seat 4</strong>
-              <span class="citation" style="display:block" id="vac-member">Renata Silva (resigned) · declared via F-LEG-036</span></span>
+              <span class="citation" style="display:block" id="vac-member">Renata Silva (resigned) · vacancy declared</span></span>
             <span id="vac-badge"></span>
           </div>
           <div class="state-strip" style="margin-block-start:var(--space-3)" id="vac-strip"></div>
-          <p class="gloss" style="margin-block-start:var(--space-2)" id="vac-gloss">Prior ballots re-run with the vacated member removed — universally, with no faction filtering · Art. II §5 · as implemented (ledger #q6)</p>
+          <p class="gloss" style="margin-block-start:var(--space-2)" id="vac-gloss">Prior ballots re-run with the vacated member removed — universally, with no faction filtering.</p>
           <p style="margin-block-start:var(--space-2)"><a href="../electoral/vacancy-countback.html">Open the countback engine
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-3)">If the countback exhausts, a special election must run 90–180 days after the vacancy · CLK-04 · WF-ELE-04 —
-          committee proportionality is re-checked on refill · WF-LEG-13</p>
+        <p class="citation" style="margin-block-start:var(--space-3)">If the countback exhausts, a special election must run 90–180 days after the vacancy —
+          and committee proportionality is re-checked on refill.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-16.html">WF-LEG-16 (misconduct investigation)</a> —
-            the intake docket; <a href="../flows/WF-LEG-17.html">WF-LEG-17 (impeachment / censure / expulsion)</a> —
-            the proceeding above; <a href="../flows/WF-LEG-12.html">WF-LEG-12 (vacancy handling)</a> →
-            <a href="../flows/WF-ELE-03.html">WF-ELE-03 (countback)</a> →
-            <a href="../flows/WF-ELE-04.html">WF-ELE-04 (special election)</a>.</p>
-          <p><strong>Entity state machine:</strong> Vacancy — Detected → Declared → Countback-Running → Filled |
-            Countback-Failed → Special-Election-Scheduled (90–180 d) → Filled.</p>
-          <p class="citation">Art. II §2–3, §5 · Art. III §3 · Art. IV §4 · CLK-04</p>
+          <p><strong>What this screen does:</strong> it runs the independent office's misconduct
+            investigations (the intake docket), the removal proceeding above (impeachment, censure,
+            and expulsion), and vacancy handling — which flows into the countback and, if needed, a
+            special election.</p>
+          <p><strong>How a vacancy moves:</strong> Detected → Declared → Countback running → Filled.
+            If the countback fails, a special election is scheduled (90–180 days) and then the seat is filled.</p>
         </div>
       </details>
     </div>
@@ -117,7 +114,7 @@
       roles: ['R-29', 'R-09', 'R-10'],
       workflows: ['WF-LEG-16', 'WF-LEG-17', 'WF-LEG-12'],
       forms: ['F-LEG-022', 'F-LEG-036'],
-      citation: 'Independent admin office · removal by supermajority · Art. II §2; Art. III §3; Art. IV §4',
+      citation: 'Independent administrative office · removal by supermajority',
       flow: 'WF-LEG-16',
       register: 'governance'
     };
@@ -161,7 +158,7 @@
           '<span class="meter-fill' + (met ? ' meter-fill--met' : '') + '" style="inline-size:' + Math.round(removalYes / SERVING * 100) + '%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:' + Math.round(NEED / SERVING * 100) + '%"></span></div>' +
           '<div class="meter-caption"><span>' + removalYes + ' yes of ' + SERVING + ' serving</span>' +
-          '<span>supermajority: ceil(' + SERVING + ' × 2/3) = ' + NEED + ' of ' + SERVING + ' · Art. VII</span></div></div>';
+          '<span>supermajority: two-thirds of ' + SERVING + ' serving = ' + NEED + ' of ' + SERVING + '</span></div></div>';
         document.getElementById('vote-note').textContent = met
           ? 'Supermajority reached — censure carries; expulsion would trigger the vacancy workflow.'
           : 'Not yet at supermajority — ' + (NEED - removalYes) + ' more required of all serving members.';
@@ -178,7 +175,7 @@
           ? S.badge('danger', 'Countback failed — special election scheduled 2031-09-14', 'alert-triangle')
           : S.badge('warning', 'Countback running', 'refresh-cw');
         document.getElementById('vac-gloss').textContent = failed
-          ? 'Ballots exhausted without a winner — a special election must run inside the 90–180 day window (CLK-04).'
+          ? 'Ballots exhausted without a winner — a special election must run inside the 90–180 day window.'
           : VAC.gloss;
 
         S.refresh();
@@ -199,7 +196,7 @@
         document.getElementById('intake-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Intake opened</span>The office investigates independently; findings publish ' +
-          'to the record. <span class="citation">WF-LEG-16 · Art. II §2</span></div></div>';
+          'to the record.</div></div>';
         render();
       });
 

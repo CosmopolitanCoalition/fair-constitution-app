@@ -21,7 +21,7 @@
         <p class="page-intro">Every registered organization in your jurisdiction chain — political parties, businesses,
           nonprofits, and Common Good Corporations share one public registry. Any jurisdictionally associated resident
           can register an organization; any organization or individual can endorse any candidate.</p>
-        <p class="citation">One registry, no faction layer · Art. I (Economic Freedom; Freedom of Assembly) · Art. II §2 · as implemented
+        <p class="citation">One registry, no faction layer — parties, businesses, and nonprofits all live here · as implemented
           (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
       </header>
 
@@ -37,7 +37,7 @@
         <div><span class="banner-title">There is no faction registration anywhere in the application.</span>
           Parties are ordinary organizations. Endorsements are polymorphic — any organization or individual may endorse
           any candidate — and that endorsement linkage is what feeds proportionality math.
-          <span class="citation">Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</span></div>
+          <span class="citation">As implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</span></div>
       </div>
 
       <div class="filter-bar" role="group" aria-label="Filter the registry">
@@ -61,7 +61,7 @@
 
       <section class="card" style="padding:0" aria-labelledby="registry-h">
         <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
-          <h2 id="registry-h">Public registry <span class="citation">all records public · Art. II §2 (Publish Public Records)</span></h2>
+          <h2 id="registry-h">Public registry <span class="citation">all records are public</span></h2>
         </div>
         <div class="table-wrap" style="padding-block-end:var(--space-2)">
           <table class="table">
@@ -82,9 +82,9 @@
         <section class="card" aria-labelledby="register-h">
           <h2 id="register-h">Register an organization</h2>
           <p style="font-size:var(--text-sm)">Organization registration
-            <span class="form-chip">Organization Registration <span class="form-id">F-IND-012</span></span> —
-            available to R-03 Jurisdictionally Associated · creates the organization record (I-ORG) and grants you
-            R-23 Organization Registrant/Agent.</p>
+            <span class="form-chip">Organization Registration</span> —
+            available to any jurisdictionally associated resident · creates the organization record and makes you
+            its registered agent.</p>
           <form id="reg-form" novalidate>
             <div class="field">
               <label class="field-label" for="reg-name">Organization name</label>
@@ -101,19 +101,19 @@
                 <option value="worker_owned">Worker-owned</option>
                 <option value="nonprofit">Nonprofit</option>
               </select>
-              <span class="field-hint">Common Good Corporations are not self-registered — a legislature creates them by act (F-LEG-019).</span>
+              <span class="field-hint">Common Good Corporations are not self-registered — a legislature creates them by act.</span>
             </div>
             <div class="field">
               <label class="field-label" for="reg-jur">Jurisdiction of registration</label>
               <select class="select" id="reg-jur" name="reg-jur"></select>
-              <span class="field-hint">Records sync to every peer instance with full faith &amp; credit · Art. V §2.</span>
+              <span class="field-hint">Records sync to every peer instance with full faith &amp; credit.</span>
             </div>
             <div class="field">
               <label class="field-label" for="reg-purpose">Purpose / charter summary</label>
               <textarea class="field-input" id="reg-purpose" name="reg-purpose" rows="3"></textarea>
             </div>
             <button type="submit" class="btn btn--primary">Register organization</button>
-            <p class="citation" style="margin-block-start:var(--space-2)">Art. I (Economic Freedom) · creates I-ORG · grants R-23</p>
+            <p class="citation" style="margin-block-start:var(--space-2)">Creates the organization record and makes you its registered agent.</p>
           </form>
           <div id="reg-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
         </section>
@@ -132,20 +132,18 @@
         <h2 id="lifecycle-h">Organization lifecycle</h2>
         <div id="org-state-strip"></div>
         <p class="gloss" style="margin-block-start:var(--space-2)">Worker headcount drives board composition recalculation
-          on the 100 → 2,000 scale (CLK-13 / CLK-14); transfers, conversions, and dissolution each have their own workflow.</p>
-        <p class="citation">Art. III §5–6 · CLK-13 · CLK-14</p>
+          on the 100 → 2,000 worker scale; transfers, conversions, and dissolution each have their own workflow.</p>
+        <p class="citation">Board composition recalculates automatically as worker headcount changes.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-01.html">WF-ORG-01 (organization registration)</a> begins here;
-            the registry links onward to <a href="../flows/WF-ORG-02.html">WF-ORG-02 (endorsement)</a>,
-            <a href="../flows/WF-ORG-03.html">WF-ORG-03 (membership / worker joining)</a>, and
-            <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling)</a>.</p>
-          <p><strong>Entity state machine:</strong> Organization — Registered → Active → [Endorsing] → [Co-determination tiers]
+          <p><strong>What this screen does:</strong> registering an organization begins here; the registry then links onward to
+            <a href="../flows/WF-ORG-02.html">endorsement</a>, <a href="../flows/WF-ORG-03.html">membership and worker joining</a>,
+            and <a href="../flows/WF-ORG-04.html">co-determination scaling</a>.</p>
+          <p><strong>Organization lifecycle:</strong> Registered → Active → [Endorsing] → [Co-determination tiers]
             → [Transfer-Pending → Transferred] → [Converted Public↔Private] → Dissolved.</p>
-          <p class="citation">Art. I · Art. III §5–6 · Art. V §2</p>
         </div>
       </details>
     </div>
@@ -160,7 +158,7 @@
       roles: ['R-03', 'R-23'],
       workflows: ['WF-ORG-01'],
       forms: ['F-IND-012', 'F-ORG-001'],
-      citation: 'One registry, no faction layer · Art. I · Art. III §5–6',
+      citation: 'One registry, no faction layer — parties, businesses, and nonprofits all live here.',
       flow: 'WF-ORG-01',
       register: 'governance'
     };
@@ -191,12 +189,8 @@
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) + '</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
-          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(f.availableToRaw) + ' · ' + esc(f.creates) + '</p>' +
-          '<p class="citation">' + esc(f.basis) + '</p>' +
-          (f.aliases && f.aliases.length ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '') +
           '</div>';
       }
 
@@ -235,7 +229,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Elections, sessions, and courts cannot be disrupted — enforced in code.</div></div>'
           : '';
 
         var shown = W.organizations.filter(matches);
@@ -283,8 +277,8 @@
         box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
           '<div><span class="banner-title">Simulated: ' + esc(name) + ' registered in ' + esc(jName) + '.</span> ' +
           S.badge('success', 'Registered', 'check') +
-          ' The organization record (I-ORG) was created and you now hold R-23 Organization Registrant/Agent for it. ' +
-          'Nothing left this page — the demo simulates submission. <span class="citation">F-IND-012 · Art. I (Economic Freedom)</span></div></div>';
+          ' The organization record was created and you are now its registered agent. ' +
+          'Nothing left this page — the demo simulates submission.</div></div>';
         S.refresh();
       });
 

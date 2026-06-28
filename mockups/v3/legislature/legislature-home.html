@@ -19,7 +19,7 @@
         <p class="page-intro">Nine seats elected in one PR-STV count. There is no faction layer — members carry the
           endorsing organizations from their candidacies, and members with no endorsements are first-class.
           Seat 4 is vacant and a countback is running.</p>
-        <p class="citation">Created through consent · STV with Droop quota · Art. II §1–2 · no faction layer
+        <p class="citation">Created through consent · proportional ranked-choice count · no faction layer
           (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
       </header>
 
@@ -27,7 +27,7 @@
         <div class="stat"><span class="stat-number">9</span><span class="stat-label">seats</span></div>
         <div class="stat"><span class="stat-number">8</span><span class="stat-label">serving · seat 4 vacant</span></div>
         <div class="stat"><span class="stat-number">5</span><span class="stat-label">peg quorum — of all serving, never of those present</span></div>
-        <div class="stat stat--accent"><span class="stat-number">6</span><span class="stat-label">supermajority = ceil(serving × 2/3)</span></div>
+        <div class="stat stat--accent"><span class="stat-number">6</span><span class="stat-label">supermajority — two-thirds of all serving members</span></div>
       </div>
 
       <section class="card" aria-labelledby="seatmap-h">
@@ -41,7 +41,7 @@
           break ties). Dashed = vacant seat in countback — vacancies join at the junior-most position. Seniority is total
           days as a chamber member; ties (common — a general election seats everyone at once) break by normalized prior
           election performance. Larger chambers add outer circles, up to 12 seats in the innermost.</p>
-        <p class="citation">Peg quorum: 5 of 9 serving · Art. II §2 — supermajority: ceil(serving × 2/3) = 6 of 9 · Art. VII</p>
+        <p class="citation">Quorum: 5 of 9 serving — supermajority: two-thirds of all serving members = 6 of 9</p>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="roster-h">
@@ -53,8 +53,8 @@
           <thead><tr><th>Seat</th><th>Member</th><th>Endorsing organizations</th><th class="mono">Vote share (normalized)</th><th>Status</th></tr></thead>
           <tbody id="roster"></tbody>
         </table></div>
-        <p class="citation" style="padding:var(--space-4) var(--space-6)">Normalized vote share preserves STV proportionality for committee tie-breaks ·
-          Art. II §4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+        <p class="citation" style="padding:var(--space-4) var(--space-6)">Normalized vote share preserves the proportional result for committee tie-breaks ·
+          as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
       </section>
 
       <div class="grid-2">
@@ -66,8 +66,8 @@
           </div>
           <p style="margin-block-start:var(--space-3)">Legislative, elected-executive, and elected-judicial terms expire
             together; the next general election derives from one clock and cannot be skipped or delayed by officials.</p>
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-          <p class="citation" style="margin-block-start:var(--space-2)">Term lockstep · Art. III §3; Art. IV §3 · CLK-01 · CLK-10 —
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+          <p class="citation" style="margin-block-start:var(--space-2)">Terms expire together —
             dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
         </section>
 
@@ -77,10 +77,10 @@
             the vacated member removed as a candidate.</p>
           <div class="cluster">
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh-cw"></use></svg> Countback running</span>
-            <span class="form-chip">Vacancy declaration <span class="form-id">F-LEG-036</span></span>
+            <span class="form-chip">Vacancy declaration</span>
           </div>
           <p class="citation" style="margin-block-start:var(--space-2)">Prior ballots re-run with the vacated member removed — universally, with no faction filtering ·
-            Art. II §5 · as implemented (<a href="../shared/constitutional-questions.html#q6">ledger #6</a>)</p>
+            as implemented (<a href="../shared/constitutional-questions.html#q6">ledger #6</a>)</p>
           <p style="margin-block-start:var(--space-3)"><a href="oversight.html">Vacancy handling in oversight
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
             · <a href="../electoral/vacancy-countback.html">Countback engine
@@ -89,28 +89,27 @@
       </div>
 
       <section class="card" aria-labelledby="first-h">
-        <h2 id="first-h">First sessions checklist <span class="citation">WF-LEG-01 · Legislature constitution</span></h2>
+        <h2 id="first-h">First sessions checklist <span class="citation">Constituting the legislature</span></h2>
         <p class="cc-small">The constituting sequence this legislature completed after certification. Each step is a form;
           all seven are done — bills can be introduced and laws enacted.</p>
         <div id="first-sessions" class="stack" style="gap:var(--space-3)"></div>
-        <noscript><p>Checklist renders with JavaScript: oath F-LEG-001 → Speaker F-LEG-008 → rules F-LEG-032 → ethics
-          F-LEG-033 → admin office F-LEG-013 → election board F-LEG-012 → committees F-LEG-009.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-3)">Fully organized legislature: seated, Speaker, rules and ethics, admin office, election board, committees · Art. II §1–4</p>
+        <noscript><p>Checklist renders with JavaScript: oath → Speaker → rules → ethics
+          → admin office → election board → committees.</p></noscript>
+        <p class="citation" style="margin-block-start:var(--space-3)">Fully organized legislature: seated, Speaker, rules and ethics, admin office, election board, committees</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-01.html">WF-LEG-01 (legislature constitution)</a> —
-            the checklist above; <a href="../flows/WF-LEG-02.html">WF-LEG-02 (Speaker election / replacement)</a> —
-            supermajority RCV at the first session; seat 4 hands off to
-            <a href="../flows/WF-LEG-12.html">WF-LEG-12 (vacancy handling)</a>.</p>
-          <p><strong>Entity state machines:</strong> Committee Seat (Allocated → … → Seated) sits behind the roster's
-            committee links; Vacancy (Detected → Declared → Countback-Running → Filled) behind seat 4.</p>
+          <p><strong>What this screen does:</strong> shows the chamber seat map, the member roster, the term countdown,
+            the current seat-4 vacancy, and the <a href="../flows/WF-LEG-01.html">checklist this legislature completed</a>
+            after certification. The <a href="../flows/WF-LEG-02.html">Speaker is chosen by supermajority</a> at the first
+            session; a vacant seat hands off to the <a href="../flows/WF-LEG-12.html">vacancy handling flow</a>.</p>
+          <p><strong>Behind the scenes:</strong> each committee seat moves from allocated to seated; a vacancy moves from
+            detected to declared to countback-running to filled — that is the state behind seat 4.</p>
           <p><strong>No faction layer:</strong> the roster shows endorsing organizations because the system replaced
-            faction registration with polymorphic endorsements
+            faction registration with open endorsements
             (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
-          <p class="citation">Art. II §1–4 · Art. III §3 · Art. IV §3 · CLK-01 · CLK-10</p>
         </div>
       </details>
     </div>
@@ -125,7 +124,7 @@
       roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13', 'R-29'],
       workflows: ['WF-LEG-01', 'WF-LEG-02'],
       forms: ['F-LEG-001', 'F-LEG-008', 'F-LEG-032', 'F-LEG-033', 'F-LEG-013', 'F-LEG-012', 'F-LEG-009'],
-      citation: 'Legislature constituted by certified election · Art. II §1–4',
+      citation: 'Legislature constituted by certified election',
       flow: 'WF-LEG-01',
       register: 'governance'
     };
@@ -155,13 +154,13 @@
         }).join(' ');
       }
 
-      /* WF-LEG-01 checklist — every step a form-card: name first, ID second, role, citation. */
+      /* First-sessions checklist — every step a form-card: name, description, who can use it. */
       var FIRST_SESSIONS = [
         { fid: 'F-LEG-001', done: '2030-12-02', note: 'All 9 winners accepted their seats.' },
         { fid: 'F-LEG-008', done: '2030-12-02', note: 'Yuki Tanaka elected Speaker — supermajority RCV (7 of 9).' },
         { fid: 'F-LEG-032', done: '2030-12-09', note: 'Rules of order adopted · Act 2030-01.' },
         { fid: 'F-LEG-033', done: '2030-12-09', note: 'Ethics code adopted · Act 2030-02 — binds all elected officials and civil officers.' },
-        { fid: 'F-LEG-013', done: '2030-12-16', note: 'Administrative office created · Act 2030-03 — Halima Diallo appointed (R-29).' },
+        { fid: 'F-LEG-013', done: '2030-12-16', note: 'Administrative office created · Act 2030-03 — Halima Diallo appointed as administrative officer.' },
         { fid: 'F-LEG-012', done: '2031-01-06', note: 'Proper election board created · Act 2030-04 — bootstrap board retired.' },
         { fid: 'F-LEG-009', done: '2031-01-13', note: 'Three committees created by supermajority · Acts 2031-01…03.' }
       ];
@@ -169,14 +168,11 @@
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<span class="citation" style="display:block">catalog alias: ' + esc(f.aliases.join('; ')) + '</span>' : '';
         return '<div class="card card--inset">' +
-          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+          '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) + '</h3>' +
           '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
-          '<span class="citation" style="display:block">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
-          aliases + (extra || '') + '</div>';
+          '<span class="citation" style="display:block">available to ' + esc(String(f.availableToRaw).replace(/\bR-\d+\s*/g, '')) + '</span>' +
+          (extra || '') + '</div>';
       }
 
       /* Circular chamber: rings fan outward (innermost holds up to 12);

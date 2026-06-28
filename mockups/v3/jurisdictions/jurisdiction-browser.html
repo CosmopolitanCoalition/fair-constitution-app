@@ -32,7 +32,7 @@
           navigation; the shipped tool adopts this design system (round peg, round hole). Every boundary is real, preloaded geography (geoBoundaries + WorldPop + OSM, planet to
           neighborhood, ~1M jurisdictions); the live census from residency verifications layers on top. Jurisdictions are
           co-equal self-governing containers — nesting changes scope, never rank.</p>
-        <p class="citation">Cosmic address: … · Solar System · Earth · Art. V §1–2</p>
+        <p class="citation">Cosmic address: … · Solar System · Earth</p>
       </header>
 
       <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Jurisdiction viewer mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
@@ -59,18 +59,17 @@
             <tr><td>Declaration of war (supermajority of legislature)</td><td><span class="badge badge--warning">reserved</span></td><td>Most encompassing jurisdiction only</td></tr>
           </tbody>
         </table></div>
-        <p class="citation">Joint powers: all jurisdictions · Reserved powers: most encompassing only · Art. V §4–5</p>
+        <p class="citation">Joint powers: all jurisdictions · Reserved powers: most encompassing only</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-09.html">WF-JUR-09 (population records &amp; apportionment)</a> —
+          <p><strong>What it does:</strong> shows population records and apportionment for a place, and is the
             entry to <a href="district-mapper.html">the Legislature Browser</a> via "View Legislature &amp; Districts".</p>
           <p><strong>What the view shows:</strong> breadcrumb ancestors, natural level badge, population (WorldPop year)
             beside live member count, region &amp; dataset provenance, the maps-accepted / apportionment-completed record,
             and the federation authority line. Map layers: Names · Population · Members · Raster (WorldPop dots).</p>
-          <p class="citation">Art. V §1–2 · CLK-06 · WF-JUR-09</p>
         </div>
       </details>
     </div>
@@ -85,7 +84,7 @@
       roles: ['R-01', 'R-03'],
       workflows: ['WF-JUR-09'],
       forms: [],
-      citation: 'Joint powers: all jurisdictions · Reserved: most encompassing only · Art. V §4–5',
+      citation: 'Joint powers: all jurisdictions · Reserved: most encompassing only',
       flow: 'WF-JUR-09',
       register: 'governance'
     };
@@ -194,7 +193,7 @@
           '<div class="card card--inset" style="padding:var(--space-3);margin-block-start:var(--space-4)">' +
           '<span class="eyebrow">Region &amp; dataset</span>' +
           '<p class="cc-small" style="margin:var(--space-1) 0 0">Source: <span class="cc-code" data-no-i18n>' + esc(v.source) + '</span></p>' +
-          '<p class="citation" style="margin-block-start:var(--space-1)">live census from residency verifications layers on top · civic active · authoritative_server: NULL — this instance</p></div>' +
+          '<p class="citation" style="margin-block-start:var(--space-1)">live census from residency verifications layers on top · civic active · authoritative — this instance</p></div>' +
           (v.legislature ? '<a class="btn btn--primary" style="inline-size:100%;margin-block-start:var(--space-3)" href="district-mapper.html">View Legislature &amp; Districts ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
           (v.accepted ?
             '<div class="card" style="margin-block-start:var(--space-3);padding:var(--space-3);background:color-mix(in oklch, var(--status-success) 12%, var(--gov-bg));border-color:color-mix(in oklch, var(--status-success) 45%, transparent)">' +

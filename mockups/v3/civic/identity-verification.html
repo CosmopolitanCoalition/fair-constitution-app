@@ -19,7 +19,7 @@
         <p class="page-intro">Where your jurisdiction supports it, you can bridge an external identity document to your
           account. Verification strengthens election integrity — it is <strong>never</strong> a requirement for your
           rights. Voting and candidacy depend only on verified residency.</p>
-        <p class="citation">Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2</p>
+        <p class="citation">Identity verification strengthens election integrity — it is never a voting requirement.</p>
       </header>
 
       <ol class="stepper">
@@ -39,10 +39,9 @@
       </section>
 
       <section class="card" id="panel-supported" aria-labelledby="bridge-h">
-        <h2 id="bridge-h">Identity verification submission <span class="form-chip"><span class="form-id">F-IND-004</span></span></h2>
+        <h2 id="bridge-h">Identity verification submission</h2>
         <p class="cc-small">Submit external identity verification documents where the jurisdiction supports it.
-          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 + F-IND-003 · Art. I; Art. II §2 (election integrity)</span>
-          <span class="citation" style="display:block">catalog alias: F-IND-005 · workflows catalog (swapped)</span></p>
+          <span class="citation" style="display:block">Available to you once your account and profile are set up. Strengthens election integrity; never affects your rights.</span></p>
         <form id="bridge-form" novalidate>
           <div class="field">
             <label class="field-label" for="bridge-system">Identity system</label>
@@ -67,7 +66,7 @@
           <div><span class="banner-title">Submitted — pending verification by the external bridge.</span>
             Your account works fully while this is pending. Continue to <a href="residency.html">residency</a> —
             rights never wait on this step.
-            <span class="citation">Modifies: Individual record (verified status) · Art. I; Art. II §2</span></div>
+            <span class="citation">Updates your account with a verified status. Your rights are unaffected.</span></div>
         </div>
       </section>
 
@@ -78,7 +77,7 @@
           <div><span class="banner-title">No external ID bridge is configured for this jurisdiction.</span>
             A temporary manual path applies until in-person institutions can supplant the app-based system:
             an attestation session with a neutral officer of your jurisdiction stands in for the bridge.
-            <span class="citation">Art. II §2 · election integrity</span></div>
+            <span class="citation">This temporary path keeps election integrity strong while in-person institutions are not yet available.</span></div>
         </div>
         <ol style="margin-block-start:var(--space-4)">
           <li>Request an attestation appointment below — the queue is served by the jurisdiction's administrative office.</li>
@@ -96,18 +95,16 @@
         <h2 id="state-h">Where you are in the Individual lifecycle</h2>
         <div id="ind-strip" class="state-strip"></div>
         <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Identity-Verified is the state this surface produces.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-2)">Art. I · Art. II §2</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Verification never affects your rights — it only strengthens election integrity.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-01.html">WF-CIV-01 onboarding &amp; identity verification</a> —
-            the BRANCH on this page (bridge vs. manual) is the workflow's only fork.</p>
-          <p><strong>Entity state machine:</strong> Individual — produces <em>Identity-Verified</em>; rights do not depend on it.</p>
-          <p><strong>ID drift note:</strong> the workflows catalog swaps F-IND-004 and F-IND-005; the roles chart is canonical
-            (F-IND-004 = identity verification, F-IND-005 = GPS ping).</p>
-          <p class="citation">Art. I · Art. II §2 (Ensure Election Security and Integrity)</p>
+          <p><strong>What this screen does:</strong> it's step 2 of onboarding — identity verification. It branches between
+            a jurisdiction's external ID bridge and a temporary manual path; the branch is the only fork here.</p>
+          <p><strong>Lifecycle:</strong> completing it marks your account <em>Identity-Verified</em>. Your rights do not depend on it.</p>
+          <p class="citation">Verification strengthens election security and integrity; it is never a requirement for your rights.</p>
         </div>
       </details>
     </div>
@@ -122,7 +119,7 @@
       roles: ['R-01'],
       workflows: ['WF-CIV-01'],
       forms: ['F-IND-004'],
-      citation: 'Identity verification strengthens election integrity — never a voting requirement · Art. I; Art. II §2',
+      citation: 'Identity verification strengthens election integrity — it is never a voting requirement.',
       flow: 'WF-CIV-01',
       register: 'governance'
     };

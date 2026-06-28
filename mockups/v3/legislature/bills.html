@@ -16,20 +16,20 @@
       <header>
         <span class="eyebrow">Legislature · lawmaking</span>
         <h1>Bills — New York County legislature</h1>
-        <p class="page-intro">Every bill declares its scale (which jurisdictions are bound) and scope (which judiciary
-          level hears disputes) at introduction. Acts pass by majority of all serving members — the peg quorum — and
+        <p class="page-intro">Every bill declares its scale (which jurisdictions are bound) and scope (which court
+          level hears disputes) at introduction. Acts pass by majority of all serving members, and
           some act types require a supermajority.</p>
-        <p class="citation">Enact laws · Art. II §2 via Art. V §4 (scale &amp; scope) · WF-LEG-06</p>
+        <p class="citation">Bills become law here. Scale and scope are declared at introduction.</p>
       </header>
 
       <section class="card" aria-labelledby="lifecycle-h">
         <h2 id="lifecycle-h">The bill lifecycle</h2>
-        <p class="gloss">Every stage of the Bill state machine, in order. Bracketed stages are conditional.</p>
+        <p class="gloss">Every stage a bill passes through, in order. Bracketed stages are conditional.</p>
         <ol id="lifecycle-legend" class="lifecycle" aria-label="Bill lifecycle stages"></ol>
         <noscript><p>Lifecycle renders with JavaScript: Introduced → Referred → In-Committee → Reported | Tabled →
-          On-Floor → [Amended] → Passed | Failed → Enacted → Published → [Challenged] → [Edited per Art. IV §5] →
+          On-Floor → [Amended] → Passed | Failed → Enacted → Published → [Challenged] → [Edited by a court] →
           Repealed/Superseded.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-2)">Bicameral legislatures: Passed requires independent agreement of both seat kinds at committee AND floor · Art. V §3</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">In two-chamber legislatures, a bill passes only when both kinds of seats agree independently, at committee and on the floor.</p>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="registry-h">
@@ -45,9 +45,9 @@
       </section>
 
       <section class="card" aria-labelledby="intro-h">
-        <h2 id="intro-h">Introduce a bill <span class="form-chip">Bill introduction <span class="form-id">F-LEG-003</span></span></h2>
+        <h2 id="intro-h">Introduce a bill <span class="form-chip">Bill introduction</span></h2>
         <p class="cc-small">Submit a bill for consideration by the legislature or a committee.
-          <span class="citation">available to R-09 Legislative Representative · Art. II §2 (Enact Laws via Art. V §4)</span></p>
+          <span class="citation">Available to legislators.</span></p>
         <form id="intro-form">
           <div class="field">
             <label class="field-label" for="bill-title">Title</label>
@@ -68,19 +68,19 @@
                 could instead bind named constituent counties.</span>
             </div>
             <div class="field">
-              <label class="field-label" for="bill-scope">Scope — which judiciary level hears disputes</label>
+              <label class="field-label" for="bill-scope">Scope — which court level hears disputes</label>
               <select class="select" id="bill-scope">
                 <option>New York County court</option>
                 <option>New York State court</option>
               </select>
-              <span class="field-hint">Defined at introduction so enforcement and review are unambiguous · Art. V §4.</span>
+              <span class="field-hint">Defined at introduction so enforcement and review are unambiguous.</span>
             </div>
           </div>
           <div class="field">
             <label class="field-label" for="bill-type">Act type — sets the passage threshold</label>
             <select class="select" id="bill-type">
               <option value="majority">Ordinary act — majority of all serving (5 of 9)</option>
-              <option value="setting">Amendable-setting change — majority + engine range validation (F-LEG-031)</option>
+              <option value="setting">Amendable-setting change — majority + automatic range validation</option>
               <option value="super">Supermajority-class act — 6 of 9 (committees, judiciary, referendum delegation, emergency powers…)</option>
               <option value="cultural">Cultural institution recognition — supermajority + constituent jurisdiction supermajority</option>
             </select>
@@ -94,18 +94,18 @@
         <h2 id="types-h">Act types &amp; thresholds</h2>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Act types and their passage thresholds</caption>
-          <thead><tr><th>Act type</th><th>Threshold</th><th class="mono">Basis</th></tr></thead>
+          <thead><tr><th>Act type</th><th>Threshold</th></tr></thead>
           <tbody>
-            <tr><td>Ordinary act</td><td>Majority of all serving members — 5 of 9</td><td class="mono">Art. II §2 (Peg Quorum)</td></tr>
-            <tr><td>Amendable-setting change</td><td>Majority + hardened range validation pre-vote</td><td class="mono">Art. VII · F-LEG-031</td></tr>
-            <tr><td>Supermajority-class act</td><td>ceil(serving × 2/3) = 6 of 9</td><td class="mono">Art. VII</td></tr>
-            <tr><td>Cultural institution recognition</td><td>Supermajority + supermajority of constituent jurisdictions</td><td class="mono">Art. V §6</td></tr>
+            <tr><td>Ordinary act</td><td>Majority of all serving members — 5 of 9</td></tr>
+            <tr><td>Amendable-setting change</td><td>Majority + automatic range validation before the vote</td></tr>
+            <tr><td>Supermajority-class act</td><td>Two-thirds of all serving — 6 of 9</td></tr>
+            <tr><td>Cultural institution recognition</td><td>Supermajority + supermajority of constituent jurisdictions</td></tr>
           </tbody>
         </table></div>
         <div class="card card--inset" style="margin-block-start:var(--space-4)">
-          <h3 style="font-size:var(--text-base)">Cultural institution recognition vote <span class="form-chip"><span class="form-id">F-LEG-028</span></span></h3>
+          <h3 style="font-size:var(--text-base)">Cultural institution recognition vote</h3>
           <p class="cc-small">Vote by supermajority to recognize a Cultural Institution of State.
-            <span class="citation">available to R-09 Legislative Representative · Art. V §6</span></p>
+            <span class="citation">Available to legislators.</span></p>
           <p class="cc-small">Requires the legislature's supermajority <strong>and</strong> a supermajority of constituent
             jurisdictions where they exist — both meters must fill before the act is recognized.</p>
         </div>
@@ -114,14 +114,12 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-06.html">WF-LEG-06 (bill lifecycle, unicameral)</a>
-            starts at the introduction form above; the bicameral variant is
-            <a href="../flows/WF-LEG-07.html">WF-LEG-07 (dual-agreement lifecycle)</a> — see the toggle on the
-            <a href="bill-detail.html">bill detail page</a>. Setting-targeted bills continue in
-            <a href="../flows/WF-LEG-14.html">WF-LEG-14 (amendable setting change)</a>.</p>
-          <p><strong>Entity state machine:</strong> Bill — the lifecycle legend above; the Curfew Ordinance row shows the
-            [Challenged] stage feeding <a href="../flows/WF-JUD-05.html">WF-JUD-05 (Art. IV §5)</a>.</p>
-          <p class="citation">Art. II §2 · Art. V §3–4 · Art. V §6 · Art. VII</p>
+          <p><strong>What this screen does:</strong> introduce a bill and watch it move through the lifecycle — from
+            introduction, to committee, to a floor vote, to enactment and publication. One-chamber and two-chamber
+            legislatures both start here; two-chamber bills need both kinds of seats to agree, which you can follow on the
+            <a href="bill-detail.html">bill detail page</a>. Bills that change an amendable setting get a range check before the vote.</p>
+          <p><strong>The bill lifecycle:</strong> shown in the legend above. The Curfew Ordinance row shows the Challenged
+            stage, where a court can review and edit an enacted law.</p>
         </div>
       </details>
     </div>
@@ -136,7 +134,7 @@
       roles: ['R-09', 'R-10', 'R-11', 'R-12', 'R-13'],
       workflows: ['WF-LEG-06', 'WF-LEG-07', 'WF-LEG-14'],
       forms: ['F-LEG-003', 'F-LEG-028'],
-      citation: 'Scale & scope declared at introduction · Art. II §2 via Art. V §4',
+      citation: 'Scale and scope declared at introduction.',
       flow: 'WF-LEG-06',
       register: 'governance'
     };
@@ -171,7 +169,7 @@
         { id: 'bill-2031-01', title: 'Open data standard act', sponsor: 'Maribel Santos',
           state: 'Enacted · Published', tone: 'success', icon: 'check',
           scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears disputes', introduced: '2031-01-15',
-          note: 'Passed 7–1 of 8 serving · versioned and published (WF-SYS-03)' },
+          note: 'Passed 7–1 of 8 serving · versioned and published' },
         { id: 'law-2029-12', title: 'Curfew Ordinance §3', sponsor: '(enacted 2029)',
           state: 'Challenged', tone: 'danger', icon: 'scale',
           scale: 'New York County (usa-3-new-york-county)', scope: 'County judiciary hears the challenge', introduced: '2029-08-03',
@@ -218,7 +216,7 @@
         document.getElementById('intro-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Bill introduced</span>Entered the lifecycle at Introduced — the Speaker will ' +
-          'refer it to committee. <span class="citation">F-LEG-003 · Art. II §2 · WF-LEG-06</span></div></div>';
+          'refer it to committee.</div></div>';
         document.getElementById('bill-title').value = '';
         document.getElementById('bill-text').value = '';
         render();

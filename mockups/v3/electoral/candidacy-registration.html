@@ -21,15 +21,15 @@
         <p class="page-intro">Any jurisdictionally associated resident can stand for any office in their jurisdictions —
           there are no other requirements. Registration stays open for the entire inter-election period: it opens the
           moment the prior election certifies and closes only at the finalist cutoff.</p>
-        <p class="citation">No requirements beyond jurisdictional residency — absolute right · Art. I (Right to Stand for Office)</p>
-        <p class="citation">Registration window: prior certification → finalist cutoff · CLK-18 · Art. II §2</p>
-        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+        <p class="citation">No requirements beyond residency in the jurisdiction — an absolute right.</p>
+        <p class="citation">Registration window: from the prior election's certification to the finalist cutoff.</p>
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — this rule cannot be changed.</span>
       </header>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="form-h">
-          <h2 id="form-h">Register <span class="citation">Candidacy registration · F-IND-011</span></h2>
-          <p class="citation">available to R-03 Jurisdictionally Associated · creates a candidate record (R-06) · Art. I (Right to Stand for Office)</p>
+          <h2 id="form-h">Register</h2>
+          <p class="citation">Open to any associated resident · creates your candidate record · the right to stand for office.</p>
           <form id="reg-form">
             <div class="field">
               <label class="field-label" for="f-office">Office</label>
@@ -54,7 +54,7 @@
             </div>
             <div class="cluster">
               <button type="submit" class="btn btn--primary">Submit registration</button>
-              <span class="citation">submitted to the election board for validation · F-ELB-002</span>
+              <span class="citation">submitted to the election board for validation</span>
             </div>
           </form>
         </section>
@@ -64,11 +64,11 @@
           <div class="state-strip" id="cand-state" aria-label="Candidacy state machine"></div>
           <ol style="margin-block-start:var(--space-4)">
             <li>The election board validates the registration — the <strong>only</strong> check is jurisdictional residency.
-              <span class="citation">Candidate validation · F-ELB-002 · available to R-08 Election Board Member · Art. II §2 (election integrity)</span></li>
+              <span class="citation">Candidate validation, done by an election board member.</span></li>
             <li>Validated candidates enter the approval pool immediately and appear on the
               <a href="open-ballot.html">open ballot</a> with live standings.</li>
             <li>At the finalist cutoff the top X per race lock onto the ranked ballot; everyone else stays write-in eligible.
-              <span class="citation">X = f(seats) · CLK-21 · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</span></li>
+              <span class="citation">How many lock in depends on the number of seats (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>).</span></li>
           </ol>
           <p class="gloss">Your public record — votes attended, statements, civic actions — attaches to the candidacy automatically.</p>
         </section>
@@ -79,22 +79,21 @@
         <div id="result-body"></div>
         <div class="cluster" style="margin-block-start:var(--space-4)">
           <button type="button" class="btn btn--ghost btn--sm" id="result-toggle">View the rejection path</button>
-          <span class="citation">mockup control — both branches of WF-CIV-05 step 2 (F-ELB-002)</span>
+          <span class="citation">mockup control — shows both the validated and rejected outcomes</span>
         </div>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-05.html">WF-CIV-05 (candidacy lifecycle)</a> begins here;
-            validated candidates surface on <a href="../flows/WF-CIV-08.html">WF-CIV-08 (open ballot)</a> and feed
-            <a href="../flows/WF-ELE-01.html">WF-ELE-01 (general cycle)</a>.</p>
-          <p><strong>Entity state machine:</strong> Candidacy — this surface covers Registered → Validated (or the
+          <p><strong>Where this fits:</strong> The <a href="../flows/WF-CIV-05.html">candidacy lifecycle</a> begins here;
+            validated candidates surface on the <a href="../flows/WF-CIV-08.html">open ballot</a> and feed the
+            <a href="../flows/WF-ELE-01.html">general election cycle</a>.</p>
+          <p><strong>Where a candidacy stands:</strong> this screen covers Registered → Validated (or the
             rejection branch, appealable in court). The rest of the lifecycle lives on the
             <a href="candidate-profile.html">candidate profile</a>.</p>
           <p><strong>Rejection precedent:</strong> Pham v. New York County election board (case-2031-101) — a validation
             rejection appealed to the New York County court, now in deliberation.</p>
-          <p class="citation">Art. I · Art. II §2 · F-IND-011 · F-ELB-002 · CLK-18</p>
         </div>
       </details>
     </div>
@@ -109,7 +108,7 @@
       roles: ['R-03', 'R-06'],
       workflows: ['WF-CIV-05'],
       forms: ['F-IND-011', 'F-ELB-002'],
-      citation: 'Right to stand — residency is the only requirement · Art. I · CLK-18',
+      citation: 'The right to stand for office — residency is the only requirement.',
       flow: 'WF-CIV-05',
       register: 'governance'
     };
@@ -148,23 +147,23 @@
           return '<div class="banner banner--emergency" role="status">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Registration rejected — no residency association found in the selected jurisdiction.</span> ' +
             'Residency is the only permissible ground for rejection. Any other ground is unconstitutional on its face. ' +
-            '<span class="citation">F-ELB-002 · Art. I (Right to Stand for Office) · Art. II §2</span></div></div>' +
+            '<span class="citation">The right to stand for office.</span></div></div>' +
             '<h3 style="margin-block-start:var(--space-4)">Appeal in court</h3>' +
             '<p class="cc-small">A rejection can be appealed to the New York County court — the board carries the burden of showing ' +
             'the residency record is absent. Precedent: <strong>Pham v. New York County election board</strong> (case-2031-101), ' +
             'a candidacy-validation appeal now in deliberation.</p>' +
             '<p><a href="../judiciary/case-docket.html">Open the court docket ' +
             '<svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>' +
-            '<p class="citation">Appeal path · WF-CIV-05 rejection branch → WF-JUD-03 · Art. IV §2</p>';
+            '<p class="citation">Appeal path: a rejected registration goes to the court for review.</p>';
         }
         return '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Validated — you are in the approval pool.</span> ' +
-          'Your candidacy (R-06) is live on the open ballot with a standing of zero approvals; your public record is attached. ' +
-          '<span class="citation">F-ELB-002 · validated · Art. II §2</span></div></div>' +
+          'Your candidacy is live on the open ballot with a standing of zero approvals; your public record is attached. ' +
+          '<span class="citation">Validated.</span></div></div>' +
           '<div class="cluster" style="margin-block-start:var(--space-4)">' +
-          S.badge('success', 'In approval pool · R-06', 'check') +
+          S.badge('success', 'In approval pool', 'check') +
           '<a class="btn btn--primary btn--sm" href="open-ballot.html">See yourself on the open ballot</a>' +
-          '<a class="btn btn--secondary btn--sm" href="candidate-profile.html">Set up your profile (F-CAN-001)</a></div>';
+          '<a class="btn btn--secondary btn--sm" href="candidate-profile.html">Set up your profile</a></div>';
       }
 
       function render() {
@@ -173,11 +172,11 @@
         document.getElementById('phase-banner').innerHTML = phase === 'approval'
           ? '<div class="banner banner--info" role="status">' + S.icon('clock') +
             '<div><span class="banner-title">Registration is open now.</span> The New York County approval phase is live — ' +
-            'validated candidates appear on the open ballot immediately. <span class="citation">CLK-18 · open since prior certification</span></div></div>'
+            'validated candidates appear on the open ballot immediately. <span class="citation">Open since the prior election certified.</span></div></div>'
           : '<div class="banner banner--warning" role="status">' + S.icon('clock') +
             '<div><span class="banner-title">The finalist cutoff has passed for the current New York County race.</span> ' +
             (phase === 'ranked' ? 'The ranked window is open; ' : 'Tabulation and certification are under way; ') +
-            'registration reopens for the next cycle the moment results certify. <span class="citation">CLK-18 · closes at finalist cutoff · reopens at certification</span></div></div>';
+            'registration reopens for the next cycle the moment results certify. <span class="citation">Closes at the finalist cutoff, reopens at certification.</span></div></div>';
 
         stateStrip();
         if (submitted) {

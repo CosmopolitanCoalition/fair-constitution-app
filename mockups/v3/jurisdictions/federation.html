@@ -20,7 +20,7 @@
           instance mirrors them. Peers discover each other, establish trust, and exchange records under full
           faith and credit — when copies diverge, the authoritative instance wins, and the resolution is
           audit-chained.</p>
-        <p class="citation">authoritative_server NULL = this instance is authoritative · Art. V §2 · CGA federation model</p>
+        <p class="citation">A jurisdiction with no peer copy is authoritative here · CGA federation model</p>
       </header>
 
       <section class="card" aria-labelledby="peers-h">
@@ -34,7 +34,7 @@
         </div>
         <p class="gloss" style="margin-block-start:var(--space-2)">Peer hosts other than this instance are
           fictional. Heartbeats shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
-        <p class="citation">Federation sync heartbeat · CLK-20 · implementation setting (ops, not constitutional)</p>
+        <p class="citation">Federation sync heartbeat · an operations setting, not a constitutional one</p>
         <div class="state-strip" id="peer-states" style="margin-block-start:var(--space-3)"></div>
         <noscript><p class="gloss">Federation Peer lifecycle: Discovered → Handshake → Trust-Established →
           Syncing → [Conflict-Resolution] → [Border-Settled] → [Merged/Union] | Departed.</p></noscript>
@@ -43,8 +43,8 @@
       <section class="card" aria-labelledby="claims-h">
         <h2 id="claims-h">Authority claims</h2>
         <p class="cc-small">Discovery handshakes exchange authority claims: which jurisdictions each instance
-          asserts it is authoritative for. Two instances both claiming the most-encompassing scope is the
-          WF-JUR-05 trigger — resolved by recognition, synchronization, or a union path.</p>
+          asserts it is authoritative for. Two instances both claiming the most-encompassing scope triggers
+          peer discovery — resolved by recognition, synchronization, or a union path.</p>
         <div class="table-wrap">
           <table class="table">
             <caption class="visually-hidden">Authority claims and their resolution</caption>
@@ -61,16 +61,16 @@
             </tbody>
           </table>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Handshake → communication/trade channels → boundary negotiation · WF-JUR-05 · Art. V §2, §7</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Handshake → communication and trade channels → boundary negotiation</p>
       </section>
 
       <section class="card" aria-labelledby="sync-h">
         <h2 id="sync-h">Full faith &amp; credit — sync log</h2>
-        <p class="cc-small">Cross-jurisdiction record events propagate continuously (WF-JUR-06). Conflicts
+        <p class="cc-small">Cross-jurisdiction record events propagate continuously. Conflicts
           resolve by authority claim — the authoritative instance wins — and every resolution is appended to
           the audit chain.</p>
         <div id="sync-log"></div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Authoritative-instance writes propagated; conflicts resolved by authority claims; audit-chained · WF-JUR-06 · CLK-20 · Art. V §2</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Authoritative-instance writes propagated; conflicts resolved by authority claims; audit-chained</p>
       </section>
 
       <section class="card" aria-labelledby="migrate-h">
@@ -84,7 +84,7 @@
           <button type="button" class="btn btn--secondary btn--sm" id="migrate-advance">Advance step</button>
           <button type="button" class="btn btn--ghost btn--sm" id="migrate-reset">Reset walkthrough</button>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Partition export → authority transfer → re-peer · WF-JUR-08 · CGA federation model</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Partition export → authority transfer → re-peer · CGA federation model</p>
         <noscript><p class="gloss">Steps: 1 Partition export · 2 Authority flip · 3 Re-peer.</p></noscript>
       </section>
 
@@ -109,21 +109,24 @@
             </tbody>
           </table>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Boundary changes by supermajority of affected population · Art. V §2 · supermajority = ceil(N × 2/3) · Art. VII</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Boundary changes pass by a two-thirds supermajority of the affected population</p>
         <p class="gloss">Ratified settlements re-run point-in-polygon association for every affected resident —
-          rights re-attach automatically at the new chain (Art. I; Art. V §1).</p>
+          rights re-attach automatically at the new chain.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-05.html">WF-JUR-05 — peer discovery &amp; border settlement</a>,
-            <a href="../flows/WF-JUR-06.html">WF-JUR-06 — full faith &amp; credit record sync</a>, and
-            <a href="../flows/WF-JUR-08.html">WF-JUR-08 — authoritative instance migration</a>. The union path
+          <p>This screen shows how independent instances find each other, agree on who holds the
+            authoritative copy of each jurisdiction's records, keep those records in sync, hand authority
+            over when a jurisdiction stands up its own server, and settle boundary changes. Related screens:
+            <a href="../flows/WF-JUR-05.html">peer discovery &amp; border settlement</a>,
+            <a href="../flows/WF-JUR-06.html">record sync under full faith &amp; credit</a>, and
+            <a href="../flows/WF-JUR-08.html">authoritative-instance migration</a>. The union path
             from recognized peers continues in <a href="union-formation.html">union formation</a>.</p>
-          <p><strong>Entity state machine:</strong> Federation Peer — Discovered → Handshake → Trust-Established →
+          <p><strong>Peer lifecycle:</strong> Discovered → Handshake → Trust-Established →
             Syncing → [Conflict-Resolution] → [Border-Settled] → [Merged/Union] | Departed (strip above).</p>
-          <p class="citation">Art. V §2, §7 · CLK-20 · WF-SYS-04 (audit chain)</p>
+          <p class="citation">Every sync resolution is written to the tamper-evident audit chain.</p>
         </div>
       </details>
     </div>
@@ -138,7 +141,7 @@
       roles: ['R-09', 'R-04'],
       workflows: ['WF-JUR-05', 'WF-JUR-06', 'WF-JUR-08'],
       forms: [],
-      citation: 'Full faith & credit · authoritative instance wins · Art. V §2 · CLK-20',
+      citation: 'Full faith & credit · the authoritative instance wins',
       flow: 'WF-JUR-05',
       register: 'governance'
     };
@@ -171,8 +174,8 @@
 
       var MIGRATE = [
         { name: 'Partition export', desc: 'Export the jurisdiction’s full record graph (residencies, elections, acts, audit segment) as a signed partition. The source instance keeps serving reads.' },
-        { name: 'Authority flip', desc: 'Both instances co-sign the transfer; authoritative_server flips on every record in the partition. Writes now land only on the new instance.' },
-        { name: 'Re-peer', desc: 'The new instance joins the peer mesh; former mirrors re-subscribe to it. Sync resumes under full faith and credit (WF-JUR-06).' }
+        { name: 'Authority flip', desc: 'Both instances co-sign the transfer; authority flips on every record in the partition. Writes now land only on the new instance.' },
+        { name: 'Re-peer', desc: 'The new instance joins the peer mesh; former mirrors re-subscribe to it. Sync resumes under full faith and credit.' }
       ];
       var migrateStep = 1;
 

@@ -19,14 +19,14 @@
         <p class="page-intro">Committee seats are assigned from each member's own ranked preferences — there is no
           party or faction layer to allocate through. Proportionality survives because ties break by each member's
           STV vote share after normalizing quotas.</p>
-        <p class="citation">Committee seat assignment · Art. II §4 · as implemented
+        <p class="citation">How committee seats get assigned, as built
           (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
       </header>
 
       <section class="card" aria-labelledby="create-h">
-        <h2 id="create-h">Creation acts <span class="form-chip">Committee creation act <span class="form-id">F-LEG-009</span></span></h2>
+        <h2 id="create-h">Creation acts <span class="form-chip">Committee creation act</span></h2>
         <p class="cc-small">Propose and vote to create a new committee — define scope, seat count, purpose. Requires a
-          supermajority. <span class="citation">available to R-09 Legislative Representative · Art. II §4</span></p>
+          supermajority. <span class="citation">available to Legislative Representatives</span></p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Committees and their creation acts</caption>
           <thead><tr><th>Committee</th><th class="mono">Seats</th><th>Creation act</th><th>Status</th></tr></thead>
@@ -44,14 +44,14 @@
         </div>
         <p class="gloss" style="margin-block-start:var(--space-3)">Per-member share = Total reps ÷ (Committees × seats
           per committee). Every member receives exactly their share of placements, respecting their own rank order.</p>
-        <p class="citation">Allocation formula · Art. II §4 · as implemented
+        <p class="citation">How placements are allocated, as built
           (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
       </section>
 
       <section class="card" aria-labelledby="prefs-h">
-        <h2 id="prefs-h">Your preference ballot <span class="form-chip">Committee preference ranking <span class="form-id">F-LEG-010</span></span></h2>
+        <h2 id="prefs-h">Your preference ballot <span class="form-chip">Committee preference ranking</span></h2>
         <p class="cc-small">Rank preferred committee assignments — works identically whether you carry endorsements from
-          several organizations or none. <span class="citation">available to R-09 Legislative Representative · Art. II §4 (modified for multi-faction)</span></p>
+          several organizations or none. <span class="citation">available to Legislative Representatives</span></p>
         <ol id="pref-list" class="rank-list" aria-label="Ranked committee preferences"></ol>
         <noscript><p>The ranking control needs JavaScript; preferences default to the committee order.</p></noscript>
         <div class="cluster">
@@ -61,9 +61,9 @@
       </section>
 
       <section class="card" aria-labelledby="run-h">
-        <h2 id="run-h">Run the assignment <span class="form-chip">Committee assignment administration <span class="form-id">F-SPK-005</span></span></h2>
+        <h2 id="run-h">Run the assignment <span class="form-chip">Committee assignment administration</span></h2>
         <p class="cc-small">The Speaker administers the assignment — runs the preference algorithm and resolves ties.
-          <span class="citation">available to R-10 Speaker · Art. II §3 (Committee Assignments)</span></p>
+          <span class="citation">available to the Speaker</span></p>
         <div class="card card--inset" style="margin-block-end:var(--space-4)">
           <h3 style="font-size:var(--text-base)">Tie-break — largest vote share after normalizing quotas</h3>
           <p class="cc-small">Marcus Chen and Asha Okonkwo both ranked Environment &amp; Infrastructure first with one
@@ -75,7 +75,7 @@
             <tbody id="tiebreak-rows"></tbody>
           </table></div>
           <p class="citation" style="margin-block-start:var(--space-2)">Ties go to the seat holder with the largest vote share after
-            normalizing quotas — preserves STV proportionality with no faction layer · Art. II §4 · as implemented
+            normalizing quotas — preserves proportionality with no faction layer, as built
             (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
         </div>
         <div class="state-strip" style="margin-block-end:var(--space-3)">
@@ -99,33 +99,33 @@
           <thead><tr><th>Committee</th><th>Member</th><th>Endorsing organizations</th></tr></thead>
           <tbody id="result-rows"></tbody>
         </table></div>
-        <p class="citation" style="padding:var(--space-4) var(--space-6)">Public Safety &amp; Justice: proportionality re-check pending the seat-4 countback · WF-LEG-13</p>
+        <p class="citation" style="padding:var(--space-4) var(--space-6)">Public Safety &amp; Justice: proportionality re-check pending the seat-4 countback</p>
       </section>
 
       <section class="card" aria-labelledby="chairs-h">
-        <h2 id="chairs-h">Chairs &amp; alternates <span class="form-chip">Committee chair/alternate vote <span class="form-id">F-LEG-011</span></span></h2>
+        <h2 id="chairs-h">Chairs &amp; alternates <span class="form-chip">Committee chair/alternate vote</span></h2>
         <p class="cc-small">Chair and alternate of each committee are elected by the <strong>whole legislature</strong>
           via ranked-choice vote — the alternate is the top runner-up.
-          <span class="citation">available to R-09 Legislative Representative · Art. II §4 (Election of Committee Chairs and Alternates)</span></p>
+          <span class="citation">available to Legislative Representatives</span></p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Committee chairs and alternates</caption>
-          <thead><tr><th>Committee</th><th>Chair (R-12)</th><th>Alternate (R-13)</th></tr></thead>
+          <thead><tr><th>Committee</th><th>Chair</th><th>Alternate</th></tr></thead>
           <tbody id="chair-rows"></tbody>
         </table></div>
         <p class="gloss" style="padding-block-start:var(--space-2)">Mid-term vacancies and new committees are also filled
-          by whole-legislature RCV without violating the proportions above · WF-LEG-13.</p>
+          by whole-legislature RCV without violating the proportions above.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-03.html">WF-LEG-03 (establishment &amp; seat
-            assignment)</a> — creation acts, preferences, the Speaker's run;
-            <a href="../flows/WF-LEG-04.html">WF-LEG-04 (chair &amp; alternate election)</a>;
-            <a href="../flows/WF-LEG-13.html">WF-LEG-13 (committee vacancy / new committee fill)</a>.</p>
-          <p><strong>Entity state machine:</strong> Committee Seat — Allocated (formula) → Preferences-Submitted →
+          <p><strong>What this screen does:</strong> walks through establishing committees and assigning their
+            seats — <a href="../flows/WF-LEG-03.html">creation acts, member preferences, and the Speaker's run</a>;
+            <a href="../flows/WF-LEG-04.html">electing each committee's chair and alternate</a>; and
+            <a href="../flows/WF-LEG-13.html">filling vacancies or new committees</a>.</p>
+          <p><strong>How a seat moves:</strong> Allocated (formula) → Preferences-Submitted →
             Assigned | Tie-Broken → Seated → Vacated → Refilled.</p>
-          <p class="citation">Art. II §3–4 · as implemented (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
+          <p class="citation">As built (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
         </div>
       </details>
     </div>
@@ -140,7 +140,7 @@
       roles: ['R-09', 'R-10', 'R-11', 'R-13'],
       workflows: ['WF-LEG-03', 'WF-LEG-04', 'WF-LEG-13'],
       forms: ['F-LEG-009', 'F-LEG-010', 'F-SPK-005', 'F-LEG-011'],
-      citation: 'Faction-independent assignment · normalized-quota tie-break · Art. II §4 · as implemented',
+      citation: 'Faction-independent committee assignment, with ties broken by normalized vote share — as built',
       flow: 'WF-LEG-03',
       register: 'governance'
     };

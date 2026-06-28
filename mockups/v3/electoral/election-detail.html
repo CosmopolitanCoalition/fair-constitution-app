@@ -21,7 +21,7 @@
         <p class="page-intro">The full lifecycle of one election: a continuous approval phase, a pre-published finalist
           cutoff, a ranked window, an instant PR-STV count, and certification. Use the mockup controls (election phase)
           to walk the state machine below through every stage.</p>
-        <p class="citation">General election cycle · WF-ELE-01 · Art. II §2; Art. III §3; Art. IV §3</p>
+        <p class="citation">General election cycle</p>
       </header>
 
       <section class="card" aria-labelledby="state-h">
@@ -30,7 +30,7 @@
         <p class="gloss" style="margin-block-start:var(--space-2)">The approval phase spans the entire inter-election
           period; the finalist cutoff and ranked window are the only time-boxed stages. Tabulation is instant.</p>
         <div class="cluster" id="state-actions" style="margin-block-start:var(--space-2)"></div>
-        <p class="citation">Entity: Election · catalog Sheet 3 · Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+        <p class="citation">How an election moves from open registration through to a certified result (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
       </section>
 
       <div class="cluster" style="gap:var(--space-6)">
@@ -43,9 +43,9 @@
       <section class="card" aria-labelledby="schedule-h">
         <h2 id="schedule-h">Schedule</h2>
         <div class="card card--inset" style="margin-block-end:var(--space-4)">
-          <p style="margin-block-end:var(--space-1)"><strong>Election scheduling order</strong> <span class="form-chip"><span class="form-id">F-ELB-001</span></span></p>
+          <p style="margin-block-end:var(--space-1)"><strong>Election scheduling order</strong></p>
           <p class="cc-small" style="margin-block-end:var(--space-1)">Schedule an election for any office type, set registration and voting periods.</p>
-          <p class="citation">available to R-08 Election Board Member · Art. II §2 (election intervals) · issued 2030-11-08 by the New York County election board</p>
+          <p class="citation">available to an election board member · issued 2030-11-08 by the New York County election board</p>
         </div>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Election schedule by stage</caption>
@@ -54,7 +54,7 @@
         </table></div>
         <p class="citation" style="margin-block-start:var(--space-2)">All times shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
         <p class="amendable" style="margin-block-start:var(--space-3)">Election interval: <span class="amendable-value">60 months</span>
-          <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable within constitutional bounds · Art. II §2</span></p>
+          <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable within constitutional bounds</span></p>
       </section>
 
       <div class="grid-2">
@@ -69,8 +69,8 @@
           </table></div>
           <p class="gloss">X = f(seats in race) — the current setting is 3 × seats.</p>
           <p class="amendable">Finalist multiplier: <span class="amendable-value">3 × seats</span>
-            <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable setting · CLK-21</span></p>
-          <p class="citation">Finalist count per race · CLK-21 · Art. II §2 (right to stand preserved via write-in)</p>
+            <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable setting</span></p>
+          <p class="citation">Finalist count per race · the right to stand is preserved via write-in</p>
         </section>
 
         <section class="card" aria-labelledby="map-h">
@@ -86,7 +86,7 @@
           <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS.</p>
           <p class="cc-small">This race is a single district: 7 seats sits inside the constitutional 5–9 band, so no
             subdivision is required. A legislature above 9 seats must subdivide into districts of 5–9 seats each.</p>
-          <p class="citation">Legislature maximum size · 9 members · CLK-07 · Art. II §2, §8</p>
+          <p class="citation">Legislature maximum size · 9 members</p>
           <p><a href="../jurisdictions/district-mapper.html">See a subdivided legislature in the district mapper
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         </section>
@@ -101,12 +101,10 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ELE-01.html">WF-ELE-01 (general election cycle)</a> end to end;
-            the approval phase is <a href="../flows/WF-CIV-08.html">WF-CIV-08</a>, ranked voting is
-            <a href="../flows/WF-CIV-04.html">WF-CIV-04</a>, recounts branch to <a href="../flows/WF-ELE-05.html">WF-ELE-05</a>.</p>
-          <p><strong>Entity state machine:</strong> Election — the strip above is the full lifecycle from catalog Sheet 3;
-            certification hands winners to officeholder conversion and re-opens the next approval phase.</p>
-          <p class="citation">Art. II §2 · F-ELB-001 · F-ELB-004 · F-ELB-006 · CLK-18 · CLK-21 · CLK-07</p>
+          <p><strong>What this screen does:</strong> it walks one election end to end — the continuous approval phase, the
+            ranked voting window, the instant count, and certification. Recounts branch off into their own proceedings.</p>
+          <p><strong>Lifecycle:</strong> the strip above is the full lifecycle of an election; certification hands winners
+            to office and re-opens the next approval phase.</p>
         </div>
       </details>
     </div>
@@ -121,7 +119,7 @@
       roles: ['R-03', 'R-04', 'R-08'],
       workflows: ['WF-ELE-01'],
       forms: ['F-ELB-001', 'F-ELB-004', 'F-ELB-006'],
-      citation: 'General election cycle · two-phase open ballot · Art. II §2 · CLK-18 · CLK-21',
+      citation: 'General election cycle · two-phase open ballot',
       flow: 'WF-ELE-01',
       register: 'governance'
     };
@@ -173,7 +171,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            ' This election proceeds untouched: elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            ' This election proceeds untouched: elections, sessions, and courts cannot be disrupted — enforced in code.</div></div>'
           : '';
 
         var doneIdx = STATES.indexOf(cur);
@@ -202,14 +200,14 @@
         } else {
           actions = '<a class="btn btn--secondary btn--sm" href="results.html">Open the count record</a>';
           if (certStep === 'tabulating') {
-            actions += '<button type="button" class="btn btn--primary btn--sm" id="act-certify">Certify results — F-ELB-004 · simulated</button>';
+            actions += '<button type="button" class="btn btn--primary btn--sm" id="act-certify">Certify results — simulated</button>';
           } else if (certStep === 'certified') {
-            actions += '<button type="button" class="btn btn--danger btn--sm" id="act-recount">Order recount — F-ELB-006 · simulated</button>' +
-              '<span class="citation">Election results certification · F-ELB-004 · available to R-08 · Art. II §2 — committed</span>';
+            actions += '<button type="button" class="btn btn--danger btn--sm" id="act-recount">Order recount — simulated</button>' +
+              '<span class="citation">Election results certification · available to an election board member — committed</span>';
           } else {
-            actions += S.badge('danger', 'Recount proceedings open · WF-ELE-05', 'refresh-cw') +
+            actions += S.badge('danger', 'Recount proceedings open', 'refresh-cw') +
               '<button type="button" class="btn btn--ghost btn--sm" id="act-reset">Recount resolved — back to certified</button>' +
-              '<span class="citation">Recount/audit order · F-ELB-006 · available to R-08 · prereq F-ELB-004 + cause · Art. II §2 (election integrity)</span>';
+              '<span class="citation">Recount/audit order · available to an election board member · requires a certified result and cause</span>';
           }
         }
         document.getElementById('state-actions').innerHTML = actions;
@@ -234,7 +232,7 @@
             : '<a href="results.html">Count record</a>';
           return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
             '<div><strong>' + esc(j.name) + '</strong> · general · ' + e.seats + ' seats' +
-            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race · CLK-21</span></div>' +
+            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race</span></div>' +
             '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + link + '</div></div></div>';
         }).join('');
 

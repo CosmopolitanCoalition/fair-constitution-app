@@ -20,7 +20,7 @@
           They require a supermajority, run at most 90 days, are judicially reviewable at any time, auto-expire, and
           can never disrupt elections, sessions, or courts. Any active power is the first order of business at every
           session.</p>
-        <p class="citation">Supermajority · disaster or invasion only · ≤ 90 days · Art. II §7 · CLK-03 · WF-LEG-11</p>
+        <p class="citation">Supermajority · disaster or invasion only · ≤ 90 days</p>
       </header>
 
       <section aria-labelledby="active-h">
@@ -30,9 +30,9 @@
       </section>
 
       <section class="card" aria-labelledby="invoke-h">
-        <h2 id="invoke-h">Invoke emergency powers <span class="form-chip">Emergency powers declaration vote <span class="form-id">F-LEG-024</span></span></h2>
+        <h2 id="invoke-h">Invoke emergency powers <span class="form-chip">Emergency powers declaration vote</span></h2>
         <p class="cc-small">Vote by supermajority to invoke emergency powers — define scope, area, duration, methods.
-          <span class="citation">available to R-09 Legislative Representative · Art. II §7 · catalog alias: F-LEG-023 · workflows catalog</span></p>
+          <span class="citation">available to legislative representatives</span></p>
         <form id="invoke-form">
           <div class="grid-2">
             <div class="field">
@@ -46,9 +46,9 @@
             <div class="field" id="dur-field">
               <label class="field-label" for="ep-duration">Duration (days)</label>
               <input class="field-input" id="ep-duration" type="number" min="1" max="90" value="30" />
-              <span class="field-hint">Engine validation: duration ≤ 90 days (CLK-03). Values above the ceiling are rejected before any vote is taken.</span>
+              <span class="field-hint">Duration cannot exceed 90 days. Values above the ceiling are rejected before any vote is taken.</span>
               <span class="field-error" id="dur-error" hidden><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
-                Rejected pre-vote: exceeds the 90-day constitutional ceiling · CLK-03 · Art. II §7</span>
+                Rejected pre-vote: exceeds the 90-day ceiling.</span>
             </div>
           </div>
           <div class="grid-2">
@@ -58,17 +58,17 @@
                 <option>New York County (usa-3-new-york-county) — whole jurisdiction</option>
                 <option>A named area within New York County</option>
               </select>
-              <span class="field-hint">Engine validation: area ≤ this legislature's authority — no reaching outside New York County.</span>
+              <span class="field-hint">The area must stay within this legislature's authority — no reaching outside New York County.</span>
             </div>
             <div class="field">
               <label class="field-label" for="ep-methods">Methods</label>
               <textarea class="field-input" id="ep-methods" rows="2" placeholder="e.g. evacuation orders, shelter requisition, debris-clearance contracting"></textarea>
-              <span class="field-hint">Engine validation: methods must remain within constitutional order — rights and civic processes are untouchable.</span>
+              <span class="field-hint">Methods must remain within constitutional order — rights and civic processes are untouchable.</span>
             </div>
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--danger btn--sm">Put invocation to a vote</button>
-            <span class="citation">requires supermajority of all serving — 6 of 9 · Art. II §7</span>
+            <span class="citation">requires supermajority of all serving — 6 of 9</span>
           </div>
         </form>
         <div id="invoke-confirm" style="margin-block-start:var(--space-3)"></div>
@@ -76,18 +76,18 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="renew-h">
-          <h2 id="renew-h">Renewal <span class="form-chip">Emergency powers renewal vote <span class="form-id">F-LEG-025</span></span></h2>
+          <h2 id="renew-h">Renewal <span class="form-chip">Emergency powers renewal vote</span></h2>
           <p class="cc-small">Vote by supermajority to renew emergency powers — each renewal is a fresh vote and a fresh
             90-day maximum; nothing rolls over silently.
-            <span class="citation">available to R-09 Legislative Representative · Art. II §7 · catalog alias: F-LEG-024 · workflows catalog</span></p>
+            <span class="citation">available to legislative representatives</span></p>
           <div id="renew-state"></div>
         </section>
 
         <section class="card" aria-labelledby="review-h">
-          <h2 id="review-h">Judicial review <span class="form-chip">Emergency powers review <span class="form-id">F-JDG-007</span></span></h2>
+          <h2 id="review-h">Judicial review <span class="form-chip">Emergency powers review</span></h2>
           <p class="cc-small">Review active emergency powers for constitutional compliance — available at any time,
             on challenge or the court's own motion. Powers can be upheld, narrowed, or struck.
-            <span class="citation">available to R-19/R-20 Judge · Art. II §7 (Judicial Review) · WF-JUD-06</span></p>
+            <span class="citation">available to judges</span></p>
           <div id="review-state"></div>
         </section>
       </div>
@@ -98,24 +98,22 @@
           <li>Civic-process protection: <strong>elections, sessions, and courts cannot be disrupted — enforced in code.</strong></li>
           <li>Auto-expiry at the declared duration — no action required, no extension without a fresh supermajority.</li>
           <li>First order of business: an active power leads the agenda of every session until it ends.</li>
-          <li>Judicially reviewable at any time (WF-JUD-06).</li>
+          <li>Judicially reviewable at any time.</li>
         </ul>
         <div class="cluster" style="margin-block-start:var(--space-3)">
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-          <span class="citation">Art. II §7 · CLK-03 — the 90-day ceiling is itself the amendable setting's constitutional maximum</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+          <span class="citation">the 90-day ceiling is the constitutional maximum</span>
         </div>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-11.html">WF-LEG-11 (emergency powers lifecycle)</a> —
-            invoke → active → renew/expire; <a href="../flows/WF-JUD-06.html">WF-JUD-06 (judicial review)</a> can
-            narrow or strike at any point; the session agenda hook is in
-            <a href="../flows/WF-LEG-05.html">WF-LEG-05</a>.</p>
-          <p><strong>Entity state machine:</strong> Emergency Powers — Invoked (supermajority) → Active
+          <p><strong>What this screen does:</strong> walks an emergency power through its whole lifecycle —
+            invoke, run active, then renew or expire. A court can narrow or strike it at any point, and an
+            active power always leads the session agenda.</p>
+          <p><strong>Lifecycle:</strong> Emergency Powers — Invoked (supermajority) → Active
             (duration/area/methods defined) → [Under Judicial Review] → [Renewed ≤ max] → Expired | Struck | Narrowed.</p>
-          <p class="citation">Art. II §7 · Art. IV §5 · CLK-03</p>
         </div>
       </details>
     </div>
@@ -130,7 +128,7 @@
       roles: ['R-09', 'R-10'],
       workflows: ['WF-LEG-11', 'WF-JUD-06', 'WF-LEG-05'],
       forms: ['F-LEG-024', 'F-LEG-025', 'F-JDG-007'],
-      citation: 'Disaster or invasion only · ≤ 90 days · cannot disrupt civic processes · Art. II §7 · CLK-03',
+      citation: 'Disaster or invasion only · ≤ 90 days · cannot disrupt civic processes',
       flow: 'WF-LEG-11',
       register: 'governance'
     };
@@ -158,20 +156,20 @@
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Active emergency power — ' + esc(EP.label) + '</span>' +
             'Area of effect: New York (state) — declared by the state legislature; New York County lies inside it · ' +
-            'cause: ' + esc(EP.cause) + ' · invoked via supermajority (F-LEG-024). ' +
-            '<span class="citation">Art. II §7 · CLK-03</span></div></div>' +
+            'cause: ' + esc(EP.cause) + ' · invoked via supermajority. ' +
+            '</div></div>' +
             '<div class="card" style="margin-block-start:var(--space-4)">' +
             '<div class="cluster" style="gap:var(--space-6)">' +
-            '<div class="stat stat--accent"><span class="stat-number">' + EP.day + '</span><span class="stat-label">day of ' + EP.maxDays + ' · CLK-03 countdown</span></div>' +
+            '<div class="stat stat--accent"><span class="stat-number">' + EP.day + '</span><span class="stat-label">day of ' + EP.maxDays + ' · countdown</span></div>' +
             '<div class="stat"><span class="stat-number">' + (EP.maxDays - EP.day) + '</span><span class="stat-label">days to auto-expiry (2031-07-31) — no action required</span></div>' +
             '</div>' +
             '<div class="meter-block" style="margin-block-start:var(--space-3)"><div class="meter">' +
             '<span class="meter-fill" style="inline-size:' + pct + '%"></span>' +
             '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
-            '<div class="meter-caption"><span>day ' + EP.day + ' of ' + EP.maxDays + '</span><span>hard ceiling: 90 days · CLK-03 · Art. II §7</span></div></div>' +
+            '<div class="meter-caption"><span>day ' + EP.day + ' of ' + EP.maxDays + '</span><span>hard ceiling: 90 days</span></div></div>' +
             '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('lock') +
             '<div><span class="banner-title">Civic-process protection</span>Elections, sessions, and courts cannot be disrupted — ' +
-            'enforced in code. The Queens County certifying election continues untouched. <span class="citation">Art. II §7 · hardened</span></div></div>' +
+            'enforced in code. The Queens County certifying election continues untouched.</div></div>' +
             '<div class="cluster" style="margin-block-start:var(--space-3)">' +
             '<span class="citation">defined duration: 90 days · area: New York (state) · methods: evacuation, shelter requisition, debris clearance</span>' +
             '</div></div>'
@@ -184,21 +182,21 @@
         /* Renewal panel. */
         document.getElementById('renew-state').innerHTML = active
           ? '<div class="cluster">' + S.badge('warning', 'Renewal window opens day 76', 'clock') +
-            '<span class="citation">fresh supermajority required · max 90-day extension · Art. II §7</span></div>'
+            '<span class="citation">fresh supermajority required · max 90-day extension</span></div>'
           : '<div class="cluster">' + S.badge('neutral', 'Nothing to renew', 'minus') +
             '<span class="citation">renewal exists only while a power is active</span></div>';
 
         /* Judicial review status. */
         document.getElementById('review-state').innerHTML = active
           ? '<div class="cluster">' + S.badge('warning', 'Review pending — New York State court', 'scale') +
-            '<span class="citation">' + esc(EP.judicialReview) + ' · full court · WF-JUD-06</span></div>'
+            '<span class="citation">' + esc(EP.judicialReview) + ' · full court</span></div>'
           : '<div class="cluster">' + S.badge('neutral', 'No review in progress', 'minus') +
             '<span class="citation">any inhabitant may trigger review of an active power</span></div>';
 
         S.refresh();
       }
 
-      /* F-LEG-024 engine validation — duration above the CLK-03 ceiling blocks pre-vote. */
+      /* Duration above the 90-day ceiling blocks the pre-vote. */
       var durInput = document.getElementById('ep-duration');
       function validateDuration() {
         var bad = Number(durInput.value) > 90 || Number(durInput.value) < 1;
@@ -220,7 +218,7 @@
           '<div><span class="banner-title">Invocation validated — sent to a supermajority vote</span>' +
           'Cause: ' + esc(cause.options[cause.selectedIndex].text) + ' · duration ' + esc(durInput.value) +
           ' days · area and methods within authority. The vote needs 6 of 9 serving. ' +
-          '<span class="citation">F-LEG-024 · Art. II §7 · WF-LEG-11</span></div></div>';
+          '</div></div>';
       });
 
       render();

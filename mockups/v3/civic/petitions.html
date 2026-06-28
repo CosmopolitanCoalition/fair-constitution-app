@@ -19,17 +19,17 @@
         <p class="page-intro">Any associated resident can draft a law and put it before the population. Reach the
           signature threshold, pass an independent audit and a constitutionality review, and your initiative goes on
           the next jurisdiction-wide ballot.</p>
-        <p class="citation">Creation of Laws by Petition · threshold 5% of population · CLK-17 · Art. II §6</p>
+        <p class="citation">Creation of laws by petition · threshold 5% of population</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
         <div class="stat"><span class="stat-number" id="stat-open">3</span><span class="stat-label">open petitions in your jurisdictions</span></div>
-        <div class="stat stat--accent"><span class="stat-number">5.00%</span><span class="stat-label">signature threshold · CLK-17</span></div>
+        <div class="stat stat--accent"><span class="stat-number">5.00%</span><span class="stat-label">signature threshold</span></div>
         <div class="stat"><span class="stat-number" id="stat-signed">—</span><span class="stat-label">your signatures (this session)</span></div>
       </div>
       <p class="amendable" style="margin-block-start:calc(-1 * var(--space-3))">
         <span class="amendable-value">5.00%</span> of jurisdiction population
-        <span class="amendable-meta">initiative_petition_threshold_pct · constitutional default · amendable by legislative act · CLK-17 · Art. II §6</span>
+        <span class="amendable-meta">constitutional default · amendable by legislative act</span>
       </p>
 
       <section class="card" style="padding:0" aria-labelledby="list-h">
@@ -38,15 +38,15 @@
         </div>
         <div id="petition-list" aria-live="polite"></div>
         <noscript><p style="padding:var(--space-6)" class="gloss">The petition list renders with JavaScript — fixtures: Manhattan traffic calming, New York County participatory budget pilot, Hudson watershed protection act.</p></noscript>
-        <p class="cc-small" style="padding-block:var(--space-3);padding-inline:var(--space-6)">The Sign toggles above use
-          Petition signature <span class="form-chip"><span class="form-id">F-IND-010</span></span> — sign an existing citizen petition.
-          <span class="citation" style="display:block">available to R-03 Jurisdictionally Associated · appends signature to petition · Art. II §6</span></p>
+        <p class="cc-small" style="padding-block:var(--space-3);padding-inline:var(--space-6)">The Sign toggles above let you
+          sign an existing petition.
+          <span class="citation" style="display:block">available to any associated resident · adds your signature to the petition</span></p>
       </section>
 
       <section class="card" aria-labelledby="create-h">
-        <h2 id="create-h">Petition creation <span class="form-chip"><span class="form-id">F-IND-009</span></span></h2>
+        <h2 id="create-h">Petition creation</h2>
         <p class="cc-small">Draft and register a citizen petition to place an initiative on the ballot.
-          <span class="citation" style="display:block">available to R-05 Petitioner · prerequisite R-03 · creates the Petition record · Art. II §6 (Creation of Laws by Petition)</span></p>
+          <span class="citation" style="display:block">available to any associated resident · creates the petition</span></p>
         <form id="create-form" novalidate>
           <div class="field">
             <label class="field-label" for="pet-title">Title</label>
@@ -76,7 +76,7 @@
           <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
           <div><span class="banner-title">Petition registered — signature gathering opens immediately.</span>
             It enters the lifecycle at <em>Created</em> and appears in the list above for every associated resident of
-            the chosen scale. <span class="citation">Creates: Petition record · Art. II §6</span></div>
+            the chosen scale. <span class="citation">Creates the petition.</span></div>
         </div>
       </section>
 
@@ -85,18 +85,17 @@
         <div id="pet-strip" class="state-strip"></div>
         <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Created → Gathering → Threshold-Reached → Signature-Audit → Constitutional-Review → Validated → On-Ballot → Adopted | Rejected | Invalidated.</p></noscript>
         <p class="gloss" style="margin-block-start:var(--space-2)">Two kill-paths: a failed signature audit, or an unconstitutional finding.</p>
-        <p class="citation">Audit by the election board (F-ELB-005) · review by the judiciary (F-JDG-008) · Art. II §6</p>
+        <p class="citation">Signatures audited by the election board · constitutionality reviewed by the judiciary</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-06.html">WF-CIV-06 petition lifecycle</a>; the review
-            stage runs as <a href="../flows/WF-JUD-09.html">WF-JUD-09 petition constitutionality review</a>.</p>
-          <p><strong>Entity state machine:</strong> Petition — the strip above; each list row badges its current state.</p>
-          <p><strong>Signing (F-IND-010)</strong> is available to any R-03 associated resident of the petition's scale —
-            no petitioner role needed to sign.</p>
-          <p class="citation">Art. II §6 · CLK-17</p>
+          <p>This screen lets any associated resident draft and register a petition, sign open petitions, and follow a
+            petition through its lifecycle. The constitutionality review stage is handled by the judiciary.</p>
+          <p>Each petition moves through the states shown in the strip above; each list row badges its current state.</p>
+          <p>Signing is available to any associated resident of the petition's scale — you don't need to have started a
+            petition to sign one.</p>
         </div>
       </details>
     </div>
@@ -111,7 +110,7 @@
       roles: ['R-03', 'R-05'],
       workflows: ['WF-CIV-06', 'WF-JUD-09'],
       forms: ['F-IND-009', 'F-IND-010'],
-      citation: 'Creation of Laws by Petition · threshold 5% of population · CLK-17 · Art. II §6',
+      citation: 'Creation of laws by petition · threshold 5% of population',
       flow: 'WF-CIV-06',
       register: 'governance'
     };
@@ -147,7 +146,7 @@
         var slug = scaleSel.value;
         document.getElementById('pet-threshold-hint').textContent =
           'Threshold at this scale: ' + thresholdFor(slug).toLocaleString('en-US') +
-          ' signatures (5% of ' + BY.jurisdictions[slug].population.toLocaleString('en-US') + ', rounded) · CLK-17';
+          ' signatures (5% of ' + BY.jurisdictions[slug].population.toLocaleString('en-US') + ', rounded)';
       }
       scaleSel.addEventListener('change', updateThresholdHint);
 
@@ -165,7 +164,6 @@
         return '<div style="padding-block:var(--space-4);padding-inline:var(--space-6);border-block-end:1px solid var(--gov-border)">' +
           '<div class="cluster" style="justify-content:space-between">' +
           '<div><a href="petition-detail.html"><strong>' + esc(p.title) + '</strong></a> ' +
-          '<span class="citation">' + esc(p.id) + '</span>' +
           '<div class="cluster" style="margin-block-start:var(--space-1);gap:var(--space-2)">' +
           '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + '</span>' +
           S.badge(sb[0], sb[1], sb[2]) + '</div></div>' +
@@ -174,7 +172,7 @@
           '<div class="meter-block" style="margin-block-start:var(--space-3)">' +
           '<div class="meter"><span class="meter-fill' + (pct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span></div>' +
           '<div class="meter-caption"><span>' + sigs.toLocaleString('en-US') + ' of ' + p.threshold.toLocaleString('en-US') + ' signatures</span>' +
-          '<span>5% of population · CLK-17</span></div></div>' +
+          '<span>5% of population</span></div></div>' +
           '<p class="citation" style="margin-block-start:var(--space-2)">scope: ' + esc(p.scope) + '</p></div>';
       }
 

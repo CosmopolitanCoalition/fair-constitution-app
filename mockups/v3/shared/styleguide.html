@@ -57,7 +57,7 @@
           Address the citizen as you; keep governance copy declarative and plain.</p>
         <p class="cc-small">Small text for secondary copy.</p>
         <p class="cc-eyebrow">Eyebrow / overline label</p>
-        <p class="citation">Mono is reserved for citations, IDs, hashes, numbers · Art. II §2</p>
+        <p class="citation">Mono is reserved for citations, IDs, hashes, numbers.</p>
       </section>
 
       <section class="card" aria-labelledby="sg-buttons">
@@ -82,13 +82,13 @@
             <div class="field">
               <label class="field-label" for="sg-in1">Minimum seats per legislature</label>
               <input class="field-input" id="sg-in1" type="number" value="5" />
-              <span class="field-hint citation">Default of defaults: 5 · Art. II §2</span>
+              <span class="field-hint citation">Default of defaults: 5</span>
             </div>
             <div class="field field--invalid">
               <label class="field-label" for="sg-in2">Maximum seats per legislature</label>
               <input class="field-input" id="sg-in2" type="number" value="12" aria-describedby="sg-in2-err" aria-invalid="true" />
               <span class="field-error" id="sg-in2-err"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
-                Cannot exceed 9 — mandatory subdivision above · Art. II §2</span>
+                Cannot exceed 9 — mandatory subdivision above that.</span>
             </div>
           </div>
           <div>
@@ -97,7 +97,7 @@
               <select class="select" id="sg-sel">
                 <option>STV with Droop quota</option>
               </select>
-              <span class="field-hint">Can only be replaced by a more proportional method. <span class="citation">Art. VII</span></span>
+              <span class="field-hint">Can only be replaced by a more proportional method.</span>
             </div>
             <fieldset class="field" style="border:0;padding:0;margin:0">
               <legend class="field-label">Time mode</legend>
@@ -112,25 +112,25 @@
       </section>
 
       <section class="card" aria-labelledby="sg-citations">
-        <h2 id="sg-citations">Citations · hardened vs amendable</h2>
-        <p>The signature voice move — nearly every rule carries its constitutional source in mono:</p>
-        <p class="citation">Peg quorum: 5 of 9 serving · Art. II §2</p>
-        <p class="citation">Supermajority: ceil(serving × 2/3) = 6 of 9 · Art. VII</p>
-        <p>Where the implementation intentionally supersedes the constitutional mechanism, the citation says so honestly
+        <h2 id="sg-citations">Citations · protected vs amendable</h2>
+        <p>The signature voice move — nearly every rule shows where it comes from, in plain language:</p>
+        <p class="citation">Quorum: 5 of 9 serving members must be present.</p>
+        <p class="citation">Supermajority: 6 of 9 (two thirds of all serving members).</p>
+        <p>Where the implementation intentionally supersedes the constitutional mechanism, the note says so honestly
           and links to the ledger:</p>
-        <p class="citation">Ties go to the largest vote share after normalizing quotas · Art. II §4 ·
+        <p class="citation">Ties go to the largest vote share after normalizing quotas ·
           <a href="constitutional-questions.html#q2">as implemented</a></p>
         <hr />
         <div class="grid-2">
           <div>
             <span class="hardened"><svg class="icon icon--sm lock-glyph" aria-hidden="true"><use href="#i-lock"></use></svg>
-              Hardened · protected by the constitutional test suite</span>
-            <p class="cc-small" style="margin-block-start:var(--space-2)">STV algorithm, peg quorum, supermajority formula,
-              bicameral dual agreement, rights enforcement.</p>
+              Protected · locked by the constitutional safeguards</span>
+            <p class="cc-small" style="margin-block-start:var(--space-2)">The counting method, quorum, supermajority formula,
+              dual-chamber agreement, and rights enforcement.</p>
           </div>
           <div class="amendable">
             <span class="amendable-value">Election interval: 60 months</span>
-            <span class="amendable-meta">Set by Act 2031-14 · effective 2031-03-01 · range 12–120 months · Art. II §2</span>
+            <span class="amendable-meta">Set by Act 2031-14 · effective 2031-03-01 · range 12–120 months</span>
             <p class="cc-small" style="margin-block-start:var(--space-2)">Amendable settings show current value, allowed
               range, and the enacting act.</p>
           </div>
@@ -148,18 +148,18 @@
         </div>
         <hr />
         <div class="cluster">
-          <span class="org-chip">The Commons Party <span class="org-type">political_party</span></span>
+          <span class="org-chip">The Commons Party <span class="org-type">political party</span></span>
           <span class="org-chip">Bluefin Logistics <span class="org-type">business · 740 workers</span></span>
-          <span class="org-chip">Manhattan Water &amp; Power <span class="org-type">common_good_corp</span></span>
-          <span class="persona-chip"><span class="avatar" aria-hidden="true">DR</span> Diego Ramos <span class="persona-roles">R-06 R-07</span></span>
+          <span class="org-chip">Manhattan Water &amp; Power <span class="org-type">common-good corporation</span></span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">DR</span> Diego Ramos <span class="persona-roles">Candidate · Legislator</span></span>
         </div>
         <hr />
         <div class="cluster">
-          <span class="form-chip">Vacancy declaration <span class="form-id">F-LEG-036</span></span>
-          <span class="form-chip">Ballot submission (ranked choice) <span class="form-id">F-IND-007</span></span>
-          <span class="engine-chip">Countback engine (hardened)</span>
+          <span class="form-chip">Vacancy declaration</span>
+          <span class="form-chip">Ballot submission (ranked choice)</span>
+          <span class="engine-chip">Countback engine</span>
         </div>
-        <p class="gloss">Form name first, ID second, everywhere — the workbook ID drift can never mislead a reader.</p>
+        <p class="gloss">Plain action names everywhere — the reader sees what the form does, not an internal code.</p>
       </section>
 
       <section class="card" aria-labelledby="sg-stats">
@@ -167,7 +167,7 @@
         <div class="cluster" style="gap:var(--space-8)">
           <div class="stat"><span class="stat-number" data-bind="jurisdiction.population">874,579</span><span class="stat-label">population (2020) — bound to the demo jurisdiction</span></div>
           <div class="stat stat--accent"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
-          <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalists · X = f(seats) · CLK-21</span></div>
+          <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalists · scaled to the number of seats</span></div>
         </div>
         <hr />
         <div class="table-wrap">
@@ -187,7 +187,7 @@
             <span class="meter-fill" style="inline-size:56%"></span>
             <span class="meter-threshold" style="inset-inline-start:66.7%"></span>
           </div>
-          <div class="meter-caption"><span>5 of 9 serving members in favor</span><span>needs 6 (2/3 of ALL serving) · Art. VII</span></div>
+          <div class="meter-caption"><span>5 of 9 serving members in favor</span><span>needs 6 (two thirds of all serving)</span></div>
         </div>
       </section>
 
@@ -224,12 +224,12 @@
         <h2 id="sg-flow">Flow walkthrough stepper — live contract test</h2>
         <p>The shared component all 80 <code class="cc-code">flows/</code> pages will feed with a
           <code class="cc-code">flowData</code> object. The three Stage-0 samples stress the contract:
-          linear (WF-CIV-02), failure branch + sub-workflow handoff (WF-ELE-03), three parallel constitutional
-          paths (WF-JUD-05). Branch buttons are keyboard-operable.</p>
+          a linear path, a failure branch with a handoff to another process, and three parallel
+          paths that run at once. Branch buttons are keyboard-operable.</p>
         <div class="cluster" role="group" aria-label="Choose sample flow">
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-CIV-02" aria-pressed="false">WF-CIV-02</button>
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-ELE-03" aria-pressed="false">WF-ELE-03</button>
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-JUD-05" aria-pressed="true">WF-JUD-05</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-CIV-02" aria-pressed="false">Linear path</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-ELE-03" aria-pressed="false">Failure branch</button>
+          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-JUD-05" aria-pressed="true">Parallel paths</button>
         </div>
         <div id="flow-mount" style="margin-block-start:var(--space-4)"></div>
       </section>
@@ -238,17 +238,16 @@
         <h2 id="sg-banners">Banners</h2>
         <div class="stack">
           <div class="banner banner--info"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-            <div><span class="banner-title">Session due in 12 days</span> Legislatures meet at least once every 90 days.
-              <span class="citation">Art. II §2</span></div></div>
+            <div><span class="banner-title">Session due in 12 days</span> Legislatures meet at least once every 90 days.</div></div>
           <div class="banner banner--warning"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
             <div><span class="banner-title">Temporary — replacement queued</span> Bootstrap election board serves until the
-              legislature appoints a proper one. <span class="citation">Art. II §2</span></div></div>
+              legislature appoints a proper one.</div></div>
           <div class="banner banner--emergency"><svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
             <div><span class="banner-title">Emergency power active — day 41 of 90</span> Elections, sessions, and courts cannot
-              be disrupted — enforced in code. <span class="citation">Art. II §7</span></div></div>
+              be disrupted — enforced in code.</div></div>
           <div class="banner banner--demo"><svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
             <div><span class="banner-title">Edge-case walkthrough — no live case: Earth starts united</span>
-              Hypothetical two-instance data only. <span class="citation">Art. V §7</span></div></div>
+              Hypothetical two-instance data only.</div></div>
         </div>
       </section>
 
@@ -288,8 +287,8 @@
           </div>
           <div class="card--inset card">
             <span class="eyebrow">Must NOT transform</span>
-            <p class="citation">Art. II §4 · Committee Seat Assignment Process</p>
-            <p><code class="cc-code">WF-ELE-03 · F-LEG-036 · CLK-21</code></p>
+            <p class="citation">Committee Seat Assignment Process</p>
+            <p><code class="cc-code">2031-05-30 · 9f31…c2a8 · v1.4.0</code></p>
             <p><span class="kbd">Tab</span> <span class="kbd">Enter</span></p>
           </div>
         </div>
@@ -306,7 +305,7 @@
       module: 'shared',
       nav: 'styleguide',
       roles: [], workflows: ['WF-CIV-02', 'WF-ELE-03', 'WF-JUD-05'], forms: [],
-      citation: 'Design contract · cosmopolitan-coalition-design · tokens only',
+      citation: 'Design contract · plain-language voice · tokens only',
       flow: null,
       register: 'governance'
     };

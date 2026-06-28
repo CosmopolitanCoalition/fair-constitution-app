@@ -19,13 +19,13 @@
       <header>
         <span class="eyebrow">Elections · board console</span>
         <h1>Election board console</h1>
-        <p class="page-intro">Signed in as <strong data-bind="persona.name">Fatima Al-Rashid</strong> — R-08 election
+        <p class="page-intro">Signed in as <strong data-bind="persona.name">Fatima Al-Rashid</strong> — election
           board member. The board is an independent, politically neutral office: it schedules, validates, oversees
-          boundaries, certifies, audits, and orders recounts. It never counts by hand — tabulation is hardened code.</p>
-        <p class="citation">Establish independent election boards · Art. II §2</p>
+          boundaries, certifies, audits, and orders recounts. It never counts by hand — tabulation runs in protected code.</p>
+        <p class="citation">Election boards are independent and politically neutral.</p>
         <div class="cluster" style="margin-block-start:var(--space-2)">
           <button type="button" class="btn btn--ghost btn--sm" id="bootstrap-toggle" aria-pressed="false">Show bootstrap-board variant</button>
-          <span class="citation">mockup control — WF-ELE-02 / WF-ELE-10 state</span>
+          <span class="citation">mockup control — toggles the first-election bootstrap state</span>
         </div>
       </header>
 
@@ -37,21 +37,21 @@
       </div>
 
       <section class="card" aria-labelledby="sched-h">
-        <h2 id="sched-h">Scheduling <span class="citation">Election scheduling order · F-ELB-001</span></h2>
-        <p class="citation">available to R-08 Election Board Member · prereq: trigger condition (term expiration / vacancy / new office) · Art. II §2 (election intervals)</p>
+        <h2 id="sched-h">Scheduling <span class="citation">Election scheduling order</span></h2>
+        <p class="citation">For the Election Board Member · starts when a term expires, a seat falls vacant, or a new office is created.</p>
         <form id="sched-form" class="grid-2" style="margin-block-start:var(--space-3)">
           <div>
             <div class="field">
               <label class="field-label" for="s-election">Election</label>
               <select class="select" id="s-election">
                 <option>New York County general — 7 seats (approval phase live)</option>
-                <option>Kings County special — seat 2 (countback failed · CLK-04)</option>
+                <option>Kings County special — seat 2 (countback failed)</option>
               </select>
             </div>
             <div class="field">
               <label class="field-label" for="s-cutoff">Finalist cutoff</label>
               <input class="field-input" type="datetime-local" id="s-cutoff" value="2031-08-01T17:00" />
-              <span class="field-hint">X per race is pre-published with this order — New York County at-large: X = 21 · CLK-21.</span>
+              <span class="field-hint">The finalist count per race is pre-published with this order — New York County at-large: 21.</span>
             </div>
           </div>
           <div>
@@ -68,13 +68,13 @@
         </form>
         <div class="cluster">
           <button type="submit" form="sched-form" class="btn btn--primary btn--sm">Issue scheduling order</button>
-          <span class="citation" id="sched-confirm" role="status" hidden>Scheduling order issued · X pre-published per race · simulated</span>
+          <span class="citation" id="sched-confirm" role="status" hidden>Scheduling order issued · finalist count pre-published per race · simulated</span>
         </div>
       </section>
 
       <section class="card" style="padding-block-end:var(--space-3)" aria-labelledby="queue-h">
-        <h2 id="queue-h">Validation queue <span class="citation">Candidate validation · F-ELB-002</span></h2>
-        <p class="citation">available to R-08 · prereq: F-IND-011 submitted · Art. II §2 (election integrity)</p>
+        <h2 id="queue-h">Validation queue <span class="citation">Candidate validation</span></h2>
+        <p class="citation">For the Election Board Member · starts once a candidacy registration is submitted.</p>
         <p class="cc-small">Residency association is the <strong>only</strong> permissible check. A rejection is appealable
           in court — precedent: Pham v. New York County election board (case-2031-101).</p>
         <div class="table-wrap"><table class="table">
@@ -87,8 +87,8 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="maps-h">
-          <h2 id="maps-h">District-map oversight <span class="citation">Subdivision boundary drawing · F-ELB-003</span></h2>
-          <p class="citation">available to R-08 · prereq: legislature seat count &gt; 9 · Art. II §2; Art. II §8 (Subdivision)</p>
+          <h2 id="maps-h">District-map oversight <span class="citation">Subdivision boundary drawing</span></h2>
+          <p class="citation">For the Election Board Member · starts when a legislature exceeds 9 seats and must subdivide.</p>
           <p class="cc-small">Earth legislature — 1,999 seats (cube-root sizing), Webster allocation,
             quota 3,985,245 pop/seat. Member jurisdictions above the 9-seat ceiling (India, Mexico, …) subdivide over
             their own scope — their election boards draw those districts inside the parent budget.</p>
@@ -101,12 +101,12 @@
             endorsing organizations and candidates hold observer standing while drafts are open.</p>
           <p><a href="../jurisdictions/district-mapper.html">Open the district mapper
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
-          <p class="citation">Contiguous, equal subdivisions · Art. II §8 · as implemented (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>)</p>
+          <p class="citation">Subdivisions are contiguous and equal · as implemented (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>)</p>
         </section>
 
         <section class="card" aria-labelledby="cert-h">
-          <h2 id="cert-h">Certification <span class="citation">Election results certification · F-ELB-004</span></h2>
-          <p class="citation">available to R-08 · prereq: voting closed + tabulation complete · Art. II §2 (transparent election process)</p>
+          <h2 id="cert-h">Certification <span class="citation">Election results certification</span></h2>
+          <p class="citation">For the Election Board Member · starts once voting has closed and tabulation is complete.</p>
           <p class="cc-small">Queens County general — tabulation complete (27 rounds, all 9 seats filled in one
             count). The count ran under a public chain of custody; observers have attested.</p>
           <div class="cluster" id="cert-area">
@@ -114,19 +114,19 @@
             <button type="button" class="btn btn--primary btn--sm" id="cert-btn">Certify results</button>
           </div>
           <hr />
-          <h3>Recount <span class="citation">Recount/audit order · F-ELB-006</span></h3>
-          <p class="citation">available to R-08 · prereq: F-ELB-004 completed + cause for recount · Art. II §2 (election integrity)</p>
+          <h3>Recount <span class="citation">Recount/audit order</span></h3>
+          <p class="citation">For the Election Board Member · starts after certification when there is cause for a recount.</p>
           <div class="cluster" id="recount-area">
             <button type="button" class="btn btn--danger btn--sm" id="recount-btn" disabled title="Requires certification first">Order recount</button>
-            <span class="citation">enabled after certification · opens WF-ELE-05</span>
+            <span class="citation">enabled after certification · opens the recount process</span>
           </div>
         </section>
       </div>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="audit-h">
-          <h2 id="audit-h">Signature audit <span class="citation">Petition signature audit · F-ELB-005</span></h2>
-          <p class="citation">available to R-08 · prereq: petition at threshold · Art. II §6 (independent audit)</p>
+          <h2 id="audit-h">Signature audit <span class="citation">Petition signature audit</span></h2>
+          <p class="citation">For the Election Board Member · starts once a petition reaches its signature threshold.</p>
           <div id="audit-rows" class="stack" style="gap:var(--space-3)"></div>
         </section>
 
@@ -134,7 +134,7 @@
           <h2 id="vac-h">Vacancies</h2>
           <p class="cc-small"><strong>New York County legislature · seat 4</strong> — Renata Silva resigned. The countback
             engine is re-running the prior ballots with the vacated member removed.</p>
-          <p class="citation">Vacancy declaration received · F-LEG-036 · countback per Art. II §5</p>
+          <p class="citation">Vacancy declaration received · the seat is refilled by countback</p>
           <a class="btn btn--secondary btn--sm" href="vacancy-countback.html">Open the countback view
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </section>
@@ -143,22 +143,21 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> the board's full docket —
-            <a href="../flows/WF-ELE-01.html">WF-ELE-01 general cycle</a> ·
-            <a href="../flows/WF-ELE-02.html">WF-ELE-02 bootstrap first election</a> ·
-            <a href="../flows/WF-ELE-03.html">WF-ELE-03 vacancy countback</a> ·
-            <a href="../flows/WF-ELE-04.html">WF-ELE-04 special election</a> ·
-            <a href="../flows/WF-ELE-05.html">WF-ELE-05 recount/audit</a> ·
-            <a href="../flows/WF-ELE-06.html">WF-ELE-06 subdivision &amp; boundary drawing</a> ·
-            <a href="../flows/WF-ELE-07.html">WF-ELE-07 referendum execution</a> ·
-            <a href="../flows/WF-ELE-08.html">WF-ELE-08 executive election</a> ·
-            <a href="../flows/WF-ELE-09.html">WF-ELE-09 judicial election</a> ·
-            <a href="../flows/WF-ELE-10.html">WF-ELE-10 election board constitution</a>.</p>
-          <p><strong>Entity state machines:</strong> Election (scheduling → certification), Candidacy (validation
-            branch), Vacancy (countback handoff).</p>
+          <p><strong>What this screen does:</strong> it is the board's full docket —
+            <a href="../flows/WF-ELE-01.html">general election cycle</a> ·
+            <a href="../flows/WF-ELE-02.html">bootstrap first election</a> ·
+            <a href="../flows/WF-ELE-03.html">vacancy countback</a> ·
+            <a href="../flows/WF-ELE-04.html">special election</a> ·
+            <a href="../flows/WF-ELE-05.html">recount &amp; audit</a> ·
+            <a href="../flows/WF-ELE-06.html">subdivision &amp; boundary drawing</a> ·
+            <a href="../flows/WF-ELE-07.html">referendum execution</a> ·
+            <a href="../flows/WF-ELE-08.html">executive election</a> ·
+            <a href="../flows/WF-ELE-09.html">judicial election</a> ·
+            <a href="../flows/WF-ELE-10.html">election board constitution</a>.</p>
+          <p><strong>How things move:</strong> an election runs from scheduling through certification, a candidacy moves
+            through validation, and a vacancy hands off to the countback engine.</p>
           <p><strong>Bootstrap variant:</strong> a bootstrap board administers only the first election and carries the
-            persistent replacement warning until the seated legislature appoints a proper board (WF-ELE-10).</p>
-          <p class="citation">Art. II §2 · Art. II §5 · Art. II §6 · Art. II §8 · F-ELB-001…006</p>
+            persistent replacement warning until the seated legislature appoints a proper board.</p>
         </div>
       </details>
     </div>
@@ -173,7 +172,7 @@
       roles: ['R-08'],
       workflows: ['WF-ELE-01', 'WF-ELE-02', 'WF-ELE-03', 'WF-ELE-04', 'WF-ELE-05', 'WF-ELE-06', 'WF-ELE-07', 'WF-ELE-08', 'WF-ELE-09', 'WF-ELE-10'],
       forms: ['F-ELB-001', 'F-ELB-002', 'F-ELB-003', 'F-ELB-004', 'F-ELB-005', 'F-ELB-006'],
-      citation: 'Independent election board — politically neutral · Art. II §2',
+      citation: 'Independent election board — politically neutral',
       flow: 'WF-ELE-01',
       register: 'governance'
     };
@@ -195,9 +194,9 @@
 
       /* Pending registrations (fictional). decision: null | 'validated' | 'rejected'. */
       var QUEUE = [
-        { id: 'q1', name: 'Rufus Calloway', office: 'New York County legislature', residency: 'found · usa-3-new-york-county', ok: true, decision: null },
+        { id: 'q1', name: 'Rufus Calloway', office: 'New York County legislature', residency: 'found · New York County', ok: true, decision: null },
         { id: 'q2', name: 'Bao Pham', office: 'New York County legislature', residency: 'not found in jurisdiction', ok: false, decision: null },
-        { id: 'q3', name: 'Edith Okoro', office: 'Kings County legislature', residency: 'found · usa-3-kings-county', ok: true, decision: null },
+        { id: 'q3', name: 'Edith Okoro', office: 'Kings County legislature', residency: 'found · Kings County', ok: true, decision: null },
         { id: 'q4', name: 'Sven Larsson', office: 'New York County legislature', residency: 'found · duplicate registration flag', ok: true, decision: null }
       ];
 
@@ -207,14 +206,14 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            ' Board operations continue untouched: elections cannot be disrupted by emergency powers — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            ' Board operations continue untouched: elections cannot be disrupted by emergency powers — enforced in code.</div></div>'
           : '';
 
         document.getElementById('bootstrap-banner').innerHTML = bootstrap
           ? '<div class="banner banner--warning" role="status">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Bootstrap election board — temporary · replacement queued.</span> ' +
             'This board exists only to run the first election. The seated legislature must appoint a proper, politically ' +
-            'neutral board as part of its first sessions. <span class="citation">WF-ELE-02 · WF-ELE-10 · Art. II §2</span></div></div>'
+            'neutral board as part of its first sessions.</div></div>'
           : '';
         var bt = document.getElementById('bootstrap-toggle');
         bt.setAttribute('aria-pressed', bootstrap ? 'true' : 'false');
@@ -247,15 +246,15 @@
         document.getElementById('cert-area').innerHTML = certified
           ? '<a class="btn btn--secondary btn--sm" href="results.html">Review the count record</a>' +
             S.badge('success', 'Certified — winners granted roles', 'check') +
-            '<span class="citation">F-ELB-004 committed · simulated</span>'
+            '<span class="citation">certification committed · simulated</span>'
           : '<a class="btn btn--secondary btn--sm" href="results.html">Review the count record</a>' +
             '<button type="button" class="btn btn--primary btn--sm" id="cert-btn">Certify results</button>' +
             S.badge('warning', 'Tabulation complete — awaiting certification', 'clock');
         document.getElementById('recount-area').innerHTML = recountOrdered
-          ? S.badge('danger', 'Recount proceedings open · WF-ELE-05', 'refresh-cw') +
-            '<span class="citation">F-ELB-006 committed · simulated</span>'
+          ? S.badge('danger', 'Recount proceedings open', 'refresh-cw') +
+            '<span class="citation">recount order committed · simulated</span>'
           : '<button type="button" class="btn btn--danger btn--sm" id="recount-btn"' + (certified ? '' : ' disabled title="Requires certification first"') + '>Order recount</button>' +
-            '<span class="citation">' + (certified ? 'cause must be stated on the order' : 'enabled after certification') + ' · opens WF-ELE-05</span>';
+            '<span class="citation">' + (certified ? 'cause must be stated on the order' : 'enabled after certification') + ' · opens the recount process</span>';
 
         /* Petition audits */
         document.getElementById('audit-rows').innerHTML = W.petitions.filter(function (p) {
@@ -265,10 +264,10 @@
           var done = audited[p.id];
           return '<div class="card card--inset"><strong>' + esc(p.title) + '</strong>' +
             '<span class="citation" style="display:block">' + esc(j.name) + ' · ' + p.signatures.toLocaleString('en-US') +
-            ' of ' + p.threshold.toLocaleString('en-US') + ' signatures · threshold 5% of population · CLK-17</span>' +
+            ' of ' + p.threshold.toLocaleString('en-US') + ' signatures · threshold 5% of population</span>' +
             '<div class="cluster" style="margin-block-start:var(--space-2)">' +
             (done
-              ? S.badge('success', 'audit complete · signatures valid', 'check') + '<span class="citation">F-ELB-005 committed · simulated</span>'
+              ? S.badge('success', 'audit complete · signatures valid', 'check') + '<span class="citation">signature audit committed · simulated</span>'
               : '<button type="button" class="btn btn--secondary btn--sm" data-audit="' + esc(p.id) + '">Run signature audit</button>') +
             '</div></div>';
         }).join('') || '<p class="gloss">No petitions at threshold.</p>';

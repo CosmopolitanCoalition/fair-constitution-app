@@ -14,28 +14,28 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Judiciary · Art. IV §5</span>
+        <span class="eyebrow">Judiciary</span>
         <h1>Constitutional challenge tracker</h1>
         <p class="page-intro">Any inhabitant can challenge a law that unjustly impedes their rights. When the
           court finds a contradiction, three resolution paths open: the legislature amends, the legislature
           overrides by supermajority within the veto window, or — if the window closes with neither — the
           judiciary edits the law directly.</p>
-        <p class="citation">Finding + recommended remedy + reasonable timeframe (CLK-12) + veto window (CLK-11) · Art. IV §5</p>
+        <p class="citation">A finding, a recommended fix, a reasonable timeframe to act, and an override window — all on a public clock.</p>
       </header>
 
       <div id="tracker" class="stack" style="gap:var(--space-5)"></div>
-      <noscript><p class="gloss">The live tracker renders with JavaScript enabled. Fixture case: Novák finding on Curfew Ordinance §3 (New York County) — finding issued 2031-05-21, remedy due within 60 days (CLK-12), override window closes 2031-06-20 (CLK-11); all three Art. IV §5 paths open.</p></noscript>
+      <noscript><p class="gloss">The live tracker renders with JavaScript enabled. Fixture case: Novák finding on Curfew Ordinance §3 (New York County) — finding issued 2031-05-21, remedy due within 60 days, override window closes 2031-06-20; all three resolution paths open.</p></noscript>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-05.html">WF-JUD-05 — constitutional challenge &amp; law remedy</a>;
-            hearings run on the <a href="../flows/WF-JUD-03.html">WF-JUD-03</a> machinery; PATH A re-enters the
-            bill flow (WF-LEG-06); executives enforce the outcome (WF-EXE-07).</p>
-          <p><strong>Entity state machine:</strong> Constitutional Challenge — Filed → Heard (full court if major)
-            → Finding+Remedy-Issued → Legislative-Window-Open → Amended-by-Legislature | Overridden | Judiciary-Applies-Remedy
-            → Law-Edited → Closed. Opinions remain commentary on the law as written or edited.</p>
-          <p class="citation">Art. IV §5 · CLK-11 · CLK-12 · CLK-16</p>
+          <p><strong>What this screen does:</strong> it tracks an inhabitant's challenge to a law from filing
+            through the court's finding to whichever of the three resolution paths closes it out. Hearings, the
+            amendment bill, and executive enforcement each live on their own screens, linked from here.</p>
+          <p><strong>How a challenge moves:</strong> Filed → Heard (full court if it's a major question)
+            → Finding and remedy issued → Legislative window open → amended by the legislature, overridden, or
+            remedy applied by the judiciary → Law edited → Closed. Opinions remain commentary on the law as
+            written or edited.</p>
         </div>
       </details>
     </div>
@@ -50,7 +50,7 @@
       roles: ['R-03', 'R-09', 'R-19', 'R-20'],
       workflows: ['WF-JUD-05'],
       forms: ['F-IND-016', 'F-JDG-004', 'F-JDG-005', 'F-JDG-006', 'F-LEG-035'],
-      citation: 'Amend, override by supermajority in the veto window, or the judiciary edits the law · Art. IV §5 · CLK-11 · CLK-12',
+      citation: 'Amend, override by supermajority within the window, or the judiciary edits the law directly.',
       flow: 'WF-JUD-05',
       register: 'governance'
     };
@@ -75,15 +75,12 @@
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var alias = (f.aliases && f.aliases.length)
-          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
         return '<div class="card card--inset">' +
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
-          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
-          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong></div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
-          alias + (extra || '') + '</div>';
+          '<span class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</span>' +
+          (extra || '') + '</div>';
       }
 
       function entityStrip(currentState) {
@@ -100,7 +97,7 @@
           '<p style="margin-block-end:var(--space-1)"><strong>Curfew Ordinance (New York County) — §3' + (applied ? ' · as edited by the judiciary' : ' · remedy preview') + '</strong></p>' +
           '<p>No person shall remain in any public street, park, or greenway ' +
           '<del>between 22:00 and 05:00.</del> ' +
-          '<ins>during a declared emergency under Art. II §7, within that emergency’s stated area and duration.</ins></p>' +
+          '<ins>during a declared emergency, within that emergency’s stated area and duration.</ins></p>' +
           '</div>';
       }
 
@@ -121,7 +118,7 @@
         var head =
           '<div class="banner banner--warning" role="status">' + S.icon('clock') +
           '<div><span class="banner-title">Legislative window open — override closes ' + esc(CH.vetoCloses) + '</span>' +
-          'Finding issued 2031-05-21. The legislature has ' + CH.timeframeDays + ' days to modify or remove the law (CLK-12, due 2031-07-20) and ' + CH.vetoWindowDays + ' days to override (CLK-11). Today is day 21 of both clocks. ' +
+          'Finding issued 2031-05-21. The legislature has ' + CH.timeframeDays + ' days to modify or remove the law (due 2031-07-20) and ' + CH.vetoWindowDays + ' days to override. Today is day 21 of both clocks. ' +
           '<span class="citation">dates ' + esc('shown in your timezone (UTC−5 · America/New_York) · stored as UTC') + '</span></div></div>';
 
         var summary =
@@ -130,9 +127,8 @@
           '<h2 style="margin-block:var(--space-1) var(--space-2)">' + esc(CH.name) + '</h2>' +
           '<p><strong style="color:var(--gov-fg)">Law challenged:</strong> ' + esc(CH.law) + '</p>' +
           '<p><strong style="color:var(--gov-fg)">Filed:</strong> 2031-04-14 by a New York County resident — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.</p>' +
-          '<p><strong style="color:var(--gov-fg)">Heard by:</strong> the full court — all 5 judges of the New York County court, ' + esc(judge ? judge.name : 'Dr. Lena Novák') + ' writing. ' +
-          '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened · protected by the constitutional test suite</span></p>' +
-          '<p class="citation">Major constitutional question → full court · CLK-16 — right to challenge · Art. IV §5</p>' +
+          '<p><strong style="color:var(--gov-fg)">Heard by:</strong> the full court — all 5 judges of the New York County court, ' + esc(judge ? judge.name : 'Dr. Lena Novák') + ' writing.</p>' +
+          '<p class="citation">A major constitutional question goes to the full court. The right to challenge a law is absolute.</p>' +
           '<div class="stack" style="gap:var(--space-3);margin-block-start:var(--space-3)">' +
           formCard('F-IND-016') + '</div></section>';
 
@@ -145,9 +141,9 @@
           '<h2>Finding &amp; recommended remedy</h2>' +
           '<div class="grid-2">' +
           formCard('F-JDG-004', '<p style="font-size:var(--text-sm);margin-block-start:var(--space-2);color:var(--gov-fg)">“' + esc(CH.finding) + '.”</p>') +
-          formCard('F-JDG-005', '<p style="font-size:var(--text-sm);margin-block-start:var(--space-2);color:var(--gov-fg)">“' + esc(CH.remedy) + '.” Timeframe: ' + CH.timeframeDays + ' days (CLK-12) · veto window: ' + CH.vetoWindowDays + ' days (CLK-11).</p>') +
+          formCard('F-JDG-005', '<p style="font-size:var(--text-sm);margin-block-start:var(--space-2);color:var(--gov-fg)">“' + esc(CH.remedy) + '.” Timeframe: ' + CH.timeframeDays + ' days · override window: ' + CH.vetoWindowDays + ' days.</p>') +
           '</div>' +
-          '<p class="gloss" style="margin-block-start:var(--space-3)">The finding lands on the legislature as a mandatory session priority — constitutional matters precede the general agenda (WF-LEG-05).</p>' +
+          '<p class="gloss" style="margin-block-start:var(--space-3)">The finding lands on the legislature as a mandatory session priority — constitutional matters precede the general agenda.</p>' +
           '</section>';
 
         /* ---- the three paths, side by side ---- */
@@ -155,7 +151,7 @@
         var aBody =
           '<p style="font-size:var(--text-sm)">The legislature modifies or removes Curfew Ordinance §3 through the ordinary bill flow within the judicial timeframe. An amendment bill is already in committee.</p>' +
           '<p><a href="../legislature/bill-detail.html">Curfew Ordinance amendment bill ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
-          '<p class="citation">due within ' + CH.timeframeDays + ' days of the finding · CLK-12 · Art. IV §5 — opinions remain commentary on the law as edited</p>';
+          '<p class="citation">due within ' + CH.timeframeDays + ' days of the finding — opinions remain commentary on the law as edited</p>';
 
         var bMet = overrideVotes >= overrideNeed;
         var bStatus = resolution === 'overridden' ? 'done' : resolution === 'applied' ? 'closed' : 'open';
@@ -165,14 +161,14 @@
           '<div class="meter"><span class="meter-fill' + (bMet ? ' meter-fill--met' : '') + '" style="inline-size:' + Math.round(overrideVotes / overrideOf * 100) + '%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:' + Math.round(overrideNeed / overrideOf * 1000) / 10 + '%"></span></div>' +
           '<div class="meter-caption"><span>' + overrideVotes + ' of ' + overrideOf + ' serving members in favor</span>' +
-          '<span>needs ' + overrideNeed + ' of ' + overrideOf + ' · ceil(9 × 2/3) · Art. VII</span></div></div>' +
+          '<span>needs ' + overrideNeed + ' of ' + overrideOf + ' — two-thirds of all serving members</span></div></div>' +
           '<p class="gloss">Supermajority of all serving members — not just those present — recorded within the veto window.</p>' +
           (resolution === 'open'
             ? '<button type="button" class="btn btn--secondary btn--sm" data-sim-vote>Simulate one more vote</button>'
             : '') +
           (resolution === 'overridden'
             ? '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-3)">' + S.icon('check') +
-              '<div><span class="banner-title">Override recorded (simulation)</span>Judgement overruled — the law stands as written; the finding, the override vote, and every member’s position are on the public record. <span class="citation">F-LEG-035 · Art. IV §5</span></div></div>'
+              '<div><span class="banner-title">Override recorded (simulation)</span>Judgement overruled — the law stands as written; the finding, the override vote, and every member’s position are on the public record.</div></div>'
             : '');
 
         var cStatus = resolution === 'applied' ? 'done' : resolution === 'overridden' ? 'closed' : 'pending';
@@ -180,17 +176,17 @@
           '<p style="font-size:var(--text-sm)">If the window closes with neither amendment nor override, the judiciary applies its remedy <strong>directly to the law’s text</strong>. Version history is preserved; adjustable settings are updated if needed.</p>' +
           lawDiff(resolution === 'applied') +
           formCard('F-JDG-006') +
-          '<p class="citation" style="margin-block-start:var(--space-2)">opinions remain commentary on the law as written or edited · Art. IV §5</p>' +
+          '<p class="citation" style="margin-block-start:var(--space-2)">opinions remain commentary on the law as written or edited</p>' +
           (resolution === 'open'
             ? '<button type="button" class="btn btn--secondary btn--sm" data-sim-close style="margin-block-start:var(--space-2)">Simulate the window closing</button>'
             : '') +
           (resolution === 'applied'
             ? '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-3)">' + S.icon('check') +
-              '<div><span class="banner-title">Remedy applied directly (simulation)</span>Curfew Ordinance §3 is edited to the text above; a new law version is published with the prior version retained in history. <span class="citation">F-JDG-006 · Art. IV §5</span></div></div>'
+              '<div><span class="banner-title">Remedy applied directly (simulation)</span>Curfew Ordinance §3 is edited to the text above; a new law version is published with the prior version retained in history.</div></div>'
             : '');
 
         var paths =
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--space-5)" role="group" aria-label="The three Art. IV §5 resolution paths">' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--space-5)" role="group" aria-label="The three resolution paths">' +
           pathCard('A', 'Legislature modifies or removes', aStatus, aBody) +
           pathCard('B', 'Supermajority override in the veto window', bStatus, bBody) +
           pathCard('C', 'Window closes — judiciary edits the law', cStatus, cBody) +
@@ -200,7 +196,7 @@
           '<div class="banner banner--info" role="note">' + S.icon('shield') +
           '<div><span class="banner-title">Executives enforce the outcome — whichever path resolves</span>' +
           'Enforcement aligns to the final state of the law: amended, upheld by override, or edited by the court. ' +
-          '<a href="../executive/executive-actions.html">Executive actions</a> · <span class="citation">Art. IV §5 · WF-EXE-07</span></div></div>';
+          '<a href="../executive/executive-actions.html">Executive actions</a></div></div>';
 
         var reset = resolution !== 'open'
           ? '<p><button type="button" class="btn btn--ghost btn--sm" data-sim-reset>Reset the drill to the open window</button></p>'
@@ -214,7 +210,7 @@
           '<div class="cluster" style="margin-block-end:var(--space-3)">' +
           S.badge('neutral', 'No open challenge', 'info') + '</div>' +
           '<h2>No constitutional challenge is open in your jurisdictions</h2>' +
-          '<p>When a court issues a finding under Art. IV §5, this tracker shows the finding, the recommended ' +
+          '<p>When a court issues a finding, this tracker shows the finding, the recommended ' +
             'remedy, both clocks, and the three resolution paths live. You can load the demo scenario — the ' +
             'Novák finding on Curfew Ordinance §3 — to walk the full mechanism.</p>' +
           '<div class="cluster">' +

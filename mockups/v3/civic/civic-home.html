@@ -27,11 +27,11 @@
         <div class="cluster" style="gap:var(--space-4)">
           <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Voting unlocked</span>
           <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Candidacy unlocked</span>
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
         </div>
         <p style="margin-block-start:var(--space-3)">Voting and candidacy unlocked automatically when your residency was
           verified — there are no other requirements, and your association exists at every nesting level simultaneously.</p>
-        <p class="citation">Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1</p>
+        <p class="citation">Voting and candidacy unlocked — no other requirements.</p>
         <div class="cluster" style="margin-block-start:var(--space-3)" id="rights-chain"></div>
       </section>
 
@@ -40,7 +40,7 @@
         <p class="cc-small">You see the races of the jurisdiction you are looking at: switch to the United States for the
           federal race, or to Earth for the global parliament. You vote at every level you are associated with.</p>
         <div id="election-cards" class="stack" style="gap:var(--space-3)"></div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Approval phase opens the moment the prior election certifies · CLK-18 · Art. II §2</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">The approval phase opens the moment the prior election certifies.</p>
       </section>
 
       <div class="grid-2">
@@ -67,10 +67,10 @@
       <section class="card" aria-labelledby="journey-h">
         <h2 id="journey-h">Civic journey <span class="proposed-flag">Proposed — gamification layer</span></h2>
         <ol class="stepper">
-          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-01 Registered</li>
-          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-02 Residency verified</li>
-          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> R-03 Fully associated</li>
-          <li class="stepper-step stepper-step--active" aria-current="step">R-04 First ballot</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Registered</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Residency verified</li>
+          <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Fully associated</li>
+          <li class="stepper-step stepper-step--active" aria-current="step">First ballot</li>
         </ol>
         <p class="gloss" style="margin-block-start:var(--space-2)">The civic action is the reward; gamification only surfaces it.</p>
       </section>
@@ -78,11 +78,8 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> entry point after WF-CIV-02 (residency establishment); launches WF-CIV-04 (ranked ballot),
-            WF-CIV-06 (petitions), WF-CIV-08 (open ballot).</p>
-          <p><strong>Entity state machine:</strong> Individual — this dashboard renders the
-            <em>Fully-Associated</em> state; see the strip on <a href="../flows/WF-CIV-02.html">the residency flow</a>.</p>
-          <p class="citation">Art. I · Art. V §1 · CLK-18</p>
+          <p><strong>What this screen does:</strong> it is where you land once your residency is established. From here you can rank your ballot, browse and sign petitions, and open the public ballot.</p>
+          <p><strong>Your status:</strong> this dashboard is shown once you are fully associated with your jurisdictions; see <a href="../flows/WF-CIV-02.html">the residency flow</a>.</p>
         </div>
       </details>
     </div>
@@ -97,7 +94,7 @@
       roles: ['R-03', 'R-04'],
       workflows: ['WF-CIV-02', 'WF-CIV-04', 'WF-CIV-06', 'WF-CIV-08'],
       forms: [],
-      citation: 'Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1',
+      citation: 'Voting and candidacy unlocked — no other requirements.',
       flow: 'WF-CIV-02',
       register: 'governance'
     };
@@ -121,7 +118,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Elections, sessions, and courts cannot be disrupted — enforced in code.</div></div>'
           : '';
 
         /* Six tier chips lighting up — association at every nesting level */
@@ -147,7 +144,7 @@
           return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
             '<div><strong>' + esc(j.name) + '</strong> · general election · ' + e.seats.toLocaleString('en-US') + ' seats' +
             (e.note ? ' <span class="tag-chip">' + esc(e.note) + '</span>' : '') +
-            '<span class="citation" style="display:block">' + (e.finalistCount ? 'finalists: top ' + e.finalistCount + ' per race · X = f(seats) · CLK-21' : esc(e.finalistRule || '')) + '</span></div>' +
+            '<span class="citation" style="display:block">' + (e.finalistCount ? 'finalists: top ' + e.finalistCount + ' per race' : esc(e.finalistRule || '')) + '</span></div>' +
             '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + action + '</div></div></div>';
         }).join('');
 
@@ -158,7 +155,7 @@
             '<div class="meter-block" style="margin-block-start:var(--space-1)">' +
             '<div class="meter"><span class="meter-fill' + (pct >= 100 ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span></div>' +
             '<div class="meter-caption"><span>' + p.signatures.toLocaleString('en-US') + ' of ' + p.threshold.toLocaleString('en-US') + ' signatures</span>' +
-            '<span>threshold: 5% of population · CLK-17</span></div></div></div>';
+            '<span>threshold: 5% of population</span></div></div></div>';
         }).join('');
 
         S.refresh();

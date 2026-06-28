@@ -19,13 +19,13 @@
         <p class="page-intro">The legislature can put any issue to the population by supermajority. The passage
           threshold is not chosen — it is fixed by the act type: a majority-class act resolves by majority of the
           population, a supermajority-class act by supermajority.</p>
-        <p class="citation">Referendum delegation · Art. II §6 · WF-LEG-10 → WF-ELE-07</p>
+        <p class="citation">The legislature delegates a question; it then runs as a population-wide vote.</p>
       </header>
 
       <section class="card" aria-labelledby="delegate-h">
-        <h2 id="delegate-h">Delegate a question <span class="form-chip">Referendum delegation vote <span class="form-id">F-LEG-023</span></span></h2>
+        <h2 id="delegate-h">Delegate a question <span class="form-chip">Referendum delegation vote</span></h2>
         <p class="cc-small">Vote by supermajority to put a specific issue to the population via referendum.
-          <span class="citation">available to R-09 Legislative Representative · Art. II §6 · catalog alias: F-LEG-022 · workflows catalog</span></p>
+          <span class="citation">available to legislative representatives</span></p>
         <form id="delegate-form">
           <div class="field">
             <label class="field-label" for="ref-question">Question put to the population</label>
@@ -43,13 +43,13 @@
               <span class="field-label" id="threshold-label">Population threshold — fixed by act type</span>
               <p class="amendable" aria-labelledby="threshold-label" style="margin-block:var(--space-2) 0">
                 <span class="amendable-value" id="threshold-value">Majority of the population</span>
-                <span class="amendable-meta">threshold matches the legislative equivalent · not editable · Art. II §6</span>
+                <span class="amendable-meta">threshold matches the legislative equivalent · not editable</span>
               </p>
             </div>
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--primary btn--sm">Delegate to referendum</button>
-            <span class="citation">requires supermajority of the legislature — 6 of 9 · Art. II §6</span>
+            <span class="citation">requires supermajority of the legislature — 6 of 9</span>
           </div>
         </form>
         <div id="delegate-confirm" style="margin-block-start:var(--space-3)"></div>
@@ -67,7 +67,7 @@
           <span class="state-node">Law</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Ordinary law after general election</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Questions ride the next jurisdiction-wide ballot · WF-ELE-07 · ballots cast via Referendum vote · F-IND-008</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Questions ride the next jurisdiction-wide ballot · ballots cast as a referendum vote</p>
       </section>
 
       <section class="card" aria-labelledby="results-h">
@@ -77,10 +77,10 @@
       </section>
 
       <section class="card" aria-labelledby="modify-h">
-        <h2 id="modify-h">Modify or repeal a referendum act <span class="form-chip">Referendum act modification vote <span class="form-id">F-LEG-034</span></span></h2>
+        <h2 id="modify-h">Modify or repeal a referendum act <span class="form-chip">Referendum act modification vote</span></h2>
         <p class="cc-small">Modify or repeal an act passed by referendum — supermajority in the same term, ordinary
           process in any subsequent term. Acts passed by a <strong>population supermajority</strong> cannot be touched
-          at all this term. <span class="citation">available to R-09 Legislative Representative · Art. II §6</span></p>
+          at all this term. <span class="citation">available to legislative representatives</span></p>
         <div class="stack" style="gap:var(--space-3)">
           <div class="cluster" style="justify-content:space-between">
             <span><strong style="color:var(--gov-fg)">Hudson River greenway bond act (2030)</strong> — passed by majority of the population</span>
@@ -94,25 +94,24 @@
             <span><strong style="color:var(--gov-fg)">Community-board charter act (2030)</strong> — passed by supermajority of the population</span>
             <span class="cluster">
               <button type="button" class="btn btn--secondary btn--sm" disabled title="Shielded this term — population-supermajority act">Propose modification</button>
-              <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Blocked this term · CLK-19</span>
+              <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Blocked this term</span>
             </span>
           </div>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-3)">Population-supermajority acts are shielded from same-term modification — hardened gate · CLK-19 · Art. II §6 —
+        <p class="citation" style="margin-block-start:var(--space-3)">Population-supermajority acts are shielded from same-term modification —
           all referendum acts convert to ordinary law after the next general election</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-10.html">WF-LEG-10 (referendum delegation)</a> →
-            <a href="../flows/WF-ELE-07.html">WF-ELE-07 (referendum execution)</a>; the modify/repeal gate is
-            <a href="../flows/WF-LEG-19.html">WF-LEG-19 (modify / repeal referendum act)</a>. Citizen petitions reach
-            the same ballot through <a href="../flows/WF-CIV-06.html">WF-CIV-06</a>.</p>
-          <p><strong>Entity state machine:</strong> Referendum Question — Delegated/Queued → Scheduled → Voted →
+          <p><strong>What this screen does:</strong> the legislature delegates a question to a population-wide
+            vote, the question queues for the next jurisdiction-wide ballot, and passed acts can later be modified
+            or repealed — except population-supermajority acts, which are shielded for the rest of the term.
+            Citizen petitions reach the same ballot too.</p>
+          <p><strong>Life of a referendum question:</strong> Delegated/Queued → Scheduled → Voted →
             Passed (matching threshold) | Failed → Law → [supermajority-shielded same term] → ordinary law after the
             general election.</p>
-          <p class="citation">Art. II §6 · CLK-19 · F-IND-008</p>
         </div>
       </details>
     </div>
@@ -127,7 +126,7 @@
       roles: ['R-09', 'R-10'],
       workflows: ['WF-LEG-10', 'WF-LEG-19', 'WF-ELE-07'],
       forms: ['F-LEG-023', 'F-LEG-034'],
-      citation: 'Threshold fixed by act type · population-supermajority acts shielded · Art. II §6 · CLK-19',
+      citation: 'Threshold fixed by act type · population-supermajority acts shielded',
       flow: 'WF-LEG-10',
       register: 'governance'
     };
@@ -166,7 +165,7 @@
 
         document.getElementById('results-list').innerHTML = RESULTS.map(function (r) {
           var protection = r.shielded
-            ? '<span class="badge badge--warning">' + S.icon('lock', { size: 'sm' }) + 'Population-supermajority act · shielded this term · CLK-19</span>'
+            ? '<span class="badge badge--warning">' + S.icon('lock', { size: 'sm' }) + 'Population-supermajority act · shielded this term</span>'
             : '<span class="badge badge--neutral">' + S.icon('check', { size: 'sm' }) + 'Majority act · same-term changes need a supermajority</span>';
           return '<div><div class="cluster" style="justify-content:space-between">' +
             '<strong style="color:var(--gov-fg)">' + esc(r.title) + '</strong>' + protection + '</div>' +
@@ -174,7 +173,7 @@
             '<div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:' + r.yesPct + '%"></span>' +
             '<span class="meter-threshold" style="inset-inline-start:' + r.tick + '%"></span></div>' +
             '<div class="meter-caption"><span>' + r.yesPct + '% yes</span>' +
-            '<span>threshold: ' + (r.threshold === 'majority' ? 'majority of the population' : 'supermajority of the population (2/3)') + ' · Art. II §6</span></div></div>' +
+            '<span>threshold: ' + (r.threshold === 'majority' ? 'majority of the population' : 'supermajority of the population (2/3)') + '</span></div></div>' +
             '<p class="gloss" style="margin-block-start:var(--space-1)">' + esc(r.note) + '</p></div>';
         }).join('');
 
@@ -198,7 +197,7 @@
         document.getElementById('delegate-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Delegation drafted</span>On adoption by supermajority the question queues to the ' +
-          'next jurisdiction-wide ballot. <span class="citation">F-LEG-023 · Art. II §6 · WF-ELE-07</span></div></div>';
+          'next jurisdiction-wide ballot.</div></div>';
         render();
       });
 
@@ -207,8 +206,7 @@
         document.getElementById('modify-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Modification bill drafted</span>Same-term change to a referendum act requires a ' +
-          'supermajority — 6 of 9. Continue in the <a href="bills.html">bill flow</a>. ' +
-          '<span class="citation">F-LEG-034 · Art. II §6 · WF-LEG-19</span></div></div>';
+          'supermajority — 6 of 9. Continue in the <a href="bills.html">bill flow</a>.</div></div>';
         S.refresh();
       });
       document.addEventListener('cga:statechange', render);

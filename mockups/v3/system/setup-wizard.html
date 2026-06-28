@@ -29,7 +29,7 @@
         <p class="page-intro">The placement contract for the developed setup wizard — the five-step founding loop that
           takes a fresh instance from cosmic address to seated institutions. Same steps, same order, same handoffs; the
           shipped wizard adopts this design system (round peg, round hole).</p>
-        <p class="citation">Founding values are set here as reference defaults, never locks — after setup, amendments go through valid legislative acts · Art. VII</p>
+        <p class="citation">Founding values are set here as reference defaults, never locks — after setup, amendments go through valid legislative acts.</p>
       </header>
 
       <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg>
@@ -49,15 +49,14 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> the founding loop precedes play — it charters the structure that
-            <a href="../flows/WF-JUR-01.html">WF-JUR-01 (jurisdiction bootstrap)</a> and the elections engine then bring
-            to life as player populations reach critical mass (CLK-06).</p>
+          <p><strong>What this screen does:</strong> the founding loop precedes play — it charters the structure that
+            the <a href="../flows/WF-JUR-01.html">jurisdiction bootstrap</a> and the elections engine then bring
+            to life as player populations reach critical mass.</p>
           <p><strong>Handoffs:</strong> Step 2 opens <a href="../jurisdictions/jurisdiction-browser.html">the Jurisdiction
             viewer</a> to review the imported world; Step 3 hands off to
             <a href="../jurisdictions/district-mapper.html">the Legislature Browser</a> for districting and returns when a
             map is activated; Step 4's export feeds Step 0's restore-from-backup on another instance — the federation
             seed.</p>
-          <p class="citation">Art. VII · CLK-01 · CLK-06 · WF-JUR-01</p>
         </div>
       </details>
     </div>
@@ -72,7 +71,7 @@
       roles: [],
       workflows: ['WF-JUR-01'],
       forms: [],
-      citation: 'Founding defaults are reference, not locks · amendments via acts thereafter · Art. VII',
+      citation: 'Founding defaults are reference, not locks · amendments via legislative acts thereafter',
       flow: 'WF-JUR-01',
       register: 'governance'
     };
@@ -132,7 +131,7 @@
             '<p class="citation">Multiverse · Observable Universe · Laniakea Supercluster · Local Group · Milky Way · Orion Arm (Orion Spur) · Solar System · Earth (planet)</p>' +
             '<h3 style="margin-block-start:var(--space-4)">Time mode</h3>' +
             '<div class="grid-2">' +
-            '<button type="button" class="card card--inset" aria-pressed="true" style="text-align:start;cursor:pointer;border-color:var(--gov-primary)"><strong>Real-time</strong><br /><span class="cc-small">Elections on wall-clock — 5-year default cycle.</span><br /><span class="citation">CLK-01 · election_interval_months 60</span></button>' +
+            '<button type="button" class="card card--inset" aria-pressed="true" style="text-align:start;cursor:pointer;border-color:var(--gov-primary)"><strong>Real-time</strong><br /><span class="cc-small">Elections on wall-clock — 5-year default cycle.</span><br /><span class="citation">Default election cycle: 60 months</span></button>' +
             '<button type="button" class="card card--inset" aria-pressed="false" style="text-align:start;cursor:pointer"><strong>Accelerated</strong><br /><span class="cc-small">Compressed simulation — pick seconds per simulated year.</span></button>' +
             '</div></section></div>';
         },
@@ -142,45 +141,45 @@
           return '<div class="stack">' +
             '<section class="card"><h2>Per-jurisdiction constitutional defaults</h2>' +
             '<p>These are the constitutional settings for your instance’s root jurisdiction. You are founding the constitution now — the values below are the Fair Constitution Template’s suggested defaults (the “defaults of defaults”), shown as reference. You can depart from them here. After setup, any further amendments must go through valid legislative acts.</p>' +
-            '<p class="citation">Reference, not locks · Art. VII — see <a href="../legislature/settings.html">the amendable-settings register</a> for life after founding</p></section>' +
+            '<p class="citation">Reference, not locks — see <a href="../legislature/settings.html">the amendable-settings register</a> for life after founding</p></section>' +
 
             '<section class="card"><h3>Legislature</h3><div class="grid-2">' +
-            field('Minimum seats per legislature', '5', 'Default of defaults: 5 · Art. II §2', { type: 'number' }) +
-            field('Maximum seats per legislature', '9', 'Default of defaults: 9 (before mandatory subdivision) · Art. II §2', { type: 'number' }) +
-            field('Legislature sizing law', '', 'Total seats = max(min, round(population^(1/3))) · as implemented (ledger #3)', { select: ['Cube-Root Law — round(population^(1/3))'] }) +
-            field('Max days between meetings', '90', 'Default of defaults: 90 days · Art. II §2', { type: 'number' }) +
+            field('Minimum seats per legislature', '5', 'Default of defaults: 5', { type: 'number' }) +
+            field('Maximum seats per legislature', '9', 'Default of defaults: 9 (before mandatory subdivision)', { type: 'number' }) +
+            field('Legislature sizing law', '', 'Total seats = max(min, round(population^(1/3)))', { select: ['Cube-Root Law — round(population^(1/3))'] }) +
+            field('Max days between meetings', '90', 'Default of defaults: 90 days', { type: 'number' }) +
             '</div></section>' +
 
             '<section class="card"><h3>Elections</h3><div class="grid-2">' +
-            field('Election interval (months)', '60', 'Default of defaults: 60 (5 years) · Art. II §2 · CLK-01', { type: 'number' }) +
-            field('Voting method', '', 'Replaceable only by a MORE proportional method · Art. VII', { select: ['STV with Droop Quota'] }) +
-            field('Special election — min days after vacancy', '90', 'Default of defaults: 90 · Art. II §5 · CLK-04', { type: 'number' }) +
-            field('Special election — max days after vacancy', '180', 'Default of defaults: 180 · Art. II §5 · CLK-04', { type: 'number' }) +
+            field('Election interval (months)', '60', 'Default of defaults: 60 (5 years)', { type: 'number' }) +
+            field('Voting method', '', 'Replaceable only by a MORE proportional method', { select: ['STV with Droop Quota'] }) +
+            field('Special election — min days after vacancy', '90', 'Default of defaults: 90', { type: 'number' }) +
+            field('Special election — max days after vacancy', '180', 'Default of defaults: 180', { type: 'number' }) +
             '</div></section>' +
 
             '<section class="card"><h3>Governance thresholds</h3><div class="grid-2">' +
-            field('Supermajority (numerator / denominator)', '2 / 3', '≈ 66.7% · cannot fall below majority + 1 · Art. VII', {}) +
-            field('Emergency powers max duration (days)', '90', 'Default of defaults: 90 · Art. II §7 · CLK-03', { type: 'number' }) +
-            field('Citizen initiative petition threshold (% of population)', '5', 'Default of defaults: 5.00 · CLK-17', { type: 'number' }) +
+            field('Supermajority (numerator / denominator)', '2 / 3', '≈ 66.7% · cannot fall below majority + 1', {}) +
+            field('Emergency powers max duration (days)', '90', 'Default of defaults: 90', { type: 'number' }) +
+            field('Citizen initiative petition threshold (% of population)', '5', 'Default of defaults: 5.00', { type: 'number' }) +
             '</div></section>' +
 
             '<section class="card"><h3>Appointments &amp; judiciary</h3><div class="grid-2">' +
-            field('Civil appointment term (years)', '10', 'Default of defaults: 10 · Art. II §9 · lockstep with judicial · CLK-09', { type: 'number' }) +
-            field('Judicial appointment term (years)', '10', 'Default of defaults: 10 · Art. IV §4 · lockstep with civil · CLK-10', { type: 'number' }) +
-            field('Minimum judges per race', '5', 'Default of defaults: 5 · Art. IV §4 · CLK-15', { type: 'number' }) +
+            field('Civil appointment term (years)', '10', 'Default of defaults: 10 · stays in lockstep with judicial', { type: 'number' }) +
+            field('Judicial appointment term (years)', '10', 'Default of defaults: 10 · stays in lockstep with civil', { type: 'number' }) +
+            field('Minimum judges per race', '5', 'Default of defaults: 5', { type: 'number' }) +
             '<div class="field"><span class="field-label">Judiciary selection method</span>' +
             '<div class="radio-group"><label class="radio"><input type="radio" name="jud" checked /> Appointed</label>' +
             '<label class="radio"><input type="radio" name="jud" /> Elected</label></div>' +
-            '<span class="field-hint citation">Default of defaults: appointed · Art. IV §2–3</span></div>' +
+            '<span class="field-hint citation">Default of defaults: appointed</span></div>' +
             '</div></section>' +
 
             '<section class="card"><h3>Organizations &amp; workers</h3><div class="grid-2">' +
-            field('Worker rep — first seat (employees)', '100', 'Default of defaults: 100 · Art. III §6 · CLK-13', { type: 'number' }) +
-            field('Worker / shareholder parity (employees)', '2000', 'Default of defaults: 2000 · Art. III §6 · CLK-14', { type: 'number' }) +
+            field('Worker rep — first seat (employees)', '100', 'Default of defaults: 100', { type: 'number' }) +
+            field('Worker / shareholder parity (employees)', '2000', 'Default of defaults: 2000', { type: 'number' }) +
             '</div></section>' +
 
             '<section class="card"><h3>Residency</h3>' +
-            field('Residency confirmation window (days)', '30', 'Default of defaults: 30 days of qualifying GPS pings before residency is confirmed and rights unlock · CLK-05', { type: 'number' }) +
+            field('Residency confirmation window (days)', '30', 'Default of defaults: 30 days of qualifying GPS pings before residency is confirmed and rights unlock', { type: 'number' }) +
             '</section></div>';
         },
 
@@ -248,7 +247,7 @@
             '<div class="stat stat--accent"><span class="stat-number">1,999</span><span class="stat-label">total seats apportioned</span></div>' +
             '<div class="stat"><span class="stat-number">Earth</span><span class="stat-label">largest legislature · 1,999 seats</span></div></div>' +
             '<p class="gloss" style="margin-block-start:var(--space-2)">Cube-root sizing applied per Taagepera’s law — every parent jurisdiction with direct children now has a sized legislature ready for districting.</p>' +
-            '<p class="citation">Art. II §2 · as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p></section>' +
+            '<p class="citation">As implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p></section>' +
 
             '<section class="card"><p>The <strong>Earth</strong> legislature is ready for districting. You’ll be handed off to the interactive district mapper — a map + sidebar where you can auto-seed districts from the cube-root sizing law, hand-edit any you want to adjust, review quality metrics, and activate the map.</p>' +
             '<ul class="cc-small"><li>A banner at the top of the mapper reminds you that you’re in setup mode.</li>' +
@@ -274,7 +273,7 @@
             '<li>No members or seats are populated — those land via the elections engine. Status stays <em>forming</em> until Phase 2.</li>' +
             '<li>We’ll record <code class="cc-code">setup_completed_at</code> on the instance settings. From this point <code class="cc-code" data-no-i18n>/setup</code> redirects home.</li></ul>' +
             '<p class="gloss">Existing institution rows detected (1 executives, 1 judiciaries) — they’ll be left alone.</p>' +
-            '<p class="citation">Executive default: committee · Art. III §2 — Judiciary default: appointed · Art. IV §2 · 5 judges · 10-year terms</p></section>' +
+            '<p class="citation">Executive default: committee — Judiciary default: appointed · 5 judges · 10-year terms</p></section>' +
 
             '<section class="card"><h3>Export this instance (backup / sync)</h3>' +
             '<p class="cc-small">Build a portable <code class="cc-code" data-no-i18n>.tar.gz</code> snapshot of this instance — every table that’s part of the FK-downstream graph of jurisdictions, plus settings and rasters. Restoring this bundle on another instance via Step 0’s <em>Restore from a backup</em> panel reproduces the full state, including district maps. Large exports (full rasters) take 20–40 minutes.</p>' +
@@ -285,7 +284,7 @@
             '<span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> done</span>' +
             '<span class="citation" data-no-i18n>started 5/30/2026, 9:24:34 AM · finished 10:09:22 AM · 11.30 GB</span>' +
             '<a href="#" onclick="return false">download</a></div>' +
-            '<p class="citation">This bundle is the federation seed — Step 0 of a peer instance restores it · WF-JUR-05</p></section></div>';
+            '<p class="citation">This bundle is the federation seed — Step 0 of a peer instance restores it.</p></section></div>';
         }
       ];
 
@@ -314,7 +313,7 @@
             document.getElementById('wiz-body').insertAdjacentHTML('beforeend',
               '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('check') +
               '<div><span class="banner-title">Setup complete (simulated).</span> Institutions are scaffolded and forming; ' +
-              'play begins as player populations reach critical mass (CLK-06). <a href="../civic/civic-home.html">Go home</a>.</div></div>');
+              'play begins as player populations reach critical mass. <a href="../civic/civic-home.html">Go home</a>.</div></div>');
             S.refresh();
           }
         }

@@ -21,7 +21,7 @@
         <p class="page-intro">Every statement, bill, vote, and explanation made in your jurisdictions — published the
           moment it is recorded, readable by anyone, and never edited in place. This is the surface the constitution
           calls "public and readily available records".</p>
-        <p class="citation">Publish Public Records · Art. II §2 — publication pipeline · WF-SYS-03</p>
+        <p class="citation">Published the moment a record is made — the public, readily available record.</p>
       </header>
 
       <div class="banner banner--info">
@@ -29,8 +29,7 @@
         <div><span class="banner-title">This record is append-only.</span>
           Corrections append a superseding entry; nothing is deleted or rewritten. Every entry is sealed into the
           <a href="audit-chain.html">cryptographically chained audit log</a> at commit time, and replicates to peer
-          instances on the federation heartbeat.
-          <span class="citation">Art. II §2 · WF-SYS-04 · CLK-20</span></div>
+          instances on the federation heartbeat.</div>
       </div>
 
       <div class="cluster" style="gap:var(--space-6)">
@@ -63,10 +62,10 @@
       <section class="card" aria-labelledby="statement-h">
         <h2 id="statement-h">Submit a statement for the record</h2>
         <div class="card card--inset" style="margin-block-end:var(--space-4)">
-          <h3 style="margin-block-end:var(--space-1)">Public record statement <span class="citation">F-LEG-006</span></h3>
+          <h3 style="margin-block-end:var(--space-1)">Public record statement</h3>
           <p class="cc-small" style="margin-block-end:var(--space-2)">Submit a public statement, explanation, or
             position for the official record. Appends a public record entry.</p>
-          <p class="citation">Available to R-09 Legislative Representative · Art. II §2 (Publish Public Records)</p>
+          <p class="citation">Available to legislative representatives — publish to the public record.</p>
         </div>
         <form id="statement-form">
           <div class="field">
@@ -86,7 +85,7 @@
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--primary">Submit to the public record</button>
-            <span class="citation">Submitting appends an audit-chain entry · WF-SYS-04</span>
+            <span class="citation">Submitting appends an entry to the sealed audit chain.</span>
           </div>
         </form>
         <div id="statement-confirm" role="status" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
@@ -95,15 +94,10 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-SYS-03.html">WF-SYS-03 (public records publication)</a> —
-            fed by every recording workflow: bills (<a href="../flows/WF-LEG-06.html">WF-LEG-06</a>), sessions
-            (<a href="../flows/WF-LEG-05.html">WF-LEG-05</a>), opinions (<a href="../flows/WF-JUD-03.html">WF-JUD-03</a>),
-            certifications (<a href="../flows/WF-ELE-01.html">WF-ELE-01</a>). Sealing happens in
-            <a href="../flows/WF-SYS-04.html">WF-SYS-04 (audit chain)</a>.</p>
-          <p><strong>Entity state machines:</strong> this surface mirrors transitions from Bill
-            (Introduced → … → Published), Case (Opinion-Published), and Election (Certified) — each published
-            transition becomes one immutable record entry.</p>
-          <p class="citation">Art. II §2 · WF-SYS-03 · WF-SYS-04 · CLK-20</p>
+          <p><strong>What this screen does:</strong> it gathers everything your jurisdictions put on the record —
+            bills, sessions, opinions, and election certifications — and publishes each one the moment it happens.</p>
+          <p>Whenever a bill reaches published, a court releases an opinion, or an election is certified, that step
+            becomes one permanent record entry here and is sealed into the audit chain.</p>
         </div>
       </details>
     </div>
@@ -118,7 +112,7 @@
       roles: ['R-03', 'R-09'],
       workflows: ['WF-SYS-03'],
       forms: ['F-LEG-006'],
-      citation: 'Public, readily available, immutable record · Art. II §2 · WF-SYS-03',
+      citation: 'A public, readily available record that is never edited in place.',
       flow: 'WF-SYS-03',
       register: 'governance'
     };
@@ -146,18 +140,18 @@
 
       /* Page-local sample of the immutable record — newest first. */
       var records = [
-        { seq: 84113, kind: 'other', title: 'Session-due notice scheduled — New York County legislature', actor: 'Constitutional Engine', via: 'CLK-02', date: '2031-06-10', tr: { done: 5, total: 5 } },
-        { seq: 84111, kind: 'other', title: 'Translation bundle published — Act 2031-09 (5/5 languages)', actor: 'Publication pipeline', via: 'WF-SYS-03', date: '2031-06-08', tr: { done: 5, total: 5 } },
-        { seq: 84108, kind: 'opinion', title: 'Novák finding on Curfew Ordinance §3 — finding and recommended remedy', actor: 'Dr. Lena Novák · New York County court', via: 'F-JDG-004', date: '2031-06-05', tr: { done: 5, total: 5 } },
-        { seq: 84106, kind: 'statement', title: 'Sponsor statement — New York County Clean Air Act', actor: 'Marcus Chen · seat 2', via: 'F-LEG-006', date: '2031-06-02', tr: { done: 5, total: 5 } },
-        { seq: 84102, kind: 'statement', title: 'Explanation of abstention — motion 2031-44', actor: 'Lev Aronov · seat 9', via: 'F-LEG-006', date: '2031-05-30', tr: { done: 3, total: 5 } },
-        { seq: 84097, kind: 'vote', title: 'Floor vote — motion to refer bill-2031-07 to Environment & Infrastructure (adopted 7–1)', actor: 'New York County legislature', via: 'F-LEG-004', date: '2031-05-27', tr: { done: 5, total: 5 } },
-        { seq: 84093, kind: 'other', title: 'Committee hearing minutes — Clean Air Act, day 1 testimony', actor: 'Environment & Infrastructure committee', via: 'F-CHR-002', date: '2031-05-24', tr: { done: 4, total: 5 } },
-        { seq: 84089, kind: 'statement', title: 'Session minutes — sitting of 2031-05-19', actor: 'Yuki Tanaka · Speaker', via: 'F-SPK-009', date: '2031-05-19', tr: { done: 5, total: 5 } },
-        { seq: 84081, kind: 'certification', title: 'Queens County general election — tabulation entering certification', actor: 'Election board', via: 'F-ELB-004', date: '2031-05-12', tr: { done: 5, total: 5 } },
-        { seq: 84072, kind: 'other', title: 'Signature audit result — Hudson watershed protection act (1,044,310 valid of 1,050,233)', actor: 'Election board', via: 'F-ELB-005', date: '2031-05-06', tr: { done: 5, total: 5 } },
-        { seq: 84055, kind: 'act', title: 'Act 2031-09 — participatory budget pilot feasibility study (enacted)', actor: 'New York County legislature', via: 'WF-LEG-06', date: '2031-04-29', tr: { done: 4, total: 5 } },
-        { seq: 84031, kind: 'vote', title: 'Emergency powers invocation — Hurricane Dorinda (supermajority 201 of 272 serving)', actor: 'New York legislature', via: 'F-LEG-024', date: '2031-04-30', tr: { done: 5, total: 5 } }
+        { seq: 84113, kind: 'other', title: 'Session-due notice scheduled — New York County legislature', actor: 'Constitutional Engine', via: 'scheduled notice', date: '2031-06-10', tr: { done: 5, total: 5 } },
+        { seq: 84111, kind: 'other', title: 'Translation bundle published — Act 2031-09 (5/5 languages)', actor: 'Publication pipeline', via: 'publication', date: '2031-06-08', tr: { done: 5, total: 5 } },
+        { seq: 84108, kind: 'opinion', title: 'Novák finding on Curfew Ordinance — finding and recommended remedy', actor: 'Dr. Lena Novák · New York County court', via: 'court finding', date: '2031-06-05', tr: { done: 5, total: 5 } },
+        { seq: 84106, kind: 'statement', title: 'Sponsor statement — New York County Clean Air Act', actor: 'Marcus Chen · seat 2', via: 'public statement', date: '2031-06-02', tr: { done: 5, total: 5 } },
+        { seq: 84102, kind: 'statement', title: 'Explanation of abstention — motion 2031-44', actor: 'Lev Aronov · seat 9', via: 'public statement', date: '2031-05-30', tr: { done: 3, total: 5 } },
+        { seq: 84097, kind: 'vote', title: 'Floor vote — motion to refer bill-2031-07 to Environment & Infrastructure (adopted 7–1)', actor: 'New York County legislature', via: 'floor vote', date: '2031-05-27', tr: { done: 5, total: 5 } },
+        { seq: 84093, kind: 'other', title: 'Committee hearing minutes — Clean Air Act, day 1 testimony', actor: 'Environment & Infrastructure committee', via: 'hearing minutes', date: '2031-05-24', tr: { done: 4, total: 5 } },
+        { seq: 84089, kind: 'statement', title: 'Session minutes — sitting of 2031-05-19', actor: 'Yuki Tanaka · Speaker', via: 'session minutes', date: '2031-05-19', tr: { done: 5, total: 5 } },
+        { seq: 84081, kind: 'certification', title: 'Queens County general election — tabulation entering certification', actor: 'Election board', via: 'election certification', date: '2031-05-12', tr: { done: 5, total: 5 } },
+        { seq: 84072, kind: 'other', title: 'Signature audit result — Hudson watershed protection act (1,044,310 valid of 1,050,233)', actor: 'Election board', via: 'signature audit', date: '2031-05-06', tr: { done: 5, total: 5 } },
+        { seq: 84055, kind: 'act', title: 'Act 2031-09 — participatory budget pilot feasibility study (enacted)', actor: 'New York County legislature', via: 'enacted act', date: '2031-04-29', tr: { done: 4, total: 5 } },
+        { seq: 84031, kind: 'vote', title: 'Emergency powers invocation — Hurricane Dorinda (supermajority 201 of 272 serving)', actor: 'New York legislature', via: 'floor vote', date: '2031-04-30', tr: { done: 5, total: 5 } }
       ];
 
       var filters = { q: '', kinds: {} };
@@ -194,7 +188,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Every emergency action is published here as it is taken — record-keeping cannot be suspended. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Every emergency action is published here as it is taken — record-keeping cannot be suspended.</div></div>'
           : '';
 
         var shown = records.filter(matches);
@@ -243,14 +237,13 @@
         records.unshift({
           seq: 84114, kind: 'statement',
           title: text.length > 80 ? text.slice(0, 77) + '…' : text,
-          actor: S.activePersona().name + ' (simulated)', via: 'F-LEG-006', date: '2031-06-11',
+          actor: S.activePersona().name + ' (simulated)', via: 'public statement', date: '2031-06-11',
           tr: { done: 0, total: 5 }
         });
         document.getElementById('statement-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Statement appended to the public record (simulated).</span> ' +
-          'Sealed as audit entry <span data-no-i18n>#84,114</span>; translation pipeline queued for 5 languages. ' +
-          '<span class="citation">F-LEG-006 · Art. II §2 · WF-SYS-04</span></div></div>';
+          'Sealed as audit entry <span data-no-i18n>#84,114</span>; translation pipeline queued for 5 languages.</div></div>';
         document.getElementById('st-text').value = '';
         render();
       });

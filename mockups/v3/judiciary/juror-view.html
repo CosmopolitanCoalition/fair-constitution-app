@@ -14,12 +14,12 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Jury service · WF-JUD-04</span>
+        <span class="eyebrow">Jury service</span>
         <h1>Juror summons — State v. Whitfield</h1>
         <p class="page-intro">You were drawn at random from the eligible pool of jurisdictionally associated
           residents of New York. Service is a protected civic obligation — nobody can interfere with
           it, and nothing about it can ever cost you a fee.</p>
-        <p class="citation">Jury of peers · Art. IV §4 — service protected · Art. II §8</p>
+        <p class="citation">A jury of your peers — and your service is protected.</p>
       </header>
 
       <section class="card" aria-labelledby="status-h">
@@ -43,11 +43,11 @@
             <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Draw integrity:</strong> the random-selection seed is published to the <a href="../system/audit-chain.html">audit chain</a> — anyone can verify the draw</p>
             <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Report:</strong> <span class="citation">2031-06-24 09:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
             <p><strong style="color:var(--gov-fg)">Where:</strong> New York State court, courtroom 3 — 12 jurors + 2 alternates will be empaneled</p>
-            <p class="citation">Random selection from the eligible pool · Art. IV §4 (jury of peers)</p>
+            <p class="citation">Drawn at random from the eligible pool — a jury of your peers.</p>
           </div>
           <div id="fc-jdg-002"></div>
         </div>
-        <noscript><p class="gloss">The source form card renders with JavaScript enabled — your summons was created by a Jury Selection Order (F-JDG-002), issued by R-19/R-20 Judge · Art. IV §4.</p></noscript>
+        <noscript><p class="gloss">The source card renders with JavaScript enabled — your summons was created by a Jury Selection Order, issued by a judge.</p></noscript>
         <p style="margin-block-start:var(--space-3)"><a href="case-detail.html">See the case this summons belongs to
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
       </section>
@@ -72,17 +72,17 @@
       <section class="card" aria-labelledby="protections-h">
         <h2 id="protections-h">Your service is protected</h2>
         <div class="cluster" style="margin-block-end:var(--space-3)">
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> A guaranteed protection — it can't be turned off</span>
         </div>
         <ul>
           <li><strong style="color:var(--gov-fg)">No interference.</strong> Your employer cannot penalize, dismiss, or obstruct you for serving; nobody —
             public or private — may impede a civic obligation.
-            <span class="citation" style="display:block">Art. II §8 · Non-Interference with Civic Obligations</span></li>
+            <span class="citation" style="display:block">No one may interfere with a civic obligation.</span></li>
           <li style="margin-block-start:var(--space-3)"><strong style="color:var(--gov-fg)">No fees, ever.</strong> No payment, fee, or fine can be required of you to exercise a civic right or
             fulfill this obligation — attendance, filings, and verification cost you nothing.
-            <span class="citation" style="display:block">Art. II §8 · Prohibition of Compulsory Payments for Civic Rights</span></li>
+            <span class="citation" style="display:block">No payment can ever be required to exercise a civic right.</span></li>
         </ul>
-        <p class="gloss">Art. II §8 is the constitution's list of actions forbidden to legislatures — these two subsections shield jurors from both interference and charges.</p>
+        <p class="gloss">These two protections are on the constitution's list of actions forbidden to legislatures — they shield jurors from both interference and charges.</p>
       </section>
 
       <section class="card" aria-labelledby="room-h">
@@ -95,19 +95,19 @@
           unrecorded space in the trial — the verdict itself is recorded.</p>
         <button type="button" class="btn btn--secondary" disabled title="The case is at jury selection — the room unlocks at the deliberation stage">
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Enter deliberation room</button>
-        <p class="citation" style="margin-block-start:var(--space-3)">Separate deliberation preserves the independence of the jury of peers · Art. IV §4</p>
+        <p class="citation" style="margin-block-start:var(--space-3)">Deliberating separately keeps the jury of your peers independent.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUD-04.html">WF-JUD-04 — jury paneling</a>
-            (random draw → conflict screening → empanelment), inside the
-            <a href="../flows/WF-JUD-03.html">WF-JUD-03 case lifecycle</a>.</p>
-          <p><strong>Entity state machine:</strong> Case — your service spans the [Jury-Empaneled] →
-            Deliberation → Decided states; see the playable strip on the
+          <p><strong>What this screen does:</strong> it walks you through jury paneling —
+            random draw, then conflict screening, then being seated on the jury — as one step inside
+            the larger life of a court case.</p>
+          <p><strong>Where your service fits:</strong> your time on the jury spans being seated,
+            deliberation, and the verdict; see the playable strip on the
             <a href="case-detail.html">case detail page</a>.</p>
-          <p class="citation">Art. IV §4 · Art. II §8 · Non-Interference with Civic Obligations · Prohibition of Compulsory Payments for Civic Rights</p>
+          <p class="citation">A jury of your peers, with your service protected from interference and from any charge.</p>
         </div>
       </details>
     </div>
@@ -122,7 +122,7 @@
       roles: ['R-22'],
       workflows: ['WF-JUD-04'],
       forms: ['F-JDG-002'],
-      citation: 'Jury of peers · Art. IV §4 — no interference, no fees · Art. II §8',
+      citation: 'A jury of your peers — no interference, no fees.',
       flow: 'WF-JUD-04',
       register: 'governance'
     };
@@ -147,19 +147,31 @@
         { id: 'q5', text: 'Have you served on a jury or panel in a related case?' }
       ];
 
+      function plainText(s) {
+        // Strip constitutional codes (role/form/clock/workflow ids, citations) out of any display string.
+        return String(s || '')
+          .replace(/\bArt\.\s*[IVXLC]+(?:\s*§\s*\d+[a-z]?)?/gi, '')
+          .replace(/§\s*\d+[a-z]?/g, '')
+          .replace(/\bR-\d+\/?(?:R-\d+)?\s*/g, '')
+          .replace(/\b(?:F|CLK|WF)-[A-Z]+-\d+/g, '')
+          .replace(/\(\s*\)/g, '')
+          .replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'')
+          .replace(/\s{2,}/g, ' ').trim();
+      }
+
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var alias = (f.aliases && f.aliases.length)
-          ? '<span class="citation" style="display:block;margin-block-start:var(--space-1)">catalog alias: ' + esc(f.aliases.join(' · ')) + '</span>' : '';
+        var availableTo = plainText(f.availableToRaw) || 'a judge';
+        var basis = plainText(f.basis);
         return '<div class="card card--inset">' +
           '<span class="eyebrow">Source of this summons</span>' +
           '<div class="cluster" style="justify-content:space-between;align-items:baseline;margin-block-start:var(--space-1)">' +
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
-          '<span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></div>' +
+          '</div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</span>' +
-          alias + (extra || '') + '</div>';
+          '<span class="citation">available to ' + esc(availableTo) + (basis ? ' · ' + esc(basis) : '') + '</span>' +
+          (extra || '') + '</div>';
       }
 
       function render() {
@@ -187,11 +199,11 @@
           ? '<div class="banner banner--warning" role="status">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Flagged for voir dire review (simulation)</span>' +
             'A panel judge will follow up on the answers you flagged. If a conflict is confirmed you are excused without penalty and the draw selects a replacement. ' +
-            '<span class="citation">conflict screening · Art. IV §4 · WF-JUD-04</span></div></div>'
+            '<span class="citation">conflict screening — protecting a jury of your peers</span></div></div>'
           : '<div class="banner banner--info" role="status">' + S.icon('check') +
             '<div><span class="banner-title">No conflicts declared (simulation)</span>' +
             'You remain in the panel pool. Report on 2031-06-24 — empanelment is confirmed at voir dire. ' +
-            '<span class="citation">conflict screening · Art. IV §4 · WF-JUD-04</span></div></div>';
+            '<span class="citation">conflict screening — protecting a jury of your peers</span></div></div>';
       });
 
       render();

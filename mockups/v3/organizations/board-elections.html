@@ -21,13 +21,13 @@
         <p class="page-intro">Three counts seat one board: shareholders elect the owner track by STV, workers elect the
           worker track by STV, and then the <strong>entire board jointly elects its chair</strong> by ranked choice. At
           740 workers, Bluefin's co-determination ratio is 9 owner seats and 3 worker seats.</p>
-        <p class="citation">Owner + worker tracks · chair elected jointly by the entire Board · Art. III §4, §6 · CLK-13 / CLK-14</p>
+        <p class="citation">Owner + worker tracks · chair elected jointly by the entire board.</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
-        <div class="stat"><span class="stat-number">9</span><span class="stat-label">owner-elected seats (R-26)</span></div>
-        <div class="stat stat--accent"><span class="stat-number">3</span><span class="stat-label">worker-elected seats (R-27)</span></div>
-        <div class="stat"><span class="stat-number">1</span><span class="stat-label">joint chair (R-28)</span></div>
+        <div class="stat"><span class="stat-number">9</span><span class="stat-label">owner-elected seats</span></div>
+        <div class="stat stat--accent"><span class="stat-number">3</span><span class="stat-label">worker-elected seats</span></div>
+        <div class="stat"><span class="stat-number">1</span><span class="stat-label">joint chair</span></div>
       </div>
       <p class="citation">Ballots closed 2031-06-20 18:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
 
@@ -48,7 +48,7 @@
         <h2 id="worker-h">Worker track — 3 seats by STV</h2>
         <p style="font-size:var(--text-sm)">692 of 740 workers voted · 5 candidates · Droop quota
           <span data-no-i18n>floor(692 ÷ (3 + 1)) + 1 = 174</span>. The worker track exists because Bluefin crossed the
-          100-worker threshold (CLK-13); its 3 seats come from the uniform scale toward parity at 2,000 (CLK-14) —
+          100-worker threshold; its 3 seats come from the uniform scale toward parity at 2,000 —
           <a href="co-determination.html">see the scaling meter</a>.</p>
         <div id="worker-results"></div>
         <noscript><p>JavaScript renders the count. Elected: T. Ferreira, L. Márquez, D. Banks.</p></noscript>
@@ -59,8 +59,8 @@
         <h2 id="chair-h">Joint chair — single winner by RCV, entire board votes</h2>
         <p style="font-size:var(--text-sm)">All 12 seated board members — owner-elected and worker-elected alike — rank
           the nominees. Majority of the full board required: <strong>7 of 12</strong>. Three board members were nominated.</p>
-        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-          <span class="citation">Chair elected jointly by the entire Board · Art. III §6</span></p>
+        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+          <span class="citation">Chair elected jointly by the entire board.</span></p>
         <div id="chair-rounds" class="stack" style="gap:var(--space-4)" aria-live="polite"></div>
         <div class="cluster" style="margin-block-start:var(--space-3)">
           <button type="button" class="btn btn--primary btn--sm" id="chair-advance">Run round 2</button>
@@ -74,20 +74,18 @@
         <h2 id="seated-h">The seated board</h2>
         <div id="seated-board" class="cluster" style="gap:var(--space-4)"></div>
         <p class="citation" style="margin-block-start:var(--space-3)">Any composition change — a seat added by the
-          co-determination scale, a vacancy, a transfer — re-triggers the joint chair election · Art. III §6 · WF-ORG-04</p>
+          co-determination scale, a vacancy, a transfer — re-triggers the joint chair election.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-ORG-05.html">WF-ORG-05 (board elections — owner &amp; worker tracks)</a>;
-            triggered cyclically by term expiry or by <a href="../flows/WF-ORG-04.html">WF-ORG-04 (co-determination scaling)</a>
-            when composition changes.</p>
-          <p><strong>Entity state machine:</strong> Organization — <em>[Co-determination tiers]</em>: the board is valid only
-            while its composition matches the current scale.</p>
-          <p><strong>Vote machinery:</strong> the same PR-STV engine that runs public elections runs these tracks;
-            single-winner RCV is used only where one seat is filled (the chair) — mirroring the individual-executive rule.</p>
-          <p class="citation">Art. III §4, §6 · CLK-13 · CLK-14</p>
+          <p><strong>What this screen does:</strong> it runs a company's board election — the owner track and the worker
+            track each elect their seats, and then the full board elects its chair. It re-runs whenever term expiry or a
+            change in the worker-to-owner scale changes who sits on the board.</p>
+          <p><strong>When the board is valid:</strong> only while its composition matches the current owner-to-worker scale.</p>
+          <p><strong>Vote machinery:</strong> the same proportional engine that runs public elections runs these tracks;
+            single-winner ranked choice is used only where one seat is filled (the chair) — mirroring the individual-executive rule.</p>
         </div>
       </details>
     </div>
@@ -102,7 +100,7 @@
       roles: ['R-23', 'R-24', 'R-25', 'R-26', 'R-27', 'R-28'],
       workflows: ['WF-ORG-05', 'WF-ORG-04'],
       forms: ['F-ORG-003', 'F-ORG-004'],
-      citation: 'Owner STV + worker STV + joint chair RCV · Art. III §4, §6',
+      citation: 'Owner track and worker track each elect by single transferable vote; the full board elects its chair by ranked choice.',
       flow: 'WF-ORG-05',
       register: 'governance'
     };
@@ -185,18 +183,17 @@
               '<span class="stv-votes">' + c[1] + (c[2] ? ' · elected' : '') + '</span></div>';
           }).join('') + '</div>' +
           '<p>' + S.badge('success', 'Cyrus Tehrani elected chair — 7 of 12, the full-board majority', 'check') +
-          ' <span class="citation">R-28 Board Chair · Art. III §6</span></p></div>';
+          ' <span class="citation">Board Chair, elected jointly by the entire board.</span></p></div>';
         return chairRound === 1 ? r1 : r1 + r2;
       }
 
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(fid) + '</span></span></h3>' +
+        return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) + '</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
-          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(f.availableToRaw) + ' · ' + esc(f.creates) + '</p>' +
-          '<p class="citation">' + esc(f.basis) + '</p></div>';
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(S.plainCodes(f.availableToRaw)) + ' · ' + esc(S.plainCodes(f.creates)) + '</p>' +
+          '<p class="citation">' + esc(S.plainCodes(f.basis)) + '</p></div>';
       }
 
       function persona(id, label) {
@@ -210,7 +207,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Elections, sessions, and courts cannot be disrupted — enforced in code. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Elections, sessions, and courts cannot be disrupted — enforced in code.</div></div>'
           : '';
 
         document.getElementById('owner-results').innerHTML = stvList(ownerTrack, 'Shareholder ballots · 9 seats');
@@ -222,9 +219,9 @@
         document.getElementById('chair-advance').textContent = chairRound > 1 ? 'Count complete' : 'Run round 2';
 
         document.getElementById('seated-board').innerHTML =
-          persona('helena-brandt', 'R-26 owner-elected') +
-          persona('tomas-ferreira', 'R-27 worker-elected') +
-          persona('cyrus-tehrani', 'R-28 joint chair (also R-26)') +
+          persona('helena-brandt', 'owner-elected') +
+          persona('tomas-ferreira', 'worker-elected') +
+          persona('cyrus-tehrani', 'joint chair (also owner-elected)') +
           '<span class="tag-chip">+ 9 further seated members</span>';
 
         S.refresh();

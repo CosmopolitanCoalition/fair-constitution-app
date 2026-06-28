@@ -22,16 +22,16 @@
           delegated. The engine validates scope before anything takes effect: an order outside the delegated scope is
           rejected before issuance, and the rejection itself goes on the public record. Every issued order remains
           judicially reviewable.</p>
-        <p class="citation">Within delegated authority · Art. III §2–3 — judicially reviewable · Art. IV §5</p>
+        <p class="citation">Within the authority the legislature delegated — and reviewable by the courts at any time.</p>
       </header>
 
       <div class="banner banner--info">
         <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
         <div><span class="banner-title">Scope validation happens before issuance.</span>
-          The Constitutional Engine checks every order against the delegation act and the constitutional order —
+          The system checks every order against the delegation act and the rules everyone agreed to —
           elections, sessions, and courts cannot be disrupted, even under emergency powers.
-          <span class="hardened" style="margin-inline-start:var(--space-2)"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
-          <span class="citation" style="display:block">Civic-process protection · Art. II §7 — delegated scope · Art. III §2</span></div>
+          <span class="hardened" style="margin-inline-start:var(--space-2)"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Locked rule — cannot be changed by anyone</span>
+          <span class="citation" style="display:block">Civic processes stay protected; the executive acts only within the scope it was given.</span></div>
       </div>
 
       <section class="card" aria-labelledby="compose-h">
@@ -74,9 +74,9 @@
         <div id="order-register" aria-live="polite"></div>
         <noscript><p style="padding-inline:var(--space-6);padding-block-end:var(--space-4)">The order register is
           rendered from fixtures and requires JavaScript. It contains issued storm-response orders and one rejected
-          attempt to defer the New York County ranked window (rejected pre-issuance · Art. II §7).</p></noscript>
+          attempt to defer the New York County ranked window (rejected before issuance).</p></noscript>
         <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Timestamps shown in your timezone (UTC−5 · America/New_York) · stored as UTC — rejected orders never take
-          effect; the attempt is recorded · Art. III §2</p>
+          effect; the attempt is recorded.</p>
       </section>
 
       <div class="grid-2">
@@ -98,13 +98,13 @@
           <div id="form-exe-004"></div>
           <div class="card card--inset" style="margin-block-start:var(--space-3)">
             <p><strong>Treasury disbursement latency</strong></p>
-            <p class="cc-small">Opened 2031-05-02. Findings can feed a governor-removal request
-              (<a href="../flows/WF-EXE-06.html">WF-EXE-06</a>) or new legislation.</p>
+            <p class="cc-small">Opened 2031-05-02. Findings can feed a
+              <a href="../flows/WF-EXE-06.html">governor-removal request</a> or new legislation.</p>
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"></use></svg> Under investigation</span>
           </div>
           <button type="button" class="btn btn--secondary btn--sm" id="invest-btn" style="margin-block-start:var(--space-3)">Simulate an investigation order</button>
           <p id="invest-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
-          <p class="citation" style="margin-block-start:var(--space-2)">Full and equal investigative power over overseen departments · Art. III §4</p>
+          <p class="citation" style="margin-block-start:var(--space-2)">Full and equal power to investigate the departments it oversees.</p>
         </section>
       </div>
 
@@ -152,20 +152,19 @@
           <button type="submit" class="btn btn--primary">Submit application</button>
           <p id="grant-confirm" role="status" style="margin-block-start:var(--space-3)"></p>
         </form>
-        <p class="citation">Funds appropriated by legislative act · Art. II §2 — applications administered by the
-          executive · Art. III §2 — disbursements audit-chained · WF-SYS-04</p>
+        <p class="citation">Funds are set aside by the legislature; the executive runs the applications; every disbursement is added to the audit chain.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-07.html">WF-EXE-07 executive order / policy proposal</a> ·
-            <a href="../flows/WF-EXE-08.html">WF-EXE-08 investigation order</a>. Constitutional-challenge outcomes are
-            enforced from here (<a href="../judiciary/constitutional-challenge.html">Art. IV §5 tracker</a>).</p>
-          <p><strong>Entity state machine:</strong> Executive Office — this surface operates inside whichever state
-            the office is in (delegated or elected); the order lifecycle itself is Drafted → Scope-Validated →
-            Issued | Rejected-pre-issuance → [Judicially Reviewed].</p>
-          <p class="citation">Art. III §2–4 · Art. IV §5 · Art. II §7</p>
+          <p>This is where the executive issues orders, proposes policy, and opens investigations —
+            and where <a href="../flows/WF-EXE-07.html">orders and policy proposals</a> and
+            <a href="../flows/WF-EXE-08.html">investigation orders</a> are created. Court rulings on
+            challenges are <a href="../judiciary/constitutional-challenge.html">enforced from here</a>.</p>
+          <p><strong>How an order moves:</strong> the executive office may be acting on delegated authority or
+            be directly elected; either way an order goes from drafted, to scope-checked, to either issued or
+            rejected before issuance, and an issued order can still be reviewed by the courts.</p>
         </div>
       </details>
     </div>
@@ -180,7 +179,7 @@
       roles: ['R-14', 'R-15', 'R-16'],
       workflows: ['WF-EXE-07', 'WF-EXE-08'],
       forms: ['F-EXE-005', 'F-EXE-002', 'F-EXE-004'],
-      citation: 'Orders within delegated scope · Art. III §2–3 — judicially reviewable · Art. IV §5',
+      citation: 'Orders stay within the authority the legislature delegated, and the courts can review them.',
       flow: 'WF-EXE-07',
       register: 'governance'
     };
@@ -207,7 +206,7 @@
           note: 'Within delegated scope · charter function' },
         { id: 'EO-2031-11', title: 'Defer the New York County ranked-window opening by 14 days', dept: 'Chief Executive Office',
           when: '2031-05-02 11:05', status: 'rejected',
-          note: 'Rejected pre-issuance: elections cannot be disrupted (Art. II §7) and election scheduling is outside the delegated scope (Art. III §2)' }
+          note: 'Rejected before issuance: elections cannot be disrupted, and election scheduling is outside the delegated scope' }
       ];
       var sim = { policy: false, invest: false };
       var seq = 15;
@@ -215,18 +214,15 @@
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
-        return '<div class="card card--inset"><h3>' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+        return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+          '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p></div>';
       }
 
       function orderRow(o) {
         var statusHtml = o.status === 'issued'
           ? S.badge('success', 'Issued', 'check') +
-            ' <span class="tag-chip">judicially reviewable · Art. IV §5</span>'
+            ' <span class="tag-chip">reviewable by the courts</span>'
           : S.badge('danger', 'Rejected pre-issuance', 'x');
         return '<div class="log-row' + (o.status === 'rejected' ? ' log-row--rejected' : '') + '">' +
           '<span class="log-seq" data-no-i18n>' + esc(o.id) + '</span>' +
@@ -241,7 +237,7 @@
         document.getElementById('emergency-banner').innerHTML = st.scenario.emergency
           ? '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
             '<div><span class="banner-title">Emergency power active — ' + esc(W.emergency.label) + ' · day ' + W.emergency.day + ' of ' + W.emergency.maxDays + '</span>' +
-            'Emergency methods widen the delegated scope only within the declared area and duration; the civic-process protections still apply. <span class="citation">Art. II §7 · CLK-03</span></div></div>'
+            'Emergency methods widen the delegated scope only within the declared area and duration; the civic-process protections still apply.</div></div>'
           : '';
 
         document.getElementById('form-exe-005').innerHTML = formCard('F-EXE-005');
@@ -269,8 +265,8 @@
           title: title, dept: dept, when: '2031-06-11 (just now)',
           status: inScope ? 'issued' : 'rejected',
           note: inScope
-            ? 'Within delegated scope — engine-validated against the delegation act (Art. III §2)'
-            : 'Rejected pre-issuance: outside the delegated scope (Art. III §2); election interference barred by Art. II §7'
+            ? 'Within delegated scope — checked against the delegation act'
+            : 'Rejected before issuance: outside the delegated scope; elections cannot be interfered with'
         };
         orders.unshift(o);
         document.getElementById('order-confirm').innerHTML = inScope
@@ -303,7 +299,7 @@
         box.innerHTML = S.badge('info', 'Received · pending review', 'clock') +
           ' <span class="cc-small">Simulated: application by ' + esc(org.name) + ' for ' +
           amount.toLocaleString('en-US') + ' against ' + esc(line) +
-          ' is on the queue — review and any disbursement are appended to the audit chain (WF-SYS-04). Nothing left this page.</span>';
+          ' is on the queue — review and any disbursement are appended to the audit chain. Nothing left this page.</span>';
       });
 
       render();

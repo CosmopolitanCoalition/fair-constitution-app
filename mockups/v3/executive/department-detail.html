@@ -36,22 +36,22 @@
         <h2 id="charter-h">Charter and oversight</h2>
         <p><strong>Charter:</strong> streets, water, waste; oversees Manhattan Water &amp; Power (CGC).
           Quarterly reporting to the executive and the legislature.</p>
-        <p class="citation">Chartered by Act 2030-11 · Department Creation Act (F-LEG-016) · Art. II §9</p>
+        <p class="citation">Chartered by Act 2030-11 · Department Creation Act</p>
         <hr />
         <p><strong>Oversight:</strong> New York County executive committee (delegated) — full and equal investigative
           power over department operations.</p>
-        <p class="citation">Powers and oversight · Art. III §4 — orders &amp; investigations: <a href="executive-actions.html">executive actions</a></p>
+        <p class="citation">Powers and oversight — orders &amp; investigations: <a href="executive-actions.html">executive actions</a></p>
         <hr />
         <p><strong>Oversees:</strong> <a href="../organizations/cgc-detail.html">Manhattan Water &amp; Power</a> —
           a Common Good Corporation with 1,450 workers of its own.</p>
-        <p class="citation">CGC oversight assigned at creation · Art. III §5 — CGC intellectual property is perpetually public domain · Art. III §5</p>
+        <p class="citation">CGC oversight assigned at creation — CGC intellectual property is perpetually public domain</p>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="board-h">
         <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
           <h2 id="board-h">Board roster</h2>
-          <p class="gloss">1,240 workers sits between the first-seat threshold (100 · CLK-13) and parity (2,000 ·
-            CLK-14) — uniform scaling yields 4 of 11 seats for the worker class. The chair is elected jointly by the
+          <p class="gloss">1,240 workers sits between the first-seat threshold (100) and parity (2,000) —
+            uniform scaling yields 4 of 11 seats for the worker class. The chair is elected jointly by the
             entire board.</p>
         </div>
         <div class="table-wrap">
@@ -83,8 +83,8 @@
             </tbody>
           </table>
         </div>
-        <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Governors: politically neutral · 10-yr civil-officer term · CLK-09 — worker seats &amp; joint chair · Art. III §6 ·
-          CLK-13 · CLK-14 — dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC —
+        <p class="citation" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Governors: politically neutral · 10-yr civil-officer term — worker seats &amp; joint chair —
+          dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC —
           worker elections: <a href="../organizations/co-determination.html">co-determination mechanics</a></p>
       </section>
 
@@ -98,7 +98,7 @@
               Term expires 2031-09-01.</p>
             <p id="nom-status"><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file-text"></use></svg> Dossier under review by the executive</span></p>
             <button type="button" class="btn btn--secondary btn--sm" id="nom-btn">Submit dossier to the legislature</button>
-            <p class="citation" style="margin-block-start:var(--space-2)">F-EXE-001 → triggers F-LEG-020 consent vote (peg-quorum majority of all serving) · Art. III §4</p>
+            <p class="citation" style="margin-block-start:var(--space-2)">Submitting the dossier triggers a legislative consent vote — a majority of all serving members, where an absent member counts as a no.</p>
           </div>
         </section>
 
@@ -112,7 +112,7 @@
               firing, with supermajority applying only where the constitution states it.</p>
             <p id="rem-status"><span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-minus"></use></svg> None open</span></p>
             <button type="button" class="btn btn--danger btn--sm" id="rem-btn">Simulate a removal request</button>
-            <p class="citation" style="margin-block-start:var(--space-2)">F-EXE-003 → ordinary majority of all serving members · Art. III §4 — flow: <a href="../flows/WF-EXE-06.html">WF-EXE-06</a></p>
+            <p class="citation" style="margin-block-start:var(--space-2)">Decided by an ordinary majority of all serving members — flow: <a href="../flows/WF-EXE-06.html">governor removal</a></p>
           </div>
         </section>
       </div>
@@ -123,20 +123,22 @@
           the full report register live on the governor surface.</p>
         <p><a href="department-reporting.html">Open department reporting
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
-        <p class="citation">F-BOG-002 reports to executive + legislature · Art. III §4 — cycle: <a href="../flows/WF-EXE-09.html">WF-EXE-09</a></p>
+        <p class="citation">Reports to the executive and the legislature — cycle: <a href="../flows/WF-EXE-09.html">reporting cycle</a></p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-EXE-04.html">WF-EXE-04 department creation</a> ·
-            <a href="../flows/WF-EXE-05.html">WF-EXE-05 governor appointment</a> ·
-            <a href="../flows/WF-EXE-06.html">WF-EXE-06 governor removal</a> ·
-            <a href="../flows/WF-EXE-09.html">WF-EXE-09 reporting cycle</a>.</p>
+          <p><strong>What this screen does:</strong> shows a chartered department and its board — the roster of
+            appointed governors and worker-elected members — and lets the executive open a nomination dossier or a
+            removal request, and follow the reporting cycle. Related flows:
+            <a href="../flows/WF-EXE-04.html">department creation</a> ·
+            <a href="../flows/WF-EXE-05.html">governor appointment</a> ·
+            <a href="../flows/WF-EXE-06.html">governor removal</a> ·
+            <a href="../flows/WF-EXE-09.html">reporting cycle</a>.</p>
           <p><strong>Entity state machine:</strong> Department / Board — rendered live above; this department is in
             the <em>Operating</em> state. A removal request would move it into [Member Removal Requested → Voted]
             without interrupting operations.</p>
-          <p class="citation">Art. II §9 · Art. III §4–6 · CLK-09 · CLK-13 · CLK-14</p>
         </div>
       </details>
     </div>
@@ -151,7 +153,7 @@
       roles: ['R-14', 'R-15', 'R-16', 'R-18', 'R-30'],
       workflows: ['WF-EXE-04', 'WF-EXE-05', 'WF-EXE-06'],
       forms: ['F-EXE-001', 'F-EXE-003'],
-      citation: 'Department charter & board · Art. II §9 · Art. III §4 — worker seats · Art. III §6',
+      citation: 'Department charter & board — appointed governors and worker-elected seats',
       flow: 'WF-EXE-05',
       register: 'governance'
     };
@@ -172,12 +174,10 @@
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var aliases = (f.aliases && f.aliases.length)
-          ? '<p class="citation">catalog alias: ' + esc(f.aliases.join(' · ')) + '</p>' : '';
-        return '<div class="card card--inset"><h3>' + esc(f.name) +
-          ' <span class="form-chip"><span class="form-id">' + esc(f.id) + '</span></span></h3>' +
+        var aliases = '';
+        return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(f.availableToRaw) + ' · ' + esc(f.basis) + '</p>' + aliases + '</div>';
+          '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p>' + aliases + '</div>';
       }
 
       function render() {
@@ -193,7 +193,7 @@
         document.getElementById('form-exe-003').innerHTML = formCard('F-EXE-003');
 
         document.getElementById('nom-status').innerHTML = sim.dossier
-          ? S.badge('info', 'Consent vote pending — F-LEG-020 scheduled', 'clock')
+          ? S.badge('info', 'Consent vote pending — scheduled with the legislature', 'clock')
           : S.badge('neutral', 'Dossier under review by the executive', 'file-text');
         document.getElementById('rem-status').innerHTML = sim.removal
           ? S.badge('warning', 'Removal proceeding opened — legislative vote scheduled', 'alert-triangle')

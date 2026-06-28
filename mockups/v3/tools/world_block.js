@@ -169,7 +169,7 @@
        Seat 4 vacant. */
     chamber: {
       jurisdiction: 'usa-3-new-york-county', seats: 9, serving: 8,
-      quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving · Art. II §2',
+      quorum: 5, quorumGloss: 'Peg quorum: 5 of 9 serving',
       supermajority: 6, supermajorityGloss: 'ceil(serving × 2/3) = 6 of 9 · Art. VII',
       termEnds: '2035-11-01', nextSessionDue: '2031-06-23',
       /* Seating: circular chamber, most senior to least senior every other
@@ -204,17 +204,17 @@
     /* Case docket (WF-JUD-03). */
     cases: [
       { id: 'case-2031-088', title: 'Novák finding on Curfew Ordinance §3', kind: 'Constitutional challenge',
-        court: 'New York County court', panel: 'Full court (5 judges)', panelGloss: 'Major constitutional question — full court · CLK-16, hardened',
+        court: 'New York County court', panel: 'Full court (5 judges)', panelGloss: 'Major constitutional question — full court',
         state: 'Remedy recommended', filedVia: 'F-IND-016', jury: false },
       { id: 'case-2031-104', title: 'Tenant association v. Crown Ridge LLC', kind: 'Civil',
         court: 'New York County court', panel: '3 judges', state: 'Evidence docket', filedVia: 'F-ADV-001', jury: false,
         severity: 'Moderate', claimedScale: 'New York County' },
       { id: 'case-2031-097', title: 'State v. Whitfield', kind: 'Criminal',
         court: 'New York State court', panel: '3 judges + jury', state: 'Jury selection', filedVia: 'F-IND-017', jury: true,
-        severity: 'Serious', doubleJeopardy: 'Outcome will carry the double-jeopardy flag · Art. II §8' },
+        severity: 'Serious', doubleJeopardy: 'Outcome will carry the double-jeopardy flag' },
       { id: 'case-2031-101', title: 'Pham v. New York County election board', kind: 'Administrative',
         court: 'New York County court', panel: '3 judges', state: 'Deliberation', filedVia: 'F-ADV-001', jury: false,
-        severity: 'Minor', note: 'Candidacy-validation appeal (WF-CIV-05 rejection path)' }
+        severity: 'Minor', note: 'Candidacy-validation appeal (rejection path)' }
     ],
 
     /* Executive departments (Art. II §9; boards per Art. III §4) — New York
@@ -320,7 +320,7 @@
     vacancy: {
       office: 'New York County legislature · seat 4', member: 'Renata Silva (resigned)',
       declaredVia: 'F-LEG-036', status: 'countback-running',
-      gloss: 'Prior ballots re-run with the vacated member removed · Art. II §5 · as implemented (ledger #q6)'
+      gloss: 'Prior ballots re-run with the vacated member removed · as implemented (ledger #q6)'
     },
     specialElection: {
       trigger: 'countback-exhausted', windowDays: [90, 180], clock: 'CLK-04',
@@ -415,7 +415,7 @@
         { n: 1, actor: 'R-03', action: 'Any inhabitant files challenge: law unjustly impedes rights under the Constitution or other valid law', form: 'F-IND-016',
           outcome: 'Challenge docketed',
           screen: { href: 'judiciary/constitutional-challenge.html', params: { sc: { challenge: true } } } },
-        { n: 2, actor: 'R-19', action: 'Hear (full court for significant constitutional questions · CLK-16, hardened)', engine: 'WF-JUD-03 machinery',
+        { n: 2, actor: 'R-19', action: 'Hear (full court for significant constitutional questions)', engine: 'WF-JUD-03 machinery',
           outcome: 'Contradiction found, or law stands',
           screen: { href: 'judiciary/case-detail.html', params: { role: 'R-19' } },
           branches: [

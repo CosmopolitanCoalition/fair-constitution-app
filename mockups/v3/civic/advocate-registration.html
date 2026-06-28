@@ -19,7 +19,7 @@
         <p class="page-intro">Advocates represent people in court. Everyone has the right to competent legal
           representation — registering here makes you eligible to provide it within a jurisdiction, under
           qualifications that jurisdiction's law defines.</p>
-        <p class="citation">Zealous &amp; competent advocates · Art. IV §4 · Right to Legal Representation · Art. I</p>
+        <p class="citation">Everyone has the right to a zealous, competent advocate.</p>
       </header>
 
       <section class="card" aria-labelledby="prereq-h">
@@ -27,17 +27,17 @@
         <div class="stack" style="gap:var(--space-3)">
           <div class="cluster" style="justify-content:space-between">
             <div><strong>A judiciary exists in the jurisdiction</strong>
-              <span class="citation" style="display:block">I-JUD / I-JDE must be operational before advocates can register</span></div>
-            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — New York County judiciary operating (appointed, I-JUD)</span>
+              <span class="citation" style="display:block">a court must be operating before advocates can register</span></div>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — New York County judiciary operating (appointed)</span>
           </div>
           <div class="cluster" style="justify-content:space-between">
-            <div><strong>You are jurisdictionally associated (R-03)</strong>
+            <div><strong>You are associated with the jurisdiction</strong>
               <span class="citation" style="display:block">association is the only constitutional requirement; the rest is jurisdiction law</span></div>
             <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — <span data-bind="persona.name">Sofia Petrova</span>, New York County</span>
           </div>
           <div class="cluster" style="justify-content:space-between">
             <div><strong>Qualifications per jurisdiction law</strong>
-              <span class="citation" style="display:block">set by New York County law (Act 2029-08 — fictional example) · Art. IV §4</span></div>
+              <span class="citation" style="display:block">set by New York County law (Act 2029-08 — fictional example)</span></div>
             <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-info"></use></svg> Declared in the form below</span>
           </div>
         </div>
@@ -45,9 +45,9 @@
       </section>
 
       <section class="card" aria-labelledby="form-h">
-        <h2 id="form-h">Advocate registration <span class="form-chip"><span class="form-id">F-IND-015</span></span></h2>
+        <h2 id="form-h">Advocate registration</h2>
         <p class="cc-small">Register as a legal advocate qualified to practice in a jurisdiction.
-          <span class="citation" style="display:block">available to R-03 Jurisdictionally Associated · creates the Advocate record (R-21) · Art. IV §4; Art. I (Right to Legal Rep)</span></p>
+          <span class="citation" style="display:block">open to anyone associated with the jurisdiction · creates your advocate record</span></p>
         <form id="adv-form" novalidate>
           <div class="field">
             <label class="field-label" for="adv-jur">Jurisdiction of practice</label>
@@ -78,34 +78,31 @@
         <div class="banner banner--info" id="adv-confirm" hidden style="margin-block-start:var(--space-4)">
           <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
           <div><span class="banner-title">Submitted — pending review by the jurisdictional judiciary.</span>
-            On approval, your Advocate record (R-21) is created and you become eligible for case representation —
+            On approval, your advocate record is created and you become eligible for case representation —
             filings, motions, evidence, and briefs open in the <a href="../judiciary/advocate-console.html">advocate console</a>.
-            <span class="citation">Creates: Advocate record (R-21) · Art. IV §4</span></div>
+            <span class="citation">Creates your advocate record.</span></div>
         </div>
       </section>
 
       <section class="card" aria-labelledby="after-h">
         <h2 id="after-h">What registration unlocks</h2>
         <ul>
-          <li>Filing cases on behalf of clients (Civil/criminal case filing · F-IND-017 via advocate standing).</li>
+          <li>Filing civil and criminal cases on behalf of clients.</li>
           <li>Motions, evidence submission, and briefs in the <a href="../judiciary/advocate-console.html">advocate console</a>.</li>
           <li>Appearing in any court of the registering jurisdiction, including constitutional challenges.</li>
         </ul>
         <p class="cc-small">Representing yourself never requires registration — this role exists so others can be
-          competently represented. <span class="citation">Right to Fair Trial; Right to Legal Representation · Art. I</span></p>
+          competently represented. <span class="citation">Everyone has the right to a fair trial and to legal representation.</span></p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-07.html">WF-CIV-07 advocate registration</a> —
-            terminal state: registered advocate eligible for case representation; cases then run through
-            <a href="../flows/WF-JUD-03.html">WF-JUD-03</a>.</p>
-          <p><strong>Entity state machine:</strong> Individual — registration adds the R-21 role to a Jurisdictionally
-            Associated individual; it does not change residency state.</p>
-          <p><strong>ID drift note:</strong> the workflows catalog labels the advocate R-22; the roles chart is canonical —
-            R-21 Advocate, R-22 Juror.</p>
-          <p class="citation">Art. IV §4 · Art. I</p>
+          <p><strong>What this screen does:</strong> <a href="../flows/WF-CIV-07.html">advocate registration</a> —
+            you finish as a registered advocate eligible for case representation; cases then run through the
+            <a href="../flows/WF-JUD-03.html">judiciary case flow</a>.</p>
+          <p><strong>What it changes:</strong> registration adds the advocate role to someone already associated with
+            the jurisdiction; it does not change their residency.</p>
         </div>
       </details>
     </div>
@@ -120,7 +117,7 @@
       roles: ['R-03', 'R-21'],
       workflows: ['WF-CIV-07'],
       forms: ['F-IND-015'],
-      citation: 'Zealous & competent advocates · Art. IV §4 · Right to Legal Representation · Art. I',
+      citation: 'Everyone has the right to a zealous, competent advocate.',
       flow: 'WF-CIV-07',
       register: 'governance'
     };

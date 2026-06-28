@@ -22,7 +22,7 @@
           and revoke — at any time. The top <strong id="finalist-x">21</strong> candidates when the phase closes lock onto
           the ranked ballot. Approving here costs you nothing on election day: you will still rank freely among the
           finalists, and write-ins always remain open.</p>
-        <p class="citation">Registration is open the entire inter-election period · CLK-18 — finalists: X = f(seats) · CLK-21 — Art. II §2 · as implemented
+        <p class="citation">Registration is open the entire inter-election period — the number of finalists is set by the number of seats · as implemented
           (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
       </header>
 
@@ -37,7 +37,7 @@
         <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
         <div><span class="banner-title">Your approvals are secret; standings are aggregate.</span>
           Nobody — including candidates — can see who approved whom. Counts update on a daily cycle.
-          <span class="citation">Ballot secrecy · Art. II §2 · Ensure Election Security and Integrity</span></div>
+          <span class="citation">Ballot secrecy · Election security and integrity</span></div>
       </div>
 
       <div class="filter-bar" role="group" aria-label="Filter candidates">
@@ -77,7 +77,7 @@
           <h2 id="stand-h">Stand for office yourself</h2>
           <p class="cc-small">Any jurisdictionally associated resident can register — there are no other requirements.
             Validated candidates enter this pool immediately.</p>
-          <p class="citation">Your right to stand and to vote for anyone is preserved · Art. I · Right to Stand for Office</p>
+          <p class="citation">Your right to stand and to vote for anyone is preserved</p>
           <a class="btn btn--primary btn--sm" href="candidacy-registration.html">Register candidacy
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </section>
@@ -86,14 +86,13 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> WF-CIV-08 (open ballot & approval phase) — feeds WF-ELE-01 (general cycle);
-            candidates arrive via WF-CIV-05 (candidacy registration & validation).</p>
-          <p><strong>Entity state machine:</strong> Approval Standing — approvals accumulate continuously; the finalist
-            cutoff freezes the top X per race when the ranked window is scheduled.</p>
-          <p><strong>Filters & factions:</strong> there is no faction layer — filtering is by endorsing organization or
+          <p><strong>What this screen does:</strong> this is the open ballot and approval phase — it feeds the general
+            election cycle. Candidates arrive here after they register and are validated.</p>
+          <p><strong>How standings work:</strong> approvals accumulate continuously; when the ranked window is scheduled,
+            the finalist cutoff freezes the top finalists per race.</p>
+          <p><strong>Filters:</strong> there are no factions — filtering is by endorsing organization or
             individual endorsements; candidates with neither are first-class
             (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
-          <p class="citation">Art. II §2 · CLK-18 · CLK-21</p>
         </div>
       </details>
     </div>
@@ -108,7 +107,7 @@
       roles: ['R-03', 'R-04', 'R-06'],
       workflows: ['WF-CIV-08', 'WF-ELE-01', 'WF-CIV-05'],
       forms: [],
-      citation: 'Approval phase · finalists X = f(seats) · CLK-21 · Art. II §2',
+      citation: 'Approval phase · the number of finalists is set by the number of seats',
       flow: 'WF-CIV-08',
       register: 'governance'
     };
@@ -202,7 +201,7 @@
           (phase === 'ranked'
             ? 'The ranked window is open: <a href="ranked-ballot.html">rank your ballot now</a>. Standings below are the frozen cutoff.'
             : 'Tabulation is under way: <a href="results.html">watch the count</a>. Standings below are the frozen cutoff.') +
-          ' <span class="citation">CLK-21 · finalist cutoff</span></div></div>';
+          ' <span class="citation">finalist cutoff</span></div></div>';
 
         /* sort by standing (incl. the viewer's simulated approvals), draw the line after X */
         var sorted = W.candidates.slice().sort(function (a, b) {
@@ -214,7 +213,7 @@
           var rank = i + 1;
           if (rank === FINALISTS + 1) {
             html += '<div class="finalist-line" role="separator" aria-label="Finalist line">finalist line — top ' + FINALISTS +
-              ' advance to the ranked ballot · CLK-21</div>';
+              ' advance to the ranked ballot</div>';
           }
           if (matches(c)) { html += rowHtml(c, rank, !!myApprovals[c.id], phaseOpen); shown++; }
           else hidden++;

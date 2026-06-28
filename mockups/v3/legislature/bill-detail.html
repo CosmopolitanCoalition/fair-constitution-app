@@ -21,7 +21,7 @@
           hears disputes.</p>
         <div class="cluster">
           <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> In committee</span>
-          <span class="persona-chip"><span class="avatar" aria-hidden="true">MC</span> Marcus Chen <span class="persona-roles">R-09 · sponsor</span></span>
+          <span class="persona-chip"><span class="avatar" aria-hidden="true">MC</span> Marcus Chen <span class="persona-roles">Legislator · sponsor</span></span>
           <span class="citation">introduced 2031-04-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>
         </div>
       </header>
@@ -30,7 +30,7 @@
         <h2 id="lc-h">Lifecycle</h2>
         <ol id="lifecycle" class="lifecycle" aria-label="Bill lifecycle — currently In-Committee"></ol>
         <noscript><p>Lifecycle renders with JavaScript — this bill is at In-Committee.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-2)">Bill state machine · Introduced and Referred complete · In-Committee current · WF-LEG-06</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Introduced and Referred complete · In-Committee current.</p>
       </section>
 
       <section class="card" aria-labelledby="scope-h">
@@ -47,14 +47,14 @@
             <p style="margin-block-start:var(--space-1)">County judiciary hears disputes; binds New York County only.</p>
           </div>
         </div>
-        <p class="citation">Scale &amp; scope declared at introduction · F-LEG-003 · Art. V §4</p>
+        <p class="citation">Scale &amp; scope declared at introduction.</p>
       </section>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="com-h">
-          <h2 id="com-h">Committee stage <span class="form-chip">Committee vote <span class="form-id">F-LEG-005</span></span></h2>
+          <h2 id="com-h">Committee stage <span class="form-chip">Committee vote</span></h2>
           <p class="cc-small">Cast a vote on a bill or matter within a committee.
-            <span class="citation">available to R-11 Committee Member · Art. II §4</span></p>
+            <span class="citation">available to Committee Members</span></p>
           <p>Environment &amp; Infrastructure · 3 members · passage = majority of <strong>all committee members</strong>: 2 of 3.</p>
           <div class="meter-block">
             <div class="meter"><span class="meter-fill" style="inline-size:33%"></span>
@@ -66,20 +66,20 @@
         </section>
 
         <section class="card" aria-labelledby="floor-h">
-          <h2 id="floor-h">Floor vote <span class="form-chip">Floor vote <span class="form-id">F-LEG-004</span></span></h2>
+          <h2 id="floor-h">Floor vote <span class="form-chip">Floor vote</span></h2>
           <p class="cc-small">Cast a vote on a bill, appointment, act, or other matter before the full legislature.
-            <span class="citation">available to R-09 Legislative Representative · Art. II §2 (Peg Quorum)</span></p>
+            <span class="citation">available to Legislators · peg quorum</span></p>
           <p>Ordinary act — passes by <strong>majority of all serving members: 5 of 9</strong>, never a majority of
             those present. Projected whip count: 6 yes.</p>
           <div class="meter-block">
             <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:67%"></span>
               <span class="meter-threshold" style="inset-inline-start:56%"></span></div>
-            <div class="meter-caption"><span>6 projected yes of 9</span><span>majority gate: 5 of 9 · Art. II §2</span></div>
+            <div class="meter-caption"><span>6 projected yes of 9</span><span>majority gate: 5 of 9</span></div>
           </div>
           <div class="meter-block" style="margin-block-start:var(--space-3)">
             <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:67%"></span>
               <span class="meter-threshold" style="inset-inline-start:67%"></span></div>
-            <div class="meter-caption"><span>supermajority gate (if the act class required it)</span><span>ceil(9 × 2/3) = 6 of 9 · Art. VII</span></div>
+            <div class="meter-caption"><span>supermajority gate (if the act class required it)</span><span>two-thirds of all 9 seats = 6 of 9</span></div>
           </div>
           <p class="gloss" style="margin-block-start:var(--space-2)">Peg quorum: the denominator is every serving seat.
             An absent member counts the same as a no.</p>
@@ -95,7 +95,7 @@
           all its serving members.</p>
         <div class="cluster" style="margin-block-end:var(--space-3)">
           <button type="button" class="btn btn--secondary btn--sm" id="bicam-toggle" aria-pressed="false">Preview bicameral tally</button>
-          <span class="citation">also driven by the demo-bar "Bicameral" toggle · Art. V §3 · as implemented
+          <span class="citation">also driven by the demo-bar "Bicameral" toggle · as implemented
             (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>)</span>
         </div>
         <div id="bicam-body"></div>
@@ -105,13 +105,12 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-LEG-06.html">WF-LEG-06 (bill lifecycle)</a> — this bill is
-            at the committee step; <a href="../flows/WF-LEG-07.html">WF-LEG-07 (bicameral dual agreement)</a> — the
-            toggle above; the committee hearing runs <a href="../flows/WF-LEG-08.html">WF-LEG-08</a>.</p>
-          <p><strong>Entity state machine:</strong> Bill — Introduced → Referred → <em>In-Committee</em> → Reported →
-            On-Floor → Passed → Enacted → Published. If it is later challenged, the [Challenged] / [Edited per
-            Art. IV §5] stages apply.</p>
-          <p class="citation">Art. II §2 · Art. II §4 · Art. V §3–4 · Art. VII</p>
+          <p>This screen tracks one bill through its life: the <a href="../flows/WF-LEG-06.html">bill lifecycle</a> — this bill is
+            at the committee step; the <a href="../flows/WF-LEG-07.html">bicameral dual-agreement preview</a> behind the
+            toggle above; and the <a href="../flows/WF-LEG-08.html">committee hearing</a> where votes are cast.</p>
+          <p><strong>Where a bill goes:</strong> Introduced → Referred → <em>In-Committee</em> → Reported →
+            On-Floor → Passed → Enacted → Published. If it is later challenged, the Challenged / Edited
+            stages apply.</p>
         </div>
       </details>
     </div>
@@ -126,7 +125,7 @@
       roles: ['R-09', 'R-10', 'R-11', 'R-12'],
       workflows: ['WF-LEG-06', 'WF-LEG-07'],
       forms: ['F-LEG-004', 'F-LEG-005'],
-      citation: 'Majority of all serving = 5 of 9 · supermajority 6 of 9 · Art. II §2; Art. V §3',
+      citation: 'Majority of all serving members = 5 of 9 · supermajority = 6 of 9 · both seat kinds must agree',
       flow: 'WF-LEG-06',
       register: 'governance'
     };
@@ -179,19 +178,19 @@
             'passes when both seat kinds independently agree — twice.</p>'
           : '<h3 style="font-size:var(--text-base)">Committee stage — both kinds must agree</h3>' +
             '<div class="grid-2">' +
-            dualMeter('Type A · population-apportioned members on committee', 2, 3, 'Art. V §3') +
-            dualMeter('Type B · equal-apportioned members on committee', 2, 2, 'Art. V §3') +
+            dualMeter('Type A · population-apportioned members on committee', 2, 3, 'majority of all members of this kind') +
+            dualMeter('Type B · equal-apportioned members on committee', 2, 2, 'majority of all members of this kind') +
             '</div>' +
             '<h3 style="font-size:var(--text-base);margin-block-start:var(--space-4)">Floor stage — both kinds must agree again</h3>' +
             '<div class="grid-2">' +
-            dualMeter('Type A · population-apportioned members (6 seats)', 4, 6, 'Art. V §3') +
-            dualMeter('Type B · equal-apportioned members (3 seats)', 2, 3, 'Art. V §3') +
+            dualMeter('Type A · population-apportioned members (6 seats)', 4, 6, 'majority of all members of this kind') +
+            dualMeter('Type B · equal-apportioned members (3 seats)', 2, 3, 'majority of all members of this kind') +
             '</div>' +
             '<div class="banner banner--info" role="status" style="margin-block-start:var(--space-4)">' + S.icon('check') +
             '<div><span class="banner-title">Both kinds agree at committee and on the floor — the act passes</span>' +
             'A failure in either kind, at either stage, fails the act. ' +
             '<span class="citation">Independent agreement of both seat kinds — majority of all serving of each kind · ' +
-            'Art. V §3 · as implemented (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>) · WF-LEG-07</span></div></div>';
+            'as implemented (<a href="../shared/constitutional-questions.html#q7">ledger #7</a>)</span></div></div>';
 
         S.refresh();
       }

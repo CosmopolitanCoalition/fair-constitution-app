@@ -17,8 +17,7 @@
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
         <div><span class="banner-title">Worked example — no live disintermediation case.</span>
           The scenario below imagines dissolving New York (the state, as an intermediary layer) so its
-          counties parent directly to the United States. The places are real; the case is illustrative.
-          <span class="citation">Art. V §8</span></div>
+          counties parent directly to the United States. The places are real; the case is illustrative.</div>
       </div>
 
       <header>
@@ -28,7 +27,7 @@
           jurisdiction agrees and the encompassing jurisdiction consents. Its acts do not vanish — they are
           incorporated into each former constituent's law, with conflicts surfaced and resolved before the
           dissolution takes effect.</p>
-        <p class="citation">All constituents agree + encompassing agrees → acts incorporated into constituents · Art. V §8</p>
+        <p class="citation">All constituents agree, and the encompassing jurisdiction agrees, before the acts are incorporated into the constituents.</p>
       </header>
 
       <section class="card" aria-labelledby="consent-h">
@@ -59,7 +58,7 @@
             <tbody id="merge-rows"></tbody>
           </table>
         </div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Open Art. IV §5 challenges travel with the
+        <p class="gloss" style="margin-block-start:var(--space-2)">Open legal challenges travel with the
           merged law — a pending finding against an intermediary act follows that act into each former
           constituent's law, the same way the Novák finding stays attached to Curfew Ordinance §3 in
           New York County.</p>
@@ -67,7 +66,7 @@
           <button type="button" class="btn btn--primary" id="merge-apply">Record merge plan</button>
           <span id="merge-status"></span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Acts incorporated into former constituents · Art. V §8 · publication via WF-SYS-03</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Acts are incorporated into the former constituents, then published.</p>
       </section>
 
       <section class="card" aria-labelledby="topo-h">
@@ -81,20 +80,12 @@
           <span class="adm-sep" aria-hidden="true">›</span>
           <span class="adm-chip adm-chip--3">New York County</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">federation topology updated on dissolution · WF-JUR-04 · Art. I; Art. V §1</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">The topology updates automatically when the dissolution takes effect.</p>
       </section>
 
       <section class="card" aria-labelledby="form-h">
         <h2 id="form-h">The dissolution vote</h2>
         <div id="form-card"></div>
-        <div class="banner banner--info" role="note" style="margin-block-start:var(--space-3)">
-          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <div><span class="banner-title">ID drift note.</span>
-            The workflows catalog reused the ID F-LEG-030 for <em>Vacancy declaration</em>; the canonical
-            F-LEG-030 is this <em>Disintermediation vote</em>. Canonical vacancy declaration is
-            <span id="vacancy-alias" class="citation">F-LEG-036 (catalog alias: F-LEG-030 · workflows catalog)</span>.
-            Form name first, ID second — so the drift cannot mislead.</div>
-        </div>
         <form id="dis-form" style="margin-block-start:var(--space-4)">
           <div class="field">
             <label class="field-label" for="dis-target">Intermediary jurisdiction to dissolve</label>
@@ -111,12 +102,11 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-JUR-04.html">WF-JUR-04 — disintermediation</a>
-            (disintermediation acts ×N → dissolution → law merge → topology update). The mirror-image
-            growth path is <a href="union-formation.html">union formation</a> (WF-JUR-02/03).</p>
-          <p><strong>Entity state machine:</strong> Jurisdiction — the [Disintermediated] terminal branch; its
-            former constituents remain Self-Governing throughout.</p>
-          <p class="citation">Art. V §8 · WF-JUR-04 · WF-SYS-03</p>
+          <p>This screen walks through dissolving an intermediary jurisdiction: each constituent and the
+            encompassing jurisdiction vote, the intermediary's acts are merged into each former constituent's
+            law (with conflicts surfaced and resolved), and the topology updates. The mirror-image growth path
+            is <a href="union-formation.html">union formation</a>.</p>
+          <p>Once dissolved, the intermediary is gone; its former constituents remain self-governing throughout.</p>
         </div>
       </details>
     </div>
@@ -131,7 +121,7 @@
       roles: ['R-09'],
       workflows: ['WF-JUR-04'],
       forms: ['F-LEG-030'],
-      citation: 'All constituents + encompassing agree · acts incorporated into constituents · Art. V §8',
+      citation: 'All constituents and the encompassing jurisdiction agree, then the acts are incorporated into the constituents.',
       flow: 'WF-JUR-04',
       register: 'governance'
     };
@@ -182,14 +172,14 @@
           '<span class="meter-fill' + (passed === total ? ' meter-fill--met' : '') + '" style="inline-size:' + pct + '%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
           '<div class="meter-caption"><span>Constituent unanimity — ' + passed + ' of ' + total + ' counties (all ' + total + ' required) — not yet unanimous</span>' +
-          '<span>unanimity, not supermajority · Art. V §8</span></div></div>' +
+          '<span>unanimity, not a supermajority</span></div></div>' +
           '<div class="meter-block">' +
           '<div class="meter" role="img" aria-label="Encompassing consent progress">' +
           '<span class="meter-fill" style="inline-size:0%"></span>' +
           '<span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
           '<div class="meter-caption"><span>Encompassing consent — United States legislature act scheduled 2031-07-08 · ' +
           'shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span>' +
-          '<span>encompassing jurisdiction must agree · Art. V §8</span></div></div>';
+          '<span>the encompassing jurisdiction must agree</span></div></div>';
 
         document.getElementById('consent-rows').innerHTML = CONSTITUENTS.map(function (c) {
           var badge = c.state === 'passed'
@@ -219,15 +209,12 @@
           ? S.badge('success', 'Merge plan recorded — takes effect only when all consents are in', 'check')
           : S.badge('neutral', chosen + ' of ' + CONFLICTS.length + ' conflicts resolved', 'clock');
 
-        /* F-LEG-030 form card — canonical, with the alias note rendered from fixtures. */
+        /* Dissolution vote form card. */
         var f = BY.forms['F-LEG-030'];
-        var vac = BY.forms['F-LEG-036'];
         document.getElementById('form-card').innerHTML = '<div class="card card--inset">' +
-          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + ' <span class="citation">F-LEG-030</span></h3>' +
+          '<h3 style="margin-block-end:var(--space-1)">' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">Available to: ' + esc(f.availableToRaw) + ' · prereq: ' + esc(f.prereq) + ' · ' + esc(f.basis) + '</p></div>';
-        document.getElementById('vacancy-alias').textContent =
-          'F-LEG-036 ' + esc(vac.name) + (vac.aliases.length ? ' (catalog alias: ' + vac.aliases.join('; ') + ')' : '');
+          '<p class="citation">Available to: ' + esc(S.plainCodes(f.availableToRaw)) + ' · prereq: ' + esc(S.plainCodes(f.prereq)) + '</p></div>';
 
         document.getElementById('dis-status').innerHTML = chamberVoted
           ? S.badge('success', 'This chamber voted to dissolve — recorded to the consent tracker', 'check')

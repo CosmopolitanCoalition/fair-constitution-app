@@ -19,7 +19,7 @@
         <p class="page-intro">Declare where you live, and the system verifies it from your long-term presence pattern —
           nothing else. The moment residency verifies, you are associated with <strong>every</strong> enclosing
           jurisdiction at once, and voting and candidacy unlock automatically with no other requirements.</p>
-        <p class="citation">Residency verified → all associations → rights unlocked · Art. I; Art. V §1 · CLK-05</p>
+        <p class="citation">Residency verified → all associations → rights unlocked.</p>
       </header>
 
       <section class="card" aria-labelledby="claim-h">
@@ -30,9 +30,9 @@
       </section>
 
       <section class="card" aria-labelledby="decl-h">
-        <h2 id="decl-h">Residency declaration <span class="form-chip"><span class="form-id">F-IND-003</span></span></h2>
+        <h2 id="decl-h">Residency declaration</h2>
         <p class="cc-small">Declare intent to establish residency in a jurisdiction. Begins GPS ping monitoring.
-          <span class="citation" style="display:block">available to R-01 Individual · prerequisite F-IND-001 · creates the residency tracking record · Art. I (Right to Reside)</span></p>
+          <span class="citation" style="display:block">Available to anyone · creates your residency tracking record · the right to reside is guaranteed.</span></p>
         <form id="decl-form" novalidate>
           <div class="field">
             <label class="field-label" for="decl-jur">Jurisdiction of residence</label>
@@ -56,22 +56,21 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="ping-h">
-          <h2 id="ping-h">GPS residency ping <span class="form-chip"><span class="form-id">F-IND-005</span></span></h2>
+          <h2 id="ping-h">GPS residency ping</h2>
           <p class="cc-small">Periodic automated or manual location check-in for residency pattern establishment.
-            <span class="citation" style="display:block">available to R-01 Individual · appends to the residency ping log · Art. I; Art. V §1</span>
-            <span class="citation" style="display:block">catalog alias: F-IND-004 · workflows catalog (swapped)</span></p>
+            <span class="citation" style="display:block">Available to anyone · appends to your private residency ping log.</span></p>
           <div id="ping-meter" class="meter-block"></div>
           <noscript><p class="gloss">Live meter renders with JavaScript — 22 of 30 qualifying days in the fixture state.</p></noscript>
           <p style="margin-block-start:var(--space-3)" class="amendable">
             <span class="amendable-value">30 days</span> — residency verification threshold
-            <span class="amendable-meta">residency_confirmation_days · constitutional default · amendable by legislative act · CLK-05 · Art. I; Art. V §1</span>
+            <span class="amendable-meta">Constitutional default — can be changed by a legislative act.</span>
           </p>
           <div class="banner banner--info" style="margin-block-start:var(--space-3)">
             <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
             <div><span class="banner-title">Pings are encrypted at rest.</span>
               Only the derived day-count is ever visible — to you or to anyone. Raw locations are never published,
               never shared, and purge on verification.
-              <span class="citation">location_pings · private · Art. I</span></div>
+              <span class="citation">Your location pings stay private.</span></div>
           </div>
         </section>
 
@@ -96,22 +95,22 @@
       </div>
 
       <section class="card" aria-labelledby="verify-h">
-        <h2 id="verify-h">Residency verification confirmation <span class="form-chip"><span class="form-id">F-IND-006</span></span></h2>
+        <h2 id="verify-h">Residency verification confirmation</h2>
         <p class="cc-small">System auto-generates when the ping threshold is met; you confirm or correct.
-          <span class="citation" style="display:block">available to R-02 Resident (pending) · creates verified residency + all jurisdictional associations (R-03) · Art. I; Art. V §1</span></p>
+          <span class="citation" style="display:block">Creates your verified residency and all jurisdictional associations at once.</span></p>
         <div id="verify-body"></div>
-        <noscript><p class="gloss">Verification panel renders with JavaScript — it shows locked, pending-confirmation, and fully-associated states as your role advances (R-01 → R-02 → R-03).</p></noscript>
+        <noscript><p class="gloss">Verification panel renders with JavaScript — it shows locked, pending-confirmation, and fully-associated states as you become a resident and then fully associated.</p></noscript>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>Workflows:</strong> <a href="../flows/WF-CIV-02.html">WF-CIV-02 residency establishment</a> —
-            steps 1–5 all land here; relocation re-runs it via <a href="../flows/WF-CIV-03.html">WF-CIV-03</a>;
-            population records update via <a href="../flows/WF-JUR-09.html">WF-JUR-09</a>.</p>
-          <p><strong>Entity state machines:</strong> Residency Claim (Declared → Ping-Monitoring → Threshold-Met → Verified → Active)
-            and Individual (Resident R-02 → Jurisdictionally Associated R-03).</p>
-          <p class="citation">Art. I (Right to Reside) · Art. V §1 (Authority by Consent) · CLK-05</p>
+          <p>This screen walks you through establishing residency: declare where you live, let your
+            location pattern build up over time, then confirm. Moving later re-runs the same steps, and
+            population records update automatically.</p>
+          <p><strong>How your claim progresses:</strong> Declared → Ping-Monitoring → Threshold-Met → Verified → Active.
+            Along the way you go from resident to fully associated with every jurisdiction you live inside.</p>
+          <p class="citation">Your right to reside is guaranteed, and authority rests on your consent.</p>
         </div>
       </details>
     </div>
@@ -126,7 +125,7 @@
       roles: ['R-01', 'R-02', 'R-03'],
       workflows: ['WF-CIV-02'],
       forms: ['F-IND-003', 'F-IND-005', 'F-IND-006'],
-      citation: 'Residency verified → all associations → rights unlocked · Art. I; Art. V §1 · CLK-05',
+      citation: 'Residency verified → all associations → rights unlocked.',
       flow: 'WF-CIV-02',
       register: 'governance'
     };
@@ -180,7 +179,7 @@
           '<div class="meter"><span class="meter-fill' + (days >= THRESHOLD ? ' meter-fill--met' : '') +
           '" style="inline-size:' + pct + '%"></span><span class="meter-threshold" style="inset-inline-start:100%"></span></div>' +
           '<div class="meter-caption"><span>' + days + ' of ' + THRESHOLD + ' qualifying days</span>' +
-          '<span>' + (days >= THRESHOLD ? 'threshold met · CLK-05' : (THRESHOLD - days) + ' days remaining · CLK-05') + '</span></div>';
+          '<span>' + (days >= THRESHOLD ? 'threshold met' : (THRESHOLD - days) + ' days remaining') + '</span></div>';
 
         /* Verification panel — three states */
         var body;
@@ -193,13 +192,13 @@
             '<div class="cluster"><button type="button" class="btn btn--primary" id="confirm-btn">Confirm — this is my residence</button>' +
             '<button type="button" class="btn btn--ghost" id="correct-btn">Correct the boundary</button></div>';
         } else {
-          body = '<p>' + S.badge('success', 'Residency verified — you are a verified resident (R-02)', 'check') + '</p>' +
-            '<p style="margin-block-start:var(--space-3)"><strong>Full nesting association (R-03):</strong> point-in-polygon resolved your entire chain — a chip for every level of your chain, all associated simultaneously.</p>' +
+          body = '<p>' + S.badge('success', 'Residency verified — you are a verified resident', 'check') + '</p>' +
+            '<p style="margin-block-start:var(--space-3)"><strong>Associated with every level:</strong> your location resolved your entire chain — a chip for every level, all associated simultaneously.</p>' +
             '<div class="cluster" style="margin-block-start:var(--space-2)">' + chipChain() + '</div>' +
             '<div class="cluster" style="margin-block-start:var(--space-4);gap:var(--space-4)">' +
             S.badge('success', 'Voting unlocked', 'check') + S.badge('success', 'Candidacy unlocked', 'check') +
-            '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened · protected by the constitutional test suite</span></div>' +
-            '<p class="citation" style="margin-block-start:var(--space-2)">Voting and candidacy unlocked — no other requirements · Art. I; Art. V §1</p>' +
+            '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Protected — guaranteed and cannot be taken away</span></div>' +
+            '<p class="citation" style="margin-block-start:var(--space-2)">Voting and candidacy unlocked — no other requirements.</p>' +
             '<p style="margin-block-start:var(--space-3)"><a href="civic-home.html">Go to your civic home ' +
             S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + '</a></p>';
         }
@@ -209,7 +208,7 @@
         if (cb) cb.addEventListener('click', function () { confirmedLocally = true; render(); });
         var xb = document.getElementById('correct-btn');
         if (xb) xb.addEventListener('click', function () {
-          xb.outerHTML = '<span class="cc-small">' + S.badge('info', 'Correction opened — redeclare below via F-IND-003', 'info') + '</span>';
+          xb.outerHTML = '<span class="cc-small">' + S.badge('info', 'Correction opened — redeclare your residency below', 'info') + '</span>';
         });
 
         S.refresh();
