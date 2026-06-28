@@ -283,12 +283,34 @@
       html += '<a class="sidebar-link" href="' + hrefV1(rel) + '">' + icon(iconName, { size: 'sm' }) + esc(label) + ' <span class="v1-tag" title="opens the v1 operations site">v1</span></a>';
     }
 
+    /* one unified nav — every area, game and operations, no version split */
     section('Start here');
     linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
     linkV2('tour', 'Guided tour', 'map', 'tour.html');
     linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
     linkV2('today', 'Today', 'home', 'civic/today.html');
     linkV2('my-civic-life', 'My profile', 'user', 'civic/my-civic-life.html');
+    endSection();
+
+    section('Identity & residency');
+    linkV2('civic-home', 'Civic home', 'home', 'civic/civic-home.html');
+    linkV2('onboarding', 'Create your account', 'user', 'civic/onboarding.html');
+    linkV2('identity-verification', 'Verify your identity', 'lock', 'civic/identity-verification.html');
+    linkV2('residency', 'Residency', 'map-pin', 'civic/residency.html');
+    linkV2('relocation', 'Relocate', 'map', 'civic/relocation.html');
+    linkV2('advocate-registration', 'Register as an advocate', 'briefcase', 'civic/advocate-registration.html');
+    linkV2('petitions', 'Petitions', 'file-text', 'civic/petitions.html');
+    endSection();
+
+    section('Elections');
+    linkV2('open-ballot', 'Open ballot', 'vote', 'electoral/open-ballot.html');
+    linkV2('ranked-ballot', 'Ranked ballot', 'check', 'electoral/ranked-ballot.html');
+    linkV2('candidacy', 'Stand for office', 'user', 'electoral/candidacy-registration.html');
+    linkV2('candidate-profile', 'A candidate', 'user', 'electoral/candidate-profile.html');
+    linkV2('election-detail', 'An election', 'clock', 'electoral/election-detail.html');
+    linkV2('results', 'Results', 'bar-chart', 'electoral/results.html');
+    linkV2('vacancy-countback', 'Vacancy countback', 'refresh-cw', 'electoral/vacancy-countback.html');
+    linkV2('election-board-console', 'Election board', 'shield', 'electoral/election-board-console.html');
     endSection();
 
     section('The Live Civic Room');
@@ -299,10 +321,41 @@
     });
     endSection();
 
-    section('Journeys');
-    V2.journeys.forEach(function (j) {
-      linkV2('journey-' + j.id, j.title.replace(/^An? /, ''), j.flagship ? 'vote' : 'file-text', 'journeys/journey.html?id=' + j.id);
-    });
+    section('Lawmaking · the legislature');
+    linkV2('legislature-home', 'The chamber', 'landmark', 'legislature/legislature-home.html');
+    linkV2('session-console', 'Session console', 'users', 'legislature/session-console.html');
+    linkV2('bills', 'Bills', 'file-text', 'legislature/bills.html');
+    linkV2('committees', 'Committees', 'users', 'legislature/committees.html');
+    linkV2('referendums', 'Referendums', 'vote', 'legislature/referendums.html');
+    linkV2('emergency-powers', 'Emergency powers', 'alert-triangle', 'legislature/emergency-powers.html');
+    linkV2('oversight', 'Oversight', 'shield', 'legislature/oversight.html');
+    linkV2('speaker-tools', 'Speaker tools', 'landmark', 'legislature/speaker-tools.html');
+    linkV2('leg-settings', 'Legislature settings', 'sliders', 'legislature/settings.html');
+    endSection();
+
+    section('The executive');
+    linkV2('executive-home', 'Executive home', 'briefcase', 'executive/executive-home.html');
+    linkV2('departments', 'Departments', 'building', 'executive/departments.html');
+    linkV2('executive-actions', 'Executive actions', 'file-text', 'executive/executive-actions.html');
+    linkV2('department-reporting', 'Department reporting', 'bar-chart', 'executive/department-reporting.html');
+    endSection();
+
+    section('The judiciary');
+    linkV2('judiciary-home', 'Judiciary home', 'scale', 'judiciary/judiciary-home.html');
+    linkV2('case-docket', 'Case docket', 'file-text', 'judiciary/case-docket.html');
+    linkV2('constitutional-challenge', 'Constitutional challenge', 'scale', 'judiciary/constitutional-challenge.html');
+    linkV2('advocate-console', 'Advocate console', 'briefcase', 'judiciary/advocate-console.html');
+    linkV2('juror-view', 'Juror view', 'users', 'judiciary/juror-view.html');
+    endSection();
+
+    section('Organizations');
+    linkV2('org-profile', 'An organization', 'building', 'social/org-profile.html');
+    linkV2('org-registry', 'Org registry', 'building', 'organizations/org-registry.html');
+    linkV2('org-detail', 'Org detail', 'building', 'organizations/org-detail.html');
+    linkV2('co-determination', 'Co-determination', 'users', 'organizations/co-determination.html');
+    linkV2('board-elections', 'Board elections', 'vote', 'organizations/board-elections.html');
+    linkV2('cgc-detail', 'Common-good corp', 'building', 'organizations/cgc-detail.html');
+    linkV2('transfers-conversions', 'Transfers & conversions', 'refresh-cw', 'organizations/transfers-conversions.html');
     endSection();
 
     section('The economy · Planned');
@@ -320,12 +373,39 @@
     endSection();
 
     section('People & social');
-    linkV2('org-profile', 'Organizations', 'building', 'social/org-profile.html');
     linkV2('rep', 'My representatives', 'landmark', 'social/rep.html');
     linkV2('social-home', 'Social', 'users', 'social/social-home.html');
     linkV2('groups', 'Messages', 'message-square', 'groups/groups-home.html');
     linkV2('achievements', 'Achievements', 'award', 'social/achievements.html', 'Proposed');
     linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
+    endSection();
+
+    section('Jurisdictions & federation');
+    linkV2('jurisdiction-browser', 'Jurisdiction browser', 'globe', 'jurisdictions/jurisdiction-browser.html');
+    linkV2('district-mapper', 'District mapper', 'map', 'jurisdictions/district-mapper.html');
+    linkV2('bootstrap', 'Bootstrap a jurisdiction', 'globe', 'jurisdictions/bootstrap.html');
+    linkV2('federation', 'Federation', 'globe', 'jurisdictions/federation.html');
+    linkV2('union-formation', 'Union formation', 'users', 'jurisdictions/union-formation.html');
+    linkV2('restoration', 'Restoration', 'refresh-cw', 'jurisdictions/restoration.html');
+    linkV2('disintermediation', 'Disintermediation', 'globe', 'jurisdictions/disintermediation.html');
+    endSection();
+
+    section('Run a node · operator plane');
+    linkV2('operator-home', 'Operator home', 'sliders', 'operator/operator-home.html');
+    linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
+    linkV2('operator-console', 'Operator console', 'landmark', 'operator/console.html');
+    linkV2('operator-roles', 'Roles & channels', 'users', 'operator/roles.html');
+    linkV2('operator-mesh', 'Mesh & federation', 'globe', 'operator/mesh.html');
+    linkV2('operator-dns', 'DNS & certificates', 'globe', 'operator/dns.html');
+    linkV2('operator-identity', 'Identity', 'lock', 'operator/identity.html');
+    linkV2('operator-moderation', 'Moderation & legal', 'shield', 'operator/moderation.html');
+    linkV2('operator-versioning', 'Versions & upgrades', 'refresh-cw', 'operator/versioning.html');
+    endSection();
+
+    section('Journeys');
+    V2.journeys.forEach(function (j) {
+      linkV2('journey-' + j.id, j.title.replace(/^An? /, ''), j.flagship ? 'vote' : 'file-text', 'journeys/journey.html?id=' + j.id);
+    });
     endSection();
 
     section('Learn & support');
@@ -338,27 +418,19 @@
     linkV2('report', 'Report an issue', 'flag', 'support/report.html');
     endSection();
 
-    section('Run a node · operator plane');
-    linkV2('operator-home', 'Operator home', 'sliders', 'operator/operator-home.html');
-    linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
-    linkV2('operator-console', 'Operator console', 'landmark', 'operator/console.html');
-    linkV2('operator-roles', 'Roles & channels', 'users', 'operator/roles.html');
-    linkV2('operator-mesh', 'Mesh & federation', 'globe', 'operator/mesh.html');
-    linkV2('operator-dns', 'DNS & certificates', 'globe', 'operator/dns.html');
-    linkV2('operator-identity', 'Identity (G-ID)', 'lock', 'operator/identity.html');
-    linkV2('operator-moderation', 'Moderation & legal', 'shield', 'operator/moderation.html');
-    linkV2('operator-versioning', 'Versions & upgrades', 'refresh-cw', 'operator/versioning.html');
-    endSection();
-
-    section('Operations (v1)');
-    linkV1('v1 launchpad', 'globe', 'index.html');
-    linkV1('Open ballot', 'vote', 'electoral/open-ballot.html');
-    linkV1('Session console', 'landmark', 'legislature/session-console.html');
-    linkV1('Public records', 'file-text', 'system/public-records.html');
+    section('System & records');
+    linkV2('public-records', 'Public records', 'file-text', 'system/public-records.html');
+    linkV2('audit-chain', 'Audit chain', 'lock', 'system/audit-chain.html');
+    linkV2('amendments', 'Amendments', 'file-text', 'system/amendments.html');
+    linkV2('term-sync', 'Term sync', 'refresh-cw', 'system/term-sync.html');
+    linkV2('clocks', 'Clocks', 'clock', 'shared/clocks.html');
     endSection();
 
     section('Design contract');
-    linkV2('coverage', 'v2 coverage', 'check', 'shared/coverage.html');
+    linkV2('coverage', 'Coverage', 'check', 'shared/coverage.html');
+    linkV2('styleguide', 'Style guide', 'sliders', 'shared/styleguide.html');
+    linkV2('accessibility', 'Accessibility', 'shield', 'shared/accessibility.html');
+    linkV2('constitutional-questions', 'Constitutional questions', 'scale', 'shared/constitutional-questions.html');
     endSection();
 
     return html;
@@ -567,7 +639,7 @@
     document.body.appendChild(footerEl);
     document.body.appendChild(cmdBarEl);
 
-    renderChrome(); wireEvents(); initHeaderScroll(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
+    renderChrome(); wireEvents(); initHeaderScroll(); applyBindings(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
   }
   function renderChrome() {
     if (!headerEl) return;
@@ -645,14 +717,35 @@
   }
 
   /* -------------------------------------------------------------- expose */
+  /* [data-bind] text binding — ported from the v1 shell so converted operations
+     pages keep working under the harmonized shell. */
+  function resolvePath(ctx, path) {
+    var cur = ctx, parts = String(path).split('.');
+    for (var i = 0; i < parts.length; i++) { if (cur == null) return undefined; cur = cur[parts[i]]; }
+    return cur;
+  }
+  function applyBindings() {
+    var s = CGA.state.getAll();
+    var ctx = { state: s, persona: activePersona(), role: BY.roles[s.role], jurisdiction: BY.jurisdictions[s.jurisdiction], instance: W.instance, world: W };
+    var nodes = document.querySelectorAll('[data-bind]');
+    for (var i = 0; i < nodes.length; i++) {
+      var v = resolvePath(ctx, nodes[i].getAttribute('data-bind'));
+      if (v !== undefined) nodes[i].textContent = typeof v === 'number' ? v.toLocaleString('en-US') : String(v);
+    }
+  }
+
   CGA.shellV2 = {
-    ROOT_V1: ROOT_V1, ROOT_V2: ROOT_V2,
+    ROOT_V1: ROOT_V1, ROOT_V2: ROOT_V2, ROOT: ROOT_V2,
     icon: icon, esc: esc, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
-    hrefV1: hrefV1, hrefV2: hrefV2, isBuiltV2: isBuiltV2, plannedFlag: plannedFlag,
-    announce: announce, activePersona: activePersona, jurisdictionChain: jurisdictionChain,
+    hrefV1: hrefV1, hrefV2: hrefV2, href: hrefV2, isBuiltV2: isBuiltV2, isBuilt: isBuiltV2, plannedFlag: plannedFlag,
+    announce: announce, activePersona: activePersona, jurisdictionChain: jurisdictionChain, t: t,
     tour: TOUR, tourHref: tourHref,
-    refresh: function () { renderChrome(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain(); }
+    refresh: function () { renderChrome(); applyBindings(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain(); }
   };
+  /* one harmonized shell: operations pages that boot against `CGA.shell` get the
+     v3 chrome with no inline-script changes (cga:statechange still fires from
+     demo-state.js). */
+  CGA.shell = CGA.shellV2;
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildShell);
   else buildShell();
