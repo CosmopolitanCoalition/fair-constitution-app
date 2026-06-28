@@ -20,12 +20,13 @@ use Throwable;
  *
  * The device signature is created by the player's CLIENT (the device secret is un-escrowed; this node never
  * holds it) and arrives in the request — this service only ISSUES the home attestation (it is the player's
- * home authority) and assembles the envelope. A short attestation TTL keeps the cross-node ban-evasion
- * window small (the verifying peer's recency cap).
+ * home authority) and assembles the envelope. A short attestation TTL bounds the cross-node ban-evasion
+ * window: a home `attestation.revoked` now propagates to the verifying peer via the FF&C sync tail (Flag 2),
+ * and the short TTL caps the residual exposure to the sync LAG before that revocation lands.
  */
 class VoiceReachService
 {
-    /** Short — comfortably within the capable peer's MAX_ATTESTATION_AGE_SECONDS recency cap. */
+    /** Short — bounds the sync-LAG window before a propagated revocation reaches the verifying peer. */
     public const ATTESTATION_TTL_SECONDS = 600;
 
     public function __construct(
@@ -37,11 +38,11 @@ class VoiceReachService
     ) {}
 
     /**
-     * @param  array{device_public_key?:string,action_signature?:string,timestamp?:int}  $device the client's device-signed proof
+     * @param  array{device_public_key?:string,action_signature?:string,timestamp?:int}  $device  the client's device-signed proof
      * @return array{token:string,sfu_url:string,room:string,identity:string,via:string}
      *
-     * @throws \App\Services\Federation\NoReachableHolder  when no peer hosts voice.sfu (degrade, no voice)
-     * @throws VoiceReachFailed                            when the chosen peer refused the request
+     * @throws \App\Services\Federation\NoReachableHolder when no peer hosts voice.sfu (degrade, no voice)
+     * @throws VoiceReachFailed when the chosen peer refused the request
      */
     public function tokenFor(User $player, string $jurisdictionId, string $room, array $device): array
     {

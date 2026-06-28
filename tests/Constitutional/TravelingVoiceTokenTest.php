@@ -34,7 +34,9 @@ class TravelingVoiceTokenTest extends TestCase
     use LivePgConnection;
 
     private const LIVE_CONNECTION = 'pgsql_voicetoken';
+
     private const PSEUDONYM = '@u-traveler:home.example';
+
     private const ROOM = 'call-square-J';
 
     public function test_open_commons_a_home_vouched_player_with_no_residency_gets_a_pseudonymous_token(): void
@@ -77,11 +79,23 @@ class TravelingVoiceTokenTest extends TestCase
             // A validly-signed but EXPIRED attestation → refused.
             $expired = $this->signedAttestation($att->device_public_key, (string) $att->subject_user_id, now()->subHours(2), now()->subHour());
             $this->assertRefused(403, fn () => $svc->mintForTravelingActor($this->envelope($expired, $secret, self::ROOM, self::PSEUDONYM), self::ROOM));
+        });
+    }
 
-            // A valid, UNEXPIRED, but too-OLD attestation (issued 20m ago) → refused by the recency cap that
-            // bounds the cross-node ban-evasion window (revocation doesn't yet propagate to a verifying peer).
-            $stale = $this->signedAttestation($att->device_public_key, (string) $att->subject_user_id, now()->subMinutes(20), now()->addHour());
-            $this->assertRefused(403, fn () => $svc->mintForTravelingActor($this->envelope($stale, $secret, self::ROOM, self::PSEUDONYM), self::ROOM));
+    public function test_an_aged_but_unexpired_attestation_mints_now_that_revocation_propagates(): void
+    {
+        $this->onLivePg(function () {
+            [, $att, $secret] = $this->homeVouchedPlayer();
+            $svc = app(TravelingVoiceTokenService::class);
+
+            // 20 minutes old but well within TTL. The retired recency-cap workaround no longer refuses it —
+            // cross-node revocation propagation (Flag 2) is the mechanism now, so a valid, unexpired,
+            // un-revoked attestation mints (the write-forwarding path always behaved this way).
+            $aged = $this->signedAttestation($att->device_public_key, (string) $att->subject_user_id, now()->subMinutes(20), now()->addHour());
+            $minted = $svc->mintForTravelingActor($this->envelope($aged, $secret, self::ROOM, self::PSEUDONYM), self::ROOM);
+
+            $this->assertSame(self::ROOM, $minted['room']);
+            $this->assertSame(self::PSEUDONYM, $minted['identity']);
         });
     }
 

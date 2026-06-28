@@ -24,26 +24,23 @@ use Illuminate\Support\Facades\Cache;
  *
  * Authenticity is the same two-layer model as write-forwarding (mirrors AttestedForwardedActor) MINUS the
  * local-subject resolution (a foreign player has no local row): (1) the home authority's attestation
- * verifies against the ISSUER's pinned key (real, vouched player); (2) the player's DEVICE signed THIS exact
- * request over a DISTINCT target+body (no cross-protocol replay of a /actor/write signature); plus this READ
- * path adds its OWN replay defense — a freshness window + a single-use nonce — since it deliberately does
- * not use the write-path idempotency table. The token sub is the home-supplied PSEUDONYM (never re-derived
- * here, never a legal name); the SFU api_secret never leaves this box.
+ * verifies against the ISSUER's pinned key (real, vouched player) and fails closed on expiry OR revocation;
+ * (2) the player's DEVICE signed THIS exact request over a DISTINCT target+body (no cross-protocol replay of
+ * a /actor/write signature); plus this READ path adds its OWN replay defense — a freshness window + a
+ * single-use nonce — since it deliberately does not use the write-path idempotency table. The token sub is
+ * the home-supplied PSEUDONYM (never re-derived here, never a legal name); the SFU api_secret never leaves
+ * this box.
+ *
+ * Cross-node BAN/REVOCATION now propagates (Flag 2): a home-authority `attestation.revoked` rides the FF&C
+ * sync tail into this box's local CRL, so verifyAttestation fails closed for it — the same mechanism the
+ * write-forwarding path relies on. The earlier recency cap (a workaround for the missing propagation) is
+ * retired; the only residual exposure is sync LAG (until the next tail), bounded in practice by the short
+ * TTLs the L-side issues for voice attestations (VoiceReachService).
  */
 class TravelingVoiceTokenService
 {
     /** A token-mint request must be within ±this of now (the read-path replay bound; bounds blast radius). */
     public const FRESHNESS_WINDOW_SECONDS = 120;
-
-    /**
-     * The attestation must have been issued within this window. Cross-node attestation REVOCATION does not
-     * yet propagate to a verifying peer (a shared limitation of the attestation model — the write-forwarding
-     * path has it too; the proper fix is materializing foreign 'attestation.revoked' events into the local
-     * CRL during sync-tail replay). Until then, requiring a FRESHLY-issued attestation bounds the cross-node
-     * ban-evasion window for voice: a join request carries a per-request attestation anyway, so a banned
-     * player's pre-ban attestation stops working here within minutes rather than lingering to its full TTL.
-     */
-    public const MAX_ATTESTATION_AGE_SECONDS = 900;
 
     public function __construct(
         private readonly AttestationService $attestations,
@@ -83,12 +80,6 @@ class TravelingVoiceTokenService
         }
         if (! $this->attestations->verifyAttestation($attestation, $issuerKey)) {
             throw new VoiceTokenRefused('attestation_invalid_expired_or_revoked', 403);
-        }
-
-        // (1b) Recency cap — bounds the cross-node ban-evasion window (revocation does not yet propagate to
-        // a verifying peer). A voice join carries a fresh per-request attestation; a stale one is rejected.
-        if (now()->getTimestamp() - (int) $attestation->issued_at->getTimestamp() > self::MAX_ATTESTATION_AGE_SECONDS) {
-            throw new VoiceTokenRefused('attestation_too_old_reissue', 403);
         }
 
         // (2) Freshness — a READ path with no idempotency table must bound replay itself.

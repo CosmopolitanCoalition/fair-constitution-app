@@ -9,6 +9,7 @@ use App\Models\InstanceSettings;
 use App\Models\PublicRecord;
 use App\Models\SyncLogEntry;
 use App\Services\AuditService;
+use App\Services\Identity\AttestationService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,6 +34,7 @@ class FederationSyncService
         private readonly MultiplexClient $multiplex,
         private readonly AuditService $audit,
         private readonly AuthorityResolver $authority,
+        private readonly AttestationService $attestations,
     ) {}
 
     // ──────────────────────────────────────────────────────────────────────
@@ -315,6 +317,21 @@ class FederationSyncService
                 };
             }
 
+            // Materialize foreign attestation REVOCATIONS from the (chain-verified) audit entries into the
+            // local CRL — so a verifying peer honors a revocation the home authority issued (Flag 2). This
+            // is identity-scoped, not jurisdiction-scoped: the issuer-binding + signature proof inside
+            // AttestationService::ingestForeignRevocation is the authority check, not authorityDisposition.
+            $revocations = [];
+            foreach ($entries as $e) {
+                if (($e['module'] ?? null) !== 'actor_identity' || ($e['event'] ?? null) !== 'attestation.revoked') {
+                    continue;
+                }
+                $payload = (array) ($e['payload'] ?? []);
+                if ($this->attestations->ingestForeignRevocation($payload, (string) $peer->server_id, (string) ($peer->public_key ?? ''))) {
+                    $revocations[] = (string) ($payload['attestation_id'] ?? '');
+                }
+            }
+
             $result = SyncLogEntry::RESULT_APPLIED;
             if ($applied === [] && $conflicts !== []) {
                 $result = SyncLogEntry::RESULT_CONFLICT_AUTHORITATIVE_WINS;
@@ -328,6 +345,7 @@ class FederationSyncService
                 'non_authoritative' => $nonAuthoritative,
                 'skipped' => $skipped,
                 'entries' => count($entries),
+                'revocations' => $revocations,
             ]);
 
             if ($toSeq > 0) {
