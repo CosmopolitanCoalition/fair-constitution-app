@@ -5,12 +5,13 @@ namespace App\Services\Matrix;
 use App\Models\User;
 
 /**
- * Phase K-3 (K3-J) — the LiveKit (Element Call SFU) access-token minter. Voice/video in a jurisdiction's
- * room is participation, so it is gated EXACTLY like posting: RESIDENCY is the ONLY gate (Art. I — never
- * karma, account age, or any reputation), reusing MatrixPostingGateService::assertMayPost. The token's
- * identity is the resident's PSEUDONYM (@u-<handle>), never the legal name. The token is ROOM-SCOPED
- * (a VideoGrant for one room), SHORT-LIVED (a bounded exp), grants NO admin/recording rights, and is
- * signed by the APPSERVICE alone (HS256 over the LiveKit api_secret — hand-rolled, no extra dependency).
+ * Phase K-3 (K3-J) / Phase 5 — the LiveKit (Element Call SFU) access-token minter. Voice/video in a
+ * jurisdiction's public commons is participation, so it is gated EXACTLY like speech: the commons is
+ * OPEN (Art. I — any authenticated player, resident or visitor; never karma/age/reputation), reusing
+ * MatrixPostingGateService::assertMayAccessCommons. The token's identity is the player's PSEUDONYM
+ * (@u-<handle>), never the legal name. The token is ROOM-SCOPED (a VideoGrant for one room), SHORT-LIVED
+ * (a bounded exp), grants NO admin/recording rights, and is signed by the APPSERVICE alone (HS256 over
+ * the LiveKit api_secret — hand-rolled, no extra dependency).
  *
  * The SFU itself (the livekit-server container) + the real media path are dev-stack / scaling concerns;
  * this service is the constitutional surface: who may get a token, as whom, for how long, for what room.
@@ -25,25 +26,29 @@ class LiveKitTokenService
     public function __construct(private readonly MatrixPostingGateService $posting) {}
 
     /**
-     * Mint a room-scoped LiveKit join token for a RESIDENT of $jurisdictionId.
+     * Mint a room-scoped LiveKit join token for a player in $jurisdictionId's OPEN public commons.
      *
      * @return array{token:string,url:string,identity:string,room:string}
      *
-     * @throws \App\Domain\Engine\ConstitutionalViolation when the caller is not a resident (Art. I)
+     * @throws \App\Domain\Engine\ConstitutionalViolation only if the player is under a social-feature
+     *                                                    limitation (Layer 3) — never for non-residency (Art. I)
      */
     public function mintFor(User $caller, string $jurisdictionId, string $roomName, ?int $ttlSeconds = null): array
     {
-        // RESIDENCY is the ONLY gate — the SAME assertion as posting. A non-resident throws Art. I.
-        $this->posting->assertMayPost($caller, $jurisdictionId);
+        // The public commons is OPEN — the SAME assertion as speech. A visitor is NOT refused (Art. I);
+        // residency gates governance POWERS (which the game enforces), not access. The room-scope floor
+        // still applies: a token mints only for THIS jurisdiction's public square / halls call room, never
+        // an org / institution / private room the caller might name (assertMayAccessCommons fails closed).
+        $this->posting->assertMayAccessCommons($caller, $jurisdictionId, $roomName);
 
         $identity = $this->posting->matrixUserId($caller);  // pseudonym — never the legal name
         $ttl = min(max(60, $ttlSeconds ?? self::DEFAULT_TTL_SECONDS), self::MAX_TTL_SECONDS);
 
         return [
-            'token'    => $this->mintJwt($identity, $roomName, $ttl),
-            'url'      => (string) config('matrix.livekit.url'),
+            'token' => $this->mintJwt($identity, $roomName, $ttl),
+            'url' => (string) config('matrix.livekit.url'),
             'identity' => $identity,
-            'room'     => $roomName,
+            'room' => $roomName,
         ];
     }
 
@@ -61,10 +66,10 @@ class LiveKitTokenService
         $ttl = min(max(60, $ttlSeconds ?? self::DEFAULT_TTL_SECONDS), self::MAX_TTL_SECONDS);
 
         return [
-            'token'    => $this->mintJwt($identity, $roomName, $ttl),
-            'url'      => (string) config('matrix.livekit.public_url', config('matrix.livekit.url')),
+            'token' => $this->mintJwt($identity, $roomName, $ttl),
+            'url' => (string) config('matrix.livekit.public_url', config('matrix.livekit.url')),
             'identity' => $identity,
-            'room'     => $roomName,
+            'room' => $roomName,
         ];
     }
 
@@ -76,15 +81,15 @@ class LiveKitTokenService
         $now = now()->timestamp;
 
         $claims = [
-            'iss'   => $apiKey,           // LiveKit identifies the signer by api_key
-            'sub'   => $identity,         // the participant identity = the pseudonym
-            'name'  => $identity,
-            'nbf'   => $now,
-            'exp'   => $now + $ttl,       // bounded — a join grant, not a session
+            'iss' => $apiKey,           // LiveKit identifies the signer by api_key
+            'sub' => $identity,         // the participant identity = the pseudonym
+            'name' => $identity,
+            'nbf' => $now,
+            'exp' => $now + $ttl,       // bounded — a join grant, not a session
             'video' => [                  // the VideoGrant: ONE room, join only, no admin/record rights
-                'room'         => $roomName,
-                'roomJoin'     => true,
-                'canPublish'   => true,
+                'room' => $roomName,
+                'roomJoin' => true,
+                'canPublish' => true,
                 'canSubscribe' => true,
             ],
         ];

@@ -14,10 +14,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Phase K-1 — the public square (FE). Open resident discourse, scoped to the viewer's association
- * chain for reading; posting (F-SOC-001) is engine-routed and residency-only (Art. I). The page
- * never 403s an un-associated viewer — it reads (public) and shows the residency CTA instead of
- * the create form. There is NO removal control here: the square is uncensorable.
+ * Phase K-1 — the public square (FE). Open civic discourse; posting (F-SOC-001) is engine-routed and
+ * OPEN to any player — resident or visitor (Art. I — free movement + equal treatment; corrected
+ * 2026-06-27). Residency gates POWERS (and the testimony seal), not square access. The page never 403s
+ * a viewer — it reads (public) and lets any signed-in player post. There is NO removal control here:
+ * the square is uncensorable.
  */
 class PublicSquareController extends Controller
 {

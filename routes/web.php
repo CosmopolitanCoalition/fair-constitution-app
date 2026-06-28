@@ -676,9 +676,10 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/actor/devices', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'enrollDevice'])->name('actor.devices.enroll');
     Route::post('/actor/attestations', [\App\Http\Controllers\Identity\ActorIdentityController::class, 'issueAttestation'])->name('actor.attestations.issue');
 
-    // Phase K-1 — the public square + halls (the civic record plane). Posting / testimony are
-    // engine-routed (F-SOC-001/002, residency-only, Art. I). There is NO removal route — the
-    // square is uncensorable; carve-out removals are the judicial F-SOC-003 path elsewhere.
+    // Phase K-1 — the public square + halls (the civic record plane). Posting (F-SOC-001) is OPEN to
+    // any player (Art. I — corrected 2026-06-27); filing testimony (F-SOC-002) stays residency-gated
+    // (a governance seal). There is NO removal route — the square is uncensorable; carve-out removals
+    // are the judicial F-SOC-003 path elsewhere.
     Route::get('/square', [\App\Http\Controllers\Civic\PublicSquareController::class, 'index'])->name('square');
     Route::post('/square', [\App\Http\Controllers\Civic\PublicSquareController::class, 'store'])->name('square.store');
     Route::get('/halls', [\App\Http\Controllers\Civic\HallsController::class, 'index'])->name('halls');
@@ -686,8 +687,9 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/halls/testimony', [\App\Http\Controllers\Civic\HallsController::class, 'fileTestimony'])->name('halls.testimony');
 
     // Phase K-3 (K3-L) — the embedded LIVE commons over the Matrix mesh (Plane B). Reads are
-    // appservice-backed + degrade to empty when the homeserver is down; posting/testimony are the
-    // same residency-only engine paths as the Plane-A views.
+    // appservice-backed + degrade to empty when the homeserver is down; posting is OPEN to any player
+    // (room-scoped to the jurisdiction's square/halls), testimony stays residency-gated — same rule as
+    // the Plane-A views (corrected 2026-06-27).
     Route::get('/commons/square', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'square'])->name('commons.square');
     Route::get('/commons/halls', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'halls'])->name('commons.halls');
     Route::post('/commons/post', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'post'])->name('commons.post');
@@ -697,8 +699,9 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // enforced here regardless of client: a private room is never cloud-translated (fail-closed).
     Route::post('/matrix/translate', \App\Http\Controllers\Matrix\MatrixTranslationController::class)->name('matrix.translate');
 
-    // Phase K-3 (K3-J) — request a residency-gated LiveKit (Element Call) join token. Residency is the
-    // ONLY gate (Art. I); the token is room-scoped, short-lived, pseudonymous, appservice-signed.
+    // Phase K-3 (K3-J) — request a LiveKit (Element Call) join token for the OPEN public commons. Any
+    // player may join (Art. I — corrected 2026-06-27); the gate fails closed unless the room is the
+    // jurisdiction's square/halls. The token is room-scoped, short-lived, pseudonymous, appservice-signed.
     Route::post('/matrix/call-token', \App\Http\Controllers\Matrix\CallTokenController::class)->name('matrix.call-token');
 
     // Phase 5 — foci AV reach. The MIXED-ENVIRONMENT voice endpoint: resolve where voice is served (local

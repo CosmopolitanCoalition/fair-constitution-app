@@ -3,7 +3,6 @@
 namespace Tests\Constitutional;
 
 use App\Domain\Engine\ConstitutionalEngine;
-use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\SocialPost;
 use App\Models\SocialProfile;
 use App\Models\SocialThread;
@@ -15,10 +14,14 @@ use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * CONSTITUTIONAL PIN — Phase K-1 (F-SOC-001, the public square). Art. I: participation in a
- * jurisdiction's public square is RESIDENCY-ONLY (R-03, derived) — never a karma/account-age/
- * reputation gate. A resident opens a thread + post through the engine; a non-resident is
- * refused. The recorded payload is pseudonymous (author_display, never name/email).
+ * CONSTITUTIONAL PIN — Phase K-1 (F-SOC-001, the public square) / Phase 5. The public commons is
+ * OPEN (Art. I — free movement + equal treatment): ANY authenticated player may open a thread + post,
+ * resident OR visitor, on BOTH planes (the recorded K-1 square here, and the live K-3 Matrix commons).
+ * Residency gates governance POWERS (and the testimony SEAL, F-SOC-002), never access. The recorded
+ * payload is pseudonymous (author_display, never name/email).
+ *
+ * (Corrected 2026-06-27: the prior pin refused a non-resident; the operator's constitutional correction
+ * opens the recorded square to visitors too — only POWERS stay residency-gated.)
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -39,8 +42,8 @@ class PublicSquareTest extends TestCase
 
             $result = app(ConstitutionalEngine::class)->file('F-SOC-001', $resident, [
                 'jurisdiction_id' => $jurisdictionId,
-                'title'           => 'Should the plaza get more shade?',
-                'body'            => 'More shade trees would help the market days.',
+                'title' => 'Should the plaza get more shade?',
+                'body' => 'More shade trees would help the market days.',
             ]);
 
             $rec = $result->recorded;
@@ -69,14 +72,14 @@ class PublicSquareTest extends TestCase
 
             // The resident sets a dedicated pseudonym profile (display_name); name/email stay private.
             SocialProfile::query()->create([
-                'user_id'      => (string) $resident->getKey(),
+                'user_id' => (string) $resident->getKey(),
                 'display_name' => 'PlazaFan',
             ]);
 
             $rec = app(ConstitutionalEngine::class)->file('F-SOC-001', $resident, [
                 'jurisdiction_id' => $jurisdictionId,
-                'title'           => 'Hello under my handle',
-                'body'            => 'Posting pseudonymously.',
+                'title' => 'Hello under my handle',
+                'body' => 'Posting pseudonymously.',
             ])->recorded;
 
             $this->assertSame('PlazaFan', $rec['author_display'], 'the chosen pseudonym is used');
@@ -84,31 +87,31 @@ class PublicSquareTest extends TestCase
         });
     }
 
-    public function test_residency_is_the_only_gate_a_non_resident_is_refused(): void
+    public function test_the_open_commons_a_visitor_non_resident_may_post(): void
     {
         $this->onLivePg(function () {
             $jurisdictionId = $this->aJurisdiction();
-            $stranger = $this->bareUser();   // authenticated, but NO residency association
+            $visitor = $this->bareUser();   // authenticated, but NO residency association
             app(RoleService::class)->flush();
 
-            $this->assertNotContains('R-03', app(RoleService::class)->rolesFor($stranger), 'precondition: no residency');
+            $this->assertNotContains('R-03', app(RoleService::class)->rolesFor($visitor), 'precondition: a visitor, not a resident');
 
-            $threw = false;
-            try {
-                app(ConstitutionalEngine::class)->file('F-SOC-001', $stranger, [
-                    'jurisdiction_id' => $jurisdictionId,
-                    'title'           => 'I am not from here',
-                    'body'            => 'but I want to post as a constituent',
-                ]);
-            } catch (ConstitutionalViolation $e) {
-                $threw = true;
-                $this->assertSame('CGA Roles & Forms Chart', $e->citation);
-                $this->assertStringContainsString('R-03', $e->getMessage());
-            }
+            // The public commons is open (Art. I) — the visitor opens a thread + post, pseudonymously.
+            $rec = app(ConstitutionalEngine::class)->file('F-SOC-001', $visitor, [
+                'jurisdiction_id' => $jurisdictionId,
+                'title' => 'Passing through',
+                'body' => 'I am not from here, but I care about this square.',
+            ])->recorded;
 
-            $this->assertTrue($threw, 'a non-resident cannot post as a constituent — residency is the only gate (Art. I)');
-            $this->assertSame(0, SocialPost::query()->where('author_user_id', (string) $stranger->getKey())->count(),
-                'the refused filing created no post');
+            $this->assertSame('public_square', $rec['space_type']);
+            $this->assertTrue(SocialThread::query()->whereKey($rec['thread_id'])->exists(), 'the visitor opened a thread');
+            $this->assertSame(1, SocialPost::query()->where('author_user_id', (string) $visitor->getKey())->count(),
+                'the visitor created a post — access is open');
+
+            // Pseudonymity holds for visitors too — the recorded payload never carries the legal name.
+            $this->assertArrayNotHasKey('name', $rec);
+            $this->assertArrayNotHasKey('email', $rec);
+            $this->assertNotSame($visitor->name, $rec['author_display'], 'author_display must never be the legal name');
         });
     }
 
@@ -125,9 +128,9 @@ class PublicSquareTest extends TestCase
     private function bareUser(): User
     {
         return User::create([
-            'name'              => 'K1 Stranger '.Str::uuid(),
-            'email'             => 'k1-stranger-'.Str::uuid().'@test.invalid',
-            'password'          => Str::random(32),
+            'name' => 'K1 Stranger '.Str::uuid(),
+            'email' => 'k1-stranger-'.Str::uuid().'@test.invalid',
+            'password' => Str::random(32),
             'terms_accepted_at' => now(),
         ]);
     }
@@ -137,15 +140,15 @@ class PublicSquareTest extends TestCase
         $user = $this->bareUser();
 
         DB::table('residency_confirmations')->insert([
-            'id'              => (string) Str::uuid(),
-            'user_id'         => $user->id,
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
             'jurisdiction_id' => $jurisdictionId,
-            'days_confirmed'  => 30,
-            'confirmed_at'    => now(),
-            'is_active'       => true,
-            'depth'           => 0,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'days_confirmed' => 30,
+            'confirmed_at' => now(),
+            'is_active' => true,
+            'depth' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         app(RoleService::class)->flush();

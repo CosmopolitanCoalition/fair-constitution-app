@@ -177,7 +177,10 @@ class FormRegistry
         'F-ADV-004' => ['name' => 'Brief / Argument Filing',                    'roles' => ['R-21']],
 
         // ── F-SOC — Social / Civic-Commons Forms (Phase K-1) ────────────────
-        'F-SOC-001' => ['name' => 'Social Thread / Post',                       'roles' => ['R-03']],
+        // F-SOC-001 — the public commons is OPEN (Art. I; operator correction 2026-06-27): NO role gate.
+        // Residency gates the testimony SEAL (F-SOC-002) and other POWERS, not square/halls ACCESS. (The
+        // xlsx chart's "Filed by R-03" predates the correction; the handler + this metadata are the truth.)
+        'F-SOC-001' => ['name' => 'Social Thread / Post',                       'roles' => []],
         'F-SOC-002' => ['name' => 'File Testimony in Hall',                     'roles' => ['R-03']],
         'F-SOC-003' => ['name' => 'Public-Square Removal (carve-out)',          'roles' => ['R-19', 'R-20']],
         // F-SOC-004 — the M-5 PHYSICAL-LAW legal-compliance removal. ZERO role codes: it is exercised on

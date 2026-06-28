@@ -20,9 +20,11 @@ use Tests\TestCase;
  * CONSTITUTIONAL PIN — Phase K-3 (K3-H), the testimony bridge (Plane B → Plane A). Filing a Matrix
  * #halls message as testimony seals it into the APPEND-ONLY public_records via F-SOC-002 (audit_seq
  * set), records the matrix_event_snapshots back-pointer (the record UUID, never the seq), and is
- * pseudonymous (the frozen actor_display is never the legal name). Gates checked against the REAL
- * event: own-post only (Art. I), halls only (Art. II §2). The Matrix client is mocked; the seal +
- * snapshot are real (live-pg).
+ * pseudonymous (the frozen actor_display is never the legal name). Gates: halls only (Art. II §2),
+ * own-post only checked against the REAL event (Art. I), and — since the commons opened in Phase 5 —
+ * the now-EXPLICIT residency/association gate: a visitor speaks freely in the open commons (Art. I) but
+ * only those associated with the jurisdiction may SEAL a statement into its record (Art. II §2). The
+ * Matrix client is mocked; the seal + snapshot are real (live-pg).
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -43,8 +45,8 @@ class MatrixTestimonyBridgeTest extends TestCase
 
             $this->mock(MatrixClientService::class, function ($m) use ($senderMxid, $body) {
                 $m->shouldReceive('getEvent')->andReturn([
-                    'sender'           => $senderMxid,
-                    'content'          => ['body' => $body],
+                    'sender' => $senderMxid,
+                    'content' => ['body' => $body],
                     'origin_server_ts' => 1700000000000,
                 ]);
                 $m->shouldReceive('sendStateEvent')->andReturn(['event_id' => '$x']);
@@ -82,7 +84,7 @@ class MatrixTestimonyBridgeTest extends TestCase
 
             $this->mock(MatrixClientService::class, function ($m) {
                 $m->shouldReceive('getEvent')->andReturn([
-                    'sender'  => '@u-someoneelse:localhost',
+                    'sender' => '@u-someoneelse:localhost',
                     'content' => ['body' => 'not my statement'],
                 ]);
             });
@@ -96,6 +98,33 @@ class MatrixTestimonyBridgeTest extends TestCase
                 $this->assertSame('Art. I', $e->citation);
             }
             $this->assertTrue($threw, 'a resident may file only their OWN message as testimony');
+        });
+    }
+
+    public function test_a_visitor_cannot_file_testimony_governance_stays_gated(): void
+    {
+        $this->onLivePg(function () {
+            $jur = $this->aJurisdiction();
+            $this->room($jur, MatrixRoom::SPACE_HALLS, '!halls:localhost');
+
+            // A VISITOR — free to speak in the open commons (Art. I), but with NO residency association
+            // with this jurisdiction. The association gate fires BEFORE the homeserver is even consulted.
+            $visitor = User::create([
+                'name' => 'K3 Visitor '.Str::uuid(),
+                'email' => 'k3h-visitor-'.Str::uuid().'@test.invalid',
+                'password' => Str::random(32),
+                'terms_accepted_at' => now(),
+            ]);
+            app(RoleService::class)->flush();
+
+            $threw = false;
+            try {
+                app(TestimonyBridgeService::class)->fileTestimony($visitor, '!halls:localhost', '$evt');
+            } catch (ConstitutionalViolation $e) {
+                $threw = true;
+                $this->assertSame('Art. II §2', $e->citation);
+            }
+            $this->assertTrue($threw, 'a visitor may speak in the commons but cannot SEAL into the record — governance stays gated');
         });
     }
 
@@ -122,12 +151,12 @@ class MatrixTestimonyBridgeTest extends TestCase
     {
         MatrixRoom::query()->create([
             'matrix_room_id' => $matrixRoomId,
-            'room_type'      => MatrixRoom::ROOM_COMMONS,
-            'room_version'   => '12',
-            'entity_type'    => 'jurisdiction',
-            'entity_id'      => $jur,
-            'space_type'     => $spaceType,
-            'is_public'      => true,
+            'room_type' => MatrixRoom::ROOM_COMMONS,
+            'room_version' => '12',
+            'entity_type' => 'jurisdiction',
+            'entity_id' => $jur,
+            'space_type' => $spaceType,
+            'is_public' => true,
         ]);
     }
 
@@ -144,22 +173,22 @@ class MatrixTestimonyBridgeTest extends TestCase
     private function resident(string $jurisdictionId): User
     {
         $user = User::create([
-            'name'              => 'K3 Halls Resident '.Str::uuid(),
-            'email'             => 'k3h-'.Str::uuid().'@test.invalid',
-            'password'          => Str::random(32),
+            'name' => 'K3 Halls Resident '.Str::uuid(),
+            'email' => 'k3h-'.Str::uuid().'@test.invalid',
+            'password' => Str::random(32),
             'terms_accepted_at' => now(),
         ]);
 
         DB::table('residency_confirmations')->insert([
-            'id'              => (string) Str::uuid(),
-            'user_id'         => $user->id,
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
             'jurisdiction_id' => $jurisdictionId,
-            'days_confirmed'  => 30,
-            'confirmed_at'    => now(),
-            'is_active'       => true,
-            'depth'           => 0,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'days_confirmed' => 30,
+            'confirmed_at' => now(),
+            'is_active' => true,
+            'depth' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         app(RoleService::class)->flush();

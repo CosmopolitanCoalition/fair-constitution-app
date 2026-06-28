@@ -39,6 +39,18 @@ class TestimonyBridgeService
             );
         }
 
+        // GOVERNANCE GATE (the now-EXPLICIT residency boundary) — speaking in the commons is open to
+        // visitors (Art. I), but SEALING a statement into THIS jurisdiction's permanent deliberative
+        // record is governance participation, reserved to those associated with the jurisdiction. Until
+        // the commons opened (Phase 5), this gate was IMPLICIT — only a resident could post, so only a
+        // resident could file their own post. Now it must be asserted directly.
+        if (! $this->posting->isAssociatedWith($filer, (string) $room->entity_id)) {
+            throw new ConstitutionalViolation(
+                "Filing testimony seals your statement into this jurisdiction's deliberative record — a civic act reserved to those associated with the jurisdiction. Visitors may speak freely in the open commons (Art. I), but entering the record is governance participation.",
+                'Art. II §2'
+            );
+        }
+
         // Ground truth: the real event from the homeserver (its sender, body, timestamp).
         $event = $this->client->getEvent($matrixRoomId, $matrixEventId);
         $sender = (string) ($event['sender'] ?? '');
@@ -53,11 +65,11 @@ class TestimonyBridgeService
         }
 
         $result = $this->engine->file('F-SOC-002', $filer, [
-            'matrix_event_id'  => $matrixEventId,
-            'matrix_room_id'   => $matrixRoomId,
-            'body_snapshot'    => $body,
-            'actor_display'    => $this->displayFor($filer),
-            'jurisdiction_id'  => (string) $room->entity_id,
+            'matrix_event_id' => $matrixEventId,
+            'matrix_room_id' => $matrixRoomId,
+            'body_snapshot' => $body,
+            'actor_display' => $this->displayFor($filer),
+            'jurisdiction_id' => (string) $room->entity_id,
             'origin_server_ts' => $event['origin_server_ts'] ?? null,
         ]);
 

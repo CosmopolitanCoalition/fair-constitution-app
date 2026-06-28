@@ -20,8 +20,8 @@ use App\Models\User;
  *
  * NOTE on official speech: is_official / acting_seat are NOT trusted from input in K-1 (an
  * unvalidated authority claim would be a forgery surface). They default false/null; validated
- * officeholder speech (checked against LIVE derived roles) is a follow-up. The square is
- * residency-only and uncensorable regardless.
+ * officeholder speech (checked against LIVE derived roles) is a follow-up. The square is OPEN to
+ * any player (Art. I — residency gates POWERS, not access; corrected 2026-06-27) and uncensorable.
  */
 class SocialSpaceService
 {
@@ -50,7 +50,7 @@ class SocialSpaceService
         $space = SocialSpace::query()->firstOrCreate(
             ['jurisdiction_id' => $jurisdictionId, 'space_type' => $spaceType, 'is_private' => false],
             [
-                'title'  => $spaceType === SocialSpace::TYPE_HALLS ? 'Halls of Governance' : 'Public Square',
+                'title' => $spaceType === SocialSpace::TYPE_HALLS ? 'Halls of Governance' : 'Public Square',
                 'status' => SocialSpace::STATUS_OPEN,
             ],
         );
@@ -59,12 +59,12 @@ class SocialSpaceService
         $thread = $this->resolveThread($subforum, $actor, $display, $payload);
 
         $post = SocialPost::query()->create([
-            'thread_id'      => $thread->id,
+            'thread_id' => $thread->id,
             'author_user_id' => (string) $actor->getKey(),
             'author_display' => $display,
-            'body'           => $body,
-            'is_official'    => false,   // not trusted from input in K-1 (forgery surface)
-            'acting_seat'    => null,
+            'body' => $body,
+            'is_official' => false,   // not trusted from input in K-1 (forgery surface)
+            'acting_seat' => null,
         ]);
 
         return ['space' => $space, 'subforum' => $subforum, 'thread' => $thread, 'post' => $post];
@@ -121,11 +121,11 @@ class SocialSpaceService
         }
 
         return SocialThread::query()->create([
-            'subforum_id'    => $subforum->id,
+            'subforum_id' => $subforum->id,
             'author_user_id' => (string) $actor->getKey(),
             'author_display' => $display,
-            'title'          => $title,
-            'status'         => SocialThread::STATUS_OPEN,
+            'title' => $title,
+            'status' => SocialThread::STATUS_OPEN,
         ]);
     }
 }

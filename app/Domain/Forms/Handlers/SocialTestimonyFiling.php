@@ -11,6 +11,7 @@ use App\Models\SocialSubforum;
 use App\Models\SocialThread;
 use App\Models\User;
 use App\Services\PublicRecordService;
+use Illuminate\Support\Facades\DB;
 
 /**
  * F-SOC-002 — file testimony in a hall: seal one of YOUR own hall posts into the append-only
@@ -82,30 +83,42 @@ class SocialTestimonyFiling implements FormHandler
             );
         }
 
+        // GOVERNANCE GATE (jurisdiction-specific) — sealing into THIS jurisdiction's deliberative record is
+        // reserved to those associated with IT (parity with the K-3 TestimonyBridgeService). The engine's
+        // R-03 gate only proves residency SOMEWHERE; since the commons opened (Phase 5), a resident of A
+        // can post in B's halls, so the seal must verify association with B specifically (Art. II §2).
+        if (! $this->isAssociatedWith($actor, (string) $space->jurisdiction_id)) {
+            throw new ConstitutionalViolation(
+                "Filing testimony seals your statement into this jurisdiction's deliberative record — reserved to "
+                .'those associated with the jurisdiction. You may speak in its open commons, but not seal its record.',
+                'Art. II §2'
+            );
+        }
+
         $record = $this->records->publish(
             kind: 'testimony',
             title: sprintf('Testimony — %s', $thread->title),
             body: $post->body,
             attrs: [
-                'actor_user_id'   => (string) $actor->getKey(),
-                'actor_display'   => $post->author_display,        // pseudonym snapshot — never name/email
+                'actor_user_id' => (string) $actor->getKey(),
+                'actor_display' => $post->author_display,        // pseudonym snapshot — never name/email
                 'jurisdiction_id' => (string) $space->jurisdiction_id,
-                'legislature_id'  => null,                          // resolved when bound to a seated body (follow-up)
-                'via_form'        => 'F-SOC-002',
-                'subject_type'    => $subforum->governing_object_type,  // e.g. 'bill' — null for a general subforum
-                'subject_id'      => $subforum->governing_object_id,
+                'legislature_id' => null,                          // resolved when bound to a seated body (follow-up)
+                'via_form' => 'F-SOC-002',
+                'subject_type' => $subforum->governing_object_type,  // e.g. 'bill' — null for a general subforum
+                'subject_id' => $subforum->governing_object_id,
             ],
         );
 
         $thread->forceFill(['published_record_id' => $record->id])->save();   // THE back-pointer (uuid, not seq)
 
         return [
-            'record_seq'          => (int) $record->seq,
-            'record_id'           => (string) $record->id,
-            'thread_id'           => (string) $thread->id,
-            'post_id'             => (string) $post->id,
+            'record_seq' => (int) $record->seq,
+            'record_id' => (string) $record->id,
+            'thread_id' => (string) $thread->id,
+            'post_id' => (string) $post->id,
             'published_record_id' => (string) $record->id,
-            'jurisdiction_id'     => (string) $space->jurisdiction_id,
+            'jurisdiction_id' => (string) $space->jurisdiction_id,
         ];
     }
 
@@ -117,33 +130,47 @@ class SocialTestimonyFiling implements FormHandler
             title: 'Testimony (halls)',
             body: (string) ($payload['body_snapshot'] ?? ''),
             attrs: [
-                'actor_user_id'   => (string) $actor->getKey(),
-                'actor_display'   => (string) ($payload['actor_display'] ?? ''),   // pseudonym — never name/email
+                'actor_user_id' => (string) $actor->getKey(),
+                'actor_display' => (string) ($payload['actor_display'] ?? ''),   // pseudonym — never name/email
                 'jurisdiction_id' => (string) ($payload['jurisdiction_id'] ?? ''),
-                'legislature_id'  => null,
-                'via_form'        => 'F-SOC-002',
+                'legislature_id' => null,
+                'via_form' => 'F-SOC-002',
                 // The Matrix-event link is the matrix_event_snapshots row below, NOT the record's
                 // subject (subject_id is a UUID column; a Matrix event id is not one). General testimony.
-                'subject_type'    => null,
-                'subject_id'      => null,
+                'subject_type' => null,
+                'subject_id' => null,
             ],
         );
 
         MatrixEventSnapshot::query()->create([
-            'matrix_event_id'     => (string) $payload['matrix_event_id'],
-            'matrix_room_id'      => (string) ($payload['matrix_room_id'] ?? ''),
+            'matrix_event_id' => (string) $payload['matrix_event_id'],
+            'matrix_room_id' => (string) ($payload['matrix_room_id'] ?? ''),
             'published_record_id' => $record->id,                    // THE back-pointer (uuid, not seq)
-            'actor_display'       => (string) ($payload['actor_display'] ?? ''),
-            'origin_server_ts'    => $payload['origin_server_ts'] ?? null,
-            'body_snapshot'       => (string) ($payload['body_snapshot'] ?? ''),
+            'actor_display' => (string) ($payload['actor_display'] ?? ''),
+            'origin_server_ts' => $payload['origin_server_ts'] ?? null,
+            'body_snapshot' => (string) ($payload['body_snapshot'] ?? ''),
         ]);
 
         return [
-            'record_seq'          => (int) $record->seq,
-            'record_id'           => (string) $record->id,
+            'record_seq' => (int) $record->seq,
+            'record_id' => (string) $record->id,
             'published_record_id' => (string) $record->id,
-            'matrix_event_id'     => (string) $payload['matrix_event_id'],
-            'jurisdiction_id'     => (string) ($payload['jurisdiction_id'] ?? ''),
+            'matrix_event_id' => (string) $payload['matrix_event_id'],
+            'jurisdiction_id' => (string) ($payload['jurisdiction_id'] ?? ''),
         ];
+    }
+
+    /** Active residency association with THIS specific jurisdiction (the ancestor-sweep materializes it). */
+    private function isAssociatedWith(User $actor, string $jurisdictionId): bool
+    {
+        if ($jurisdictionId === '') {
+            return false;
+        }
+
+        return DB::table('residency_confirmations')
+            ->where('user_id', (string) $actor->getKey())
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->where('is_active', true)
+            ->exists();
     }
 }

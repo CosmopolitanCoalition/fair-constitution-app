@@ -3,6 +3,7 @@
 namespace Tests\Constitutional;
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Models\MatrixRoom;
 use App\Models\User;
 use App\Services\Matrix\MatrixClientService;
 use App\Services\Matrix\MatrixPostingGateService;
@@ -13,11 +14,16 @@ use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * CONSTITUTIONAL PIN — Phase K-3 (K3-G). RESIDENCY is the ONLY gate on posting in a jurisdiction's
- * public square (Art. I) — a resident posts, a non-resident is refused, never any karma/age/
- * reputation gate. The post is sent as the pseudonymous @u-<handle>, NEVER the legal name. The
- * cga.acting_seat annotation is derived LIVE from current roles at send time (a vacated office loses
- * it). The Matrix client is mocked; residency + RoleService are real (live-pg).
+ * CONSTITUTIONAL PIN — Phase K-3 (K3-G) / Phase 5. The public commons is OPEN (Art. I — free movement +
+ * equal treatment): a resident AND a visitor (non-resident) may BOTH post in a jurisdiction's public
+ * square, never any residency/karma/age/reputation gate on ACCESS. Residency gates governance POWERS,
+ * which the game enforces, not room access. The post is sent as the pseudonymous @u-<handle>, NEVER the
+ * legal name. The cga.acting_seat annotation is a POWER BADGE derived LIVE from current roles at send
+ * time (a vacated office loses it; a visitor with no seat gets none). The Matrix client is mocked;
+ * residency + RoleService are real (live-pg).
+ *
+ * (Corrected 2026-06-27: the prior pin refused a non-resident; the operator's constitutional correction
+ * is that the commons is open and only POWERS are residency-gated.)
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -27,17 +33,18 @@ class SquarePostingTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_k3_posting';
 
-    public function test_residency_is_the_only_gate_a_resident_posts_a_non_resident_is_refused(): void
+    public function test_the_open_commons_a_resident_and_a_visitor_both_post(): void
     {
         $this->onLivePg(function () {
             $jur = $this->aJurisdiction();
+            $room = $this->commonsRoom($jur, MatrixRoom::SPACE_PUBLIC_SQUARE, '!square:localhost');
             $resident = $this->resident($jur);
-            $stranger = $this->bareUser();
+            $visitor = $this->bareUser(); // NO residency association with this jurisdiction
 
-            $sent = null;
+            $sent = [];
             $this->mock(MatrixClientService::class, function ($m) use (&$sent) {
                 $m->shouldReceive('sendMessage')->andReturnUsing(function ($room, $content, $asUser = null) use (&$sent) {
-                    $sent = ['content' => $content, 'asUser' => $asUser];
+                    $sent[] = ['content' => $content, 'asUser' => $asUser];
 
                     return ['event_id' => '$e'];
                 });
@@ -46,19 +53,60 @@ class SquarePostingTest extends TestCase
             $gate = app(MatrixPostingGateService::class);
 
             // A resident of the jurisdiction may post.
-            $gate->post($resident, $jur, '!room:localhost', 'more shade trees please');
-            $this->assertSame('more shade trees please', $sent['content']['body']);
-            $this->assertStringStartsWith('@u-', (string) $sent['asUser'], 'posted as a pseudonymous namespaced user');
+            $gate->post($resident, $jur, $room, 'more shade trees please');
+            $this->assertSame('more shade trees please', $sent[0]['content']['body']);
+            $this->assertStringStartsWith('@u-', (string) $sent[0]['asUser'], 'posted as a pseudonymous namespaced user');
 
-            // A non-resident is refused — residency is the ONLY gate (Art. I).
+            // A VISITOR (non-resident) may ALSO post — the public commons is open (Art. I).
+            $gate->post($visitor, $jur, $room, 'just passing through, but i care about this');
+            $this->assertSame('just passing through, but i care about this', $sent[1]['content']['body']);
+            $this->assertStringStartsWith('@u-', (string) $sent[1]['asUser'], 'the visitor posts pseudonymously too');
+
+            // Neither carries a power badge — acting_seat is role-derived, not granted by access.
+            $this->assertArrayNotHasKey('cga.acting_seat', $sent[0]['content'], 'a plain resident has no seat badge');
+            $this->assertArrayNotHasKey('cga.acting_seat', $sent[1]['content'], 'a visitor has no seat badge');
+        });
+    }
+
+    public function test_the_open_commons_is_scoped_a_non_commons_room_is_refused(): void
+    {
+        $this->onLivePg(function () {
+            $jur = $this->aJurisdiction();
+            // An organization's PRIVATE room — it has its OWN controls, not reachable through the commons.
+            $orgRoom = MatrixRoom::query()->create([
+                'matrix_room_id' => '!org-private:localhost',
+                'room_type' => MatrixRoom::ROOM_ORG_PRIVATE,
+                'room_version' => '12',
+                'entity_type' => MatrixRoom::ENTITY_ORGANIZATION,
+                'entity_id' => (string) Str::uuid(),
+                'space_type' => null,
+                'is_public' => false,
+            ]);
+            $resident = $this->resident($jur);
+
+            // The Matrix client must NEVER be reached — the gate fails closed before any send.
+            $this->mock(MatrixClientService::class, function ($m) {
+                $m->shouldReceive('sendMessage')->never();
+            });
+            app(RoleService::class)->flush();
+
             $threw = false;
             try {
-                $gate->post($stranger, $jur, '!room:localhost', 'i am not from here');
+                app(MatrixPostingGateService::class)->post($resident, $jur, $orgRoom->matrix_room_id, 'i should not be able to post here');
             } catch (ConstitutionalViolation $e) {
                 $threw = true;
                 $this->assertSame('Art. I', $e->citation);
             }
-            $this->assertTrue($threw, 'a non-resident cannot post — residency is the only gate');
+            $this->assertTrue($threw, 'the open commons is the public square / halls only — org/private rooms have their own controls');
+
+            // And an UNKNOWN room id fails closed too (mirrors the TranslationGate posture).
+            $unknownRefused = false;
+            try {
+                app(MatrixPostingGateService::class)->post($resident, $jur, '!nope:localhost', 'x');
+            } catch (ConstitutionalViolation) {
+                $unknownRefused = true;
+            }
+            $this->assertTrue($unknownRefused, 'an unknown room id fails closed');
         });
     }
 
@@ -66,6 +114,7 @@ class SquarePostingTest extends TestCase
     {
         $this->onLivePg(function () {
             $jur = $this->aJurisdiction();
+            $room = $this->commonsRoom($jur, MatrixRoom::SPACE_PUBLIC_SQUARE, '!square:localhost');
             $resident = $this->resident($jur);
 
             $asUser = null;
@@ -78,7 +127,7 @@ class SquarePostingTest extends TestCase
             });
             app(RoleService::class)->flush();
 
-            app(MatrixPostingGateService::class)->post($resident, $jur, '!r:localhost', 'hi');
+            app(MatrixPostingGateService::class)->post($resident, $jur, $room, 'hi');
             $this->assertStringStartsWith('@u-', (string) $asUser);
             $this->assertStringNotContainsString($resident->name, (string) $asUser, 'the mxid is never the legal name');
         });
@@ -86,7 +135,7 @@ class SquarePostingTest extends TestCase
 
     public function test_acting_seat_is_derived_live_from_current_roles(): void
     {
-        $user = new User();
+        $user = new User;
 
         foreach ([
             [['R-03', 'R-09'], 'legislature_member'],
@@ -114,11 +163,27 @@ class SquarePostingTest extends TestCase
     private function bareUser(): User
     {
         return User::create([
-            'name'              => 'K3 Legal Name '.Str::uuid(),
-            'email'             => 'k3-'.Str::uuid().'@test.invalid',
-            'password'          => Str::random(32),
+            'name' => 'K3 Legal Name '.Str::uuid(),
+            'email' => 'k3-'.Str::uuid().'@test.invalid',
+            'password' => Str::random(32),
             'terms_accepted_at' => now(),
         ]);
+    }
+
+    /** A public-commons room bound to the jurisdiction (the open gate resolves + scopes against this). */
+    private function commonsRoom(string $jur, string $spaceType, string $matrixRoomId): string
+    {
+        MatrixRoom::query()->create([
+            'matrix_room_id' => $matrixRoomId,
+            'room_type' => MatrixRoom::ROOM_COMMONS,
+            'room_version' => '12',
+            'entity_type' => MatrixRoom::ENTITY_JURISDICTION,
+            'entity_id' => $jur,
+            'space_type' => $spaceType,
+            'is_public' => true,
+        ]);
+
+        return $matrixRoomId;
     }
 
     private function resident(string $jurisdictionId): User
@@ -126,15 +191,15 @@ class SquarePostingTest extends TestCase
         $user = $this->bareUser();
 
         DB::table('residency_confirmations')->insert([
-            'id'              => (string) Str::uuid(),
-            'user_id'         => $user->id,
+            'id' => (string) Str::uuid(),
+            'user_id' => $user->id,
             'jurisdiction_id' => $jurisdictionId,
-            'days_confirmed'  => 30,
-            'confirmed_at'    => now(),
-            'is_active'       => true,
-            'depth'           => 0,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'days_confirmed' => 30,
+            'confirmed_at' => now(),
+            'is_active' => true,
+            'depth' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         app(RoleService::class)->flush();

@@ -14,9 +14,10 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Phase K-1 — the halls of governance (FE). Deliberation tied to live governance objects;
- * opening a thread (F-SOC-001) and filing testimony (F-SOC-002 → the append-only public_records
- * seal) are both engine-routed and residency-only (Art. I). Halls are append-only; threads that
+ * Phase K-1 — the halls of governance (FE). Deliberation tied to live governance objects. Opening a
+ * thread (F-SOC-001) is OPEN to any player — even a visitor may take the floor (Art. I; corrected
+ * 2026-06-27). Filing testimony (F-SOC-002 → the append-only public_records seal) stays a GOVERNANCE
+ * act, residency-gated to those associated with the jurisdiction. Halls are append-only; threads that
  * have been sealed as testimony show their record back-pointer.
  */
 class HallsController extends Controller
