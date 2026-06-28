@@ -264,7 +264,13 @@
   }
 
   function renderSidebar() {
-    var html = '<details class="sidebar-toggle" open><summary>' + icon('menu', { size: 'sm' }) + ' Menu</summary><div class="sidebar-nav">';
+    /* On desktop the summary is hidden, so the menu must start open (it can't be
+       toggled). On narrow screens it's a real toggle — start it COLLAPSED so a
+       new page doesn't bury its content under the full nav (matches the 64rem
+       breakpoint where the summary toggle appears). */
+    var collapsedMenu = false;
+    try { collapsedMenu = window.matchMedia('(max-width: 64rem)').matches; } catch (e) {}
+    var html = '<details class="sidebar-toggle"' + (collapsedMenu ? '' : ' open') + '><summary>' + icon('menu', { size: 'sm' }) + ' Menu</summary><div class="sidebar-nav">';
 
     function section(title) { html += '<div class="sidebar-section"><span class="sidebar-title eyebrow">' + esc(title) + '</span>'; }
     function endSection() { html += '</div>'; }
