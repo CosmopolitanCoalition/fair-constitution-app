@@ -149,9 +149,14 @@
         '<div class="lr-composition" style="margin-block-start:var(--space-1)">' + seats + '</div>' +
         '<p class="citation">' + c.workers.toLocaleString('en-US') + ' workers — above ' + c.threshold + ' (first seat), below ' + c.parity.toLocaleString('en-US') + ' (parity)</p></div>';
     }
+    /* social forms (F-SOC-*) live on the v2 layer, not the v1 registry — name
+       them here so a chip never falls back to a raw code. */
+    var EXTRA_FORM_NAMES = { 'F-SOC-001': 'Public post', 'F-SOC-002': 'Public statement', 'F-SOC-003': 'Report' };
     function formTitle(id) {
       var f = BY.forms[id];
-      return f ? f.name : id;
+      if (f) return f.name;
+      if (EXTRA_FORM_NAMES[id]) return EXTRA_FORM_NAMES[id];
+      return S.plainCodes(id) || 'Formal action';
     }
 
     /* ---------- the vote tile ---------- */
@@ -193,7 +198,7 @@
           'needs ' + v.requiredYes + ' of ' + v.serving, 'Votes in favor — of all serving') +
         '<p class="gloss">' + esc(v.gloss || 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.') + '</p>' +
         (!decided && canCast()
-          ? '<div class="lr-cast"><span class="citation">cast as ' + esc(window.CGA.state.get('role')) + ':</span>' +
+          ? '<div class="lr-cast"><span class="citation">cast as ' + esc((BY.roles[window.CGA.state.get('role')] || {}).shortName || (BY.roles[window.CGA.state.get('role')] || {}).name || 'a member') + ':</span>' +
             '<button type="button" class="btn btn--primary btn--sm" data-act="cast" data-v="yes">Vote yes</button>' +
             '<button type="button" class="btn btn--danger btn--sm" data-act="cast" data-v="no">Vote no</button>' +
             '<button type="button" class="btn btn--secondary btn--sm" data-act="cast" data-v="abstain">Abstain</button></div>'

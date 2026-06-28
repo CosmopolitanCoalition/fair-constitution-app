@@ -150,11 +150,11 @@
         '<p style="margin-block:var(--space-2)"><strong style="font-size:var(--text-xl);color:var(--gov-fg)">' + esc(lr.totalMinted) + '</strong> minted</p>' +
         '<p class="gloss">Across roughly ' + S.formatPop(lr.recipientsAggregate) + ' recipients in run ' + esc(lr.id) + ' (' + esc(lr.date) + '). ' +
         'Only the total and a k-anonymous head-count post to the public ledger.</p>' +
-        '<p class="citation">' + S.hrefV1('system/public-records.html') + ' — the run posts as one double-entry line</p></div>' +
+        '<p class="citation"><a href="' + S.hrefV1('system/public-records.html') + '">Public records</a> — the run posts as one double-entry line</p></div>' +
         '<div class="card card--inset"><span class="eyebrow">Private — your receipt</span>' +
         '<p style="margin-block:var(--space-2)">' + neverFederated() + '</p>' +
         '<p class="gloss">Each person’s own amount writes only to their private wallet on this server. A small recipient class is folded into the general aggregate and never published on its own.</p>' +
-        '<p class="citation">' + S.hrefV2('economy/wallet.html') + ' — see your own line</p></div></div>';
+        '<p class="citation"><a href="' + S.hrefV2('economy/wallet.html') + '">My wallet</a> — see your own line</p></div></div>';
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">The economy · the civic stipend</span><h1>Civic stipend</h1>' +
@@ -191,7 +191,7 @@
         '<p>The base, the cap, every bump, and the interval itself are <span class="dual-door">' + S.icon('lock', { size: 'sm' }) + 'dual-door</span> ' +
         'monetary keys — adjusted only by the constitutional offices through a chamber supermajority and constituent consent, never an admin knob. ' +
         'Because constituents’ own money is spent, they must agree (anti-self-dealing).</p>' +
-        '<p class="citation">See every key, its value, and its enacting act on ' + S.hrefV2('economy/units.html') + ' — Units &amp; monetary policy.</p></section>';
+        '<p class="citation">See every key, its value, and its enacting act on <a href="' + S.hrefV2('economy/units.html') + '">Units &amp; monetary policy</a>.</p></section>';
 
       // wire the per-role pay controls (simulated; updates the published rates)
       var payForm = document.getElementById('pay-form');

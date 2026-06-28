@@ -11,6 +11,47 @@ spec `App Docs/CGA_Mockups_v2_Build_Instructions.md`.
 
 ---
 
+## v3 — the harmonized environment (supersedes the mixed v1/v2 state below)
+
+`mockups/v3/` is now a **single unified environment**. The earlier split — a v2 game layer
+over a separate v1 operations site, each with its own shell, chrome, and jargon level — is
+gone. Every screen wears the same chrome, reads at the same plain (jargon-free) player level,
+and sits on one ordered guided tour. Done in seven committed phases:
+
+1. **One shell.** `assets/js/shell-v2.js` is the only shell; `CGA.shell` is aliased to it.
+   `applyBindings`/`resolvePath` ported from the old shell; one unified 16-section nav (no
+   version split). `shell.js` was deleted once nothing loaded it.
+2. **One chrome.** All ~62 operations pages (`electoral/ legislature/ executive/ judiciary/
+   organizations/ jurisdictions/ system/ civic/ shared/`) re-booted onto `shell-v2.js` +
+   `v2.css` + `fixtures-v2.js` — the floating command bar, hide-on-scroll header, and
+   Menu/Learn/Demo flyouts now hold across every screen. **113 / 113 UI pages on shell-v2**
+   (the lone exception is `tools/audit_harness.html`, a dev harness, not a screen).
+3. **Flows → the Learn drawer.** The 80 `flows/WF-*.html` walkthroughs were inverted by
+   `tools/gen_flow_context.py` into `assets/js/fixtures-flows.js`
+   (`CGA.fixtures.flows.byScreen / byWorkflow`) and surfaced in the Learn drawer's
+   **“Where this fits”** block — each screen shows which process(es) it's part of, the
+   player's step, what's next, and the whole process on demand. The 80 pages were then
+   removed (manifest 194 → 114 records).
+4. **Jargon stripped everywhere.** No `F-/CLK/Art.§/HARDENED/R-/WF-`/DB tokens in any
+   rendered player text. A new `S.plainCodes()` helper strips codes out of v1 data strings
+   while keeping the plain gloss (e.g. `"Art. II §2 (Establish Independent Election Boards)"`
+   → `"Establish Independent Election Boards"`). The learn layer (`learn/*`, the embedded
+   SOP/“Understand it first”, lesson explanations) intentionally **keeps** its citations —
+   it is the home for the constitutional “why”.
+5. **One tour, every screen.** The `TOUR` array in `shell-v2.js` is the single source of
+   truth — **120 stops** in 16 narrative acts (Found an instance → … → Design contract),
+   covering every screen; `tour.html` renders it live; the follow-along bar reads “step N of
+   120”.
+6. **Redundancy removed.** Deleted `operations.html` (the v1 hub) and `civic/my-record.html`
+   (folded into the unified profile's Record tab); stripped every `v1-tag` badge.
+7. **Verified.** qa_scan green; a rendered-DOM sweep of all ops + game pages finds zero
+   visible codes; mobile (375 px) and desktop chrome correct; 0 console errors.
+
+The section below documents the v2 hand-off it grew out of; treat anything there that
+contradicts the above as superseded.
+
+---
+
 ## 0. Status — Stage 0 + Stage 1 (this hand-off)
 
 | Stage | What | State |
