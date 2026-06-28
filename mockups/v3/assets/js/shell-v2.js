@@ -373,7 +373,7 @@
       }
     }
     function linkV1(label, iconName, rel) {
-      html += '<a class="sidebar-link" href="' + hrefV1(rel) + '">' + icon(iconName, { size: 'sm' }) + esc(label) + ' <span class="v1-tag" title="opens the v1 operations site">v1</span></a>';
+      html += '<a class="sidebar-link" href="' + hrefV1(rel) + '">' + icon(iconName, { size: 'sm' }) + esc(label) + '</a>';
     }
 
     /* one unified nav — every area, game and operations, no version split */

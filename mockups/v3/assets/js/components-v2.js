@@ -200,7 +200,7 @@
     var links = [];
     if (sop.videoId && !opts.hideVideo) links.push('<a class="form-chip" href="' + s.hrefV2('learn/lesson.html?sop=' + sop.id) + '">' + icon('play', { size: 'sm' }) + ' Watch the guide</a>');
     if (sop.journeyId) links.push('<a class="form-chip" href="' + s.hrefV2('journeys/journey.html?id=' + sop.journeyId) + '">' + icon('arrow-right', { size: 'sm' }) + ' Open the journey</a>');
-    if (sop.v1) links.push('<a class="form-chip" href="' + s.hrefV1(sop.v1) + '">' + icon('external-link', { size: 'sm' }) + ' The formal screen <span class="v1-tag">v1</span></a>');
+    if (sop.v1) links.push('<a class="form-chip" href="' + s.hrefV1(sop.v1) + '">' + icon('external-link', { size: 'sm' }) + ' The formal screen</a>');
     links.push(reportLink(sop.title));
 
     var issues = '';

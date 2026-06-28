@@ -102,7 +102,7 @@
       /* the formal steps deep-link into the v1 ops site */
       var v1 = (J.reusesV1 || []).map(function (rel) {
         var label = rel.replace(/^.*\//, '').replace(/\.html$/, '').replace(/-/g, ' ');
-        return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + ' <span class="v1-tag">v1</span></a>';
+        return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + '</a>';
       }).join(' ');
 
       /* now / your part / next — ALL recomputed from the same currentStep */

@@ -124,7 +124,7 @@
       ];
       var cards = entries.map(function (e) {
         var href = e.kind === 'v1' ? S.hrefV1(e.rel) : S.hrefV2(e.rel);
-        var tag = e.kind === 'v1' ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '';
+        var tag = e.kind === 'v1' ? '' : '';
         var planned = (e.kind === 'v2' && !S.isBuiltV2(e.rel)) ? ' ' + S.plannedFlag('Stage 3') : '';
         return '<a class="role-card" href="' + href + '">' + S.icon(e.icon) +
           '<span class="role-name">' + esc(e.title) + tag + planned + '</span><span>' + esc(e.note) + '</span>' +
@@ -149,7 +149,7 @@
         '<section aria-labelledby="feed-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
         '<h2 id="feed-h">Recent in the square</h2>' +
         '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('civic/civic-home.html') + '">' +
-        S.icon('globe', { size: 'sm' }) + ' Open the full square <span class="v1-tag">v1</span></a></div>' +
+        S.icon('globe', { size: 'sm' }) + ' Open the full square</a></div>' +
         '<div class="stack">' + posts + '</div>' +
         '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
         ' A post is talk, not an act. To put words into the permanent public record, testify in the halls.</p></section>' +

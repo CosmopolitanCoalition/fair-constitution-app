@@ -261,7 +261,7 @@
       endorsementsGiven: [ { to: 'diego-ramos', public: true } ],
       groups: ['grp-harbor'], orgs: ['hudson-mutual-aid'],
       achievements: [ { name: 'First ballot cast', note: 'decorative — confers no power', proposed: true }, { name: 'Founded a group', proposed: true } ],
-      record: 'civic/my-record.html'
+      record: 'civic/my-civic-life.html?tab=record'
     },
     org: {
       org: 'bluefin-logistics', type: 'business', ownership: 'stock', workers: 740,

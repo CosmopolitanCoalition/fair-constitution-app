@@ -111,7 +111,7 @@
       var cls = 'live-row' + (r.status === 'live' ? ' live-row--live' : '');
       var pill = r.pill ? S.pill(r.pill.tone, r.pill.label, r.pill.tip) : '';
       var clock = countdownHtml(r.target);
-      var v1tag = r.to.v1 ? ' <span class="v1-tag" title="opens the v1 operations site">v1</span>' : '';
+      var v1tag = r.to.v1 ? '' : '';
 
       return '<div class="' + cls + '">' +
         '<span class="live-icon" aria-hidden="true">' + S.icon(r.icon, { size: 'sm' }) + '</span>' +

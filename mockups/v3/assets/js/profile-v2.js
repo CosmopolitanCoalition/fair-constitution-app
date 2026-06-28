@@ -150,8 +150,8 @@
         '<p class="gloss">Everything waiting for your ballot. You can vote on anything here just by living in the jurisdiction — nothing else is ever required.</p>' +
         (rows ? '<ul style="list-style:none;padding:0;margin:0">' + rows + '</ul>' : '<p class="gloss">No ballot is open for you right now.</p>') +
         '<div class="cluster" style="margin-block-start:var(--space-3)">' +
-        '<a class="btn btn--primary btn--sm" href="' + hrefV1('electoral/open-ballot.html') + '">' + icon('vote', { size: 'sm' }) + ' Open ballot <span class="v1-tag">v1</span></a>' +
-        '<a class="btn btn--secondary btn--sm" href="' + hrefV1('electoral/ranked-ballot.html') + '">' + icon('vote', { size: 'sm' }) + ' Ranked ballot <span class="v1-tag">v1</span></a>' +
+        '<a class="btn btn--primary btn--sm" href="' + hrefV1('electoral/open-ballot.html') + '">' + icon('vote', { size: 'sm' }) + ' Open ballot</a>' +
+        '<a class="btn btn--secondary btn--sm" href="' + hrefV1('electoral/ranked-ballot.html') + '">' + icon('vote', { size: 'sm' }) + ' Ranked ballot</a>' +
         '</div></section>';
     } else {
       html += '<div class="banner banner--info">' + icon('user', { size: 'sm' }) +
@@ -187,13 +187,13 @@
         }).join('') + '</div>';
     }
 
-    var recHref = (prof && prof.record) ? prof.record : 'civic/my-record.html';
+    var recHref = (prof && prof.record) ? prof.record : 'civic/my-civic-life.html?tab=record';
     return '<section class="card" aria-labelledby="rec-h"><h2 id="rec-h">' + icon('file-text', { size: 'sm' }) + ' Public record</h2>' +
       '<p class="gloss">The complete, audited civic history — residency, votes cast (counts only, never how), offices, filings. The receipt for a civic life; it cannot be quietly edited.</p>' +
       acts + endChips +
       '<div class="cluster" style="margin-block-start:var(--space-3)">' +
       '<a class="btn btn--secondary btn--sm" href="' + hrefV1(recHref) + '">' + icon('file-text', { size: 'sm' }) +
-      ' ' + (sub.isSelf ? 'Open my full record' : 'Open the full record') + ' <span class="v1-tag">v1</span> ' + icon('arrow-right', { size: 'sm' }) + '</a></div>' +
+      ' ' + (sub.isSelf ? 'Open my full record' : 'Open the full record') + ' ' + icon('arrow-right', { size: 'sm' }) + '</a></div>' +
       '</section>';
   }
 
@@ -205,7 +205,7 @@
   function officePanel(sub) {
     var rep = sub.rep, p = sub.persona;
     var connect = '<div class="cluster" style="gap:var(--space-3)">' +
-      '<a class="btn btn--secondary btn--sm" href="' + hrefV1(rep.record) + '">' + icon('file-text', { size: 'sm' }) + ' Their public record <span class="v1-tag">v1</span></a>' +
+      '<a class="btn btn--secondary btn--sm" href="' + hrefV1(rep.record) + '">' + icon('file-text', { size: 'sm' }) + ' Their public record</a>' +
       '<a class="btn btn--secondary btn--sm" href="' + hrefV2('shared/live-room.html?variant=' + encodeURIComponent(rep.forum)) + '">' + icon('users', { size: 'sm' }) + ' Their forum — open a live room ' + icon('arrow-right', { size: 'sm' }) + '</a>' +
       '</div>';
 
