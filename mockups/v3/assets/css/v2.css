@@ -1006,3 +1006,71 @@ a.cal-row:hover { border-color: var(--gov-link); }
 .bill-stage--done { color: var(--status-success-fg); border-color: var(--status-success); background: color-mix(in oklch, var(--status-success) 12%, var(--gov-bg)); }
 .bill-stage--current { color: var(--gov-fg); border-color: var(--gov-link); background: color-mix(in oklch, var(--gov-link) 12%, var(--gov-bg)); font-weight: var(--weight-medium); }
 .bill-stage--pending { opacity: 0.7; }
+
+/* ============================================================ COMMAND BAR (v3)
+   The harmonized floating chrome — Menu, the guided-tour Back/Next, the Learn
+   flyout, and the mockup controls, in ONE always-present bar fixed to the
+   bottom. Scoped to .app-shell--v2 so the v1 operations pages (which share
+   .app-shell) keep their own sidebar/demo-bar grid untouched. */
+.app-shell.app-shell--v2 {
+  --cmdbar-h: 3.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "header" "main" "footer";
+  padding-block-end: calc(var(--cmdbar-h) + var(--space-2));
+}
+
+.cmdbar {
+  position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  min-block-size: var(--cmdbar-h); padding: var(--space-1) var(--space-2);
+  background: var(--gov-surface); border-block-start: 1px solid var(--gov-border);
+  box-shadow: 0 -2px 14px color-mix(in oklch, var(--gov-fg) 14%, transparent);
+}
+.cmdbar-flies, .cmdbar-tour { display: flex; align-items: center; gap: var(--space-1); min-inline-size: 0; }
+
+.cmdbar-btn {
+  display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap;
+  padding: var(--space-2) var(--space-3); border: 1px solid transparent; border-radius: var(--radius-md);
+  background: none; color: var(--gov-fg-muted); font: inherit; font-size: var(--text-sm);
+  cursor: pointer; text-decoration: none; list-style: none; min-block-size: 2.5rem;
+}
+.cmdbar-btn::-webkit-details-marker { display: none; }
+.cmdbar-btn .icon { color: currentColor; }
+.cmdbar-btn:hover { color: var(--gov-fg); background: var(--gov-bg); }
+.cmdbar-btn:focus-visible { outline: 2px solid var(--gov-focus); outline-offset: 2px; }
+.cmdbar-btn--primary { color: var(--gov-primary-fg); background: var(--gov-primary); border-color: transparent; }
+.cmdbar-btn--primary:hover { color: var(--gov-primary-fg); background: var(--gov-primary); }
+.cmdbar-step { color: var(--gov-fg-subtle); }
+.cmdbar-fly { position: static; }
+.cmdbar-fly[open] > .cmdbar-btn { color: var(--gov-link); background: var(--gov-bg); border-color: var(--gov-border); }
+.cmdbar-caret { margin-inline-start: var(--space-1); transform: rotate(180deg); transition: transform var(--dur) var(--ease-standard); }
+.cmdbar-fly[open] > .cmdbar-btn .cmdbar-caret { transform: rotate(0deg); }
+
+.cmdbar-panel {
+  position: fixed; inset-inline: 0; inset-block-end: var(--cmdbar-h); z-index: 59;
+  max-block-size: min(72vh, 40rem); overflow: auto;
+  background: var(--gov-surface); border-block-start: 1px solid var(--gov-border);
+  box-shadow: 0 -10px 28px color-mix(in oklch, var(--gov-fg) 20%, transparent);
+  padding: var(--space-4) var(--space-5);
+}
+.cmdbar-panel-title { margin: 0 0 var(--space-2); }
+/* the menu nav fills the panel; its .sidebar-* item styles still apply */
+.cmdbar-panel--menu .sidebar-nav { display: block; }
+.cmdbar-panel--menu .sidebar-section { margin-block-end: var(--space-4); }
+/* the demo flyout lays its controls out in a wrapping row */
+.cmdbar-panel--demo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.cmdbar-panel--demo .cmdbar-panel-title { flex: 1 1 100%; }
+.cmdbar-panel--learn .ld-video { max-inline-size: 40rem; }
+
+/* desktop: anchor the menu + learn sheets to a comfortable column on the left
+   instead of spanning the full width */
+@media (min-width: 48rem) {
+  .cmdbar-panel--menu { inset-inline-end: auto; inline-size: min(26rem, 100%); }
+  .cmdbar-panel--learn { inset-inline-end: auto; inline-size: min(34rem, 100%); }
+}
+/* very narrow: icon-only flyout buttons (keep the tour labels) */
+@media (max-width: 26rem) {
+  .cmdbar-flies .cmdbar-lbl { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+@media (prefers-reduced-motion: reduce) { .cmdbar-caret { transition: none; } }

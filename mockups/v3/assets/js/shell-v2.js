@@ -263,14 +263,10 @@
     });
   }
 
-  function renderSidebar() {
-    /* On desktop the summary is hidden, so the menu must start open (it can't be
-       toggled). On narrow screens it's a real toggle — start it COLLAPSED so a
-       new page doesn't bury its content under the full nav (matches the 64rem
-       breakpoint where the summary toggle appears). */
-    var collapsedMenu = false;
-    try { collapsedMenu = window.matchMedia('(max-width: 64rem)').matches; } catch (e) {}
-    var html = '<details class="sidebar-toggle"' + (collapsedMenu ? '' : ' open') + '><summary>' + icon('menu', { size: 'sm' }) + ' Menu</summary><div class="sidebar-nav">';
+  /* The nav sections — used to be the sidebar; now they fill the Menu flyout in
+     the harmonized command bar. Returns just the section markup. */
+  function sidebarNavInner() {
+    var html = '';
 
     function section(title) { html += '<div class="sidebar-section"><span class="sidebar-title eyebrow">' + esc(title) + '</span>'; }
     function endSection() { html += '</div>'; }
@@ -365,7 +361,7 @@
     linkV2('coverage', 'v2 coverage', 'check', 'shared/coverage.html');
     endSection();
 
-    return html + '</div></details>';
+    return html;
   }
 
   /* ------------------------------------------------------------- header */
@@ -426,13 +422,10 @@
       '<span class="audit-chip">Audit #' + W.instance.auditSeq.toLocaleString('en-US') + ' · chained ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
   }
 
-  /* ------------------------------------------------------------ demo bar */
-  function renderDemoBar() {
+  /* ------------------------------------------------------ demo controls */
+  /* The mockup-only controls — now the Demo flyout in the command bar. */
+  function demoControlsInner() {
     var s = CGA.state.getAll();
-    var prior = demoBarEl && demoBarEl.querySelector('.demo-details');
-    var open = prior ? prior.open
-      : (window.matchMedia ? window.matchMedia('(min-width: 64rem) and (min-height: 34rem)').matches : true);
-
     var personaOpts = W.personas.map(function (p) {
       return '<option value="' + p.id + '"' + (s.persona === p.id ? ' selected' : '') + '>' + esc(p.name) + (p.standIn ? ' *' : '') + '</option>';
     }).join('');
@@ -442,14 +435,10 @@
     var jurOpts = W.jurisdictions.map(function (j) {
       return '<option value="' + j.slug + '"' + (s.jurisdiction === j.slug ? ' selected' : '') + '>' + esc(j.name) + ' (' + esc(admLabel(j.admLevel)) + ')</option>';
     }).join('');
-
     function toggle(key, label) {
       return '<label class="demo-control"><input type="checkbox" data-scenario-flag="' + key + '"' + (s.scenario[key] ? ' checked' : '') + ' /> ' + esc(label) + '</label>';
     }
-
-    return '<details class="demo-details"' + (open ? ' open' : '') + '>' +
-      '<summary><span class="demo-bar-label">' + icon('sliders', { size: 'sm' }) + ' Mockup controls — demo only, not part of the application</span>' + icon('chevron-down', { size: 'sm', cls: 'demo-caret' }) + '</summary>' +
-      '<div class="demo-controls">' +
+    return '<p class="cmdbar-panel-title eyebrow">' + icon('sliders', { size: 'sm' }) + ' Mockup controls — demo only, not part of the application</p>' +
       '<label class="demo-control">Persona <select data-set-persona>' + personaOpts + '</select></label>' +
       '<label class="demo-control">Role <select data-set-role>' + roleOpts + '</select></label>' +
       '<label class="demo-control">Jurisdiction <select data-set-jur-select>' + jurOpts + '</select></label>' +
@@ -462,8 +451,45 @@
       '<span class="demo-sep" aria-hidden="true">·</span>' +
       '<label class="demo-control"><input type="checkbox" data-rtl-flip' + (s.dir === 'rtl' ? ' checked' : '') + ' /> RTL flip</label>' +
       '<label class="demo-control"><input type="checkbox" data-pseudo-toggle' + (s.locale === 'en-XA' ? ' checked' : '') + ' /> Pseudo-locale</label>' +
-      '<button type="button" class="btn btn--ghost btn--sm" data-demo-reset style="color:var(--cc-purple-200)">Reset</button>' +
-      '</div></details>';
+      '<button type="button" class="btn btn--ghost btn--sm" data-demo-reset style="color:var(--cc-purple-200)">Reset</button>';
+  }
+
+  /* ---------------------------------------------- the floating command bar
+     v3: one always-present bar — Menu, the guided-tour Back/Next, the Learn
+     flyout (video + about + report), and the mockup controls — so navigation
+     and the tour are reachable from anywhere without scrolling. */
+  function renderCommandBar() {
+    var openId = null;
+    if (cmdBarEl) { var o = cmdBarEl.querySelector('.cmdbar-fly[open]'); if (o) openId = o.id; }
+
+    function fly(id, iconName, label, panelCls, panelHtml) {
+      return '<details class="cmdbar-fly" id="' + id + '"' + (id === openId ? ' open' : '') + '>' +
+        '<summary class="cmdbar-btn">' + icon(iconName, { size: 'sm' }) + '<span class="cmdbar-lbl">' + esc(label) + '</span>' + icon('chevron-down', { size: 'sm', cls: 'cmdbar-caret' }) + '</summary>' +
+        '<div class="cmdbar-panel ' + panelCls + '">' + panelHtml + '</div></details>';
+    }
+
+    var flies = '<div class="cmdbar-flies">' +
+      fly('cmd-menu', 'menu', 'Menu', 'cmdbar-panel--menu', '<nav class="sidebar-nav" aria-label="Primary">' + sidebarNavInner() + '</nav>') +
+      fly('cmd-learn', 'graduation-cap', 'Learn', 'cmdbar-panel--learn', '<div class="ld-body" data-ld-body><p class="gloss">Loading the guide…</p></div>') +
+      fly('cmd-demo', 'sliders', 'Demo', 'cmdbar-panel--demo demo-controls', demoControlsInner()) +
+      '</div>';
+
+    /* the guided-tour controls, inline, only when on a tour step */
+    var tour = '';
+    var i = currentTourIndex();
+    if (i >= 0) {
+      var back = i > 0
+        ? '<a class="cmdbar-btn" href="' + tourHref(i - 1) + '">' + icon('chevron-left', { size: 'sm' }) + '<span class="cmdbar-lbl">Back</span></a>'
+        : '<a class="cmdbar-btn" href="' + hrefV2('tour.html') + '">' + icon('chevron-left', { size: 'sm' }) + '<span class="cmdbar-lbl">Start</span></a>';
+      var next = i < TOUR.length - 1
+        ? '<a class="cmdbar-btn cmdbar-btn--primary" href="' + tourHref(i + 1) + '"><span class="cmdbar-lbl">Next</span>' + icon('chevron-right', { size: 'sm' }) + '</a>'
+        : '<a class="cmdbar-btn cmdbar-btn--primary" href="' + hrefV2('tour.html') + '"><span class="cmdbar-lbl">Finish</span>' + icon('check', { size: 'sm' }) + '</a>';
+      tour = '<div class="cmdbar-tour" role="navigation" aria-label="Guided tour">' +
+        '<a class="cmdbar-btn cmdbar-step" href="' + hrefV2('tour.html') + '" title="' + esc(TOUR[i].title) + ' — all steps">' + icon('map', { size: 'sm' }) + '<span class="cmdbar-lbl">' + (i + 1) + '/' + TOUR.length + '</span></a>' +
+        back + next + '</div>';
+    }
+
+    return flies + tour;
   }
 
   /* -------------------------------------------------- i18n / pseudo / links */
@@ -521,9 +547,9 @@
   }
 
   /* ------------------------------------------------------------- render */
-  var headerEl, sidebarEl, footerEl, demoBarEl, tourBarEl, learnDrawerEl;
+  var headerEl, footerEl, cmdBarEl;
   function buildShell() {
-    document.body.classList.add('app-shell');
+    document.body.classList.add('app-shell', 'app-shell--v2');
     if (PAGE.register === 'brand') document.body.classList.add('register-brand');
 
     var spriteWrap = document.createElement('div');
@@ -540,39 +566,31 @@
     document.body.appendChild(liveEl);
 
     headerEl = document.createElement('header'); headerEl.className = 'app-header';
-    sidebarEl = document.createElement('nav'); sidebarEl.className = 'sidebar'; sidebarEl.setAttribute('aria-label', 'Primary');
     footerEl = document.createElement('footer'); footerEl.className = 'app-footer';
-    demoBarEl = document.createElement('section'); demoBarEl.className = 'demo-bar'; demoBarEl.setAttribute('aria-label', 'Mockup controls — demo only');
 
     var main = document.getElementById('main');
     if (!main) fail('page is missing <main id="main">');
     main.classList.add('main-content');
 
-    /* the guided-tour follow-along bar lives at the top of <main>, above the
-       page's own content, so it survives the page IIFE re-rendering #root */
-    tourBarEl = document.createElement('div'); tourBarEl.className = 'tour-bar-wrap';
-    main.insertBefore(tourBarEl, main.firstChild);
-
-    /* the Learn + Report drawer lives at the FOOT of <main>, after the page's
-       content — collapsed by default, survives #root re-renders */
-    learnDrawerEl = document.createElement('div'); learnDrawerEl.className = 'learn-drawer-wrap';
-    main.appendChild(learnDrawerEl);
+    /* the harmonized floating command bar — Menu, the guided-tour Back/Next, the
+       Learn flyout, and the mockup controls, in one always-present bar (v3). */
+    cmdBarEl = document.createElement('div'); cmdBarEl.className = 'cmdbar';
+    cmdBarEl.setAttribute('aria-label', 'Navigation, guided tour, learn, and mockup controls');
 
     document.body.insertBefore(headerEl, main);
-    document.body.insertBefore(sidebarEl, main);
     document.body.appendChild(footerEl);
-    document.body.appendChild(demoBarEl);
+    document.body.appendChild(cmdBarEl);
 
     renderChrome(); wireEvents(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
   }
   function renderChrome() {
     if (!headerEl) return;
     headerEl.innerHTML = renderHeader();
-    sidebarEl.innerHTML = renderSidebar();
     footerEl.innerHTML = renderFooter();
-    demoBarEl.innerHTML = renderDemoBar();
-    if (tourBarEl) tourBarEl.innerHTML = renderTourBar();
-    if (learnDrawerEl) learnDrawerEl.innerHTML = renderLearnDrawer();
+    cmdBarEl.innerHTML = renderCommandBar();
+    /* re-hydrate the Learn flyout if it was open across a re-render */
+    var learn = document.getElementById('cmd-learn');
+    if (learn && learn.open) hydrateLearnDrawer(learn);
   }
   function wireEvents() {
     document.body.addEventListener('change', function (ev) {
@@ -598,7 +616,7 @@
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
-      var open = document.querySelectorAll('details.popover[open]');
+      var open = document.querySelectorAll('details.popover[open], .cmdbar-fly[open]');
       for (var i = 0; i < open.length; i++) {
         open[i].removeAttribute('open');
         var sum = open[i].querySelector('summary');
@@ -606,13 +624,17 @@
       }
     });
     document.addEventListener('click', function (ev) {
-      var open = document.querySelectorAll('details.popover[open]');
+      var open = document.querySelectorAll('details.popover[open], .cmdbar-fly[open]');
       for (var i = 0; i < open.length; i++) if (!open[i].contains(ev.target)) open[i].removeAttribute('open');
     });
-    /* the Learn drawer hydrates (and lazy-loads its video) when opened; toggle
-       does not bubble, so listen in the capture phase */
+    /* command-bar flyouts: keep one open at a time, and lazy-hydrate the Learn
+       flyout (its video) on open. toggle does not bubble, so capture it. */
     document.addEventListener('toggle', function (ev) {
-      if (ev.target && ev.target.id === 'learn-drawer') hydrateLearnDrawer(ev.target);
+      var t = ev.target;
+      if (!t || !t.classList || !t.classList.contains('cmdbar-fly') || !t.open) return;
+      var all = document.querySelectorAll('.cmdbar-fly[open]');
+      for (var i = 0; i < all.length; i++) if (all[i] !== t) all[i].removeAttribute('open');
+      if (t.id === 'cmd-learn') hydrateLearnDrawer(t);
     }, true);
     CGA.state.subscribe(function () {
       renderChrome(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
