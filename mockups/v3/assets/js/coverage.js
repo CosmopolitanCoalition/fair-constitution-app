@@ -36,7 +36,7 @@
     (rec.forms || []).forEach(function (f) { (byForm[f] = byForm[f] || []).push(rec.file); });
   });
   var flowBuilt = {};
-  M.forEach(function (rec) { if (rec.file.indexOf('flows/') === 0) flowBuilt[rec.file.replace('flows/', '').replace('.html', '')] = true; });
+  R.workflows.forEach(function (w) { flowBuilt[w.id] = true; }); /* all 80 absorbed into the Learn layer */
 
   function cell(kind, label) {
     var map = { covered: ['covered', 'check'], missing: ['missing', 'minus'], stub: ['stub', 'clock'] };
@@ -58,7 +58,7 @@
   var html =
     '<div class="grid-2" style="grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))">' +
     '<div class="card"><div class="stat"><span class="stat-number">' + rolesCovered + ' / ' + R.roles.length + '</span><span class="stat-label">roles with an entry-point screen</span></div></div>' +
-    '<div class="card"><div class="stat"><span class="stat-number">' + wfsCovered + ' / ' + R.workflows.length + '</span><span class="stat-label">workflows with a flow page</span></div></div>' +
+    '<div class="card"><div class="stat"><span class="stat-number">' + wfsCovered + ' / ' + R.workflows.length + '</span><span class="stat-label">workflows in the Learn layer</span></div></div>' +
     '<div class="card"><div class="stat"><span class="stat-number">' + formsCovered + ' / ' + R.forms.length + '</span><span class="stat-label">forms rendered on a screen</span></div></div>' +
     '<div class="card"><div class="stat"><span class="stat-number">' + M.length + '</span><span class="stat-label">pages in the manifest</span></div></div>' +
     '</div>' +
@@ -89,7 +89,7 @@
   fams.forEach(function (fam) {
     var rows = R.workflows.filter(function (w) { return w.family === fam; });
     html += '<h3 style="margin-block-start:var(--space-4)">' + fam + ' <span class="citation">' + rows.length + ' workflows</span></h3>' +
-      '<div class="table-wrap"><table class="table coverage-table"><thead><tr><th>ID</th><th>Workflow</th><th>Stage</th><th>Flow page</th><th>Referencing screens</th></tr></thead><tbody>';
+      '<div class="table-wrap"><table class="table coverage-table"><thead><tr><th>ID</th><th>Workflow</th><th>Stage</th><th>Learn layer</th><th>Referencing screens</th></tr></thead><tbody>';
     rows.forEach(function (w) {
       var refs = byWf[w.id] || [];
       html += '<tr><td class="mono">' + w.id + '</td><td>' + esc(w.name) + '</td><td class="mono">' + w.stage + '</td>' +

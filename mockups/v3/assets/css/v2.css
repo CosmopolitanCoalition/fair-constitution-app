@@ -867,6 +867,17 @@ a.ticket-row:hover { border-color: var(--gov-border-strong); text-decoration: no
 .learn-drawer .ld-video { max-inline-size: 40rem; }
 @media (prefers-reduced-motion: reduce) { .learn-drawer .ld-caret { transition: none; } }
 
+/* "Where this fits" — the per-screen workflow context in the Learn drawer */
+.ld-context { display: flex; flex-direction: column; gap: var(--space-2); border-block-start: 1px solid var(--gov-border); padding-block-start: var(--space-3); }
+.ld-context-h { display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-sm); font-weight: 600; color: var(--gov-fg); }
+.ld-flow { border: 1px solid var(--gov-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); background: var(--gov-surface-2); display: flex; flex-direction: column; gap: var(--space-1); }
+.ld-flow-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
+.ld-flow-action { font-size: var(--text-sm); color: var(--gov-fg); }
+.ld-flow-next { font-size: var(--text-xs); color: var(--gov-fg-subtle); display: flex; align-items: center; gap: var(--space-1); }
+.ld-flow-full { margin-block-start: var(--space-1); }
+.ld-flow-full summary { font-size: var(--text-xs); color: var(--gov-accent); cursor: pointer; }
+.ld-flow-full ol { margin: var(--space-2) 0 0; padding-inline-start: var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--text-xs); color: var(--gov-fg-subtle); }
+
 /* ============================================================ UNIFIED PROFILE (v3)
    One person, any role — the same tabbed profile for you, a neighbour, or the
    people who hold your seats. A horizontal tab strip; panels swap below it. */

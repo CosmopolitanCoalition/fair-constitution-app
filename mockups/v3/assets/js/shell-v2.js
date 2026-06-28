@@ -346,10 +346,43 @@
     document.head.appendChild(s);
   }
   function ensureLearnDeps(cb) {
+    function s0() { if (CGA.fixtures.flows) return s1(); loadScript('assets/js/fixtures-flows.js', s1); }
     function s1() { if (CGA.fixtures.v2.learn) return s2(); loadScript('assets/js/fixtures-learn.js', s2); }
     function s2() { if (CGA.fixtures.v2.tr) return s3(); loadScript('assets/js/fixtures-translation.js', s3); }
     function s3() { if (CGA.v2c) return cb(true); loadScript('assets/js/components-v2.js', function () { cb(!!CGA.v2c); }); }
-    s1();
+    s0();
+  }
+  /* "Where this fits" — the (now-absorbed) flow walkthroughs, inverted per screen.
+     For the current page, which process(es) it takes part in and where the player
+     sits in each: their step, what it does, what comes next, and — collapsed — the
+     whole process end to end. This is where the removed flows/WF-*.html content lives. */
+  function screenContextHtml() {
+    var F = CGA.fixtures.flows;
+    if (!F || !F.byScreen) return '';
+    var rows = F.byScreen[PAGE.id] || [];
+    if (!rows.length) return '';
+    var CAP = 6, shown = rows.slice(0, CAP), more = rows.length - shown.length;
+    var cards = shown.map(function (r) {
+      var ns = r.steps.map(function (s) { return s.n; });
+      var stepLabel = ns.length > 1 ? 'steps ' + ns[0] + '–' + ns[ns.length - 1] : 'step ' + ns[0];
+      var first = r.steps[0];
+      var nextLine = first.next
+        ? '<div class="ld-flow-next">' + icon('arrow-right', { size: 'sm' }) + ' Next — ' + esc(plainCodes(first.next)) + '</div>' : '';
+      var full = (F.byWorkflow[r.wf] || {}).steps || [];
+      var fullList = full.length
+        ? '<details class="ld-flow-full"><summary>The full process — ' + full.length + ' steps</summary><ol>' +
+          full.map(function (s) { return '<li>' + esc(plainCodes(s.action)) + '</li>'; }).join('') + '</ol>' +
+          (r.terminal ? '<p class="citation">Ends: ' + esc(plainCodes(r.terminal)) + '</p>' : '') + '</details>'
+        : '';
+      return '<div class="ld-flow">' +
+        '<div class="ld-flow-head"><strong>' + esc(r.wfName) + '</strong> ' +
+        '<span class="citation">' + esc(r.familyLabel) + ' · ' + stepLabel + ' of ' + r.total + '</span></div>' +
+        '<div class="ld-flow-action">' + esc(plainCodes(first.action)) + '.</div>' + nextLine + fullList + '</div>';
+    }).join('');
+    return '<div class="ld-context"><span class="ld-context-h">' + icon('map', { size: 'sm' }) +
+      ' Where this fits — the process' + (rows.length > 1 ? 'es' : '') + ' this screen is part of</span>' +
+      cards + (more > 0 ? '<p class="citation">+ ' + more + ' more process' + (more > 1 ? 'es' : '') + ' touch this screen</p>' : '') +
+      '</div>';
   }
   function hydrateLearnDrawer(d) {
     if (!d || d.getAttribute('data-hydrated')) return;
@@ -358,18 +391,22 @@
     body.innerHTML =
       '<p class="gloss">' + esc(lf.about) + '</p>' +
       '<div class="ld-video" data-ld-video><p class="gloss">Loading the guide…</p></div>' +
+      '<div data-ld-context></div>' +
       '<div class="cluster" style="gap:var(--space-1)">' +
       '<a class="form-chip" href="' + hrefV2('learn/learn-home.html') + '">' + icon('graduation-cap', { size: 'sm' }) + ' Full lessons</a>' +
       '<a class="form-chip form-chip--report" href="' + hrefV2('support/report.html?ref=' + encodeURIComponent(PAGE.id || 'page')) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a></div>';
     ensureLearnDeps(function (ok) {
       var slot = body.querySelector('[data-ld-video]');
-      if (!slot) return;
-      if (ok && CGA.v2c && CGA.fixtures.v2.learn.byVideo[lf.video]) {
-        slot.innerHTML = CGA.v2c.videoPlayer(lf.video);
-        CGA.v2c.initVideo(slot);
-      } else {
-        slot.innerHTML = '<a class="form-chip" href="' + hrefV2('shared/video-player.html') + '">' + icon('play', { size: 'sm' }) + ' Open the video library</a>';
+      if (slot) {
+        if (ok && CGA.v2c && CGA.fixtures.v2.learn.byVideo[lf.video]) {
+          slot.innerHTML = CGA.v2c.videoPlayer(lf.video);
+          CGA.v2c.initVideo(slot);
+        } else {
+          slot.innerHTML = '<a class="form-chip" href="' + hrefV2('shared/video-player.html') + '">' + icon('play', { size: 'sm' }) + ' Open the video library</a>';
+        }
       }
+      var cslot = body.querySelector('[data-ld-context]');
+      if (cslot) cslot.innerHTML = screenContextHtml();
     });
   }
 

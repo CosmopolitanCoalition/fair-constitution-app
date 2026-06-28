@@ -221,17 +221,11 @@
       </section>
 
       <section class="card" aria-labelledby="sg-flow">
-        <h2 id="sg-flow">Flow walkthrough stepper — live contract test</h2>
-        <p>The shared component all 80 <code class="cc-code">flows/</code> pages will feed with a
-          <code class="cc-code">flowData</code> object. The three Stage-0 samples stress the contract:
-          a linear path, a failure branch with a handoff to another process, and three parallel
-          paths that run at once. Branch buttons are keyboard-operable.</p>
-        <div class="cluster" role="group" aria-label="Choose sample flow">
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-CIV-02" aria-pressed="false">Linear path</button>
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-ELE-03" aria-pressed="false">Failure branch</button>
-          <button type="button" class="btn btn--secondary btn--sm" data-flow-sample="WF-JUD-05" aria-pressed="true">Parallel paths</button>
-        </div>
-        <div id="flow-mount" style="margin-block-start:var(--space-4)"></div>
+        <h2 id="sg-flow">Process walkthroughs — now in the Learn drawer</h2>
+        <p>The standalone flow-walkthrough pages were retired: every process is now absorbed into the
+          per-screen <strong>Learn drawer</strong>. Open <em>Learn</em> on any screen and look under
+          <em>“Where this fits”</em> — it shows which process(es) the screen takes part in, the player’s
+          step, what comes next, and the whole process end to end.</p>
       </section>
 
       <section class="card" aria-labelledby="sg-banners">
@@ -325,21 +319,6 @@
       document.getElementById('icon-inventory').innerHTML = window.CGA.icons.names.map(function (n) {
         return '<span class="swatch">' + S.icon(n) + ' ' + n + '</span>';
       }).join('');
-
-      /* Live flow-stepper contract test */
-      var mount = document.getElementById('flow-mount');
-      function show(id) {
-        S.renderFlowStepper(F.flowSamples[id], mount);
-        var btns = document.querySelectorAll('[data-flow-sample]');
-        for (var i = 0; i < btns.length; i++) {
-          btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-flow-sample') === id ? 'true' : 'false');
-        }
-      }
-      document.body.addEventListener('click', function (ev) {
-        var b = ev.target.closest ? ev.target.closest('[data-flow-sample]') : null;
-        if (b) show(b.getAttribute('data-flow-sample'));
-      });
-      show('WF-JUD-05');
     })();
   </script>
 </body>

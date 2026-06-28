@@ -58,8 +58,8 @@
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
           <p><strong>What this screen does:</strong> the scheduler itself is the engine behind
-            <a href="../flows/WF-SYS-01.html">term synchronization</a> and
-            <a href="../flows/WF-SYS-02.html">90-day meeting enforcement</a>; the Fires column links every
+            term synchronization and
+            90-day meeting enforcement; the Fires column links every
             other consumer.</p>
           <p><strong>Entity state machine:</strong> clocks are stateless trigger records — they move other entities
             (Election, Emergency Powers, Vacancy, Residency Claim) through their lifecycles.</p>
@@ -116,9 +116,7 @@
       }
 
       function linkFires(text) {
-        return esc(text).replace(/WF-[A-Z]{3}-\d{2}/g, function (wf) {
-          return '<a href="../flows/' + wf + '.html">walkthrough</a>';
-        });
+        return esc(S.plainCodes(text));
       }
 
       function tableFor(clocks) {
