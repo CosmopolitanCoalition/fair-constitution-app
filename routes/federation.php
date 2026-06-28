@@ -12,6 +12,7 @@ use App\Http\Controllers\Federation\ReadWriteController;
 use App\Http\Controllers\Federation\RoleGrantController;
 use App\Http\Controllers\Federation\SyncController;
 use App\Http\Controllers\Federation\UpgradeConsentController;
+use App\Http\Controllers\Federation\VoiceTokenController;
 use App\Http\Controllers\Federation\WriteController;
 use Illuminate\Support\Facades\Route;
 
@@ -99,6 +100,13 @@ Route::post('/cert-grant', [CertGrantController::class, 'receiveGrant'])
 // Mesh Roles ★17 — cross-instance JOIN: an authority delivers a minted capability_grant to the
 // grantee; we apply it ONLY if it verifies against the authority's pinned key + names this box.
 Route::post('/role-grant', [RoleGrantController::class, 'receiveGrant'])
+    ->middleware('federation.signed');
+
+// ── Cross-node voice token (Phase 5 — foci AV reach) — a light node's home authority forwards a TRAVELING
+// player's LiveKit-token request to a CAPABLE peer, which verifies the home-vouched attested actor (coarse/
+// open commons gate — no residency-of-J) and mints a token with ITS OWN SFU secret, returning {token,
+// sfu_url} so the player's media dials that peer's SFU directly (bypassing the light node).
+Route::post('/voice/token', [VoiceTokenController::class, 'mint'])
     ->middleware('federation.signed');
 
 // ── Broker credential failover (roles campaign Phase 4) — a primary broker pushes its per-domain Cloudflare

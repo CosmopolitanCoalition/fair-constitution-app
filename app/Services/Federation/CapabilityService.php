@@ -15,7 +15,11 @@ use App\Models\InstanceCapability;
  */
 class CapabilityService
 {
-    public function __construct(private readonly InstanceIdentityService $identity) {}
+    public function __construct(
+        private readonly InstanceIdentityService $identity,
+        private readonly TransportEndpoints $endpoints,
+        private readonly NearestNodeService $nearest,
+    ) {}
 
     /** Enable one of OUR SELF-ASSERTED channels (mesh.member, mirror, etl). Refuses governed channels. */
     public function registerSelf(string $capability, int $priority = 100): InstanceCapability
@@ -126,6 +130,62 @@ class CapabilityService
             ->pluck('server_id')
             ->map(fn ($id) => (string) $id)
             ->all();
+    }
+
+    /**
+     * Mesh Roles ★20 — holders of $capability ranked for REACH, best-first: each PEER holder's best
+     * transport-ladder HEALTH (closed > half-open > open) → LATENCY (latency_ema) → optional GEO distance to
+     * $nearJurisdictionId. EXCLUDES self (you never reach yourself — a caller that holds the channel serves
+     * locally). Pure read-only DISCOVERY: it grants nothing, dials nothing, mutates nothing. `holdersOf`
+     * stays untouched for existing callers.
+     *
+     * @return list<array{server_id:string,health_score:int,latency_ema_ms:?int,transport:?string,url:?string,attemptable:bool,distance_km:?float}>
+     */
+    public function holdersOfRanked(string $capability, ?string $nearJurisdictionId = null): array
+    {
+        $self = $this->identity->serverId();
+        $serverIds = array_values(array_filter($this->holdersOf($capability), fn (string $id) => $id !== $self));
+        if ($serverIds === []) {
+            return [];
+        }
+
+        // Optional geo tiebreak — best-effort from the public directory; absent geodata just leaves it null.
+        $distance = [];
+        if ($nearJurisdictionId !== null && $nearJurisdictionId !== '') {
+            foreach ($this->nearest->nearestToJurisdiction($nearJurisdictionId, 10) as $n) {
+                $sid = (string) $n['server_id'];
+                $distance[$sid] = min($distance[$sid] ?? INF, (float) $n['distance_km']);
+            }
+        }
+
+        $ranked = [];
+        foreach ($serverIds as $sid) {
+            $best = $this->endpoints->forPeer($sid)[0] ?? null; // the ladder is already sorted best-first
+            $ranked[] = [
+                'server_id' => $sid,
+                'health_score' => (int) ($best['health_score'] ?? 0),
+                'latency_ema_ms' => $best['latency_ema_ms'] ?? null,
+                'transport' => $best['transport'] ?? null,
+                'url' => $best['url'] ?? null,
+                'attemptable' => (bool) ($best['attemptable'] ?? false),
+                'distance_km' => $distance[$sid] ?? null,
+            ];
+        }
+
+        usort($ranked, function (array $a, array $b) {
+            if ($a['health_score'] !== $b['health_score']) {
+                return $b['health_score'] <=> $a['health_score']; // healthier first
+            }
+            $la = $a['latency_ema_ms'] ?? PHP_INT_MAX;
+            $lb = $b['latency_ema_ms'] ?? PHP_INT_MAX;
+            if ($la !== $lb) {
+                return $la <=> $lb; // faster first
+            }
+
+            return ($a['distance_km'] ?? INF) <=> ($b['distance_km'] ?? INF); // nearer first
+        });
+
+        return $ranked;
     }
 
     public function holds(string $serverId, string $capability): bool

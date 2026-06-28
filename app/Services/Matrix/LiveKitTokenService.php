@@ -47,6 +47,27 @@ class LiveKitTokenService
         ];
     }
 
+    /**
+     * Mint a room-scoped LiveKit join token for an ALREADY-AUTHORIZED identity — the GATE is the CALLER's
+     * responsibility. Used by the attestation-gated cross-node path (TravelingVoiceTokenService): a capable
+     * peer mints for a TRAVELING player it has already verified via a home-signed attestation, signing with
+     * THIS box's own api_secret (which never leaves the box). Returns the EXTERNALLY-reachable SFU url so the
+     * remote browser can dial it directly. Identity must be the PSEUDONYM (never a legal name).
+     *
+     * @return array{token:string,url:string,identity:string,room:string}
+     */
+    public function mintAccessToken(string $identity, string $roomName, ?int $ttlSeconds = null): array
+    {
+        $ttl = min(max(60, $ttlSeconds ?? self::DEFAULT_TTL_SECONDS), self::MAX_TTL_SECONDS);
+
+        return [
+            'token'    => $this->mintJwt($identity, $roomName, $ttl),
+            'url'      => (string) config('matrix.livekit.public_url', config('matrix.livekit.url')),
+            'identity' => $identity,
+            'room'     => $roomName,
+        ];
+    }
+
     /** Build + sign the LiveKit JWT (HS256 over api_secret). Room-scoped VideoGrant, bounded lifetime. */
     private function mintJwt(string $identity, string $roomName, int $ttl): string
     {

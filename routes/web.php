@@ -700,6 +700,12 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // Phase K-3 (K3-J) — request a residency-gated LiveKit (Element Call) join token. Residency is the
     // ONLY gate (Art. I); the token is room-scoped, short-lived, pseudonymous, appservice-signed.
     Route::post('/matrix/call-token', \App\Http\Controllers\Matrix\CallTokenController::class)->name('matrix.call-token');
+
+    // Phase 5 — foci AV reach. The MIXED-ENVIRONMENT voice endpoint: resolve where voice is served (local
+    // SFU, else a capable peer reached via an attested envelope), and return {token, sfu_url} to dial. The
+    // commons is OPEN (coarse gate); the client supplies its device-signed proof. Degrades to no-voice when
+    // nothing reachable hosts an SFU.
+    Route::post('/matrix/voice-reach', \App\Http\Controllers\Matrix\VoiceReachController::class)->name('matrix.voice-reach');
 });
 
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain
