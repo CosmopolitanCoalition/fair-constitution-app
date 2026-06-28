@@ -468,28 +468,14 @@
         '<div class="cmdbar-panel ' + panelCls + '">' + panelHtml + '</div></details>';
     }
 
-    var flies = '<div class="cmdbar-flies">' +
+    /* the bottom bar holds ONLY the three flyouts; the guided-tour controls live
+       up in the floating header (renderChrome appends them) so they aren't
+       squished alongside these. */
+    return '<div class="cmdbar-flies">' +
       fly('cmd-menu', 'menu', 'Menu', 'cmdbar-panel--menu', '<nav class="sidebar-nav" aria-label="Primary">' + sidebarNavInner() + '</nav>') +
       fly('cmd-learn', 'graduation-cap', 'Learn', 'cmdbar-panel--learn', '<div class="ld-body" data-ld-body><p class="gloss">Loading the guide…</p></div>') +
       fly('cmd-demo', 'sliders', 'Demo', 'cmdbar-panel--demo demo-controls', demoControlsInner()) +
       '</div>';
-
-    /* the guided-tour controls, inline, only when on a tour step */
-    var tour = '';
-    var i = currentTourIndex();
-    if (i >= 0) {
-      var back = i > 0
-        ? '<a class="cmdbar-btn" href="' + tourHref(i - 1) + '">' + icon('chevron-left', { size: 'sm' }) + '<span class="cmdbar-lbl">Back</span></a>'
-        : '<a class="cmdbar-btn" href="' + hrefV2('tour.html') + '">' + icon('chevron-left', { size: 'sm' }) + '<span class="cmdbar-lbl">Start</span></a>';
-      var next = i < TOUR.length - 1
-        ? '<a class="cmdbar-btn cmdbar-btn--primary" href="' + tourHref(i + 1) + '"><span class="cmdbar-lbl">Next</span>' + icon('chevron-right', { size: 'sm' }) + '</a>'
-        : '<a class="cmdbar-btn cmdbar-btn--primary" href="' + hrefV2('tour.html') + '"><span class="cmdbar-lbl">Finish</span>' + icon('check', { size: 'sm' }) + '</a>';
-      tour = '<div class="cmdbar-tour" role="navigation" aria-label="Guided tour">' +
-        '<a class="cmdbar-btn cmdbar-step" href="' + hrefV2('tour.html') + '" title="' + esc(TOUR[i].title) + ' — all steps">' + icon('map', { size: 'sm' }) + '<span class="cmdbar-lbl">' + (i + 1) + '/' + TOUR.length + '</span></a>' +
-        back + next + '</div>';
-    }
-
-    return flies + tour;
   }
 
   /* -------------------------------------------------- i18n / pseudo / links */
@@ -581,16 +567,32 @@
     document.body.appendChild(footerEl);
     document.body.appendChild(cmdBarEl);
 
-    renderChrome(); wireEvents(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
+    renderChrome(); wireEvents(); initHeaderScroll(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain();
   }
   function renderChrome() {
     if (!headerEl) return;
-    headerEl.innerHTML = renderHeader();
+    /* the floating header: the chrome row, plus the guided-tour strip beneath it
+       when on a tour step — both ride the hide-on-scroll-down header together */
+    headerEl.innerHTML = '<div class="hdr-row">' + renderHeader() + '</div>' +
+      (currentTourIndex() >= 0 ? renderTourBar() : '');
     footerEl.innerHTML = renderFooter();
     cmdBarEl.innerHTML = renderCommandBar();
     /* re-hydrate the Learn flyout if it was open across a re-render */
     var learn = document.getElementById('cmd-learn');
     if (learn && learn.open) hydrateLearnDrawer(learn);
+  }
+
+  /* the header floats: it slides away as you scroll DOWN and reappears the
+     moment you scroll UP (and is always shown near the top of the page). */
+  function initHeaderScroll() {
+    if (!headerEl) return;
+    var lastY = window.scrollY || window.pageYOffset || 0;
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY || window.pageYOffset || 0, h = headerEl.offsetHeight || 0;
+      if (y <= h || y < lastY - 2) headerEl.classList.remove('app-header--hidden');
+      else if (y > lastY + 2) headerEl.classList.add('app-header--hidden');
+      lastY = y;
+    }, { passive: true });
   }
   function wireEvents() {
     document.body.addEventListener('change', function (ev) {

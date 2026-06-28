@@ -1074,3 +1074,29 @@ a.cal-row:hover { border-color: var(--gov-link); }
   .cmdbar-flies .cmdbar-lbl { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 }
 @media (prefers-reduced-motion: reduce) { .cmdbar-caret { transition: none; } }
+
+/* ============================================================ FLOATING HEADER (v3)
+   The top bar (wordmark · jurisdiction · language · profile) — plus the guided-
+   tour strip when active — floats: it slides away on scroll-down and reappears
+   on scroll-up. The tour controls ride here; the bottom command bar keeps only
+   the three flyouts. Scoped to .app-shell--v2 so v1 pages are untouched. */
+.app-shell.app-shell--v2 > .app-header {
+  position: sticky; inset-block-start: 0; z-index: 55;
+  flex-direction: column; align-items: stretch; gap: 0; padding: 0;
+  transition: transform var(--dur) var(--ease-standard); will-change: transform;
+}
+.app-shell.app-shell--v2 > .app-header.app-header--hidden { transform: translateY(-100%); }
+.app-shell--v2 .hdr-row {
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+  padding-block: var(--space-2); padding-inline: var(--space-4);
+}
+/* the tour strip, flush as a second row of the floating header */
+.app-shell--v2 .app-header .tour-bar {
+  margin-block-end: 0; border-radius: 0; border-inline: 0; border-block-end: 0;
+  border-block-start: 1px solid var(--gov-border); border-inline-start: 3px solid var(--gov-primary);
+}
+/* the bottom bar now carries only the flyouts — centre them */
+.app-shell--v2 .cmdbar { justify-content: center; }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.app-shell--v2 > .app-header { transition: none; }
+}
