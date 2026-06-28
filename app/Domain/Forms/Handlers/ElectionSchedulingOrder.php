@@ -5,6 +5,7 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\ElectionSchedulingDelegate;
 use App\Domain\Forms\Contracts\FormHandler;
+use App\Domain\Forms\Support\BoardProvenance;
 use App\Models\Election;
 use App\Models\ElectionBoard;
 use App\Models\ElectionRace;
@@ -55,8 +56,7 @@ class ElectionSchedulingOrder implements FormHandler
         private readonly ConstitutionalValidator $validator,
         private readonly SettingsResolver $settings,
         private readonly ElectionSchedulingDelegate $scheduling,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -84,8 +84,17 @@ class ElectionSchedulingOrder implements FormHandler
 
         [$election, $created] = $this->resolveElection($payload, $dates);
 
+        // SCOPE (R-08): a HUMAN board member may only order elections for THIS election's responsible board.
+        // The role gate proves a seat on SOME active board (RoleService::hasActiveBoardSeat is board-blind),
+        // so without this a board member of jurisdiction A could schedule a jurisdiction-B election. The
+        // system/clock path (null actor — ScheduleGeneralElectionJob / bootstrap) bypasses, exactly as the
+        // engine bypasses the role gate for a system filing.
+        if ($actor !== null) {
+            BoardProvenance::resolveMember($actor, $election, 'F-ELB-001');
+        }
+
         $jurisdictionId = (string) $election->jurisdiction_id;
-        $compressed     = (bool) config('cga.election_demo_compression', false);
+        $compressed = (bool) config('cga.election_demo_compression', false);
 
         self::assertWindowOrdering($dates);
 
@@ -102,10 +111,10 @@ class ElectionSchedulingOrder implements FormHandler
         // Persist the (re)confirmed schedule. Approval opens immediately
         // when the order says so — no dead period (design §B.2.1).
         $election->fill([
-            'approval_opens_at'  => $dates['approval_opens_at'],
+            'approval_opens_at' => $dates['approval_opens_at'],
             'finalist_cutoff_at' => $dates['finalist_cutoff_at'],
-            'ranked_opens_at'    => $dates['ranked_opens_at'],
-            'ranked_closes_at'   => $dates['ranked_closes_at'],
+            'ranked_opens_at' => $dates['ranked_opens_at'],
+            'ranked_closes_at' => $dates['ranked_closes_at'],
         ]);
 
         if (in_array($election->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) {
@@ -122,17 +131,17 @@ class ElectionSchedulingOrder implements FormHandler
 
         // X pre-published with the order (design §C).
         return [
-            'election_id'     => (string) $election->id,
-            'kind'            => $election->kind,
+            'election_id' => (string) $election->id,
+            'kind' => $election->kind,
             'jurisdiction_id' => $jurisdictionId,
-            'created'         => $created,
-            'dates'           => [
-                'approval_opens_at'  => $dates['approval_opens_at']->toIso8601String(),
+            'created' => $created,
+            'dates' => [
+                'approval_opens_at' => $dates['approval_opens_at']->toIso8601String(),
                 'finalist_cutoff_at' => $dates['finalist_cutoff_at']->toIso8601String(),
-                'ranked_opens_at'    => $dates['ranked_opens_at']->toIso8601String(),
-                'ranked_closes_at'   => $dates['ranked_closes_at']->toIso8601String(),
+                'ranked_opens_at' => $dates['ranked_opens_at']->toIso8601String(),
+                'ranked_closes_at' => $dates['ranked_closes_at']->toIso8601String(),
             ],
-            'races'           => $races,
+            'races' => $races,
         ];
     }
 
@@ -144,7 +153,7 @@ class ElectionSchedulingOrder implements FormHandler
      * Dates UTC + ordered: opens < cutoff ≤ ranked_opens < ranked_closes
      * (cutoff may coincide with the ranked window opening).
      *
-     * @param array{approval_opens_at: CarbonImmutable, finalist_cutoff_at: CarbonImmutable, ranked_opens_at: CarbonImmutable, ranked_closes_at: CarbonImmutable} $dates
+     * @param  array{approval_opens_at: CarbonImmutable, finalist_cutoff_at: CarbonImmutable, ranked_opens_at: CarbonImmutable, ranked_closes_at: CarbonImmutable}  $dates
      */
     public static function assertWindowOrdering(array $dates): void
     {
@@ -155,7 +164,7 @@ class ElectionSchedulingOrder implements FormHandler
         if (! $ordered) {
             throw new ConstitutionalViolation(
                 'Election schedule must be ordered: approval_opens_at < finalist_cutoff_at ≤ '
-                . 'ranked_opens_at < ranked_closes_at.',
+                .'ranked_opens_at < ranked_closes_at.',
                 'Art. II §2'
             );
         }
@@ -174,14 +183,14 @@ class ElectionSchedulingOrder implements FormHandler
         int $minDays,
         int $maxDays,
     ): void {
-        $windowOpens  = $declaredAt->toImmutable()->addDays($minDays);
+        $windowOpens = $declaredAt->toImmutable()->addDays($minDays);
         $windowCloses = $declaredAt->toImmutable()->addDays($maxDays);
 
         if ($rankedOpensAt->lessThan($windowOpens) || $rankedClosesAt->greaterThan($windowCloses)) {
             throw new ConstitutionalViolation(
                 sprintf(
                     'Special election ranked window [%s, %s] falls outside the constitutional window '
-                    . '[declared + %d days = %s, declared + %d days = %s].',
+                    .'[declared + %d days = %s, declared + %d days = %s].',
                     $rankedOpensAt->toIso8601String(),
                     $rankedClosesAt->toIso8601String(),
                     $minDays,
@@ -211,6 +220,7 @@ class ElectionSchedulingOrder implements FormHandler
             if ($raw === null) {
                 if ($key === 'approval_opens_at') {
                     $parsed[$key] = CarbonImmutable::now('UTC');
+
                     continue;
                 }
 
@@ -224,7 +234,7 @@ class ElectionSchedulingOrder implements FormHandler
                 $parsed[$key] = CarbonImmutable::parse($raw)->utc();
             } catch (\Throwable) {
                 throw new ConstitutionalViolation(
-                    "F-ELB-001 {$key} is not a parsable instant: " . json_encode($raw),
+                    "F-ELB-001 {$key} is not a parsable instant: ".json_encode($raw),
                     'Art. II §2'
                 );
             }
@@ -264,7 +274,7 @@ class ElectionSchedulingOrder implements FormHandler
             return [$election, false];
         }
 
-        $kind           = $payload['kind'] ?? Election::KIND_GENERAL;
+        $kind = $payload['kind'] ?? Election::KIND_GENERAL;
         $jurisdictionId = $payload['jurisdiction_id'] ?? null;
 
         if (! in_array($kind, self::WRITABLE_KINDS, true)) {
@@ -300,16 +310,16 @@ class ElectionSchedulingOrder implements FormHandler
                 ->value('id');
 
         $election = Election::query()->create([
-            'jurisdiction_id'       => $jurisdictionId,
-            'legislature_id'        => $payload['legislature_id'] ?? null,
-            'kind'                  => $kind,
-            'status'                => Election::STATUS_SCHEDULED,
-            'trigger'               => $payload['trigger'] ?? 'scheduled',
-            'election_board_id'     => $boardId,
-            'district_map_id'       => $payload['district_map_id'] ?? null,
-            'prior_election_id'     => $payload['prior_election_id'] ?? null,
+            'jurisdiction_id' => $jurisdictionId,
+            'legislature_id' => $payload['legislature_id'] ?? null,
+            'kind' => $kind,
+            'status' => Election::STATUS_SCHEDULED,
+            'trigger' => $payload['trigger'] ?? 'scheduled',
+            'election_board_id' => $boardId,
+            'district_map_id' => $payload['district_map_id'] ?? null,
+            'prior_election_id' => $payload['prior_election_id'] ?? null,
             'triggered_by_timer_id' => $payload['triggered_by_timer_id'] ?? null,
-            'vacancy_id'            => $payload['vacancy_id'] ?? null,
+            'vacancy_id' => $payload['vacancy_id'] ?? null,
         ]);
 
         return [$election, true];
@@ -322,7 +332,7 @@ class ElectionSchedulingOrder implements FormHandler
      */
     private function assertPhaseLengths(array $dates, string $jurisdictionId): void
     {
-        $approvalMinDays  = $this->settings->resolveInt($jurisdictionId, 'approval_min_days', 30);
+        $approvalMinDays = $this->settings->resolveInt($jurisdictionId, 'approval_min_days', 30);
         $rankedWindowDays = $this->settings->resolveInt($jurisdictionId, 'ranked_window_days', 14);
 
         if ($dates['finalist_cutoff_at']->lessThan($dates['approval_opens_at']->addDays($approvalMinDays))) {
@@ -366,7 +376,7 @@ class ElectionSchedulingOrder implements FormHandler
         if ($dates['ranked_closes_at']->greaterThan($boundary)) {
             throw new ConstitutionalViolation(
                 "The order would delay the election past the lockstep boundary ({$boundary->toIso8601String()}) — "
-                . 'officials cannot delay elections.',
+                .'officials cannot delay elections.',
                 'Art. II §2'
             );
         }
@@ -379,7 +389,7 @@ class ElectionSchedulingOrder implements FormHandler
         string $jurisdictionId,
     ): void {
         $vacancyId = $election->vacancy_id ?? $payload['vacancy_id'] ?? null;
-        $vacancy   = $vacancyId !== null ? Vacancy::query()->find($vacancyId) : null;
+        $vacancy = $vacancyId !== null ? Vacancy::query()->find($vacancyId) : null;
 
         if ($vacancy === null || $vacancy->declared_at === null) {
             throw new ConstitutionalViolation(
@@ -436,9 +446,9 @@ class ElectionSchedulingOrder implements FormHandler
             return $election->races()
                 ->get(['id', 'district_id', 'seats', 'finalist_count'])
                 ->map(fn (ElectionRace $race) => [
-                    'race_id'        => (string) $race->id,
-                    'district_id'    => $race->district_id !== null ? (string) $race->district_id : null,
-                    'seats'          => (int) $race->seats,
+                    'race_id' => (string) $race->id,
+                    'district_id' => $race->district_id !== null ? (string) $race->district_id : null,
+                    'seats' => (int) $race->seats,
                     'finalist_count' => (int) $race->finalist_count,
                 ])
                 ->all();
@@ -450,8 +460,8 @@ class ElectionSchedulingOrder implements FormHandler
     /** @return array{race_id: string, district_id: string|null, seats: int, finalist_count: int} */
     private function createRace(Election $election, array $spec, int $maxSeats): array
     {
-        $seatKind   = (string) ($spec['seat_kind'] ?? ElectionRace::SEAT_KIND_TYPE_A);
-        $seats      = (int) ($spec['seats'] ?? 0);
+        $seatKind = (string) ($spec['seat_kind'] ?? ElectionRace::SEAT_KIND_TYPE_A);
+        $seats = (int) ($spec['seats'] ?? 0);
         $districtId = $spec['district_id'] ?? null;
 
         $this->validator->checkRaceStructure($seatKind, $seats, $districtId, $maxSeats);
@@ -481,20 +491,20 @@ class ElectionSchedulingOrder implements FormHandler
         $finalistCount = $seats * $this->settings->resolveInt($raceJurisdictionId, 'finalist_multiplier', 3);
 
         $race = ElectionRace::query()->create([
-            'election_id'     => (string) $election->id,
-            'district_id'     => $districtId,
+            'election_id' => (string) $election->id,
+            'district_id' => $districtId,
             'jurisdiction_id' => $raceJurisdictionId,
-            'seat_kind'       => $seatKind,
-            'seats'           => $seats,
-            'finalist_count'  => $finalistCount,
+            'seat_kind' => $seatKind,
+            'seats' => $seats,
+            'finalist_count' => $finalistCount,
             'electorate_type' => $spec['electorate_type'] ?? ElectionRace::ELECTORATE_RESIDENTS,
-            'status'          => $election->status,
+            'status' => $election->status,
         ]);
 
         return [
-            'race_id'        => (string) $race->id,
-            'district_id'    => $districtId !== null ? (string) $districtId : null,
-            'seats'          => $seats,
+            'race_id' => (string) $race->id,
+            'district_id' => $districtId !== null ? (string) $districtId : null,
+            'seats' => $seats,
             'finalist_count' => $finalistCount,
         ];
     }

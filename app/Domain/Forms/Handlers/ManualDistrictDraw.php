@@ -4,7 +4,7 @@ namespace App\Domain\Forms\Handlers;
 
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
-use App\Models\DistrictSubdivision;
+use App\Domain\Forms\Support\BoardProvenance;
 use App\Models\User;
 use App\Services\ConstitutionalDefaults;
 use App\Services\Districting\PopulationRaster;
@@ -41,8 +41,7 @@ class ManualDistrictDraw implements FormHandler
 {
     public function __construct(
         private readonly PopulationRaster $raster,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -67,16 +66,16 @@ class ManualDistrictDraw implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         $legislatureId = (string) ($payload['legislature_id'] ?? '');
-        $scopeId       = (string) ($payload['scope_id'] ?? '');
-        $mapId         = (string) ($payload['map_id'] ?? '');
-        $geoJson       = $payload['geojson'] ?? null;
-        $label         = trim((string) ($payload['label'] ?? ''));
-        $year          = (int) ($payload['population_year'] ?? 2023);
+        $scopeId = (string) ($payload['scope_id'] ?? '');
+        $mapId = (string) ($payload['map_id'] ?? '');
+        $geoJson = $payload['geojson'] ?? null;
+        $label = trim((string) ($payload['label'] ?? ''));
+        $year = (int) ($payload['population_year'] ?? 2023);
 
         if (is_array($geoJson)) {
             $geoJson = json_encode($geoJson);
         }
-        if (!is_string($geoJson) || $geoJson === '') {
+        if (! is_string($geoJson) || $geoJson === '') {
             throw new ConstitutionalViolation(
                 'F-ELB-008 requires a drawn polygon (geojson).',
                 'CGA Forms Catalog (F-ELB-008)'
@@ -99,21 +98,29 @@ class ManualDistrictDraw implements FormHandler
             );
         }
 
+        // SCOPE (R-08): a HUMAN board member may only draw districts for a legislature whose jurisdiction's
+        // board they sit on — the role gate proves a seat on SOME board, board-blind. The system path (null
+        // actor) bypasses (the engine bypasses the role gate for a system filing).
+        if ($actor !== null) {
+            $board = BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
+            BoardProvenance::resolveMemberOnBoard($actor, $board, 'F-ELB-008');
+        }
+
         $giant = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
         if ($giant === null || $giant->geom === null) {
             throw new ConstitutionalViolation('F-ELB-008 targets an unknown jurisdiction.', 'CGA Forms Catalog (F-ELB-008)');
         }
 
-        $floor          = ConstitutionalDefaults::floor($leg->jurisdiction_id);
-        $ceiling        = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+        $floor = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
         $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
 
         // The scope must be a CHILDLESS LEAF GIANT — manual draw exists for no
         // other case (composite districts every child-bearing scope).
-        $rootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
         $totalSeats = max((int) $leg->type_a_seats, 1);
-        $giantPop   = (int) $giant->population;
-        $giantFrac  = $giantPop * $totalSeats / $rootPop;
+        $giantPop = (int) $giant->population;
+        $giantFrac = $giantPop * $totalSeats / $rootPop;
 
         $childCount = (int) DB::table('jurisdictions')
             ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
@@ -121,7 +128,7 @@ class ManualDistrictDraw implements FormHandler
         if ($giantFrac < $giantThreshold || $childCount > 0) {
             throw new ConstitutionalViolation(
                 "{$giant->name} is not a childless leaf giant (fractional seats "
-                .number_format($giantFrac, 2)." vs threshold ".number_format($giantThreshold, 1)
+                .number_format($giantFrac, 2).' vs threshold '.number_format($giantThreshold, 1)
                 .", {$childCount} children) — manual line-drawing applies only to the case "
                 .'composite cannot: a giant with no children.',
                 'Art. II §8'
@@ -130,13 +137,13 @@ class ManualDistrictDraw implements FormHandler
 
         // Whole seat budget the giant divides into (the LegislatureController clamp:
         // round(fractional_seats)) and the local quota for the pieces.
-        $S     = max($floor, (int) round($giantFrac));
+        $S = max($floor, (int) round($giantFrac));
         $quota = $giantPop / max($S, 1);
 
         // Geometry validation in one round-trip: contiguity (single part), within
         // the giant, and the piece's geometry / centroid as GeoJSON for persistence.
         $geo = DB::selectOne(
-            "WITH d AS (
+            'WITH d AS (
                  SELECT ST_MakeValid(ST_GeomFromGeoJSON(?)) AS g
              ),
              gi AS (
@@ -145,7 +152,7 @@ class ManualDistrictDraw implements FormHandler
              SELECT
                  ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS parts,
                  ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
-                 ST_IsEmpty((SELECT g FROM d))                              AS empty",
+                 ST_IsEmpty((SELECT g FROM d))                              AS empty',
             [$geoJson, $scopeId]
         );
 
@@ -158,7 +165,7 @@ class ManualDistrictDraw implements FormHandler
                 'Art. II §8'
             );
         }
-        if (!(bool) $geo->within) {
+        if (! (bool) $geo->within) {
             throw new ConstitutionalViolation(
                 "The drawn district extends outside {$giant->name}'s boundary.",
                 'Art. II §8'
@@ -166,9 +173,9 @@ class ManualDistrictDraw implements FormHandler
         }
 
         // Aggregate population inside the drawn piece, and its seat entitlement.
-        $pop        = $this->raster->populationWithinMulti($geoJson, $year);
+        $pop = $this->raster->populationWithinMulti($geoJson, $year);
         $fractional = $this->raster->impliedSeats($pop, $quota);
-        $seats      = (int) round($fractional);
+        $seats = (int) round($fractional);
 
         if ($seats < $floor || $seats > $ceiling) {
             throw new ConstitutionalViolation(
@@ -183,12 +190,12 @@ class ManualDistrictDraw implements FormHandler
 
         // No overlap with a sibling piece already drawn in this plan.
         $overlap = DB::selectOne(
-            "SELECT count(*) AS n
+            'SELECT count(*) AS n
                FROM district_subdivisions ds
               WHERE ds.map_id = ?
                 AND ds.parent_jurisdiction_id = ?
                 AND ds.deleted_at IS NULL
-                AND ST_Overlaps(ds.geom, ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?))))",
+                AND ST_Overlaps(ds.geom, ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?))))',
             [$mapId, $scopeId, $geoJson]
         );
         if ((int) ($overlap->n ?? 0) > 0) {
@@ -240,50 +247,50 @@ class ManualDistrictDraw implements FormHandler
 
         $districtId = (string) Str::uuid();
         DB::table('legislature_districts')->insert([
-            'id'               => $districtId,
-            'legislature_id'   => $legislatureId,
-            'map_id'           => $mapId,
-            'jurisdiction_id'  => $scopeId,
-            'district_number'  => $nextNumber,
-            'seats'            => $seats,
-            'target_population'=> $pop,
-            'actual_population'=> $pop,
+            'id' => $districtId,
+            'legislature_id' => $legislatureId,
+            'map_id' => $mapId,
+            'jurisdiction_id' => $scopeId,
+            'district_number' => $nextNumber,
+            'seats' => $seats,
+            'target_population' => $pop,
+            'actual_population' => $pop,
             'fractional_seats' => round($fractional, 6),
-            'floor_override'   => $seats < $floor,
-            'status'           => 'active',
-            'num_geom_parts'   => 1,
-            'is_contiguous'    => true,
-            'created_at'       => now(),
-            'updated_at'       => now(),
+            'floor_override' => $seats < $floor,
+            'status' => 'active',
+            'num_geom_parts' => 1,
+            'is_contiguous' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         DB::table('legislature_district_jurisdictions')->insert([
-            'id'             => (string) Str::uuid(),
-            'district_id'    => $districtId,
+            'id' => (string) Str::uuid(),
+            'district_id' => $districtId,
             'subdivision_id' => $subdivisionId,
         ]);
 
         // Convex-hull ratio for the map-quality panel, straight from the drawn geom.
         DB::statement(
-            "UPDATE legislature_districts ld SET convex_hull_ratio = (
+            'UPDATE legislature_districts ld SET convex_hull_ratio = (
                  SELECT ST_Area(ds.geom) / NULLIF(ST_Area(ST_ConvexHull(ds.geom)), 0)
                    FROM district_subdivisions ds WHERE ds.id = ?
-             ) WHERE ld.id = ?",
+             ) WHERE ld.id = ?',
             [$subdivisionId, $districtId]
         );
 
         return [
-            'legislature_id'    => $legislatureId,
-            'jurisdiction_id'   => $scopeId,
-            'map_id'            => $mapId,
-            'subdivision_id'    => $subdivisionId,
-            'district_id'       => $districtId,
-            'district_number'   => $nextNumber,
-            'seats'             => $seats,
-            'population'        => $pop,
-            'fractional_seats'  => round($fractional, 6),
+            'legislature_id' => $legislatureId,
+            'jurisdiction_id' => $scopeId,
+            'map_id' => $mapId,
+            'subdivision_id' => $subdivisionId,
+            'district_id' => $districtId,
+            'district_number' => $nextNumber,
+            'seats' => $seats,
+            'population' => $pop,
+            'fractional_seats' => round($fractional, 6),
             'giant_seat_budget' => $S,
-            'clamp_superseded'  => $clampDistrictIds->isNotEmpty(),
+            'clamp_superseded' => $clampDistrictIds->isNotEmpty(),
         ];
     }
 }

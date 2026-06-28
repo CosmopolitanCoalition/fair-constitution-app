@@ -4,6 +4,7 @@ namespace App\Domain\Forms\Handlers;
 
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
+use App\Domain\Forms\Support\BoardProvenance;
 use App\Models\LegislatureDistrictMap;
 use App\Models\User;
 use App\Services\ConstitutionalValidator;
@@ -33,8 +34,7 @@ class SubdivisionBoundaryDrawing implements FormHandler
 {
     public function __construct(
         private readonly ConstitutionalValidator $validator,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -76,6 +76,16 @@ class SubdivisionBoundaryDrawing implements FormHandler
             );
         }
 
+        // SCOPE (R-08): a HUMAN board member may only activate the district map of a legislature whose
+        // jurisdiction's board they sit on — the role gate proves a seat on SOME board, board-blind. The
+        // system path (null actor — the auto-composite generator) bypasses, as the engine does for it.
+        if ($actor !== null) {
+            $legJurisdictionId = (string) DB::table('legislatures')
+                ->where('id', (string) $map->legislature_id)->value('jurisdiction_id');
+            $board = BoardProvenance::boardForJurisdiction($legJurisdictionId, 'F-ELB-003');
+            BoardProvenance::resolveMemberOnBoard($actor, $board, 'F-ELB-003');
+        }
+
         $districts = $map->districts;
 
         if ($districts->isEmpty()) {
@@ -105,15 +115,15 @@ class SubdivisionBoundaryDrawing implements FormHandler
             ->update(['status' => LegislatureDistrictMap::STATUS_ARCHIVED, 'effective_end' => now()->toDateString()]);
 
         $map->forceFill([
-            'status'          => LegislatureDistrictMap::STATUS_ACTIVE,
+            'status' => LegislatureDistrictMap::STATUS_ACTIVE,
             'effective_start' => now()->toDateString(),
         ])->save();
 
         return [
-            'map_id'         => (string) $map->id,
+            'map_id' => (string) $map->id,
             'legislature_id' => (string) $map->legislature_id,
             'district_count' => $districts->count(),
-            'seat_vector'    => $seatVector,
+            'seat_vector' => $seatVector,
         ];
     }
 

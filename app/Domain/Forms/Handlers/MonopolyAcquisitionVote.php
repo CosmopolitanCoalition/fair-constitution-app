@@ -5,6 +5,7 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\Support\ChamberActor;
+use App\Models\Law;
 use App\Models\OrgConversion;
 use App\Models\User;
 use App\Services\Organizations\OrgConversionService;
@@ -27,8 +28,7 @@ class MonopolyAcquisitionVote implements FormHandler
 {
     public function __construct(
         private readonly OrgConversionService $conversions,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -56,14 +56,14 @@ class MonopolyAcquisitionVote implements FormHandler
 
         if ($action === 'propose') {
             $legislature = ChamberActor::legislature($payload, 'F-LEG-026');
-            $member      = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-026');
+            $member = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-026');
 
             $result = $this->conversions->proposeMonopolyAcquisition($legislature, $member, $payload);
 
             return [
-                'action'         => 'propose',
+                'action' => 'propose',
                 'legislature_id' => (string) $legislature->id,
-                'proposed_by'    => (string) $member->id,
+                'proposed_by' => (string) $member->id,
             ] + $result;
         }
 
@@ -84,6 +84,17 @@ class MonopolyAcquisitionVote implements FormHandler
                     'record_compensation requires the numeric compensation amount.',
                     'Art. III §5'
                 );
+            }
+
+            // SCOPE (R-09): the completion is filed by a serving member of the legislature that AUTHORIZED
+            // the acquisition — the role gate only proves a seat in SOME chamber, so without this a
+            // legislator from an unrelated chamber could complete this jurisdiction's acquisition. (A
+            // missing authorizing law is caught by the service's enacted-law check below; only scope when
+            // the authorizing legislature is resolvable.)
+            if ($conversion->authorizing_law_id !== null) {
+                $authLegislatureId = (string) Law::query()
+                    ->whereKey($conversion->authorizing_law_id)->value('legislature_id');
+                ChamberActor::member($actor, $authLegislatureId, 'F-LEG-026');
             }
 
             return ['action' => 'record_compensation']
