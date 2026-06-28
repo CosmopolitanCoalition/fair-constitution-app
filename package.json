@@ -22,6 +22,7 @@
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "leaflet": "^1.9.4",
         "leaflet-draw": "^1.0.4",
+        "livekit-client": "^2.20.0",
         "lucide-vue-next": "^1.0.0",
         "protomaps-leaflet": "^5.1.0",
         "vue": "^3.5.28",

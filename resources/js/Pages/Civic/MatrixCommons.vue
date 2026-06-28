@@ -7,10 +7,11 @@
  * never a legal name. A down homeserver degrades to an empty timeline (a notice, never a broken page).
  * Power users can open the room in Element (SSO via their CGA account through MAS).
  */
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
+import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -33,6 +34,8 @@ const props = defineProps({
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
+// The player's OWN id — the device signs the voice request over it (deviceIdentity).
+const myUserId = computed(() => page.props.auth?.user?.id ?? null);
 
 const basePath = computed(() => (props.isHalls ? '/civic/commons/halls' : '/civic/commons/square'));
 
@@ -62,17 +65,57 @@ function mine(message) {
     return props.myMxid !== null && message.sender === props.myMxid;
 }
 const elementUrl = computed(() => (props.roomId ? `https://app.element.io/#/room/${props.roomId}` : null));
+
+// Live timeline. The page renders a server snapshot of the room; to make it a LIVE commons we poll
+// for new messages via an Inertia partial reload — it re-runs ONLY the `messages`/`reachable` props
+// server-side (reusing the appservice read + mapping) and patches them in without touching the
+// compose form or the AV call. Dependency-free and works through mesh-reach; pauses on a hidden tab.
+const POLL_MS = 5000;
+let pollTimer = null;
+function pollTimeline() {
+    if (typeof document !== 'undefined' && document.hidden) return;
+    if (!props.roomId) return;
+    if (compose.processing) return; // don't let a poll cancel the player's in-flight post
+    router.reload({ only: ['messages', 'reachable'], preserveScroll: true, preserveState: true });
+}
+function startPolling() {
+    stopPolling();
+    if (props.roomId) pollTimer = window.setInterval(pollTimeline, POLL_MS);
+}
+function stopPolling() {
+    if (pollTimer !== null) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+function onVisibility() {
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        pollTimeline();
+        startPolling();
+    }
+}
+onMounted(() => {
+    startPolling();
+    document.addEventListener('visibilitychange', onVisibility);
+});
+onBeforeUnmount(() => {
+    stopPolling();
+    document.removeEventListener('visibilitychange', onVisibility);
+});
 </script>
 
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            The <strong>live commons</strong> runs over the Matrix mesh (Plane B). Anyone with an active
-            residency association may post — residency is the only gate (Art. I), and you appear under your
-            pseudonymous handle, never your legal name.
+            The <strong>live commons</strong> runs over the Matrix mesh (Plane B) and is <strong>open</strong> —
+            any player may read, speak, and join the call (Art. I free movement &amp; equal treatment), always
+            under a pseudonymous handle, never a legal name. Residency unlocks the governance powers, not the
+            doorway: voting, candidacy, and sealing a statement as testimony.
             <template v-if="isHalls">
                 In the halls, you can file your own message as <em>testimony</em> to seal it into the
-                append-only record (Art. II §2).
+                append-only record (Art. II §2) — that seal is residency-gated.
             </template>
         </template>
 
@@ -87,7 +130,8 @@ const elementUrl = computed(() => (props.roomId ? `https://app.element.io/#/room
         </Card>
 
         <Banner v-if="!isAssociated" tone="info" class="mb-4">
-            You have no active residency association yet — confirm residency to post in the commons.
+            You have no residency association yet — confirm residency to enter a jurisdiction's commons.
+            Voting, candidacy, and the testimony seal unlock with residency.
         </Banner>
         <Banner v-else-if="!roomId" tone="info" class="mb-4">
             This jurisdiction has no live {{ isHalls ? 'halls' : 'square' }} room yet (it provisions when the
@@ -97,6 +141,15 @@ const elementUrl = computed(() => (props.roomId ? `https://app.element.io/#/room
             The homeserver is unreachable right now — the live timeline is temporarily empty. Your posts and
             the record plane are unaffected.
         </Banner>
+
+        <LiveRoom
+            v-if="roomId && myMxid && myUserId"
+            :jurisdiction-id="jurisdictionId"
+            :room="roomId"
+            :pseudonym="myMxid"
+            :subject-user-id="myUserId"
+            class="mb-4"
+        />
 
         <Card v-if="roomId" class="mb-4">
             <div class="flex items-center justify-between mb-3">
@@ -125,7 +178,7 @@ const elementUrl = computed(() => (props.roomId ? `https://app.element.io/#/room
             </ul>
         </Card>
 
-        <FormCard v-if="roomId && isAssociated" title="Post to the live commons">
+        <FormCard v-if="roomId" title="Post to the live commons">
             <form @submit.prevent="submit" class="space-y-3">
                 <Field label="Message" :error="compose.errors.body">
                     <textarea v-model="compose.body" rows="3" class="form-textarea w-full" maxlength="20000"

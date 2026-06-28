@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Federation\MultiplexClient;
 use App\Services\Federation\ServiceReachService;
 use App\Services\Identity\AttestationService;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -77,7 +78,14 @@ class VoiceReachService
         try {
             $resp = $this->mux->reach((string) $pointer['server_id'], 'POST', '/api/federation/voice/token', $envelope);
         } catch (Throwable $e) {
-            throw new VoiceReachFailed('peer_unreachable: '.$e->getMessage(), 504);
+            // The transport detail can carry internal topology (a peer's hostname/IP) — log it
+            // server-side and hand the client only a fixed, non-revealing code.
+            Log::warning('voice reach: peer unreachable', [
+                'server_id' => (string) $pointer['server_id'],
+                'jurisdiction_id' => $jurisdictionId,
+                'error' => $e->getMessage(),
+            ]);
+            throw new VoiceReachFailed('peer_unreachable', 504);
         }
 
         if (! $resp->successful()) {
