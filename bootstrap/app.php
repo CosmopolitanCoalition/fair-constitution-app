@@ -54,6 +54,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ],
         );
 
+        // Rig/TLS: behind the tlsproxy terminator (X-Forwarded-Proto https) the app must detect
+        // https + the real host so secure-context pages (WebCrypto/getUserMedia for voice) and cookies
+        // resolve correctly. The proxy is internal (Docker network); trust all forwarded headers here.
+        $middleware->trustProxies(at: '*');
+
         // WI-5: 'role:R-xx' over the derived role vocabulary (consumers
         // arrive with later phases).
         $middleware->alias([
