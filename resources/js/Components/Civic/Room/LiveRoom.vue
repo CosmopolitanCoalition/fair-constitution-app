@@ -22,8 +22,11 @@ const props = defineProps({
     subjectUserId: { type: String, required: true }, // the player's OWN user id
 });
 
-const { connectionState, degraded, error, micEnabled, cameraEnabled, participants, join, leave, toggleMic, toggleCamera } =
-    useVoiceRoom();
+const {
+    connectionState, degraded, error, micEnabled, cameraEnabled, screenShareEnabled,
+    participants, devices, selectedDevices,
+    join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice,
+} = useVoiceRoom();
 
 // Map known error codes to friendly copy — never render a raw server string (it could carry
 // internal topology, e.g. an unreachable peer's hostname). Unknown codes fall back to generic.
@@ -66,16 +69,21 @@ async function onJoin() {
             {{ errorMessage }} You can still take part in text below.
         </Banner>
 
-        <ChamberStage :participants="participants" :connection-state="connectionState" />
+        <ChamberStage :participants="participants" :connection-state="connectionState" :selected-devices="selectedDevices" />
 
         <VoiceControls
             :connection-state="connectionState"
             :mic-enabled="micEnabled"
             :camera-enabled="cameraEnabled"
+            :screen-share-enabled="screenShareEnabled"
+            :devices="devices"
+            :selected-devices="selectedDevices"
             @join="onJoin"
             @leave="leave"
             @toggle-mic="toggleMic"
             @toggle-camera="toggleCamera"
+            @toggle-screen="toggleScreenShare"
+            @select-device="selectDevice"
         />
     </div>
 </template>

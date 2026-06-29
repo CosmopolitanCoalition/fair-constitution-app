@@ -11,6 +11,7 @@ import ParticipantTile from './ParticipantTile.vue';
 const props = defineProps({
     participants: { type: Array, default: () => [] },
     connectionState: { type: String, default: 'disconnected' },
+    selectedDevices: { type: Object, default: () => ({ camera: '', mic: '', speaker: '' }) },
 });
 
 // Keep the live indicator + seat count through a reconnection blip (the tiles persist);
@@ -23,6 +24,9 @@ const statusLabel = computed(() => {
     if (props.connectionState === 'connecting') return 'Connecting…';
     return 'Not connected';
 });
+// Anyone sharing a screen gets a prominent presenter tile above the seat grid (and still a
+// normal camera/avatar seat below). A presenter's screen track is rendered "contain", no audio.
+const presenters = computed(() => props.participants.filter((p) => p.screenTrack));
 </script>
 
 <template>
@@ -35,6 +39,20 @@ const statusLabel = computed(() => {
             </span>
         </header>
 
+        <!-- Presenter view: shared screens, large. -->
+        <div v-if="presenters.length" class="mb-2 grid gap-2" :class="presenters.length > 1 ? 'sm:grid-cols-2' : ''">
+            <ParticipantTile
+                v-for="p in presenters"
+                :key="'screen-' + p.identity"
+                :identity="p.identity"
+                :is-local="p.isLocal"
+                :video-track="p.screenTrack"
+                :audio-track="p.screenAudioTrack"
+                :audio-output="selectedDevices.speaker"
+                :presenting="true"
+            />
+        </div>
+
         <div v-if="count" class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             <ParticipantTile
                 v-for="p in participants"
@@ -44,6 +62,7 @@ const statusLabel = computed(() => {
                 :is-speaking="p.isSpeaking"
                 :audio-track="p.audioTrack"
                 :video-track="p.videoTrack"
+                :audio-output="selectedDevices.speaker"
             />
         </div>
 

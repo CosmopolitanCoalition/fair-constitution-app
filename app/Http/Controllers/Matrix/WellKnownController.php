@@ -39,8 +39,8 @@ class WellKnownController extends Controller
             ],
         ];
 
-        // K3-J — advertise the MatrixRTC SFU (Element Call / LiveKit) focus when configured. Greenfield
-        // MSC — re-pin the key against the live Element Call version before relying on it in a client.
+        // K3-J — advertise the MatrixRTC SFU (MatrixRTC / LiveKit) focus when configured. Greenfield
+        // MSC — re-pin the key against the live MatrixRTC version before relying on it in a client.
         $livekitUrl = (string) config('matrix.livekit.url');
         if ($livekitUrl !== '') {
             $payload['org.matrix.msc4143.rtc_foci'] = [

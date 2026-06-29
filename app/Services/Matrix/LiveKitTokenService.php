@@ -5,7 +5,7 @@ namespace App\Services\Matrix;
 use App\Models\User;
 
 /**
- * Phase K-3 (K3-J) / Phase 5 — the LiveKit (Element Call SFU) access-token minter. Voice/video in a
+ * Phase K-3 (K3-J) / Phase 5 — the LiveKit (MatrixRTC SFU) access-token minter. Voice/video in a
  * jurisdiction's public commons is participation, so it is gated EXACTLY like speech: the commons is
  * OPEN (Art. I — any authenticated player, resident or visitor; never karma/age/reputation), reusing
  * MatrixPostingGateService::assertMayAccessCommons. The token's identity is the player's PSEUDONYM

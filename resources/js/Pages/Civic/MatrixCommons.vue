@@ -5,7 +5,7 @@
  * timeline; posting is residency-only + pseudonymous; in the halls you may file your OWN message as
  * testimony (the Plane B → Plane A seal). Senders are pseudonymous @u-<handle> mxids by construction —
  * never a legal name. A down homeserver degrades to an empty timeline (a notice, never a broken page).
- * Power users can open the room in Element (SSO via their CGA account through MAS).
+ * Everything here is the SELF-HOSTED in-app client — there is no external Matrix client in this system.
  */
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
@@ -64,7 +64,6 @@ function senderLabel(sender) {
 function mine(message) {
     return props.myMxid !== null && message.sender === props.myMxid;
 }
-const elementUrl = computed(() => (props.roomId ? `https://app.element.io/#/room/${props.roomId}` : null));
 
 // Live timeline. The page renders a server snapshot of the room; to make it a LIVE commons we poll
 // for new messages via an Inertia partial reload — it re-runs ONLY the `messages`/`reachable` props
@@ -154,9 +153,6 @@ onBeforeUnmount(() => {
         <Card v-if="roomId" class="mb-4">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-base font-semibold">Timeline</h3>
-                <a v-if="elementUrl" :href="elementUrl" target="_blank" rel="noopener" class="text-sm underline opacity-80">
-                    Open in Element →
-                </a>
             </div>
 
             <p v-if="messages.length === 0" class="text-sm opacity-70 py-6 text-center">

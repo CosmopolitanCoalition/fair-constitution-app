@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Phase K-3 (K3-J) / Phase 5 — request a LiveKit (Element Call) join token for a jurisdiction's call room.
+ * Phase K-3 (K3-J) / Phase 5 — request a LiveKit (MatrixRTC) join token for a jurisdiction's call room.
  * The public commons is OPEN (Art. I): any authenticated player, resident or visitor, gets a token. The
  * 403 path now fires only for a social-feature limitation (Layer 3), not for non-residency. The minted
  * token is room-scoped, short-lived, pseudonymous, and signed by the appservice — see LiveKitTokenService.

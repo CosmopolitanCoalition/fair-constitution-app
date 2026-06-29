@@ -94,7 +94,7 @@ return [
         'id_token_ttl' => (int) env('OIDC_ID_TOKEN_TTL', 300),
     ],
 
-    // LiveKit (Element Call SFU) for voice/video (K3-J). Dev-stack only; Pi A/V deferred to scaling.
+    // LiveKit (MatrixRTC SFU) for voice/video (K3-J). Dev-stack only; Pi A/V deferred to scaling.
     // The api_key/secret DEV defaults match docker/livekit dev config (the dev-secret pattern, like the
     // appservice as_token); `php artisan matrix:setup` regenerates real secrets for a deployment. The
     // appservice mints HS256 join tokens over api_secret — never expose the secret to a client.

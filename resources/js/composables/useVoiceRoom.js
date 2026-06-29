@@ -9,12 +9,12 @@
    media as reactive state the chamber UI renders. The identity is always the
    pseudonym (@u-<handle>); the SFU url + token come from the home node.
 
+   Self-hosted only — there is NO external Matrix client; this in-app room is the
+   client. Players can pick their camera / microphone / speaker, and share a
+   screen, all over the same self-hosted SFU.
+
    Safe-degrade: when no peer hosts an SFU the home node returns 503 {degrade},
    which surfaces here as `degraded` — the room stays text-only, never an error.
-
-   E2E voice is exercised on the two-box rig (a reachable SFU + a peer); this
-   module is the integration + lifecycle, framework-tested by the build + its
-   reactive contract.
    ============================================================================ */
 
 import { onScopeDispose, ref, shallowRef } from 'vue';
@@ -23,6 +23,9 @@ import { requestVoiceToken } from '../lib/deviceIdentity.js';
 // livekit-client is a heavy SFU SDK — load it ONLY when a player joins voice, so it
 // never weighs down the commons page for people who only read/post text.
 let LK = null;
+
+// UI device kind → the MediaDeviceInfo.kind / LiveKit switchActiveDevice kind.
+const KINDS = { camera: 'videoinput', mic: 'audioinput', speaker: 'audiooutput' };
 
 function mapState(state) {
     const C = LK.ConnectionState;
@@ -41,9 +44,14 @@ export function useVoiceRoom() {
     const error = ref(null);
     const micEnabled = ref(false);
     const cameraEnabled = ref(false);
-    /** @type {import('vue').Ref<Array<{identity,isLocal,isSpeaking,audioTrack,videoTrack}>>} */
+    const screenShareEnabled = ref(false);
+    /** @type {import('vue').Ref<Array<{identity,isLocal,isSpeaking,audioTrack,videoTrack,screenTrack}>>} */
     const participants = ref([]);
+    /** Selectable input/output devices, populated after join (labels need a granted permission). */
+    const devices = ref({ camera: [], mic: [], speaker: [] });
+    const selectedDevices = ref({ camera: '', mic: '', speaker: '' });
     let joining = false; // synchronous re-entry latch for join() (see below)
+    let deviceChangeBound = false;
 
     function viewModel(participant) {
         return {
@@ -52,6 +60,9 @@ export function useVoiceRoom() {
             isSpeaking: participant.isSpeaking,
             audioTrack: participant.getTrackPublication(LK.Track.Source.Microphone)?.track ?? null,
             videoTrack: participant.getTrackPublication(LK.Track.Source.Camera)?.track ?? null,
+            screenTrack: participant.getTrackPublication(LK.Track.Source.ScreenShare)?.track ?? null,
+            // A screen share may carry tab/system audio on a separate track — play it on the presenter tile.
+            screenAudioTrack: participant.getTrackPublication(LK.Track.Source.ScreenShareAudio)?.track ?? null,
         };
     }
 
@@ -75,6 +86,7 @@ export function useVoiceRoom() {
             E.ParticipantDisconnected,
             E.TrackSubscribed,
             E.TrackUnsubscribed,
+            E.TrackUnpublished, // a REMOTE participant stopping screen-share — clears their presenter tile
             E.TrackMuted, // remote mute keeps the publication subscribed — without this the mic-off badge goes stale
             E.TrackUnmuted,
             E.LocalTrackPublished,
@@ -84,6 +96,10 @@ export function useVoiceRoom() {
         ]) {
             r.on(ev, syncParticipants);
         }
+        // A browser-side "stop sharing" (the OS bar) unpublishes the screen track — reflect it.
+        r.on(E.LocalTrackUnpublished, (pub) => {
+            if (pub?.source === LK.Track.Source.ScreenShare) screenShareEnabled.value = false;
+        });
         r.on(E.Disconnected, () => {
             connectionState.value = 'disconnected';
             participants.value = [];
@@ -92,6 +108,63 @@ export function useVoiceRoom() {
             r.removeAllListeners();
             if (room.value === r) room.value = null;
         });
+    }
+
+    /** Enumerate selectable devices + reflect the room's active ones. Labels appear post-permission. */
+    async function refreshDevices() {
+        if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) return;
+        try {
+            const list = await navigator.mediaDevices.enumerateDevices();
+            devices.value = {
+                camera: list.filter((d) => d.kind === 'videoinput'),
+                mic: list.filter((d) => d.kind === 'audioinput'),
+                speaker: list.filter((d) => d.kind === 'audiooutput'),
+            };
+            const r = room.value;
+            if (r?.getActiveDevice) {
+                // `||` not `??`: LiveKit returns '' (not null) for an unset output device — keep the prior pick.
+                const next = {
+                    camera: r.getActiveDevice('videoinput') || selectedDevices.value.camera,
+                    mic: r.getActiveDevice('audioinput') || selectedDevices.value.mic,
+                    speaker: r.getActiveDevice('audiooutput') || selectedDevices.value.speaker,
+                };
+                // Drop a selection whose device was unplugged (else the <select> shows a phantom value).
+                for (const [k, list] of [['camera', devices.value.camera], ['mic', devices.value.mic], ['speaker', devices.value.speaker]]) {
+                    if (next[k] && !list.some((d) => d.deviceId === next[k])) next[k] = '';
+                }
+                selectedDevices.value = next;
+            }
+        } catch {
+            /* enumeration can throw in a locked-down context — non-fatal */
+        }
+    }
+
+    /** Switch the active camera / mic / speaker. `kind` is a UI key (camera|mic|speaker). */
+    async function selectDevice(kind, deviceId) {
+        const r = room.value;
+        if (!r || !KINDS[kind] || !deviceId) return;
+        try {
+            await r.switchActiveDevice(KINDS[kind], deviceId);
+            selectedDevices.value = { ...selectedDevices.value, [kind]: deviceId };
+        } catch {
+            // Output-device switching (setSinkId) isn't supported everywhere (e.g. iOS Safari);
+            // a yanked device can also reject. Leave the prior selection; don't crash the room.
+        }
+        syncParticipants();
+    }
+
+    async function toggleScreenShare() {
+        const lp = room.value?.localParticipant;
+        if (!lp) return;
+        const next = !screenShareEnabled.value;
+        try {
+            await lp.setScreenShareEnabled(next); // true → getDisplayMedia picker; false → stop
+            screenShareEnabled.value = next;
+        } catch {
+            // The user dismissed the OS screen picker, or it's unsupported — reflect the real state.
+            screenShareEnabled.value = lp.isScreenShareEnabled ?? false;
+        }
+        syncParticipants();
     }
 
     /**
@@ -141,6 +214,12 @@ export function useVoiceRoom() {
                     cameraEnabled.value = true;
                 }
                 syncParticipants();
+                // Now that permission is granted, device labels are available.
+                await refreshDevices();
+                if (!deviceChangeBound && navigator.mediaDevices?.addEventListener) {
+                    navigator.mediaDevices.addEventListener('devicechange', refreshDevices);
+                    deviceChangeBound = true;
+                }
             } catch (e) {
                 error.value = 'sfu_connect_failed';
                 connectionState.value = 'error';
@@ -178,13 +257,22 @@ export function useVoiceRoom() {
         syncParticipants();
     }
 
+    function unbindDeviceChange() {
+        if (deviceChangeBound && navigator.mediaDevices?.removeEventListener) {
+            navigator.mediaDevices.removeEventListener('devicechange', refreshDevices);
+            deviceChangeBound = false;
+        }
+    }
+
     async function leave() {
         const r = room.value;
         room.value = null;
         micEnabled.value = false;
         cameraEnabled.value = false;
+        screenShareEnabled.value = false;
         participants.value = [];
         connectionState.value = 'disconnected';
+        unbindDeviceChange();
         if (r) {
             r.removeAllListeners(); // drop the closures held over this composable's refs
             await r.disconnect();
@@ -195,6 +283,7 @@ export function useVoiceRoom() {
     // (navigation away mid-call) — disconnect with the owning scope. Fire-and-forget
     // (dispose can't await); swallow any teardown rejection.
     onScopeDispose(() => {
+        unbindDeviceChange();
         room.value?.disconnect().catch(() => {});
     });
 
@@ -204,11 +293,16 @@ export function useVoiceRoom() {
         error,
         micEnabled,
         cameraEnabled,
+        screenShareEnabled,
         participants,
+        devices,
+        selectedDevices,
         join,
         leave,
         toggleMic,
         toggleCamera,
+        toggleScreenShare,
+        selectDevice,
     };
 }
 
