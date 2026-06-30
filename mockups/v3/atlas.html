@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Atlas — CGA mockups</title>
+  <link rel="icon" href="assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="assets/css/mockup.css" />
+  <link rel="stylesheet" href="assets/css/v2.css" />
+  <script src="assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main" class="main--wide">
+    <div class="stack atlas-page" id="root"><p class="gloss">Loading the Atlas…</p></div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'atlas', title: 'The Atlas', module: 'system', nav: 'atlas',
+      citation: 'A live heartbeat of the whole game', register: 'governance'
+    };
+  </script>
+  <script src="assets/js/fixtures.js"></script>
+  <script src="assets/js/fixtures-v2.js"></script>
+  <script src="assets/js/fixtures-econ.js"></script>
+  <script src="assets/js/fixtures-operator.js"></script>
+  <script src="assets/js/fixtures-atlas.js"></script>
+  <script src="manifest.js"></script>
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/shell-v2.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var S = window.CGA.shellV2, F = window.CGA.fixtures, W = F.world, BY = F.byId,
+        V2 = F.v2, A = F.atlas, esc = S.esc, icon = S.icon;
+    var E = V2.econ, L = V2.legitimacy, ACH = V2.achievements, O = V2.op;
+
+    /* ---------- small local helpers ---------- */
+    function num(n) { return (n == null) ? '—' : Number(n).toLocaleString('en-US'); }
+    function uniq(a) { var s = {}, o = []; a.forEach(function (v) { if (!s[v]) { s[v] = 1; o.push(v); } }); return o; }
+    function sum(a, f) { return a.reduce(function (s, x) { return s + (f ? f(x) : x); }, 0); }
+    function personaName(id) { var p = BY.personas[id]; return p ? p.name : id; }
+
+    /* equirectangular projection — viewBox is in degrees, 1 unit = 1° */
+    function px(lng) { return (lng + 180); }
+    function py(lat) { return (90 - lat); }
+
+    /* sanctioned sparkline plotter (matches legitimacy.html / exchange.html) */
+    function sparkPath(arr, w, h) {
+      var min = Math.min.apply(null, arr), max = Math.max.apply(null, arr), range = (max - min) || 1;
+      return arr.map(function (v, i) {
+        var x = (i / (arr.length - 1)) * w, y = h - ((v - min) / range) * (h - 6) - 3;
+        return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }).join(' ');
+    }
+    function spark(arr, label) {
+      return '<svg class="legit-spark atlas-spark" viewBox="0 0 200 44" preserveAspectRatio="none" role="img" aria-label="' + esc(label) + '">' +
+        '<path d="' + sparkPath(arr, 200, 44) + '"/></svg>';
+    }
+
+    /* ---------- derived metrics (read straight off the engine snapshots) ---------- */
+    var jurs = W.jurisdictions;
+    var byTier = {}; jurs.forEach(function (j) { byTier[j.admLevel] = (byTier[j.admLevel] || 0) + 1; });
+    var earthPop = (BY.jurisdictions['earth-0-earth'] || {}).population;
+
+    var ch = W.chamber, seatsOpen = ch.seats - ch.serving;
+    var elections = W.elections, seatsUp = sum(elections, function (e) { return e.seats; });
+    var electionsByPhase = {}; elections.forEach(function (e) { electionsByPhase[e.phase] = (electionsByPhase[e.phase] || 0) + 1; });
+    var petsGathering = W.petitions.filter(function (p) { return p.state === 'Collecting signatures'; }).length;
+
+    var deps = W.departments;
+    var govSeats = sum(deps, function (d) { return d.governors || 0; });
+    var workerSeats = sum(deps, function (d) { return d.workerSeats || 0; });
+    var depWorkers = sum(deps, function (d) { return d.workers || 0; });
+
+    var cases = W.cases;
+    var courts = uniq(cases.map(function (c) { return c.court; })).length;
+    var juries = cases.filter(function (c) { return c.jury; }).length;
+    var challenges = cases.filter(function (c) { return c.kind === 'Constitutional challenge'; }).length;
+
+    var orgs = W.organizations;
+    var orgByType = {}; orgs.forEach(function (o) { orgByType[o.type] = (orgByType[o.type] || 0) + 1; });
+    var endorsements = sum(orgs, function (o) { return o.endorsementCount || 0; });
+    var workersRep = sum(orgs, function (o) { return o.workers || 0; });
+
+    var legit = L.jurisdictions;
+    var verifiedTotal = sum(legit, function (j) { return j.verifiedResidents || 0; });
+    var measuredPlaces = legit.filter(function (j) { return j.verifiedResidents != null; }).length;
+    var homeReach = (L.byJur['usa-3-new-york-county'] || legit[0]);
+
+    var achEarned = sum(ACH.tiers, function (t) { return t.items.filter(function (i) { return i.earned; }).length; });
+    var achTotal = sum(ACH.tiers, function (t) { return t.items.length; });
+
+    var nodes = A.nodes;
+    var nodesAlive = nodes.filter(function (n) { return n.status !== 'degraded'; }).length;
+    var onLatest = O.versioning.peerMatch.filter(function (p) { return p.match; }).length;
+    var transportsUp = O.transports.filter(function (t) { return t.state === 'established'; }).length;
+
+    var STATUS = {
+      authoritative: { tone: 'live', label: 'Authoritative' },
+      healthy: { tone: 'live', label: 'Healthy' },
+      syncing: { tone: 'wait', label: 'Syncing' },
+      'border-settled': { tone: 'info', label: 'Border settled' },
+      peer: { tone: 'live', label: 'Healthy' },
+      degraded: { tone: 'closed', label: 'Degraded' }
+    };
+
+    /* ---------- the world map ---------- */
+    function ringD(ring) {
+      return 'M' + ring.map(function (p) { return px(p[0]).toFixed(1) + ' ' + py(p[1]).toFixed(1); }).join(' L ') + ' Z';
+    }
+    function mapSvg() {
+      var land = A.land.map(ringD).join(' ');
+      var clip = A.land.map(function (r) { return '<path d="' + ringD(r) + '"/>'; }).join('');
+
+      var grat = '';
+      for (var lng = -150; lng <= 150; lng += 30) grat += '<line x1="' + px(lng) + '" y1="' + py(82) + '" x2="' + px(lng) + '" y2="' + py(-78) + '" class="atlas-gline"/>';
+      for (var lat = -60; lat <= 60; lat += 30) grat += '<line x1="0" y1="' + py(lat) + '" x2="360" y2="' + py(lat) + '" class="atlas-gline"/>';
+
+      var people = A.people.map(function (p) {
+        return '<circle cx="' + px(p[0]).toFixed(1) + '" cy="' + py(p[1]).toFixed(1) + '" r="0.5" class="atlas-person"/>';
+      }).join('');
+
+      var orgPts = A.orgs.map(function (o) {
+        var x = px(o.lng).toFixed(2), y = py(o.lat).toFixed(2);
+        return '<rect x="' + (x - 1.1) + '" y="' + (y - 1.1) + '" width="2.2" height="2.2" rx="0.4" class="atlas-org" transform="rotate(45 ' + x + ' ' + y + ')"><title>' + esc(o.name) + '</title></rect>';
+      }).join('');
+
+      var placePts = A.places.map(function (pl) {
+        return '<circle cx="' + px(pl.lng).toFixed(2) + '" cy="' + py(pl.lat).toFixed(2) + '" r="1.4" class="atlas-place atlas-place--t' + pl.tier + '"><title>' + esc(pl.name) + '</title></circle>';
+      }).join('');
+
+      var nodePts = nodes.map(function (n) {
+        var x = px(n.lng).toFixed(2), y = py(n.lat).toFixed(2), st = STATUS[n.status] || STATUS.healthy;
+        var t = n.label + ' · operator ' + personaName(n.operator) + ' · ' + num(n.residents) + ' residents · ' + n.uptimePct + '% up';
+        return '<g class="atlas-node-g atlas-node-g--' + st.tone + '">' +
+          '<circle cx="' + x + '" cy="' + y + '" r="3" class="atlas-node-pulse"/>' +
+          '<circle cx="' + x + '" cy="' + y + '" r="1.7" class="atlas-node"><title>' + esc(t) + '</title></circle></g>';
+      }).join('');
+
+      return '<svg class="atlas-map" viewBox="0 8 360 162" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">' +
+        '<defs><pattern id="atlas-dots" width="2.6" height="2.6" patternUnits="userSpaceOnUse">' +
+        '<circle cx="1.3" cy="1.3" r="0.42" class="atlas-landdot"/></pattern>' +
+        '<clipPath id="atlas-land">' + clip + '</clipPath></defs>' +
+        '<g class="atlas-grat">' + grat + '</g>' +
+        '<rect x="0" y="8" width="360" height="162" fill="url(#atlas-dots)" clip-path="url(#atlas-land)"/>' +
+        '<path d="' + land + '" class="atlas-landline"/>' +
+        '<g class="atlas-layer atlas-layer--places">' + placePts + '</g>' +
+        '<g class="atlas-layer atlas-layer--orgs">' + orgPts + '</g>' +
+        '<g class="atlas-layer atlas-layer--people">' + people + '</g>' +
+        '<g class="atlas-layer atlas-layer--nodes">' + nodePts + '</g>' +
+        '</svg>';
+    }
+
+    function mapCard() {
+      var toggles = A.layers.map(function (ly) {
+        var count = ly.key === 'people' ? A.people.length : ly.key === 'nodes' ? nodes.length : ly.key === 'orgs' ? A.orgs.length : A.places.length;
+        return '<button type="button" class="atlas-toggle atlas-toggle--' + ly.key + ' is-on" data-atlas-layer="' + ly.key + '" aria-pressed="true">' +
+          '<span class="atlas-key" aria-hidden="true"></span>' + icon(ly.icon, { size: 'sm' }) + ' ' + esc(ly.label) +
+          ' <span class="atlas-toggle-n">' + num(count) + '</span></button>';
+      }).join('');
+
+      return '<section class="card atlas-map-card" aria-labelledby="atlas-map-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-3)">' +
+        '<div><span class="eyebrow" id="atlas-map-h">' + icon('globe', { size: 'sm' }) + ' The living map</span>' +
+        '<p class="gloss" style="margin:var(--space-1) 0 0">Every node, place, organization, and opt-in resident on one Earth. ' +
+        'Approximate positions only — this is orientation, not surveillance.</p></div>' +
+        '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span>' + num(nodesAlive) + ' of ' + num(nodes.length) + ' nodes alive</span>' +
+        '</div>' +
+        '<div class="atlas-controls cluster" role="group" aria-label="Map layers">' + toggles + '</div>' +
+        '<div class="atlas-map-wrap" id="atlas-map-wrap">' + mapSvg() + '</div>' +
+        '<div class="cluster" style="justify-content:space-between;gap:var(--space-3);margin-block-start:var(--space-2)">' +
+        '<p class="citation" style="margin:0">Land is a simplified outline drawn for orientation. Positions are city-level and approximate.</p>' +
+        '<button type="button" class="btn btn--primary btn--sm" id="atlas-optin">' + icon('map-pin', { size: 'sm' }) + ' Put yourself on the map</button>' +
+        '</div>' +
+        '<p id="atlas-optin-note" role="status" class="gloss" style="margin:var(--space-1) 0 0"></p>' +
+        '<div class="banner banner--info" style="margin-block-start:var(--space-3)">' + icon('lock', { size: 'sm' }) +
+        '<div><strong>Opt-in &amp; approximate.</strong> ' + esc(A.privacy.note) + '</div></div>' +
+        '</section>';
+    }
+
+    /* ---------- metric primitives ---------- */
+    function tiles(list) {
+      return '<div class="stat-tiles atlas-tiles">' + list.map(function (t) {
+        return '<div class="stat-tile' + (t.tone ? ' atlas-tile--' + t.tone : '') + '">' +
+          '<span class="n">' + (t.n == null ? '—' : t.n) + '</span>' +
+          '<span class="atlas-tile-l">' + esc(t.label) + '</span></div>';
+      }).join('') + '</div>';
+    }
+    function domain(opts) {
+      return '<section class="card atlas-domain">' +
+        '<div class="card-title atlas-domain-head">' +
+        '<span class="eyebrow" style="color:var(--' + opts.accent + ')">' + icon(opts.icon, { size: 'sm' }) + ' ' + esc(opts.title) + '</span>' +
+        (opts.planned ? ' ' + S.pill('planned', 'Planned') : '') + '</div>' +
+        (opts.lead ? '<p class="gloss atlas-domain-lead">' + opts.lead + '</p>' : '') +
+        tiles(opts.tiles) + (opts.extra || '') + '</section>';
+    }
+
+    /* legitimacy dial — the one bespoke gauge (inline SVG arc) */
+    function dial(pctRaw, capLabel) {
+      var pct = Math.max(0, Math.min(100, pctRaw));
+      var r = 42, c = 2 * Math.PI * r, dash = (pct / 100) * c;
+      return '<div class="atlas-dial-wrap">' +
+        '<svg class="atlas-dial" viewBox="0 0 100 100" aria-hidden="true">' +
+        '<circle cx="50" cy="50" r="42" class="atlas-dial-bg"/>' +
+        '<circle cx="50" cy="50" r="42" class="atlas-dial-val" stroke-dasharray="' + dash.toFixed(1) + ' ' + (c - dash).toFixed(1) + '" transform="rotate(-90 50 50)"/>' +
+        '</svg>' +
+        '<div class="atlas-dial-c"><span class="atlas-dial-n">' + pctRaw.toFixed(1) + '%</span><span class="atlas-dial-l">' + esc(capLabel) + '</span></div>' +
+        '</div>';
+    }
+
+    /* ---------- the vital-signs grid ---------- */
+    function vitalSigns() {
+      var modeledPop = sum(jurs, function (j) { return j.population || 0; });
+
+      var world = domain({
+        title: 'The world', icon: 'globe', accent: 'tier-planetary',
+        tiles: [
+          { n: num(jurs.length), label: 'jurisdictions' },
+          { n: num(byTier[0] || 0), label: S.admLabel(0) },
+          { n: num(byTier[1] || 0), label: S.admLabel(1) },
+          { n: num(byTier[2] || 0), label: S.admLabel(2) },
+          { n: num(byTier[3] || 0), label: S.admLabel(3) },
+          { n: S.formatPop(earthPop), label: 'people on Earth' },
+          { n: S.formatPop(modeledPop), label: 'in modeled places' },
+          { n: num(jurs.filter(function (j) { return j.isCivicActive; }).length), label: 'civic-active' }
+        ]
+      });
+
+      var reachExtra = '<div class="atlas-reach">' +
+        dial(homeReach.reachPct, 'reach · ' + homeReach.name) +
+        '<div class="atlas-reach-side">' +
+        '<p class="gloss" style="margin:0 0 var(--space-2)">Reach is the share of a place that is verified and present. It is a <strong>display-only transparency gauge — never a governance input</strong>, and never a per-person score.</p>' +
+        spark(homeReach.snapshots.map(function (s) { return s.reachPct; }), 'Reach over 30 nights, ' + homeReach.name) +
+        '<p class="citation" style="margin:var(--space-1) 0 0">30 nights · ' + homeReach.provenance + ' ' + homeReach.populationYear + '</p>' +
+        '</div></div>';
+
+      var reach = domain({
+        title: 'Reach & legitimacy', icon: 'bar-chart', accent: 'cc-gold-400', planned: true,
+        tiles: [
+          { n: num(verifiedTotal), label: 'verified residents', tone: 'success' },
+          { n: num(measuredPlaces), label: 'measured places' },
+          { n: homeReach.reachPct.toFixed(2) + '%', label: 'reach · ' + homeReach.name },
+          { n: num(legit.length), label: 'places gauged' }
+        ],
+        extra: reachExtra
+      });
+
+      var representation = domain({
+        title: 'Representation', icon: 'landmark', accent: 'tier-national',
+        tiles: [
+          { n: num(1), label: 'legislatures' },
+          { n: num(ch.seats), label: 'seats' },
+          { n: num(ch.serving), label: 'seats filled', tone: 'success' },
+          { n: num(seatsOpen), label: 'seats open', tone: 'danger' },
+          { n: num(elections.length), label: 'elections open' },
+          { n: num(seatsUp), label: 'seats up for election' },
+          { n: num(W.candidates.length), label: 'candidates standing' },
+          { n: num(petsGathering), label: 'petitions gathering', tone: 'warning' },
+          { n: num(W.committees.length), label: 'committees' },
+          { n: num(W.bills.length), label: 'bills in flight' }
+        ]
+      });
+
+      var executive = domain({
+        title: 'The executive', icon: 'briefcase', accent: 'wong-orange',
+        tiles: [
+          { n: num(deps.length), label: 'departments' },
+          { n: num(govSeats), label: 'governor seats' },
+          { n: num(workerSeats), label: 'worker-elected seats', tone: 'success' },
+          { n: num(depWorkers), label: 'civil-service workers' },
+          { n: num(1), label: 'emergency powers active', tone: 'danger' },
+          { n: '49', label: 'days left on it' }
+        ]
+      });
+
+      var judiciary = domain({
+        title: 'The judiciary', icon: 'scale', accent: 'wong-purple',
+        tiles: [
+          { n: num(courts), label: 'courts' },
+          { n: num(cases.length), label: 'cases open' },
+          { n: num(challenges), label: 'constitutional challenges' },
+          { n: num(juries), label: 'juries seated' },
+          { n: num(1), label: 'remedy windows running', tone: 'warning' },
+          { n: '5+', label: 'judges per race' }
+        ]
+      });
+
+      var organizations = domain({
+        title: 'Organizations', icon: 'building', accent: 'wong-skyblue',
+        tiles: [
+          { n: num(orgs.length), label: 'organizations' },
+          { n: num(orgByType.political_party || 0), label: 'political parties' },
+          { n: num(orgByType.business || 0), label: 'businesses' },
+          { n: num(orgByType.nonprofit || 0), label: 'nonprofits' },
+          { n: num(orgByType.common_good_corp || 0), label: 'common-good corps' },
+          { n: num(endorsements), label: 'endorsements made' },
+          { n: num(workersRep), label: 'workers represented' },
+          { n: num(4), label: 'public-domain works' }
+        ]
+      });
+
+      var economy = domain({
+        title: 'The economy', icon: 'refresh-cw', accent: 'wong-green', planned: true,
+        lead: 'Money is an abstract unit of account — no payment rails, no custody. A wallet is private, like a ballot.',
+        tiles: [
+          { n: '86.4M ç', label: 'minted this cycle' },
+          { n: S.formatPop(E.stipend.lastRun.recipientsAggregate), label: 'stipend recipients' },
+          { n: E.stipend.base + ' ç', label: 'stipend floor' },
+          { n: num(E.exchange.session.volumeToday), label: 'market volume today' },
+          { n: '6.2M ç', label: 'public budget' },
+          { n: num(E.agreements.length), label: 'open agreements' },
+          { n: num(E.jointLedgers.length), label: 'joint ledgers' },
+          { n: num(E.marketplace.length), label: 'market listings' }
+        ]
+      });
+
+      var people = domain({
+        title: 'People & achievements', icon: 'users', accent: 'tier-municipal', planned: true,
+        lead: 'Individual achievements are private by default and confer no governance advantage — hard-separated from votes, seats, and money.',
+        tiles: [
+          { n: num(verifiedTotal), label: 'verified residents', tone: 'success' },
+          { n: num(W.personas.length), label: 'named role-holders' },
+          { n: num(orgs.length), label: 'organizations' },
+          { n: num(1), label: 'registered advocates' },
+          { n: num(ACH.tiers.length), label: 'achievement tracks' },
+          { n: num(achEarned) + ' / ' + num(achTotal), label: 'achievements earned' }
+        ]
+      });
+
+      var mesh = domain({
+        title: 'The mesh', icon: 'shield', accent: 'cc-blue-400',
+        lead: 'Running a node is infrastructure — off the constitutional plane. It buys no vote and no seat.',
+        tiles: [
+          { n: num(nodes.length), label: 'nodes' },
+          { n: num(nodesAlive), label: 'alive now', tone: 'success' },
+          { n: num(O.readiness.peerCount), label: 'trusted peers' },
+          { n: onLatest + ' / ' + O.versioning.peerMatch.length, label: 'on the latest version' },
+          { n: num(transportsUp), label: 'transports up' },
+          { n: num(Math.max.apply(null, nodes.map(function (n) { return n.syncSeq; }))), label: 'highest sync seq' }
+        ],
+        extra: '<div class="atlas-mesh-health"><span class="health-line"><span class="health-dot health-dot--' + O.readiness.rollup + '"></span>' +
+          'Mesh readiness: <strong>' + esc(O.readiness.rollup) + '</strong> · last sync ' + esc(O.readiness.lastSync) + '</span></div>'
+      });
+
+      return '<div class="grid-2 atlas-grid">' + world + reach + representation + executive + judiciary + organizations + economy + people + mesh + '</div>';
+    }
+
+    /* ---------- growth & legitimacy trends ---------- */
+    function trends() {
+      var g = A.growth;
+      function row(label, arr, fmt) {
+        var first = arr[0], last = arr[arr.length - 1], d = last - first;
+        var sign = d > 0 ? '+' : '';
+        return '<div class="atlas-trend">' +
+          '<div class="atlas-trend-top"><span class="atlas-trend-label">' + esc(label) + '</span>' +
+          '<span class="atlas-trend-n">' + (fmt ? fmt(last) : num(last)) + ' <span class="atlas-trend-d' + (d >= 0 ? '' : ' atlas-trend-d--down') + '">' +
+          icon(d >= 0 ? 'arrow-up' : 'arrow-down', { size: 'sm' }) + sign + (fmt ? fmt(d) : num(d)) + '</span></span></div>' +
+          spark(arr, label + ' over the last year') + '</div>';
+      }
+      return '<section class="card atlas-trends" aria-labelledby="atlas-trends-h">' +
+        '<div class="card-title"><span class="eyebrow" id="atlas-trends-h">' + icon('bar-chart', { size: 'sm' }) + ' Growth — the last year</span></div>' +
+        '<div class="grid-2">' +
+        row('Verified residents', g.verifiedResidents) +
+        row('Nodes on the mesh', g.nodes) +
+        row('Jurisdictions live', g.jurisdictions) +
+        row('Candidates standing', g.candidates) +
+        row('Organizations', g.organizations) +
+        row('On-the-map opt-ins', g.onMapOptIns) +
+        '</div>' +
+        '<p class="lr-note" style="margin-block-start:var(--space-3)">' + icon('info', { size: 'sm' }) +
+        ' <span>Growth and reach are shown to celebrate participation and keep the network honest — never as a lever on anyone’s rights.</span></p>' +
+        '</section>';
+    }
+
+    /* ---------- nodes directory ---------- */
+    function directory() {
+      var rows = nodes.map(function (n) {
+        var st = STATUS[n.status] || STATUS.healthy;
+        var place = n.jurisdiction ? (BY.jurisdictions[n.jurisdiction] || {}).name || n.jurisdiction : '—';
+        var opHref = S.hrefV2('social/profile.html?who=' + n.operator);
+        return '<tr>' +
+          '<td><strong style="color:var(--gov-fg)">' + esc(n.label) + '</strong>' + (n.self ? ' ' + S.badge('info', 'this node') : '') +
+          '<span class="citation" style="display:block">' + esc(n.name) + '</span></td>' +
+          '<td>' + esc(place) + '</td>' +
+          '<td><a href="' + opHref + '">' + esc(personaName(n.operator)) + '</a></td>' +
+          '<td>' + S.pill(st.tone, st.label) + '</td>' +
+          '<td>' + esc(n.role) + '</td>' +
+          '<td class="mono">' + num(n.residents) + '</td>' +
+          '<td class="mono">' + n.uptimePct + '%</td>' +
+          '<td class="mono">' + num(n.syncSeq) + '</td></tr>';
+      }).join('');
+      return '<section class="card atlas-dir" aria-labelledby="atlas-dir-h">' +
+        '<div class="card-title"><span class="eyebrow" id="atlas-dir-h">' + icon('globe', { size: 'sm' }) + ' Nodes &amp; operators</span></div>' +
+        '<p class="gloss">The servers keeping the mesh alive, and the residents who run them. Open an operator to reach their public profile.</p>' +
+        '<div class="table-wrap"><table><thead><tr><th>Node</th><th>Where</th><th>Operator</th><th>Status</th><th>Role</th><th>Residents</th><th>Uptime</th><th>Sync</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div></section>';
+    }
+
+    /* ---------- calls to action ---------- */
+    function callsToAction() {
+      var ctas = [
+        { icon: 'landmark', tone: 'danger', text: num(seatsOpen) + ' seat is open in a legislature — anyone resident may stand.', cta: 'Stand for office', href: 'electoral/candidacy-registration.html' },
+        { icon: 'vote', tone: 'info', text: num(elections.length) + ' elections are open right now — the approval phase is the moment to weigh in.', cta: 'Find your ballot', href: 'electoral/open-ballot.html' },
+        { icon: 'file-text', tone: 'warning', text: num(petsGathering) + ' petitions are gathering signatures toward a referendum.', cta: 'See petitions', href: 'civic/petitions.html' },
+        { icon: 'scale', tone: 'info', text: challenges + ' constitutional challenge is in its remedy window.', cta: 'Open the docket', href: 'judiciary/case-docket.html' },
+        { icon: 'globe', tone: 'info', text: 'Run a node and keep the mesh alive — it confers no power, only stewardship.', cta: 'Run a node', href: 'operator/operator-home.html' }
+      ];
+      var items = ctas.map(function (c) {
+        return '<li class="atlas-cta atlas-cta--' + c.tone + '">' + icon(c.icon, { size: 'sm' }) +
+          '<span class="atlas-cta-t">' + esc(c.text) + '</span>' +
+          '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(c.href) + '">' + esc(c.cta) + ' ' + icon('arrow-right', { size: 'sm' }) + '</a></li>';
+      }).join('');
+      return '<section class="card atlas-ctas" aria-labelledby="atlas-ctas-h">' +
+        '<div class="card-title"><span class="eyebrow" id="atlas-ctas-h">' + icon('bell', { size: 'sm' }) + ' What needs people right now</span></div>' +
+        '<ul class="atlas-cta-list">' + items + '</ul></section>';
+    }
+
+    /* ---------- header / hero ---------- */
+    function header() {
+      var hero = [
+        { n: num(nodesAlive), label: 'nodes alive', tone: 'success' },
+        { n: num(verifiedTotal), label: 'verified residents' },
+        { n: num(elections.length), label: 'elections open' },
+        { n: num(seatsOpen), label: 'seats open', tone: 'danger' },
+        { n: num(W.candidates.length), label: 'candidates standing' },
+        { n: num(jurs.length), label: 'jurisdictions' }
+      ].map(function (s) {
+        return '<div class="stat atlas-hero-stat' + (s.tone ? ' atlas-hero-stat--' + s.tone : '') + '">' +
+          '<span class="stat-number">' + s.n + '</span><span class="stat-label">' + esc(s.label) + '</span></div>';
+      }).join('');
+      return '<header class="atlas-header"><span class="eyebrow">' + icon('globe', { size: 'sm' }) + ' The heartbeat of the world</span>' +
+        '<h1>The Atlas</h1>' +
+        '<p class="page-intro">One screen for the whole game: a living map of every node, place, organization, and willing resident — ' +
+        'and the vital signs of representation, justice, the economy, and the mesh. The health of the world, and of everyone playing it.</p>' +
+        '<div class="atlas-hero-stats">' + hero + '</div></header>';
+    }
+
+    /* ---------- assemble + wire ---------- */
+    function render() {
+      document.getElementById('root').innerHTML =
+        header() + mapCard() +
+        '<h2 class="atlas-section-h">Vital signs</h2>' + vitalSigns() +
+        trends() + callsToAction() + directory();
+
+      wire();
+      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+    }
+
+    function wire() {
+      var wrap = document.getElementById('atlas-map-wrap');
+      [].forEach.call(document.querySelectorAll('[data-atlas-layer]'), function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-atlas-layer'), on = btn.classList.toggle('is-on');
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          wrap.classList.toggle('atlas-map-wrap--hide-' + key, !on);
+        });
+      });
+      var opt = document.getElementById('atlas-optin'), note = document.getElementById('atlas-optin-note');
+      if (opt) opt.addEventListener('click', function () {
+        opt.disabled = true;
+        note.textContent = 'You would now appear as a single approximate pixel — opt-in, grid-snapped, no name attached. (Simulated; nothing leaves this mockup.)';
+        S.announce('Added to the map as an approximate pixel');
+      });
+    }
+
+    render();
+    document.addEventListener('cga:v2:rerender', render);
+  })();
+  </script>
+</body>
+</html>

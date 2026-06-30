@@ -141,6 +141,7 @@
     { act: 'Found an instance', rel: 'system/setup-wizard.html', title: 'The setup wizard', blurb: 'The detailed founding wizard, step by step.' },
     { act: 'Found an instance', rel: 'jurisdictions/bootstrap.html', title: 'Bootstrap a jurisdiction', blurb: 'A place reaches critical mass and boots its government.' },
 
+    { act: 'Arrive', rel: 'atlas.html', title: 'The Atlas', blurb: 'A live heartbeat of the whole game — every node, place, and number on one map.' },
     { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'The five kinds of civic interaction — the whole map on one screen.' },
     { act: 'Arrive', rel: 'civic/today.html', title: 'Today', blurb: 'Everything live right now in the places you belong to, plus the community calendar.' },
     { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My profile', blurb: 'Your whole civic life in one tabbed profile — record, wallet, your reps, and more.' },
@@ -324,6 +325,7 @@
     support: { video: 'v-welcome', about: 'Getting help and reporting anything that’s wrong.' }
   };
   var LEARN_BY_ID = {
+    'atlas': { video: 'v-welcome', about: 'What the Atlas shows — a live, public heartbeat of every node, place, and number across the whole game. Appearing on the map is opt-in and approximate; reach and growth are display-only, never a lever on anyone’s rights.' },
     'shared/live-room': { video: 'v-floor', about: 'How a live room works — raising a hand, taking the floor, and the vote.' },
     'economy/exchange': { video: 'v-market', about: 'How the exchange works — the order book and the live tape.' },
     'economy/stipend': { video: 'v-units', about: 'How the civic stipend works — a floor everyone shares plus a small role bump.' },
@@ -433,6 +435,7 @@
     /* one unified nav — every area, game and operations, no version split */
     section('Start here');
     linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
+    linkV2('atlas', 'The Atlas', 'globe', 'atlas.html');
     linkV2('tour', 'Guided tour', 'map', 'tour.html');
     linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
     linkV2('today', 'Today', 'home', 'civic/today.html');

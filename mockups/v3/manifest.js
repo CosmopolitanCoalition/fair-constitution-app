@@ -16,6 +16,19 @@ window.CGA_MANIFEST = [
   "notes": "v2 entry point. The five interaction classes as cards, the journey directory with progress rails, the eight Live-Room variants, and handoff links. Governance register; reuses v1 tokens/shell foundation via fixtures-v2 + shell-v2."
  },
  {
+  "file": "atlas.html",
+  "title": "The Atlas — public, game-wide heartbeat dashboard",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 7,
+  "notes": "The heartbeat of the world: a living dotted world map plotting nodes, opt-in single-pixel residents, organizations and places by approximate lat/long, plus an exhaustive vital-signs grid (jurisdictions/population, reach/legitimacy, representation, executive, judiciary, organizations, economy, people/achievements, the mesh), growth trends, a nodes-and-operators directory, and calls to action. Authored geo data lives in assets/js/fixtures-atlas.js; metrics read from the world/v2/econ/operator fixtures. People-on-map is opt-in + approximate; reach/growth are display-only."
+ },
+ {
   "file": "system/setup.html",
   "title": "Instance setup — the founding loop",
   "module": "system",
@@ -2332,7 +2345,7 @@ window.CGA_MANIFEST = [
    "CLK-21"
   ],
   "suggestedVuePage": "resources/js/Pages/System/Clocks.vue",
-  "notes": "Renders all 21 registry.clocks grouped into 4 scheduler families (raw type kept per row); amendable column as badges (lock icon for hardened/structural); explicit 'this page doubles as the scheduler spec' banner.",
+  "notes": "Renders all 21 registry.clocks grouped into 4 scheduler families (raw type kept per row); amendable column as badges (lock icon for hardened/structural); WF ids in 'fires' auto-linked to ../flows/ pages via regex; explicit 'this page doubles as the scheduler spec' banner.",
   "stage": 6
  },
  {
