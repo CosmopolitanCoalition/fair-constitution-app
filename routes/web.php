@@ -19,6 +19,7 @@ use App\Http\Controllers\Elections\CandidacyController;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Controllers\Elections\ResultsController;
 use App\Http\Controllers\Elections\VacancyController;
+use App\Http\Controllers\Invites\InviteController;
 use App\Http\Controllers\JurisdictionController;
 use App\Http\Controllers\Oidc\OidcAuthorizationController;
 use App\Http\Controllers\Legislature\BillController;
@@ -144,6 +145,35 @@ Route::get('/api/cosmic-addresses/{id}/children', [CosmicAddressController::clas
 // would only add lookup cost.
 Route::get('/jurisdictions', [JurisdictionController::class, 'index'])->name('jurisdictions.index');
 Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'show'])->name('jurisdictions.show');
+
+// ── Invites — the share-to-signup growth loop ───────────────────────────────────────────
+// PUBLIC landing: a friend opens the link with no account. If signed in they redeem +
+// continue; if a guest they preview it and sign up (the destination is carried across signup).
+// The token is `handle.secret` (alnum + one dot); throttled against enumeration.
+Route::get('/i/{token}', [InviteController::class, 'land'])
+    ->where('token', '[A-Za-z0-9.]+')
+    ->middleware('throttle:30,1')
+    ->name('invite.land');
+// AUTH: mint a shareable link for a destination the inviter can already reach.
+Route::middleware('auth')->group(function () {
+    Route::post('/invites', [InviteController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('invites.store');
+});
+
+// PUBLIC: a guest on a public page (a proceeding, the commons) taps "Sign up to take part" — capture
+// where they were so signup/login continues there. SAME-ORIGIN app paths only (no open redirect).
+Route::get('/continue', function (Request $request) {
+    $to = (string) $request->query('to', '');
+    $sameOrigin = $to !== '' && str_starts_with($to, '/') && ! str_starts_with($to, '//')
+        && ! str_contains($to, '\\') && ! str_contains($to, '..')
+        && parse_url($to, PHP_URL_HOST) === null && parse_url($to, PHP_URL_SCHEME) === null;
+    if ($sameOrigin) {
+        $request->session()->put('url.intended', $to);
+    }
+
+    return redirect($request->query('mode') === 'login' ? '/login' : '/register');
+})->name('continue');
 
 // GeoJSON API endpoints
 Route::get('/api/jurisdictions/{jurisdiction}/children.geojson', [JurisdictionController::class, 'childrenGeoJson'])->name('jurisdictions.children.geojson');
@@ -392,7 +422,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C2 — Chamber (legislature/legislature-home) ──────────────────────
     Route::get('/legislatures/{legislature}/chamber', [ChamberController::class, 'show'])
-        ->whereUuid('legislature')->name('chamber.show');
+        ->whereUuid('legislature')->name('chamber.show')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/members/{member}/oath', [ChamberController::class, 'oath'])
         ->whereUuid('member')->name('members.oath');                          // F-LEG-001
 
@@ -428,13 +458,13 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C4 — Bills + BillDetail (legislature/bills, bill-detail) ─────────
     Route::get('/legislatures/{legislature}/bills', [BillController::class, 'index'])
-        ->whereUuid('legislature')->name('bills.index');
+        ->whereUuid('legislature')->name('bills.index')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/legislatures/{legislature}/bills', [BillController::class, 'store'])
         ->whereUuid('legislature')->name('bills.store');                      // F-LEG-003
     Route::post('/legislatures/{legislature}/bills/validate', [BillController::class, 'validateSetting'])
         ->whereUuid('legislature')->name('bills.validate');                   // pure pre-flight
     Route::get('/bills/{bill}', [BillController::class, 'show'])
-        ->whereUuid('bill')->name('bills.show');
+        ->whereUuid('bill')->name('bills.show')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
         ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
 
@@ -518,7 +548,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C11 — PublicRecords + TermSync (batch 3) ─────────────────────────
     Route::get('/system/public-records', [\App\Http\Controllers\System\PublicRecordsController::class, 'index'])
-        ->name('system.public-records');
+        ->name('system.public-records')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/system/public-records/statements', [\App\Http\Controllers\System\PublicRecordsController::class, 'statement'])
         ->name('system.public-records.statements');                           // F-LEG-006
     Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])
@@ -537,11 +567,11 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D2 — Executive/Home ──────────────────────────────────────────────
     Route::get('/executives/{executive}', [\App\Http\Controllers\Executive\ExecutiveController::class, 'show'])
-        ->whereUuid('executive')->name('executives.show');
+        ->whereUuid('executive')->name('executives.show')->withoutMiddleware('auth'); // public read — Art. II §2
 
     // ── FE-D3 — Departments + DepartmentDetail (BoG-consent exit surface) ────
     Route::get('/executives/{executive}/departments', [\App\Http\Controllers\Executive\DepartmentController::class, 'index'])
-        ->whereUuid('executive')->name('executive.departments');
+        ->whereUuid('executive')->name('executive.departments')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::get('/departments/{department}', [\App\Http\Controllers\Executive\DepartmentController::class, 'show'])
         ->whereUuid('department')->name('executive.department-detail');
     Route::post('/departments/{department}/nominations', [\App\Http\Controllers\Executive\DepartmentController::class, 'nominate'])
@@ -559,7 +589,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-D4 — Actions (order-rejection exit surface) ──────────────────────
     Route::get('/executives/{executive}/actions', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'index'])
-        ->whereUuid('executive')->name('executive.actions');
+        ->whereUuid('executive')->name('executive.actions')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/executives/{executive}/orders', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeOrder'])
         ->whereUuid('executive')->name('executive.orders.store');                  // F-EXE-005
     Route::post('/executives/{executive}/policy-proposals', [\App\Http\Controllers\Executive\ExecutiveActionController::class, 'storeProposal'])
@@ -633,15 +663,15 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-E2 — Judiciary/Home ──────────────────────────────────────────────
     Route::get('/judiciaries/{judiciary}', [\App\Http\Controllers\Judiciary\JudiciaryController::class, 'show'])
-        ->whereUuid('judiciary')->name('judiciaries.show');
+        ->whereUuid('judiciary')->name('judiciaries.show')->withoutMiddleware('auth'); // public read — Art. II §2
 
     // ── FE-E3 — Docket + CaseDetail ─────────────────────────────────────────
     Route::get('/judiciaries/{judiciary}/docket', [\App\Http\Controllers\Judiciary\DocketController::class, 'index'])
-        ->whereUuid('judiciary')->name('judiciary.docket');
+        ->whereUuid('judiciary')->name('judiciary.docket')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/judiciaries/{judiciary}/cases', [\App\Http\Controllers\Judiciary\DocketController::class, 'store'])
         ->whereUuid('judiciary')->name('judiciary.cases.store');                  // F-IND-017 / F-ADV-001
     Route::get('/cases/{case}', [\App\Http\Controllers\Judiciary\CaseController::class, 'show'])
-        ->whereUuid('case')->name('judiciary.cases.show');
+        ->whereUuid('case')->name('judiciary.cases.show')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/cases/{case}/acceptance', [\App\Http\Controllers\Judiciary\CaseController::class, 'acceptance'])
         ->whereUuid('case')->name('judiciary.cases.acceptance');                  // F-JDG-001
     Route::post('/cases/{case}/jury-orders', [\App\Http\Controllers\Judiciary\CaseController::class, 'juryOrder'])
@@ -714,6 +744,20 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // player may join (Art. I — corrected 2026-06-27); the gate fails closed unless the room is the
     // jurisdiction's square/halls. The token is room-scoped, short-lived, pseudonymous, appservice-signed.
     Route::post('/matrix/call-token', \App\Http\Controllers\Matrix\CallTokenController::class)->name('matrix.call-token');
+
+    // Private rooms (groups / DMs) — the "Art. I private half". A player owns a room + invites friends;
+    // MEMBER-gated (never residency), off the civic plane (no testimony, no public record). The call token
+    // is the private counterpart to /civic/matrix/call-token — gated on membership, minted locally.
+    Route::get('/rooms', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'index'])->name('rooms.index');
+    Route::post('/rooms', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'store'])->name('rooms.store');
+    Route::get('/rooms/{space}', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'show'])
+        ->whereUuid('space')->name('rooms.show');
+    Route::post('/rooms/{space}/post', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'post'])
+        ->whereUuid('space')->name('rooms.post');
+    Route::post('/rooms/{space}/leave', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'leave'])
+        ->whereUuid('space')->name('rooms.leave');
+    Route::post('/matrix/private-call-token', \App\Http\Controllers\Matrix\PrivateCallTokenController::class)
+        ->name('matrix.private-call-token');
 
     // Phase 5 — foci AV reach. The MIXED-ENVIRONMENT voice endpoint: resolve where voice is served (local
     // SFU, else a capable peer reached via an attested envelope), and return {token, sfu_url} to dial. The

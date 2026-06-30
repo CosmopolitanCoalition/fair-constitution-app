@@ -51,6 +51,53 @@ class MatrixPostingGateService
     }
 
     /**
+     * Post into a USER-OWNED PRIVATE room (a group / DM — OFF the civic plane). Reachable ONLY by members;
+     * no cga.acting_seat (office badges belong to the commons), no testimony, no public record. The send
+     * goes under the same pseudonymous @u-<handle>. The commons path above is untouched.
+     */
+    public function postToPrivateRoom(User $actor, string $matrixRoomId, string $body): array
+    {
+        $this->assertMayAccessPrivateRoom($actor, $matrixRoomId);
+
+        $content = ['msgtype' => 'm.text', 'body' => $body];
+
+        return $this->client->sendMessage($matrixRoomId, $content, $this->matrixUserId($actor));
+    }
+
+    /**
+     * A private room is reachable ONLY by its members (owner or invited), and ONLY when the room is a
+     * live user_private room bound to its SocialSpace — fail-closed on an unknown / tombstoned / public /
+     * non-private room, or a non-member. This is the private counterpart to assertPublicCommonsRoom:
+     * MEMBERSHIP is the gate, never residency, and it shares NO code path with the commons (no weakening).
+     * The same gate backs the private call-token mint.
+     */
+    public function assertMayAccessPrivateRoom(User $actor, string $matrixRoomId): void
+    {
+        $room = MatrixRoom::query()
+            ->where('matrix_room_id', $matrixRoomId)
+            ->whereNull('tombstoned_at')
+            ->first();
+
+        $isPrivateRoom = $room !== null
+            && ! (bool) $room->is_public
+            && $room->room_type === MatrixRoom::ROOM_USER_PRIVATE
+            && $room->entity_type === MatrixRoom::ENTITY_SOCIAL_SPACE;
+
+        $isMember = $isPrivateRoom && DB::table('social_memberships')
+            ->where('space_id', (string) $room->entity_id)
+            ->where('user_id', (string) $actor->getKey())
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $isMember) {
+            throw new ConstitutionalViolation(
+                'A private room is reachable only by its members.',
+                'Art. I'
+            );
+        }
+    }
+
+    /**
      * The public commons is OPEN (Art. I) — any authenticated player may participate, resident or
      * visitor. Access is NOT residency-gated; residency gates governance POWERS, which the game
      * enforces elsewhere. Two floors remain: the target must be THIS jurisdiction's public square /

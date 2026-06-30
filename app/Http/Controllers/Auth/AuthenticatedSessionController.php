@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Auth\Concerns\RedeemsPendingInvite;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\RedirectResponse;
@@ -23,12 +24,14 @@ use Inertia\Response;
  */
 class AuthenticatedSessionController extends Controller
 {
+    use RedeemsPendingInvite;
+
     private const MAX_ATTEMPTS = 5;
 
     /** GET /login */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login');
+        return Inertia::render('Auth/Login', $this->continuationProps($request));
     }
 
     /** POST /login */
@@ -65,7 +68,11 @@ class AuthenticatedSessionController extends Controller
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
 
-        // WI-8: the civic dashboard is the post-login landing.
+        // Redeem a pending invite (attribution) for a friend who arrived via /i/{token} and chose
+        // to log in rather than sign up. Fail-open — never blocks the session.
+        $this->redeemPendingInvite($request, $request->user());
+
+        // WI-8: /civic is the default landing, but a carried destination (invite or auth-bounce) wins.
         return redirect()->intended('/civic');
     }
 

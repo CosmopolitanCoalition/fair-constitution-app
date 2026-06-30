@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Domain\Engine\ConstitutionalEngine;
+use App\Http\Controllers\Auth\Concerns\RedeemsPendingInvite;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,8 @@ use Inertia\Response;
  */
 class RegisteredUserController extends Controller
 {
+    use RedeemsPendingInvite;
+
     /**
      * Languages offered at registration (mockup onboarding contract).
      * The production list grows to every supported locale with i18n.
@@ -37,9 +40,9 @@ class RegisteredUserController extends Controller
     }
 
     /** GET /register */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', $this->continuationProps($request));
     }
 
     /** POST /register */
@@ -71,7 +74,11 @@ class RegisteredUserController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        // WI-8: the civic dashboard is the post-registration landing.
-        return redirect('/civic')->with('status', 'Account created — your Individual record now exists.');
+        // Redeem a pending invite (attribution) before honoring the destination — so a friend who
+        // arrived via /i/{token} both gets credited to their inviter AND lands where they were headed.
+        $this->redeemPendingInvite($request, $user);
+
+        // WI-8: /civic is the default landing, but a carried destination (invite or auth-bounce) wins.
+        return redirect()->intended('/civic')->with('status', 'Account created — your Individual record now exists.');
     }
 }

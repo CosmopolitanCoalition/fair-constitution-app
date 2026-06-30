@@ -44,6 +44,7 @@ class User extends Authenticatable
         'comm_prefs',
         'home_server_id',
         'is_operator',
+        'invited_by_user_id',
     ];
 
     /**

@@ -238,6 +238,20 @@ export async function requestVoiceToken({ jurisdictionId, room, pseudonym, subje
 }
 
 /**
+ * Request a LiveKit voice/video token for a USER-OWNED PRIVATE room. Unlike the commons path this is
+ * local + session-authenticated (the server gates on room MEMBERSHIP, not residency, and mints against
+ * this node's own SFU) — so no device attestation is needed. Returns the same {token, sfu_url, room,
+ * identity} shape useVoiceRoom expects. A non-member gets a 403.
+ *
+ * @returns {Promise<{token, sfu_url, room, identity}>}
+ */
+export async function requestPrivateVoiceToken({ room }) {
+    const { data } = await window.axios.post('/civic/matrix/private-call-token', { room_id: room });
+
+    return data;
+}
+
+/**
  * Sign a traveling WRITE (shared with the voice path). The home node attaches a
  * fresh attestation and forwards to the jurisdiction's authoritative leader,
  * which verifies this device signature (AttestedForwardedActor). Returns the

@@ -17,9 +17,11 @@ import VoiceControls from './VoiceControls.vue';
 
 const props = defineProps({
     jurisdictionId: { type: String, required: true },
-    room: { type: String, required: true }, // the call room (the commons/halls room id)
+    room: { type: String, required: true }, // the call room (the commons/halls room id, or a private room id)
     pseudonym: { type: String, required: true }, // the player's OWN @u-<handle>
     subjectUserId: { type: String, required: true }, // the player's OWN user id
+    // Optional: a member-gated token requester for a PRIVATE room. Null → the commons device-signed default.
+    tokenRequester: { type: Function, default: null },
 });
 
 const {
@@ -52,6 +54,7 @@ async function onJoin() {
             room: props.room,
             pseudonym: props.pseudonym,
             subjectUserId: props.subjectUserId,
+            tokenRequester: props.tokenRequester,
         });
     } catch {
         /* error state is set on the composable; the banner shows it */

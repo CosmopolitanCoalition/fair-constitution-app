@@ -38,6 +38,7 @@ import DevBar from '@/Components/Shell/DevBar.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
+import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { NAV } from '@/Navigation/nav.js';
@@ -75,6 +76,10 @@ const phasesLive = computed(() => page.props.app?.phasesLive ?? ['A']);
    HandleInertiaRequests when the C-EMERGENCY backend lands — defensive
    null fallback so the shell renders before and after. */
 const activeEmergencies = computed(() => page.props.app?.activeEmergencies ?? []);
+
+/* Guest "sign up to take part" CTA target — only shown on a content page (a public proceeding a
+   visitor reached without a session). Carries the current URL so signup/login continues right back. */
+const continueHref = computed(() => '/continue?to=' + encodeURIComponent(page.url ?? '/'));
 
 /* Pages below (PageScaffold, AboutSurface consumers) can inject the surface
    without re-reading page props. */
@@ -342,6 +347,11 @@ onBeforeUnmount(() => {
                 <!-- Art. II §7 · CLK-03 — renders nothing when no power is
                      active; every page gets the banner for free. -->
                 <EmergencyBanner :emergencies="activeEmergencies" />
+                <Banner v-if="!user && surface" tone="info" title="You’re viewing as a guest">
+                    These proceedings are public record (Art. II §2).
+                    <a :href="continueHref"><strong>Sign up to take part</strong></a> — speak, vote, and stand
+                    for office once your residency is confirmed.
+                </Banner>
             </div>
 
             <slot />

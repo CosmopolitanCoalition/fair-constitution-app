@@ -16,11 +16,12 @@ class MatrixRoom extends Model
 {
     use HasUuids, SoftDeletes;
 
-    public const ROOM_SPACE       = 'm.space';
-    public const ROOM_COMMONS     = 'commons';      // #square / #halls / per-object public rooms
-    public const ROOM_ORG_PUBLIC  = 'org_public';
-    public const ROOM_ORG_PRIVATE = 'org_private';
-    public const ROOM_INSTITUTION = 'institution';
+    public const ROOM_SPACE        = 'm.space';
+    public const ROOM_COMMONS      = 'commons';      // #square / #halls / per-object public rooms
+    public const ROOM_ORG_PUBLIC   = 'org_public';
+    public const ROOM_ORG_PRIVATE  = 'org_private';
+    public const ROOM_INSTITUTION  = 'institution';
+    public const ROOM_USER_PRIVATE = 'user_private'; // an ad-hoc user-owned private room/call (off the civic plane)
 
     public const ENTITY_JURISDICTION        = 'jurisdiction';
     public const ENTITY_ORGANIZATION        = 'organization';
@@ -33,6 +34,7 @@ class MatrixRoom extends Model
     public const ENTITY_PETITION            = 'petition';
     public const ENTITY_COMMITTEE_MEETING   = 'committee_meeting';
     public const ENTITY_CANDIDACY           = 'candidacy';
+    public const ENTITY_SOCIAL_SPACE        = 'social_space'; // a user-owned private room binds to its SocialSpace id
 
     public const SPACE_PUBLIC_SQUARE = 'public_square';
     public const SPACE_HALLS         = 'halls';

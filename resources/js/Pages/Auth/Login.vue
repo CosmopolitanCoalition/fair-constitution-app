@@ -17,6 +17,14 @@ import Field from '@/Components/Ui/Field.vue';
 
 const status = computed(() => usePage().props.flash?.status ?? null);
 
+// Carried from an invite (/i/{token}) or a shared deep link — where the visitor lands after login.
+const props = defineProps({
+    intendedUrl: { type: String, default: null },
+    invitePreview: { type: Object, default: null },
+});
+const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? 'where you were headed' : null));
+const inviterName = computed(() => props.invitePreview?.inviter || null);
+
 const form = useForm({
     email: '',
     password: '',
@@ -45,6 +53,12 @@ function submit() {
             </header>
 
             <Banner v-if="status" tone="info">{{ status }}</Banner>
+
+            <Banner v-if="continuationLabel" tone="info" title="You were invited" style="margin-block-end: var(--space-2)">
+                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong>. </template>
+                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong>. </template>
+                Log in and you’ll land there.
+            </Banner>
 
             <Card as="section" aria-labelledby="login-h">
                 <template #title>

@@ -172,7 +172,7 @@ export function useVoiceRoom() {
      * authenticated player's own (see deviceIdentity.requestVoiceToken). Resolves
      * once connected (or sets `degraded` and resolves if no SFU is reachable).
      */
-    async function join({ jurisdictionId, room: roomName, pseudonym, subjectUserId, video = false }) {
+    async function join({ jurisdictionId, room: roomName, pseudonym, subjectUserId, video = false, tokenRequester = null }) {
         // Re-entry latch: the room.value guard alone is insufficient because room.value isn't set
         // until AFTER the async token fetch — a double-click would open two SFU connections and leak
         // one. `joining` is set synchronously before the first await.
@@ -185,7 +185,8 @@ export function useVoiceRoom() {
         try {
             let grant;
             try {
-                grant = await requestVoiceToken({ jurisdictionId, room: roomName, pseudonym, subjectUserId });
+                // A private room passes its own member-gated requester; the commons uses the device-signed default.
+                grant = await (tokenRequester ?? requestVoiceToken)({ jurisdictionId, room: roomName, pseudonym, subjectUserId });
             } catch (e) {
                 // Any 503 is the safe text-only degrade (no SFU reachable) — never an error, regardless
                 // of body shape (an upstream proxy 503 carries no {degrade} flag).

@@ -9,6 +9,7 @@
  * automatically, on residency verification (Art. I).
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Banner from '@/Components/Ui/Banner.vue';
 
 // Standalone (pre-shell) page — opt out of the AppShell default layout.
@@ -19,6 +20,14 @@ import CheckboxField from '@/Components/Ui/CheckboxField.vue';
 import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
+
+// Carried from an invite (/i/{token}) or a shared deep link — where the visitor lands after signup.
+const props = defineProps({
+    intendedUrl: { type: String, default: null },
+    invitePreview: { type: Object, default: null },
+});
+const continuationLabel = computed(() => props.invitePreview?.label || (props.intendedUrl ? 'where you were headed' : null));
+const inviterName = computed(() => props.invitePreview?.inviter || null);
 
 // Mockup onboarding contract: the languages multiselect offers these five;
 // the production list covers every supported locale (chrome i18n WI).
@@ -75,6 +84,12 @@ function submit() {
 
     <main id="main" class="register-page">
         <div class="stack">
+            <Banner v-if="continuationLabel" tone="info" title="You were invited" style="margin-block-end: var(--space-2)">
+                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong>. </template>
+                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong>. </template>
+                Create your account and you’ll land there right after.
+            </Banner>
+
             <header>
                 <span class="eyebrow">Civic onboarding · step 1 of 3</span>
                 <h1>Create your account</h1>

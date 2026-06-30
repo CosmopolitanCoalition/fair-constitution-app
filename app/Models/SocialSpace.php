@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -19,6 +20,7 @@ class SocialSpace extends Model
 
     public const TYPE_PUBLIC_SQUARE = 'public_square';
     public const TYPE_HALLS         = 'halls';
+    public const TYPE_GROUP         = 'group'; // a user-owned private room (group / DM) — Art. I private half
 
     public const STATUS_OPEN     = 'open';
     public const STATUS_ARCHIVED = 'archived';
@@ -32,6 +34,7 @@ class SocialSpace extends Model
         'status',
         'is_private',
         'owner_org_id',
+        'owner_user_id',
     ];
 
     protected $casts = [
@@ -46,5 +49,11 @@ class SocialSpace extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(SocialMembership::class, 'space_id');
+    }
+
+    /** The user who owns a private room (null for jurisdiction/org spaces). */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_user_id');
     }
 }

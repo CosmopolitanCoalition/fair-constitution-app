@@ -4,6 +4,7 @@ namespace App\Services\Matrix;
 
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\MatrixRoom;
+use App\Models\SocialSpace;
 
 /**
  * Phase K-3 (K3-E) — the structural constant that survives the legitimacy flip: every PUBLIC commons
@@ -77,6 +78,78 @@ class MatrixRoomCreationService
             'space_type'     => $spaceType,
             'is_public'      => true,
         ]);
+    }
+
+    /**
+     * Create a USER-OWNED PRIVATE room for a SocialSpace (a group/DM room — off the civic plane).
+     * Idempotent on the space. Private + NOT world_readable; the appservice is still the sole creator
+     * and NO human holds a Matrix power level — access is gated OFF-Matrix by SocialMembership (the
+     * game layer), exactly like the commons, only here the gate is membership, not residency.
+     */
+    public function createPrivateRoom(SocialSpace $space, string $title): MatrixRoom
+    {
+        $existing = MatrixRoom::query()
+            ->where('entity_type', MatrixRoom::ENTITY_SOCIAL_SPACE)
+            ->where('entity_id', (string) $space->id)
+            ->whereNull('space_type')
+            ->whereNull('tombstoned_at')
+            ->whereNotNull('matrix_room_id')
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        // Prefer the immutable-creator v12 if the homeserver offers it; otherwise its default (a private
+        // room is off the civic plane, so v12 is hygiene, not a constitutional requirement — no throw).
+        $versions = $this->client->roomVersions();
+        $version = in_array(self::REQUIRED_VERSION, $versions['available'] ?? [], true)
+            ? self::REQUIRED_VERSION
+            : (string) ($versions['default'] ?? self::REQUIRED_VERSION);
+
+        $created = $this->client->createRoom($this->buildPrivateRoomBody($title, $version));
+
+        return MatrixRoom::query()->create([
+            'matrix_room_id' => $created['room_id'],
+            'matrix_alias'   => null,
+            'room_type'      => MatrixRoom::ROOM_USER_PRIVATE,
+            'room_version'   => $version,
+            'entity_type'    => MatrixRoom::ENTITY_SOCIAL_SPACE,
+            'entity_id'      => (string) $space->id,
+            'space_type'     => null,
+            'is_public'      => false,
+        ]);
+    }
+
+    /**
+     * The private-room createRoom body. Same no-human power clamp as the commons (the appservice is the
+     * sole actor; access is gated off-Matrix), but PRIVATE: visibility private, NOT world_readable
+     * (history 'shared' — the appservice creator still reads it to serve the in-app timeline), no alias.
+     */
+    public function buildPrivateRoomBody(string $title, string $version): array
+    {
+        return [
+            'room_version' => $version,
+            'preset'       => 'private_chat',
+            'visibility'   => 'private',
+            'name'         => $title,
+            'power_level_content_override' => [
+                'ban'            => 100,
+                'kick'           => 100,
+                'redact'         => 100,
+                'invite'         => 100,
+                'state_default'  => 100,
+                'events_default' => 0,
+                'users_default'  => 0,
+                'users'          => (object) [],   // NO human holds power — SocialMembership is the gate
+                'notifications'  => ['room' => 100],
+            ],
+            'initial_state' => [
+                // Private — never world_readable. The appservice (creator) reads it for the in-app client.
+                ['type' => 'm.room.history_visibility', 'state_key' => '', 'content' => ['history_visibility' => 'shared']],
+                ['type' => 'm.room.guest_access', 'state_key' => '', 'content' => ['guest_access' => 'forbidden']],
+            ],
+        ];
     }
 
     /**

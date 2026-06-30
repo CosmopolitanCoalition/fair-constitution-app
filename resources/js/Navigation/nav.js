@@ -56,6 +56,8 @@ export const NAV = [
         // Phase K-3 (K3-L) — the live commons over the Matrix mesh (Plane B).
         { id: 'commons-square', labelKey: 'nav.liveSquare', icon: 'message-circle', href: '/civic/commons/square', phase: 'K' },
         { id: 'commons-halls', labelKey: 'nav.liveHalls', icon: 'radio', href: '/civic/commons/halls', phase: 'K' },
+        // Private rooms (groups / DMs) — the Art. I private half; invite-only, off the public record.
+        { id: 'rooms', labelKey: 'nav.rooms', icon: 'lock', href: '/civic/rooms', phase: 'K' },
     ] },
     /* FE-E0 (PHASE_E_DESIGN_frontend.md §B nav integration): the `court`
        section below is role-gated (the officeholder's launchpad), but the

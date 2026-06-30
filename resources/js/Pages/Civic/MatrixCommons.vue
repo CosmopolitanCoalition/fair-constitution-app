@@ -12,6 +12,7 @@ import { router, useForm, usePage } from '@inertiajs/vue3';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
+import InviteButton from '@/Components/Invite/InviteButton.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -141,6 +142,21 @@ onBeforeUnmount(() => {
             the record plane are unaffected.
         </Banner>
 
+        <Card v-if="roomId" class="mb-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                    <h3 class="text-base font-semibold">Invite someone to join you</h3>
+                    <p class="text-sm opacity-70">
+                        Share a link to this {{ isHalls ? 'hall' : 'square' }} and its live call — they can sign up and land right here.
+                    </p>
+                </div>
+                <InviteButton
+                    :spec="{ kind: 'call', jurisdiction_id: jurisdictionId, space: isHalls ? 'halls' : 'square' }"
+                    label="Invite a friend"
+                />
+            </div>
+        </Card>
+
         <LiveRoom
             v-if="roomId && myMxid && myUserId"
             :jurisdiction-id="jurisdictionId"
@@ -177,8 +193,18 @@ onBeforeUnmount(() => {
         <FormCard v-if="roomId" title="Post to the live commons">
             <form @submit.prevent="submit" class="space-y-3">
                 <Field label="Message" :error="compose.errors.body">
-                    <textarea v-model="compose.body" rows="3" class="form-textarea w-full" maxlength="20000"
-                        placeholder="Speak in the commons…"></textarea>
+                    <template #control="{ id, invalid, describedBy }">
+                        <textarea
+                            :id="id"
+                            v-model="compose.body"
+                            rows="3"
+                            class="form-textarea w-full"
+                            maxlength="20000"
+                            placeholder="Speak in the commons…"
+                            :aria-invalid="invalid ? 'true' : undefined"
+                            :aria-describedby="describedBy"
+                        ></textarea>
+                    </template>
                 </Field>
                 <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">Post</Btn>
             </form>
