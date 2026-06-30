@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import SyncProgress from '@/Components/Federation/SyncProgress.vue';
 
 const props = defineProps({
     instance: { type: Object, required: true },
@@ -32,6 +33,7 @@ const joinForm = useForm({
 });
 const joinStep = ref(1);
 const joinScopeMode = ref('whole'); // 'whole' (whole corpus) | 'subtree'
+const syncPanel = ref(null); // SyncProgress — kicked to poll the moment a join is accepted
 
 const join = () => {
     joinForm
@@ -42,7 +44,10 @@ const join = () => {
                     ? data.requested_scope_jurisdiction_id
                     : null,
         }))
-        .post('/federation/cluster/join', { preserveScroll: true });
+        .post('/federation/cluster/join', {
+            preserveScroll: true,
+            onSuccess: () => syncPanel.value?.start(),
+        });
 };
 
 const leave = () => {
@@ -430,6 +435,9 @@ const forgetBrokerCred = (domain) => {
             <p v-if="flash" class="mt-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
                 {{ flash }}
             </p>
+
+            <!-- G3b — live seed/drain progress (polls the sync-progress endpoint; hides itself when idle) -->
+            <SyncProgress ref="syncPanel" class="mt-3" />
 
             <!-- Already a read-only mirror -->
             <div v-if="mirror.is_mirror" class="mt-3 space-y-3">

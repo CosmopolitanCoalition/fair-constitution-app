@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Federation;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Federation\ClusterJoinJob;
 use App\Models\AuditCheckpoint;
 use App\Models\AuthorityClaim;
 use App\Models\ClusterJoinKey;
@@ -20,10 +21,12 @@ use App\Services\Federation\MeshGateService;
 use App\Services\Federation\MeshProbeService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\ReadWriteRequestService;
+use App\Services\Federation\SyncProgressService;
 use App\Services\Federation\TransportService;
 use App\Services\Identity\MeshRoleGrantService;
 use App\Services\Mirror\MirrorService;
 use App\Services\PeerUpgradeAgreementService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -237,21 +240,48 @@ class FederationConsoleController extends Controller
 
         try {
             if (! empty($validated['join_key'])) {
-                $membership = $mirror->joinHost($validated['host_url'], (string) $validated['join_key'], $negotiation);
-                $status = $membership->state === ClusterMembership::STATE_LIVE
-                    ? 'Joined — this instance is now a read-only mirror.'
-                    : "Adoption accepted; backfilling the host's corpus (state: {$membership->state}).";
+                $membership = $mirror->joinHost($validated['host_url'], (string) $validated['join_key'], $negotiation, sync: false);
             } else {
-                $membership = $mirror->requestJoin($validated['host_url'], $negotiation);
-                $status = $membership === null
-                    ? 'Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.'
-                    : "Vouched and joined — this instance is now a read-only mirror (state: {$membership->state}).";
+                $membership = $mirror->requestJoin($validated['host_url'], $negotiation, sync: false);
             }
         } catch (\Throwable $e) {
             return back()->withErrors(['host_url' => $e->getMessage()]);
         }
 
-        return back()->with('status', $status);
+        // Keyless + still queued: the host operator must vouch first — nothing to sync yet.
+        if ($membership === null) {
+            return back()->with('status', 'Request submitted — waiting for the host operator to vouch this instance. Re-submit to poll.');
+        }
+
+        // Admitted (SYNCING): run the long seed + drain OFF the request thread so this page shows
+        // LIVE progress instead of hanging on a multi-GB transfer. The membership is already pinned
+        // + write-guarded; the job (long-running Horizon queue) does the resumable, idempotent sync
+        // tail and writes phase markers SyncProgressService surfaces to the progress panel below.
+        ClusterJoinJob::dispatch((string) $membership->id);
+
+        return back()->with('status', "Adoption accepted — syncing the host's corpus. Live progress is shown below.");
+    }
+
+    /**
+     * G3b — live seed/drain progress for the active mirror membership: the poll
+     * target for the "Join a cluster" progress panel (the federation counterpart to
+     * the setup wizard's data-import progress). Public-read mesh state (Art. II §2) —
+     * byte + record counts + phase timestamps, never a secret. Returns an idle
+     * envelope when this instance is not joining anything.
+     */
+    public function syncProgress(SyncProgressService $progress): JsonResponse
+    {
+        $membership = ClusterMembership::query()
+            ->where('role', ClusterMembership::ROLE_MIRROR)
+            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
+            ->latest('updated_at')
+            ->first();
+
+        if ($membership === null) {
+            return response()->json(['lifecycle' => 'idle', 'membership_state' => null, 'bars' => []]);
+        }
+
+        return response()->json($progress->progressFor($membership));
     }
 
     /** G3b — leave the cluster: stop being a read-only mirror (the write-guard switches off). */

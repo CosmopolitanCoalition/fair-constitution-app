@@ -53,15 +53,11 @@ class MapDataImportService
     public function importFromUpload(UploadedFile $upload, ?array $tables = null): array
     {
         $tmpRoot = storage_path('app/imports');
-        if (! is_dir($tmpRoot) && ! @mkdir($tmpRoot, 0775, true)) {
-            throw new \RuntimeException("Could not create import directory: {$tmpRoot}");
-        }
+        $this->ensureDir($tmpRoot, 'import');
 
         $stagingId = 'restore-'.uniqid('', true);
         $stageDir  = "{$tmpRoot}/{$stagingId}";
-        if (! @mkdir($stageDir, 0775, true)) {
-            throw new \RuntimeException("Could not create staging directory: {$stageDir}");
-        }
+        $this->ensureDir($stageDir, 'staging');
 
         // Move the upload into staging.
         $tarPath = "{$stageDir}/upload.tar.gz";
@@ -130,12 +126,9 @@ class MapDataImportService
             throw new \RuntimeException('No tables selected for restore (selection has no overlap with bundle).');
         }
 
-        // ── Truncate the selected tables (FK-aware order, all in one tx). ─
+        // ── Clear the selected tables (FK-aware order, all in one tx), append-only-SAFE. ─
         DB::transaction(function () use ($effective) {
-            DB::statement('SET CONSTRAINTS ALL DEFERRED');
-            foreach (array_reverse($effective) as $t) {
-                DB::statement("TRUNCATE TABLE {$t} CASCADE");
-            }
+            $this->clearFoundationTables($effective);
         });
 
         // ── pg_restore --data-only ─────────────────────────────────────────
@@ -218,13 +211,9 @@ class MapDataImportService
         }
 
         $tmpRoot = storage_path('app/imports');
-        if (! is_dir($tmpRoot) && ! @mkdir($tmpRoot, 0775, true)) {
-            throw new \RuntimeException("Could not create import directory: {$tmpRoot}");
-        }
+        $this->ensureDir($tmpRoot, 'import');
         $stageDir = "{$tmpRoot}/seed-".uniqid('', true);
-        if (! @mkdir($stageDir, 0775, true)) {
-            throw new \RuntimeException("Could not create staging directory: {$stageDir}");
-        }
+        $this->ensureDir($stageDir, 'staging');
 
         try {
             $proc = new Process(['tar', '-xzf', $tarPath, '-C', $stageDir]);
@@ -281,18 +270,16 @@ class MapDataImportService
             $hasCosmic = in_array('cosmic_addresses', $effective, true);
             $nonCosmic = array_values(array_filter($effective, fn ($t) => $t !== 'cosmic_addresses'));
 
-            // ── Identity-safe clear (D1). Detach instance_settings from cosmic, TRUNCATE the
-            // non-cosmic foundation CASCADE, then HARD-DELETE cosmic (now unreferenced). We never
-            // TRUNCATE cosmic_addresses CASCADE — that constraint-based cascade would take the
-            // instance_settings identity row with it regardless of the detach.
+            // ── Identity-safe clear (D1). Detach instance_settings from cosmic, DELETE the
+            // non-cosmic foundation (append-only-safe — see clearFoundationTables), then
+            // HARD-DELETE cosmic (now unreferenced). We never TRUNCATE cosmic_addresses — that
+            // statement cascade would take the instance_settings identity row with it regardless
+            // of the detach, and its TRUNCATE fires the append-only guards besides.
             DB::transaction(function () use ($nonCosmic, $hasCosmic) {
-                DB::statement('SET CONSTRAINTS ALL DEFERRED');
                 if ($hasCosmic) {
                     DB::table('instance_settings')->update(['cosmic_address_id' => null]);
                 }
-                foreach (array_reverse($nonCosmic) as $t) {
-                    DB::statement("TRUNCATE TABLE {$t} CASCADE");
-                }
+                $this->clearFoundationTables($nonCosmic);
                 if ($hasCosmic) {
                     DB::statement('DELETE FROM cosmic_addresses');
                 }
@@ -351,6 +338,45 @@ class MapDataImportService
             return ['imported_at' => now()->toIso8601String(), 'tables_restored' => $effective];
         } finally {
             $this->rmTree($stageDir);
+        }
+    }
+
+    /**
+     * Create a directory idempotently, tolerating the benign race where a concurrent
+     * request — or a retried join resume — created it between the is_dir check and the
+     * mkdir (a transient that bit a 12 GB seed extraction once). Only a still-absent
+     * directory after the attempt is a real, throwing error.
+     */
+    private function ensureDir(string $path, string $label): void
+    {
+        if (! is_dir($path)) {
+            @mkdir($path, 0775, true);
+        }
+        if (! is_dir($path)) {
+            throw new \RuntimeException("Could not create {$label} directory: {$path}");
+        }
+    }
+
+    /**
+     * Reset a set of foundation tables for a re-load, append-only-SAFE. We DELETE, never
+     * TRUNCATE … CASCADE: TRUNCATE cascades along FKs (jurisdictions → organizations →
+     * cgc_ip_register, and likewise into audit_log / public_records / sync_log /
+     * audit_checkpoints / case_filings) and those ledgers' BEFORE TRUNCATE,
+     * FOR-EACH-STATEMENT immutability triggers (Art. III §5 et al.) abort the statement
+     * EVEN WHEN the ledger is empty — so a fresh mirror's seed import cannot reset at all.
+     * The matching BEFORE UPDATE-OR-DELETE trigger is FOR-EACH-ROW, so a DELETE against an
+     * empty ledger fires it zero times: the import clears cleanly while the constitutional
+     * guarantee stays fully intact (a DELETE that WOULD touch a populated ledger still
+     * aborts — fail-closed). Constraints are deferred so child→parent order and self-refs
+     * (jurisdictions.parent_id) settle at commit.
+     *
+     * @param  list<string>  $tables  in parent→child (TABLES) order; cleared child→parent
+     */
+    private function clearFoundationTables(array $tables): void
+    {
+        DB::statement('SET CONSTRAINTS ALL DEFERRED');
+        foreach (array_reverse($tables) as $t) {
+            DB::statement("DELETE FROM {$t}");
         }
     }
 

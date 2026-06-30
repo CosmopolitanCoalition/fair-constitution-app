@@ -11,6 +11,7 @@ use App\Services\Federation\FederationClient;
 use App\Services\Federation\GeodataSeedTransportService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
+use App\Services\Federation\SyncProgressService;
 use App\Services\MapDataImportService;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -40,6 +41,7 @@ class MirrorService
         private readonly InstanceIdentityService $identity,
         private readonly GeodataSeedTransportService $seed,
         private readonly MapDataImportService $import,
+        private readonly SyncProgressService $progress,
     ) {}
 
     /** Is THIS instance a read-only mirror of some host? */
@@ -185,7 +187,7 @@ class MirrorService
      * identity + the join key, pin the host, backfill its full corpus in bounded
      * signed pages, then flip into read-only-mirror mode. Throws on refusal.
      */
-    public function joinHost(string $hostUrl, string $plaintextKey, array $negotiation = []): ClusterMembership
+    public function joinHost(string $hostUrl, string $plaintextKey, array $negotiation = [], bool $sync = true): ClusterMembership
     {
         $this->identity->ensureIdentity();
         $nonce = bin2hex(random_bytes(16));
@@ -201,7 +203,7 @@ class MirrorService
             throw new RuntimeException("Adoption refused by {$hostUrl} (HTTP {$response->status()}).");
         }
 
-        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_JOIN_KEY);
+        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_JOIN_KEY, $sync);
     }
 
     /**
@@ -209,7 +211,7 @@ class MirrorService
      * membership if the host has ALREADY vouched us (200), or null when the
      * request is queued for the host operator (202). Re-poll until admitted.
      */
-    public function requestJoin(string $hostUrl, array $negotiation = []): ?ClusterMembership
+    public function requestJoin(string $hostUrl, array $negotiation = [], bool $sync = true): ?ClusterMembership
     {
         $this->identity->ensureIdentity();
 
@@ -226,7 +228,7 @@ class MirrorService
             throw new RuntimeException("Adoption request refused by {$hostUrl} (HTTP {$response->status()}).");
         }
 
-        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_REQUEST);
+        return $this->finalizeAdmission((array) $response->json(), $hostUrl, ClusterMembership::ADMISSION_REQUEST, $sync);
     }
 
     /**
@@ -236,7 +238,7 @@ class MirrorService
      *
      * @param  array<string,mixed>  $body
      */
-    private function finalizeAdmission(array $body, string $hostUrl, string $admissionMethod): ClusterMembership
+    private function finalizeAdmission(array $body, string $hostUrl, string $admissionMethod, bool $sync = true): ClusterMembership
     {
         $hostServerId = (string) ($body['host_server_id'] ?? '');
         $hostPublicKey = (string) ($body['host_public_key'] ?? '');
@@ -263,19 +265,70 @@ class MirrorService
             $settings->save();
         }
 
-        // Seed-FIRST: pull + apply the host's geodata FOUNDATION (cosmic + jurisdictions + rasters
-        // + base constitutional_settings) BEFORE the audit drain, so the replayed institutions have
-        // their jurisdiction rows to attach to. Identity-safe — keeps THIS box's server_id + keypair.
-        $this->seedFromHost($host, $membership);
+        // The browser path admits synchronously (so a bad/exhausted join key fails fast, in-band)
+        // but defers the long seed + drain to ClusterJoinJob, which the operator's page watches via
+        // SyncProgressService. The membership is left SYNCING for the job to pick up.
+        if (! $sync) {
+            return $membership->refresh();
+        }
 
-        // Pull the host's full public corpus (chunked, resumable, signed pages).
-        $cursor = $this->backfill->drain($host, $membership);
+        return $this->runSync($membership, $host, $hostServerId);
+    }
 
-        if ($cursor->status === \App\Models\SyncCursor::STATUS_COMPLETE) {
-            $this->markMirrorLive($membership, $hostServerId);
+    /**
+     * The resumable, idempotent SYNC TAIL shared by every admission path (the
+     * synchronous CLI join, and the deferred ClusterJoinJob the browser dispatches):
+     * seed FIRST — pull + apply the host's geodata FOUNDATION (cosmic + jurisdictions
+     * + rasters + base constitutional_settings) BEFORE the audit drain, so the
+     * replayed institutions have their jurisdiction rows to attach to (identity-safe;
+     * keeps THIS box's server_id + keypair) — then drain the host's full public corpus
+     * in chunked, resumable, signed pages, and mark the mirror live on catch-up.
+     *
+     * Phase markers go to SyncProgressService so a separate poll request can render
+     * live progress; a marker failure can never stall the drain (the service swallows
+     * its own write errors).
+     */
+    private function runSync(ClusterMembership $membership, FederationPeer $host, string $hostServerId): ClusterMembership
+    {
+        $this->progress->begin($membership);
+
+        try {
+            $this->seedFromHost($host, $membership);
+
+            $this->progress->startDrain($membership);
+            $cursor = $this->backfill->drain($host, $membership);
+
+            if ($cursor->status === \App\Models\SyncCursor::STATUS_COMPLETE) {
+                $this->progress->completeDrain($membership);
+                $this->markMirrorLive($membership, $hostServerId);
+                $this->progress->finish($membership);
+            } elseif ($cursor->status === \App\Models\SyncCursor::STATUS_ABORTED) {
+                $this->progress->fail($membership, 'Audit drain aborted: '.((string) ($cursor->abort_reason ?? 'unknown')));
+            }
+        } catch (\Throwable $e) {
+            $this->progress->fail($membership, $e->getMessage());
+            throw $e;
         }
 
         return $membership->refresh();
+    }
+
+    /**
+     * Run the resumable sync tail for an already-admitted mirror membership — the
+     * entry point ClusterJoinJob calls off the request thread. Flips the membership
+     * to SYNCING, resolves its pinned host, and drains. Throws if the membership has
+     * no host peer.
+     */
+    public function syncMembership(ClusterMembership $membership): ClusterMembership
+    {
+        $host = $membership->peer;
+        if ($host === null) {
+            throw new RuntimeException('Mirror membership has no host peer to sync from.');
+        }
+
+        $membership->update(['state' => ClusterMembership::STATE_SYNCING]);
+
+        return $this->runSync($membership, $host, (string) $host->server_id);
     }
 
     /**
@@ -291,14 +344,24 @@ class MirrorService
     public function seedFromHost(FederationPeer $host, ClusterMembership $membership): void
     {
         if ($membership->seeded_at !== null) {
+            $this->progress->completeDownload($membership);
+            $this->progress->completeImport($membership);
+
             return; // this host's seed is already applied
         }
 
+        $this->progress->startDownload($membership);
         $pulled = $this->seed->pull($host, $membership);    // verified tarball, or null if the host has no seed
+        $this->progress->completeDownload($membership);
         if ($pulled === null) {
+            $this->progress->completeImport($membership);
+
             return; // host advertises no seed — a read-only mirror still admits (foundation via ETL/bundle/posture)
         }
+
+        $this->progress->startImport($membership);
         $this->import->importSeedFromFile($pulled['path']); // D1 identity-safe load + cosmic re-point
+        $this->progress->completeImport($membership);
 
         $stamped = DB::table('jurisdictions')
             ->whereNull('authoritative_server_id')
@@ -341,17 +404,7 @@ class MirrorService
             throw new RuntimeException('No active mirror membership to resume — re-join from the host.');
         }
 
-        $host = $membership->peer;
-        $membership->update(['state' => ClusterMembership::STATE_SYNCING]);
-
-        $this->seedFromHost($host, $membership);             // idempotent — short-circuits on seeded_at
-        $cursor = $this->backfill->drain($host, $membership); // resumes from the cursor
-
-        if ($cursor->status === \App\Models\SyncCursor::STATUS_COMPLETE) {
-            $this->markMirrorLive($membership, (string) $host->server_id);
-        }
-
-        return $membership->refresh();
+        return $this->syncMembership($membership);
     }
 
     /**

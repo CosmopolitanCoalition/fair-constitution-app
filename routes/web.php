@@ -413,6 +413,10 @@ Route::middleware('auth')->group(function () {
         ->name('federation.cluster.join');
     Route::post('/federation/cluster/leave', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'leave'])
         ->name('federation.cluster.leave');
+    // G3b — live seed/drain progress poll for the "Join a cluster" panel (public-read
+    // mesh state, Art. II §2; byte + record counts only, no secrets).
+    Route::get('/federation/cluster/sync-progress', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'syncProgress'])
+        ->name('federation.cluster.sync-progress');
 
     // The /legislature/* resolver prefix: nav hrefs stay literal while the
     // canonical surfaces are legislature-scoped (§B shared conventions).
