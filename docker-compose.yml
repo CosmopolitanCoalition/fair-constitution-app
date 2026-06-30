@@ -254,6 +254,9 @@ services:
     container_name: ${CONTAINER_PREFIX:-fc}_livekit
     restart: unless-stopped
     profiles: ["voice"]
+    # ICE: advertise a fixed host-reachable media IP (LAN/solo default — LIVEKIT_NODE_IP = the LAN IP for a
+    # phone / Box B over the LAN, 127.0.0.1 for a localhost-only box). For an INTERNET-facing box instead,
+    # set use_external_ip:true in livekit.yaml and DROP this flag (LiveKit STUN-discovers the public IP).
     command: ["--config", "/etc/livekit.yaml", "--node-ip", "${LIVEKIT_NODE_IP:-127.0.0.1}"]
     ports:
       - "${LIVEKIT_HOST_PORT:-7880}:7880"

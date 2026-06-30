@@ -7,9 +7,13 @@ rtc:
   # Single muxed UDP port (LiveKit's recommended simple setup) instead of a 50000-50100 range — the high
   # range collides with Windows/Hyper-V reserved UDP port exclusions (49395+). 7882 is below all of them.
   udp_port: 7882
-  # The SFU runs in a bridge-network container, so it must advertise a host-reachable ICE address. This is
-  # set via the `--node-ip ${LIVEKIT_NODE_IP}` flag in docker-compose (solo localhost test = 127.0.0.1; for
-  # a phone / Box B over the LAN, the host's LAN IP, e.g. 192.168.1.202) so it's env-driven, not hardcoded.
+  # The SFU runs in a bridge-network container, so it must advertise a host-reachable ICE address. Two modes:
+  #   • LAN / solo (default): the `--node-ip ${LIVEKIT_NODE_IP}` flag in docker-compose advertises a fixed
+  #     host-reachable IP — the LAN IP for a phone / Box B over the LAN, or 127.0.0.1 for a localhost box.
+  #   • Internet-facing (public DNS + a router port-forward of 7882/udp + 7881): set this TRUE *and* DROP the
+  #     --node-ip flag — LiveKit then STUN-discovers its PUBLIC IP at runtime (no hardcoding, self-correcting;
+  #     own-LAN devices then need NAT reflection to loop back, an off-LAN client needs nothing). Proven on a
+  #     3-way LAN+cellular+remote call 2026-06-29.
   use_external_ip: false
 keys:
   cga_dev_livekit_key: cga_dev_livekit_secret_5c1d8e3a9f47026b
