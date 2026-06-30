@@ -1,0 +1,4 @@
+# Runtime control files for the infra-apply supervisor (request/running/done/failed.json).
+# Keep the directory in git; ignore everything generated in it.
+*
+!.gitignore

@@ -408,6 +408,11 @@ Route::middleware('auth')->group(function () {
     // history, head checkpoints, authority claims. Public-read (Art. II §2).
     Route::get('/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
         ->name('federation.show');
+    // Operator Operations console (Phase 1, read-only): the infra & identity inventory.
+    // Public shell; the inventory is operator-gated inside the controller (like the
+    // host block on /federation) — a citizen sees only a sign-in prompt.
+    Route::get('/operator/operations', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'operations'])
+        ->name('operator.operations');
     // G3b — "Join a cluster": adopt this instance as a read-only mirror, or leave.
     Route::post('/federation/cluster/join', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'join'])
         ->name('federation.cluster.join');
@@ -818,6 +823,21 @@ Route::get('/operator/login', [\App\Http\Controllers\Auth\OperatorSessionControl
 Route::post('/operator/login', [\App\Http\Controllers\Auth\OperatorSessionController::class, 'store']);
 Route::middleware('auth:operator')->group(function () {
     Route::post('/operator/logout', [\App\Http\Controllers\Auth\OperatorSessionController::class, 'destroy'])->name('operator.logout');
+
+    // Operator Operations console (Phase 2) — instant-tier knob edits (operator-gated).
+    // Overrides overlay onto config and apply on the next request — no restart.
+    Route::post('/operator/operations/tuning', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'setTuning'])
+        ->name('operator.operations.tuning');
+    Route::post('/operator/operations/tuning/reset', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'resetTuning'])
+        ->name('operator.operations.tuning.reset');
+
+    // Operator Operations console (Phase 3) — restart-tier host-apply (LiveKit ICE
+    // networking). The POST stages a desired-state control file; the host supervisor
+    // applies it + recreates the container; the GET polls the apply lifecycle.
+    Route::post('/operator/operations/apply', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'applyInfra'])
+        ->name('operator.operations.apply');
+    Route::get('/operator/operations/apply-status', [\App\Http\Controllers\Operator\OperatorConsoleController::class, 'applyStatus'])
+        ->name('operator.operations.apply-status');
 
     Route::post('/federation/host/keys', [\App\Http\Controllers\Federation\FederationHostController::class, 'mintKey'])
         ->name('federation.host.keys.mint');

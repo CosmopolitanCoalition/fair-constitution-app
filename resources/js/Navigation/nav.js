@@ -125,6 +125,10 @@ export const NAV = [
            console + join wizard). Was URL-only; surfaced here so both consoles are
            discoverable. Public-read (Art. II §2); host actions are operator-gated. */
         { id: 'federation', labelKey: 'nav.federation', icon: 'share-2', href: '/federation', phase: 'F' },
+        /* Operator Operations console (Phase 1, read-only): the infra & identity
+           inventory. All-visibility item; the inventory itself is operator-gated
+           (a citizen sees only a sign-in prompt), like the host block on /federation. */
+        { id: 'operator-operations', labelKey: 'nav.operatorOps', icon: 'sliders', href: '/operator/operations', phase: 'F' },
         { id: 'public-records', labelKey: 'nav.publicRecords', icon: 'file-text', href: '/system/public-records', phase: 'C' },
         { id: 'audit-chain', labelKey: 'nav.auditChain', icon: 'lock', href: '/system/audit-chain', phase: 'A' },
         /* No /system/clocks route exists — the clocks browser is not one of

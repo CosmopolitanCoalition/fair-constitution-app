@@ -59,6 +59,8 @@ class InstanceSettings extends Model
         'constitutional_version',
         'app_release',
         'version_pinned_at',
+        // Operator Operations console (Phase 2) — instant-tier knob overrides (overlaid onto config at boot).
+        'infra_overrides',
     ];
 
     protected $casts = [
@@ -75,6 +77,7 @@ class InstanceSettings extends Model
         'mirror_adopted_at' => 'datetime',
         'attestation_authority_enabled' => 'boolean',
         'version_pinned_at' => 'datetime',
+        'infra_overrides' => 'array',
     ];
 
     /**

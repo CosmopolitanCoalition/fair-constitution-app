@@ -66,6 +66,7 @@
         "system": "System",
         "setupWizard": "Instance setup",
         "federation": "Federation",
+        "operatorOps": "Operator ops",
         "publicRecords": "Public records",
         "auditChain": "Audit chain",
         "clocks": "Clocks & triggers",
