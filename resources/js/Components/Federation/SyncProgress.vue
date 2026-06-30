@@ -12,8 +12,13 @@ const props = defineProps({
     pollUrl: { type: String, default: '/federation/cluster/sync-progress' },
 });
 
+// `done` fires ONCE when the drain catches up (membership LIVE) — the setup wizard listens to
+// finalize the join; the console panel can ignore it.
+const emit = defineEmits(['done']);
+
 const progress = ref(null);
 let timer = null;
+let doneEmitted = false;
 
 const lifecycle = computed(() => progress.value?.lifecycle ?? 'idle');
 const visible = computed(() => !!progress.value && lifecycle.value !== 'idle');
@@ -29,6 +34,10 @@ async function fetchProgress() {
         progress.value = await res.json();
     } catch (e) {
         return; // swallow — the next tick retries
+    }
+    if (lifecycle.value === 'done' && !doneEmitted) {
+        doneEmitted = true;
+        emit('done');
     }
     lifecycle.value === 'running' ? arm() : disarm();
 }

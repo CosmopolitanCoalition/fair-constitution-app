@@ -3,6 +3,7 @@
 namespace App\Services\Federation;
 
 use App\Models\ClusterMembership;
+use App\Models\FoundationSyncCursor;
 use App\Models\SyncCursor;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
@@ -154,42 +155,51 @@ class SyncProgressService
             $drStatus = 'running';
         }
 
-        $bars = [
-            [
-                'key' => self::PHASE_DOWNLOAD,
-                'label' => 'Seed download',
-                'unit' => 'bytes',
-                'current' => (int) $m->seed_cursor_bytes,
-                'total' => $m->seed_total_bytes !== null ? (int) $m->seed_total_bytes : null,
-                'status' => $dlStatus,
-                'started_at' => $dl['started_at'],
-                'completed_at' => $dl['completed_at'],
-                'indeterminate' => false,
-            ],
-            [
-                'key' => self::PHASE_IMPORT,
-                'label' => 'Import into the database',
-                'unit' => null,
-                'current' => null,
-                'total' => null,
-                'status' => $imStatus,
-                'started_at' => $im['started_at'],
-                'completed_at' => $im['completed_at'],
-                'indeterminate' => true,
-            ],
-            [
-                'key' => self::PHASE_DRAIN,
-                'label' => 'Audit history',
-                'unit' => 'records',
-                'current' => $records,
-                'pages' => $pages,
-                'total' => null,
-                'status' => $drStatus,
-                'started_at' => $dr['started_at'],
-                'completed_at' => $dr['completed_at'],
-                'indeterminate' => true,
-            ],
+        $drainBar = [
+            'key' => self::PHASE_DRAIN,
+            'label' => 'Audit history',
+            'unit' => 'records',
+            'current' => $records,
+            'pages' => $pages,
+            'total' => null,
+            'status' => $drStatus,
+            'started_at' => $dr['started_at'],
+            'completed_at' => $dr['completed_at'],
+            'indeterminate' => true,
         ];
+
+        if ((string) config('cga.federation_seed_transport') === 'paginated') {
+            // Paginated seed → one bar PER foundation table, each with a real %/ETA read live off the
+            // committed foundation_sync_cursors (the bar denominator is the donor's row total). This
+            // replaces the opaque download + indeterminate import bars with visible per-table progress.
+            $bars = array_merge($this->foundationBars($m), [$drainBar]);
+        } else {
+            $bars = [
+                [
+                    'key' => self::PHASE_DOWNLOAD,
+                    'label' => 'Seed download',
+                    'unit' => 'bytes',
+                    'current' => (int) $m->seed_cursor_bytes,
+                    'total' => $m->seed_total_bytes !== null ? (int) $m->seed_total_bytes : null,
+                    'status' => $dlStatus,
+                    'started_at' => $dl['started_at'],
+                    'completed_at' => $dl['completed_at'],
+                    'indeterminate' => false,
+                ],
+                [
+                    'key' => self::PHASE_IMPORT,
+                    'label' => 'Import into the database',
+                    'unit' => null,
+                    'current' => null,
+                    'total' => null,
+                    'status' => $imStatus,
+                    'started_at' => $im['started_at'],
+                    'completed_at' => $im['completed_at'],
+                    'indeterminate' => true,
+                ],
+                $drainBar,
+            ];
+        }
 
         // Lifecycle — prefer the explicit cache record, else derive from membership state.
         $lifecycle = $rec['lifecycle'];
@@ -217,6 +227,63 @@ class SyncProgressService
     }
 
     // ── internals ────────────────────────────────────────────────────────────
+
+    /**
+     * Per-foundation-table bars for the paginated seed transport, read live off the committed
+     * foundation_sync_cursors (same "stay out of the loop, read the columns" principle as the audit
+     * drain). Each carries a real total (the donor's row count) so the Vue bar shows a true %/ETA.
+     *
+     * @return list<array<string,mixed>>
+     */
+    private function foundationBars(ClusterMembership $m): array
+    {
+        $labels = [
+            'cosmic_addresses' => 'Cosmic addresses',
+            'jurisdictions' => 'Jurisdictions',
+            'worldpop_rasters' => 'Population rasters',
+            'geoboundary_metadata' => 'Boundary metadata',
+            'constitutional_settings' => 'Constitutional settings',
+        ];
+
+        $cursors = $m->peer_id !== null
+            ? FoundationSyncCursor::query()->where('peer_id', $m->peer_id)->get()->keyBy('table_name')
+            : collect();
+
+        $seeded = $m->seeded_at !== null;
+        $bars = [];
+        foreach (\App\Services\Federation\FoundationServeService::tables() as $table) {
+            /** @var FoundationSyncCursor|null $c */
+            $c = $cursors->get($table);
+            $rows = $c !== null ? (int) $c->rows_applied : 0;
+            $total = $c !== null && $c->total_rows !== null ? (int) $c->total_rows : null;
+
+            $status = 'pending';
+            if ($c !== null) {
+                $status = match ($c->status) {
+                    FoundationSyncCursor::STATUS_COMPLETE => 'done',
+                    FoundationSyncCursor::STATUS_ABORTED => 'failed',
+                    default => $rows > 0 ? 'running' : 'pending',
+                };
+            }
+            if ($seeded) {
+                $status = 'done'; // the membership is fully seeded — every table is in
+            }
+
+            $bars[] = [
+                'key' => 'foundation:'.$table,
+                'label' => $labels[$table] ?? $table,
+                'unit' => 'rows',
+                'current' => $rows,
+                'total' => $total,
+                'status' => $status,
+                'started_at' => $c?->created_at?->toIso8601String(),
+                'completed_at' => $status === 'done' ? $c?->updated_at?->toIso8601String() : null,
+                'indeterminate' => $total === null,
+            ];
+        }
+
+        return $bars;
+    }
 
     /** @return array{status:string,started_at:?string,completed_at:?string} */
     private function phase(string $status): array

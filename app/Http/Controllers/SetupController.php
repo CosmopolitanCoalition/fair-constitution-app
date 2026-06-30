@@ -286,19 +286,29 @@ class SetupController extends Controller
 
         try {
             if ($mirror->isMirror()) {
-                // A prior attempt already pinned us as a mirror of this host. RESUME the drain directly
-                // rather than re-running /adopt — re-adopting would burn a single-use join key (and a
-                // different host would collide on the one-active-mirror index). Resumable + idempotent.
-                $membership = $mirror->resumeJoin();
+                // A prior attempt already pinned us as a mirror of this host. Do NOT run the drain inline —
+                // United Earth's foundation is a multi-GB seed + ~951k-row drain that far outlasts any HTTP
+                // connection, and a client disconnect would abort the handler before seeded_at is stamped
+                // (the synchronous-wizard blocker). If the background drain already caught up, finalize;
+                // otherwise (re-)dispatch the resumable, idempotent job and let the page poll progress.
+                $membership = $mirror->activeMirrorMembership();
+                if ($membership === null) {
+                    throw new \RuntimeException('No active mirror membership to resume — re-join from the host.');
+                }
+                if ($membership->state !== \App\Models\ClusterMembership::STATE_LIVE) {
+                    \App\Jobs\Federation\ClusterJoinJob::dispatch((string) $membership->id);
+                }
             } else {
                 $data = $request->validate([
                     'host_url' => ['required', 'url'],
                     'join_key' => ['nullable', 'string'],
                 ]);
+                // Admit synchronously (so a bad/exhausted join key fails fast, in-band) but defer the long
+                // seed + drain to ClusterJoinJob — exactly what the federation console does. sync: false.
                 if (! empty($data['join_key'])) {
-                    $membership = $mirror->joinHost($data['host_url'], $data['join_key']);
+                    $membership = $mirror->joinHost($data['host_url'], $data['join_key'], [], sync: false);
                 } else {
-                    $membership = $mirror->requestJoin($data['host_url']);
+                    $membership = $mirror->requestJoin($data['host_url'], [], sync: false);
                     if ($membership === null) {
                         return response()->json([
                             'state'    => 'pending_host_approval',
@@ -306,6 +316,7 @@ class SetupController extends Controller
                         ]);
                     }
                 }
+                \App\Jobs\Federation\ClusterJoinJob::dispatch((string) $membership->id);
             }
         } catch (\Throwable $e) {
             // Already pinned as a mirror = the sync merely didn't finish; it's resumable, not a fresh
@@ -318,8 +329,10 @@ class SetupController extends Controller
             return response()->json(['error' => $msg], 422);
         }
 
-        // A LIVE membership = the corpus drained to catch-up → ready player one. SYNCING = still pulling
-        // (re-submit to resume — now idempotent for keyed + keyless via resumeJoin).
+        // The seed + drain runs OFF the request thread (the ETL-wizard pattern): the page shows live
+        // per-table progress (SyncProgressService) and re-POSTs to finalize when the membership goes LIVE.
+        // A LIVE membership = the corpus drained to catch-up → ready player one ("ready"); SYNCING = the
+        // background job is pulling ("syncing", the page polls + auto-finalizes on catch-up).
         $live = $membership->state === \App\Models\ClusterMembership::STATE_LIVE;
         $settings->refresh();
         if ($live && ! $settings->isSetupComplete()) {

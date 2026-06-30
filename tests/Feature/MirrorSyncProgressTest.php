@@ -142,6 +142,10 @@ class MirrorSyncProgressTest extends TestCase
 
     private function onLivePg(callable $body): void
     {
+        // This suite asserts the TARBALL progress UI (download → import → drain). The paginated
+        // transport's per-table bars are covered by FoundationSeedTransportTest; pin tarball here.
+        config(['cga.federation_seed_transport' => 'tarball']);
+
         $conn = $this->livePg(self::LIVE_CONNECTION);
         $original = DB::getDefaultConnection();
         DB::setDefaultConnection(self::LIVE_CONNECTION);

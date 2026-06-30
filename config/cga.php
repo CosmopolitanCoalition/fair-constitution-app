@@ -124,6 +124,31 @@ return [
     'federation_seed_page_max_bytes' => env('CGA_FEDERATION_SEED_PAGE_MAX_BYTES', 16 * 1024 * 1024),
 
     /*
+    | Seed transport (seed paginated redesign). How a joining mirror loads the geodata
+    | FOUNDATION before the audit drain:
+    |   'tarball'   (default, legacy) — pull one pg_dump tarball + pg_restore it (opaque,
+    |               non-resumable mid-table). The byte-page transport above.
+    |   'paginated' — drain each foundation table in bounded, signed KEYSET pages, UPSERTing
+    |               per page with a resumable per-table cursor (FoundationServeService donor +
+    |               FoundationDrainService joiner). Visible per-table progress, crash-resumable,
+    |               and non-destructive (UPSERT — never clears the identity-safe / append-only
+    |               tables). `foundation_page_max_bytes` caps a single page body (geoms vary
+    |               from bytes to multi-MB), independent of the per-table row cap.
+    | The SAME signed rows travel either way; only the framing differs. DEFAULT is 'paginated' (the
+    | visible/resumable/non-destructive path); the tarball path stays one release as the fallback —
+    | set CGA_FEDERATION_SEED_TRANSPORT=tarball (or flip it in the operator Operations console) to
+    | revert without a code change.
+    */
+    'federation_seed_transport' => env('CGA_FEDERATION_SEED_TRANSPORT', 'paginated'),
+    'federation_foundation_page_max_bytes' => env('CGA_FEDERATION_FOUNDATION_PAGE_MAX_BYTES', 16 * 1024 * 1024),
+    // The joiner's per-page row ASK; the donor caps it to each table's optimal size + byte-trims.
+    'federation_foundation_page_rows' => env('CGA_FEDERATION_FOUNDATION_PAGE_ROWS', 1000),
+    // On a COLD paginated drain, drop the heavy secondary indexes (the ~447 MB geom GiST + secondary
+    // btrees) for the bulk UPSERT and rebuild them per-table on completion — the main speed-up over a
+    // live-index load. Operability toggle: set false to keep indexes live (slower, but no DDL).
+    'federation_foundation_drop_indexes' => env('CGA_FEDERATION_FOUNDATION_DROP_INDEXES', true),
+
+    /*
     | WAN resilience (Phase G, G8b). LAN tolerates a 20s S2S timeout; a real WAN
     | link (mobile uplink, tunnel jitter, a slow onion hop) needs more — so the
     | per-request timeout is configurable. Cold-sync page fetches (idempotent GETs)

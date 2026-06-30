@@ -254,9 +254,15 @@ services:
     container_name: ${CONTAINER_PREFIX:-fc}_livekit
     restart: unless-stopped
     profiles: ["voice"]
-    # ICE: advertise a fixed host-reachable media IP (LAN/solo default — LIVEKIT_NODE_IP = the LAN IP for a
-    # phone / Box B over the LAN, 127.0.0.1 for a localhost-only box). For an INTERNET-facing box instead,
-    # set use_external_ip:true in livekit.yaml and DROP this flag (LiveKit STUN-discovers the public IP).
+    # ICE: the SFU must hand clients a concrete reachable IP (it can't say "any" — the client needs a target).
+    # CONFIGURE-ONCE path (recommended on LINUX — the Pi / production boxes): add `network_mode: host` to this
+    # service. LiveKit then auto-advertises EVERY host interface (LAN + localhost) and, with
+    # use_external_ip:true in livekit.yaml, the public IP via STUN — so any client (LAN / internet / localhost)
+    # connects with no per-box IP set. NOT available on Docker Desktop (Windows/macOS): the container shares
+    # the Docker VM's network, not the host LAN interface, so host-net can't see your real LAN IP — keep the
+    # bridge default below there. Bridge default: advertise a fixed host IP via the env var (LIVEKIT_NODE_IP =
+    # the LAN IP for a phone / Box B over the LAN, 127.0.0.1 for a localhost box); for an internet bridge box,
+    # set use_external_ip:true + drop this flag (STUN public IP).
     command: ["--config", "/etc/livekit.yaml", "--node-ip", "${LIVEKIT_NODE_IP:-127.0.0.1}"]
     ports:
       - "${LIVEKIT_HOST_PORT:-7880}:7880"

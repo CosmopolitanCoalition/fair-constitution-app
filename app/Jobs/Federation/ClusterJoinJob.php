@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 
 /**
@@ -36,6 +37,20 @@ class ClusterJoinJob implements ShouldQueue
     {
         $this->onConnection('redis');
         $this->onQueue('long-running');
+    }
+
+    /**
+     * One drain per membership at a time. The setup wizard + console both let an operator re-submit
+     * to RESUME, so a duplicate can be dispatched while a drain is still running — that would race two
+     * workers on the same foundation cursor + FK/index DDL. dontRelease() drops the duplicate (the
+     * surviving job is resumable, so nothing is lost); expireAfter releases the lock if a worker is
+     * SIGKILLed so a later resume isn't blocked forever.
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping($this->membershipId))->dontRelease()->expireAfter(6 * 3600)];
     }
 
     public function handle(MirrorService $mirror): void

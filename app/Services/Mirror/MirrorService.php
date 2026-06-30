@@ -6,14 +6,18 @@ use App\Models\ClusterAdoptionRequest;
 use App\Models\ClusterMembership;
 use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
+use App\Models\FoundationSyncCursor;
 use App\Services\AuditService;
 use App\Services\Federation\FederationClient;
+use App\Services\Federation\FoundationDrainService;
 use App\Services\Federation\GeodataSeedTransportService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\SyncProgressService;
 use App\Services\MapDataImportService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -42,6 +46,7 @@ class MirrorService
         private readonly GeodataSeedTransportService $seed,
         private readonly MapDataImportService $import,
         private readonly SyncProgressService $progress,
+        private readonly FoundationDrainService $foundationDrain,
     ) {}
 
     /** Is THIS instance a read-only mirror of some host? */
@@ -350,6 +355,16 @@ class MirrorService
             return; // this host's seed is already applied
         }
 
+        // Seed transport (seed redesign). 'paginated' drains the foundation a signed KEYSET page at
+        // a time, UPSERTing per table with a resumable cursor — visible, crash-resumable, and
+        // non-destructive (never clears the identity / append-only tables). Default 'tarball' keeps
+        // the legacy pg_restore path below, byte-identical, as the fallback.
+        if (config('cga.federation_seed_transport') === 'paginated') {
+            $this->seedFromHostPaginated($host, $membership);
+
+            return;
+        }
+
         $this->progress->startDownload($membership);
         $pulled = $this->seed->pull($host, $membership);    // verified tarball, or null if the host has no seed
         $this->progress->completeDownload($membership);
@@ -386,6 +401,72 @@ class MirrorService
     }
 
     /**
+     * MIRROR side (seed redesign): seed the geodata FOUNDATION by the PAGINATED transport — drain each
+     * foundation table a signed KEYSET page at a time, UPSERTing with a resumable per-table cursor.
+     *
+     * Identity safety is structural, not procedural: the drain only ever UPSERTs the geodata
+     * foundation, so instance_settings (this box's server_id + keypair + cosmic placement) is NEVER
+     * touched — the tarball path's detach/clear/re-point dance is unnecessary because nothing is
+     * cleared. cosmic_addresses dedupes on slug (we keep our own cosmic uuids). A re-run is idempotent
+     * (completed tables short-circuit; ON CONFLICT DO NOTHING).
+     *
+     * Per-table progress is read live off the committed foundation_sync_cursors by SyncProgressService.
+     * The fail-closed seeded_at gate refines from the tarball's all-or-nothing to PER-TABLE-COMPLETE:
+     * seeded_at is stamped only when every foundation table's cursor reached COMPLETE.
+     */
+    private function seedFromHostPaginated(FederationPeer $host, ClusterMembership $membership): void
+    {
+        $this->progress->startImport($membership);
+
+        $summary = $this->foundationDrain->drain($host);
+
+        // Per-table-complete gate (fail-closed) — every foundation table must have fully drained.
+        foreach ($summary as $table => $s) {
+            if (($s['status'] ?? null) !== FoundationSyncCursor::STATUS_COMPLETE) {
+                $this->progress->fail($membership, "Foundation drain for {$table} did not complete (status ".($s['status'] ?? 'unknown').').');
+                throw new RuntimeException("Foundation drain for '{$table}' did not complete (status ".($s['status'] ?? 'unknown').') — re-run the join to resume.');
+            }
+        }
+
+        // Authority stamp — identical to the tarball path. Rows the donor was authoritative for arrive
+        // with a NULL authoritative_server_id (the donor's "mine" sentinel) and are stamped to the host;
+        // rows the donor itself mirrored keep their third-server id. Fail-closed: none may remain unowned.
+        $stamped = DB::table('jurisdictions')
+            ->whereNull('authoritative_server_id')
+            ->update(['authoritative_server_id' => $host->server_id]);
+
+        $unowned = (int) DB::table('jurisdictions')->whereNull('authoritative_server_id')->count();
+        if ($unowned > 0) {
+            $this->progress->fail($membership, "Seed authority stamp left {$unowned} jurisdiction(s) unowned.");
+            throw new RuntimeException("Seed authority stamp left {$unowned} jurisdiction(s) unowned — refusing to finish seeding.");
+        }
+
+        DB::table('instance_settings')->update(['map_accepted_at' => now()]);
+
+        $this->progress->completeDownload($membership); // the paginated path fuses download+import per page
+        $this->progress->completeImport($membership);
+
+        $membership->forceFill(['seeded_at' => now()])->save();
+
+        // The foundation changed wholesale → derived map caches are stale; flush + re-warm (best-effort),
+        // mirroring the tarball path's post-import behaviour.
+        try {
+            Cache::flush();
+            \App\Jobs\PrewarmRasterTilesJob::dispatch();
+            \App\Jobs\PrewarmGeojsonCachesJob::dispatch();
+        } catch (\Throwable $e) {
+            Log::warning('post-paginated-seed prewarm dispatch failed', ['error' => $e->getMessage()]);
+        }
+
+        $this->audit->append('mirror', 'mirror.seeded', [
+            'host_server_id' => $host->server_id,
+            'transport' => 'paginated',
+            'jurisdictions_attributed' => $stamped,
+            'tables' => array_keys($summary),
+        ], 'WF-JUR-06');
+    }
+
+    /**
      * MIRROR side: resume an in-progress join WITHOUT re-running /adopt. Used when this box is already a
      * pinned mirror (a prior attempt timed out mid-sync) — re-adopting would burn a single-use join key
      * and a different host would collide on the one-active-mirror index. Re-applies the seed (idempotent
@@ -394,17 +475,23 @@ class MirrorService
      */
     public function resumeJoin(): ClusterMembership
     {
-        $membership = ClusterMembership::query()
-            ->where('role', ClusterMembership::ROLE_MIRROR)
-            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
-            ->latest('updated_at')
-            ->first();
+        $membership = $this->activeMirrorMembership();
 
         if ($membership === null || $membership->peer === null) {
             throw new RuntimeException('No active mirror membership to resume — re-join from the host.');
         }
 
         return $this->syncMembership($membership);
+    }
+
+    /** The current (non-departed/rejected) mirror membership, or null — the one a join/resume operates on. */
+    public function activeMirrorMembership(): ?ClusterMembership
+    {
+        return ClusterMembership::query()
+            ->where('role', ClusterMembership::ROLE_MIRROR)
+            ->whereNotIn('state', [ClusterMembership::STATE_DEPARTED, ClusterMembership::STATE_REJECTED])
+            ->latest('updated_at')
+            ->first();
     }
 
     /**

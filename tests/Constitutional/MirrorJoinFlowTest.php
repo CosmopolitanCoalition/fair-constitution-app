@@ -93,6 +93,11 @@ class MirrorJoinFlowTest extends TestCase
 
     private function onLivePg(callable $body): void
     {
+        // This pin is about the audit BACKFILL + mirror flip; the host (faked) advertises no seed, so
+        // the seed step is a no-op here. Tarball mode skips a seedless host gracefully (the paginated
+        // drain's own join integration is covered by the Foundation* tests + the live campaign).
+        config(['cga.federation_seed_transport' => 'tarball']);
+
         $conn = $this->livePg(self::LIVE_CONNECTION);
         $original = DB::getDefaultConnection();
         DB::setDefaultConnection(self::LIVE_CONNECTION);

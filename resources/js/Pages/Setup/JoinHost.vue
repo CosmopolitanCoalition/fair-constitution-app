@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
+import SyncProgress from '@/Components/Federation/SyncProgress.vue'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -18,6 +19,8 @@ const joinKey = ref('')
 const submitting = ref(false)
 const error = ref(null)
 const state = ref(null) // 'ready' | 'syncing' | 'pending_host_approval'
+const sync = ref(null)   // <SyncProgress> ref
+const finalizing = ref(false)
 
 // ── Auto-discovery ────────────────────────────────────────────────────────────
 const discovering = ref(false)
@@ -85,11 +88,39 @@ async function submit() {
         state.value = data.state
         if (data.state === 'ready') {
             router.visit(data.next || '/')
+        } else if (data.state === 'syncing') {
+            // The seed + drain now runs in the background. Start polling the live progress panel
+            // immediately; it auto-finalizes (below) when the corpus catches up.
+            sync.value?.start()
         }
     } catch (e) {
         error.value = e.message || 'Network error'
     } finally {
         submitting.value = false
+    }
+}
+
+// Fired by <SyncProgress> when the background drain catches up (membership LIVE). Re-POST so the
+// server stamps setup complete and hands us the next URL — no host_url needed (the server resumes the
+// already-pinned mirror).
+async function finalize() {
+    if (finalizing.value) return
+    finalizing.value = true
+    try {
+        const res = await fetch('/api/setup/join', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ host_url: hostUrl.value.trim() || null, join_key: joinKey.value.trim() || null }),
+        })
+        const data = await res.json()
+        if (res.ok && data.state === 'ready') {
+            router.visit(data.next || '/')
+        }
+    } catch (e) {
+        // Leave the panel up — the operator can re-submit to finalize.
+    } finally {
+        finalizing.value = false
     }
 }
 </script>
@@ -179,12 +210,18 @@ async function submit() {
             Request sent — the host operator must approve it. Re-submit once they have, and the sync begins.
         </div>
         <div v-else-if="state === 'syncing'" class="mb-4 text-sm text-sky-300">
-            Connected — still pulling the corpus. Re-submit to resume; it picks up where it left off.
+            Connected — pulling the corpus in the background. Live progress is shown below; this finishes on
+            its own (and resumes if interrupted). You can leave this page.
         </div>
+
+        <!-- Live seed + drain progress (per-table bars, %/ETA) — the same panel the federation console
+             uses. It self-hides when idle, shows progress while the background job runs, and auto-finalizes
+             the join the moment the corpus catches up. -->
+        <SyncProgress ref="sync" class="mb-4" @done="finalize" />
 
         <button type="button" :disabled="submitting || !hostUrl.trim()" @click="submit"
             class="bg-sky-600 hover:bg-sky-500 disabled:bg-gray-700 text-white px-5 py-2 rounded text-sm font-semibold">
-            {{ submitting ? 'Joining…' : 'Join the mesh' }}
+            {{ submitting ? 'Joining…' : (state === 'syncing' ? 'Resume the sync' : 'Join the mesh') }}
         </button>
     </div>
 </template>

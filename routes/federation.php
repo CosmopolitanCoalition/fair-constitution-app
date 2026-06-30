@@ -46,6 +46,12 @@ Route::post('/heartbeat', [PeerController::class, 'heartbeat'])
 // ── Full Faith & Credit sync (F2) — established peers only ────────────────
 Route::get('/audit-tail', [SyncController::class, 'auditTail'])
     ->middleware('federation.signed');
+// ── Paginated foundation drain (seed redesign) — a joining mirror pulls the geodata
+// FOUNDATION (cosmic_addresses → jurisdictions → worldpop_rasters → geoboundary_metadata →
+// constitutional_settings) one signed KEYSET page per table, UPSERTing as it goes. The visible,
+// resumable replacement for the opaque pg_restore seed tarball. Pinned peers only.
+Route::get('/foundation/page', [SyncController::class, 'foundationPage'])
+    ->middleware('federation.signed');
 Route::post('/sync', [SyncController::class, 'receive'])
     ->middleware('federation.signed');
 Route::get('/checkpoint', [SyncController::class, 'checkpoint'])

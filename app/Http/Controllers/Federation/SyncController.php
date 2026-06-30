@@ -6,15 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditCheckpoint;
 use App\Models\FederationPeer;
 use App\Services\Federation\FederationSyncService;
+use App\Services\Federation\FoundationServeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 /**
  * Full Faith & Credit sync endpoints (Phase F, WF-JUR-06). Pinned peers only.
  */
 class SyncController extends Controller
 {
-    public function __construct(private readonly FederationSyncService $sync) {}
+    public function __construct(
+        private readonly FederationSyncService $sync,
+        private readonly FoundationServeService $foundation,
+    ) {}
 
     /**
      * GET /api/federation/audit-tail?from_seq=&page_size=&to_seq= — a signed page
@@ -31,6 +36,35 @@ class SyncController extends Controller
         $capTo = $request->query('to_seq') !== null ? (int) $request->query('to_seq') : null;
 
         return response()->json($this->sync->buildAuditTail($fromSeq, $pageSize, $capTo));
+    }
+
+    /**
+     * GET /api/federation/foundation/page?table=&from_key=&page_size= — one signed KEYSET
+     * page of a geodata-foundation table for a paginated drain (seed redesign). `from_key` is
+     * the JSON-array watermark a joiner echoes from the prior page's `next_from_key` (omit for
+     * the table head). Always server-capped per table so the body is bounded — the replacement
+     * for the monolithic pg_restore seed.
+     */
+    public function foundationPage(Request $request): JsonResponse
+    {
+        $table = (string) $request->query('table', '');
+
+        $fromKey = null;
+        $raw = $request->query('from_key');
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $fromKey = array_values($decoded);
+            }
+        }
+
+        $pageSize = (int) $request->query('page_size', 0);
+
+        try {
+            return response()->json($this->foundation->buildFoundationPage($table, $fromKey, $pageSize));
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
     }
 
     /** POST /api/federation/sync — a peer pushes its tail; we verify + apply. */
