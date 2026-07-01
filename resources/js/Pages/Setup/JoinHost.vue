@@ -225,8 +225,16 @@ async function finalize() {
 
         <div v-if="error" class="mb-4 text-sm text-red-400">{{ error }}</div>
 
-        <div v-if="state === 'pending_host_approval'" class="mb-4 text-sm text-amber-300">
-            Request sent — the host operator must approve it. Re-submit once they have, and the sync begins.
+        <div v-if="state === 'pending_host_approval'" class="mb-4 rounded border border-amber-700/40 bg-amber-950/40 p-3 text-sm text-amber-300">
+            <p class="font-medium">Request sent — the host operator must approve it.</p>
+            <p class="mt-1 text-amber-200/90">
+                On the <strong>host</strong> box: sign in to its operator plane, open
+                <a v-if="hostUrl.trim()" :href="hostUrl.trim().replace(/\/+$/, '') + '/federation'" target="_blank" rel="noopener"
+                   class="underline text-amber-100 hover:text-white">{{ hostUrl.trim().replace(/\/+$/, '') }}/federation</a>
+                <template v-else>its <code>/federation</code> page</template>
+                → <em>Host adoption console → Pending adoption requests</em> → <strong>Approve</strong>.
+                Then come back here and re-submit — the sync begins.
+            </p>
         </div>
         <div v-else-if="state === 'syncing'" class="mb-4 text-sm text-sky-300">
             Connected — pulling the corpus in the background. Live progress is shown below; this finishes on

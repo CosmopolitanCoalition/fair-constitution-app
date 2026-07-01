@@ -102,6 +102,18 @@ class MirrorService
         $settings = InstanceSettings::current();
         $settings->mirror_of_server_id = $hostServerId;
         $settings->mirror_adopted_at ??= now();
+
+        // One mesh = one game: a mirror that was never deliberately named adopts the HOST's display
+        // name on going live, so a citizen sees "United Earth" — the game — not "Unnamed Instance" —
+        // the node. A node the operator DID name keeps its name (only the untouched default is
+        // replaced); the node identity for mesh management stays server_id, never the display name.
+        if ($settings->instance_name === 'Unnamed Instance') {
+            $hostName = (string) (FederationPeer::query()->where('server_id', $hostServerId)->value('name') ?? '');
+            if ($hostName !== '' && $hostName !== 'Unnamed Instance') {
+                $settings->instance_name = $hostName;
+            }
+        }
+
         $settings->save();
 
         $this->audit->append('mirror', 'mirror.adopted',
@@ -253,7 +265,12 @@ class MirrorService
             throw new RuntimeException('Adoption response from the host was incomplete.');
         }
 
-        $host = $this->pinHost($hostServerId, $hostPublicKey, ['url' => $hostUrl]);
+        // Pin the host's display name too (an older host omits it — fine, the peer keeps its name).
+        $attrs = ['url' => $hostUrl];
+        if (is_string($body['host_name'] ?? null) && $body['host_name'] !== '') {
+            $attrs['name'] = (string) $body['host_name'];
+        }
+        $host = $this->pinHost($hostServerId, $hostPublicKey, $attrs);
 
         $membership = $this->openMirrorMembership($host, $admissionMethod, is_string($scope) ? $scope : null);
         $membership->update(['state' => ClusterMembership::STATE_SYNCING]);

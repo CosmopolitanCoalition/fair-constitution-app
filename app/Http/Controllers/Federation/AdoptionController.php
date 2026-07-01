@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Federation;
 use App\Http\Controllers\Controller;
 use App\Models\ClusterAdoptionRequest;
 use App\Models\ClusterMembership;
+use App\Models\InstanceSettings;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Mirror\AdoptionRejected;
 use App\Services\Mirror\MirrorService;
@@ -96,6 +97,10 @@ class AdoptionController extends Controller
             'admitted' => true,
             'host_server_id' => $this->identity->serverId(),
             'host_public_key' => $this->identity->publicKey(),
+            // Public display name (already published by the well-known descriptor) — the mirror pins it
+            // on the host peer and, if it was never deliberately named itself, adopts it on going live
+            // (one mesh = one game; a citizen should see the game's name, not "Unnamed Instance").
+            'host_name' => (string) InstanceSettings::current()->instance_name,
             'scope_jurisdiction_id' => $scope,
             'membership_id' => $membershipId,
         ]);

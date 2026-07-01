@@ -59,6 +59,10 @@ class MirrorJoinFlowTest extends TestCase
                 'peer_head_seq' => $start,
             ]);
 
+            // A never-deliberately-named node adopts the HOST's display name on going live
+            // (one mesh = one game — the citizen header should read the game, not the node).
+            InstanceSettings::current()->forceFill(['instance_name' => 'Unnamed Instance'])->save();
+
             // Fake the host: /adopt returns OUR key as the host key; /audit-tail
             // returns real signed pages of our own chain.
             Http::fake([
@@ -66,6 +70,7 @@ class MirrorJoinFlowTest extends TestCase
                     'admitted' => true,
                     'host_server_id' => $hostServerId,
                     'host_public_key' => $identity->publicKey(),
+                    'host_name' => 'United Earth (host)',
                     'scope_jurisdiction_id' => null,
                 ], 200),
                 '*/api/federation/audit-tail*' => function ($request) use ($sync) {
@@ -81,6 +86,8 @@ class MirrorJoinFlowTest extends TestCase
             $this->assertSame(ClusterMembership::STATE_LIVE, $membership->state, 'a caught-up backfill goes live');
             $this->assertTrue(InstanceSettings::current()->isMirror(), 'the instance is now a read-only mirror');
             $this->assertSame($hostServerId, InstanceSettings::current()->mirror_of_server_id);
+            $this->assertSame('United Earth (host)', InstanceSettings::current()->fresh()->instance_name,
+                'an unnamed mirror adopts the host display name on going live (one mesh = one game)');
 
             // The backfill ran in pages and completed.
             $cursor = SyncCursor::query()->where('peer_id', $membership->peer_id)
