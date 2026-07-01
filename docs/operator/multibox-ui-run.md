@@ -31,12 +31,13 @@ Why it is mandatory on two separate machines:
 - The Docker default `host.docker.internal:<port>` is **not reachable from another machine** — it
   only works when both boxes are on one host. On a real LAN you must use the LAN IP.
 
-**If you brought the box up with `deploy.sh`** (the Pi / production path), it has **already** written
-`FEDERATION_SELF_URL` for you — but its default is `http://host.docker.internal:<port>`, which is **not
-reachable from another machine**. Pass the real address instead: `./deploy.sh --self-url
-http://<this-box-LAN-IP>:<port> …`, or edit the `FEDERATION_SELF_URL` line `deploy.sh` wrote in `.env`
-to the LAN IP and `docker compose up -d` to pick it up. `deploy.sh` also runs `federation:init`
-(below) and mints this box a fresh identity — correct for a **fresh** node, but for that reason
+**If you bring the box up with `deploy.sh`** (the Pi / production path), it now **auto-detects this
+box's LAN IP** and writes `FEDERATION_SELF_URL=http://<LAN-IP>:<port>` for you — so a plain
+`./deploy.sh` on a LAN box is reachable with nothing to set. It prints the value it chose. Override only
+for an overlay/custom address: `./deploy.sh --self-url http://<addr> …` (and `bootstrap.sh` passes that
+automatically for a tailnet/yggdrasil/onion transport). It falls back to `host.docker.internal` only if
+no LAN IP is detectable (a single-host box). `deploy.sh` also runs `federation:init` (below) and mints
+this box a fresh identity — correct for a **fresh** node, but for that reason
 **never run `deploy.sh` on Box A** (it runs `key:generate --force`, which rotates `APP_KEY` and makes
 Box A's existing encrypted federation keypair + credentials undecryptable).
 

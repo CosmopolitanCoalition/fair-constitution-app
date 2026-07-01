@@ -492,7 +492,8 @@ class SetupController extends Controller
         // The founder is the operator account and accepts the terms by
         // creating the instance (WI-3 users schema: terms_accepted_at is
         // NOT NULL, is_operator unlocks dev tooling like impersonation).
-        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+        $operatorAccount = null;
+        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($data, &$operatorAccount) {
             $founder = User::create([
                 'name'              => $data['name'],
                 'email'             => $data['email'],
@@ -505,13 +506,21 @@ class SetupController extends Controller
             // FK to `users`, its own auth:operator guard). Reuses the founder's
             // email + password for the local operator login; mesh-linking is
             // opt-in later. Created in the same transaction as the citizen row.
-            app(\App\Services\Identity\OperatorIdentityService::class)
+            $operatorAccount = app(\App\Services\Identity\OperatorIdentityService::class)
                 ->register($data['email'], $data['password']);
 
             return $founder;
         });
 
         Auth::login($user);
+        // Establish the OPERATOR session alongside the citizen one so a single-operator box is not asked
+        // to sign in a second time to reach the host controls (adoption approvals, roles). The two guards
+        // share the session store under different keys (OperatorSessionController), and this couples
+        // NOTHING into role derivation — OperatorPlaneSeparationTest still holds (an operator session
+        // confers no governance role). A separate /operator/login remains for a returning/expired session.
+        if ($operatorAccount !== null) {
+            Auth::guard('operator')->login($operatorAccount);
+        }
         $request->session()->regenerate();
 
         return response()->json([

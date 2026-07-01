@@ -51,7 +51,29 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-SELF_URL="${SELF_URL:-http://host.docker.internal:${NGINX_PORT}}"
+# FEDERATION_SELF_URL: the callback URL peers reach THIS box at. `host.docker.internal` is a
+# machine-RELATIVE alias — a remote peer resolves it to ITSELF, so it only works for two instances
+# on ONE host. On a real machine, advertise this host's LAN IP instead, so a plain `./deploy.sh` on a
+# LAN box (Box B) is reachable without anyone remembering --self-url. --self-url always wins (and
+# bootstrap.sh passes it for an overlay transport — tailnet/yggdrasil/onion). Fallback stays
+# host.docker.internal for a single-host box where no LAN IP is detectable.
+detect_lan_ip() {
+  local ip=""
+  # Linux (iproute2): the source IP the kernel would use to reach the internet = the primary LAN NIC.
+  ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')
+  [[ -z "$ip" ]] && ip=$(hostname -I 2>/dev/null | awk '{print $1}')      # Linux fallback
+  [[ -z "$ip" ]] && ip=$(ipconfig getifaddr en0 2>/dev/null)              # macOS fallback
+  printf '%s' "$ip"
+}
+if [[ -z "$SELF_URL" ]]; then
+  LAN_IP="$(detect_lan_ip)"
+  if [[ -n "$LAN_IP" ]]; then
+    SELF_URL="http://${LAN_IP}:${NGINX_PORT}"
+  else
+    SELF_URL="http://host.docker.internal:${NGINX_PORT}"
+  fi
+fi
+echo "→ FEDERATION_SELF_URL = ${SELF_URL}   (peers reach this box here; override with --self-url)"
 PROJECT="${PROJECT:-$PREFIX}"
 
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -22,6 +22,7 @@ const error = ref(null)
 const state = ref(null) // 'ready' | 'syncing' | 'pending_host_approval'
 const sync = ref(null)   // <SyncProgress> ref
 const finalizing = ref(false)
+const syncLifecycle = ref('idle') // mirrors SyncProgress's lifecycle: idle | running | done | failed
 
 // Once a prior attempt has pinned this box as a mirror, RESUME needs no host URL — the server resumes
 // the already-pinned host (SetupController isMirror() branch). So after a page reload (hostUrl resets to
@@ -235,13 +236,28 @@ async function finalize() {
         <!-- Live seed + drain progress (per-table bars, %/ETA) — the same panel the federation console
              uses. It self-hides when idle, shows progress while the background job runs, and auto-finalizes
              the join the moment the corpus catches up. -->
-        <SyncProgress ref="sync" class="mb-4" @done="finalize" />
+        <SyncProgress ref="sync" class="mb-4" @done="finalize" @lifecycle="(v) => (syncLifecycle = v)" />
 
-        <button type="button" :disabled="submitting || (!isMirror && !hostUrl.trim())" @click="submit"
-            class="bg-sky-600 hover:bg-sky-500 disabled:bg-gray-700 text-white px-5 py-2 rounded text-sm font-semibold">
-            {{ submitting ? 'Joining…' : ((state === 'syncing' || isMirror) ? 'Resume the sync' : 'Join the mesh') }}
+        <!-- While the drain is actively running there is nothing to resume — show a non-actionable
+             "Syncing…" (the panel above is the live status). A true pause/stop isn't built: the drain is
+             designed to run to completion and resume itself if interrupted. -->
+        <button v-if="syncLifecycle === 'running'" type="button" disabled
+            class="bg-gray-700 text-gray-300 px-5 py-2 rounded text-sm font-semibold cursor-default">
+            Syncing…
         </button>
-        <p v-if="isMirror && state !== 'ready'" class="mt-2 text-xs text-gray-500">
+        <button v-else type="button" :disabled="submitting || (!isMirror && !hostUrl.trim())" @click="submit"
+            class="bg-sky-600 hover:bg-sky-500 disabled:bg-gray-700 text-white px-5 py-2 rounded text-sm font-semibold">
+            {{ submitting ? 'Joining…' : (isMirror ? 'Resume the sync' : 'Join the mesh') }}
+        </button>
+
+        <!-- Escape hatch: if the drain claims to be running but looks stuck (e.g. the worker died), let the
+             operator re-kick it. Safe — the job is overlap-guarded, so this is a no-op if it really is running,
+             and resumes from the cursor if it isn't. -->
+        <button v-if="syncLifecycle === 'running' && isMirror" type="button" @click="submit"
+            class="mt-2 block text-xs text-sky-400 hover:text-sky-300 underline">
+            Not moving? Resume the sync
+        </button>
+        <p v-else-if="isMirror && state !== 'ready'" class="mt-2 text-xs text-gray-500">
             Already connected to a host — this resumes the sync where it left off (no host URL needed).
         </p>
     </div>

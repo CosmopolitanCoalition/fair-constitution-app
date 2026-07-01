@@ -13,8 +13,9 @@ const props = defineProps({
 });
 
 // `done` fires ONCE when the drain catches up (membership LIVE) — the setup wizard listens to
-// finalize the join; the console panel can ignore it.
-const emit = defineEmits(['done']);
+// finalize the join. `lifecycle` fires every poll with the current lifecycle string (running / done /
+// failed / idle) so the parent can shape its controls (e.g. show "Syncing…" vs "Resume").
+const emit = defineEmits(['done', 'lifecycle']);
 
 const progress = ref(null);
 let timer = null;
@@ -35,6 +36,7 @@ async function fetchProgress() {
     } catch (e) {
         return; // swallow — the next tick retries
     }
+    emit('lifecycle', lifecycle.value);
     if (lifecycle.value === 'done' && !doneEmitted) {
         doneEmitted = true;
         emit('done');

@@ -54,7 +54,8 @@ class FounderBootstrapTest extends TestCase
                 'password_confirmation' => $secret,
             ]);
             $resp->assertStatus(200);
-            $this->assertAuthenticated(); // the founder is logged in on the web guard
+            $this->assertAuthenticated();             // the founder is logged in on the web guard
+            $this->assertAuthenticated('operator');   // …AND the operator guard — no second sign-in to reach host controls
 
             // Citizen plane.
             $user = User::query()->where('email', $email)->first();
