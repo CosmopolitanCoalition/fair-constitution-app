@@ -83,6 +83,22 @@ manifest.json ↔ surfaces.php **registry unification** with a drift-failing tes
 
 ---
 
+## Recorded baseline (2026-07-01, full suite on the worktree box)
+
+**677 passed / 15 failed (293,705 assertions).** Every failure is **pre-existing live-data
+coupling** in ONE domain — the mesh-role/consent tests colliding with this box's REAL mesh state
+(voice.sfu + etl capabilities established 2026-06-28; the operator's live campaign has since added
+real adoption approvals, role-grant proposals, and pinned peers on this box):
+MeshNamedRoleTest ×2, MeshRoleBoardTest ×1, MeshRoleGrantTest ×3, PeerUpgradeAgreementTest ×4
+(documented), RoleGrantDeliveryTest ×1, ServiceReachTest ×1 (unique-collision with the real
+capability row — verified), VoiceReachTest ×2 (same, verified against the partial unique index),
+FederationConsolePropsTest ×1 (documented roles.pending count).
+
+Zero failures in elections/legislature/judiciary/orgs/social/setup/foundation — the domains this
+lane touches. **The wiring green bar = 677 passing + no NEW failures; the 15 are tracked as
+test-isolation debt** (the tests assume a pristine box; a proper fix isolates them from live mesh
+state — filed for the constitutional-cleanup phase, not churned mid-campaign).
+
 ## Campaign-safety rules (enforced at every checkpoint merge)
 
 1. Full suite green at the recorded baseline (+ the phase's new tests).
