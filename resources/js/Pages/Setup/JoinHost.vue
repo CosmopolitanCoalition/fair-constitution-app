@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import SyncProgress from '@/Components/Federation/SyncProgress.vue'
@@ -36,6 +36,19 @@ const federations = ref([])
 const discovered = ref(false)
 const scanLan = ref(false)
 const lanCidr = ref('')
+
+// Pre-fill the LAN range from the address you reached this box on. You're on the LAN by IP (e.g.
+// http://192.168.1.230:8080), so window.location.hostname is already an address on your subnet — derive
+// the /24. This is the reliable way to suggest the range: the old WebRTC local-IP trick is masked by
+// mDNS in modern browsers, so a page genuinely cannot read your 192.168.x.x any other way. Falls back to
+// blank for localhost / a hostname, where you type it.
+onMounted(() => {
+    const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(window.location.hostname)
+    if (!m) return
+    const [a, b, c] = [Number(m[1]), Number(m[2]), Number(m[3])]
+    const isPrivate = a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
+    if (isPrivate) lanCidr.value = `${a}.${b}.${c}.0/24`
+})
 
 async function discover() {
     if (discovering.value) return
