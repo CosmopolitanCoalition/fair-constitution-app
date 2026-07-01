@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import SyncProgress from '@/Components/Federation/SyncProgress.vue'
@@ -9,7 +9,7 @@ defineOptions({
     layout: (h, page) => h(AppShell, { chrome: 'minimal', variant: 'wide' }, () => page),
 })
 
-defineProps({
+const props = defineProps({
     settings: { type: Object, required: true },
     server_id: { type: String, default: null },
 })
@@ -21,6 +21,12 @@ const error = ref(null)
 const state = ref(null) // 'ready' | 'syncing' | 'pending_host_approval'
 const sync = ref(null)   // <SyncProgress> ref
 const finalizing = ref(false)
+
+// Once a prior attempt has pinned this box as a mirror, RESUME needs no host URL — the server resumes
+// the already-pinned host (SetupController isMirror() branch). So after a page reload (hostUrl resets to
+// blank) the Resume button must stay live; guarding it on hostUrl would strand the operator on a failed
+// drain with a dead button.
+const isMirror = computed(() => !!props.settings?.is_mirror)
 
 // ── Auto-discovery ────────────────────────────────────────────────────────────
 const discovering = ref(false)
@@ -67,7 +73,9 @@ function choose(fed) {
 }
 
 async function submit() {
-    if (submitting.value || !hostUrl.value.trim()) return
+    // A fresh join needs a host URL; a resume (already a mirror) does not — the server picks up the
+    // pinned host. Never early-return on a blank URL when we are already mirroring.
+    if (submitting.value || (!isMirror.value && !hostUrl.value.trim())) return
     submitting.value = true
     error.value = null
     try {
@@ -219,9 +227,12 @@ async function finalize() {
              the join the moment the corpus catches up. -->
         <SyncProgress ref="sync" class="mb-4" @done="finalize" />
 
-        <button type="button" :disabled="submitting || !hostUrl.trim()" @click="submit"
+        <button type="button" :disabled="submitting || (!isMirror && !hostUrl.trim())" @click="submit"
             class="bg-sky-600 hover:bg-sky-500 disabled:bg-gray-700 text-white px-5 py-2 rounded text-sm font-semibold">
-            {{ submitting ? 'Joining…' : (state === 'syncing' ? 'Resume the sync' : 'Join the mesh') }}
+            {{ submitting ? 'Joining…' : ((state === 'syncing' || isMirror) ? 'Resume the sync' : 'Join the mesh') }}
         </button>
+        <p v-if="isMirror && state !== 'ready'" class="mt-2 text-xs text-gray-500">
+            Already connected to a host — this resumes the sync where it left off (no host URL needed).
+        </p>
     </div>
 </template>

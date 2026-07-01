@@ -90,10 +90,13 @@ second thing is just **the code** from this page.
 <details>
 <summary><b>🐧  Linux  ·  🍓  Raspberry Pi</b></summary>
 
-1. **Open your terminal** and install Docker + Git:
+1. **Open your terminal** and install Docker + Git.
+   **Already have Docker?** Skip the `curl … | sh` line — re-running it on a machine that already
+   has Docker can conflict with your existing install. Just confirm `docker compose version` prints
+   **v2.x** (if not: `sudo apt install -y docker-compose-plugin`), then continue at step 2.
    ```bash
    sudo apt update && sudo apt install -y git
-   curl -fsSL https://get.docker.com | sh
+   curl -fsSL https://get.docker.com | sh        # ONLY if Docker isn't already installed
    sudo usermod -aG docker $USER      # then log out and back in so 'docker' works
    ```
 2. **Get the code:**
@@ -113,20 +116,27 @@ second thing is just **the code** from this page.
 
 ### What you'll see — the setup wizard ("first paint")
 
-The first page detects the empty database and walks you through, one button at a time:
+The first page detects the empty database, has you **apply the schema and create your
+operator/founder account first**, then asks whether this node stands **solo** or **joins an existing
+mesh**. **Solo** walks you through the build, one button at a time:
 
-1. **Database setup** — click to apply the schema.
-2. **Cosmic address** — which place is this instance for (a neighborhood, a city, a country… up to the whole planet)?
-3. **Constitutional defaults** — set the rules.
-4. **Map data** — load the maps + population. You stage the geoBoundaries + WorldPop files
+1. **Cosmic address** — which place is this instance for (a neighborhood, a city, a country… up to the whole planet)?
+2. **Constitutional defaults** — set the rules.
+3. **Map data** — load the maps + population. You stage the geoBoundaries + WorldPop files
    first (see [docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md)); scope to **one country** to
    keep it small instead of the full ~14 GB world.
-5. **Districts** — it draws them automatically.
-6. **Confirm + seat institutions** — finish, and it creates your **founder login**.
+4. **Districts** — it draws them automatically.
+5. **Confirm + seat institutions** — finish, and you're in.
 
-Sign in as the founder and you're in — a live instance where you can run elections, legislatures,
+You're already signed in as the founder — a live instance where you can run elections, legislatures,
 and courts. **Didn't open?** Make sure Docker is running, wait a couple more minutes on the very
 first launch (it's still building), then reload the page.
+
+> **Joining an existing mesh instead?** Choose **Join** at the fork and follow
+> [docs/operator/multibox-ui-run.md](docs/operator/multibox-ui-run.md) — the UI-driven mirror join
+> (Discover the host on your LAN → request join → the host operator approves → the whole game
+> replicates with a live progress bar). It has one mandatory pre-bringup `.env` value
+> (`FEDERATION_SELF_URL`) — read step 0 first.
 
 ---
 
