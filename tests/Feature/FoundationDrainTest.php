@@ -197,6 +197,48 @@ class FoundationDrainTest extends TestCase
         });
     }
 
+    public function test_apply_page_inserts_a_raster_losslessly(): void
+    {
+        $this->onLivePg(function () {
+            // A REAL WorldPop tile, encoded exactly as the donor projection does (rast::bytea → hex).
+            // This is the page the live campaign #2 run failed on: bytea has NO cast to raster — the
+            // joiner must decode via ST_RastFromHexWKB, not decode(...)::raster.
+            $src = DB::selectOne(
+                "SELECT encode(rast::bytea,'hex') AS hex, (ST_SummaryStats(rast)).sum::bigint AS pop,
+                        ST_Width(rast) AS w FROM worldpop_rasters LIMIT 1"
+            );
+            if ($src === null) {
+                $this->markTestSkipped('no worldpop_rasters rows on this database');
+            }
+
+            $id = (string) Str::uuid();
+            $page = [
+                'table' => 'worldpop_rasters',
+                'key_columns' => ['id'],
+                'columns' => ['id', 'iso_code', 'year', 'resolution_m', 'rast', 'created_at'],
+                'geometry_columns' => [],
+                'raster_columns' => ['rast'],
+                'rows' => [[
+                    'id' => $id, 'iso_code' => 'TST', 'year' => 2023, 'resolution_m' => 100,
+                    'rast' => $src->hex, 'created_at' => now()->toDateTimeString(),
+                ]],
+            ];
+
+            $this->service()->applyPage('worldpop_rasters', $page);
+
+            $got = DB::selectOne(
+                'SELECT ST_Width(rast) AS w, (ST_SummaryStats(rast)).sum::bigint AS pop FROM worldpop_rasters WHERE id = ?',
+                [$id]
+            );
+            $this->assertSame((int) $src->w, (int) $got->w, 'tile dimensions survive the wire');
+            $this->assertSame((int) $src->pop, (int) $got->pop, 'population stats survive the wire (lossless)');
+
+            // Idempotent — re-applying the page is a no-op.
+            $this->service()->applyPage('worldpop_rasters', $page);
+            $this->assertSame(1, (int) DB::table('worldpop_rasters')->where('id', $id)->count());
+        });
+    }
+
     public function test_droppable_indexes_excludes_the_primary_key_and_unique_indexes(): void
     {
         $this->onLivePg(function () {

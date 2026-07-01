@@ -175,7 +175,9 @@ class FoundationDrainService
                 if (isset($geometry[$c])) {
                     $exprs[] = "ST_GeomFromEWKB(decode(?, 'hex'))";
                 } elseif (isset($raster[$c])) {
-                    $exprs[] = "decode(?, 'hex')::raster";
+                    // There is NO bytea→raster cast; the inverse of the donor's rast::bytea (raster WKB)
+                    // is ST_RastFromHexWKB, which takes the hex text directly.
+                    $exprs[] = 'ST_RastFromHexWKB(?)';
                 } else {
                     $exprs[] = '?';
                 }
