@@ -147,6 +147,38 @@ class FederationDiscoveryTest extends TestCase
         $this->assertCount(1, $matches, 'one server_id reachable via front door AND LAN is a single federation');
     }
 
+    public function test_a_node_never_lists_itself_as_a_joinable_federation(): void
+    {
+        $this->onLivePg(function () {
+            // A LAN sweep reaches this box's OWN descriptor (e.g. via host.docker.internal) — it must
+            // never appear as a join target (the operator saw "Unnamed Instance … not open" = itself).
+            $selfId = (string) app(InstanceIdentityService::class)->serverId();
+
+            config([
+                'cga.federation_bootstrap_urls' => ['https://front.test'],
+                'cga.federation_lan_discovery' => true,
+                'cga.federation_lan_discovery_ports' => ['8080'],
+            ]);
+            Http::fake([
+                // A real peer (someone else) — should appear.
+                'https://front.test/.well-known/cga-federation' => Http::response([
+                    'protocol' => 'cga-federation', 'server_id' => 'PEER-A', 'name' => 'United Earth',
+                    'federation_self_url' => 'https://front.test', 'accepting_joins' => true,
+                ]),
+                // OUR OWN descriptor, reached on the LAN sweep — must be filtered out by server_id.
+                'http://192.168.5.10:8080/.well-known/cga-federation' => Http::response([
+                    'protocol' => 'cga-federation', 'server_id' => $selfId, 'name' => 'Unnamed Instance',
+                    'federation_self_url' => 'http://host.docker.internal:8080', 'accepting_joins' => false,
+                ]),
+                '*' => Http::response('', 404),
+            ]);
+
+            $ids = array_column($this->svc()->discover(true, '192.168.5.8/29')['federations'], 'server_id');
+            $this->assertContains('PEER-A', $ids, 'a real peer still appears');
+            $this->assertNotContains($selfId, $ids, 'the node never lists itself');
+        });
+    }
+
     public function test_a_bad_lan_range_reports_an_error_without_discarding_front_door_results(): void
     {
         config(['cga.federation_bootstrap_urls' => ['https://front.test'], 'cga.federation_lan_discovery' => true]);

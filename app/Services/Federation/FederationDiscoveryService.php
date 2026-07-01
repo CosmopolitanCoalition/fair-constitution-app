@@ -108,7 +108,27 @@ class FederationDiscoveryService
             }
         }
 
-        return ['federations' => $this->dedupe($found), 'lan_error' => $lanError];
+        $federations = $this->dedupe($found);
+
+        // Never list OURSELVES as a joinable federation. A LAN sweep reaches this box's own descriptor
+        // (e.g. via host.docker.internal, or our own LAN IP) — listing it is confusing and it is never a
+        // valid join target. Filter by server_id (identity), not URL, so every alias of self is dropped.
+        // Side-effect-free read (no firstOrCreate / no keypair mint) and fail-safe: a fresh node with no
+        // identity yet, or an unreadable settings row, simply skips the filter rather than breaking discovery.
+        $selfId = '';
+        try {
+            $selfId = (string) (InstanceSettings::query()->value('server_id') ?? '');
+        } catch (Throwable) {
+            // discovery must never fail because our own identity isn't readable
+        }
+        if ($selfId !== '') {
+            $federations = array_values(array_filter(
+                $federations,
+                static fn (array $c): bool => (string) ($c['server_id'] ?? '') !== $selfId,
+            ));
+        }
+
+        return ['federations' => $federations, 'lan_error' => $lanError];
     }
 
     /**

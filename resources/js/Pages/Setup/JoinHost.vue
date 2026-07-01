@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import SyncProgress from '@/Components/Federation/SyncProgress.vue'
+import { csrfHeaders } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -36,10 +37,6 @@ const discovered = ref(false)
 const scanLan = ref(false)
 const lanCidr = ref('')
 
-function csrf() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? ''
-}
-
 async function discover() {
     if (discovering.value) return
     discovering.value = true
@@ -48,7 +45,7 @@ async function discover() {
         const res = await fetch('/api/setup/discover', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ lan: scanLan.value, cidr: scanLan.value ? lanCidr.value.trim() : null }),
         })
         const data = await res.json()
@@ -82,7 +79,7 @@ async function submit() {
         const res = await fetch('/api/setup/join', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...csrfHeaders() },
             body: JSON.stringify({
                 host_url: hostUrl.value.trim(),
                 join_key: joinKey.value.trim() || null,
@@ -118,7 +115,7 @@ async function finalize() {
         const res = await fetch('/api/setup/join', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ host_url: hostUrl.value.trim() || null, join_key: joinKey.value.trim() || null }),
         })
         const data = await res.json()

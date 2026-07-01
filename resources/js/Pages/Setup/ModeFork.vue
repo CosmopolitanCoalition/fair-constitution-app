@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
+import { csrfHeaders } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -26,7 +27,7 @@ async function choose(mode) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                ...csrfHeaders(),
             },
             body: JSON.stringify({ setup_mode: mode }),
         })
