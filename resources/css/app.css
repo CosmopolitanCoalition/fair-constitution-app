@@ -29,6 +29,7 @@
 @import './cga/fonts.css' layer(base);
 @import './cga/tokens.css' layer(base);
 @import './cga/components.css' layer(components);
+@import './cga/components-v2.css' layer(components);
 @import './cga/dev-bar.css' layer(components);
 
 /* Semantic governance tokens → Tailwind utilities (bg-gov-surface,

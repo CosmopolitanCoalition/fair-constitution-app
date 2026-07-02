@@ -782,6 +782,17 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::post('/audit-chain/verify', [AuditChainController::class, 'verify'])->name('audit-chain.verify');
 });
 
+// mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form
+// (public read); FILING is attributed, so the POST stays auth-gated. The intake
+// routes a request — it removes nothing (carve-out removals are the judicial
+// F-SOC-003 path).
+Route::middleware('auth')->group(function () {
+    Route::get('/support/report', [\App\Http\Controllers\Support\SupportReportController::class, 'create'])
+        ->name('support.report')->withoutMiddleware('auth'); // public read
+    Route::post('/support/report', [\App\Http\Controllers\Support\SupportReportController::class, 'store'])
+        ->name('support.report.store');
+});
+
 // WI-4 — dev tooling: impersonation + ping simulator. Registered ONLY in
 // the local environment; DevToolsEnabled additionally 404s at runtime when
 // config('cga.impersonation') is off (instant toggle, and testable —
