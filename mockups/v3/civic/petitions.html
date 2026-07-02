@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Petitions — CGA mockups</title>
+  <title>Petitions — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,37 +16,33 @@
       <header>
         <span class="eyebrow">Civic · law by petition</span>
         <h1>Petitions</h1>
-        <p class="page-intro">Any associated resident can draft a law and put it before the population. Reach the
-          signature threshold, pass an independent audit and a constitutionality review, and your initiative goes on
+        <p class="page-intro">Anyone who lives here can draft a law and put it to a vote. Reach the
+          signature threshold, pass an independent check and a constitutionality review, and your proposal goes on
           the next jurisdiction-wide ballot.</p>
-        <p class="citation">Creation of laws by petition · threshold 5% of population</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
-        <div class="stat"><span class="stat-number" id="stat-open">3</span><span class="stat-label">open petitions in your jurisdictions</span></div>
-        <div class="stat stat--accent"><span class="stat-number">5.00%</span><span class="stat-label">signature threshold</span></div>
+        <div class="stat"><span class="stat-number" id="stat-open">3</span><span class="stat-label">open petitions in your places</span></div>
         <div class="stat"><span class="stat-number" id="stat-signed">—</span><span class="stat-label">your signatures (this session)</span></div>
       </div>
       <p class="amendable" style="margin-block-start:calc(-1 * var(--space-3))">
-        <span class="amendable-value">5.00%</span> of jurisdiction population
+        <span class="amendable-value">5.00%</span> of jurisdiction population — the signature threshold
         <span class="amendable-meta">constitutional default · amendable by legislative act</span>
       </p>
 
       <section class="card" style="padding:0" aria-labelledby="list-h">
         <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
-          <h2 id="list-h">Open petitions <span class="citation">scoped to your association chain</span></h2>
+          <h2 id="list-h">Open petitions <span class="citation">in the places you live</span></h2>
         </div>
         <div id="petition-list" aria-live="polite"></div>
         <noscript><p style="padding:var(--space-6)" class="gloss">The petition list renders with JavaScript — fixtures: Manhattan traffic calming, New York County participatory budget pilot, Hudson watershed protection act.</p></noscript>
-        <p class="cc-small" style="padding-block:var(--space-3);padding-inline:var(--space-6)">The Sign toggles above let you
-          sign an existing petition.
-          <span class="citation" style="display:block">available to any associated resident · adds your signature to the petition</span></p>
+        <p class="cc-small" style="padding-block:var(--space-3);padding-inline:var(--space-6)">Signing is open to
+          anyone who lives at a petition&#39;s scale.</p>
       </section>
 
       <section class="card" aria-labelledby="create-h">
-        <h2 id="create-h">Petition creation</h2>
-        <p class="cc-small">Draft and register a citizen petition to place an initiative on the ballot.
-          <span class="citation" style="display:block">available to any associated resident · creates the petition</span></p>
+        <h2 id="create-h">Start a petition</h2>
+        <p class="cc-small">Draft the law you want and register it — signature gathering starts right away.</p>
         <form id="create-form" novalidate>
           <div class="field">
             <label class="field-label" for="pet-title">Title</label>
@@ -75,26 +71,25 @@
         <div class="banner banner--info" id="create-confirm" hidden style="margin-block-start:var(--space-4)">
           <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
           <div><span class="banner-title">Petition registered — signature gathering opens immediately.</span>
-            It enters the lifecycle at <em>Created</em> and appears in the list above for every associated resident of
-            the chosen scale. <span class="citation">Creates the petition.</span></div>
+            It appears in the list above for everyone who lives at the scale you chose.</div>
         </div>
       </section>
 
       <section class="card" aria-labelledby="life-h">
-        <h2 id="life-h">Petition lifecycle</h2>
+        <h2 id="life-h">How a petition travels</h2>
         <div id="pet-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Created → Gathering → Threshold-Reached → Signature-Audit → Constitutional-Review → Validated → On-Ballot → Adopted | Rejected | Invalidated.</p></noscript>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Two kill-paths: a failed signature audit, or an unconstitutional finding.</p>
-        <p class="citation">Signatures audited by the election board · constitutionality reviewed by the judiciary</p>
+        <noscript><p class="gloss">The progress strip renders with JavaScript — Created → Gathering → Threshold reached → Signature check → Constitution check → Validated → On the ballot → Adopted / Rejected / Invalidated.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Two ways a petition can stop: the signatures fail their check, or the law is found unconstitutional.</p>
+        <p class="citation">Signatures are checked by the independent election board; the constitution check is done by the courts.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p>This screen lets any associated resident draft and register a petition, sign open petitions, and follow a
-            petition through its lifecycle. The constitutionality review stage is handled by the judiciary.</p>
-          <p>Each petition moves through the states shown in the strip above; each list row badges its current state.</p>
-          <p>Signing is available to any associated resident of the petition's scale — you don't need to have started a
+          <p>This screen lets anyone who lives in a jurisdiction draft and register a petition, sign open petitions,
+            and follow a petition through its stages. The constitutionality review stage is handled by the judiciary.</p>
+          <p>Each petition moves through the stages shown in the strip above; each list row badges its current stage.</p>
+          <p>Signing is open to anyone who lives at the petition's scale — you don't need to have started a
             petition to sign one.</p>
         </div>
       </details>
@@ -182,9 +177,15 @@
         document.getElementById('stat-signed').textContent = n;
         document.getElementById('stat-open').textContent = W.petitions.length;
 
+        /* Progress strip — plain display labels via the shell's humanizer. */
+        var STAGE_LABEL = {
+          'Signature-Audit': 'Signature check',
+          'Constitutional-Review': 'Constitution check',
+          'On-Ballot': 'On the ballot'
+        };
         document.getElementById('pet-strip').innerHTML = BY.entities['Petition'].states.map(function (st, i) {
           return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
-            '<span class="state-node">' + esc(st) + '</span>';
+            '<span class="state-node">' + esc(S.plainState(st, STAGE_LABEL)) + '</span>';
         }).join('');
 
         updateThresholdHint();
@@ -206,7 +207,7 @@
           return;
         }
         document.getElementById('create-confirm').hidden = false;
-        document.getElementById('create-status').innerHTML = S.badge('success', 'Registered — Created state', 'check');
+        document.getElementById('create-status').innerHTML = S.badge('success', 'Registered — gathering signatures', 'check');
         S.refresh();
       });
 

@@ -43,13 +43,13 @@
     { id: 'v-stv', subject: 'How-Proportional-Voting-Works', title: 'How proportional voting works', seconds: 233,
       poster: 'elections', summary: 'STV with a Droop quota, in plain terms — why every vote moves and nothing is wasted.', audio: AUDIO_FULL, captions: CAP_FULL },
     { id: 'v-cast-ballot', subject: 'Cast-Your-Ballot', title: 'Casting your ballot', seconds: 158,
-      poster: 'elections', summary: 'The two-phase open ballot, the commitment, and ballot secrecy.', audio: AUDIO_FULL, captions: CAP_FULL },
+      poster: 'elections', summary: 'How you rank candidates, how your ballot is sealed and kept secret, and the receipt that proves it counted.', audio: AUDIO_FULL, captions: CAP_FULL },
     { id: 'v-stand', subject: 'Stand-for-Office', title: 'Standing for office', seconds: 187,
       poster: 'elections', summary: 'Declaring candidacy — an absolute right that needs only your residency.', audio: AUDIO_CORE, captions: CAP_FULL },
     { id: 'v-floor', subject: 'Take-the-Floor', title: 'Taking the floor in a live session', seconds: 175,
       poster: 'chamber', summary: 'Raise a hand, be recognized, your avatar steps to the well, you speak to the record.', audio: AUDIO_CORE, captions: CAP_FULL },
     { id: 'v-bill', subject: 'From-Bill-to-Law', title: 'From a bill to a law', seconds: 204,
-      poster: 'chamber', summary: 'A reading, a committee, the floor vote at peg quorum, and the versioned law.', audio: AUDIO_SEED, captions: CAP_FULL },
+      poster: 'chamber', summary: 'A reading, a committee, the floor vote — where a majority of all members must take part — and the finished law, every version kept.', audio: AUDIO_SEED, captions: CAP_FULL },
     { id: 'v-petition', subject: 'Petitions-and-Referendums', title: 'Petitions and referendums', seconds: 169,
       poster: 'chamber', summary: 'Gather signatures to the threshold; carry a question to a town hall and a vote.', audio: AUDIO_SEED, captions: CAP_FULL },
     { id: 'v-case', subject: 'Bring-a-Case', title: 'Bringing a case to court', seconds: 196,
@@ -59,11 +59,11 @@
     { id: 'v-org', subject: 'Found-an-Organization', title: 'Founding an organization', seconds: 183,
       poster: 'org', summary: 'Register a party, business, nonprofit, or common-good corp — and what co-determination means.', audio: AUDIO_CORE, captions: CAP_FULL },
     { id: 'v-square', subject: 'Post-in-the-Square', title: 'Posting in the public square', seconds: 134,
-      poster: 'social', summary: 'The square cannot be censored for viewpoint. The four carve-outs, and the legal floor.', audio: AUDIO_CORE, captions: CAP_FULL },
+      poster: 'social', summary: 'The square cannot be censored for viewpoint — and the four narrow, content-neutral limits that do exist.', audio: AUDIO_CORE, captions: CAP_FULL },
     { id: 'v-rep', subject: 'Meet-Your-Representative', title: 'Meeting your representative', seconds: 128,
       poster: 'social', summary: 'Office hours, a request for a meeting, a constituent message — fair representation in practice.', audio: AUDIO_SEED, captions: CAP_FULL },
     { id: 'v-units', subject: 'Units-and-the-Stipend', title: 'Units and the civic stipend', seconds: 211,
-      poster: 'econ', summary: 'What a unit is, how it subdivides, and the residency floor plus capped role differential.', audio: AUDIO_SEED, captions: CAP_FULL },
+      poster: 'econ', summary: 'What a unit is, how it subdivides, and the income floor every resident gets — plus a small, capped top-up for extra duties.', audio: AUDIO_SEED, captions: CAP_FULL },
     { id: 'v-market', subject: 'The-Market-and-Agreements', title: 'The market and agreements', seconds: 198,
       poster: 'econ', summary: 'Offers and requests, the order that becomes an agreement, and the Supremacy-of-Rights floor.', audio: AUDIO_SEED, captions: AUDIO_CORE },
     { id: 'v-joint', subject: 'Open-a-Joint-Ledger', title: 'Opening a joint ledger', seconds: 152,
@@ -71,7 +71,7 @@
     { id: 'v-node', subject: 'Set-Up-a-Node', title: 'Setting up a node', seconds: 246,
       poster: 'operator', summary: 'Claim an operator account, name the instance, pick a role, and join the mesh.', audio: AUDIO_CORE, captions: CAP_FULL },
     { id: 'v-channels', subject: 'Roles-and-Channels', title: 'Operator roles and channels', seconds: 218,
-      poster: 'operator', summary: 'The four named roles over the nine capability channels, and the dual-meter consent.', audio: AUDIO_SEED, captions: AUDIO_CORE },
+      poster: 'operator', summary: 'The four named roles over the nine capability channels, and how operator and government consent combine.', audio: AUDIO_SEED, captions: AUDIO_CORE },
     { id: 'v-translate', subject: 'Translate-and-Verify', title: 'Translating and verifying', seconds: 164,
       poster: 'learn', summary: 'How a string goes from an AI first draft to community-verified in your language.', audio: AUDIO_SEED, captions: CAP_FULL }
   ];
@@ -86,7 +86,7 @@
       steps: [
         { do: 'Open the live election', detail: 'From Today or the election notice. You can vote any time the window is open.' },
         { do: 'Rank the candidates', detail: 'Drag to order as many as you like. Ranking more never hurts your top choice.', cite: 'STV · Droop quota · Art. II §2' },
-        { do: 'Commit your ballot', detail: 'A commitment hash is recorded; the contents stay sealed until counting.', cite: 'Ballot secrecy · Art. II' },
+        { do: 'Commit your ballot', detail: 'A tamper-evident receipt is recorded; the contents stay sealed until counting.', cite: 'Ballot secrecy · Art. II' },
         { do: 'Keep your receipt', detail: 'You can confirm your ballot was counted without revealing how you voted.' }
       ],
       issues: ['ticket-ballot-confirm'] },
@@ -108,7 +108,7 @@
         { do: 'Enter the room', detail: 'Open the live session from Today. You start in the gallery.' },
         { do: 'Raise your hand', detail: 'Join the queue. The chair sees the order and who is waiting.' },
         { do: 'Be recognized', detail: 'When it is your turn your avatar moves to the floor and your border lights up.' },
-        { do: 'Speak to the record', detail: 'Your testimony is bridged to the public record.', cite: 'TestimonyBridge · F-SOC-002' }
+        { do: 'Speak to the record', detail: 'What you say enters the public record, permanently and in your name.' }
       ], issues: ['ticket-floor-queue'] },
 
     { id: 'file-petition', title: 'File a petition', icon: 'file-text', scope: 'citizen', module: 'Legislature',
@@ -116,7 +116,7 @@
       summary: 'Put a question to your jurisdiction. Gather signatures to the threshold and it carries to a town hall and a referendum.',
       steps: [
         { do: 'Write the question', detail: 'State a single, clear measure.' },
-        { do: 'Gather signatures', detail: 'Reach the petition threshold for your population.', cite: 'initiative_petition_threshold_pct · 5%' },
+        { do: 'Gather signatures', detail: 'Reach the petition threshold for your population.', cite: 'Petition threshold · 5% of residents' },
         { do: 'Hold the town hall', detail: 'Open deliberation in a Live Civic Room before the vote window.' },
         { do: 'Go to referendum', detail: 'The measure goes to a jurisdiction-wide vote.' }
       ], issues: [] },
@@ -143,12 +143,12 @@
 
     { id: 'post-square', title: 'Post in the square', icon: 'message-square', scope: 'citizen', module: 'Social',
       videoId: 'v-square', journeyId: 'mutual-aid', v1: 'system/public-records.html',
-      summary: 'Speak in the public square. It cannot be censored for viewpoint — only four narrow content-neutral carve-outs apply.',
+      summary: 'Speak in the public square. It cannot be censored for viewpoint — only four narrow, content-neutral limits (the “carve-outs”) apply.',
       steps: [
-        { do: 'Write your post', detail: 'Pseudonymity is allowed; your residency is never revealed.' },
+        { do: 'Write your post', detail: 'You don’t have to use your real name; where you live is never revealed.' },
         { do: 'Post to the square', detail: 'No viewpoint can be removed — that path does not exist in the code.', cite: 'Art. I · uncensorable square' },
-        { do: 'Know the four carve-outs', detail: 'Content-neutral only: imminent-harm, others’ private data, off-topic flooding, and the legal floor.' },
-        { do: 'Report illegal content', detail: 'The M-5 legal floor handles physical-law-illegal material off the constitutional plane.', cite: 'M-5 · §2258A' }
+        { do: 'Know the four limits', detail: 'Content-neutral only: imminent harm, other people’s private data, off-topic flooding, and content that breaks real-world law.' },
+        { do: 'Report illegal content', detail: 'Material that breaks real-world law goes straight to the moderation & legal team — separately from these constitutional rules.' }
       ], issues: ['ticket-square-flood'] },
 
     { id: 'meet-rep', title: 'Meet your representative', icon: 'user', scope: 'citizen', module: 'Social',
@@ -168,7 +168,7 @@
         { do: 'Post the offer', detail: 'Describe what you provide and the price in units.' },
         { do: 'Or answer a request', detail: 'Offers and requests are two sides of the same board.' },
         { do: 'Agree on terms', detail: 'An accepted order becomes a signed agreement.', cite: 'Supremacy of Rights · Art. I' },
-        { do: 'Settle privately', detail: 'Settlement writes only the private wallets, never federated.' }
+        { do: 'Settle privately', detail: 'Settlement is private — like a ballot, only the people in the agreement can read it.' }
       ], issues: ['ticket-market-units'] },
 
     { id: 'joint-ledger', title: 'Open a joint ledger', icon: 'lock', scope: 'citizen', module: 'Economy',
@@ -181,13 +181,13 @@
         { do: 'Watch the ledger', detail: 'Every signer sees every line; disputes go to court, not an admin.' }
       ], issues: [] },
 
-    { id: 'setup-node', title: 'Set up a node', icon: 'sliders', scope: 'operator', module: 'Operator plane',
+    { id: 'setup-node', title: 'Set up a node', icon: 'sliders', scope: 'operator', module: 'Running a node',
       videoId: 'v-node', journeyId: null, v1: 'jurisdictions/federation.html',
       summary: 'Stand up a server. Claim an operator account, name the instance, pick a role, and join the mesh. Operators answer to the seated government.',
       steps: [
         { do: 'Claim an operator account', detail: 'A local password, or link an existing mesh identity by device-key possession.' },
         { do: 'Name the instance', detail: 'Give the node a host name and the jurisdiction it serves.' },
-        { do: 'Pick a role', detail: 'Record Keeper is one click; the other three are requested.', cite: 'capability, not role · off the plane' },
+        { do: 'Pick a role', detail: 'Record Keeper is one click; the other three are requested.', cite: 'Operators serve the seated government' },
         { do: 'Join the mesh', detail: 'Discover peers, handshake, and cold-sync the public record.' }
       ], issues: ['ticket-node-cert'] },
 
@@ -203,7 +203,7 @@
 
     { id: 'report-issue', title: 'Report an issue', icon: 'flag', scope: 'citizen', module: 'Learn & support',
       videoId: null, journeyId: null, v1: null,
-      summary: 'Tell us when something is wrong. The report routes itself: bugs to operators, wording to the translators, abuse to the legal floor.',
+      summary: 'Tell us when something is wrong. The report routes itself: bugs to operators, wording to the translators, abuse to the moderation & legal team.',
       steps: [
         { do: 'Open the report', detail: 'The Report an issue link sits in the footer of every page.' },
         { do: 'Pick a category', detail: 'Bug, translation, accessibility, content, abuse, or an idea.' },
@@ -243,7 +243,7 @@
       summary: 'STV with a Droop quota — why no vote is wasted.',
       check: { q: 'What is the smallest a legislature may be?', options: ['1 seat', '3 seats', '5 seats'], answer: 2, explain: 'The minimum is 5 seats; above 9 the body must subdivide — Art. II §2.' } },
     { id: 'cast-your-ballot', track: 'elections-track', title: 'Casting your ballot', videoId: 'v-cast-ballot', sopId: 'cast-ballot', journeyId: 'election', seconds: 158,
-      summary: 'The two-phase open ballot and the commitment scheme.',
+      summary: 'How you cast — and how a sealed receipt proves your ballot counted without revealing it.',
       check: { q: 'Does ranking more candidates hurt your first choice?', options: ['Yes', 'No — your top choice is counted first regardless', 'Only in small races'], answer: 1, explain: 'Under STV your vote transfers only after your higher choices are decided.' } },
     { id: 'stand-for-office', track: 'elections-track', title: 'Standing for office', videoId: 'v-stand', sopId: 'stand-for-office', journeyId: 'election', seconds: 187,
       summary: 'Declaring candidacy as an absolute right.',
@@ -267,8 +267,8 @@
       check: { q: 'What can the Art. IV §5 challenge ultimately do?', options: ['Nothing binding', 'Edit a law directly, with full history preserved', 'Dissolve the legislature'], answer: 1, explain: 'The third path ends in a judicial remedy law version — the edit is recorded, history kept.' } },
 
     { id: 'units-and-stipend', track: 'economy-track', title: 'Units & the civic stipend', videoId: 'v-units', planned: true, seconds: 211,
-      summary: 'What a unit is and the residency floor plus capped role differential.',
-      check: { q: 'The civic stipend is best described as…', options: ['A salary for office', 'A residency floor plus a small capped role differential', 'A loan'], answer: 1, explain: 'Pay can never become a qualification for office; the differential is add-only and capped.' } },
+      summary: 'What a unit is, and the income floor every resident gets — plus a small, capped top-up for extra duties.',
+      check: { q: 'The civic stipend is best described as…', options: ['A salary for office', 'An income floor for every resident, plus a small capped top-up for extra duties', 'A loan'], answer: 1, explain: 'Pay can never become a qualification for office; the top-up is add-only and capped.' } },
     { id: 'market-and-agreements', track: 'economy-track', title: 'The market & agreements', videoId: 'v-market', sopId: 'market-offer', planned: true, seconds: 198,
       summary: 'Offers, requests, and the Supremacy-of-Rights floor on every agreement.',
       check: { q: 'What floor sits under every agreement?', options: ['Whatever the parties write', 'The Supremacy of Rights — no agreement can waive a constitutional right', 'The operator’s terms'], answer: 1, explain: 'Every instrument carries a constitutional floor — Art. I.' } },
@@ -278,7 +278,7 @@
 
     { id: 'operator-basics', track: 'running-a-node', title: 'Setting up a node', videoId: 'v-node', sopId: 'setup-node', seconds: 246,
       summary: 'Account, instance, role, mesh — and answering to the government.',
-      check: { q: 'Operators are best understood as…', options: ['The owners of the government', 'A de-facto board answerable to the seated government', 'Above the constitution'], answer: 1, explain: 'The operator plane is capability, not role; Meter B (the seated government) supersedes Meter A.' } },
+      check: { q: 'Operators are best understood as…', options: ['The owners of the government', 'A de-facto board answerable to the seated government', 'Above the constitution'], answer: 1, explain: 'Operators hold capabilities, not authority — once a government is seated, its consent always outranks the operators’.' } },
     { id: 'roles-and-channels', track: 'running-a-node', title: 'Roles & channels', videoId: 'v-channels', seconds: 218,
       summary: 'The four named roles over the nine capability channels.',
       check: { q: 'Which role can a fresh node take in one click?', options: ['Identity Broker', 'Social Moderator', 'Record Keeper'], answer: 2, explain: 'Record Keeper is self-asserted; the other three are governed and must be requested.' } },

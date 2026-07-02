@@ -17,6 +17,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import CandidateRow from '@/Components/Electoral/CandidateRow.vue';
 import FinalistLine from '@/Components/Electoral/FinalistLine.vue';
@@ -30,6 +31,14 @@ import FilterBar from '@/Components/Ui/FilterBar.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+import { useJourneyNudge } from '@/composables/useJourneyNudge';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
+
+/* Phase 3c — the soft-gate pattern-proof: nudge a first-time voter toward
+   the election journey. Dismissible, never blocking (useJourneyNudge doc). */
+const nudge = useJourneyNudge('election');
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -188,8 +197,11 @@ function switchRace(raceId) {
 <template>
     <PageScaffold :surface="surface" :title="race ? `Open ballot — ${race.label}` : 'Open ballot'">
         <template #intro>
-            Approve as many candidates as you like — approvals are revocable any time during the
-            approval phase, and the top X by approvals advance to the ranked ballot.
+            The continuous approval phase: anyone who lives here can run, and any voter can
+            approve — and un-approve — at any time. The top
+            {{ finalistX || 'X' }} candidates when the phase closes lock onto the ranked
+            ballot. Approving here costs you nothing on election day: you will still rank
+            freely among the finalists, and write-ins always remain open.
         </template>
         <template #about>
             <p>
@@ -199,6 +211,17 @@ function switchRace(raceId) {
                 rows.
             </p>
         </template>
+
+        <!-- Phase 3c — journey nudge (soft gate: informs, never blocks) -->
+        <Banner v-if="nudge.show.value" tone="info">
+            First time voting here? The election journey walks the whole arc in five minutes.
+            <span class="cluster" style="margin-block-start: var(--space-1)">
+                <Btn :as="Link" :href="nudge.href" variant="secondary" size="sm">
+                    Take the journey
+                </Btn>
+                <Btn variant="ghost" size="sm" @click="nudge.dismiss()">Dismiss</Btn>
+            </span>
+        </Banner>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
         <Banner v-if="errors.constitution" tone="warning" title="Action rejected by the constitutional engine">

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live Civic Room — CGA mockups v2</title>
+  <title>Live Civic Room — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -19,7 +19,12 @@
 
   <script>
     window.CGA_PAGE = {
-      id: 'shared/live-room', title: 'Live Civic Room', module: 'shared', nav: 'room-committee',
+      id: 'shared/live-room', title: 'Live Civic Room', module: 'shared',
+      /* nav follows the room variant so the sidebar highlights the room you are in */
+      nav: 'room-' + (function () {
+        try { return new URLSearchParams(location.search).get('variant') || 'committee'; }
+        catch (e) { return 'committee'; }
+      })(),
       citation: 'The Live Civic Room — the form + the live social floor, fused', register: 'governance'
     };
   </script>
@@ -46,6 +51,8 @@
     var st = JSON.parse(JSON.stringify(CFG));
     var voteCalled = !!(st.vote && st.vote.tallies); /* legislative starts mid-vote */
     var clockRunning = false, speakingLeft = st.clocks.speaking, clockTimer = null;
+    /* your AV state in the call (simulated; mirrors the wired useVoiceRoom) */
+    var call = { joined: false, mic: true, cam: true, sharing: false };
 
     var root = document.getElementById('lr-root');
 
@@ -191,20 +198,18 @@
         /* quorum meter */
         meterHtml(v.quorum.present, v.serving, v.quorum.required,
           v.quorum.present + ' of ' + v.serving + ' serving present',
-          'peg quorum: ' + v.quorum.required + ' of ' + v.serving + ' serving', 'Quorum — present of all serving') +
+          'needs ' + v.quorum.required + ' of all ' + v.serving + ' serving', 'Quorum — present of all serving') +
         /* votes-in-favor meter */
         meterHtml(t.yes, v.serving, v.requiredYes,
           t.yes + ' yes of ' + v.serving + ' (all serving)',
-          'needs ' + v.requiredYes + ' of ' + v.serving, 'Votes in favor — of all serving') +
-        '<p class="gloss">' + esc(v.gloss || 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.') + '</p>' +
+          'needs ' + v.requiredYes + ' yes of all ' + v.serving + ' serving', 'Votes in favor — of all serving') +
+        '<p class="gloss">' + esc(v.gloss || 'Both bars count every serving seat, so absence never shrinks the bar — an absent member counts the same as a no.') + '</p>' +
         (!decided && canCast()
           ? '<div class="lr-cast"><span class="citation">cast as ' + esc((BY.roles[window.CGA.state.get('role')] || {}).shortName || (BY.roles[window.CGA.state.get('role')] || {}).name || 'a member') + ':</span>' +
             '<button type="button" class="btn btn--primary btn--sm" data-act="cast" data-v="yes">Vote yes</button>' +
             '<button type="button" class="btn btn--danger btn--sm" data-act="cast" data-v="no">Vote no</button>' +
             '<button type="button" class="btn btn--secondary btn--sm" data-act="cast" data-v="abstain">Abstain</button></div>'
           : (decided ? '' : '<p class="pill pill--wait">Only seated members vote here</p>')) +
-        '<details style="margin-block-start:var(--space-2)"><summary class="citation" style="cursor:pointer">Why these numbers — the rules</summary>' +
-        '<p class="about-surface-body" style="padding-inline:0">Every number is an engine snapshot, never recomputed in the UI: <code class="cc-code">serving</code> is every seat that is filled; an absent or vacant seat counts the same as a no; the threshold line is drawn at <code class="cc-code">' + v.requiredYes + ' of ' + v.serving + '</code>. ' + (st.vote.deepLink ? 'Ranked and STV votes open the v1 count surface.' : '') + '</p></details>' +
         '</section>';
     }
     function canCast() {
@@ -280,7 +285,7 @@
           '<span class="chat-handle">' + esc(mxid(m.handle)) + '</span>' +
           (m.seat ? '<span class="chat-seat" title="acting seat, computed live">' + esc(m.seat) + '</span>' : '') +
           '</div><div class="chat-body">' + esc(m.body) + '</div>' +
-          (m.testimony ? '<span class="chat-testimony">' + S.icon('check', { size: 'sm' }) + ' filed as testimony → sealed to the record</span>' : '') +
+          (m.testimony ? '<span class="chat-testimony">' + S.icon('check', { size: 'sm' }) + ' filed as testimony — sealed to the public record</span>' : '') +
           '</div>';
       }).join('');
       var compose = st.residencyGated
@@ -291,17 +296,121 @@
         (st.variant === 'court' || st.constitutionalOrder || st.variant === 'committee' || st.variant === 'townhall' ? ' · in the halls you may file your own message as testimony' : '') + '</p>';
     }
     function voiceHtml() {
-      return '<div class="lr-voice">' + S.icon('users', { size: 'sm' }) +
-        '<span>Voice: ' + st.voice.participants.length + ' in the call</span>' +
-        '<button type="button" class="btn btn--secondary btn--sm">Join voice</button>' +
+      /* compact rail mirror of the call surface on the stage */
+      return '<div class="lr-voice">' + S.icon('phone', { size: 'sm' }) +
+        '<span>In the call: ' + (st.voice.participants.length + (call.joined ? 1 : 0)) + '</span>' +
+        (call.joined
+          ? '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span> connected</span>'
+          : '<button type="button" class="btn btn--secondary btn--sm" data-act="call-join">Join voice</button>') +
         '<span class="lr-rail-flag">' + S.icon('shield', { size: 'sm' }) + (st.voice.residencyGated ? 'residents only on the floor; anyone may listen' : 'open to members') + '</span></div>';
+    }
+
+    /* ---------- the call surface (the stage) — mirrors the WIRED LiveKit room:
+       ChamberStage (presenter tiles above a responsive camera grid, speaking
+       ring, avatar fallback, "you" badge) + VoiceControls (join/leave, mic /
+       camera / screen-share toggles, camera-mic-speaker device pickers). ---- */
+    var DEVICES = {
+      camera: ['Built-in camera', 'USB webcam'],
+      mic: ['Built-in microphone', 'Headset microphone'],
+      speaker: ['Speakers', 'Headset']
+    };
+    function tileInitials(label) {
+      var s2 = String(label || '').replace(/^@?u-/, '').replace(/[^a-zA-Z0-9 ]/g, ' ').trim();
+      var parts = s2.split(/\s+/);
+      return ((parts[0] || '?').charAt(0) + (parts[1] ? parts[1].charAt(0) : (parts[0] || '').charAt(1) || '')).toUpperCase();
+    }
+    function callTile(o) {
+      /* o: { handle, label, cam, speaking, screen, screenTitle, muted, you } */
+      var cls = 'lr-tile' + (o.screen ? ' lr-tile--screen' : (o.speaking ? ' lr-tile--speaking' : ''));
+      var body;
+      if (o.screen) {
+        body = '<div class="lr-tile-doc" aria-hidden="true"><span class="doc-title">' + esc(o.screenTitle || 'Shared screen') + '</span>' +
+          '<span class="doc-line" style="inline-size:82%"></span><span class="doc-line" style="inline-size:94%"></span>' +
+          '<span class="doc-line" style="inline-size:71%"></span><span class="doc-line" style="inline-size:88%"></span></div>';
+      } else if (o.cam) {
+        body = '<div class="lr-tile-cam" aria-hidden="true"><span class="avatar">' + esc(tileInitials(o.label)) + '</span></div>';
+      } else {
+        body = '<span class="avatar" aria-hidden="true">' + esc(tileInitials(o.label)) + '</span>';
+      }
+      var badge = o.screen ? S.icon('screen-share', { size: 'sm' }) : (o.muted ? S.icon('mic-off', { size: 'sm' }) : '');
+      return '<div class="' + cls + '">' + body +
+        '<div class="lr-tile-label">' + badge +
+        '<span class="t-name">' + esc(o.label) + (o.screen ? ' · screen' : '') + '</span>' +
+        (o.you ? '<span class="lr-tile-you">you</span>' : '') + '</div></div>';
+    }
+    function callHtml() {
+      var others = st.voice.participants.map(function (h) { return findPresence(h) || { handle: h }; });
+      var count = others.length + (call.joined ? 1 : 0);
+      var youHandle = V2.handleFor(window.CGA.state.get('persona')) || 'you';
+      var flag = st.voice.residencyGated ? 'Residents may take the floor; anyone may listen.' : 'Open to members.';
+
+      var head = '<div class="lr-call-head"><span style="font-weight:var(--weight-medium)">In ' + esc(SCENE_NAME[st.variant] || 'the room') + '</span>' +
+        '<span class="live">' + (call.joined
+          ? '<span class="lr-call-dot" aria-hidden="true"></span>' + count + ' in the call'
+          : 'Not connected') + '</span></div>';
+
+      if (!call.joined) {
+        return '<section class="lr-call" aria-label="The call">' + head +
+          '<div class="lr-call-empty">No one is on the floor for you yet — join the voice call to take your seat. ' +
+          'You choose what to share: voice, camera, screen, or just your presence.</div>' +
+          '<div class="lr-call-controls">' +
+          '<button type="button" class="btn btn--primary btn--sm" data-act="call-join">' + S.icon('phone', { size: 'sm' }) + ' Join voice</button>' +
+          '<span class="lr-rail-flag">' + S.icon('shield', { size: 'sm' }) + esc(flag) + '</span></div>' +
+          '<p class="citation" style="margin-block-start:var(--space-2)">Mockup — the wired room runs a real call on your node’s own media server (LiveKit); nothing routes through an outside service.</p>' +
+          '</section>';
+      }
+
+      /* presenter tiles above the camera grid — the floor holder shares the
+         document on the floor; your screen joins when you hit Share screen */
+      var presenterH = st.floorHolder || (others[0] && others[0].handle);
+      var screens = '';
+      if (presenterH) screens += callTile({ label: mxid(presenterH), screen: true, screenTitle: st.floor.title });
+      if (call.sharing) screens += callTile({ label: mxid(youHandle), screen: true, screenTitle: 'Your screen', you: true });
+      var twoUp = (presenterH && call.sharing) ? ' two-up' : '';
+
+      var grid = others.map(function (p, i) {
+        var speaking = p.handle === st.floorHolder || !!p.speaking;
+        return callTile({ label: mxid(p.handle), cam: speaking || i === 0, speaking: speaking, muted: !speaking && i % 2 === 1 });
+      }).join('');
+      grid += callTile({ label: mxid(youHandle), cam: call.cam, muted: !call.mic, you: true });
+
+      var controls = '<div class="lr-call-controls">' +
+        (call.mic
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-mic" aria-pressed="false">' + S.icon('mic', { size: 'sm' }) + ' Mic on</button>'
+          : '<button type="button" class="btn btn--danger btn--sm" data-act="call-mic" aria-pressed="true">' + S.icon('mic-off', { size: 'sm' }) + ' Mic off</button>') +
+        (call.cam
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-cam" aria-pressed="false">' + S.icon('video', { size: 'sm' }) + ' Camera on</button>'
+          : '<button type="button" class="btn btn--ghost btn--sm" data-act="call-cam" aria-pressed="true">' + S.icon('video-off', { size: 'sm' }) + ' Camera off</button>') +
+        (call.sharing
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-share" aria-pressed="true">' + S.icon('screen-share-off', { size: 'sm' }) + ' Stop share</button>'
+          : '<button type="button" class="btn btn--ghost btn--sm" data-act="call-share" aria-pressed="false">' + S.icon('screen-share', { size: 'sm' }) + ' Share screen</button>') +
+        '<button type="button" class="btn btn--danger btn--sm" data-act="call-leave">' + S.icon('phone-off', { size: 'sm' }) + ' Leave</button>' +
+        '</div>';
+
+      function picker(kind, icon2, list) {
+        return '<label>' + S.icon(icon2, { size: 'sm' }) + '<select data-call-device="' + kind + '" aria-label="' + kind + '">' +
+          list.map(function (d) { return '<option>' + esc(d) + '</option>'; }).join('') + '</select></label>';
+      }
+      var devices = '<div class="lr-call-devices">' +
+        picker('camera', 'video', DEVICES.camera) +
+        picker('microphone', 'mic', DEVICES.mic) +
+        picker('speaker', 'volume', DEVICES.speaker) +
+        '</div>';
+
+      return '<section class="lr-call" aria-label="The call">' + head +
+        (screens ? '<div class="lr-call-screens' + twoUp + '">' + screens + '</div>' : '') +
+        '<div class="lr-call-grid">' + grid + '</div>' +
+        controls + devices +
+        '<p class="citation" style="margin-block-start:var(--space-2)">' + esc(flag) +
+        ' Mockup — the wired room runs a real call on your node’s own media server (LiveKit); nothing routes through an outside service.</p>' +
+        '</section>';
     }
     function translateHtml() {
       var blocked = st.translation.isPrivate;
       return '<div class="lr-translate">' + S.icon('languages', { size: 'sm' }) +
         '<label class="demo-control">Show in: <select aria-label="Translate this room"><option>' + esc(st.translation.to) + '</option><option>' + esc(st.translation.from) + '</option></select></label>' +
         '<span class="lr-rail-flag' + (blocked ? ' lr-rail-flag--blocked' : '') + '">' + S.icon('lock', { size: 'sm' }) +
-        (blocked ? 'private room — never sent to a cloud translator (server-local only)' : 'translated on this server; private rooms are never sent to a cloud translator') + '</span></div>';
+        (blocked ? 'private room — translated by the game itself, never by an outside service; only the people named here can read it' : 'translated by the game itself; a private room is never sent to an outside translation service') + '</span></div>';
     }
     function moderationNote() {
       if (st.residencyGated) {
@@ -323,13 +432,13 @@
         return '<div class="record-row"><span class="rec-handle">' + esc(mxid(r.handle)) + '</span>' +
           '<span class="rec-body">' + esc(r.body) + '</span>' +
           '<span class="seal--' + r.sealState + '">' + S.icon(s[1], { size: 'sm' }) + ' ' + esc(s[0]) + '</span>' +
-          (r.recordHref ? ' <a class="citation" href="' + S.hrefV1(r.recordHref) + '">on the chain ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
+          (r.recordHref ? ' <a class="citation" href="' + S.hrefV1(r.recordHref) + '">view in the public record ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
           '</div>';
       }).join('');
       return '<section class="lr-record"><div class="cluster" style="justify-content:space-between">' +
-        '<span class="eyebrow">The record — testimony bridge</span>' +
-        '<span class="never-federated" title="Plane B (Matrix) → Plane A (append-only public record)">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
-        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements in the halls are sealed into the append-only record · pseudonymity preserved</p>' +
+        '<span class="eyebrow">The record</span>' +
+        '<span class="never-federated" title="What’s said here is saved to the permanent public record">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
+        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements made here are sealed to the permanent public record — under your handle, never your legal name</p>' +
         rows + '</section>';
     }
 
@@ -341,14 +450,13 @@
       var forms = (st.forms || []).map(function (id) {
         return '<span class="form-chip">' + esc(formTitle(id)) + '</span>';
       }).join(' ');
-      var reuse = (st.reusesV1 || []).map(function (r) { return '<a class="citation" href="' + S.hrefV1(r) + '">' + esc(r) + '</a>'; }).join(' · ');
-      var prod = (st.productionPages || []).map(function (p) { return '<code class="cc-code">' + esc(p) + '</code>'; }).join(' · ');
+      /* reusesV1 / productionPages stay in the room config data for the build
+         team — they are not rendered here. */
       return '<details class="about-surface"><summary>' + S.icon('chevron-right', { size: 'sm' }) + ' The machinery behind this room</summary>' +
         '<div class="about-surface-body">' +
         '<p>The player-facing controls are plain buttons; each maps to a constitutional form filed by the engine. The forms in play here:</p>' +
         '<p class="cluster" style="gap:var(--space-1)">' + (forms || '<span class="gloss">no constitutional forms — this room is deliberation only</span>') + '</p>' +
-        (reuse ? '<p><strong>Reuses v1:</strong> ' + reuse + '</p>' : '') +
-        (prod ? '<p><strong>Production surfaces:</strong> ' + prod + '</p>' : '') +
+        (st.vote ? '<p>The vote numbers come straight from the counting engine — this page never does its own math. “Serving” counts every filled seat, so an absent or vacant seat counts the same as a no; that is why the bar never lowers when people stay home.</p>' : '') +
         '<p class="citation">Speaker-queue recognition, timers, calling the question, and declaring results are human chair acts. Quorum checks, tabulation, threshold math, and record-sealing are automatic and shown as ambient.</p>' +
         '</div></details>';
     }
@@ -372,7 +480,7 @@
         (st.vote ? '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> yes</span><span><span class="lr-legend-dot" style="background:var(--status-danger)"></span> no</span><span><span class="lr-legend-dot" style="background:var(--status-warning)"></span> abstain</span>' : '') +
         '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> chair</span></div>';
       var orderNote = st.variant === 'legislative'
-        ? '<p class="citation" style="margin-block-start:var(--space-2)">A chamber in the round — the Speaker at the head, members seated by tenure, then by relative performance.</p>'
+        ? '<p class="citation" style="margin-block-start:var(--space-2)">A chamber in the round — no head of the room; the Speaker’s seat is marked in gold, and members alternate most-senior/least-senior around the circle.</p>'
         : '';
       return '<section class="lr-chamber"><div class="lr-chamber-head">' +
         '<span class="eyebrow">In ' + esc(SCENE_NAME[st.variant] || 'the room') + ' — you are here</span>' + legend + '</div>' +
@@ -394,7 +502,7 @@
         chamberHtml() +
         agendaHtml() +
         '<div class="lr-body">' +
-          '<div class="lr-stage">' + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
+          '<div class="lr-stage">' + callHtml() + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
           '<div class="lr-rail">' + rail + '</div>' +
         '</div>' +
         galleryHtml() +
@@ -488,6 +596,15 @@
       else if (act === 'cast') cast(b.getAttribute('data-v'));
       else if (act === 'raise') raiseHand();
       else if (act === 'advance') advance();
+      else if (act === 'call-join') { call.joined = true; S.announce('You joined the call (simulated) — mic on, camera on.'); render(); }
+      else if (act === 'call-leave') { call.joined = false; call.sharing = false; S.announce('You left the call.'); render(); }
+      else if (act === 'call-mic') { call.mic = !call.mic; S.announce(call.mic ? 'Microphone on.' : 'Microphone muted.'); render(); }
+      else if (act === 'call-cam') { call.cam = !call.cam; S.announce(call.cam ? 'Camera on.' : 'Camera off.'); render(); }
+      else if (act === 'call-share') { call.sharing = !call.sharing; S.announce(call.sharing ? 'You are sharing your screen (simulated — the wired room opens the browser picker).' : 'Screen share stopped.'); render(); }
+    });
+    root.addEventListener('change', function (ev) {
+      var d = ev.target.closest ? ev.target.closest('[data-call-device]') : null;
+      if (d) S.announce('Switched ' + d.getAttribute('data-call-device') + ' to ' + d.value + ' (simulated).');
     });
     root.addEventListener('submit', function (ev) {
       var f = ev.target.closest ? ev.target.closest('[data-act="post"]') : null;

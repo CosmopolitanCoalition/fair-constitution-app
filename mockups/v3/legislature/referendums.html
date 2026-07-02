@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Referendums — CGA mockups</title>
+  <title>Referendums — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,15 +17,16 @@
         <span class="eyebrow">Legislature · direct democracy</span>
         <h1>Referendums — New York County</h1>
         <p class="page-intro">The legislature can put any issue to the population by supermajority. The passage
-          threshold is not chosen — it is fixed by the act type: a majority-class act resolves by majority of the
-          population, a supermajority-class act by supermajority.</p>
+          threshold is not chosen — it matches the kind of act: a question the legislature could pass by simple
+          majority resolves by a majority of the population; one that would need a supermajority resolves by a
+          population supermajority.</p>
         <p class="citation">The legislature delegates a question; it then runs as a population-wide vote.</p>
       </header>
 
       <section class="card" aria-labelledby="delegate-h">
         <h2 id="delegate-h">Delegate a question <span class="form-chip">Referendum delegation vote</span></h2>
         <p class="cc-small">Vote by supermajority to put a specific issue to the population via referendum.
-          <span class="citation">available to legislative representatives</span></p>
+          <span class="citation">available to legislators</span></p>
         <form id="delegate-form">
           <div class="field">
             <label class="field-label" for="ref-question">Question put to the population</label>
@@ -49,7 +50,7 @@
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--primary btn--sm">Delegate to referendum</button>
-            <span class="citation">requires supermajority of the legislature — 6 of 9</span>
+            <span class="citation">requires supermajority of the legislature — 6 of 8 serving</span>
           </div>
         </form>
         <div id="delegate-confirm" style="margin-block-start:var(--space-3)"></div>
@@ -60,12 +61,12 @@
         <div id="queue-list" class="stack" style="gap:var(--space-3)"></div>
         <noscript><p>The queue renders with JavaScript — one participatory-budget question is queued.</p></noscript>
         <div class="state-strip" style="margin-block-start:var(--space-3)">
-          <span class="state-node state-node--current">Delegated/Queued</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node state-node--current">Delegated / queued</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Scheduled</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Voted</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Passed | Failed</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Passed or failed</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Law</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Ordinary law after general election</span>
+          <span class="state-node">Ordinary law after the general election</span>
         </div>
         <p class="citation" style="margin-block-start:var(--space-2)">Questions ride the next jurisdiction-wide ballot · ballots cast as a referendum vote</p>
       </section>
@@ -80,13 +81,13 @@
         <h2 id="modify-h">Modify or repeal a referendum act <span class="form-chip">Referendum act modification vote</span></h2>
         <p class="cc-small">Modify or repeal an act passed by referendum — supermajority in the same term, ordinary
           process in any subsequent term. Acts passed by a <strong>population supermajority</strong> cannot be touched
-          at all this term. <span class="citation">available to legislative representatives</span></p>
+          at all this term. <span class="citation">available to legislators</span></p>
         <div class="stack" style="gap:var(--space-3)">
           <div class="cluster" style="justify-content:space-between">
             <span><strong style="color:var(--gov-fg)">Hudson River greenway bond act (2030)</strong> — passed by majority of the population</span>
             <span class="cluster">
               <button type="button" class="btn btn--secondary btn--sm" id="modify-majority">Propose modification</button>
-              <span class="citation">this term: supermajority 6 of 9 · next term: ordinary act</span>
+              <span class="citation">this term: supermajority 6 of 8 serving · next term: ordinary act</span>
             </span>
           </div>
           <div id="modify-confirm"></div>
@@ -192,7 +193,7 @@
         var q = document.getElementById('ref-question');
         if (!q.value.trim()) return;
         queue.push({ q: q.value.trim(), threshold: document.getElementById('threshold-value').textContent,
-          via: 'Delegated 2031-06-11 · pending supermajority floor vote (6 of 9)' });
+          via: 'Delegated 2031-06-11 · pending supermajority floor vote (6 of 8 serving)' });
         q.value = '';
         document.getElementById('delegate-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
@@ -206,7 +207,7 @@
         document.getElementById('modify-confirm').innerHTML =
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Modification bill drafted</span>Same-term change to a referendum act requires a ' +
-          'supermajority — 6 of 9. Continue in the <a href="bills.html">bill flow</a>.</div></div>';
+          'supermajority — 6 of 8 serving. Continue in the <a href="bills.html">bill flow</a>.</div></div>';
         S.refresh();
       });
       document.addEventListener('cga:statechange', render);

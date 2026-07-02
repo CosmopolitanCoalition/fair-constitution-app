@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ranked ballot — CGA mockups</title>
+  <title>Ranked ballot — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,8 +17,8 @@
         <span class="eyebrow">Elections · ranked window</span>
         <h1>Ranked ballot — Kings County general election</h1>
         <p class="page-intro">Five seats, fifteen finalists, one count. Rank as many candidates as you like —
-          in a multi-winner district, ranking for <strong>all seats</strong> keeps your vote alive through surplus and
-          elimination transfers. Your ballot is secret; your receipt hash lets you verify it was counted.</p>
+          ranking for <strong>all seats</strong> keeps your vote alive as the count unfolds. Your ballot is secret;
+          your receipt code lets you check it was counted.</p>
         <p class="citation">Ranked-choice ballot · available to any confirmed voter</p>
         <p class="citation">Window closes 2031-05-30 19:59 <span data-no-i18n>·</span> shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
       </header>
@@ -26,11 +26,11 @@
       <div class="banner banner--info">
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
         <div><span class="banner-title">How the count works</span>
-          Walk it step by step: casting a ranked ballot ·
-          the full election cycle.
-          Instant multi-winner PR-STV with the Droop quota: every candidate reaching the quota is elected, surpluses
-          transfer at fractional value (Gregory method), and all 5 seats fill in one count.
-          <span class="gloss">Droop quota — the smallest vote total that only 5 candidates can all reach: floor(votes ÷ (seats + 1)) + 1.</span>
+          Your vote moves to your next choice when your favorite either wins with room to spare or is eliminated —
+          so no vote is wasted. Every candidate who reaches the quota is elected, and all 5 seats fill in one
+          instant count.
+          <span class="gloss">The quota — the smallest vote total that only 5 candidates can all reach. The exact
+          formula lives in Learn.</span>
           <span class="citation">Proportional ranked-choice counting with the Droop quota — a permanent rule</span></div>
       </div>
 
@@ -63,8 +63,8 @@
       <section class="card" id="review-card" hidden aria-labelledby="review-h">
         <h2 id="review-h">Review &amp; commit</h2>
         <ol id="review-list"></ol>
-        <p class="cc-small">Committing encrypts your ballot and separates it cryptographically from your identity.
-          You will receive a receipt hash for self-audit; nobody can connect it back to you.</p>
+        <p class="cc-small">Committing encrypts your ballot and separates it from your identity.
+          You will receive a receipt code so you can check your own ballot; nobody can connect it back to you.</p>
         <p class="citation">Your identity is cryptographically separated from your ballot — election security and integrity.</p>
         <div class="cluster">
           <button type="button" class="btn btn--gold" id="commit-btn">Commit ballot</button>
@@ -80,7 +80,7 @@
             <p class="toast-body">Your ranked ballot is in the count for Kings County.</p>
             <span class="proposed-flag">Proposed — gamification layer</span></div>
         </div>
-        <p>Your receipt hash — keep it to verify your ballot was tabulated (the lookup is anonymized):</p>
+        <p>Your receipt code — keep it to check your ballot was counted (the lookup is anonymized):</p>
         <p class="receipt" id="receipt-hash" data-no-i18n></p>
         <p><a href="results.html">Self-audit in the public count record
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
@@ -122,8 +122,8 @@
         <div class="about-surface-body">
           <p><strong>What this screen does:</strong> casting a ranked ballot during a general election; the finalists
             arrive from the earlier approval round.</p>
-          <p><strong>Ballot lifecycle:</strong> Draft → Reviewed → Committed → Tabulated; the receipt
-            hash is your handle on the tabulated state.</p>
+          <p><strong>Ballot lifecycle:</strong> a ballot moves from draft to reviewed to committed to counted; the
+            receipt code is your handle on the counted ballot.</p>
           <p><strong>Interaction note:</strong> ranking is click-to-rank with ↑/↓ — keyboard operable, no drag required.</p>
         </div>
       </details>
@@ -169,8 +169,8 @@
 
       function slugify(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
       function profileHref(n) {
-        return S.href('electoral/candidate-profile.html?candidate=' + slugify(n) +
-          '&name=' + encodeURIComponent(n) + '&race=elec-brooklyn-2031');
+        return S.href('social/profile.html?who=' + slugify(n) +
+          '&name=' + encodeURIComponent(n) + '&race=elec-brooklyn-2031&tab=candidacy');
       }
 
       function renderFinalists() {
@@ -260,7 +260,7 @@
         var quotaNow = Math.floor(ballotsSoFar / (seats + 1)) + 1;
         var max = agg[0][1] * 1.3;
         document.getElementById('live-agg').innerHTML =
-          '<p class="citation">' + ballotsSoFar.toLocaleString('en-US') + ' ballots so far · Droop quota if closed now: ' + quotaNow.toLocaleString('en-US') + '</p>' +
+          '<p class="citation">' + ballotsSoFar.toLocaleString('en-US') + ' ballots so far · votes needed to win a seat (the quota) if closed now: ' + quotaNow.toLocaleString('en-US') + '</p>' +
           agg.map(function (c) {
             var lead = c[1] >= quotaNow;
             return '<div class="stv-cand' + (lead ? ' stv-cand--elected' : '') + '">' +

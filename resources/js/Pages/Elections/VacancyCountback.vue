@@ -13,6 +13,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -23,6 +24,9 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import StvBar from '@/Components/Electoral/StvBar.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -111,10 +115,10 @@ const dateError = computed(
         <template #intro>
             {{ vacancy.member_name ?? 'The member' }}
             {{ vacancy.reason === 'resigned' || !vacancy.reason ? 'resigned' : `was ${vacancy.reason}` }}.
-            No new election is needed yet: the countback engine re-runs the prior election's
-            ballots with the vacated member removed as a candidate. The voters' original
-            preferences decide the replacement — only if those ballots exhaust does a special
-            election follow.
+            No new election is needed yet: the game re-runs the prior election's ballots with
+            the vacated member removed as a candidate (a "vacancy countback"). The voters'
+            original preferences decide the replacement — only if those ballots run out does
+            a special election follow.
         </template>
 
         <p class="citation">Vacancies filled by countback of prior ballots · Art. II §5 · countback engine — hardened</p>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Constitutional challenge — CGA mockups</title>
+  <title>Constitutional challenge — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -72,6 +72,11 @@
       var resolution = 'open';
       var overrideVotes = 4, overrideOf = 9, overrideNeed = 6;
 
+      /* Codes stripped by the shell; the surviving role-phrase gets player words. */
+      function who(raw) {
+        return S.plainCodes(raw).replace(/jurisdictionally associated/ig, 'any verified resident');
+      }
+
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
@@ -79,16 +84,30 @@
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong></div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</span>' +
+          '<span class="citation">available to ' + esc(who(f.availableToRaw)) + '</span>' +
           (extra || '') + '</div>';
       }
 
-      function entityStrip(currentState) {
-        return '<div class="card card--inset"><span class="eyebrow">Constitutional Challenge state machine</span>' +
+      /* Player wording for the raw challenge states; S.plainState falls back to
+         a generic cleanup if the fixture labels ever change. */
+      var CHALLENGE_STATES = {
+        'Filed': 'Filed',
+        'Heard (full court if major)': 'Heard (full court for major questions)',
+        'Finding+Remedy-Issued': 'Finding and remedy issued',
+        'Legislative-Window-Open': 'Legislature’s window open',
+        'Amended-by-Legislature | Overridden (supermajority in veto window) | Judiciary-Applies-Remedy': 'Amended, overridden, or remedy applied',
+        'Law-Edited': 'Law edited',
+        'Closed': 'Closed'
+      };
+      function entityStrip(currentKey) {
+        /* currentKey matches on prefix (brackets stripped) so a rewording of a
+           fixture suffix cannot silently drop the current-state marker. */
+        return '<div class="card card--inset"><span class="eyebrow">How a challenge moves</span>' +
           '<div class="state-strip" style="margin-block-start:var(--space-2)">' +
           BY.entities['Constitutional Challenge'].states.map(function (st, i) {
+            var cur = String(st).replace(/[\[\]]/g, '').indexOf(currentKey) === 0;
             return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-              '<span class="state-node' + (st === currentState ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+              '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(S.plainState(st, CHALLENGE_STATES)) + '</span>';
           }).join('') + '</div></div>';
       }
 
@@ -126,13 +145,13 @@
           '<span class="eyebrow">Active challenge</span>' +
           '<h2 style="margin-block:var(--space-1) var(--space-2)">' + esc(CH.name) + '</h2>' +
           '<p><strong style="color:var(--gov-fg)">Law challenged:</strong> ' + esc(CH.law) + '</p>' +
-          '<p><strong style="color:var(--gov-fg)">Filed:</strong> 2031-04-14 by a New York County resident — any inhabitant may file; no standing gatekeeper beyond jurisdictional association.</p>' +
+          '<p><strong style="color:var(--gov-fg)">Filed:</strong> 2031-04-14 by a New York County resident — anyone who lives here can file; there is no gatekeeper.</p>' +
           '<p><strong style="color:var(--gov-fg)">Heard by:</strong> the full court — all 5 judges of the New York County court, ' + esc(judge ? judge.name : 'Dr. Lena Novák') + ' writing.</p>' +
           '<p class="citation">A major constitutional question goes to the full court. The right to challenge a law is absolute.</p>' +
           '<div class="stack" style="gap:var(--space-3);margin-block-start:var(--space-3)">' +
           formCard('F-IND-016') + '</div></section>';
 
-        var state = resolution === 'overridden' ? 'Amended-by-Legislature | Overridden (supermajority in veto window) | Judiciary-Applies-Remedy'
+        var state = resolution === 'overridden' ? 'Amended-by-Legislature'
           : resolution === 'applied' ? 'Law-Edited'
           : 'Legislative-Window-Open';
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Open ballot — CGA mockups</title>
+  <title>Open ballot — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -18,18 +18,18 @@
       <header>
         <span class="eyebrow">Elections · approval phase</span>
         <h1>Open ballot — New York County general election</h1>
-        <p class="page-intro">The continuous approval phase: any associated resident can stand, any voter can approve —
-          and revoke — at any time. The top <strong id="finalist-x">21</strong> candidates when the phase closes lock onto
+        <p class="page-intro">The continuous approval phase: anyone who lives here can run, and any voter can approve —
+          and un-approve — at any time. The top <strong id="finalist-x">27</strong> candidates when the phase closes lock onto
           the ranked ballot. Approving here costs you nothing on election day: you will still rank freely among the
           finalists, and write-ins always remain open.</p>
-        <p class="citation">Registration is open the entire inter-election period — the number of finalists is set by the number of seats · as implemented
+        <p class="citation">Sign-ups stay open the whole time between elections — the number of finalists is set by the number of seats · as implemented
           (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
-        <div class="stat"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
-        <div class="stat stat--accent"><span class="stat-number" id="stat-finalists">21</span><span class="stat-label">finalist places · top X advance</span></div>
-        <div class="stat"><span class="stat-number" id="stat-candidates">24</span><span class="stat-label">validated candidates</span></div>
+        <div class="stat"><span class="stat-number" id="stat-seats">9</span><span class="stat-label">seats this race</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-finalists">27</span><span class="stat-label">places on the final ballot</span></div>
+        <div class="stat"><span class="stat-number" id="stat-candidates">30</span><span class="stat-label">validated candidates</span></div>
         <div class="stat"><span class="stat-number" id="stat-approvals">—</span><span class="stat-label">your active approvals (revocable)</span></div>
       </div>
 
@@ -75,7 +75,7 @@
 
         <section class="card" aria-labelledby="stand-h">
           <h2 id="stand-h">Stand for office yourself</h2>
-          <p class="cc-small">Any jurisdictionally associated resident can register — there are no other requirements.
+          <p class="cc-small">If you live here, you can run — that's the only requirement.
             Validated candidates enter this pool immediately.</p>
           <p class="citation">Your right to stand and to vote for anyone is preserved</p>
           <a class="btn btn--primary btn--sm" href="candidacy-registration.html">Register candidacy
@@ -90,8 +90,8 @@
             election cycle. Candidates arrive here after they register and are validated.</p>
           <p><strong>How standings work:</strong> approvals accumulate continuously; when the ranked window is scheduled,
             the finalist cutoff freezes the top finalists per race.</p>
-          <p><strong>Filters:</strong> there are no factions — filtering is by endorsing organization or
-            individual endorsements; candidates with neither are first-class
+          <p><strong>Filters:</strong> filter by endorsing organization or by individual endorsements;
+            candidates with neither appear and count exactly the same as everyone else
             (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
         </div>
       </details>
@@ -182,7 +182,7 @@
           (phaseOpen ? '' : ' disabled title="Approval phase is closed"') + '>' + (approved ? 'Approved' : 'Approve') + '</button>' +
           '<div class="candidate-main">' +
           '<span class="citation" style="margin-inline-end:var(--space-2)">#' + rank + '</span>' +
-          '<a class="candidate-name" href="candidate-profile.html?candidate=' + esc(c.id) + '" title="' + esc(c.name) + ' — open public profile · rank ' + rank + ' · ' + approvals.toLocaleString('en-US') + ' approvals">' + esc(c.name) + '</a> ' + inc +
+          '<a class="candidate-name" href="../social/profile.html?who=' + esc(c.id) + '&tab=candidacy" title="' + esc(c.name) + ' — open public profile · rank ' + rank + ' · ' + approvals.toLocaleString('en-US') + ' approvals">' + esc(c.name) + '</a> ' + inc +
           (c.statement ? '<span class="cc-small" style="display:block;color:var(--gov-fg-muted)">' + esc(c.statement) + '</span>' : '') +
           '<span class="candidate-meta">' + orgs + indiv + none + tags + '</span>' +
           '</div>' +
@@ -199,8 +199,8 @@
           '<div class="banner banner--warning" role="status">' + S.icon('clock') +
           '<div><span class="banner-title">The approval phase has closed — finalists are locked.</span> ' +
           (phase === 'ranked'
-            ? 'The ranked window is open: <a href="ranked-ballot.html">rank your ballot now</a>. Standings below are the frozen cutoff.'
-            : 'Tabulation is under way: <a href="results.html">watch the count</a>. Standings below are the frozen cutoff.') +
+            ? 'See a live ranked window — <a href="ranked-ballot.html">Kings County is voting now</a>. Standings below are the frozen cutoff.'
+            : 'Counting is under way: <a href="results.html">watch the count</a>. Standings below are the frozen cutoff.') +
           ' <span class="citation">finalist cutoff</span></div></div>';
 
         /* sort by standing (incl. the viewer's simulated approvals), draw the line after X */
@@ -225,6 +225,7 @@
         var mine = Object.keys(myApprovals).filter(function (k) { return myApprovals[k]; }).length;
         document.getElementById('stat-approvals').textContent = mine;
         document.getElementById('stat-candidates').textContent = W.candidates.length;
+        document.getElementById('stat-seats').textContent = election.seats;
         document.getElementById('stat-finalists').textContent = FINALISTS;
         document.getElementById('finalist-x').textContent = FINALISTS;
         document.getElementById('standings-asof').textContent = phaseOpen ? 'aggregate · updated daily' : 'frozen at the finalist cutoff';

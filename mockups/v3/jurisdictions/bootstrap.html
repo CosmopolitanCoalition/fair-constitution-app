@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jurisdiction bootstrap — CGA mockups</title>
+  <title>How a place wakes up — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,27 +14,28 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Jurisdictions · bootstrap</span>
-        <h1>Jurisdiction bootstrap — dormant boundary to self-governing</h1>
-        <p class="page-intro">Every loaded boundary starts dormant. When enough verified residents accumulate,
-          the system triggers the first election and the full institutional stack assembles in a fixed
-          30-step sequence. This tracker shows New York County mid-bootstrap, at step 19 of 30.</p>
-        <p class="citation">Critical population → first election → full governance stack.</p>
+        <span class="eyebrow">Jurisdictions · waking up</span>
+        <h1>How a place wakes up — dormant boundary to self-governing</h1>
+        <p class="page-intro">Every place on the map starts dormant. When enough verified residents
+          accumulate, the system triggers the first election and the full set of institutions assembles in
+          a fixed 30-step sequence (the formal name: bootstrap). This tracker shows New York County
+          mid-sequence, at step 19 of 30.</p>
+        <p class="citation">Enough people → first election → full governance.</p>
       </header>
 
       <div class="banner banner--warning" role="status">
         <svg class="icon" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
-        <div><span class="banner-title">Bootstrap election board — temporary, replacement queued.</span>
-          Until a legislature exists, the system itself acts as the election board using constitutional
-          defaults (STV/Droop, 5-year terms, 5–9 seats). Step 14 creates the proper independent board and
-          retires this one.</div>
+        <div><span class="banner-title">First-election board — temporary, replacement queued.</span>
+          Until a legislature exists, the system itself acts as the election board using the constitution's
+          defaults (the standard proportional ranked vote, 5-year terms, 5–9 seats). Step 14 creates the
+          proper independent board and retires this one.</div>
       </div>
 
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where New York County sits in the Jurisdiction lifecycle</h2>
+        <h2 id="state-h">The life of a place — where New York County sits</h2>
         <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
-        <noscript><p class="gloss">Boundary-Loaded (dormant) → Critical-Population → <strong>Bootstrapping</strong> →
-          Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode]</p></noscript>
+        <noscript><p class="gloss">Dormant — boundary loaded → Critical population reached → <strong>Waking up</strong> →
+          Self-governing → Subdivided → In a union / a middle layer → Middle layer dissolved → Rebuilding</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="clk-h">
@@ -53,7 +54,7 @@
           <span class="amendable-value">500 verified residents</span> (local tier)
           <span class="amendable-meta">Set by Act 2030-02 · effective 2030-03-01 · range 100–10,000 · amendable per jurisdiction tier</span>
         </p>
-        <p class="gloss">Gloss: the threshold counts verified residencies, not raw registrations — the
+        <p class="gloss">The threshold counts verified residencies, not raw registrations — the
           live census from residency verifications drives it.</p>
         <p style="margin-block-start:var(--space-3)">Activation is pegged to real-world population: institutions
           go live wherever enough people actually play. A county can reach critical population before its state;
@@ -63,7 +64,7 @@
       </section>
 
       <section class="card" aria-labelledby="seq-h">
-        <h2 id="seq-h">The 30-step bootstrap sequence <span class="citation" id="seq-progress"></span></h2>
+        <h2 id="seq-h">The 30-step wake-up sequence <span class="citation" id="seq-progress"></span></h2>
         <p class="cc-small">Seven stages, fixed order. Steps run automatically where the constitution allows
           it; elected humans take over from stage 4. Form names link the sequence to the surfaces that
           render them.</p>
@@ -89,13 +90,13 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/bootstrap',
-      title: 'Jurisdiction bootstrap',
+      title: 'How a place wakes up',
       module: 'jurisdictions',
-      nav: 'jurisdiction-browser',
+      nav: 'bootstrap',
       roles: ['R-01', 'R-03', 'R-08'],
       workflows: ['WF-JUR-01', 'WF-ELE-02'],
       forms: [],
-      citation: 'Critical population → first election → full stack.',
+      citation: 'Critical population → first election → full governance.',
       flow: 'WF-JUR-01',
       register: 'governance'
     };
@@ -133,13 +134,27 @@
         return chips;
       }
 
+      /* Player wording for the raw place states; S.plainState falls back to a
+         generic cleanup if the fixture labels ever change. */
+      var PLACE_STATES = {
+        'Boundary-Loaded (dormant)': 'Dormant — boundary loaded',
+        'Critical-Population': 'Critical population reached',
+        'Bootstrapping': 'Waking up',
+        'Self-Governing': 'Self-governing',
+        '[Subdivided]': 'Subdivided',
+        '[In-Union | Intermediary]': 'In a union / a middle layer',
+        '[Disintermediated]': 'Middle layer dissolved',
+        '[Restoration-Mode]': 'Rebuilding'
+      };
+
       function render() {
-        /* Jurisdiction state strip — Bootstrapping highlighted */
+        /* Place state strip — the waking-up step highlighted (prefix match, so a
+           relabel of the fixture suffix cannot break the marker). */
         var entity = BY.entities['Jurisdiction'];
         document.getElementById('jur-states').innerHTML = entity.states.map(function (st, i) {
-          var cur = st.indexOf('Bootstrapping') === 0;
+          var cur = String(st).replace(/[\[\]]/g, '').indexOf('Bootstrapping') === 0;
           return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(S.plainState(st, PLACE_STATES)) + '</span>';
         }).join('');
 
         /* 30 steps grouped by their 7 stages */

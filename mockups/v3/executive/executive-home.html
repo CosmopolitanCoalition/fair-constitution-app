@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Executive home — CGA mockups</title>
+  <title>Executive home — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -18,15 +18,16 @@
       <header>
         <span class="eyebrow">Executive</span>
         <h1>Executive home</h1>
-        <p class="page-intro">Every executive starts as a committee delegated by the legislature. A supermajority —
-          plus a supermajority of constituent jurisdictions where they exist — can convert it to a directly elected
-          office, as either a committee of five or more equal officers, or a single individual with four advisors.
-          Executive terms always equal the legislative term.</p>
+        <p class="page-intro">The executive is the government's doing arm — it carries out the laws, runs the
+          departments, and answers to the legislature that created it. Every executive starts as a committee delegated
+          by the legislature. A supermajority — plus a supermajority of the places that make it up, where they exist —
+          can convert it to a directly elected office, as either a committee of five or more equal officers, or a
+          single individual with four advisors. Executive terms always equal the legislative term.</p>
         <p class="citation">Delegated by default · conversion by supermajority · terms locked to the legislative term.</p>
       </header>
 
       <div class="cluster">
-        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — this rule cannot be changed.</span>
         <span class="citation">A supermajority is two-thirds of all serving members — counted against everyone serving, never just those present.</span>
       </div>
 
@@ -76,11 +77,11 @@
             </div>
             <div class="meter-block">
               <div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:82.3%"></span><span class="meter-threshold" style="inset-inline-start:67.7%"></span></div>
-              <div class="meter-caption"><span>Constituent jurisdictions: 51 of 62 counties in favor (New York, Kings, Queens, Bronx, Richmond, Westchester, Erie + 55 more)</span>
+              <div class="meter-caption"><span>The places that make it up: 51 of 62 counties in favor (New York, Kings, Queens, Bronx, Richmond, Westchester, Erie + 55 more)</span>
                 <span>threshold 42 of 62 (two-thirds)</span></div>
             </div>
             <p class="gloss" style="margin-block-start:var(--space-2)">Both meters must clear their threshold — the legislature's own
-              supermajority and a supermajority of the constituent jurisdictions, each counted independently.</p>
+              supermajority and a supermajority of the places that make it up, each counted independently.</p>
           </div>
         </section>
       </div>
@@ -95,10 +96,9 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p>This screen shows how an executive office is set up and how it can change shape: the
-            delegated committee, its
-            conversion to an elected office, and later
-            modification by a supermajority of constituent jurisdictions.
+          <p>This screen shows how an executive office is set up and how it can change shape: it begins as a
+            committee delegated by the legislature, can convert to an elected office, and can later be modified by a
+            supermajority of the places that make it up.
             Orders and oversight live on <a href="executive-actions.html">executive actions</a>; departments on
             <a href="departments.html">the department registry</a>.</p>
           <p><strong>How the office moves:</strong> it starts as a committee delegated by the legislature, can convert
@@ -144,12 +144,21 @@
           '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p></div>';
       }
 
+      /* Plain display labels for the raw office tokens — keys stay untouched. */
+      var OFFICE_LABELS = {
+        'Delegated (committee)': 'Delegated committee',
+        '[Conversion-Voted]': 'Conversion voted (optional)',
+        'Elected-Office (committee 5+ STV | individual RCV+4 advisors)': 'Elected office — a committee or an individual',
+        '[Modified by constituent supermajority]': 'Modified by the places that make it up (optional)',
+        'Dissolved/Reverted': 'Dissolved or reverted'
+      };
+
       function stateStrip(currentIdx) {
         var ent = BY.entities['Executive Office'];
         return '<div class="state-strip" style="margin-block-start:var(--space-3)">' +
           ent.states.map(function (st, i) {
             return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-              '<span class="state-node' + (i === currentIdx ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+              '<span class="state-node' + (i === currentIdx ? ' state-node--current' : '') + '">' + esc(S.plainState(st, OFFICE_LABELS)) + '</span>';
           }).join('') + '</div>';
       }
 

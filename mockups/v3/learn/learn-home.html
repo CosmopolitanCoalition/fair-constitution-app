@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Learn — CGA mockups v2</title>
+  <title>Learn — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -31,6 +31,9 @@
     var S = window.CGA.shellV2, C = window.CGA.v2c, L = window.CGA.fixtures.v2.learn, esc = S.esc;
     var DONE = { 'what-is-wos': true, 'your-civic-record': true };
     var featured = L.byLesson['find-whats-live'];
+    var view = 'tracks';
+    var lessonByVideo = {};
+    L.lessons.forEach(function (l) { if (l.videoId && !lessonByVideo[l.videoId]) lessonByVideo[l.videoId] = l; });
 
     function progressBar() {
       var done = L.lessons.filter(function (l) { return DONE[l.id]; }).length;
@@ -67,6 +70,24 @@
         '<div class="lesson-list">' + lessons + '</div></section>';
     }
 
+    function videoRow(v) {
+      var l = lessonByVideo[v.id];
+      var href = l ? S.hrefV2('learn/lesson.html?id=' + l.id) : S.hrefV2('shared/video-player.html');
+      return '<a class="lesson-row" href="' + href + '">' +
+        '<span class="lesson-n">' + S.icon('play', { size: 'sm' }) + '</span>' +
+        '<span class="lesson-title">' + esc(v.title) + '</span>' +
+        '<span class="lesson-meta">' + L.fmtDuration(v.seconds) + '</span>' +
+        '<span class="lesson-meta">' + v.audio.length + ' languages</span></a>';
+    }
+
+    function browseToggle() {
+      function btn(id, label) {
+        var on = view === id;
+        return '<button type="button" class="btn btn--sm ' + (on ? 'btn--secondary' : 'btn--ghost') + '" data-view="' + id + '" aria-pressed="' + on + '">' + esc(label) + '</button>';
+      }
+      return '<div class="cluster" role="group" aria-label="Browse lessons as">' + btn('tracks', 'Tracks') + btn('videos', 'Videos') + '</div>';
+    }
+
     function render() {
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('graduation-cap', { size: 'sm' }) + ' Learn</span><h1>Learn World of Statecraft</h1>' +
@@ -75,18 +96,35 @@
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
         progressBar() +
         featuredBlock() +
-        '<section aria-labelledby="tracks-h"><h2 id="tracks-h">Tracks</h2>' +
-        '<p class="page-intro">Start anywhere — every lesson stands on its own.</p></section>' +
-        L.tracks.map(trackSection).join('') +
+        '<section aria-labelledby="tracks-h"><div class="cluster" style="justify-content:space-between">' +
+        '<h2 id="tracks-h">' + (view === 'videos' ? 'Videos' : 'Tracks') + '</h2>' + browseToggle() + '</div>' +
+        '<p class="page-intro">' + (view === 'videos'
+          ? 'Every guide film, in your language. Pick one — it opens inside its lesson.'
+          : 'Start anywhere — every lesson stands on its own.') + '</p></section>' +
+        (view === 'videos'
+          ? '<div class="lesson-list">' + L.videos.map(videoRow).join('') + '</div>'
+          : L.tracks.map(trackSection).join('')) +
         '<section aria-labelledby="more-h"><h2 id="more-h">More ways in</h2><div class="role-grid">' +
-        '<a class="role-card" href="' + S.hrefV2('learn/guides.html') + '">' + S.icon('list-checks') + '<span class="role-name">Guides &amp; procedures</span><span>Every workflow’s standard procedure, on one page.</span></a>' +
+        '<a class="role-card" href="' + S.hrefV2('learn/guides.html') + '">' + S.icon('list-checks') + '<span class="role-name">Guides &amp; procedures</span><span>The standard procedure for everything you can do, on one page.</span></a>' +
         '<a class="role-card" href="' + S.hrefV2('shared/video-player.html') + '">' + S.icon('play') + '<span class="role-name">Video library</span><span>Every guide film, in many languages.</span></a>' +
         '<a class="role-card" href="' + S.hrefV2('translation/translation-home.html') + '">' + S.icon('languages') + '<span class="role-name">Translation status</span><span>Help your language reach published.</span></a>' +
+        '<a class="role-card" href="https://cosmopolitancoalition.org/about/programs/learn/" rel="noopener">' + S.icon('graduation-cap') + '<span class="role-name">Coalition courses — go deeper</span>' +
+        '<span>Free courses from the Cosmopolitan Coalition — the principles, the voting math, and the full constitution. Optional, always: learning is never a gate; your rights come from residency alone.</span>' +
+        '<span class="enter-as">cosmopolitancoalition.org ' + S.icon('external-link', { size: 'sm' }) + '</span></a>' +
         '</div></section>';
 
       C.initVideo(document.getElementById('root'));
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
+
+    document.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-view]') : null;
+      if (!b) return;
+      view = b.getAttribute('data-view');
+      render();
+      S.announce(view === 'videos' ? 'Browsing all videos.' : 'Browsing tracks.');
+    });
+
     render();
     document.addEventListener('cga:v2:rerender', render);
   })();

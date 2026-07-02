@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guides &amp; procedures — CGA mockups v2</title>
+  <title>Guides &amp; procedures — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the guides…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'learn/guides', title: 'Guides & procedures', module: 'learn', nav: 'guides', citation: 'Standard operating procedures · every journey, tool, and workflow', register: 'governance' };
+    window.CGA_PAGE = { id: 'learn/guides', title: 'Guides & procedures', module: 'learn', nav: 'guides', citation: 'Standard procedures · everything you can do, searchable', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -54,7 +54,7 @@
       var groups = byModule();
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('list-checks', { size: 'sm' }) + ' Guides &amp; procedures</span><h1>Guides &amp; procedures</h1>' +
-        '<p class="page-intro">The standard way to do everything. Each journey, tool, and workflow has a short <strong>standard operating procedure</strong> — numbered steps, the rule behind each, the video, and a way to report a problem — so the procedure lives in the interface, not in a manual you have to go find.</p>' +
+        '<p class="page-intro">Everything you can do here has a short <strong>standard procedure</strong> — numbered steps, the rule behind each step, the video that shows it, and a way to report a problem — so the how-to lives right here, not in a manual you have to go find.</p>' +
         '<p class="citation">' + L.totals.sops + ' procedures · ' + esc(window.CGA_PAGE.citation) + '</p></header>' +
         '<div class="field"><label class="field-label" for="gfilter">Find a procedure</label>' +
         '<input id="gfilter" class="field-input" type="search" placeholder="Search by name, tool, or topic…" data-filter autocomplete="off" /></div>' +

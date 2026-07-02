@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Disintermediation — CGA mockups</title>
+  <title>Removing a middle layer — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,19 +15,20 @@
     <div class="stack">
       <div class="banner banner--demo" role="note">
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-        <div><span class="banner-title">Worked example — no live disintermediation case.</span>
-          The scenario below imagines dissolving New York (the state, as an intermediary layer) so its
-          counties parent directly to the United States. The places are real; the case is illustrative.</div>
+        <div><span class="banner-title">Worked example — no live case.</span>
+          The scenario below imagines dissolving New York (the state, as a middle layer) so its
+          counties answer directly to the United States. The places are real; the case is illustrative.</div>
       </div>
 
       <header>
         <span class="eyebrow">Jurisdictions · disintermediation</span>
-        <h1>Disintermediation — dissolving an intermediary jurisdiction</h1>
-        <p class="page-intro">An intermediary layer dissolves only when <strong>every</strong> constituent
-          jurisdiction agrees and the encompassing jurisdiction consents. Its acts do not vanish — they are
-          incorporated into each former constituent's law, with conflicts surfaced and resolved before the
-          dissolution takes effect.</p>
-        <p class="citation">All constituents agree, and the encompassing jurisdiction agrees, before the acts are incorporated into the constituents.</p>
+        <h1>Removing a middle layer of government (disintermediation)</h1>
+        <p class="page-intro">Removing a middle layer: the state dissolves, and its counties answer directly
+          to the country. It happens only when <strong>every</strong> place inside the layer (its constituent
+          jurisdictions) agrees and the level above it (the encompassing jurisdiction) consents. The dissolved
+          layer's laws do not vanish — they fold into each remaining place's own law, with conflicts surfaced
+          and resolved before the dissolution takes effect.</p>
+        <p class="citation">Everyone inside agrees, the level above agrees, and only then do the laws fold down.</p>
       </header>
 
       <section class="card" aria-labelledby="consent-h">
@@ -48,13 +49,13 @@
 
       <section class="card" aria-labelledby="merge-h">
         <h2 id="merge-h">Law merge — surfaced conflicts</h2>
-        <p class="cc-small">Of New York's 219 acts, 214 incorporate cleanly into all 62
-          constituents. Five conflict with existing constituent law and need a resolution choice recorded in
+        <p class="cc-small">Of New York's 219 acts, 214 fold cleanly into all 62
+          counties. Five conflict with an existing county law and need a resolution choice recorded in
           the dissolution plan.</p>
         <div class="table-wrap">
           <table class="table">
             <caption class="visually-hidden">Conflicting acts and resolution choices</caption>
-            <thead><tr><th scope="col">Intermediary act</th><th scope="col">Conflicts with</th><th scope="col">Resolution</th></tr></thead>
+            <thead><tr><th scope="col">Middle-layer act</th><th scope="col">Conflicts with</th><th scope="col">Resolution</th></tr></thead>
             <tbody id="merge-rows"></tbody>
           </table>
         </div>
@@ -70,9 +71,9 @@
       </section>
 
       <section class="card" aria-labelledby="topo-h">
-        <h2 id="topo-h">Topology after dissolution</h2>
-        <p class="cc-small">Each county's parent becomes the United States; every resident's nesting chain
-          re-resolves automatically — association exists at every remaining level simultaneously.</p>
+        <h2 id="topo-h">The chain after dissolution</h2>
+        <p class="cc-small">Each county answers directly to the United States; every resident's chain of
+          places re-resolves automatically — you belong to every remaining level at once.</p>
         <div class="cluster" style="gap:var(--space-1)">
           <span class="adm-chip adm-chip--1">United States</span>
           <span class="adm-sep" aria-hidden="true">›</span>
@@ -80,7 +81,7 @@
           <span class="adm-sep" aria-hidden="true">›</span>
           <span class="adm-chip adm-chip--3">New York County</span>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">The topology updates automatically when the dissolution takes effect.</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">The chain updates automatically when the dissolution takes effect.</p>
       </section>
 
       <section class="card" aria-labelledby="form-h">
@@ -88,7 +89,7 @@
         <div id="form-card"></div>
         <form id="dis-form" style="margin-block-start:var(--space-4)">
           <div class="field">
-            <label class="field-label" for="dis-target">Intermediary jurisdiction to dissolve</label>
+            <label class="field-label" for="dis-target">Middle layer to dissolve</label>
             <select class="select" id="dis-target"><option>New York (usa-2-new-york) — worked example</option></select>
             <span class="field-hint">The vote is held in each constituent legislature and in the encompassing legislature.</span>
           </div>
@@ -102,11 +103,12 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p>This screen walks through dissolving an intermediary jurisdiction: each constituent and the
-            encompassing jurisdiction vote, the intermediary's acts are merged into each former constituent's
-            law (with conflicts surfaced and resolved), and the topology updates. The mirror-image growth path
-            is <a href="union-formation.html">union formation</a>.</p>
-          <p>Once dissolved, the intermediary is gone; its former constituents remain self-governing throughout.</p>
+          <p>This screen walks through dissolving an intermediary jurisdiction (the formal term for a middle
+            layer): each constituent and the encompassing jurisdiction vote, the intermediary's acts are
+            merged into each former constituent's law (with conflicts surfaced and resolved), and the chain
+            of places updates. The mirror-image growth path is
+            <a href="union-formation.html">union formation</a>.</p>
+          <p>Once dissolved, the middle layer is gone; its former constituents remain self-governing throughout.</p>
         </div>
       </details>
     </div>
@@ -115,9 +117,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/disintermediation',
-      title: 'Disintermediation',
+      title: 'Removing a middle layer',
       module: 'jurisdictions',
-      nav: 'jurisdiction-browser',
+      nav: 'disintermediation',
       roles: ['R-09'],
       workflows: ['WF-JUR-04'],
       forms: ['F-LEG-030'],
@@ -196,7 +198,7 @@
             '<label><span class="visually-hidden">Resolution for ' + esc(cf.act) + '</span>' +
             '<select class="select" data-resolve="' + i + '" style="inline-size:auto">' +
             '<option value=""' + (sel === '' ? ' selected' : '') + '>Choose…</option>' +
-            '<option value="incorporate"' + (sel === 'incorporate' ? ' selected' : '') + '>Incorporate — intermediary text supersedes</option>' +
+            '<option value="incorporate"' + (sel === 'incorporate' ? ' selected' : '') + '>Incorporate — the middle layer’s text supersedes</option>' +
             '<option value="defer"' + (sel === 'defer' ? ' selected' : '') + '>Defer — constituent act prevails</option>' +
             '<option value="lapse"' + (sel === 'lapse' ? ' selected' : '') + '>Lapse on dissolution</option>' +
             '</select></label></td></tr>';

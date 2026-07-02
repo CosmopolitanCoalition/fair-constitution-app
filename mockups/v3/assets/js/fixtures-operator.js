@@ -42,13 +42,13 @@
   /* the 9-channel capability substrate (the closed vocabulary). */
   var channels = [
     { slug: 'mesh.member', kind: 'self', what: 'The always-on base — be a member of the mesh.', state: 'established' },
-    { slug: 'mirror', kind: 'self', what: 'Keep a read-only cold-sync copy of the public corpus.', state: 'established' },
+    { slug: 'mirror', kind: 'self', what: 'Keep a complete, always-synced copy of the public record.', state: 'established' },
     { slug: 'etl', kind: 'self', what: 'Host the geodata archive (rasters, boundaries) for the network.', state: 'qualifiable' },
     { slug: 'broker.dns', kind: 'governed', what: 'Edit DNS under a domain — name peers (Meter C: affects a peer’s subtree).', state: 'needs-config', meterC: true },
     { slug: 'broker.tls', kind: 'governed', what: 'Issue Let’s Encrypt certs for peers (the proof behind the name).', state: 'needs-config' },
     { slug: 'client.serve', kind: 'governed', what: 'Serve browser clients on a real certificate.', state: 'qualifiable' },
     { slug: 'authority.grant', kind: 'governed', what: 'Mint promotion / cert grants under a domain (Meter C).', state: 'lapsed', meterC: true },
-    { slug: 'matrix.homeserver', kind: 'governed', what: 'Host the Synapse social commons (the live square/halls).', state: 'requested' },
+    { slug: 'matrix.homeserver', kind: 'governed', what: 'Host the live rooms — the square, the halls, chat (Matrix).', state: 'requested' },
     { slug: 'voice.sfu', kind: 'governed', what: 'Host the voice / video calls.', state: 'qualifiable' }
   ];
   var byChannel = {}; channels.forEach(function (c) { byChannel[c.slug] = c; });
@@ -57,12 +57,12 @@
   var namedRoles = [
     { id: 'record_keeper', label: 'Record Keeper', channels: ['mirror', 'etl'], consent: 'self', recommended: true,
       what: 'Keeps a copy of the public record and serves the network’s maps and data.',
-      duty: 'Stay synced and reachable so peers and newcomers can cold-start from you.',
+      duty: 'Stay synced and reachable so peers and newcomers can copy the full record from you.',
       cta: 'Establish (one click)', note: 'Both channels are self-asserted — no approval needed. The recommended first node.' },
-    { id: 'archivist', label: 'Archivist', channels: ['client.serve'], extra: 'read-write authority (by petition)', consent: 'governed',
-      what: 'Serves browser clients, and may petition to take read-write authority for a jurisdiction.',
-      duty: 'Serve honestly; read-write is the jurisdiction’s government to grant, never yours to claim.',
-      cta: 'Request', note: 'Serving clients is governed; read-write authority is a separate government decision.' },
+    { id: 'archivist', label: 'Archivist', channels: ['client.serve'], consent: 'governed',
+      what: 'A full peer that serves players in the browser — it holds the complete public record, and a visiting player’s action is verified and forwarded to the jurisdiction’s home authority.',
+      duty: 'Serve honestly and pass every verified action along — the record you serve is the same record every peer holds.',
+      cta: 'Request', note: 'Serving players is governed — requested, then approved. Every node reaches full peerage through the same one process.' },
     { id: 'social_moderator', label: 'Social Moderator', channels: ['matrix.homeserver', 'voice.sfu', 'client.serve'], consent: 'governed',
       what: 'Hosts the live social commons — the square, the halls, voice and video.',
       duty: 'Host the rooms; you hold no power to remove on viewpoint — only the four logged carve-outs and the legal floor act.',
@@ -80,7 +80,8 @@
     { id: 'B', name: 'Meter B — the seated government', who: 'the constituent legislatures, by supermajority (a multi-jurisdiction vote)',
       threshold: 'supermajority of constituent jurisdictions', applies: 'the moment a legislature is seated — it SUPERSEDES Meter A' },
     { id: 'C', name: 'Meter C — co-affected peers', who: 'every peer whose subtree the channel would touch',
-      threshold: 'unanimity (any one peer can refuse)', applies: 'only channels that act under a peer’s zone — broker.dns, authority.grant' }
+      threshold: 'unanimity (any one peer can refuse)', applies: 'only channels that act under a peer’s zone — broker.dns, authority.grant',
+      futureNote: 'Peer unanimity arrives with a later upgrade round — until then the mesh degrades safely and these channels simply wait.' }
   ];
 
   /* the demo operator account (plane-walled from citizen users). */
@@ -91,7 +92,7 @@
       { name: 'Pi at the depot', keyFp: 'ed25519:4f2a…91c', active: true, enrolledVia: 'key-possession' },
       { name: 'laptop (travel)', keyFp: 'ed25519:b73d…02e', active: true, enrolledVia: 'linkByProof' }
     ],
-    authNote: 'Local password authenticates here only — it never federates. Cross-mesh recognition is by device-key possession, never password replay.'
+    authNote: 'Your local password signs you in on this box only — other boxes recognise you by device-key possession, never by a password.'
   };
 
   /* mesh readiness — the "peers & sync at a glance" rollup (6 gates). */
@@ -111,7 +112,7 @@
   /* peers (lifecycle). */
   var peers = [
     { name: 'Box A — Earth root', serverId: 'srv-1a…001', url: 'https://earth.cga.example', status: 'trust_established', relation: 'host', version: 'cv-2031.6', release: 'g-8b', heartbeat: '12s ago', syncSeq: 88412 },
-    { name: 'Brooklyn mirror', serverId: 'srv-2b…047', url: 'https://brooklyn.cga.example', status: 'syncing', relation: 'mirror', version: 'cv-2031.6', release: 'g-8b', heartbeat: '40s ago', syncSeq: 88390 },
+    { name: 'Brooklyn peer', serverId: 'srv-2b…047', url: 'https://brooklyn.cga.example', status: 'syncing', relation: 'peer', version: 'cv-2031.6', release: 'g-8b', heartbeat: '40s ago', syncSeq: 88390 },
     { name: 'Aurelia (sovereign)', serverId: 'srv-9z…aur', url: 'https://aurelia.example', status: 'border_settled', relation: 'sovereign', version: 'cv-2031.5', release: 'g-8a', heartbeat: '5m ago', syncSeq: 51002 }
   ];
 
@@ -129,12 +130,12 @@
     { transport: 'sneakernet', address: 'USB drop @ the depot', priority: 90, state: 'lapsed' }
   ];
 
-  /* the join-a-cluster wizard (G3b). */
+  /* the join-a-cluster wizard. */
   var joinWizard = [
     { step: 1, title: 'Host & key', detail: 'The host URL, plus a one-shot join-key the host operator minted (or join without a key and wait for a vouch).' },
-    { step: 2, title: 'Scope & data', detail: 'The whole public corpus or a subtree; and the geodata posture (already have it · pull from origin · skip).' },
-    { step: 3, title: 'Relationship', detail: 'Mirror (read-only) or co-member (advisory intent to pursue read-write later — a separate government decision).' },
-    { step: 4, title: 'Review', detail: 'Confirm. A mirror is read-only, syncs the full public corpus, accepts no filings; authority stays with the origin.' }
+    { step: 2, title: 'Scope & data', detail: 'The complete public record or a subtree; and whether to copy the map data (already have it · pull from the host · skip).' },
+    { step: 3, title: 'What you’ll host', detail: 'Pick the channels your box will serve — keep the record, serve players, host the live rooms. Every join leads to the same full peerage.' },
+    { step: 4, title: 'Review', detail: 'Confirm. Your node downloads the complete public record and joins as a full peer. Which box’s record is authoritative for each jurisdiction stays with its home authority — a bookkeeping fact, not a rank.' }
   ];
 
   /* DNS & certificates (the Identity Broker’s domain). */
@@ -161,7 +162,7 @@
       { check: 'Subject', detail: 'The attested user resolves locally before the engine authorizes.' }
     ],
     sweep: 'A housekeeping job prunes lapsed attestations (already fail-closed on expiry; the sweep just bounds the table, soft-deleting for forensics).',
-    forwardedActor: 'AttestedForwardedActor — turns citizen write-forwarding on: a person on a journey through a non-home instance can still act, because their standing travels as a signed, short-lived attestation.'
+    forwardedActor: 'The forwarded write is the keystone: a person passing through a server that isn’t home can still act, because their standing travels as a signed, short-lived attestation and their own device signs the action itself.'
   };
 
   /* the operator-plane moderation + the legal floor (M-5). */
@@ -174,13 +175,13 @@
     carveouts: [
       { id: 'm1_judicial', label: 'Judicial order', who: 'a judge, once seated', logged: true },
       { id: 'm2_rights', label: 'Rights protection', who: 'operator relay (below) → judicial (above)', logged: true },
-      { id: 'm3_block', label: 'Per-user block', who: 'each person, client-side (an ignore list)', logged: false, note: 'never an appservice action; never logged' },
+      { id: 'm3_block', label: 'Per-user block', who: 'each person, on their own screen (an ignore list)', logged: false, note: 'never a server-side action — it lives only on your own screen; never logged' },
       { id: 'm4_antispam', label: 'Content-neutral anti-spam', who: 'the system (behaviour/volume, never viewpoint)', logged: true }
     ],
     viewpointImpossible: 'Viewpoint / community-guidelines removal has NO code path. The carve-out map only knows judicial-order and rights-protection; there is no “remove for content” to invoke.',
     m5: {
-      label: 'The physical-law legal-compliance floor',
-      what: 'Removal of already-posted ILLEGAL material — off the constitutional plane, content-neutral.',
+      label: 'The legal floor',
+      what: 'Removal of already-posted ILLEGAL material — the real-world law of the country the server sits in. Off the constitutional plane, content-neutral.',
       auth: 'An operator account by key-possession (an active account) — NOT a standing attestation.',
       basis: ['Known illegal-image match (purges the bytes — deletes, not quarantines)', 'Specific court order (redacts)', 'True threat (redacts)'],
       rails: 'A closed list, grown only by code release — never in-game. It never changes who can post; the matched-list source is recorded, never the image itself; the sealed evidence trail is append-only.',
@@ -191,13 +192,17 @@
   /* constitutional versioning / upgrade agreement (G-VER). */
   var versioning = {
     selfVersion: 'cv-2031.6',
-    kinds: ['constitutional bump (the hardened surface)', 'schema bump', 'app release'],
+    kinds: [
+      { label: 'Constitutional version', desc: 'The hardened rules themselves. Only this kind is screened by the filter and agreed by vote.' },
+      { label: 'Database shape', desc: 'How records are stored under the hood — plumbing, never rules.' },
+      { label: 'App release', desc: 'New features and fixes — no rule changes at all.' }
+    ],
     admissibility: 'An admissibility filter runs FIRST and is reach-independent and ungateable — a proposal that would lower proportionality or the supermajority floor is refused outright.',
     consent: 'Then the same dual-meter consent: operator board (Meter A) until a government seats, then seated supermajority (Meter B); peer-mesh unanimity (Meter C) for co-affected peers.',
     freeze: 'A game-in-progress freeze: an election or session already running pins its version so the rules can’t change mid-play.',
     peerMatch: [
       { peer: 'Box A — Earth root', version: 'cv-2031.6', match: true },
-      { peer: 'Brooklyn mirror', version: 'cv-2031.6', match: true },
+      { peer: 'Brooklyn peer', version: 'cv-2031.6', match: true },
       { peer: 'Aurelia (sovereign)', version: 'cv-2031.5', match: false, note: 'a version behind — sync refuses fail-closed until agreed' }
     ]
   };

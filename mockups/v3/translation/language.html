@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Language detail — CGA mockups v2</title>
+  <title>Language detail — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -69,8 +69,7 @@
     function gate() {
       return '<div class="route-note">' + S.icon('users', { size: 'sm' }) +
         '<div><strong style="color:var(--gov-fg)">You can verify ' + esc(lang.name) + ' because you read the interface in ' + esc(lang.name) + '.</strong> ' +
-        'Verification is gated to the people who actually use a language — not a central team, and not machine translation grading itself. ' +
-        '<span class="citation">community-verified by interface-language users</span></div></div>';
+        'Verification is gated to the people who actually use a language — not a central team, and not machine translation grading itself.</div></div>';
     }
 
     function contributors() {
@@ -88,11 +87,11 @@
         '<header><div class="cluster" style="justify-content:space-between"><div class="cluster">' +
         '<span class="eyebrow">' + S.icon('languages', { size: 'sm' }) + ' Translation</span>' +
         '<h1 style="margin:0"' + (rtl ? ' dir="rtl"' : '') + '>' + esc(lang.native) + '</h1>' +
-        '<span class="citation">' + esc(lang.name) + ' · ' + esc(code) + ' · ' + esc(lang.dir.toUpperCase()) + '</span></div>' +
+        '<span class="citation">' + esc(lang.name) + ' · ' + esc(code) + (rtl ? ' · right-to-left' : '') + '</span></div>' +
         (lang.source ? '<span class="pill pill--pass">Source language</span>' : '<span class="pill pill--info">' + row.overall + '% overall</span>') + '</div></header>' +
         gate() +
-        '<section aria-labelledby="bd-h"><h2 id="bd-h">By modality</h2>' +
-        '<p class="page-intro">Pick a modality to review it. Audio and captions cover every guide video; interface and page copy cover the screens.</p>' +
+        '<section aria-labelledby="bd-h"><h2 id="bd-h">By content type</h2>' +
+        '<p class="page-intro">Pick a content type to review it. Audio and captions cover every guide video; interface and page copy cover the screens.</p>' +
         '<div class="lesson-list">' + T.modalities.map(modalityRow).join('') + '</div></section>' +
         reviewQueue() +
         contributors() +

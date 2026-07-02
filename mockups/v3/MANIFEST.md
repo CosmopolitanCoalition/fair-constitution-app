@@ -1,54 +1,118 @@
-# CGA Mockups v2 — MANIFEST
+# World of Statecraft Mockups v3 — MANIFEST
 
-The game layer over v1's operations contract. v2 reuses v1's design tokens, component CSS,
-icons, demo-state, and fixture world; it adds the journey/social/economy/group surfaces on
-top and deep-links into v1 for the formal steps. This file is what the production work reads
-first: the **Live-Room config contract**, the **v1-reuse map**, the component inventory, and
-the a11y/responsive results.
+**`mockups/v3/` is a single, self-contained environment: 107 screens, one shell, one tour,
+one plain player voice.** This file is what the production wiring reads first: the current
+state (below), the **Live-Room config contract** (§1), the reuse maps, the component
+inventory, and the a11y/responsive results.
 
-Read alongside `OPEN_QUESTIONS.md` (every divergence from the as-built code) and the source
-spec `App Docs/CGA_Mockups_v2_Build_Instructions.md`.
+Read alongside `OPEN_QUESTIONS.md` (every divergence from the as-built code).
 
 ---
 
-## v3 — the harmonized environment (supersedes the mixed v1/v2 state below)
+## v3.2 — Phase 0, "finish the contract" (2026-07-02; MASTER_PLAN.md Phase 0)
 
-`mockups/v3/` is now a **single unified environment**. The earlier split — a v2 game layer
-over a separate v1 operations site, each with its own shell, chrome, and jargon level — is
-gone. Every screen wears the same chrome, reads at the same plain (jargon-free) player level,
-and sits on one ordered guided tour. Done in seven committed phases:
+Operator tour-feedback items 3–7 landed as contract changes:
 
-1. **One shell.** `assets/js/shell-v2.js` is the only shell; `CGA.shell` is aliased to it.
-   `applyBindings`/`resolvePath` ported from the old shell; one unified 16-section nav (no
-   version split). `shell.js` was deleted once nothing loaded it.
-2. **One chrome.** All ~62 operations pages (`electoral/ legislature/ executive/ judiciary/
-   organizations/ jurisdictions/ system/ civic/ shared/`) re-booted onto `shell-v2.js` +
-   `v2.css` + `fixtures-v2.js` — the floating command bar, hide-on-scroll header, and
-   Menu/Learn/Demo flyouts now hold across every screen. **113 / 113 UI pages on shell-v2**
-   (the lone exception is `tools/audit_harness.html`, a dev harness, not a screen).
-3. **Flows → the Learn drawer.** The 80 `flows/WF-*.html` walkthroughs were inverted by
-   `tools/gen_flow_context.py` into `assets/js/fixtures-flows.js`
-   (`CGA.fixtures.flows.byScreen / byWorkflow`) and surfaced in the Learn drawer's
-   **“Where this fits”** block — each screen shows which process(es) it's part of, the
-   player's step, what's next, and the whole process on demand. The 80 pages were then
-   removed (manifest 194 → 114 records).
-4. **Jargon stripped everywhere.** No `F-/CLK/Art.§/HARDENED/R-/WF-`/DB tokens in any
-   rendered player text. A new `S.plainCodes()` helper strips codes out of v1 data strings
-   while keeping the plain gloss (e.g. `"Art. II §2 (Establish Independent Election Boards)"`
-   → `"Establish Independent Election Boards"`). The learn layer (`learn/*`, the embedded
-   SOP/“Understand it first”, lesson explanations) intentionally **keeps** its citations —
-   it is the home for the constitutional “why”.
-5. **One tour, every screen.** The `TOUR` array in `shell-v2.js` is the single source of
-   truth — **120 stops** in 16 narrative acts (Found an instance → … → Design contract),
-   covering every screen; `tour.html` renders it live; the follow-along bar reads “step N of
-   120”.
-6. **Redundancy removed.** Deleted `operations.html` (the v1 hub) and `civic/my-record.html`
-   (folded into the unified profile's Record tab); stripped every `v1-tag` badge.
-7. **Verified.** qa_scan green; a rendered-DOM sweep of all ops + game pages finds zero
-   visible codes; mobile (375 px) and desktop chrome correct; 0 console errors.
+1. **One person = one profile (0a).** `electoral/candidate-profile.html` is the 8th redirect
+   stub: the candidacy is now a **Candidacy tab** on `social/profile.html` (statement,
+   approval meter with the finalist line, candidacy stages, endorsement web + requests,
+   manage/withdraw when self). Deep links forward `?candidate=&name=&race=` →
+   `?who=&name=&race=&tab=candidacy`; count pages link non-fixture names the same way.
+   Manifest drops to 107 records; the Learn drawer's flow context for the old page id is
+   inherited via the ABSORBED alias in shell-v2.
+2. **The real call surface (0b).** Every live-room variant carries the wired LiveKit room's
+   UI (`.lr-call` in v2.css, mirrors `ChamberStage`/`ParticipantTile`/`VoiceControls`):
+   pre-join → Join voice; in-call → presenter screen tiles above a 2/3/4-column camera grid
+   (speaking ring, avatar fallback, mute badge, "you"), mic/camera/share toggles, Leave,
+   and camera–mic–speaker device pickers. All states simulated; icons `mic`/`video`/
+   `screen-share`/`phone` (+off variants) added to the sprite.
+3. **Built map containment (0c).** `district-mapper` and `jurisdiction-browser` are
+   full-bleed: shared `.map-split` rules (v2.css) pin the tool to the visible viewport under
+   a thin head row; the sidebar scrolls inside; mobile portrait puts the map on top at 45dvh
+   (the built breakpoints). The stylized SVG now honors the built map behavior — drag to pan
+   with **seamless east–west wrap** (±world-width clones) and **bounded zoom-out** (the world
+   always fills the view). Sidebar look/functions preserved verbatim.
+4. **Open nomination windows (0d).** `organizations/board-elections.html` shows the
+   nomination window that precedes ranking (10 days, state strip + dates); the days are an
+   org-level, role-gated setting shown in `economy/org-settings.html` ("Elections &
+   appointments") — never a constitutional value.
+5. **The founding fork (0e).** `system/setup.html` step 1 is the three-way, one-way fork:
+   **join an existing world · start fresh · restore from records** (restoration = also a
+   founding path; the map step's "upload an export" is where restore lands).
 
-The section below documents the v2 hand-off it grew out of; treat anything there that
-contradicts the above as superseded.
+---
+
+## v3.1 — the simplification pass (2026-07-01; supersedes anything below that contradicts it)
+
+A full 13-auditor sweep (241 findings) followed by an 11-editor wave rebuilt the environment
+around one principle: **the audience for every first-contact surface is a curious,
+non-technical friend arriving via an invite link into a room.** Lead with the game; let the
+government be discovered.
+
+1. **Arrival is the spine.** New `civic/join.html` — the invite landing ("Amara invited
+   you — pick a name, step in", zero gates; invites carry no power). `index.html` is an
+   arrival cover (four doors: invited / Today / Atlas / a live room), `civic/today.html` is
+   **Home** (the wordmark target), and the TOUR opens with the *Arrive* act ("You're
+   invited" is stop 1); *Found an instance* lives in the Run-a-node act. `tour.html` adds a
+   ten-stop **First visit** track above the complete walkthrough.
+2. **Two-tier Menu.** The player tier (Home · The Atlas · The square · Messages · Live
+   rooms · Places · Market · My profile · Journeys · Learn & help · Guided tour) sits over a
+   collapsed **"All screens"** sitemap holding the full design contract, grouped by place
+   ("A place's chamber / elections / executive / courts"), with QA instruments under **For
+   the build team** — out of the player's way.
+3. **Seven pages became redirect stubs** (content merged into their survivors):
+   `civic/civic-home` → today · `civic/learn` → learn-home · `system/setup-wizard` → setup ·
+   `social/rep` → my-civic-life?tab=representatives · `organizations/org-detail` →
+   social/org-profile (now THE org page, `?org=` keyed) · `support/support-home` → report ·
+   `economy/requests` → marketplace?tab=requests (now **The open market**, a real
+   Offers | Requests tab). Manifest: 115 → **108 records** (2 ghosts removed; records added
+   for `civic/join.html` and `shared/bill.html`).
+4. **Operator-settled models are now the copy.** Journeys are the durable **lesson layer**
+   (per-step progress, a "what completing earns" block: profile achievement + one-time
+   stipend bonus + soft-unlock nudges); achievements are earned records ("confers nothing /
+   no progress stored" copy deleted; the one constitutional fence — never a governance
+   advantage — kept). The **never-federated framing is purged everywhere**: everything syncs;
+   privacy is reader privacy ("private — like a ballot"). The operator plane teaches **one
+   process to peerage** (the read/RW petition ladder is gone; authority = where a
+   jurisdiction's home copy lives, never a caste).
+5. **The math teaches true.** Thresholds read against the 8 *serving* members ("5 of 8",
+   "6 of 8") while seat 4 is vacant; the flagship bill is on the floor everywhere; the 2031
+   New York County race is 9 seats / 27 finalists / 30 candidates (fixtures + generator +
+   pages agree).
+6. **Shared idioms in the shell** (`CGA.shellV2`): `plannedBanner()` (THE Planned wording),
+   `plainState(token, map)` (humanizes entity-state strips), `plainCodes()`, `roomVariants`
+   (the eight room configs, single source). Machine keys/ids in fixtures stay untouched —
+   only display strings changed.
+7. **Verified.** qa_scan green (hex / physical-properties / emoji / internal links); all 215
+   inline scripts + every JS spine parse; **117 tour stops**; zero console errors on the
+   arrival spine, Home, the live room, and the open market; redirect stubs land correctly.
+
+Regenerating the manifest mirror (from `mockups/v3/`):
+
+```bash
+{ echo "/* GENERATED from manifest.json - regenerate with the snippet in MANIFEST.md. */"; \
+  printf 'window.CGA_MANIFEST = '; cat manifest.json; echo ';'; } > manifest.js
+```
+
+Then `python tools/qa_scan.py` from `mockups/` and reload `shared/coverage.html` over http.
+
+---
+
+## v3.0 — the harmonization (historical)
+
+The earlier split — a v2 game layer over a separate v1 operations site — was unified first:
+one shell (`assets/js/shell-v2.js`; `CGA.shell` aliased; `shell.js` deleted), one chrome on
+every page, the 80 `flows/WF-*.html` walkthroughs inverted into
+`assets/js/fixtures-flows.js` and surfaced as the Learn drawer's **"Where this fits"** block
+(pages then removed), `F-/CLK/Art.§/R-/WF-` codes stripped from rendered player text via
+`S.plainCodes()` (the learn layer intentionally keeps citations — it is the home of the
+constitutional "why"), one ordered tour, `operations.html` and `civic/my-record.html`
+deleted.
+
+Everything below documents the v2 hand-off this grew out of; treat anything there that
+contradicts the sections above as superseded (in particular: v1/v2 path splits, the
+never-federated economy framing, the read-write petition model, "120 stops", and any page
+counts).
 
 ---
 

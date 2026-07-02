@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Speaker tools — CGA mockups</title>
+  <title>The Speaker — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,24 +15,18 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Office of the Speaker</span>
-        <h1>Speaker tools</h1>
-        <p class="page-intro">The console for Yuki Tanaka, Speaker of the New York County legislature. The Speaker is
-          politically neutral, votes only to break ties, and presides over removal proceedings — except their own
-          case. Elected by supermajority RCV at the first session; replaceable the same way.</p>
+        <h1>The Speaker</h1>
+        <p class="page-intro">The office and the person: Yuki Tanaka chairs the New York County legislature. The
+          Speaker is politically neutral, votes only to break ties, and presides over removal proceedings — except
+          their own case. Elected by supermajority ranked-choice vote at the first session; replaceable the same
+          way.</p>
         <div class="cluster">
           <span class="persona-chip"><span class="avatar" aria-hidden="true">YT</span> Yuki Tanaka <span class="persona-roles">Speaker</span></span>
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened · protected by the constitutional test suite</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — the neutrality rule cannot be suspended</span>
+          <a class="btn btn--primary btn--sm" href="session-console.html"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-landmark"></use></svg> Run a session</a>
         </div>
         <p class="citation" style="margin-block-start:var(--space-2)">Politically neutral · votes only to break ties · elected and replaced by supermajority ranked-choice vote.</p>
       </header>
-
-      <section class="card" aria-labelledby="forms-h">
-        <h2 id="forms-h">The Speaker's nine forms</h2>
-        <p class="cc-small">Every power the office holds, in one place. Each card names the form,
-          who may file it, and what it does.</p>
-        <div id="spk-grid" class="grid-2"></div>
-        <noscript><p>The form cards render with JavaScript.</p></noscript>
-      </section>
 
       <section class="card" aria-labelledby="tie-h">
         <h2 id="tie-h">Tie-break record <span class="form-chip">Tie-breaking vote</span></h2>
@@ -65,21 +59,31 @@
           <span class="citation">available to the Speaker</span></p>
         <div class="cluster">
           <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"></use></svg> No proceeding currently before the Speaker</span>
-          <a href="oversight.html">Open oversight &amp; proceedings
+          <a href="oversight.html">Open ethics &amp; removals
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </div>
         <p class="citation" style="margin-block-start:var(--space-2)">Removal vote itself: supermajority of all serving members.</p>
       </section>
 
       <details class="about-surface">
+        <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> The machinery — everything the office can file</summary>
+        <div class="about-surface-body">
+          <p class="cc-small">Every power the office holds, in one place. Each card names the action,
+            who may take it, and what it does.</p>
+          <div id="spk-grid" class="grid-2"></div>
+          <noscript><p>The cards render with JavaScript.</p></noscript>
+        </div>
+      </details>
+
+      <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> it's the Speaker's console — electing and replacing the Speaker,
-            running a regular session, presiding over impeachment, censure, or expulsion, and handling a session that
-            can't reach quorum. Related flows: Speaker election / replacement,
-            regular session,
-            impeachment / censure / expulsion, and
-            quorum failure.</p>
+          <p><strong>What this screen does:</strong> it describes the office of the Speaker — the neutrality rule,
+            the tie-break record, the member-priorities channel, and the rule for presiding over removals — with the
+            full machinery in the drawer above. Running a session lives on the
+            <a href="session-console.html">session console</a>; electing or replacing the Speaker happens at the
+            first session of a term; removal proceedings run on the <a href="oversight.html">ethics &amp; removals</a>
+            page.</p>
           <p><strong>How a motion moves:</strong> the Speaker recognizes, schedules, and (only on ties)
             decides; everything else is recorded against the member who moved it.</p>
         </div>
@@ -90,7 +94,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'legislature/speaker-tools',
-      title: 'Speaker tools',
+      title: 'The Speaker',
       module: 'legislature',
       nav: 'speaker-tools',
       roles: ['R-10'],
@@ -123,7 +127,7 @@
       var SPK = [
         { fid: 'F-SPK-001', extra: '<a href="session-console.html">Open the session console</a>' },
         { fid: 'F-SPK-002', extra: '<span class="citation">order locked: 1. emergency powers · 2. constitutional matters · 3. general</span>' },
-        { fid: 'F-SPK-003', extra: '<span class="citation">' + 'Peg quorum: 5 of 9 serving · published each session' + '</span>' },
+        { fid: 'F-SPK-003', extra: '<span class="citation">' + 'Quorum: 5 of 8 serving — counted against all serving seats · published each session' + '</span>' },
         { fid: 'F-SPK-004', extra: '<span class="citation">1 tie broken this term — see the record below</span>' },
         { fid: 'F-SPK-005', extra: '<a href="committees.html">Run on the committees page</a>' },
         { fid: 'F-SPK-006', extra: '<span class="citation">3 member priorities queued — see below</span>' },
@@ -132,18 +136,13 @@
         { fid: 'F-SPK-009', extra: '<span class="citation">publishes automatically on adjournment</span>' }
       ];
 
-      /* Strip a leading role code (e.g. "R-10 Speaker" -> "Speaker") from display text. */
-      function plainRole(raw) {
-        return String(raw || '').replace(/\bR-\d+\s*/g, '').trim();
-      }
-
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
         return '<div class="card card--inset">' +
           '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) + '</h3>' +
           '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
-          '<span class="citation" style="display:block">available to ' + esc(plainRole(f.availableToRaw)) + '</span>' +
+          '<span class="citation" style="display:block">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</span>' +
           (extra ? '<div style="margin-block-start:var(--space-2)">' + extra + '</div>' : '') +
           '</div>';
       }

@@ -11,6 +11,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -23,6 +24,9 @@ import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
 import StvRound from '@/Components/Electoral/StvRound.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -139,10 +143,11 @@ const phaseBadge = computed(() => ({
 <template>
     <PageScaffold :surface="surface" :title="`Results — ${race.label}`">
         <template #intro>
-            Round-by-round PR-STV with the Droop quota. Surpluses transfer at fractional value
-            (Gregory method); every one of the {{ race.seats }}
-            {{ race.seats === 1 ? 'seat' : 'seats' }} fills in this single count. Write-ins are
-            tabulated identically to finalists. The full record below is public and auditable.
+            Every one of the {{ race.seats }}
+            {{ race.seats === 1 ? 'seat' : 'seats' }} fills in this single count. Your vote
+            moves to your next choice when your favorite either wins with room to spare or is
+            eliminated — so no vote is wasted. Write-ins are counted exactly like finalists,
+            and the full record below is public and auditable.
         </template>
 
         <p class="citation">

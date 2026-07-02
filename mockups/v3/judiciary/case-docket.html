@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Case docket — CGA mockups</title>
+  <title>Case docket — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,8 +17,8 @@
         <span class="eyebrow">Judiciary · case docket</span>
         <h1>Case docket — New York County &amp; New York State courts</h1>
         <p class="page-intro">Every case filed in your jurisdictions, from local civil disputes to full-court
-          constitutional questions. Anyone jurisdictionally associated can file; panels are assigned by the
-          court with conflict screening.</p>
+          constitutional questions. Anyone who lives here (a verified resident) can file; panels are assigned
+          by the court with conflict screening.</p>
         <p class="citation">Panels of at least 3 judges, always an odd number, scaled to severity — the full court hears major constitutional questions.</p>
       </header>
 
@@ -120,7 +120,7 @@
           <p><strong>How cases move:</strong> the case lifecycle;
             constitutional challenges branch into their own path;
             jury paneling runs as a separate flow.</p>
-          <p><strong>Stages a case passes through:</strong></p>
+          <p><strong>How a case moves:</strong></p>
           <div class="state-strip" id="case-strip"></div>
           <p class="citation" style="margin-block-start:var(--space-3)">Filing, panel assignment with conflict screening, and the right to a fair trial.</p>
         </div>
@@ -216,9 +216,24 @@
         document.getElementById('entry-forms').innerHTML = formCard('F-IND-016') + formCard('F-ADV-001');
         document.getElementById('fc-jdg-001').innerHTML = formCard('F-JDG-001');
 
+        /* Player wording for the raw case states; S.plainState falls back to a
+           generic cleanup if the fixture labels ever change. */
+        var CASE_STATES = {
+          'Filed': 'Filed',
+          'Validated': 'Accepted',
+          'Panel-Assigned (≥3, odd, severity-scaled)': 'Panel chosen (at least 3 judges, always odd)',
+          '[Jury-Empaneled]': 'Jury seated (when there is one)',
+          'Scheduled': 'Scheduled',
+          'Hearing': 'Hearing',
+          'Deliberation': 'Deliberation',
+          'Decided': 'Decided',
+          'Opinion-Published': 'Opinion published',
+          '[Appealed]': 'Appealed (if it happens)',
+          'Closed': 'Closed'
+        };
         document.getElementById('case-strip').innerHTML = BY.entities['Case'].states.map(function (st, i) {
           return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node">' + esc(st) + '</span>';
+            '<span class="state-node">' + esc(S.plainState(st, CASE_STATES)) + '</span>';
         }).join('');
 
         S.refresh();
@@ -252,7 +267,7 @@
         document.getElementById('filing-result').innerHTML =
           '<div class="banner banner--info">' + S.icon('check') +
           '<div><span class="banner-title">Filing accepted for review (simulation — nothing leaves this page)</span>' +
-          'Docket number <span class="citation" data-no-i18n>' + esc(id) + '</span> assigned. The court will classify justiciability and severity, then assign a panel with conflict screening. ' +
+          'Docket number <span class="citation" data-no-i18n>' + esc(id) + '</span> assigned. The court will check it is a case a court can hear, set its severity, then assign a panel with conflict screening. ' +
           '<span class="citation">Your filing moves to the court for review and panel assignment.</span></div></div>';
         render();
       });

@@ -19,6 +19,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -28,6 +29,9 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -86,11 +90,12 @@ function stateBadge(row) {
 <template>
     <PageScaffold :surface="surface" title="Co-determination scaling">
         <template #intro>
-            The same Art. III §6 scale binds every employer with a board — private enterprises,
-            Common Good Corporations, and executive departments alike. The first worker-elected
-            seat arrives at the CLK-13 minimum; worker seats scale linearly to parity with the
-            owner side at the CLK-14 threshold. Every number below is the engine's, read from one
-            shared boards table.
+            When a company employs {{ clk13.value.toLocaleString() }} or more people, its workers
+            start electing seats on its board. The first worker seat arrives at that threshold,
+            and worker seats grow evenly until they match the owners' seats at
+            {{ clk14.value.toLocaleString() }} workers. The formal name for this is
+            <em>co-determination</em>. The same scale applies to private companies, Common Good
+            Corporations, and government departments.
         </template>
 
         <!-- ============================== the CoDetScale explorer ======== -->

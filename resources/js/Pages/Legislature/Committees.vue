@@ -15,6 +15,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -28,6 +29,9 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import RankList from '@/Components/Electoral/RankList.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -174,11 +178,10 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
 <template>
     <PageScaffold :surface="surface" :title="`Committees — ${legislature.name}`">
         <template #intro>
-            Committees are created by supermajority act, filled by a deterministic
-            faction-independent assignment over every member's ranked preferences, and chaired by
-            whole-legislature ranked-choice ballot. Contested seats resolve by normalized vote
-            share — the proportionality the STV election produced, preserved without any party
-            layer.
+            Committee seats are assigned from each member's own ranked preferences — every
+            member answers for themselves, with no party machinery in between. When two members
+            want the same last seat, it goes to whoever won the larger share of the vote at
+            the election.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

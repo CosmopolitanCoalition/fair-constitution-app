@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Results — CGA mockups</title>
+  <title>Results — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,15 +16,15 @@
       <header>
         <span class="eyebrow">Elections · count record</span>
         <h1>Results — Queens County general election</h1>
-        <p class="page-intro">Round-by-round PR-STV with the Droop quota. Surpluses transfer at fractional value
-          (Gregory method); every one of the 9 seats fills in this single count. Write-ins are tabulated identically
-          to finalists. The full record below is public and auditable.</p>
+        <p class="page-intro">Every one of the 9 seats fills in this single count. Your vote moves to your next choice
+          when your favorite either wins with room to spare or is eliminated — so no vote is wasted. Write-ins are
+          counted exactly like finalists, and the full record below is public and auditable.</p>
         <p class="citation">STV with the Droop quota · fractional (Gregory) surplus transfers</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
         <div class="stat"><span class="stat-number" id="stat-total">—</span><span class="stat-label">valid ballots</span></div>
-        <div class="stat stat--accent"><span class="stat-number" id="stat-quota">—</span><span class="stat-label">Droop quota = floor(votes ÷ (seats+1)) + 1</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-quota">—</span><span class="stat-label">votes needed to win a seat (the quota)</span></div>
         <div class="stat"><span class="stat-number">9</span><span class="stat-label">seats — all filled in one count</span></div>
         <div class="stat"><span class="stat-number" id="stat-rounds">—</span><span class="stat-label">counting rounds</span></div>
       </div>
@@ -32,10 +32,8 @@
       
       <div class="banner banner--info">
         <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-        <div><span class="banner-title">Watch how a count like this unfolds, step by step.</span>
-          The full election cycle is walkable: general election flow ·
-          casting a ranked ballot. Every round below can be expanded to
-          see exactly where each candidate&rsquo;s votes went.</div>
+        <div><span class="banner-title">Follow the count, round by round.</span>
+          Every round below can be expanded to see exactly where each candidate&rsquo;s votes went.</div>
       </div>
 
       <section class="card" aria-labelledby="elected-h">
@@ -46,8 +44,8 @@
 
       <section class="card" aria-labelledby="rounds-h">
         <h2 id="rounds-h">The count, round by round</h2>
-        <p class="gloss">Gold tick = the Droop quota. Reaching it elects a candidate; their surplus transfers onward at
-          fractional value so no vote is wasted.</p>
+        <p class="gloss">Gold tick = the quota. Reaching it elects a candidate; their extra votes pass onward to
+          their voters&rsquo; next choices so no vote is wasted.</p>
         <div id="rounds-full"></div>
         <details class="about-surface" style="margin-block:var(--space-4)">
           <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
@@ -56,18 +54,18 @@
         </details>
         <div id="round-final"></div>
         <p class="cc-small" style="margin-block-start:var(--space-3)">
-          <span class="tag-chip">write-in</span> Quinn Avery entered as a write-in and was tabulated identically —
-          eliminated in round 13 with 16,999 votes, which transferred onward like any other.
+          <span class="tag-chip">write-in</span> Quinn Avery entered as a write-in and was counted exactly like any
+          finalist — eliminated in round 13 with 16,999 votes, which transferred onward like any other.
           <span class="citation">A write-in for any validated candidate is always allowed.</span></p>
         <p><a href="#" aria-disabled="true" class="btn btn--secondary btn--sm" onclick="return false">Download full count record (CSV) — stub</a></p>
       </section>
 
       <section class="card" aria-labelledby="cert-h">
         <h2 id="cert-h">Certification &amp; chain of custody</h2>
-        <p>The count ran under a public chain of custody. Observation and audit standing belongs to the endorsing
-          organizations and to the candidates themselves; any voter can verify their own ballot by receipt hash.</p>
-        <p class="citation">Anyone can observe and audit — observer standing transfers to endorsing organizations and candidates
-          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+        <p>The full record is public — anyone can check it. Formal observer standing (attesting the chain of custody)
+          sits with the endorsing organizations and the candidates themselves; any voter can verify their own ballot
+          with their receipt code.</p>
+        <p class="citation">Observer standing · as implemented (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Observers of record</caption>
           <thead><tr><th>Observer</th><th>Standing</th><th>Attestation</th></tr></thead>
@@ -81,13 +79,8 @@
         </div>
       </section>
 
-      <section class="card" aria-labelledby="rcv-h">
-        <h2 id="rcv-h">Single-winner variant — individual executive (RCV)</h2>
-        <p class="cc-small">Single-winner ranked-choice voting applies <strong>only</strong> to the individual executive
-          office model. The top 4 runners-up become the executive's advisors and alternates automatically — derived by sequential exclusion: re-run the count without the winner, then without the top two, and so on, yielding the ranked top five.</p>
-        <p class="citation">Single-winner ranked-choice voting only for the individual executive · top-4 runners-up become advisors</p>
-        <div id="rcv-final"></div>
-      </section>
+      <p class="cc-small">Single-winner races — used only for the individual executive — count differently:
+        see <a href="../executive/executive-home.html">the executive</a>.</p>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
@@ -136,8 +129,8 @@
 
       function slugify(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
       function profileHref(name) {
-        return S.href('electoral/candidate-profile.html?candidate=' + slugify(name) +
-          '&name=' + encodeURIComponent(name.replace(' (write-in)', '')) + '&race=' + RACE);
+        return S.href('social/profile.html?who=' + slugify(name) +
+          '&name=' + encodeURIComponent(name.replace(' (write-in)', '')) + '&race=' + RACE + '&tab=candidacy');
       }
       function nameLink(name, extraTitle) {
         var clean = name.replace(' (write-in)', '');
@@ -225,27 +218,6 @@
         '<tr><td>' + nameLink('Maya Okonjo') + ' (candidate)</td><td class="mono">candidate standing</td><td><span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' attested</span></td></tr>' +
         '<tr><td>' + nameLink('Quinn Avery (write-in)') + ' (write-in candidate)</td><td class="mono">candidate standing</td><td><span class="badge badge--success">' + S.icon('check', { size: 'sm' }) + ' attested</span></td></tr>';
       document.getElementById('observers').innerHTML = obs;
-
-      /* RCV individual-executive variant: winner + top-4 advisors. */
-      var rcv = [
-        { name: 'Ingrid Solberg', votes: 221408, win: true, label: 'Elected executive' },
-        { name: 'Noor Haddad', votes: 190978, label: 'Advisor 1 · not elected to the office — advisor by sequential exclusion' },
-        { name: 'Mateo Rossi', votes: 0, label: 'Advisor 2 · eliminated round 6' },
-        { name: 'Aïcha Traoré', votes: 0, label: 'Advisor 3 · eliminated round 5' },
-        { name: 'Elias Virtanen', votes: 0, label: 'Advisor 4 · eliminated round 4' }
-      ];
-      var rcvTotal = 412386, rcvMaj = Math.floor(rcvTotal / 2) + 1;
-      document.getElementById('rcv-final').innerHTML =
-        '<p class="citation">Final round · majority threshold ' + rcvMaj.toLocaleString('en-US') + ' of ' + rcvTotal.toLocaleString('en-US') + '</p>' +
-        rcv.map(function (c) {
-          var pct = c.votes ? Math.min(100, c.votes / (rcvTotal * 0.62) * 100) : 0;
-          return '<div class="stv-cand' + (c.win ? ' stv-cand--elected' : '') + '">' +
-            '<span class="stv-cand-name">' + esc(c.name) + '</span>' +
-            '<span class="stv-track">' + (c.votes ? '<span class="stv-fill' + (c.win ? ' stv-fill--elected' : '') + '" style="inline-size:' + pct.toFixed(1) + '%"></span>' : '') +
-            '<span class="stv-quota-mark" style="inset-inline-start:' + (rcvMaj / (rcvTotal * 0.62) * 100).toFixed(1) + '%" title="Majority"></span></span>' +
-            '<span class="stv-votes">' + (c.votes ? c.votes.toLocaleString('en-US') : '—') + '</span></div>' +
-            '<p class="citation" style="margin-block:0 var(--space-2)">' + esc(c.label) + '</p>';
-        }).join('');
 
       S.refresh();
       document.addEventListener('cga:statechange', function () { S.refresh(); });

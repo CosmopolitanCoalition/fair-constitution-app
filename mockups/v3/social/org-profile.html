@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Organization profile — CGA mockups v2</title>
+  <title>Organization profile — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -28,47 +28,201 @@
   (function () {
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
-    var BY = window.CGA.fixtures.byId;
+    var F = window.CGA.fixtures, W = F.world, BY = F.byId;
 
-    function orgName(id, fb) { var o = BY.organizations[id]; return o ? o.name : (fb || id); }
+    var SAMPLE = 'bluefin-logistics';
+    function requestedOrg() { try { return new URLSearchParams(location.search).get('org'); } catch (e) { return null; } }
+
     function personaName(id, fb) { var p = BY.personas[id]; return p ? p.name : (fb || id); }
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> The marketplace, jobs, and ledger here are design-ahead of code. Money is shown in abstract units — there are no real payment rails. The charter and board are backed by the built organization module.</div></div>';
-    }
-
-    function neverFederated(text) {
-      return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) +
-        esc(text || 'The org’s balance, receipts, and transactions live only on this server — never federated, like a ballot.') + '</p>';
-    }
-
     function typeLabel(t) {
-      return ({ business: 'Business', nonprofit: 'Nonprofit', common_good_corp: 'Common Good Corporation', informal: 'Informal association', political_party: 'Political party' })[t] || t;
+      return ({ business: 'Business', nonprofit: 'Nonprofit', common_good_corp: 'Common Good Corporation', informal: 'Informal association (club)', political_party: 'Political party' })[t] || t;
+    }
+
+    /* Friendly labels for the organization lifecycle strip. An explicit map
+       wins; anything unmapped is humanized by the shell (brackets, pipes, and
+       hyphen-chains stripped), so this stays robust either side of the
+       fixture cleanup. */
+    var STATE_LABELS = {
+      '[Endorsing]': 'Endorsing',
+      '[Co-determination tiers]': 'Worker board seats',
+      '[Transfer-Pending': 'Transfer pending',
+      'Transferred]': 'Transferred',
+      '[Converted Public↔Private]': 'Converted public ↔ private'
+    };
+
+    /* Per-org demo flavor absorbed from the old organization console page —
+       endorsement request queues and membership shape. Fictional. */
+    var extras = {
+      'commons-party': {
+        purpose: 'Advance shared infrastructure — housing, transit, and open public records — through candidates who publish their reasoning.',
+        members: 12480, membersLabel: 'members', workers: 36, agentPersona: 'priya-sharma',
+        requests: [
+          { id: 'sun-li-park', note: 'Independent — currently no organizational endorsements.' },
+          { id: 'felix-abara', note: 'Platform: watershed protection.' }
+        ]
+      },
+      'bluefin-logistics': {
+        members: 1204, membersLabel: 'shareholders', agentPersona: null,
+        requests: []
+      }
+    };
+    var granted = {}; /* candidateId -> true (page-local simulation) */
+
+    function resolveOrg() {
+      var reqId = requestedOrg();
+      var base = reqId ? BY.organizations[reqId] : null;
+      return { org: base || BY.organizations[SAMPLE], fallback: !base };
+    }
+
+    function candidateById(id) { return W.candidates.filter(function (c) { return c.id === id; })[0]; }
+
+    function endorsementSection(org, x) {
+      var reqHtml = ((x && x.requests) || []).map(function (r) {
+        var c = candidateById(r.id);
+        if (!c) return '';
+        if (granted[r.id]) {
+          return '<div class="card card--inset"><strong>' + esc(c.name) + '</strong> ' +
+            S.badge('success', 'Endorsement granted', 'check') +
+            '<p class="gloss" style="margin-block-start:var(--space-1)">Simulated — ' + esc(c.name) + ' now shows as an endorsed candidate on the ballot.</p></div>';
+        }
+        return '<div class="card card--inset"><strong>' + esc(c.name) + '</strong> ' +
+          '<span class="tag-chip">' + c.approvals.toLocaleString('en-US') + ' approvals</span>' +
+          '<p class="gloss" style="margin-block-start:var(--space-1)">' + esc(r.note) + ' The candidate asked for this endorsement.</p>' +
+          '<div class="cluster" style="margin-block-start:var(--space-2)">' +
+          '<button type="button" class="btn btn--primary btn--sm" data-grant="' + esc(r.id) + '">Grant endorsement</button>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-decline="' + esc(r.id) + '">Decline</button></div></div>';
+      }).join('');
+
+      var mine = W.candidates.filter(function (c) { return (c.endorsedBy || []).indexOf(org.id) >= 0; });
+      var endorsedHtml = mine.length
+        ? mine.map(function (c) {
+            return '<div class="cluster" style="justify-content:space-between"><span><a href="' + S.hrefV2('social/profile.html?who=' + encodeURIComponent(c.id) + '&tab=candidacy') + '">' + esc(c.name) + '</a> ' +
+              (c.incumbent ? S.badge('neutral', 'incumbent') : '') + '</span>' +
+              '<span class="gloss">' + c.approvals.toLocaleString('en-US') + ' approvals</span></div>';
+          }).join('')
+        : '<p class="gloss">None in this race yet.</p>';
+
+      var total = org.endorsementCount !== undefined
+        ? org.endorsementCount.toLocaleString('en-US') + ' endorsements granted across all races — totals are public; ballots stay secret.'
+        : 'No endorsements granted yet by this organization.';
+
+      return '<section class="card" aria-labelledby="endorse-h"><h2 id="endorse-h">' + S.icon('vote', { size: 'sm' }) + ' Endorsements</h2>' +
+        '<p class="gloss">Endorsements are public: a candidate asks, and the organization answers. People and organizations endorse candidates directly — there’s no party machinery underneath.</p>' +
+        '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
+        '<div><h3 style="font-size:var(--text-base)">Incoming requests</h3>' +
+        '<div class="stack" style="gap:var(--space-3)" aria-live="polite">' +
+        (reqHtml || '<p class="gloss">No open requests. Any organization — a business as much as a party — can endorse any candidate.</p>') + '</div></div>' +
+        '<div><h3 style="font-size:var(--text-base)">Endorsed candidates</h3>' +
+        '<div class="stack" style="gap:var(--space-2)">' + endorsedHtml + '</div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">' + esc(total) + '</p></div>' +
+        '</div></section>';
+    }
+
+    function joinSection() {
+      return '<section class="card" aria-labelledby="join-h"><h2 id="join-h">' + S.icon('users', { size: 'sm' }) + ' Join this organization</h2>' +
+        '<div class="grid-2">' +
+        '<div class="card card--inset stack" style="gap:var(--space-2)">' +
+        '<h3 style="font-size:var(--text-base)">As a member</h3>' +
+        '<p class="gloss" style="margin:0">Anyone can apply; the organization decides whether to accept.</p>' +
+        '<div class="field"><label class="field-label" for="member-class">Joining as</label>' +
+        '<select class="select" id="member-class"><option value="member">Member</option><option value="shareholder">Shareholder</option><option value="partner">Partner</option></select></div>' +
+        '<div class="cluster"><button type="button" class="btn btn--primary btn--sm" id="join-member">Apply to join</button></div>' +
+        '<div id="member-confirm" aria-live="polite"></div></div>' +
+        '<div class="card card--inset stack" style="gap:var(--space-2)">' +
+        '<h3 style="font-size:var(--text-base)">As a worker</h3>' +
+        '<p class="gloss" style="margin:0">Working here counts: the worker headcount is what earns worker seats on the board — <a href="' + S.hrefV2('organizations/co-determination.html') + '">see how</a>.</p>' +
+        '<div class="field"><label class="field-label" for="worker-contract">Employment contract reference</label>' +
+        '<input class="field-input" id="worker-contract" type="text" placeholder="e.g. BL-2031-0741" /></div>' +
+        '<div class="cluster"><button type="button" class="btn btn--secondary btn--sm" id="join-worker">Register as a worker</button></div>' +
+        '<div id="worker-confirm" aria-live="polite"></div></div>' +
+        '</div></section>';
+    }
+
+    function documentsSection() {
+      return '<section class="card" aria-labelledby="docs-h"><h2 id="docs-h">' + S.icon('file-text', { size: 'sm' }) + ' Documents</h2>' +
+        '<p class="gloss">The world’s shared rules are the floor every organization stands on. Above that floor, each organization keeps its own handbook and policies — adopted and amended by its own rules.</p>' +
+        '<div class="table-wrap"><table class="table">' +
+        '<thead><tr><th scope="col">Package</th><th scope="col" class="mono">Version</th><th scope="col">Status</th></tr></thead>' +
+        '<tbody>' +
+        '<tr><td>Charter</td><td class="mono" data-no-i18n>v1</td><td>' + S.badge('success', 'Adopted', 'check') + '</td></tr>' +
+        '<tr><td>HR handbook</td><td class="mono" data-no-i18n>v3</td><td>' + S.badge('info', 'Current', 'file-text') + '</td></tr>' +
+        '<tr><td>Compensation policy</td><td class="mono" data-no-i18n>v2</td><td>' + S.badge('info', 'Current', 'file-text') + '</td></tr>' +
+        '<tr><td>Custom forms</td><td class="mono" data-no-i18n>2</td><td>' + S.badge('neutral', 'Self-managed') + '</td></tr>' +
+        '</tbody></table></div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+        '<button type="button" class="btn btn--secondary btn--sm" id="pkg-upload">Upload a package</button>' +
+        '<button type="button" class="btn btn--secondary btn--sm" id="pkg-adopt">Adopt a new version</button></div>' +
+        '<p id="pkg-confirm" role="status" style="margin-block-start:var(--space-2)"></p>' +
+        '</section>';
+    }
+
+    function lifecycleSection(org, P) {
+      var ent = BY.entities['Organization'];
+      if (!ent) return '';
+      var currentIdx = P ? 3 : (org.endorsementCount !== undefined ? 2 : 1);
+      var strip = '<div class="state-strip">' + ent.states.map(function (s, i) {
+        return '<span class="state-node' + (i === currentIdx ? ' state-node--current' : '') + '">' + esc(S.plainState(s, STATE_LABELS)) + '</span>';
+      }).join('<span class="state-arrow">→</span>') + '</div>';
+      return '<section class="card" aria-labelledby="state-h"><h2 id="state-h">Where this organization is in its life</h2>' +
+        strip +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">From registration to winding down — selling, converting, or dissolving each happen on the <a href="' + S.hrefV2('organizations/transfers-conversions.html') + '">ownership changes</a> page.</p>' +
+        '</section>';
+    }
+
+    function governanceSection(org, P) {
+      var body;
+      if (P) {
+        var board = P.board, cd = P.coDetermination;
+        var chairName = personaName(board.chair);
+        var seatRows = '';
+        for (var i = 0; i < board.workerSeats; i++) {
+          seatRows += '<tr><td>Worker seat ' + (i + 1) + '</td><td>' + S.badge('info', 'Worker representative', 'users') +
+            (i === 0 && board.jointChair ? ' ' + S.badge('success', 'Joint chair · ' + esc(chairName), 'user') : '') +
+            '</td><td class="gloss">elected by the workforce</td></tr>';
+        }
+        for (var j = 0; j < board.ownerSeats; j++) {
+          seatRows += '<tr><td>Owner seat ' + (j + 1) + '</td><td>' + S.badge('neutral', 'Owner representative', 'briefcase') +
+            '</td><td class="gloss">elected by ownership</td></tr>';
+        }
+        body =
+          '<p style="margin-block-start:var(--space-2)">' + S.badge('info', board.workerSeats + ' worker seat' + (board.workerSeats === 1 ? '' : 's') + ' · ' + S.formatPop(P.workers) + ' of ' + S.formatPop(cd.parity) + ' workers toward parity', 'users') +
+          ' <a href="' + S.hrefV2('organizations/co-determination.html') + '">How worker seats are earned</a></p>' +
+          '<p>The board seats ' + board.workerSeats + ' worker representative' + (board.workerSeats === 1 ? '' : 's') +
+          ' and ' + board.ownerSeats + ' owner representative' + (board.ownerSeats === 1 ? '' : 's') + '. ' +
+          (board.jointChair ? 'The chair, ' + esc(chairName) + ', is elected jointly by the whole board.' : '') + '</p>' +
+          '<div class="table-wrap"><table class="table"><thead><tr><th>Seat</th><th>Holder type</th><th>Basis</th></tr></thead>' +
+          '<tbody>' + seatRows + '</tbody></table></div>' +
+          '<div class="cluster"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('organizations/board-elections.html') + '">Board elections</a></div>';
+      } else if (org.workers >= 100) {
+        body = '<p style="margin-block-start:var(--space-2)">' + S.badge('info', S.formatPop(org.workers) + ' of 2,000 workers toward parity', 'users') +
+          ' <a href="' + S.hrefV2('organizations/co-determination.html') + '">How worker seats are earned</a></p>';
+      } else if (org.workers) {
+        body = '<p style="margin-block-start:var(--space-2)">' + S.badge('neutral', org.workers + ' workers — below the first worker seat at 100', 'users') +
+          ' <a href="' + S.hrefV2('organizations/co-determination.html') + '">How worker seats are earned</a></p>';
+      } else {
+        body = '<p class="gloss" style="margin-block-start:var(--space-2)">No registered workers. When an organization employs 100 or more people, its workers start electing board seats — <a href="' + S.hrefV2('organizations/co-determination.html') + '">see how</a>.</p>';
+      }
+      return '<section class="card" aria-labelledby="gov-h"><h2 id="gov-h">' + S.icon('landmark', { size: 'sm' }) + ' Governance &amp; the board</h2>' +
+        '<details class="learn-inline"><summary>See the board &amp; how worker seats are earned</summary>' + body + '</details></section>';
     }
 
     function render() {
-      var o = E.profiles.org;
-      var name = orgName(o.org);
+      var res = resolveOrg();
+      var o = res.org;
+      var P = o.id === SAMPLE ? E.profiles.org : null;
+      var x = extras[o.id];
+      var name = o.name;
       var initials = name.split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-      var cd = o.coDetermination;
-      var board = o.board;
-      var chairName = personaName(board.chair);
+      var purpose = (x && x.purpose) || (P && P.charter) || 'A registered organization with a public charter.';
+      var workers = P ? P.workers : o.workers;
 
-      /* --- board seats (worker / owner) + joint chair -------------------- */
-      var seatRows = '';
-      for (var i = 0; i < board.workerSeats; i++) {
-        seatRows += '<tr><td>Worker seat ' + (i + 1) + '</td><td>' + S.badge('info', 'Worker representative', 'users') +
-          (i === 0 ? ' ' + (board.jointChair ? S.badge('success', 'Joint chair · ' + esc(chairName), 'user') : '') : '') +
-          '</td><td class="citation">elected by the workforce</td></tr>';
-      }
-      for (var j = 0; j < board.ownerSeats; j++) {
-        seatRows += '<tr><td>Owner seat ' + (j + 1) + '</td><td>' + S.badge('neutral', 'Owner representative', 'briefcase') +
-          '</td><td class="citation">elected by ownership</td></tr>';
-      }
+      var fallbackNote = res.fallback
+        ? '<p class="gloss">' + S.icon('info', { size: 'sm' }) + ' Showing the sample organization — open any organization from <a href="' + S.hrefV2('organizations/org-registry.html') + '">the registry</a> to see its own page.</p>'
+        : '';
 
       /* --- marketplace listings ----------------------------------------- */
-      var listings = (o.listings || []).map(function (id) {
+      var listings = ((P && P.listings) || []).map(function (id) {
         return E.marketplace.filter(function (m) { return m.id === id; })[0];
       }).filter(Boolean);
       var offerCards = listings.map(function (m) {
@@ -77,12 +231,11 @@
           '<strong>' + esc(m.title) + '</strong>' +
           '<span class="offer-price">' + esc(m.price) + '</span>' +
           '<span class="offer-seller">qty ' + esc(String(m.qty)) + '</span>' +
-          '<span class="form-chip">' + esc('Marketplace listing') + '</span>' +
           '</div>';
       }).join('');
 
       /* --- job board ---------------------------------------------------- */
-      var jobRows = (o.jobs || []).map(function (jb) {
+      var jobRows = ((P && P.jobs) || []).map(function (jb) {
         return '<div class="card card--inset stack" style="gap:var(--space-1)">' +
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
           '<strong style="color:var(--gov-fg)">' + esc(jb.title) + '</strong>' + S.badge('info', jb.kind, 'briefcase') + '</div>' +
@@ -92,63 +245,92 @@
           '</div>';
       }).join('');
 
-      /* --- private ledger (org account) --------------------------------- */
-      var orgAccount = E.accounts.filter(function (a) { return a.kind === 'org'; })[0];
-      var ledgerRows = E.wallet.transactions.slice(0, 3).map(function (tx) {
-        var inn = tx.amount.trim().charAt(0) === '+';
-        return '<div class="wallet-row"><span>' + esc(tx.date) + '</span>' +
-          '<span>' + esc(tx.kind) + '</span>' +
-          '<span class="gloss">' + esc(tx.counterparty) + '</span>' +
-          '<span class="wallet-amt ' + (inn ? 'wallet-amt--in' : 'wallet-amt--out') + '">' + esc(tx.amount) + '</span></div>';
-      }).join('');
+      /* --- private ledger (sample org only — this viewer helps run it) --- */
+      var ledgerHtml = '';
+      if (P) {
+        var orgAccount = E.accounts.filter(function (a) { return a.kind === 'org'; })[0];
+        var ledgerRows = E.wallet.transactions.slice(0, 3).map(function (tx) {
+          var inn = tx.amount.trim().charAt(0) === '+';
+          return '<div class="wallet-row"><span>' + esc(tx.date) + '</span>' +
+            '<span>' + esc(tx.kind) + '</span>' +
+            '<span class="gloss">' + esc(tx.counterparty) + '</span>' +
+            '<span class="wallet-amt ' + (inn ? 'wallet-amt--in' : 'wallet-amt--out') + '">' + esc(tx.amount) + '</span></div>';
+        }).join('');
+        ledgerHtml = '<section class="card" aria-labelledby="ledger-h"><h2 id="ledger-h">' + S.icon('lock', { size: 'sm' }) + ' The org ledger</h2>' +
+          '<div class="lr-note"><div>' + S.icon('lock', { size: 'sm' }) + '</div><div>' +
+          esc('The organization’s balance, receipts, and transactions are private — like a ballot, only its own members can read them.') + '</div></div>' +
+          '<p class="wallet-balance">' + esc(orgAccount ? String(orgAccount.balance) : 'private') + '</p>' +
+          '<p class="gloss">Recent movements:</p>' +
+          '<div class="stack" style="gap:0">' + ledgerRows + '</div>' +
+          '<p style="margin-block-start:var(--space-3)"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/org-settings.html') + '">Manage economics, shares &amp; dues ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+          '</section>';
+      }
 
-      /* admin management actions (this viewer runs the org) */
-      var manageActions = [
-        { icon: 'file-text', label: 'Edit charter' },
-        { icon: 'briefcase', label: 'Post a job' },
-        { icon: 'building', label: 'Manage listings' },
-        { icon: 'users', label: 'Members & roles' },
-        { icon: 'bar-chart', label: 'Economics & shares', href: 'economy/org-settings.html' }
-      ].map(function (a) {
-        return a.href
-          ? '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(a.href) + '">' + S.icon(a.icon, { size: 'sm' }) + ' ' + esc(a.label) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</a>'
-          : '<button type="button" class="btn btn--secondary btn--sm" data-manage="' + esc(a.label) + '">' + S.icon(a.icon, { size: 'sm' }) + ' ' + esc(a.label) + '</button>';
-      }).join('');
+      /* --- manage actions (sample org only — this viewer helps run it) --- */
+      var manageHtml = '';
+      if (P) {
+        var manageActions = [
+          { icon: 'file-text', label: 'Edit charter' },
+          { icon: 'briefcase', label: 'Post a job' },
+          { icon: 'building', label: 'Manage listings' },
+          { icon: 'users', label: 'Members & roles' },
+          { icon: 'bar-chart', label: 'Economics & shares', href: 'economy/org-settings.html' }
+        ].map(function (a) {
+          return a.href
+            ? '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(a.href) + '">' + S.icon(a.icon, { size: 'sm' }) + ' ' + esc(a.label) + ' ' + S.icon('arrow-right', { size: 'sm' }) + '</a>'
+            : '<button type="button" class="btn btn--secondary btn--sm" data-manage="' + esc(a.label) + '">' + S.icon(a.icon, { size: 'sm' }) + ' ' + esc(a.label) + '</button>';
+        }).join('');
+        manageHtml = '<section class="card" aria-labelledby="manage-h">' +
+          '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+          '<h2 id="manage-h">' + S.icon('sliders', { size: 'sm' }) + ' Manage this organization</h2>' +
+          S.badge('neutral', 'You help run this', 'user') + '</div>' +
+          '<p class="gloss">Controls for the people who run this organization.</p>' +
+          '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap">' + manageActions + '</div></section>';
+      }
+
+      /* --- identity head -------------------------------------------------- */
+      var badges = S.badge('neutral', typeLabel(o.type), 'building');
+      if (P) badges += S.badge('info', 'Ownership: ' + (P.ownership === 'stock' ? 'stock / shareholders' : esc(P.ownership)), 'briefcase');
+      else if (o.ownership) badges += S.badge('info', 'Ownership: ' + esc(o.ownership.replace(/_/g, ' ')), 'briefcase');
+      if (workers) badges += S.pill('info', S.formatPop(workers) + ' workers', 'Headcount sets how many board seats the workers hold.');
+
+      var stats = '';
+      if (P) {
+        stats += '<span class="profile-stat">Listings <b>' + listings.length + '</b></span>' +
+          '<span class="profile-stat">Open jobs <b>' + ((P && P.jobs) || []).length + '</b></span>' +
+          '<span class="profile-stat">Board <b>' + (P.board.workerSeats + P.board.ownerSeats) + '</b> seats</span>';
+      }
+      if (x && x.members) stats += '<span class="profile-stat">' + esc(x.membersLabel) + ' <b>' + x.members.toLocaleString('en-US') + '</b></span>';
+      if (o.endorsementCount !== undefined) stats += '<span class="profile-stat">Endorsements <b>' + o.endorsementCount.toLocaleString('en-US') + '</b></span>';
+
+      var agentLine = (x && x.agentPersona)
+        ? '<p class="gloss" style="margin:0">' + S.icon('user', { size: 'sm' }) + ' Point of contact: ' + esc(personaName(x.agentPersona)) + '</p>'
+        : '';
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">An organization · public profile</span><h1>' + esc(name) + '</h1>' +
-        '<p class="page-intro">' + esc(o.charter) + '</p></header>' +
-        plannedBanner() +
+        '<p class="page-intro">' + esc(purpose) + '</p></header>' +
+        fallbackNote +
+        S.plannedBanner('The marketplace, jobs, and ledger are a preview — money is shown in play units, and no real payments move. The charter, board, and endorsements are the real thing.') +
 
-        /* identity head — lean: who they are, not the governance machinery */
+        /* identity head — who they are */
         '<section class="card" aria-labelledby="head-h">' +
         '<h2 id="head-h" class="visually-hidden">Organization summary</h2>' +
         '<div class="profile-head">' +
         '<span class="profile-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
         '<div class="stack" style="gap:var(--space-2)">' +
-        '<div class="cluster">' +
-        S.badge('neutral', typeLabel(o.type), 'building') +
-        S.badge('info', 'Ownership: ' + (o.ownership === 'stock' ? 'stock / shareholders' : esc(o.ownership)), 'briefcase') +
-        S.pill('info', S.formatPop(o.workers) + ' workers', 'Headcount sets how many board seats the workers hold.') +
-        '</div>' +
-        '<div class="profile-stats">' +
-        '<span class="profile-stat">Listings <b>' + listings.length + '</b></span>' +
-        '<span class="profile-stat">Open jobs <b>' + (o.jobs || []).length + '</b></span>' +
-        '<span class="profile-stat">Board <b>' + (board.workerSeats + board.ownerSeats) + '</b> seats</span>' +
-        '</div></div></div>' +
+        '<div class="cluster">' + badges + '</div>' +
+        (stats ? '<div class="profile-stats">' + stats + '</div>' : '') +
+        '<p class="gloss" style="margin:0">' + S.icon('map-pin', { size: 'sm' }) + ' Registered in New York County — a public record, visible from any server.</p>' +
+        agentLine +
+        '</div></div>' +
         '</section>' +
 
-        /* MANAGE — admin controls (shown to people who run the org) */
-        '<section class="card" aria-labelledby="manage-h">' +
-        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
-        '<h2 id="manage-h">' + S.icon('sliders', { size: 'sm' }) + ' Manage this organization</h2>' +
-        S.badge('neutral', 'You help run this', 'user') + '</div>' +
-        '<p class="gloss">Controls for the people who run this organization.</p>' +
-        '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap">' + manageActions + '</div></section>' +
+        manageHtml +
 
         /* charter */
         '<section class="card" aria-labelledby="charter-h"><h2 id="charter-h">Charter</h2>' +
-        '<p>' + esc(o.charter) + '</p>' +
+        '<p>' + esc(purpose) + '</p>' +
         '<p class="gloss">A registered organization with a public charter. Private organizations and common-good corporations trade on identical terms.</p>' +
         '</section>' +
 
@@ -161,47 +343,59 @@
 
         /* job board — who they’re hiring */
         '<section class="card" aria-labelledby="jobs-h"><h2 id="jobs-h">' + S.icon('briefcase', { size: 'sm' }) + ' Job board</h2>' +
-        '<p class="gloss">Open roles. Pay is set by the organization’s co-determined package — the workers help decide it.</p>' +
+        '<p class="gloss">Open roles. The workers help set the pay package.</p>' +
         (jobRows ? '<div class="offer-grid">' + jobRows + '</div>' : '<p class="gloss">No open roles right now.</p>') +
         '</section>' +
 
-        /* private ledger */
-        '<section class="card" aria-labelledby="ledger-h"><h2 id="ledger-h">' + S.icon('lock', { size: 'sm' }) + ' The org ledger</h2>' +
-        neverFederated('This organization’s balance, receipts, and transactions are private — they live only on this server and never federate, like a ballot.') +
-        '<p class="wallet-balance">' + esc(orgAccount ? String(orgAccount.balance) : 'private') + '</p>' +
-        '<p class="gloss">Visible to the org’s own members. Recent movements:</p>' +
-        '<div class="stack" style="gap:0">' + ledgerRows + '</div>' +
-        '<p style="margin-block-start:var(--space-3)"><a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/org-settings.html') + '">Manage economics, shares &amp; dues ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
-        '</section>' +
-
-        /* GOVERNANCE & THE BOARD — demoted into a collapsible (was too prominent) */
-        '<section class="card" aria-labelledby="gov-h"><h2 id="gov-h">' + S.icon('landmark', { size: 'sm' }) + ' Governance &amp; the board</h2>' +
-        '<p class="gloss">' + esc(cd.status) + '. Workers earn board seats as the organization grows.</p>' +
-        '<details class="learn-inline"><summary>See the board &amp; how worker seats are earned</summary>' +
-        '<div class="meter-block" style="margin-block-start:var(--space-2)">' +
-        '<div class="meter"><div class="meter-fill ' + (o.workers >= cd.threshold ? 'meter-fill--met' : '') + '" style="inline-size:' +
-          Math.min(100, Math.round(o.workers / cd.parity * 100)) + '%"></div>' +
-        '<span class="meter-threshold" style="inset-inline-start:' + Math.round(cd.threshold / cd.parity * 100) + '%"></span></div>' +
-        '<p class="meter-caption">' + S.formatPop(o.workers) + ' of ' + S.formatPop(cd.parity) + ' workers · ' +
-        'first worker seat at ' + cd.threshold + ' · worker–owner parity at ' + cd.parity + '</p></div>' +
-        '<p>The board seats ' + board.workerSeats + ' worker representative' + (board.workerSeats === 1 ? '' : 's') +
-        ' and ' + board.ownerSeats + ' owner representative' + (board.ownerSeats === 1 ? '' : 's') + '. ' +
-        (board.jointChair ? 'The chair, ' + esc(chairName) + ', is elected jointly by the whole board.' : '') + '</p>' +
-        '<div class="table-wrap"><table class="table"><thead><tr><th>Seat</th><th>Holder type</th><th>Basis</th></tr></thead>' +
-        '<tbody>' + seatRows + '</tbody></table></div>' +
-        '<div class="cluster"><a class="btn btn--ghost btn--sm" href="' + S.hrefV1('organizations/co-determination.html') + '">Co-determination console</a>' +
-        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV1('organizations/board-elections.html') + '">Board elections</a></div>' +
-        '</details></section>';
-
-      document.getElementById('root').addEventListener('click', function (ev) {
-        var m = ev.target.closest ? ev.target.closest('[data-manage]') : null;
-        if (m) { S.announce(m.getAttribute('data-manage') + ' (simulated).'); return; }
-        var a = ev.target.closest ? ev.target.closest('[data-apply]') : null;
-        if (a) { S.announce('Application started for ' + a.getAttribute('data-apply') + ' (simulated).'); }
-      });
+        endorsementSection(o, x) +
+        joinSection() +
+        documentsSection() +
+        ledgerHtml +
+        governanceSection(o, P) +
+        lifecycleSection(o, P);
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
+
+    /* delegated wiring — attached once, survives re-renders */
+    document.getElementById('root').addEventListener('click', function (ev) {
+      var closest = function (sel) { return ev.target.closest ? ev.target.closest(sel) : null; };
+      var m = closest('[data-manage]');
+      if (m) { S.announce(m.getAttribute('data-manage') + ' (simulated).'); return; }
+      var a = closest('[data-apply]');
+      if (a) { S.announce('Application started for ' + a.getAttribute('data-apply') + ' (simulated).'); return; }
+      var g = closest('[data-grant]');
+      if (g) { granted[g.getAttribute('data-grant')] = true; render(); return; }
+      var d = closest('[data-decline]');
+      if (d) {
+        var res = resolveOrg(), x = extras[res.org.id], id = d.getAttribute('data-decline');
+        if (x) x.requests = x.requests.filter(function (r) { return r.id !== id; });
+        render(); return;
+      }
+      if (closest('#join-member')) {
+        var cls = (document.getElementById('member-class') || {}).value || 'member';
+        document.getElementById('member-confirm').innerHTML =
+          S.badge('success', 'Application submitted', 'check') +
+          ' <span class="gloss">Simulated — you join as a ' + esc(cls) + ' when the organization accepts.</span>';
+        return;
+      }
+      if (closest('#join-worker')) {
+        document.getElementById('worker-confirm').innerHTML =
+          S.badge('success', 'Worker registration recorded', 'check') +
+          ' <span class="gloss">Simulated — the headcount updates, moving the organization along the worker-seats scale.</span>';
+        return;
+      }
+      if (closest('#pkg-upload')) {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('info', 'Package received', 'file-text') +
+          ' <span class="gloss">Simulated — the draft is staged for adoption by the organization’s own rules. It can never override the shared floor.</span>';
+        return;
+      }
+      if (closest('#pkg-adopt')) {
+        document.getElementById('pkg-confirm').innerHTML = S.badge('success', 'Version adopted', 'check') +
+          ' <span class="gloss">Simulated — HR handbook v4 adopted; v3 is archived with its history preserved.</span>';
+      }
+    });
+
     render();
     document.addEventListener('cga:v2:rerender', render);
   })();

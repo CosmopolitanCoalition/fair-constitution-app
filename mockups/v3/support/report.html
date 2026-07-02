@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Report an issue — CGA mockups v2</title>
+  <title>Report an issue — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -46,7 +46,7 @@
     function render() {
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('flag', { size: 'sm' }) + ' Report an issue</span><h1>Report an issue</h1>' +
-        '<p class="page-intro">Tell us what’s wrong and we’ll route it to the right people. You can stay pseudonymous — your residency is never attached.</p>' +
+        '<p class="page-intro">Tell us what’s wrong and we’ll route it to the right people. You don’t have to use your real name, and where you live is never attached.</p>' +
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
 
         '<form id="report-form" class="stack" novalidate>' +
@@ -63,13 +63,23 @@
         '<section class="card card--inset" aria-labelledby="ctx-h"><h2 id="ctx-h">3 · Context attached for you</h2>' +
         '<p class="gloss">We attach where you were so you don’t have to explain it.</p>' +
         '<ul><li>Page: <code>' + esc(ref) + '</code></li>' +
-        '<li>Persona: <span class="citation">' + esc((S.activePersona() || {}).name || 'you') + '</span> (you can report pseudonymously)</li>' +
+        '<li>Persona: <span class="citation">' + esc((S.activePersona() || {}).name || 'you') + '</span> (you don’t have to use your real name)</li>' +
         '<li>Instance &amp; version: attached automatically</li></ul></section>' +
 
         '<div class="cluster"><button type="submit" class="btn btn--primary">' + S.icon('flag', { size: 'sm' }) + ' Submit report</button>' +
-        '<a class="btn btn--ghost" href="' + S.hrefV2('support/support-home.html') + '">Cancel</a>' +
+        '<a class="btn btn--ghost" href="' + S.hrefV2('support/tickets.html') + '">Cancel</a>' +
         '<span class="citation" data-form-error role="alert" hidden></span></div>' +
-        '</form>';
+        '</form>' +
+
+        '<section aria-labelledby="where-h"><h2 id="where-h">Where a report goes</h2>' +
+        '<p class="page-intro">You pick a category; the report finds the right people on its own.</p>' +
+        '<ul>' + U.categories.map(function (c) {
+          return '<li><strong style="color:var(--gov-fg)">' + esc(c.label) + '</strong> <span class="gloss">— goes to ' + esc(c.routesTo) + '</span></li>';
+        }).join('') + '</ul>' +
+        '<div class="route-note">' + S.icon('shield', { size: 'sm' }) +
+        '<div>Support staff fix bugs and wording — they never decide what people may say. Reports about abuse or illegal content go straight to the ' +
+        '<a href="' + S.hrefV2('operator/moderation.html') + '">moderation &amp; legal team</a>.</div></div>' +
+        '<p class="gloss">Already reported something? <a href="' + S.hrefV2('support/tickets.html') + '">Follow it in the ticket queue</a> as it moves to resolved.</p></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
@@ -106,7 +116,7 @@
         '<span class="pill pill--info">New</span>' +
         '<span class="tk-meta">' + S.icon(cat.icon, { size: 'sm' }) + ' ' + esc(cat.label) + '</span></div></div>' +
         (selected === 'abuse'
-          ? '<div class="route-note">' + S.icon('shield', { size: 'sm' }) + '<div>Because this is an abuse report it was sent to the <a href="' + S.hrefV2('operator/moderation.html') + '">moderation &amp; legal plane</a>, not the support queue. No one decides viewpoint here.</div></div>'
+          ? '<div class="route-note">' + S.icon('shield', { size: 'sm' }) + '<div>Because this is an abuse report it went straight to the <a href="' + S.hrefV2('operator/moderation.html') + '">moderation &amp; legal team</a>, not the tech-support queue. Support staff never decide what people may say.</div></div>'
           : '') +
         '<div class="cluster"><a class="btn btn--secondary" href="' + S.hrefV2('support/tickets.html') + '">See all tickets ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
         '<a class="btn btn--ghost" href="' + S.hrefV2('support/report.html') + '">Report another</a></div></section>';

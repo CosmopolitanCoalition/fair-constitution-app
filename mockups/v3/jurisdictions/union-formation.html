@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Union formation — CGA mockups</title>
+  <title>Union formation — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -22,12 +22,11 @@
 
       <header>
         <span class="eyebrow">Jurisdictions · union formation</span>
-        <h1>Union formation — compatibility, codification, ratification</h1>
-        <p class="page-intro">Two or more independent jurisdictions form a union by analyzing where their
-          amendable variables and institutions diverge, codifying one shared set, and ratifying by
+        <h1>Union formation — check differences, agree one rulebook, then vote</h1>
+        <p class="page-intro">Two or more independent jurisdictions form a union by checking where their
+          settings and institutions differ, agreeing one shared value for each difference, and ratifying by
           supermajority — of the applicant population and of the union's constituent jurisdictions.
           Exit mirrors entry.</p>
-        <p class="citation">Compatibility analysis → variable codification → ratification votes.</p>
       </header>
 
       <section class="card" aria-labelledby="instances-h">
@@ -39,37 +38,37 @@
             <tbody id="instance-rows"></tbody>
           </table>
         </div>
-        <p class="gloss">Both instances federate on union — see <a href="federation.html">federation</a> for the
-          peer mechanics.</p>
+        <p class="gloss">When the union forms, the servers behind the two governments link up too — that
+          plumbing lives on the <a href="../operator/mesh.html">server mesh</a> page in the operator area.</p>
       </section>
 
       <section class="card" aria-labelledby="compat-h">
-        <h2 id="compat-h">Compatibility analyzer</h2>
-        <p class="cc-small">Diff of changeable settings and institutional alignment. The locked-in mechanics never
+        <h2 id="compat-h">Check the differences</h2>
+        <p class="cc-small">A side-by-side of each party's settings and institutions. The locked-in mechanics never
           diverge — both instances run the same constitutional checks.</p>
         <div class="table-wrap">
           <table class="table">
-            <caption class="visually-hidden">Amendable variable and institution differences</caption>
-            <thead><tr><th scope="col">Variable / institution</th><th scope="col">Aurelia</th><th scope="col">Meridia</th><th scope="col">Status</th></tr></thead>
+            <caption class="visually-hidden">Setting and institution differences</caption>
+            <thead><tr><th scope="col">Setting / institution</th><th scope="col">Aurelia</th><th scope="col">Meridia</th><th scope="col">Status</th></tr></thead>
             <tbody id="compat-rows"></tbody>
           </table>
         </div>
-        <p class="citation" style="margin-block-start:var(--space-2)">Changeable settings are the values each jurisdiction has adopted for itself.</p>
+        <p class="citation" style="margin-block-start:var(--space-2)">Settings are the values each jurisdiction has adopted for itself.</p>
         <p class="cluster"><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Locked in · protected by the constitutional checks</span>
           <span class="citation">The voting method, the 5–9 seat range, and the supermajority rule are identical on both instances by design.</span></p>
       </section>
 
       <section class="card" aria-labelledby="codify-h">
-        <h2 id="codify-h">Variable codification workspace</h2>
-        <p class="cc-small">For each divergent setting the founding act sets one value for the union.
+        <h2 id="codify-h">Agree one shared value for each difference</h2>
+        <p class="cc-small">For each differing setting the founding act sets one value for the union.
           Constituents keep their own values for their own scope where the power is joint.</p>
         <div id="codify-rows" class="stack" style="gap:var(--space-4)"></div>
         <div class="cluster" style="margin-block-start:var(--space-3)">
-          <button type="button" class="btn btn--primary" id="codify-record">Record codification</button>
+          <button type="button" class="btn btn--primary" id="codify-record">Record the agreed values</button>
           <span id="codify-status"></span>
         </div>
-        <noscript><p class="gloss">The codification workspace needs JavaScript; divergent variables are listed
-          in the compatibility table above.</p></noscript>
+        <noscript><p class="gloss">The workspace needs JavaScript; the differing settings are listed
+          in the table above.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="ratify-h">
@@ -109,8 +108,6 @@
           </div>
           <p class="gloss">Population seats = max(5, round(∛ 7,100,000)) = 192, split by population; equal seats = one
             seat per constituent. Both kinds must agree independently, in committee and on the floor.</p>
-          <p class="citation">Both kinds of members must agree independently · cube-root sizing · as implemented
-            (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)</p>
         </section>
       </div>
 
@@ -143,8 +140,9 @@
           <p><strong>What this screen does:</strong> walks two or more independent jurisdictions through forming a
             union — checking where their settings diverge, agreeing one shared set, and opening the ratification
             votes. The same process covers joining an existing union, and
-            exit mirrors entry. Peer discovery and instance federation happen on the
-            <a href="federation.html">federation</a> screen.</p>
+            exit mirrors entry. The server-to-server plumbing behind a union lives on the
+            <a href="../operator/mesh.html">server mesh</a> page in the operator area; boundary questions
+            between neighbors are settled on <a href="federation.html">Between governments</a>.</p>
           <p>Once ratified, the new encompassing jurisdiction is born self-governing, with both parties as its
             constituents.</p>
         </div>
@@ -157,7 +155,7 @@
       id: 'jurisdictions/union-formation',
       title: 'Union formation',
       module: 'jurisdictions',
-      nav: 'jurisdiction-browser',
+      nav: 'union-formation',
       roles: ['R-09', 'R-04'],
       workflows: ['WF-JUR-02', 'WF-JUR-03'],
       forms: ['F-LEG-029'],
@@ -184,7 +182,7 @@
         { name: 'Meridia (hypothetical)', host: 'meridia.example', pop: 2900000, role: 'Founding applicant' }
       ];
 
-      /* Compatibility diff: amendable variables + institutional alignment. */
+      /* The side-by-side: settings + institutional alignment. */
       var DIFF = [
         { k: 'Months between elections', a: '60', b: '48', conflict: true },
         { k: 'Supermajority threshold', a: 'two-thirds', b: 'two-thirds', conflict: false },
@@ -211,8 +209,8 @@
             ? '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Hardened — identical</span>'
             : d.conflict
               ? (codified[d.k]
-                ? S.badge('success', 'Codified', 'check')
-                : S.badge('warning', 'Requires codification', 'alert-triangle'))
+                ? S.badge('success', 'Agreed', 'check')
+                : S.badge('warning', 'Needs one shared value', 'alert-triangle'))
               : S.badge('success', 'Aligned', 'check');
           return '<tr><td class="mono">' + esc(d.k) + '</td><td class="mono">' + esc(d.a) + '</td>' +
             '<td class="mono">' + esc(d.b) + '</td><td>' + status + '</td></tr>';
@@ -233,8 +231,8 @@
         var conflicts = DIFF.filter(function (d) { return d.conflict; }).length;
         var chosen = Object.keys(codified).length;
         document.getElementById('codify-status').innerHTML = codifyDone
-          ? S.badge('success', 'Codification recorded — ' + conflicts + ' of ' + conflicts + ' variables', 'check')
-          : S.badge('neutral', chosen + ' of ' + conflicts + ' variables chosen', 'clock');
+          ? S.badge('success', 'Agreed values recorded — ' + conflicts + ' of ' + conflicts + ' settings', 'check')
+          : S.badge('neutral', chosen + ' of ' + conflicts + ' settings chosen', 'clock');
 
         /* Ratification meters — react to the union-drill scenario toggle. */
         var meters = PARTIES.map(function (p) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Election board console — CGA mockups</title>
+  <title>Election board console — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -24,15 +24,15 @@
           boundaries, certifies, audits, and orders recounts. It never counts by hand — tabulation runs in protected code.</p>
         <p class="citation">Election boards are independent and politically neutral.</p>
         <div class="cluster" style="margin-block-start:var(--space-2)">
-          <button type="button" class="btn btn--ghost btn--sm" id="bootstrap-toggle" aria-pressed="false">Show bootstrap-board variant</button>
-          <span class="citation">mockup control — toggles the first-election bootstrap state</span>
+          <button type="button" class="btn btn--ghost btn--sm" id="bootstrap-toggle" aria-pressed="false">Show founding-board variant</button>
+          <span class="citation">mockup control — toggles the first-election founding-board view</span>
         </div>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
         <div class="stat"><span class="stat-number">3</span><span class="stat-label">elections under administration</span></div>
         <div class="stat stat--accent"><span class="stat-number" id="stat-queue">4</span><span class="stat-label">validations pending</span></div>
-        <div class="stat"><span class="stat-number">1</span><span class="stat-label">countback running</span></div>
+        <div class="stat"><span class="stat-number">1</span><span class="stat-label">vacancy re-count running</span></div>
         <div class="stat"><span class="stat-number">1</span><span class="stat-label">petition audit due</span></div>
       </div>
 
@@ -44,14 +44,14 @@
             <div class="field">
               <label class="field-label" for="s-election">Election</label>
               <select class="select" id="s-election">
-                <option>New York County general — 7 seats (approval phase live)</option>
-                <option>Kings County special — seat 2 (countback failed)</option>
+                <option>New York County general — 9 seats (approval phase live)</option>
+                <option>Kings County special — seat 2 (the vacancy re-count failed)</option>
               </select>
             </div>
             <div class="field">
               <label class="field-label" for="s-cutoff">Finalist cutoff</label>
               <input class="field-input" type="datetime-local" id="s-cutoff" value="2031-08-01T17:00" />
-              <span class="field-hint">The finalist count per race is pre-published with this order — New York County at-large: 21.</span>
+              <span class="field-hint">How many candidates make the final ballot is published with this order — New York County at-large: 27.</span>
             </div>
           </div>
           <div>
@@ -89,9 +89,10 @@
         <section class="card" aria-labelledby="maps-h">
           <h2 id="maps-h">District-map oversight <span class="citation">Subdivision boundary drawing</span></h2>
           <p class="citation">For the Election Board Member · starts when a legislature exceeds 9 seats and must subdivide.</p>
-          <p class="cc-small">Earth legislature — 1,999 seats (cube-root sizing), Webster allocation,
-            quota 3,985,245 pop/seat. Member jurisdictions above the 9-seat ceiling (India, Mexico, …) subdivide over
-            their own scope — their election boards draw those districts inside the parent budget.</p>
+          <p class="cc-small">Earth legislature — 1,999 seats, sized and divided by population (about 3.99M people
+            per seat); the exact formulas live in Learn. Member jurisdictions above the 9-seat ceiling (India,
+            Mexico, …) subdivide over their own territory — their election boards draw those districts within their
+            share of seats.</p>
           <div class="table-wrap"><table class="table">
             <caption class="visually-hidden">District map plans under oversight</caption>
             <thead><tr><th>Plan</th><th>Districts</th><th>Status</th></tr></thead>
@@ -132,10 +133,10 @@
 
         <section class="card" aria-labelledby="vac-h">
           <h2 id="vac-h">Vacancies</h2>
-          <p class="cc-small"><strong>New York County legislature · seat 4</strong> — Renata Silva resigned. The countback
-            engine is re-running the prior ballots with the vacated member removed.</p>
-          <p class="citation">Vacancy declaration received · the seat is refilled by countback</p>
-          <a class="btn btn--secondary btn--sm" href="vacancy-countback.html">Open the countback view
+          <p class="cc-small"><strong>New York County legislature · seat 4</strong> — Renata Silva resigned. The prior
+            election's ballots are being re-run with the vacated member removed.</p>
+          <p class="citation">Vacancy declaration received · the seat is refilled by re-counting the old ballots</p>
+          <a class="btn btn--secondary btn--sm" href="vacancy-countback.html">Open the re-count view
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
         </section>
       </div>
@@ -143,21 +144,14 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> it is the board's full docket —
-            general election cycle ·
-            bootstrap first election ·
-            vacancy countback ·
-            special election ·
-            recount &amp; audit ·
-            subdivision &amp; boundary drawing ·
-            referendum execution ·
-            executive election ·
-            judicial election ·
-            election board constitution.</p>
+          <p><strong>What this screen does:</strong> it is the board's full docket — scheduling and running general
+            and special elections (including the very first one), validating candidacies, overseeing district maps,
+            certifying results, ordering recounts and audits, auditing petition signatures, and running referendums.
+            The same board administers executive and judicial elections.</p>
           <p><strong>How things move:</strong> an election runs from scheduling through certification, a candidacy moves
-            through validation, and a vacancy hands off to the countback engine.</p>
-          <p><strong>Bootstrap variant:</strong> a bootstrap board administers only the first election and carries the
-            persistent replacement warning until the seated legislature appoints a proper board.</p>
+            through validation, and a vacancy is refilled by re-counting the prior ballots.</p>
+          <p><strong>Founding-board variant:</strong> a founding board administers only the first election and carries
+            the persistent replacement warning until the seated legislature appoints a permanent one.</p>
         </div>
       </details>
     </div>
@@ -211,13 +205,13 @@
 
         document.getElementById('bootstrap-banner').innerHTML = bootstrap
           ? '<div class="banner banner--warning" role="status">' + S.icon('alert-triangle') +
-            '<div><span class="banner-title">Bootstrap election board — temporary · replacement queued.</span> ' +
-            'This board exists only to run the first election. The seated legislature must appoint a proper, politically ' +
+            '<div><span class="banner-title">Founding election board — temporary · replacement queued.</span> ' +
+            'This board exists only to run the first election. The seated legislature must appoint a permanent, politically ' +
             'neutral board as part of its first sessions.</div></div>'
           : '';
         var bt = document.getElementById('bootstrap-toggle');
         bt.setAttribute('aria-pressed', bootstrap ? 'true' : 'false');
-        bt.textContent = bootstrap ? 'Hide bootstrap-board variant' : 'Show bootstrap-board variant';
+        bt.textContent = bootstrap ? 'Hide founding-board variant' : 'Show founding-board variant';
 
         /* Validation queue */
         document.getElementById('queue-rows').innerHTML = QUEUE.map(function (q) {

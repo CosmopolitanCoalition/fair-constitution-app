@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>A bill — CGA mockups v3</title>
+  <title>A bill — the conversation — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the bill…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'shared/bill', title: 'A bill', module: 'legislature', nav: 'journey-bill', register: 'governance' };
+    window.CGA_PAGE = { id: 'shared/bill', title: 'A bill — the conversation', module: 'legislature', nav: 'journey-bill', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -60,15 +60,16 @@
 
     function render() {
       document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">Lawmaking · a bill</span><h1>' + esc(bill.title) + '</h1>' +
+        '<header><span class="eyebrow">Lawmaking · the conversation on a bill</span><h1>' + esc(bill.title) + '</h1>' +
         '<p class="page-intro">' + esc(bill.summary) + '</p>' +
-        '<p class="gloss">' + S.icon('user', { size: 'sm' }) + ' Sponsored by ' + esc(bill.sponsor) + ' · ' + S.icon('landmark', { size: 'sm' }) + ' ' + esc(jurName(bill.jurisdiction)) + '</p></header>' +
+        '<p class="gloss">' + S.icon('user', { size: 'sm' }) + ' Sponsored by ' + esc(bill.sponsor) + ' · ' + S.icon('landmark', { size: 'sm' }) + ' ' + esc(jurName(bill.jurisdiction)) +
+        ' · This is where people talk the bill over and work its text; the formal record keeps the lifecycle and the vote math.</p></header>' +
         stagesHtml() +
         '<section class="card"><div data-neg-mount></div></section>' +
         commentsHtml() +
         '<div class="cluster" style="margin-block-start:var(--space-2)">' +
         '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('shared/live-room.html?variant=legislative') + '">' + S.icon('users', { size: 'sm' }) + ' Watch the floor session ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
-        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV1('legislature/bill-detail.html') + '">The full bill record</a></div>';
+        '<a class="btn btn--ghost btn--sm" href="' + S.hrefV1('legislature/bill-detail.html') + '">The formal record — lifecycle &amp; the vote math</a></div>';
 
       // mount the negotiation interface over the bill's clauses
       var mountEl = document.querySelector('[data-neg-mount]');

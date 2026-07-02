@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Juror view — CGA mockups</title>
+  <title>Juror view — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,8 +16,8 @@
       <header>
         <span class="eyebrow">Jury service</span>
         <h1>Juror summons — State v. Whitfield</h1>
-        <p class="page-intro">You were drawn at random from the eligible pool of jurisdictionally associated
-          residents of New York. Service is a protected civic obligation — nobody can interfere with
+        <p class="page-intro">You were drawn at random from the eligible pool of verified residents
+          of New York. Service is a protected civic obligation — nobody can interfere with
           it, and nothing about it can ever cost you a fee.</p>
         <p class="citation">A jury of your peers — and your service is protected.</p>
       </header>
@@ -27,7 +27,7 @@
         <ol class="stepper">
           <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Summoned</li>
           <li class="stepper-step stepper-step--active" aria-current="step">Conflict screening</li>
-          <li class="stepper-step">Empaneled</li>
+          <li class="stepper-step">Seated on the jury</li>
           <li class="stepper-step">Trial</li>
           <li class="stepper-step">Deliberation</li>
           <li class="stepper-step">Discharged</li>
@@ -39,10 +39,10 @@
         <div class="grid-2">
           <div>
             <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Drawn:</strong> <span class="citation">2031-06-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
-            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Pool:</strong> 14,733,408 eligible jurisdictionally associated residents of New York</p>
+            <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Pool:</strong> 14,733,408 eligible verified residents of New York</p>
             <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Draw integrity:</strong> the random-selection seed is published to the <a href="../system/audit-chain.html">audit chain</a> — anyone can verify the draw</p>
             <p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">Report:</strong> <span class="citation">2031-06-24 09:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
-            <p><strong style="color:var(--gov-fg)">Where:</strong> New York State court, courtroom 3 — 12 jurors + 2 alternates will be empaneled</p>
+            <p><strong style="color:var(--gov-fg)">Where:</strong> New York State court, courtroom 3 — 12 jurors + 2 alternates will be seated</p>
             <p class="citation">Drawn at random from the eligible pool — a jury of your peers.</p>
           </div>
           <div id="fc-jdg-002"></div>
@@ -147,23 +147,11 @@
         { id: 'q5', text: 'Have you served on a jury or panel in a related case?' }
       ];
 
-      function plainText(s) {
-        // Strip constitutional codes (role/form/clock/workflow ids, citations) out of any display string.
-        return String(s || '')
-          .replace(/\bArt\.\s*[IVXLC]+(?:\s*§\s*\d+[a-z]?)?/gi, '')
-          .replace(/§\s*\d+[a-z]?/g, '')
-          .replace(/\bR-\d+\/?(?:R-\d+)?\s*/g, '')
-          .replace(/\b(?:F|CLK|WF)-[A-Z]+-\d+/g, '')
-          .replace(/\(\s*\)/g, '')
-          .replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'')
-          .replace(/\s{2,}/g, ' ').trim();
-      }
-
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var availableTo = plainText(f.availableToRaw) || 'a judge';
-        var basis = plainText(f.basis);
+        var availableTo = S.plainCodes(f.availableToRaw).replace(/jurisdictionally associated/ig, 'any verified resident') || 'a judge';
+        var basis = S.plainCodes(f.basis);
         return '<div class="card card--inset">' +
           '<span class="eyebrow">Source of this summons</span>' +
           '<div class="cluster" style="justify-content:space-between;align-items:baseline;margin-block-start:var(--space-1)">' +
@@ -197,12 +185,12 @@
         });
         document.getElementById('screening-result').innerHTML = flagged
           ? '<div class="banner banner--warning" role="status">' + S.icon('alert-triangle') +
-            '<div><span class="banner-title">Flagged for voir dire review (simulation)</span>' +
+            '<div><span class="banner-title">Flagged for juror questioning (voir dire) — simulation</span>' +
             'A panel judge will follow up on the answers you flagged. If a conflict is confirmed you are excused without penalty and the draw selects a replacement. ' +
             '<span class="citation">conflict screening — protecting a jury of your peers</span></div></div>'
           : '<div class="banner banner--info" role="status">' + S.icon('check') +
             '<div><span class="banner-title">No conflicts declared (simulation)</span>' +
-            'You remain in the panel pool. Report on 2031-06-24 — empanelment is confirmed at voir dire. ' +
+            'You remain in the panel pool. Report on 2031-06-24 — your seat on the jury is confirmed at juror questioning. ' +
             '<span class="citation">conflict screening — protecting a jury of your peers</span></div></div>';
       });
 

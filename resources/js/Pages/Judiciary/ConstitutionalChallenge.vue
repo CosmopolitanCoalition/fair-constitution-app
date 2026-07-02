@@ -19,11 +19,15 @@
  */
 import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Field from '@/Components/Ui/Field.vue';
 import Art4Section5Tracker from '@/Components/Judiciary/Art4Section5Tracker.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -71,8 +75,8 @@ function submitFiling() {
             Any inhabitant can challenge a law that unjustly impedes their rights. When the court
             finds a contradiction, three resolution paths open: the legislature amends, the
             legislature overrides by supermajority within the veto window, or — if the window closes
-            with neither — the judiciary edits the law directly. Finding + recommended remedy +
-            reasonable timeframe (CLK-12) + veto window (CLK-11) · Art. IV §5.
+            with neither — the judiciary edits the law directly. A finding, a recommended fix, a
+            reasonable timeframe to act, and an override window — all on a public clock.
         </template>
 
         <!-- engine 422: the rejection citation, verbatim -->

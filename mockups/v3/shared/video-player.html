@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Video library — CGA mockups v2</title>
+  <title>Video library — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the video library…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'shared/video-player', title: 'Video library', module: 'learn', nav: 'video-library', citation: 'The multi-track player · one silent master + N language tracks · modeled on functions/video_player.php', register: 'governance' };
+    window.CGA_PAGE = { id: 'shared/video-player', title: 'Video library', module: 'learn', nav: 'video-library', citation: 'The video library · one film, narrated and captioned in many languages', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -34,7 +34,7 @@
     function howItWorks() {
       return '<section class="card" aria-labelledby="how-h"><h2 id="how-h">How the player works</h2>' +
         '<p class="gloss">Every guide, tool, and workflow has a short video — and every video speaks ' + T.totals.mapped + ' languages without rendering ' + T.totals.mapped + ' separate films. ' +
-        'It is the same cost-saver the marketing site uses: <strong style="color:var(--gov-fg)">one silent master video</strong> plus a cheap audio and caption track per language.</p>' +
+        'It is a simple cost-saver: <strong style="color:var(--gov-fg)">one silent master video</strong> plus a cheap audio and caption track per language.</p>' +
         '<div class="grid-2">' +
         '<div class="card card--inset"><span class="eyebrow">The pieces</span><ul>' +
         '<li><strong style="color:var(--gov-fg)">One silent master</strong> — <code>{Subject}-Silent.mp4</code>, muted, shared by every language.</li>' +
@@ -44,7 +44,7 @@
         '<li><strong style="color:var(--gov-fg)">Link audio &amp; subtitles</strong> — one control sets both to your language; unlink to mix (e.g. English audio, your captions).</li>' +
         '<li><strong style="color:var(--gov-fg)">Stays in sync</strong> — the hidden audio is corrected back to the master whenever it drifts past 0.3 seconds.</li>' +
         '<li><strong style="color:var(--gov-fg)">Remembers you</strong> — your language choice carries to every other video.</li></ul></div></div>' +
-        '<p class="citation">A faithful mockup of <code>functions/video_player.php</code> (the <code>[subject_video_player]</code> shortcode). No media ships in the prototype — the stage is a labelled placeholder.</p></section>';
+        '<p class="citation">A faithful mockup of the Coalition’s multi-track player. No media ships in the prototype — the stage is a labelled placeholder.</p></section>';
     }
 
     function library() {
@@ -69,8 +69,8 @@
         howItWorks() +
         library() +
         '<section class="card card--inset" aria-labelledby="tr-h"><h2 id="tr-h">Many languages, tracked</h2>' +
-        '<p>Audio and captions are two of the six modalities the <a href="' + S.hrefV2('translation/translation-home.html') + '">translation interface</a> tracks per language — ' +
-        T.totals.mapped + ' mapped, ' + T.totals.shipped + ' shipped on the marketing site, the rest queued.</p></section>';
+        '<p>Audio and captions are two of the six kinds of content the <a href="' + S.hrefV2('translation/translation-home.html') + '">translation interface</a> tracks per language — ' +
+        T.totals.mapped + ' languages mapped, ' + T.totals.shipped + ' already narrated, the rest queued.</p></section>';
 
       C.initVideo(document.getElementById('featured'));
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

@@ -238,6 +238,11 @@ Route::post('/api/import/jurisdictions', [JurisdictionController::class, 'import
 // catch-all; same public posture as show().
 Route::get('/legislatures', [LegislatureController::class, 'index'])->name('legislatures.index');
 Route::get('/legislatures/{legislature_id}', [LegislatureController::class, 'show'])->name('legislatures.show');
+// Phase 3e monolith retirement: the district mapper extracted from show()
+// onto its own surface. Same public posture + dual-accept (UUID|slug) as
+// show(); pre-split mapper deep links (?scope/?map/?setup/?compare) on the
+// show route 302 here with the query preserved.
+Route::get('/legislatures/{legislature_id}/districts', [LegislatureController::class, 'districts'])->name('legislatures.districts');
 
 // Legislature district editing API
 Route::post('/api/legislatures/{legislature_id}/districts', [LegislatureController::class, 'createDistrict'])->name('legislatures.districts.create');
@@ -260,12 +265,33 @@ Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\C
 // Split-line bisection: draw a line, see the population each side, commit both districts.
 Route::post('/api/legislatures/{legislature_id}/split-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitProbe'])->name('legislatures.split-probe');
 Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit');
+// Shortest-splitline AUTOSEED for a childless leaf giant (Phase 5 design §3):
+// preview computes the full deterministic cut plan (read-only), commit
+// recomputes it server-side and files one F-ELB-008 per leaf district, and
+// split-balance slides a hand-placed line to the nearest in-band seat
+// balance without changing its angle.
+Route::post('/api/legislatures/{legislature_id}/autoseed-lines/preview', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedPreview'])->name('legislatures.autoseed-lines.preview');
+Route::post('/api/legislatures/{legislature_id}/autoseed-lines/commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedCommit'])->name('legislatures.autoseed-lines.commit');
+Route::post('/api/legislatures/{legislature_id}/split-balance', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitBalance'])->name('legislatures.split-balance');
 
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
 // giant_threshold-aware). Returns { steps: [{ scope_id, scope_name }, ...],
 // current_index } so the District Mapper can step through every drillable
 // jurisdiction in the legislature's giant tree.
 Route::get('/api/legislatures/{legislature_id}/wizard-steps', [LegislatureController::class, 'wizardSteps'])->name('legislatures.wizard-steps');
+
+// The district mapper is a long-lived tab (drawing sessions run hours). Its
+// heartbeat keeps the session warm so the CSRF token baked into the page at
+// render never dies mid-draw (an expired session turns every probe/commit
+// POST into an HTML 419 the fetch helpers could only report generically),
+// and returns the CURRENT token so a tab revived after laptop sleep can
+// re-arm its headers without a reload.
+Route::get('/api/session/heartbeat', function () {
+    return response()->json([
+        'csrf' => csrf_token(),
+        'auth' => \Illuminate\Support\Facades\Auth::check(),
+    ]);
+})->name('session.heartbeat');
 
 // District map management
 Route::get('/api/legislatures/{legislature_id}/maps', [LegislatureController::class, 'listMaps'])->name('legislatures.maps.list');
@@ -775,11 +801,42 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/matrix/voice-reach', \App\Http\Controllers\Matrix\VoiceReachController::class)->name('matrix.voice-reach');
 });
 
+// mockups-v3-wiring Phase 3c — the journeys engine: guided learn-by-doing
+// arcs with durable per-user completion + profile medals. Auth-gated (progress
+// is personal); writes validate against config/cga/journeys.php in
+// JourneyService (planned journeys reject; completed journeys freeze).
+Route::middleware('auth')->group(function () {
+    Route::get('/journeys', [\App\Http\Controllers\Civic\JourneysController::class, 'index'])
+        ->name('journeys.index');
+    Route::get('/journeys/{id}', [\App\Http\Controllers\Civic\JourneysController::class, 'show'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.show');
+    Route::post('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'step'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.step');
+    Route::delete('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'unstep'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.unstep');
+});
+
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain
 // is the shared public record of the instance) + operator-triggered verify.
 Route::middleware('auth')->prefix('system')->name('system.')->group(function () {
     Route::get('/audit-chain', [AuditChainController::class, 'show'])->name('audit-chain');
     Route::post('/audit-chain/verify', [AuditChainController::class, 'verify'])->name('audit-chain.verify');
+    // mockups-v3-wiring Phase 2 — read-only registry/ledger pages over
+    // EXISTING services (design contracts: mockups/v3/shared/clocks.html,
+    // mockups/v3/system/amendments.html). Zero actions by design.
+    Route::get('/clocks', [\App\Http\Controllers\System\ClocksController::class, 'show'])->name('clocks');
+    Route::get('/amendments', [\App\Http\Controllers\System\AmendmentsController::class, 'show'])->name('amendments');
+});
+
+// mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form
+// (public read); FILING is attributed, so the POST stays auth-gated. The intake
+// routes a request — it removes nothing (carve-out removals are the judicial
+// F-SOC-003 path).
+Route::middleware('auth')->group(function () {
+    Route::get('/support/report', [\App\Http\Controllers\Support\SupportReportController::class, 'create'])
+        ->name('support.report')->withoutMiddleware('auth'); // public read
+    Route::post('/support/report', [\App\Http\Controllers\Support\SupportReportController::class, 'store'])
+        ->name('support.report.store');
 });
 
 // WI-4 — dev tooling: impersonation + ping simulator. Registered ONLY in
@@ -890,6 +947,46 @@ Route::middleware('auth:operator')->group(function () {
     // by device-possession proof (the proof string targets POST /operator/link).
     Route::post('/operator/link', [\App\Http\Controllers\Federation\OperatorLinkController::class, 'link'])
         ->name('operator.link');
+});
+
+// ── mockups-v3-wiring Phase 4 — the operator/* console suite (PHASE_4_DESIGN_peerage.md
+// §3.1) + the traveling-write receipt (§4). READS gate like /operator/operations: the
+// page shell is reachable by any authenticated user, the operator data block is built
+// only for an auth:operator session (a citizen sees a sign-in prompt). The role-lifecycle
+// ACTIONS ride auth:operator, wrapping the mesh:role CLI verbs one-for-one. The G3c
+// read-write petition ladder is NOT presented here (design flag 1 — /federation keeps it).
+Route::middleware('auth')->group(function () {
+    Route::get('/operator', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'home'])
+        ->name('operator.home');
+    Route::get('/operator/console', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'console'])
+        ->name('operator.console');
+    Route::get('/operator/roles', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'roles'])
+        ->name('operator.roles');
+    Route::get('/operator/mesh', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'mesh'])
+        ->name('operator.mesh');
+    Route::get('/operator/identity', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'identity'])
+        ->name('operator.identity');
+    Route::get('/operator/versioning', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'versioning'])
+        ->name('operator.versioning');
+
+    // The traveling-write receipt: poll the ForwardedWrite outcome for a write YOU
+    // filed (own-writes only, determined through the sealed audit row; else 404).
+    Route::get('/api/federation/write-status/{origin}/{key}', \App\Http\Controllers\Federation\WriteStatusController::class)
+        ->whereUuid('origin')->where('key', '[A-Za-z0-9_\-]{1,128}')
+        ->name('federation.write-status');
+});
+
+// Phase 4 — the qualify → request → approve → join lifecycle over the wall the
+// /operator/operations POSTs use (auth:operator; thin wrappers over the services).
+Route::middleware('auth:operator')->group(function () {
+    Route::post('/operator/roles/qualify', [\App\Http\Controllers\Operator\MeshRolesController::class, 'qualify'])
+        ->name('operator.roles.qualify');
+    Route::post('/operator/roles/request', [\App\Http\Controllers\Operator\MeshRolesController::class, 'request'])
+        ->name('operator.roles.request');
+    Route::post('/operator/roles/approve', [\App\Http\Controllers\Operator\MeshRolesController::class, 'approve'])
+        ->name('operator.roles.approve');
+    Route::post('/operator/roles/revoke', [\App\Http\Controllers\Operator\MeshRolesController::class, 'revoke'])
+        ->name('operator.roles.revoke');
 });
 
 // Session auth — register / login / logout (WI-3).

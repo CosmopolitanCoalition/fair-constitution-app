@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Amendments — CGA mockups</title>
+  <title>Amendments — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,10 +16,10 @@
       <header>
         <span class="eyebrow">System of record</span>
         <h1>Amendments</h1>
-        <p class="page-intro">The constitution changes through exactly two doors. Amendable variables move by ordinary
-          legislative acts inside hardened bounds. The hardened layer itself moves only by a code release that passes
-          the full constitutional test suite. Nothing changes silently, and nothing changes any other way.</p>
-        <p class="citation">How the constitution is amended</p>
+        <p class="page-intro">The constitution changes through exactly two doors. The settings it leaves open move by
+          ordinary legislative acts, inside locked bounds. The locked core itself (the hardened layer) moves only by a
+          new release of the software, made in the open with every constitutional check passing publicly. Nothing
+          changes silently, and nothing changes any other way.</p>
         <p style="margin-block-start:var(--space-2)"><a href="https://cosmopolitancoalition.org/cosmopolitan-template/">Read
           the Template — <em>A Fair Constitution</em> (Cosmopolitan Template)
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-external-link"></use></svg></a></p>
@@ -33,20 +33,20 @@
             values before the vote is even scheduled.</p>
           <div class="stack" style="gap:var(--space-3)">
             <div class="amendable">
-              <span class="amendable-value">election_interval_months = 60</span>
+              <span class="amendable-value">Election interval: 60 months</span>
               <span class="amendable-meta">Template default at founding · changes apply from the next cycle</span>
             </div>
             <div class="amendable">
-              <span class="amendable-value">legislature_max_seats = 9</span>
+              <span class="amendable-value">Maximum legislature seats: 9</span>
               <span class="amendable-meta">Range 5–9 · the ceiling of 9 is itself locked</span>
             </div>
             <div class="amendable">
-              <span class="amendable-value">supermajority = 2/3</span>
+              <span class="amendable-value">Supermajority: 2/3</span>
               <span class="amendable-meta">Set by Act 2031-14 · effective 2031-03-01 · floor: may never produce a result below majority + 1</span>
             </div>
             <div class="amendable">
-              <span class="amendable-value">emergency_powers_max_days = 90</span>
-              <span class="amendable-meta">constitutional ceiling 90 days</span>
+              <span class="amendable-value">Emergency powers cap: 90 days</span>
+              <span class="amendable-meta">The 90-day ceiling is itself locked</span>
             </div>
           </div>
           <p style="margin-block-start:var(--space-4)"><a href="../legislature/settings.html">The full amendable-settings register
@@ -55,9 +55,9 @@
 
         <section class="card" aria-labelledby="path-b-h">
           <h2 id="path-b-h">Door two — the hardened layer</h2>
-          <p class="cc-small">Mechanics no act, admin panel, or office can touch. A change here is a code release that
-            must pass the full constitutional test suite before deployment — <strong>softening exists only through this
-            door</strong>, in the open, with the diff and the test run on the public record.</p>
+          <p class="cc-small">Mechanics no act, admin panel, or office can touch. A change here is a new release of the
+            software that must pass every automated constitutional check before it ships — <strong>softening exists
+            only through this door</strong>, in the open, with the change and its checks on the public record.</p>
           <div class="stack" style="gap:var(--space-2)">
             <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Proportional voting with the Droop quota — never first-past-the-post or plurality</span>
             <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Quorum &amp; supermajority counted against all serving members</span>
@@ -66,7 +66,7 @@
             <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Voting &amp; candidacy: residency only, no other requirements</span>
             <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Common-good-corporation intellectual property perpetually public domain</span>
           </div>
-          <p class="citation" style="margin-block-start:var(--space-4)">Protected files plus the constitutional test suite · <a href="audit-chain.html">releases sealed in the audit chain</a></p>
+          <p class="citation" style="margin-block-start:var(--space-4)"><a href="audit-chain.html">Releases are sealed in the audit chain</a></p>
         </section>
       </div>
 
@@ -106,9 +106,9 @@
           <div class="field" style="margin-block-end:0">
             <label class="field-label" for="try-setting">Setting</label>
             <select class="select" id="try-setting" style="inline-size:auto">
-              <option value="max_seats">legislature_max_seats (range 5–9)</option>
-              <option value="interval">election_interval_months (range 12–120)</option>
-              <option value="emergency">emergency_powers_max_days (ceiling 90)</option>
+              <option value="max_seats">Maximum legislature seats (range 5–9)</option>
+              <option value="interval">Election interval, months (range 12–120)</option>
+              <option value="emergency">Emergency powers cap, days (ceiling 90)</option>
             </select>
           </div>
           <div class="field" style="margin-block-end:0">
@@ -138,7 +138,7 @@
               </tr>
               <tr>
                 <td>Hardened-layer change</td>
-                <td>Code release passing the full constitutional test suite, publicly recorded</td>
+                <td>A public software release with every constitutional check passing</td>
                 <td class="mono">Hardened-layer release</td>
               </tr>
             </tbody>
@@ -158,6 +158,9 @@
             change is sealed in the audit chain.</p>
           <p><strong>Where settings live:</strong> amendable settings are scoped per jurisdiction;
             ratification climbs the nesting chain through constituent supermajorities.</p>
+          <p><strong>In engineering terms:</strong> the hardened layer is a set of protected files guarded by the
+            constitutional test suite — a release deploys only when the full suite passes, and the release is sealed
+            in the audit chain.</p>
         </div>
       </details>
     </div>
@@ -189,9 +192,9 @@
       var S = window.CGA.shell;
 
       var BOUNDS = {
-        max_seats: { min: 5, max: 9, label: 'legislature_max_seats', cite: 'hardened ceiling 9' },
-        interval: { min: 12, max: 120, label: 'election_interval_months', cite: 'bounds set by the election-interval guarantees' },
-        emergency: { min: 1, max: 90, label: 'emergency_powers_max_days', cite: 'constitutional ceiling 90 days' }
+        max_seats: { min: 5, max: 9, label: 'Maximum legislature seats', cite: 'hardened ceiling 9' },
+        interval: { min: 12, max: 120, label: 'Election interval (months)', cite: 'bounds set by the election-interval guarantees' },
+        emergency: { min: 1, max: 90, label: 'Emergency powers cap (days)', cite: 'constitutional ceiling 90 days' }
       };
 
       document.getElementById('try-form').addEventListener('submit', function (ev) {

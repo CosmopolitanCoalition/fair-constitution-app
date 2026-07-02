@@ -3,54 +3,44 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>District mapper — CGA mockups</title>
+  <title>District mapper — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
   <link rel="stylesheet" href="../assets/css/v2.css" />
   <script src="../assets/js/demo-state.js"></script>
   <style>
-    /* Two-pane recreation of the developed Legislature Browser (tokens only). */
-    .lb-wrap { display: grid; grid-template-columns: 24rem minmax(0, 1fr); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); overflow: hidden; min-block-size: 42rem; }
-    .lb-panel { background: var(--gov-surface); border-inline-end: 1px solid var(--gov-border); overflow-y: auto; max-block-size: 52rem; }
+    /* Two-pane recreation of the developed Legislature Browser (tokens only).
+       Layout/containment comes from the shared .map-split rules in v2.css —
+       full-bleed inside a thin wrapper, exactly like the built mapper. */
     .lb-head { padding: var(--space-3) var(--space-4); border-block-end: 1px solid var(--gov-border); }
     .lb-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
     .lb-stat { background: var(--gov-surface-2); border-radius: var(--radius-md); padding: var(--space-2); text-align: center; }
     .lb-stat .n { display: block; font-size: var(--text-xl); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
     .lb-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-block-end: 1px solid var(--gov-border); font-size: var(--text-sm); }
     .lb-qstrip { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: 2px var(--space-4) var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); border-block-end: 1px solid var(--gov-border); background: color-mix(in oklch, var(--gov-surface-2) 60%, transparent); }
-    .lb-map { position: relative; background: var(--cc-gray-200); min-block-size: 42rem; }
-    .lb-map svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
     .map-toggles { position: absolute; inset-block-start: var(--space-3); inset-inline-end: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); z-index: 5; }
     .map-attrib { position: absolute; inset-block-end: 0; inset-inline-end: 0; background: color-mix(in oklch, var(--cc-white) 80%, transparent); color: var(--cc-gray-700); font-size: var(--text-xs); padding: 2px var(--space-2); z-index: 5; }
     .q-ok { color: var(--status-success); } .q-warn { color: var(--status-warning); } .q-bad { color: var(--status-danger); }
     .qline { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--text-xs); padding-block: 1px; }
     .wizard-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-1); padding: var(--space-2) var(--space-3); background: color-mix(in oklch, var(--cc-purple-600) 18%, var(--gov-bg)); border-block: 1px solid color-mix(in oklch, var(--cc-purple-400) 35%, transparent); }
-    @media (max-width: 64rem) { .lb-wrap { grid-template-columns: 1fr; } .lb-panel { max-block-size: none; border-inline-end: 0; border-block-end: 1px solid var(--gov-border); } .lb-map { min-block-size: 26rem; } }
   </style>
 </head>
 <body>
-  <main id="main" class="main--wide">
+  <main id="main" class="main--wide main--map">
     <div class="stack">
-      <header>
+      <div class="map-head">
         <span class="eyebrow">Jurisdictions · districting</span>
-        <h1>District mapper — the Legislature Browser</h1>
-        <p class="page-intro" style="max-inline-size:56rem">The placement contract for the developed Legislature Browser — same panes, same position in the
-          navigation; the shipped tool adopts this design system (round peg, round hole). One legislature — Earth, 1,999 seats — seen at two scopes: the planetary root, and Mexico,
-          a member jurisdiction whose seat share exceeds the 9-seat ceiling and therefore subdivides further. Mexico's own
-          election board draws those districts over its own scope, inside the parent budget.</p>
-        <p class="citation">Sizing: cube-root law, as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)
-          — districts are composites of real jurisdictional lines, so legislatures subdivide cleanly
-          (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>) — the election board draws the subdivision boundaries.</p>
-      </header>
+        <h1>District mapper</h1>
+        <span class="citation">Seats follow population; districts are built from real jurisdictional lines — the election board draws.</span>
+      </div>
 
-      <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Legislature Browser (district mapper) mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
-
-      <div class="lb-wrap">
-        <div class="lb-panel" id="lb-panel"></div>
-        <div class="lb-map">
+      <div class="lb-wrap map-split">
+        <div class="lb-panel map-side" id="lb-panel"></div>
+        <div class="lb-map map-pane">
+          <div class="map-zoom" id="lb-zoom" role="group" aria-label="Zoom"></div>
           <div class="map-toggles" id="map-toggles" role="group" aria-label="Map label layers"></div>
-          <svg id="lb-svg" viewBox="0 0 980 640" role="img" aria-label="Stylized district map — the running application renders Leaflet with protomaps tiles and geoBoundaries geometry"></svg>
+          <svg id="lb-svg" viewBox="0 0 980 640" role="img" aria-label="Stylized district map — drag to pan; east–west wraps seamlessly. The running application renders Leaflet with protomaps tiles and geoBoundaries geometry"></svg>
           <span class="map-attrib" data-no-i18n>Leaflet | Boundaries © geoBoundaries, Protomaps © OpenStreetMap, Population © WorldPop — stylized stand-in</span>
         </div>
       </div>
@@ -59,7 +49,16 @@
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
           <p><strong>What this screen does:</strong> draws the subdivision boundaries for a legislature
-            and keeps population records and seat apportionment in sync.</p>
+            and keeps population records and seat apportionment in sync. One legislature's map: how its
+            seats are split into districts drawn along real boundaries. Here it is Earth — 1,999 seats —
+            seen at two scopes: the planetary root, and Mexico, a member place whose seat share exceeds
+            the 9-seat ceiling and therefore subdivides further. Mexico's own election board draws those
+            districts over its own scope, inside the parent budget.</p>
+          <p><strong>The containment mirrors what's built:</strong> the map fills every pixel inside a thin
+            wrapper; zoom-out is bounded so the world always fills the view (dynamic minZoom + hard latitude
+            bounds), and east–west panning wraps seamlessly with no visible seam (worldCopyJump + ±360°
+            layer clones). On a phone, the map takes the top of the screen and the sidebar scrolls beneath
+            it. The shipped Legislature Browser mounts exactly here and adopts this design system.</p>
           <p><strong>What the views share:</strong> versioned plans (draft → Activate → active, prior plans archived);
             the map-quality ledger (community integrity, constitutional contiguity, population equality with extremes,
             shape compactness, uniform political diversity); per-district quality strips (Dev · CHR · Contig · Intact);
@@ -67,6 +66,9 @@
           <p><strong>Vocabulary:</strong> seats budget and quota (population ÷ seats) shown at every scope; "intact" =
             drawn along real jurisdictional lines; free-drawn lines are needed only where a jurisdiction exceeds the
             ceiling with no subdivisions in the dataset.</p>
+          <p class="citation">The sizing rule (cube-root of population) and the composite-districts rule are
+            entries <a href="../shared/constitutional-questions.html#q3">#3</a> and
+            <a href="../shared/constitutional-questions.html#q4">#4</a> in the constitutional questions ledger.</p>
         </div>
       </details>
     </div>
@@ -75,7 +77,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/district-mapper',
-      title: 'District mapper — Legislature Browser',
+      title: 'District mapper',
       module: 'jurisdictions',
       nav: 'district-mapper',
       roles: ['R-03', 'R-08'],
@@ -240,7 +242,7 @@
         }).join('');
         document.getElementById('lb-panel').innerHTML =
           '<div class="lb-head"><div class="cluster" style="justify-content:space-between">' +
-          '<div><span class="eyebrow">Legislature Browser</span><h2 style="margin:0">' + esc(sc.name) + '</h2></div>' +
+          '<div><span class="eyebrow">District mapper</span><h2 style="margin:0">' + esc(sc.name) + '</h2></div>' +
           '<div class="stat stat--accent" style="text-align:end"><span class="stat-number" style="font-size:var(--text-2xl)">' + sc.seats + '</span><span class="stat-label">root seats</span></div></div>' +
           '<p class="citation" style="margin-block-start:var(--space-1)"><span class="q-ok">' + sc.seats + ' seats</span> to assign here · Quota: ' + sc.quota + ' pop/seat</p>' +
           '<p class="cc-small" style="margin-block:var(--space-1) 0">' + crumb + '</p></div>' +
@@ -273,11 +275,18 @@
           '<p id="activate-note" class="citation" style="padding:var(--space-2) var(--space-4)" hidden>Draft activated (simulated) — the previous active plan is archived; the election board observes the change.</p>';
       }
 
-      function renderMap() {
+      /* ---- the map: bounded zoom + seamless east–west wrap ----
+         Mirrors the built containment: the world is drawn three times
+         (±world-width clones, the worldCopyJump trick) so dragging across the
+         seam never shows an edge, and zoom-out is clamped so the world always
+         fills the view (dynamic minZoom). */
+      var pan = { x: 0, z: 1 }, WORLD_W = 980, WORLD_CY = 320;
+
+      function worldSvg() {
         var sc = SCOPES[state.scope];
         var useNames = state.layer === 'Names' || state.layer === 'Jurs' || state.layer === 'Pop';
         var labels = useNames ? sc.labels.names : sc.labels.seats;
-        var svg = '<rect width="980" height="640" fill="var(--cc-gray-200)"/>';
+        var svg = '';
         var blobs = state.scope === 'earth'
           ? [[60, 60, 380, 260], [340, 330, 220, 230], [470, 90, 460, 230], [500, 280, 180, 200], [690, 290, 180, 130], [780, 450, 150, 110], [120, 290, 200, 160]]
           : [[150, 80, 700, 500]];
@@ -300,7 +309,31 @@
             '<text x="' + l[2] + '" y="' + (l[3] - 1) + '" font-size="11" font-weight="700" fill="var(--cc-white)" style="font-family:var(--font-mono)">' + esc(l[0]) + '</text>' +
             (sub ? '<text x="' + l[2] + '" y="' + (l[3] + 12) + '" font-size="10" fill="var(--cc-gray-300)" style="font-family:var(--font-mono)">' + esc(sub) + '</text>' : '') + '</g>';
         });
-        document.getElementById('lb-svg').innerHTML = svg;
+        return svg;
+      }
+
+      function applyPan() {
+        var g = document.getElementById('lb-view');
+        if (!g) return;
+        var W2 = WORLD_W * pan.z;
+        var px = ((pan.x % W2) + W2) % W2; if (px > 0) px -= W2; /* px ∈ (-W2, 0] */
+        g.setAttribute('transform', 'translate(' + px.toFixed(1) + ' ' + (WORLD_CY - WORLD_CY * pan.z).toFixed(1) + ') scale(' + pan.z + ')');
+      }
+      function renderZoom() {
+        document.getElementById('lb-zoom').innerHTML =
+          '<button type="button" data-zoom="in" aria-label="Zoom in"' + (pan.z >= 2.45 ? ' disabled' : '') + '>+</button>' +
+          '<button type="button" data-zoom="out" aria-label="Zoom out" title="Zoom-out is bounded — the world always fills the view"' + (pan.z <= 1.01 ? ' disabled' : '') + '>−</button>';
+      }
+
+      function renderMap() {
+        var w = worldSvg();
+        var copies = [-WORLD_W, 0, WORLD_W].map(function (off) {
+          return '<g transform="translate(' + off + ' 0)">' + w + '</g>';
+        }).join('');
+        document.getElementById('lb-svg').innerHTML =
+          '<rect width="980" height="640" fill="var(--cc-gray-200)"/><g id="lb-view">' + copies + '</g>';
+        applyPan();
+        renderZoom();
         document.getElementById('map-toggles').innerHTML = ['Seats', 'Pop', 'Names', 'Jurs', 'Stats', 'Raster'].map(function (l) {
           return '<button type="button" class="chip-toggle" data-layer="' + l + '" aria-pressed="' + (state.layer === l ? 'true' : 'false') + '">' + l + '</button>';
         }).join('');
@@ -308,8 +341,28 @@
 
       function render() { renderPanel(); renderMap(); S.refresh(); }
 
+      /* drag to pan — wraps at the antimeridian without a visible seam */
+      (function wireDrag() {
+        var el = document.getElementById('lb-svg');
+        var dragging = false, lastX = 0;
+        el.addEventListener('pointerdown', function (e) {
+          dragging = true; lastX = e.clientX; el.classList.add('dragging');
+          if (el.setPointerCapture) try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        el.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var r = el.getBoundingClientRect();
+          pan.x += (e.clientX - lastX) * WORLD_W / Math.max(r.width, 1);
+          lastX = e.clientX;
+          applyPan();
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) {
+          el.addEventListener(t, function () { dragging = false; el.classList.remove('dragging'); });
+        });
+      })();
+
       document.body.addEventListener('click', function (ev) {
-        var t = ev.target.closest ? ev.target.closest('[data-scope],[data-drill],[data-layer],[data-activate]') : null;
+        var t = ev.target.closest ? ev.target.closest('[data-scope],[data-drill],[data-layer],[data-activate],[data-zoom]') : null;
         if (!t) return;
         if (t.hasAttribute('data-scope')) { state.scope = t.getAttribute('data-scope'); render(); }
         else if (t.hasAttribute('data-drill')) {
@@ -318,6 +371,10 @@
           render();
         }
         else if (t.hasAttribute('data-layer')) { state.layer = t.getAttribute('data-layer'); render(); }
+        else if (t.hasAttribute('data-zoom')) {
+          pan.z = t.getAttribute('data-zoom') === 'in' ? Math.min(2.5, pan.z * 1.4) : Math.max(1, pan.z / 1.4);
+          renderZoom(); applyPan();
+        }
         else if (t.hasAttribute('data-activate')) {
           var note = document.getElementById('activate-note');
           if (note) { note.hidden = false; note.scrollIntoView({ block: 'nearest' }); }

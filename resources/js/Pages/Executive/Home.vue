@@ -21,6 +21,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -34,6 +35,9 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
 import DepartmentCard from '@/Components/Executive/DepartmentCard.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -96,10 +100,12 @@ const typeLabel = computed(() => TYPE_LABELS[props.executive.type] ?? props.exec
         :title="executive.jurisdiction ? `Executive — ${executive.jurisdiction.name}` : 'Executive'"
     >
         <template #intro>
-            The executive of this jurisdiction: who holds it, how it was constituted, and the
-            single clock that drives its elections. An executive is delegated by its legislature
-            by default and converts to a directly elected office only by dual supermajority —
-            the chamber's own and a supermajority of the constituent jurisdictions.
+            The executive is the government's doing arm — it carries out the laws, runs the
+            departments, and answers to the legislature that created it. Every executive starts
+            as a committee delegated by the legislature. A supermajority — plus a supermajority
+            of the places that make it up, where they exist — can convert it to a directly
+            elected office, as either a committee of five or more equal officers, or a single
+            individual with four advisors. Executive terms always equal the legislative term.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

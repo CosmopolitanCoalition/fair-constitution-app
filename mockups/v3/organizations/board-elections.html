@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Board elections — CGA mockups</title>
+  <title>Board elections — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -20,7 +20,7 @@
         <h1>Board elections — Bluefin Logistics</h1>
         <p class="page-intro">Three counts seat one board: shareholders elect the owner track by STV, workers elect the
           worker track by STV, and then the <strong>entire board jointly elects its chair</strong> by ranked choice. At
-          740 workers, Bluefin's co-determination ratio is 9 owner seats and 3 worker seats.</p>
+          740 workers, Bluefin's board seats 9 owner-elected and 3 worker-elected members.</p>
         <p class="citation">Owner + worker tracks · chair elected jointly by the entire board.</p>
       </header>
 
@@ -29,7 +29,31 @@
         <div class="stat stat--accent"><span class="stat-number">3</span><span class="stat-label">worker-elected seats</span></div>
         <div class="stat"><span class="stat-number">1</span><span class="stat-label">joint chair</span></div>
       </div>
-      <p class="citation">Ballots closed 2031-06-20 18:00 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
+      <p class="citation">Ballots closed 2031-06-20 18:00 · shown in your timezone (UTC−5 · America/New_York)</p>
+
+      <section class="card" aria-labelledby="window-h">
+        <h2 id="window-h">Before the count — the open nomination window</h2>
+        <p>Ranking never starts cold. For <strong>10 days</strong> before ballots opened, nominations were
+          open: any shareholder could nominate for the owner track, any worker for the worker track — or
+          stand themselves — and each nominee accepted or declined in the open. Everyone watched the
+          field form before anyone ranked a name.</p>
+        <div class="state-strip" style="margin-block:var(--space-3)">
+          <span class="state-node state-node--current">Nominations open · 10 days</span>
+          <span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Ranking open · 4 days</span>
+          <span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Count &amp; seating</span>
+        </div>
+        <p class="citation">Nominations 2031-06-06 → 2031-06-16 · ranking 2031-06-16 → 2031-06-20 18:00</p>
+        <div class="lr-note" style="margin-block-start:var(--space-3)">
+          <div><strong style="color:var(--gov-fg)">The window is a setting, not a constitutional rule.</strong>
+            Organizations — and any body filling roles outside the main election system, appointments
+            included — configure how many days nominations stay open before ranking begins. Changing it is
+            itself role-gated: at Bluefin the seated board sets it in
+            <a href="../economy/org-settings.html">org settings</a> (currently 10 days). Public elections
+            don’t use this dial — their candidacy windows are constitutional clockwork.</div>
+        </div>
+      </section>
 
       <section class="card" aria-labelledby="owner-h">
         <h2 id="owner-h">Owner track — 9 seats by STV</h2>
@@ -47,9 +71,9 @@
       <section class="card" aria-labelledby="worker-h">
         <h2 id="worker-h">Worker track — 3 seats by STV</h2>
         <p style="font-size:var(--text-sm)">692 of 740 workers voted · 5 candidates · Droop quota
-          <span data-no-i18n>floor(692 ÷ (3 + 1)) + 1 = 174</span>. The worker track exists because Bluefin crossed the
-          100-worker threshold; its 3 seats come from the uniform scale toward parity at 2,000 —
-          <a href="co-determination.html">see the scaling meter</a>.</p>
+          <span data-no-i18n>floor(692 ÷ (3 + 1)) + 1 = 174</span>. The worker track exists because Bluefin crossed
+          100 workers; its 3 seats come from the worker-seats scale —
+          <a href="co-determination.html">see how worker seats are earned</a>.</p>
         <div id="worker-results"></div>
         <noscript><p>JavaScript renders the count. Elected: T. Ferreira, L. Márquez, D. Banks.</p></noscript>
         <div id="worker-formcard" style="margin-block-start:var(--space-4)"></div>
@@ -59,8 +83,7 @@
         <h2 id="chair-h">Joint chair — single winner by RCV, entire board votes</h2>
         <p style="font-size:var(--text-sm)">All 12 seated board members — owner-elected and worker-elected alike — rank
           the nominees. Majority of the full board required: <strong>7 of 12</strong>. Three board members were nominated.</p>
-        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
-          <span class="citation">Chair elected jointly by the entire board.</span></p>
+        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> A protected rule — enforced in code</span></p>
         <div id="chair-rounds" class="stack" style="gap:var(--space-4)" aria-live="polite"></div>
         <div class="cluster" style="margin-block-start:var(--space-3)">
           <button type="button" class="btn btn--primary btn--sm" id="chair-advance">Run round 2</button>
@@ -74,7 +97,7 @@
         <h2 id="seated-h">The seated board</h2>
         <div id="seated-board" class="cluster" style="gap:var(--space-4)"></div>
         <p class="citation" style="margin-block-start:var(--space-3)">Any composition change — a seat added by the
-          co-determination scale, a vacancy, a transfer — re-triggers the joint chair election.</p>
+          worker-seats scale, a vacancy, a transfer — re-triggers the joint chair election.</p>
       </section>
 
       <details class="about-surface">
@@ -83,6 +106,9 @@
           <p><strong>What this screen does:</strong> it runs a company's board election — the owner track and the worker
             track each elect their seats, and then the full board elects its chair. It re-runs whenever term expiry or a
             change in the worker-to-owner scale changes who sits on the board.</p>
+          <p><strong>The nomination window:</strong> the field forms in an open nomination window before ranking begins.
+            Its length in days is an organization-level setting (role-gated), not a constitutional value — the same dial
+            covers appointments and other roles filled outside the main election system.</p>
           <p><strong>When the board is valid:</strong> only while its composition matches the current owner-to-worker scale.</p>
           <p><strong>Vote machinery:</strong> the same proportional engine that runs public elections runs these tracks;
             single-winner ranked choice is used only where one seat is filled (the chair) — mirroring the individual-executive rule.</p>
@@ -192,8 +218,7 @@
         if (!f) return '';
         return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) + '</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
-          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: ' + esc(S.plainCodes(f.availableToRaw)) + ' · ' + esc(S.plainCodes(f.creates)) + '</p>' +
-          '<p class="citation">' + esc(S.plainCodes(f.basis)) + '</p></div>';
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Only the ' + esc(S.plainCodes(f.availableToRaw).toLowerCase()) + ' can start this; it opens the election that seats the new board members.</p></div>';
       }
 
       function persona(id, label) {

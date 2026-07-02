@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Public finance — CGA mockups v2</title>
+  <title>Public finance — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -29,17 +29,12 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — public finance.</strong> These surfaces are design-ahead of code. Units are abstract — no payment rails, no custody.</div></div>';
-    }
-
     /* the budget cycle as a horizontal lifecycle / stepper */
     function cycleStepper() {
       var steps = E.treasury.cycle.map(function (st, i) {
-        // form-chip: the form NAME first, the ID second
+        // form-chip: the step's own short label (never a truncated sentence)
         var chip = st.form
-          ? '<span class="form-chip">' + esc(st.detail.split(' · ')[0].split('—')[0].trim().slice(0, 28)) + '</span>'
+          ? '<span class="form-chip">' + esc(st.chipLabel || st.step) + '</span>'
           : '<span class="pill pill--info" title="a derived consequence">derived step</span>';
         return '<li class="lever-row" style="flex-direction:column;align-items:flex-start;border-inline-start:3px solid var(--gov-primary);padding-inline-start:var(--space-3)">' +
           '<div class="cluster" style="gap:var(--space-2)"><span class="form-id" style="border:1px solid var(--gov-border-strong)">' + (i + 1) + '</span>' +
@@ -99,7 +94,7 @@
       return E.treasury.borrowing.map(function (b) {
         return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;gap:var(--space-2)">' +
           '<strong style="color:var(--gov-fg)">' + esc(b.name) + '</strong>' +
-          S.pill('wait', 'Gated', 'dual-door legislative act') + '</div>' +
+          S.pill('wait', 'Gated', 'a legislative act — two doors must open: the chamber and its constituents') + '</div>' +
           '<div class="lever-val">' + esc(b.amount) + '</div>' +
           '<p class="gloss">' + esc(b.basis) + '</p>' +
           '<div class="cluster" style="gap:var(--space-2)"><span class="form-chip">Borrowing authority</span>' +
@@ -117,18 +112,18 @@
         'Revenue flows in, the legislature enacts a budget, the Board of Governors disburse it, and every movement lands in the ' +
         '<strong>public ledger</strong>: double-entry, append-only, and hash-chained, on the same audit chain as the rest of the record. ' +
         'Jurisdiction and department accounts are public; people and organizations keep their own ledgers private.</p></header>' +
-        plannedBanner() +
+        S.plannedBanner() +
 
         /* the budget cycle */
         '<section class="card" aria-labelledby="cyc-h"><h2 id="cyc-h">The budget cycle</h2>' +
-        '<p class="gloss">A single journey from revenue to record. Each gated step carries the step that performs it.</p>' +
+        '<p class="gloss">A single journey from revenue to record. Each step names the act that performs it.</p>' +
         cycleStepper() +
         '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('alert-triangle', { size: 'sm' }) +
         '<span>' + esc(E.treasury.rail) + '</span></p></section>' +
 
         /* the public ledger */
         '<section class="card" aria-labelledby="led-h"><h2 id="led-h">The public ledger</h2>' +
-        '<p class="gloss">Every public movement, newest first. <strong>Double-entry</strong> — each row names a debit and a credit, so the books always balance (Σ debits = Σ credits per currency). <strong>Append-only and hash-chained</strong> — a row can never be edited or deleted; each carries the hash that links it to the one before.</p>' +
+        '<p class="gloss">Every public movement, newest first. <strong>Double-entry</strong> — each row names a debit and a credit, so every unit out of one account lands in another and the books always balance. <strong>Append-only and hash-chained</strong> — a row can never be edited or deleted; each carries the hash that links it to the one before.</p>' +
         '<div class="table-wrap"><table class="table"><thead><tr>' +
         '<th scope="col">Seq</th><th scope="col">Date</th><th scope="col">Debit</th><th scope="col">Credit</th>' +
         '<th scope="col" style="text-align:end">Amount</th><th scope="col">Kind</th><th scope="col">Hash</th>' +
@@ -137,12 +132,10 @@
 
         /* public accounts */
         '<section class="card" aria-labelledby="acc-h"><h2 id="acc-h">The accounts</h2>' +
-        '<p class="gloss">Jurisdiction and department accounts are <strong>public</strong> — anyone may inspect the balance and the movements that produced it. Individual and organization accounts are <strong>private</strong>, like a ballot, and never federate.</p>' +
+        '<p class="gloss">Jurisdiction and department accounts are <strong>public</strong> — anyone may inspect the balance and the movements that produced it. Individual and organization accounts are <strong>private</strong> — like a ballot, only the owner can read them.</p>' +
         '<div class="table-wrap"><table class="table"><thead><tr>' +
         '<th scope="col">Account</th><th scope="col">Owner</th><th scope="col" style="text-align:end">Balance</th><th scope="col">Visibility</th>' +
-        '</tr></thead><tbody>' + accountRows() + '</tbody></table></div>' +
-        '<p class="never-federated" style="margin-block-start:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
-        ' Your own wallet and receipts are never federated — they live only on this server, like a ballot.</p></section>' +
+        '</tr></thead><tbody>' + accountRows() + '</tbody></table></div></section>' +
 
         /* budget lines */
         '<section class="card" aria-labelledby="bud-h"><h2 id="bud-h">Budget ' + esc(bud.year) + '</h2>' +
@@ -172,7 +165,7 @@
         '<div class="econ-clock"><div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The disbursement cadence</strong> — ' + esc(clk.label) + '. ' +
         '<span class="citation">next run ' + esc(clk.nextRun) + '</span><br />' +
-        '<span class="gloss">The Board of Governors execute the budget on this clock. The interval is itself a dual-door key.</span></div></div>' +
+        '<span class="gloss">The Board of Governors execute the budget on this clock. The interval is itself set by law — two doors must open to change it.</span></div></div>' +
 
         /* the no-paywall rail */
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold everywhere</h2><ul>' +
@@ -181,9 +174,9 @@
         '<li><strong>The Board of Governors execute, they do not authorize.</strong> Spending authority comes from the enacted budget; the executive only disburses against it.</li>' +
         '<li><strong>Taxes and borrowing are legislative acts.</strong> Revenue is set, and credit drawn, only by the legislature — never an admin knob.</li>' +
         '<li><strong>Currency stays root-reserved.</strong> Only the most-encompassing jurisdiction issues it and sets its worth.</li>' +
-        '<li><strong>Individual finances are private.</strong> Wallets, receipts, and tax filings never federate — like ballots.</li>' +
-        '</ul><p class="citation">Full constitutional sweep: <a href="../CONSTITUTION-CURRENCY-OPS.md">CONSTITUTION-CURRENCY-OPS.md</a> · ' +
-        '<a href="' + S.hrefV2('economy/economy-home.html') + '">Back to the exchange ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></section>';
+        '<li><strong>Individual finances are private.</strong> Wallets, receipts, and tax filings are readable only by their owners — like ballots.</li>' +
+        '</ul><p class="citation">Why public money works this way lives in the Learn drawer · ' +
+        '<a href="' + S.hrefV2('economy/economy-home.html') + '">Back to the economy ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

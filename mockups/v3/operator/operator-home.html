@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Run a node — the operator plane — CGA mockups v2</title>
+  <title>Run a node — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -33,27 +33,22 @@
         return '<span class="gate-chip gate-chip--' + g.status + '">' + (g.status === 'pass' ? S.icon('check', { size: 'sm' }) : S.icon('alert-triangle', { size: 'sm' })) + ' ' + esc(g.label) + '</span>';
       }).join('');
 
-      var roleCards = O.namedRoles.map(function (r) {
+      var roleChips = O.namedRoles.map(function (r) {
         var st = O.byChannel[r.channels[0]];
         var pill = O.STATE_PILL[st ? st.state : 'qualifiable'];
-        var chans = r.channels.map(function (c) { var ch = O.byChannel[c]; return '<span class="channel-chip channel-chip--' + (ch && ch.kind === 'self' ? 'self' : 'governed') + '">' + esc(c) + '</span>'; }).join('');
-        return '<div class="op-role-card' + (r.recommended ? ' op-role--recommended' : '') + '">' +
-          '<div class="cluster" style="justify-content:space-between"><span class="orc-title">' + esc(r.label) + '</span>' +
-          (r.recommended ? '<span class="pill pill--planned">Recommended first node</span>' : '<span class="pill pill--' + pill.pill + '">' + esc(pill.label) + '</span>') + '</div>' +
-          '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
-          '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
-          '<div class="orc-channels">' + chans + (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') + '</div>' +
-          '<span class="citation">' + (r.consent === 'self' ? 'self-asserted — one click' : 'governed — requested, then dual-meter approval') + '</span></div>';
+        return '<a class="form-chip" href="' + S.hrefV2('operator/roles.html') + '">' + esc(r.label) +
+          ' <span class="pill pill--' + (r.recommended ? 'planned' : pill.pill) + '">' +
+          esc(r.recommended ? 'Recommended first' : pill.label) + '</span></a>';
       }).join('');
 
       var entries = [
         { rel: 'operator/setup.html', icon: 'sliders', title: 'Set up your node', note: 'Claim an operator account, name the instance, pick a role, and go — the first-run wizard.' },
         { rel: 'operator/console.html', icon: 'landmark', title: 'The operator console', note: 'Your roles at a glance, the health line, and everything advanced behind one toggle.' },
         { rel: 'operator/roles.html', icon: 'users', title: 'Roles & channels', note: 'The four named roles over the nine capability channels, and how a channel goes live.' },
-        { rel: 'operator/mesh.html', icon: 'globe', title: 'Mesh & federation', note: 'Join a cluster, your peers, Full Faith & Credit sync, authority, transports, the dual-meter.' },
+        { rel: 'operator/mesh.html', icon: 'globe', title: 'Mesh & federation', note: 'Join a cluster, your peers, sync between nodes, transports, and becoming a full peer.' },
         { rel: 'operator/dns.html', icon: 'globe', title: 'DNS & certificates', note: 'The Identity Broker: DNS-before-cert, per-name + wildcard backup, DDNS, providers, the budget.' },
-        { rel: 'operator/identity.html', icon: 'lock', title: 'Identity (G-ID)', note: 'Your devices and mesh identity; how a citizen’s standing travels for a forwarded write.' },
-        { rel: 'operator/moderation.html', icon: 'shield', title: 'Moderation & the legal floor', note: 'The legitimacy flip (operator relay → judicial), the four carve-outs, and the M-5 legal floor.' },
+        { rel: 'operator/identity.html', icon: 'lock', title: 'Identity', note: 'Your devices and mesh identity; how a player’s standing travels with them across nodes.' },
+        { rel: 'operator/moderation.html', icon: 'shield', title: 'Moderation & the legal floor', note: 'The legitimacy flip (operator relay → judicial), the four carve-outs, and the legal floor.' },
         { rel: 'operator/versioning.html', icon: 'refresh-cw', title: 'Versions & upgrades', note: 'Peer version tracking and the dual-meter upgrade agreement; the game-in-progress freeze.' }
       ];
       var cards = entries.map(function (e) {
@@ -64,7 +59,7 @@
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow op-eyebrow">The operator plane · run a node</span><h1>Run a node</h1>' +
-        '<p class="page-intro">The infrastructure the citizen game runs on. Operators are the people who keep a server alive — holding the record, naming peers, hosting the live rooms. This plane is deliberately separate from the constitutional game.</p></header>' +
+        '<p class="page-intro">Run a node and your computer becomes part of the world — holding the record, naming peers, hosting the live rooms. This is the infrastructure the citizen game runs on, and it is deliberately separate from the constitutional game itself.</p></header>' +
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) + ' ' + esc(O.plane.plainNote) + '<br />' +
         '<span class="citation">' + esc(O.plane.board) + '</span></div></div>' +
@@ -75,13 +70,10 @@
         '<span style="flex-basis:100%"></span>' + gates + '</div>' +
 
         '<section aria-labelledby="roles-h"><h2 id="roles-h">Your roles</h2>' +
-        '<p class="page-intro">A box’s “role” is just the set of capability channels it runs. Four friendly names group the nine channels:</p>' +
-        '<div class="op-role-grid">' + roleCards + '</div></section>' +
+        '<p class="page-intro">A box’s “role” is just the set of capability channels it runs — four friendly names group them. The full cards live on <a href="' + S.hrefV2('operator/roles.html') + '">Roles &amp; channels</a>; turn them on from <a href="' + S.hrefV2('operator/console.html') + '">the console</a>.</p>' +
+        '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap">' + roleChips + '</div></section>' +
 
-        '<section aria-labelledby="go-h"><h2 id="go-h">Operator surfaces</h2><div class="role-grid">' + cards + '</div></section>' +
-
-        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) + '</div></div>';
+        '<section aria-labelledby="go-h"><h2 id="go-h">Operator surfaces</h2><div class="role-grid">' + cards + '</div></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

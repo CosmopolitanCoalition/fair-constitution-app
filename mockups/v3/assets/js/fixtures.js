@@ -52,7 +52,7 @@
      "acquisition": "Automatic upon residency verification",
      "shortName": "jurisdictionally associated",
      "defaultPersona": "amara-okafor",
-     "entryScreen": "civic/civic-home.html"
+     "entryScreen": "civic/today.html"
     },
     {
      "id": "R-04",
@@ -64,7 +64,7 @@
      "acquisition": "Automatic — right exists upon jurisdictional association",
      "shortName": "voter",
      "defaultPersona": "amara-okafor",
-     "entryScreen": "civic/civic-home.html"
+     "entryScreen": "civic/today.html"
     },
     {
      "id": "R-05",
@@ -88,7 +88,7 @@
      "acquisition": "Self-registration during candidacy window",
      "shortName": "registered candidate",
      "defaultPersona": "diego-ramos",
-     "entryScreen": "electoral/candidate-profile.html"
+     "entryScreen": "social/profile.html?who=diego-ramos&tab=candidacy"
     },
     {
      "id": "R-07",
@@ -100,7 +100,7 @@
      "acquisition": "Organization submits endorsement form",
      "shortName": "endorsed candidate",
      "defaultPersona": "diego-ramos",
-     "entryScreen": "electoral/candidate-profile.html"
+     "entryScreen": "social/profile.html?who=diego-ramos&tab=candidacy"
     },
     {
      "id": "R-08",
@@ -304,7 +304,7 @@
      "acquisition": "Application/purchase of membership or shares",
      "shortName": "member / shareholder",
      "defaultPersona": "priya-sharma",
-     "entryScreen": "organizations/org-detail.html"
+     "entryScreen": "social/org-profile.html"
     },
     {
      "id": "R-25",
@@ -1904,7 +1904,6 @@
      "forms": "F-IND-001, F-IND-002, F-IND-005",
      "terminal": "Verified individual record; eligible to declare residency",
      "basis": "Art. I",
-     "flowPage": "flows/WF-CIV-01.html",
      "stage": 1
     },
     {
@@ -1918,7 +1917,6 @@
      "forms": "F-IND-003, F-IND-004 (auto pings), F-IND-006 (auto)",
      "terminal": "Jurisdictional association at every nesting level; voting & candidacy unlocked",
      "basis": "Art. I; Art. V §1",
-     "flowPage": "flows/WF-CIV-02.html",
      "stage": 1
     },
     {
@@ -1932,7 +1930,6 @@
      "forms": "F-IND-003, F-IND-004, F-IND-006",
      "terminal": "Association transferred; old roles/eligibilities gracefully expired; federation notified",
      "basis": "Art. V §1–2",
-     "flowPage": "flows/WF-CIV-03.html",
      "stage": 1
     },
     {
@@ -1946,7 +1943,6 @@
      "forms": "F-IND-007, F-IND-008 (referendum)",
      "terminal": "Encrypted ranked ballot (finalist block + free write-in of any validated candidate) committed; voter receipt hash; anonymized hash published for self-audit",
      "basis": "Art. II §2 (secret ballot, chain of custody)",
-     "flowPage": "flows/WF-CIV-04.html",
      "stage": 2
     },
     {
@@ -1960,7 +1956,6 @@
      "forms": "F-IND-011, F-CAN-001..003 (profile, endorsement request, withdrawal)",
      "terminal": "Candidate in approval pool with live standing; top X (X = f(seats in race)) advance as finalists to ranked ballot; non-finalists remain write-in eligible (right to stand preserved); or withdrawn",
      "basis": "Art. II §2 (right to stand); CGA open-ballot spec",
-     "flowPage": "flows/WF-CIV-05.html",
      "stage": 2
     },
     {
@@ -1974,7 +1969,6 @@
      "forms": "Approval engine + open-ballot interface",
      "terminal": "Live, filterable candidate marketplace: profiles with public-record legislative votes & civic actions, individual + org endorsements, revocable approval voting, live jockeying standings with finalist line, (future) alignment matching; freezes at finalist cutoff",
      "basis": "Art. II §2 (transparency, right to vote/stand); CGA open-ballot spec",
-     "flowPage": "flows/WF-CIV-08.html",
      "stage": 2
     },
     {
@@ -1988,7 +1982,6 @@
      "forms": "F-IND-009, F-IND-010, F-ELB-005",
      "terminal": "Initiative on next jurisdiction-wide ballot, or invalidated (unconstitutional / failed signature audit)",
      "basis": "Art. II §6",
-     "flowPage": "flows/WF-CIV-06.html",
      "stage": 1
     },
     {
@@ -2002,7 +1995,6 @@
      "forms": "F-IND-015",
      "terminal": "Registered advocate eligible for case representation",
      "basis": "Art. IV §4 (zealous & competent advocates)",
-     "flowPage": "flows/WF-CIV-07.html",
      "stage": 1
     },
     {
@@ -2016,7 +2008,6 @@
      "forms": "WF-CIV-08 approval phase, F-ELB-001..004, F-IND-011, F-IND-007, F-ORG-002",
      "terminal": "Two-phase: continuous approval/endorsement phase → top-X finalist cutoff per race (X = f(seats)) → ranked voting (write-ins allowed) → instant STV/Droop → certification; winners auto-converted to officeholders; prior referendum acts convert to ordinary law",
      "basis": "Art. II §2; Art. III §3; Art. IV §3; CGA open-ballot spec",
-     "flowPage": "flows/WF-ELE-01.html",
      "stage": 2
     },
     {
@@ -2030,7 +2021,6 @@
      "forms": "F-ELB-001 (auto), F-IND-011, F-IND-007, F-ELB-004 (auto)",
      "terminal": "First legislature certified; bootstrap board flagged for replacement",
      "basis": "Art. II §1; Art. VI",
-     "flowPage": "flows/WF-ELE-02.html",
      "stage": 2
     },
     {
@@ -2041,10 +2031,9 @@
      "trigger": "Vacancy declared for any elected office",
      "actors": "System, R-08",
      "institutions": "I-ELB, I-ELE (prior)",
-     "forms": "F-LEG-030 (vacancy declaration) → countback engine",
+     "forms": "vacancy declaration → countback engine",
      "terminal": "Replacement winner from prior ballots (vacated member removed as candidate), or countback-failure flag",
      "basis": "Art. II §5",
-     "flowPage": "flows/WF-ELE-03.html",
      "stage": 2
     },
     {
@@ -2058,7 +2047,6 @@
      "forms": "F-ELB-001, F-IND-011, F-IND-007, F-ELB-004",
      "terminal": "Vacancy filled by special election inside the constitutional window",
      "basis": "Art. II §5",
-     "flowPage": "flows/WF-ELE-04.html",
      "stage": 2
     },
     {
@@ -2072,7 +2060,6 @@
      "forms": "F-ELB-006",
      "terminal": "Confirmed or corrected results; public chain-of-custody record",
      "basis": "Art. II §2 (election integrity)",
-     "flowPage": "flows/WF-ELE-05.html",
      "stage": 2
     },
     {
@@ -2086,7 +2073,6 @@
      "forms": "F-ELB-003",
      "terminal": "Contiguous, equal subdivisions with uniform rep:population ratio; next election runs per-district",
      "basis": "Art. II §2, §8",
-     "flowPage": "flows/WF-ELE-06.html",
      "stage": 2
     },
     {
@@ -2100,7 +2086,6 @@
      "forms": "F-IND-008, F-ELB-004",
      "terminal": "Question resolved at matching threshold (majority act→majority of population; supermajority act→supermajority); result entered as law",
      "basis": "Art. II §6",
-     "flowPage": "flows/WF-ELE-07.html",
      "stage": 2
     },
     {
@@ -2114,7 +2099,6 @@
      "forms": "F-IND-011, F-IND-007, F-ELB-004",
      "terminal": "Committee model: 5+ seats via PR-STV; Individual model: RCV winner + top 4 runners-up auto-seated as advisors/alternates",
      "basis": "Art. III §3",
-     "flowPage": "flows/WF-ELE-08.html",
      "stage": 2
     },
     {
@@ -2128,7 +2112,6 @@
      "forms": "F-IND-011, F-IND-007, F-ELB-004",
      "terminal": "Judges elected in groups via STV (minimum 5 per race)",
      "basis": "Art. IV §3–4",
-     "flowPage": "flows/WF-ELE-09.html",
      "stage": 2
     },
     {
@@ -2142,7 +2125,6 @@
      "forms": "F-LEG-012, appointment votes",
      "terminal": "Independent election board seated; bootstrap board retired",
      "basis": "Art. II §2 (independent election boards)",
-     "flowPage": "flows/WF-ELE-10.html",
      "stage": 2
     },
     {
@@ -2156,7 +2138,6 @@
      "forms": "F-LEG-001, 008, 032, 033, 013, 012, 009–011",
      "terminal": "Fully organized legislature: seated, speaker, rules/ethics, admin office, proper election board, committees",
      "basis": "Art. II §1–4",
-     "flowPage": "flows/WF-LEG-01.html",
      "stage": 3
     },
     {
@@ -2170,7 +2151,6 @@
      "forms": "F-LEG-008",
      "terminal": "Politically neutral Speaker seated by supermajority RCV; serves until next legislature unless replaced",
      "basis": "Art. II §3",
-     "flowPage": "flows/WF-LEG-02.html",
      "stage": 3
     },
     {
@@ -2184,7 +2164,6 @@
      "forms": "F-LEG-009, F-LEG-010, F-SPK-005",
      "terminal": "Committees seated via modified multi-faction preference algorithm: allocation = Total Reps / (Committees × seats per committee); ties by prior-election 1st-choice then subsequent-rank performance",
      "basis": "Art. II §4 (modified per CGA spec)",
-     "flowPage": "flows/WF-LEG-03.html",
      "stage": 3
     },
     {
@@ -2198,7 +2177,6 @@
      "forms": "F-LEG-011",
      "terminal": "Chair + alternate(s) per committee via whole-legislature RCV",
      "basis": "Art. II §4",
-     "flowPage": "flows/WF-LEG-04.html",
      "stage": 3
     },
     {
@@ -2212,7 +2190,6 @@
      "forms": "F-SPK-001..004, F-LEG-002, 006, 007",
      "terminal": "Quorum verified → outstanding emergency powers resolved → constitutional matters resolved → agenda → minutes published",
      "basis": "Art. II §2 (priorities in constitutional order)",
-     "flowPage": "flows/WF-LEG-05.html",
      "stage": 3
     },
     {
@@ -2226,7 +2203,6 @@
      "forms": "F-LEG-003..005, 007; F-COM-003 (referral to floor)",
      "terminal": "Enacted law (peg-quorum majority of all serving members) with scale/scope definitions, versioned and published; or failed/tabled",
      "basis": "Art. II §2; Art. V §4",
-     "flowPage": "flows/WF-LEG-06.html",
      "stage": 3
     },
     {
@@ -2240,7 +2216,6 @@
      "forms": "Same as WF-LEG-06 + dual tally engine",
      "terminal": "Act passes only when population-apportioned members AND equal-apportioned members each independently agree, in committee and on floor",
      "basis": "Art. V §3",
-     "flowPage": "flows/WF-LEG-07.html",
      "stage": 3
     },
     {
@@ -2254,7 +2229,6 @@
      "forms": "F-COM-001, 002; F-LEG-005; F-COM-004 (report)",
      "terminal": "Committee action: report, amend, refer to floor, or table; record published",
      "basis": "Art. II §4",
-     "flowPage": "flows/WF-LEG-08.html",
      "stage": 3
     },
     {
@@ -2268,7 +2242,6 @@
      "forms": "F-LEG-007 → F-LEG-004",
      "terminal": "Motion resolved per Rules of Order (table/amend/refer/adjourn); Speaker breaks ties only",
      "basis": "Art. II §2–3",
-     "flowPage": "flows/WF-LEG-09.html",
      "stage": 3
     },
     {
@@ -2282,7 +2255,6 @@
      "forms": "F-LEG-022 → WF-ELE-07",
      "terminal": "Question queued to jurisdiction-wide ballot at the matching threshold",
      "basis": "Art. II §6",
-     "flowPage": "flows/WF-LEG-10.html",
      "stage": 3
     },
     {
@@ -2296,7 +2268,6 @@
      "forms": "F-LEG-023 (invoke), F-LEG-024 (renew)",
      "terminal": "Powers with defined duration/area/methods; judicially reviewable; cannot disrupt civic processes; auto-expire at max duration",
      "basis": "Art. II §7",
-     "flowPage": "flows/WF-LEG-11.html",
      "stage": 3
     },
     {
@@ -2310,7 +2281,6 @@
      "forms": "F-LEG-030 → WF-ELE-03 → WF-ELE-04",
      "terminal": "Seat refilled by countback, else special election in 90–180 days; committee proportionality re-checked",
      "basis": "Art. II §5",
-     "flowPage": "flows/WF-LEG-12.html",
      "stage": 3
     },
     {
@@ -2324,7 +2294,6 @@
      "forms": "F-LEG-011 (RCV by whole legislature)",
      "terminal": "Seat filled by whole-legislature RCV without violating factional proportions",
      "basis": "Art. II §4",
-     "flowPage": "flows/WF-LEG-13.html",
      "stage": 3
     },
     {
@@ -2338,7 +2307,6 @@
      "forms": "WF-LEG-06 + engine range validation",
      "terminal": "Setting updated within hardened min/max, linked to enacting act with effective date; out-of-range values rejected",
      "basis": "Art. VII; CGA §6.3",
-     "flowPage": "flows/WF-LEG-14.html",
      "stage": 3
     },
     {
@@ -2352,7 +2320,6 @@
      "forms": "F-LEG-032, F-LEG-033",
      "terminal": "Binding rules + ethics code applying to all elected officials and civil officers",
      "basis": "Art. II §2",
-     "flowPage": "flows/WF-LEG-15.html",
      "stage": 3
     },
     {
@@ -2366,7 +2333,6 @@
      "forms": "Investigation record → possible WF-LEG-17",
      "terminal": "Findings published; referral to impeachment/censure/expulsion or closure",
      "basis": "Art. II §2 (independent admin office)",
-     "flowPage": "flows/WF-LEG-16.html",
      "stage": 3
     },
     {
@@ -2380,7 +2346,6 @@
      "forms": "F-SPK-007, F-LEG-034 (removal vote)",
      "terminal": "Supermajority removal (or censure); Speaker presides except own case; vacancy workflow triggers on expulsion",
      "basis": "Art. II §3; Art. III §3; Art. IV §4 (removal parity)",
-     "flowPage": "flows/WF-LEG-17.html",
      "stage": 3
     },
     {
@@ -2394,7 +2359,6 @@
      "forms": "Auto F-ELB-001 → WF-ELE-01",
      "terminal": "New general election; lockstep renewal of legislature + elected executives + elected judges; referendum acts from prior sessions become ordinary law",
      "basis": "Art. II §2; Art. III §3; Art. IV §3",
-     "flowPage": "flows/WF-LEG-18.html",
      "stage": 3
     },
     {
@@ -2408,7 +2372,6 @@
      "forms": "WF-LEG-06 (supermajority)",
      "terminal": "Referendum act modified/repealed unless it passed by population supermajority; post-election such acts are ordinary law",
      "basis": "Art. II §6",
-     "flowPage": "flows/WF-LEG-19.html",
      "stage": 3
     },
     {
@@ -2422,7 +2385,6 @@
      "forms": "F-SPK-003 (quorum count), F-SPK-008 (compel attendance)",
      "terminal": "Speaker compels attendance; session proceeds or adjourns; 90-day meeting clock still enforced",
      "basis": "Art. II §2",
-     "flowPage": "flows/WF-LEG-20.html",
      "stage": 3
     },
     {
@@ -2436,7 +2398,6 @@
      "forms": "F-LEG-014",
      "terminal": "Executive Committee composed proportionally from legislature members (same selection method as legislative committees)",
      "basis": "Art. III §2",
-     "flowPage": "flows/WF-EXE-01.html",
      "stage": 4
     },
     {
@@ -2450,7 +2411,6 @@
      "forms": "F-LEG-015 → WF-ELE-08",
      "terminal": "Elected office created (committee 5+ via PR-STV, or individual via RCV + 4 advisors); terms locked to legislative term",
      "basis": "Art. III §3",
-     "flowPage": "flows/WF-EXE-02.html",
      "stage": 4
     },
     {
@@ -2464,7 +2424,6 @@
      "forms": "Executive Office Modification Act",
      "terminal": "Office altered only on supermajority of constituent jurisdictions",
      "basis": "Art. III §3",
-     "flowPage": "flows/WF-EXE-03.html",
      "stage": 4
     },
     {
@@ -2478,7 +2437,6 @@
      "forms": "F-LEG-016",
      "terminal": "Department with charter + oversight assignment (Chief Exec, Treasury, Defense, State, Justice, custom)",
      "basis": "Art. III §4 (context); CGA Phase 4",
-     "flowPage": "flows/WF-EXE-04.html",
      "stage": 4
     },
     {
@@ -2492,7 +2450,6 @@
      "forms": "F-EXE-001 → F-LEG-020 (consent, peg-quorum majority)",
      "terminal": "Politically neutral expert governors seated; civil-officer term (default 10 yr)",
      "basis": "Art. III §4",
-     "flowPage": "flows/WF-EXE-05.html",
      "stage": 4
     },
     {
@@ -2506,7 +2463,6 @@
      "forms": "F-EXE-003 (removal request) → legislative vote",
      "terminal": "Governor removed and replacement appointment triggered, or request fails",
      "basis": "Art. III §4",
-     "flowPage": "flows/WF-EXE-06.html",
      "stage": 4
     },
     {
@@ -2520,7 +2476,6 @@
      "forms": "F-EXE-005 (order), F-EXE-002 (policy proposal)",
      "terminal": "Order issued within delegated scope (engine-validated); policy changes proposed to boards/legislature; judicially reviewable",
      "basis": "Art. III §2–4; Art. IV §5",
-     "flowPage": "flows/WF-EXE-07.html",
      "stage": 4
     },
     {
@@ -2534,7 +2489,6 @@
      "forms": "F-EXE-004",
      "terminal": "Investigation record; findings can feed WF-EXE-06 or legislation",
      "basis": "Art. III §4 (full & equal investigative power)",
-     "flowPage": "flows/WF-EXE-08.html",
      "stage": 4
     },
     {
@@ -2548,7 +2502,6 @@
      "forms": "F-GOV-001 (rule implementation), F-GOV-002 (reports)",
      "terminal": "Implementation rules and public reports filed to executive + legislature",
      "basis": "Art. III §4",
-     "flowPage": "flows/WF-EXE-09.html",
      "stage": 4
     },
     {
@@ -2562,7 +2515,6 @@
      "forms": "F-LEG-017, F-LEG-021 (×N)",
      "terminal": "Court created with defined jurisdiction/scope; constituent jurisdictions nominate equal numbers (judicial committee if none); legislature confirms; 10-yr default terms",
      "basis": "Art. IV §2, §4",
-     "flowPage": "flows/WF-JUD-01.html",
      "stage": 5
     },
     {
@@ -2576,7 +2528,6 @@
      "forms": "F-LEG-018 → WF-ELE-09",
      "terminal": "Judges thereafter elected in groups via STV (min 5 per race); terms synced",
      "basis": "Art. IV §3",
-     "flowPage": "flows/WF-JUD-02.html",
      "stage": 5
     },
     {
@@ -2590,7 +2541,6 @@
      "forms": "F-IND-016/017, F-JDG-001+ (scheduling, rulings, opinion)",
      "terminal": "Panel ≥3 and odd, scaled to severity (full court for major constitutional questions); jury where accused entitled; published opinion",
      "basis": "Art. IV §4",
-     "flowPage": "flows/WF-JUD-03.html",
      "stage": 5
     },
     {
@@ -2604,7 +2554,6 @@
      "forms": "Random selection from R-03 pool + filters → empanelment",
      "terminal": "Jury of peers seated with conflict screening; service protected as civic obligation",
      "basis": "Art. IV §4; Art. II §8",
-     "flowPage": "flows/WF-JUD-04.html",
      "stage": 5
     },
     {
@@ -2618,7 +2567,6 @@
      "forms": "F-IND-013, F-JDG findings, F-LEG-035 (override)",
      "terminal": "Finding + recommended remedy → legislature modifies/removes in judicial timeframe OR supermajority override within veto window OR judiciary applies remedy directly (law edited; opinions remain commentary; settings adjusted if needed); executives enforce outcome",
      "basis": "Art. IV §5",
-     "flowPage": "flows/WF-JUD-05.html",
      "stage": 5
     },
     {
@@ -2632,7 +2580,6 @@
      "forms": "Review proceeding linked to F-LEG-023",
      "terminal": "Powers upheld, narrowed, or struck; civic-process protections enforced",
      "basis": "Art. II §7; Art. IV §5",
-     "flowPage": "flows/WF-JUD-06.html",
      "stage": 5
     },
     {
@@ -2646,7 +2593,6 @@
      "forms": "Appointed: re-run F-LEG-021; Elected: WF-ELE-03/04",
      "terminal": "Seat refilled by nomination+confirmation (appointed) or countback→special election (elected)",
      "basis": "Art. II §5; Art. IV §2–3",
-     "flowPage": "flows/WF-JUD-07.html",
      "stage": 5
     },
     {
@@ -2660,7 +2606,6 @@
      "forms": "F-LEG-034 (supermajority)",
      "terminal": "Judge removed by supermajority (same duties/removal parity as legislators); vacancy workflow triggered",
      "basis": "Art. IV §4",
-     "flowPage": "flows/WF-JUD-08.html",
      "stage": 5
     },
     {
@@ -2674,7 +2619,6 @@
      "forms": "Linked to WF-CIV-06",
      "terminal": "Petition validated for ballot or invalidated as unconstitutional",
      "basis": "Art. II §6",
-     "flowPage": "flows/WF-JUD-09.html",
      "stage": 5
     },
     {
@@ -2688,7 +2632,6 @@
      "forms": "F-IND-012",
      "terminal": "Registered entity (stock, partnership, equal partnership, member-owned, worker-owned, nonprofit) in a jurisdiction",
      "basis": "Art. III §5–6 (context)",
-     "flowPage": "flows/WF-ORG-01.html",
      "stage": 4
     },
     {
@@ -2702,7 +2645,6 @@
      "forms": "F-CAN-002, F-ORG-002",
      "terminal": "Endorsement recorded; candidate gains R-07; faction linkage used for proportionality math",
      "basis": "Art. II §2 (factions)",
-     "flowPage": "flows/WF-ORG-02.html",
      "stage": 4
     },
     {
@@ -2716,7 +2658,6 @@
      "forms": "F-IND-013/014 (member app, worker registration)",
      "terminal": "Membership/shareholding or worker contract recorded; worker headcount updated (feeds co-determination)",
      "basis": "Art. III §6",
-     "flowPage": "flows/WF-ORG-03.html",
      "stage": 4
     },
     {
@@ -2730,7 +2671,6 @@
      "forms": "Board seat recalc → WF-ORG-05",
      "terminal": "Worker-elected board seats added on uniform scale to parity; joint chair election triggered at composition change",
      "basis": "Art. III §6",
-     "flowPage": "flows/WF-ORG-04.html",
      "stage": 4
     },
     {
@@ -2744,7 +2684,6 @@
      "forms": "Owner-track + worker-track STV ballots; joint chair vote",
      "terminal": "Board seated per current co-determination ratio; chair elected jointly by entire board",
      "basis": "Art. III §6",
-     "flowPage": "flows/WF-ORG-05.html",
      "stage": 4
     },
     {
@@ -2758,7 +2697,6 @@
      "forms": "F-ORG transfer instrument",
      "terminal": "Ownership transferred with full-faith-and-credit record sync across jurisdictions",
      "basis": "Art. III §5; Art. V §2",
-     "flowPage": "flows/WF-ORG-06.html",
      "stage": 4
     },
     {
@@ -2772,7 +2710,6 @@
      "forms": "F-LEG-026 (acquisition act)",
      "terminal": "Conversion to CGC with ≥ fair-market share compensation; prior board members optionally join founding Board of Governors",
      "basis": "Art. III §5",
-     "flowPage": "flows/WF-ORG-07.html",
      "stage": 4
     },
     {
@@ -2786,7 +2723,6 @@
      "forms": "F-LEG-019",
      "terminal": "Public enterprise with charter + executive oversight; regulated identically to private peers; IP perpetually public domain",
      "basis": "Art. III §5",
-     "flowPage": "flows/WF-ORG-08.html",
      "stage": 4
     },
     {
@@ -2800,7 +2736,6 @@
      "forms": "Reorg/sale/dissolution act",
      "terminal": "CGC reorganized, dissolved, or sold to private enterprise on open market (public→private conversion)",
      "basis": "Art. III §5",
-     "flowPage": "flows/WF-ORG-09.html",
      "stage": 4
     },
     {
@@ -2814,7 +2749,6 @@
      "forms": "Dissolution filing",
      "terminal": "Entity wound down; obligations settled; records archived",
      "basis": "Art. III §5 (context); Art. IV",
-     "flowPage": "flows/WF-ORG-10.html",
      "stage": 4
     },
     {
@@ -2828,7 +2762,6 @@
      "forms": "WF-ELE-02 → WF-LEG-01 → ...",
      "terminal": "Boundary becomes a live self-governing jurisdiction; full bootstrap sequence (Sheet 6 of roles/forms chart) executes",
      "basis": "Art. II §1; Art. VI",
-     "flowPage": "flows/WF-JUR-01.html",
      "stage": 6
     },
     {
@@ -2842,7 +2775,6 @@
      "forms": "Compatibility analysis → variable codification → ratification votes",
      "terminal": "New encompassing jurisdiction with codified amendable variables and any added articles; instances federate",
      "basis": "Art. V §7",
-     "flowPage": "flows/WF-JUR-02.html",
      "stage": 6
     },
     {
@@ -2856,7 +2788,6 @@
      "forms": "Entrance-clause process",
      "terminal": "Admission on supermajority of applicant individuals + supermajority of union constituents (default); exit mirrors",
      "basis": "Art. V §7",
-     "flowPage": "flows/WF-JUR-03.html",
      "stage": 6
     },
     {
@@ -2870,7 +2801,6 @@
      "forms": "Disintermediation acts ×N",
      "terminal": "Intermediary dissolves; its acts incorporated into former constituents; federation topology updated",
      "basis": "Art. V §8",
-     "flowPage": "flows/WF-JUR-04.html",
      "stage": 6
     },
     {
@@ -2884,7 +2814,6 @@
      "forms": "Handshake → communication/trade channels → boundary negotiation",
      "terminal": "Recognized peers with settled borders; optional synchronization or union path",
      "basis": "Art. V §2, §7",
-     "flowPage": "flows/WF-JUR-05.html",
      "stage": 6
     },
     {
@@ -2898,7 +2827,6 @@
      "forms": "sync_log, conflict resolution",
      "terminal": "Authoritative-instance writes propagated; conflicts resolved by authority claims; audit-chained",
      "basis": "Art. V §2; CGA §4 Federation",
-     "flowPage": "flows/WF-JUR-06.html",
      "stage": 6
     },
     {
@@ -2912,7 +2840,6 @@
      "forms": "Detection → restoration elections cascade",
      "terminal": "Tier 1: constituents elect new legislature; Tier 2: encompassing jurisdiction calls elections; Tier 3: individuals self-organize new jurisdictions per the Template; defensive forces protect most legitimate government",
      "basis": "Art. VI §2–3",
-     "flowPage": "flows/WF-JUR-07.html",
      "stage": 6
     },
     {
@@ -2926,7 +2853,6 @@
      "forms": "Partition export → authority transfer → re-peer",
      "terminal": "Local instance becomes authoritative copy for its jurisdiction; others sync to it",
      "basis": "CGA federation model",
-     "flowPage": "flows/WF-JUR-08.html",
      "stage": 6
     },
     {
@@ -2940,7 +2866,6 @@
      "forms": "Census engine → F-ELB-003 if needed",
      "terminal": "Accurate resident counts; seats/taxes/resources apportioned; subdivision triggered if max exceeded",
      "basis": "Art. II §2, §8; Art. V §3",
-     "flowPage": "flows/WF-JUR-09.html",
      "stage": 6
     },
     {
@@ -2954,7 +2879,6 @@
      "forms": "Term registry + lockstep scheduler",
      "terminal": "Legislative, executive, and judicial terms expire in lockstep; election triggers derived from one clock",
      "basis": "Art. III §3; Art. IV §3",
-     "flowPage": "flows/WF-SYS-01.html",
      "stage": 6
     },
     {
@@ -2968,7 +2892,6 @@
      "forms": "Auto session-due notice → F-SPK-001/008",
      "terminal": "Session scheduled or attendance compelled before deadline; violation flagged to admin office",
      "basis": "Art. II §2",
-     "flowPage": "flows/WF-SYS-02.html",
      "stage": 6
     },
     {
@@ -2982,7 +2905,6 @@
      "forms": "Publication pipeline",
      "terminal": "Public, readily available, immutable record with translations",
      "basis": "Art. II §2",
-     "flowPage": "flows/WF-SYS-03.html",
      "stage": 6
     },
     {
@@ -2996,7 +2918,6 @@
      "forms": "Hardened-rule check → append to crypto-chained audit log",
      "terminal": "Invalid transitions rejected pre-commit; complete tamper-evident history",
      "basis": "Art. VII; CGA §6.2, §6.4",
-     "flowPage": "flows/WF-SYS-04.html",
      "stage": 6
     },
     {
@@ -3010,7 +2931,6 @@
      "forms": "Amendment act → ratification thresholds → settings/code path",
      "terminal": "Amendable variables updated via settings; hardened-layer changes require code release passing full constitutional test suite",
      "basis": "Art. VII",
-     "flowPage": "flows/WF-SYS-05.html",
      "stage": 6
     }
    ],
@@ -3392,7 +3312,7 @@
      "states": [
       "Filed",
       "Validated",
-      "Panel-Assigned (≥3, odd, severity-scaled)",
+      "Panel chosen (3 or more judges, always an odd number)",
       "[Jury-Empaneled]",
       "Scheduled",
       "Hearing",
@@ -3439,8 +3359,8 @@
       "Governors-Nominated",
       "Consented",
       "Operating",
-      "[Member Removal Requested",
-      "Voted]",
+      "Removal requested",
+      "Removal voted",
       "Reporting",
       "Re-chartered | Dissolved"
      ],
@@ -3454,8 +3374,8 @@
       "Active",
       "[Endorsing]",
       "[Co-determination tiers]",
-      "[Transfer-Pending",
-      "Transferred]",
+      "Transfer pending",
+      "Transferred",
       "[Converted Public↔Private]",
       "Dissolved"
      ],
@@ -3465,7 +3385,7 @@
      "id": "Jurisdiction",
      "statesRaw": "Boundary-Loaded (dormant) → Critical-Population → Bootstrapping → Self-Governing → [Subdivided] → [In-Union | Intermediary] → [Disintermediated] → [Restoration-Mode]",
      "states": [
-      "Boundary-Loaded (dormant)",
+      "On the map (dormant)",
       "Critical-Population",
       "Bootstrapping",
       "Self-Governing",
@@ -3482,7 +3402,7 @@
      "states": [
       "Discovered",
       "Handshake",
-      "Trust-Established",
+      "Trust established",
       "Syncing",
       "[Conflict-Resolution]",
       "[Border-Settled]",
@@ -4089,9 +4009,10 @@
         flags: ['monopoly_target'], note: 'Monopoly-acquisition scenario target (F-LEG-026).' }
     ],
 
-    /* Candidates in the Manhattan approval phase (7 seats → finalist line at
-       X = 21 · CLK-21, so 24 registrants keep the line visible mid-list).
-       Zero-endorsement candidates are first-class throughout. All fictional. */
+    /* Candidates in the Manhattan approval phase (9 seats → finalist line at
+       X = 27 · CLK-21, so 30 registrants keep the line visible mid-list).
+       Candidates with no endorsements stand on equal footing throughout.
+       All fictional. */
     candidates: [
       { id: 'diego-ramos', name: 'Diego Ramos', election: 'elec-manhattan-2031', endorsedBy: ['commons-party'], individualEndorsements: 41, approvals: 4182, deltaDay: 3, tags: ['housing', 'transit'], statement: 'Frequent buses, fewer evictions, open books.' },
       { id: 'keisha-boyd', name: 'Keisha Boyd', election: 'elec-manhattan-2031', endorsedBy: ['green-horizon'], individualEndorsements: 28, approvals: 3974, deltaDay: -1, tags: ['climate', 'parks'], incumbent: true, statement: 'Tree canopy and clean air are infrastructure.' },
@@ -4116,7 +4037,13 @@
       { id: 'sun-li-park', name: 'Sun-Li Park', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 13, approvals: 1140, deltaDay: 4, tags: ['education'] },
       { id: 'gloria-acheampong', name: 'Gloria Acheampong', election: 'elec-manhattan-2031', endorsedBy: ['green-horizon'], individualEndorsements: 2, approvals: 1056, deltaDay: -1, tags: ['climate', 'transit'] },
       { id: 'bastian-keller', name: 'Bastian Keller', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 1, approvals: 967, deltaDay: 0, tags: ['budget'] },
-      { id: 'yara-haddad', name: 'Yara Haddad', election: 'elec-manhattan-2031', endorsedBy: ['hudson-mutual-aid'], individualEndorsements: 16, approvals: 873, deltaDay: 2, tags: ['mutual-aid', 'health'] }
+      { id: 'yara-haddad', name: 'Yara Haddad', election: 'elec-manhattan-2031', endorsedBy: ['hudson-mutual-aid'], individualEndorsements: 16, approvals: 873, deltaDay: 2, tags: ['mutual-aid', 'health'] },
+      { id: 'tarek-aziz', name: 'Tarek Aziz', election: 'elec-manhattan-2031', endorsedBy: ['five-boroughs-chamber'], individualEndorsements: 10, approvals: 812, deltaDay: 1, tags: ['zoning', 'small-business'] },
+      { id: 'oksana-melnyk', name: 'Oksana Melnyk', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 6, approvals: 746, deltaDay: 2, tags: ['health', 'parks'] },
+      { id: 'ravi-krishnan', name: 'Ravi Krishnan', election: 'elec-manhattan-2031', endorsedBy: ['commons-party'], individualEndorsements: 7, approvals: 689, deltaDay: -1, tags: ['transit', 'education'] },
+      { id: 'paloma-reyes', name: 'Paloma Reyes', election: 'elec-manhattan-2031', endorsedBy: ['uptown-neighbors'], individualEndorsements: 5, approvals: 601, deltaDay: 0, tags: ['parks', 'housing'] },
+      { id: 'kofi-asante', name: 'Kofi Asante', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 3, approvals: 544, deltaDay: 1, tags: ['water'], statement: 'Below the line today — approve me, or write me in on the ballot.' },
+      { id: 'maren-solheim', name: 'Maren Solheim', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 2, approvals: 488, deltaDay: 0, tags: ['budget'], statement: 'Every validated candidate can still be written in — including me.' }
     ],
 
     /* Petitions (F-IND-009/010; threshold = 5% of jurisdiction population · CLK-17). */
@@ -4208,7 +4135,7 @@
        is a real race here, not a metaphor). */
     elections: [
       { id: 'elec-manhattan-2031', jurisdiction: 'usa-3-new-york-county', kind: 'general', phase: 'approval',
-        seats: 7, finalistCount: 21, finalistRule: 'X = f(seats) · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
+        seats: 9, finalistCount: 27, finalistRule: 'X = f(seats) · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
       { id: 'elec-brooklyn-2031', jurisdiction: 'usa-3-kings-county', kind: 'general', phase: 'ranked',
         seats: 5, finalistCount: 15, ranksClose: '2031-05-30T23:59:00Z', clocks: ['CLK-21'] },
       { id: 'elec-queens-2031', jurisdiction: 'usa-3-queens-county', kind: 'general', phase: 'certifying',
@@ -4350,7 +4277,7 @@
           screen: { href: 'civic/residency.html', params: { role: 'R-03' } } },
         { n: 5, actor: 'System', action: 'Unlock civic rights', engine: 'Constitutional Engine',
           outcome: 'Voting + candidacy unlocked automatically, no other requirements; population records updated (WF-JUR-09)',
-          screen: { href: 'civic/civic-home.html', params: { role: 'R-03' } },
+          screen: { href: 'civic/today.html', params: { role: 'R-03' } },
           branches: [{ label: 'Population records update', goto: { wf: 'WF-JUR-09', step: 1 } }] }
       ]
     },

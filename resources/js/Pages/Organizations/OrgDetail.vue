@@ -17,6 +17,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -32,6 +33,9 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
 import OwnershipPanel from '@/Components/Organizations/OwnershipPanel.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },

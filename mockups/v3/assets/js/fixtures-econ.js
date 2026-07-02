@@ -1,14 +1,10 @@
 /* ============================================================================
    CGA MOCKUPS v2 — fixtures-econ.js  (the economic + social spine)
-   AUGMENTS CGA.fixtures.v2 with CGA.fixtures.v2.econ — the data for the Phase
-   L (public finance) and Phase M (market economy) surfaces, plus the social /
-   rep<->citizen data. Loads AFTER fixtures-v2.js.
-
-   Everything here is DESIGN-AHEAD of code (Phases L & M are unbuilt; the forms
-   F-LEG-037..040, F-IND-018..023, F-TRE-001..004, F-ORG-008 are reserved, not
-   registered) — the surfaces that read this badge themselves "Planned". The
-   model is grounded in the constitution (see mockups/v2/CONSTITUTION-CURRENCY-
-   OPS.md) and the treasury / civic-stipend design docs:
+   AUGMENTS CGA.fixtures.v2 with CGA.fixtures.v2.econ — the data for the
+   public-finance and market surfaces, plus the social / rep<->citizen data.
+   Loads AFTER fixtures-v2.js. The surfaces that read this badge themselves
+   "Planned". The model is grounded in the constitution (see mockups/v2/
+   CONSTITUTION-CURRENCY-OPS.md) and the treasury / civic-stipend design docs:
      - Currency reserved to the root jurisdiction; it sets the worth and the
        measurement standards (units + subdivision) · Art. V §5
      - Joint/shared ledgers between agreeing parties · Art. V §2 + Art. I
@@ -17,8 +13,10 @@
      - Every contract has a constitutional floor (Supremacy of Rights) · Art. I
      - The civic stipend is a residency-floor UBI + a role differential, all
        dual-door-gated keys on the economic clock (ubi_period_days sweep)
-   Units of account are ABSTRACT — no payment rails, no custody. Individual
-   economic data (wallets, receipts, transactions) is PRIVATE and never federated.
+   Units of account are ABSTRACT — no payment rails, no custody. Economic data
+   syncs between nodes like all data, but individual economic data (wallets,
+   receipts, transactions) is readable only by its owner — reader privacy,
+   like a ballot.
    ============================================================================ */
 (function () {
   'use strict';
@@ -52,8 +50,8 @@
      (chamber supermajority + constituent consent). Never an admin knob. */
   var monetaryKeys = [
     { key: 'currency_worth_basis', label: 'Currency worth basis', value: 'labor-hour reference basket', kind: 'policy', gate: 'dual-door', enactingAct: 'Act 2031-12', cite: 'set at root' },
-    { key: 'monetary_issuance_rate_bps', label: 'Issuance rate', value: '120 bps / period', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-12', cite: 'set at root' },
-    { key: 'inflation_target_bps', label: 'Inflation target', value: '200 bps / yr', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-12', cite: 'set at root' },
+    { key: 'monetary_issuance_rate_bps', label: 'Issuance rate', value: '1.2% per period', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-12', cite: 'set at root' },
+    { key: 'inflation_target_bps', label: 'Inflation target', value: '2% per year', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-12', cite: 'set at root' },
     { key: 'ubi_amount_per_period', label: 'Civic stipend base (UBI floor)', value: '50 ç', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-14', cite: 'residency floor' },
     { key: 'ubi_period_days', label: 'Stipend interval (the economic clock)', value: '30 days', kind: 'monetary', gate: 'dual-door', enactingAct: 'Act 2031-14', cite: 'cadence — the stipend sweep' },
     { key: 'civic_stipend_enabled', label: 'Role differential enabled', value: 'on', kind: 'policy', gate: 'dual-door', enactingAct: 'Act 2031-15', cite: 'policy' },
@@ -72,7 +70,7 @@
     label: 'Civic stipend run — every 30 days',
     lastRun: 'ubi-2031-06', lastRunDate: '2031-06-01', nextRun: '2031-07-01',
     form: 'F-TRE-004', actor: 'system', cite: 'cadence is the stipend interval sweep',
-    note: 'The interval is itself a dual-door monetary key; the legislature can lengthen or shorten the cycle.'
+    note: 'The interval is itself a lever set by law; the legislature can lengthen or shorten the cycle.'
   };
 
   /* ----------------------------------------------- THE CIVIC STIPEND (UBI + diff)
@@ -86,7 +84,7 @@
     formula: 'amount = base (residency floor) + min( Σ eligible-role bumps, cap )',
     eligibilityFloor: 'Active residency association ONLY — the same gate as voting; no means test, no application.',
     classes: [
-      { key: 'operator', label: 'Node operators', bump: 8, basis: 'A government-granted node-operator grant (the mesh fact) — authority is granted, never self-claimed. Not a constitutional role.', who: 'the people who run a server keeping the mesh alive' },
+      { key: 'operator', label: 'Node operators', bump: 8, basis: 'A government-granted node-operator grant — authority is granted, never self-claimed. Not a constitutional role.', who: 'the people who run a server keeping the world online' },
       { key: 'moderator', label: 'Social moderators', bump: 5, basis: 'An active social-moderator assignment. Not a constitutional role.', who: 'public-square / halls moderators' },
       { key: 'officeholder', label: 'Civic office-holders', bump: 12, basis: 'Derived from an active office (legislator, governor, judge). The set of paid offices is a policy choice.', who: 'elected & appointed constitutional officers' }
     ],
@@ -95,7 +93,7 @@
       'Bumps are add-only (≥ 0) — they never reduce or withhold the residency floor',
       'Capped sum — stacking operator + office + moderator can never exceed the cap',
       'No governance advantage — a stipend writes only the private ledger, never a role/seat/vote',
-      'Dual-door — the constituents whose money is spent must consent (anti-self-dealing)',
+      'Changed only by a two-door act — a supermajority of the chamber AND the consent of the people whose money is spent (anti-self-dealing)',
       'Never a paywall — the stipend is a payment TO, never a payment required OF',
       'k-anonymous — small recipient classes are folded into the general aggregate, never published'
     ],
@@ -142,10 +140,10 @@
   ];
 
   /* ----------------------------------------------------------------- WALLET
-     A personal account — PRIVATE, never federated (like a ballot). */
+     A personal account — private like a ballot: only the owner can read it. */
   var wallet = {
     owner: 'amara-okafor', balance: '312.40 ç', currency: 'CVU', private: true,
-    neverFederated: 'Your balance, receipts, and transactions live only on this server — never federated, like a ballot.',
+    neverFederated: 'Your balance, receipts, and transactions are private — like a ballot, only you can read them.',
     transactions: [
       { date: '2031-06-01', kind: 'civic stipend', amount: '+50.00 ç', counterparty: 'Treasury (stipend run)', memo: 'residency floor' },
       { date: '2031-05-27', kind: 'purchase', amount: '−18.00 ç', counterparty: orgName('manhattan-water-power'), memo: 'water-testing kit' },
@@ -158,11 +156,16 @@
      marketplace_listings → orders. Listers are individuals or orgs. A CGC sells
      on identical terms to a private seller (Art. III §5). */
   var marketplace = [
-    { id: 'lst-1', title: 'Repaired cargo bikes', kind: 'good', qty: 6, price: '240 ç', seller: orgName('bluefin-logistics'), sellerKind: 'business', form: 'F-IND-021', tags: ['transit'] },
-    { id: 'lst-2', title: 'Rooftop-garden consultation', kind: 'service', qty: 'by appointment', price: '35 ç / visit', seller: orgName('hudson-mutual-aid'), sellerKind: 'nonprofit', form: 'F-IND-021', tags: ['food', 'climate'] },
-    { id: 'lst-3', title: 'Water-quality testing kits', kind: 'good', qty: 40, price: '18 ç', seller: orgName('manhattan-water-power'), sellerKind: 'common_good_corp', cgc: true, form: 'F-IND-021', tags: ['water'], note: 'A common-good corp sells on identical terms to any private seller.' },
-    { id: 'lst-4', title: 'Bicycle repair lessons', kind: 'service', qty: '8 seats', price: '12 ç', seller: nm('diego-ramos'), sellerKind: 'individual', form: 'F-IND-021', tags: ['skills'] },
-    { id: 'lst-5', title: 'Surplus depot pallets', kind: 'good', qty: 120, price: '2 ç each', seller: orgName('bluefin-logistics'), sellerKind: 'business', form: 'F-IND-021', tags: ['materials'] }
+    { id: 'lst-1', title: 'Repaired cargo bikes', kind: 'good', qty: 6, price: '240 ç', seller: orgName('bluefin-logistics'), sellerKind: 'business', form: 'F-IND-021', tags: ['transit'],
+      desc: 'Repaired and roadworthy cargo bikes, reconditioned at the depot and resold across the five boroughs. Each unit is checked, given a fresh chain and brakes, and listed at a flat price — buy one or the full lot.' },
+    { id: 'lst-2', title: 'Rooftop-garden consultation', kind: 'service', qty: 'by appointment', price: '35 ç / visit', seller: orgName('hudson-mutual-aid'), sellerKind: 'nonprofit', form: 'F-IND-021', tags: ['food', 'climate'],
+      desc: 'A visit from an experienced rooftop grower: soil, sun, drainage, and a planting plan for your building. Book a single visit or a season of follow-ups.' },
+    { id: 'lst-3', title: 'Water-quality testing kits', kind: 'good', qty: 40, price: '18 ç', seller: orgName('manhattan-water-power'), sellerKind: 'common_good_corp', cgc: true, form: 'F-IND-021', tags: ['water'], note: 'A common-good corp sells on identical terms to any private seller.',
+      desc: 'Field kits for testing tap and harbor water — strips, a color chart, and a mail-in vial for the lab. The same kit the harbor-cleanup crews use.' },
+    { id: 'lst-4', title: 'Bicycle repair lessons', kind: 'service', qty: '8 seats', price: '12 ç', seller: nm('diego-ramos'), sellerKind: 'individual', form: 'F-IND-021', tags: ['skills'],
+      desc: 'A hands-on evening class: flats, brakes, chains, and a full tune-up on your own bike. Tools provided; eight seats per session.' },
+    { id: 'lst-5', title: 'Surplus depot pallets', kind: 'good', qty: 120, price: '2 ç each', seller: orgName('bluefin-logistics'), sellerKind: 'business', form: 'F-IND-021', tags: ['materials'],
+      desc: 'Clean, intact shipping pallets surplus to the depot — good for furniture builds, garden beds, and staging. Take a few or the whole stack.' }
   ];
 
   /* ---------------------------------------------- REQUEST BOARD (the mirror)
@@ -186,7 +189,7 @@
   var agreements = [
     { id: 'agr-1', kind: 'labor_recurring', title: 'Depot loader — recurring labor', parties: [ { name: nm('diego-ramos'), role: 'worker' }, { name: orgName('bluefin-logistics'), role: 'organization' } ],
       terms: 'Recurring shifts at 22 ç/shift; counts toward co-determination headcount.', status: 'agreed', form: 'F-IND-014', signedBoth: true,
-      floor: 'Both parties must sign; the engine rejects a single-sided contract. No clause may waive a constitutional right.' },
+      floor: 'Both parties must sign — a one-sided contract never takes effect. No clause may waive a constitutional right.' },
     { id: 'agr-2', kind: 'ownership_transfer', title: 'Transfer of a maker stall', parties: [ { name: nm('priya-sharma'), role: 'transferor' }, { name: nm('tomas-ferreira'), role: 'transferee' } ],
       terms: 'Transfer of a marketplace stall and its goodwill for 300 ç.', status: 'proposed', form: 'F-ORG-005', signedBoth: false,
       floor: 'Transferring owners and the receiving party each consent on the record.' },
@@ -202,10 +205,10 @@
      → the public ledger. Borrowing and currency are gated. */
   var treasury = {
     cycle: [
-      { step: 'Revenue', form: 'F-LEG-037', detail: 'Resource levies & fees — never on a civic right' },
-      { step: 'Budget', form: 'F-LEG-038', detail: 'Enacting the budget spawns the appropriations' },
+      { step: 'Revenue', form: 'F-LEG-037', chipLabel: 'Set a revenue levy', detail: 'Resource levies & fees — never on a civic right' },
+      { step: 'Budget', form: 'F-LEG-038', chipLabel: 'Enact the budget', detail: 'Enacting the budget spawns the appropriations' },
       { step: 'Appropriations', form: null, detail: 'Department spending authority' },
-      { step: 'Disbursement', form: 'F-TRE-001…003', detail: 'The Board of Governors execute' },
+      { step: 'Disbursement', form: 'F-TRE-001…003', chipLabel: 'Governors disburse', detail: 'The Board of Governors execute' },
       { step: 'Public ledger', form: null, detail: 'Double-entry, append-only, hash-chained' }
     ],
     revenue: [ { name: 'Resource levy (harbor)', rate: '0.4% of assessed value', base: 'apportioned via population records', civicExempt: true } ],
@@ -232,7 +235,7 @@
   };
   var taxes = {
     levies: [ { name: 'Resource levy', base: 'assessed harbor-front value, apportioned via population records', rate: '0.4%', civicExempt: true } ],
-    filing: { private: true, note: 'A tax filing is private, like a ballot — never federated.' },
+    filing: { private: true, note: 'A tax filing is private — like a ballot, only the filer can read it.' },
     rail: 'No tax, fee, lien, or cost may ever be attached to exercising a civic right or obligation.'
   };
 
@@ -261,7 +264,7 @@
       endorsementsGiven: [ { to: 'diego-ramos', public: true } ],
       groups: ['grp-harbor'], orgs: ['hudson-mutual-aid'],
       achievements: [ { name: 'First ballot cast', note: 'decorative — confers no power', proposed: true }, { name: 'Founded a group', proposed: true } ],
-      record: 'civic/my-civic-life.html?tab=record'
+      record: 'system/public-records.html'
     },
     org: {
       org: 'bluefin-logistics', type: 'business', ownership: 'stock', workers: 740,
@@ -279,21 +282,25 @@
   };
 
   /* --------------------------------------------------- THE EXCHANGE (trading floor)
-     Price discovery on the public Open Market (Art. V §5). Shares trade on a
-     fair market (Art. III §5); fungible goods clear against standing offers and
-     requests. Units are ABSTRACT — no payment rails, no custody; a fill writes
-     only the private wallets, like a ballot. A CGC quotes on identical terms to
-     any private seller. Liveness here is simulated in-page (Planned, L/M). */
+     Price discovery on the public Open Market (Art. V §5). Organization SHARES
+     trade here on a fair market (Art. III §5) — single items are bought and
+     sold on the open market, each at exactly one place and one price. Units are
+     ABSTRACT — no payment rails, no custody; a fill writes the parties' private
+     wallets, readable only by them. A CGC quotes on identical terms to any
+     private seller. Liveness here is simulated in-page (Planned). */
   var exchange = {
     venue: 'The Open Market',
-    rail: 'Price discovery on the public Open Market. Shares trade on a fair market; a fill settles only to the private wallets — never federated. Units are abstract; there are no payment rails or custody. A common-good corp quotes on identical terms to any private seller.',
+    rail: 'Price discovery in the open. Organization shares trade on a fair market; a fill settles to the parties’ private wallets — like ballots, readable only by them. Units are abstract; there are no payment rails or custody. A common-good corp quotes on identical terms to any private seller.',
     session: { label: 'Open', open: true, volumeToday: 38420, hours: 'Continuous while the jurisdiction is active', note: 'Simulated in-page — Planned.' },
     instruments: [
       { sym: 'BLU', name: 'Bluefin Logistics', kind: 'share', issuer: orgName('bluefin-logistics'), last: 12.40, change: 2.1, volume: 5120, spark: [11.8, 11.9, 12.0, 11.95, 12.1, 12.2, 12.15, 12.3, 12.35, 12.28, 12.4, 12.4] },
-      { sym: 'NSP', name: 'Northstar Equal Partners', kind: 'share', issuer: 'Northstar Equal Partners', last: 8.10, change: -1.2, volume: 2240, spark: [8.3, 8.25, 8.2, 8.28, 8.15, 8.1, 8.12, 8.05, 8.08, 8.1, 8.12, 8.1] },
-      { sym: 'WTRK', name: 'Water-quality kits', kind: 'good', issuer: orgName('manhattan-water-power'), cgc: true, last: 18.00, change: -0.6, volume: 640, spark: [18.2, 18.1, 18.0, 18.05, 18.0, 17.95, 18.0, 18.1, 18.0, 17.98, 18.0, 18.0] },
-      { sym: 'BIKE', name: 'Repaired cargo bikes', kind: 'good', issuer: orgName('bluefin-logistics'), last: 240, change: 1.5, volume: 96, spark: [236, 238, 237, 240, 239, 241, 240, 242, 240, 238, 240, 240] },
-      { sym: 'PLT', name: 'Surplus pallets', kind: 'good', issuer: orgName('bluefin-logistics'), last: 2.00, change: 0.0, volume: 12400, spark: [2, 2, 2.02, 2, 1.98, 2, 2, 2.01, 2, 2, 2, 2] }
+      { sym: 'NSP', name: 'Northstar Equal Partners', kind: 'share', issuer: 'Northstar Equal Partners', last: 8.10, change: -1.2, volume: 2240, spark: [8.3, 8.25, 8.2, 8.28, 8.15, 8.1, 8.12, 8.05, 8.08, 8.1, 8.12, 8.1] }
+    ],
+    /* single items trade on the open market, not here — each links to its listing */
+    marketGoods: [
+      { name: 'Water-quality testing kits', listing: 'lst-3', seller: orgName('manhattan-water-power') },
+      { name: 'Repaired cargo bikes', listing: 'lst-1', seller: orgName('bluefin-logistics') },
+      { name: 'Surplus depot pallets', listing: 'lst-5', seller: orgName('bluefin-logistics') }
     ],
     /* a seeded order book + tape for the default focus (BLU); other instruments
        derive a synthetic book around `last` in the page (deterministic). */

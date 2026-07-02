@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Identity — the operator plane — CGA mockups v2</title>
+  <title>Identity — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -78,7 +78,7 @@
         '<p class="page-intro">The identity layer that lets a server know who you are across the mesh, and lets a citizen’s public standing travel with them onto a server that isn’t home. Two separate identities live here — yours as an operator, and the attested standing of a citizen passing through. They never touch.</p></header>' +
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">The plane wall holds here too.</strong> Operator identity is wholly separate from citizen identity — an operator account has no link to any citizen user. ' + esc(O.plane.plainNote) + '<br />' +
+        '<strong style="color:var(--gov-fg)">The plane wall holds here too.</strong> Operator identity is wholly separate from citizen identity — an operator account has no link to any citizen user.<br />' +
         '<span class="citation">capability, not role</span></div></div>' +
 
         /* ============ SECTION 1 ============ */
@@ -103,7 +103,7 @@
 
         /* ============ SECTION 2 ============ */
         '<section aria-labelledby="travel-h"><h2 id="travel-h">Citizen standing on the move</h2>' +
-        '<p class="page-intro">A person on a journey can act through a server that isn’t their home, because their public standing travels as a signed, short-lived <strong>attestation</strong>. This is the keystone the ' + esc(gid.forwardedActor.split(' — ')[0]) + ' turns on.</p>' +
+        '<p class="page-intro">A person on a journey can act through a server that isn’t their home, because their public standing travels as a signed, short-lived <strong>attestation</strong>. This attestation is what lets a visiting player act here.</p>' +
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">An attestation carries only public standing.</strong> Role codes, the device key, the issuer, a TTL, and a signature — and <em>nothing else</em>. Never credentials, never locations, never ballots. Roles are still derived live, never stored.<br />' +
@@ -151,7 +151,7 @@
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">Two identities, one wall.</strong> Your operator account proves which box is talking; a citizen’s attestation proves what they may do. Neither can be read as the other — and neither buys a constitutional privilege.<br />' +
-        '<span class="citation">' + esc(O.plane.wall) + '</span></div></div>';
+        '<span class="citation">off the constitutional plane</span></div></div>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

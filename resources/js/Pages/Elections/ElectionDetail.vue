@@ -16,6 +16,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -28,6 +29,10 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-1 pilot (MASTER_PLAN): this page rides the v3 player chrome —
+   floating header, tour-as-a-mode, bottom command bar (Menu + Learn). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },

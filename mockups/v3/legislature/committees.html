@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Committees — CGA mockups</title>
+  <title>Committees — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,9 +16,9 @@
       <header>
         <span class="eyebrow">Legislature · committees</span>
         <h1>Committees — New York County legislature</h1>
-        <p class="page-intro">Committee seats are assigned from each member's own ranked preferences — there is no
-          party or faction layer to allocate through. Proportionality survives because ties break by each member's
-          STV vote share after normalizing quotas.</p>
+        <p class="page-intro">Committee seats are assigned from each member's own ranked preferences — every member
+          answers for themselves, with no party machinery in between. When two members want the same last seat, it
+          goes to whoever won the larger share of the vote at the election.</p>
         <p class="citation">How committee seats get assigned, as built
           (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
       </header>
@@ -26,7 +26,7 @@
       <section class="card" aria-labelledby="create-h">
         <h2 id="create-h">Creation acts <span class="form-chip">Committee creation act</span></h2>
         <p class="cc-small">Propose and vote to create a new committee — define scope, seat count, purpose. Requires a
-          supermajority. <span class="citation">available to Legislative Representatives</span></p>
+          supermajority. <span class="citation">available to legislators</span></p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Committees and their creation acts</caption>
           <thead><tr><th>Committee</th><th class="mono">Seats</th><th>Creation act</th><th>Status</th></tr></thead>
@@ -51,7 +51,7 @@
       <section class="card" aria-labelledby="prefs-h">
         <h2 id="prefs-h">Your preference ballot <span class="form-chip">Committee preference ranking</span></h2>
         <p class="cc-small">Rank preferred committee assignments — works identically whether you carry endorsements from
-          several organizations or none. <span class="citation">available to Legislative Representatives</span></p>
+          several organizations or none. <span class="citation">available to legislators</span></p>
         <ol id="pref-list" class="rank-list" aria-label="Ranked committee preferences"></ol>
         <noscript><p>The ranking control needs JavaScript; preferences default to the committee order.</p></noscript>
         <div class="cluster">
@@ -62,37 +62,36 @@
 
       <section class="card" aria-labelledby="run-h">
         <h2 id="run-h">Run the assignment <span class="form-chip">Committee assignment administration</span></h2>
-        <p class="cc-small">The Speaker administers the assignment — runs the preference algorithm and resolves ties.
-          <span class="citation">available to the Speaker</span></p>
+        <p class="cc-small">The Speaker administers the assignment — fills every seat from the submitted preferences
+          and resolves ties. <span class="citation">available to the Speaker</span></p>
         <div class="card card--inset" style="margin-block-end:var(--space-4)">
-          <h3 style="font-size:var(--text-base)">Tie-break — largest vote share after normalizing quotas</h3>
+          <h3 style="font-size:var(--text-base)">Tie-break — the larger share of the vote wins</h3>
           <p class="cc-small">Marcus Chen and Asha Okonkwo both ranked Environment &amp; Infrastructure first with one
-            seat remaining. Raw 1st-choice counts are not comparable across STV quota transfers, so shares are
-            normalized to account for one-person-one-vote deviations:</p>
+            seat remaining. The seat goes to whoever won the larger share of the vote at the election:</p>
           <div class="table-wrap"><table class="table">
             <caption class="visually-hidden">Normalized vote shares used for tie-breaking</caption>
-            <thead><tr><th>Member</th><th class="mono">Normalized share</th><th>Tie outcome</th></tr></thead>
+            <thead><tr><th>Member</th><th class="mono">Vote share</th><th>Tie outcome</th></tr></thead>
             <tbody id="tiebreak-rows"></tbody>
           </table></div>
-          <p class="citation" style="margin-block-start:var(--space-2)">Ties go to the seat holder with the largest vote share after
-            normalizing quotas — preserves proportionality with no faction layer, as built
+          <p class="citation" style="margin-block-start:var(--space-2)">Shares are normalized across ranked-choice quota transfers so
+            every member's count is comparable — preserves the election's proportionality, as built
             (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
         </div>
         <div class="state-strip" style="margin-block-end:var(--space-3)">
-          <span class="state-node">Allocated (formula)</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Preferences-Submitted</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node state-node--current">Assigned | Tie-Broken</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Allocated by formula</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Preferences submitted</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node state-node--current">Assigned (ties broken)</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Seated</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Vacated</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Refilled (whole-legislature RCV)</span>
+          <span class="state-node">Refilled by whole-chamber vote</span>
         </div>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="result-h">
         <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
           <h2 id="result-h">Assignment result</h2>
-          <p class="cc-small">Endorsing organizations are shown per member so proportionality stays legible with no
-            faction layer — members with no endorsements are first-class.</p>
+          <p class="cc-small">Endorsing organizations are shown per member so the chamber's proportions stay easy to
+            see — members with no endorsements have exactly the same standing.</p>
         </div>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Committee assignment results</caption>
@@ -106,7 +105,7 @@
         <h2 id="chairs-h">Chairs &amp; alternates <span class="form-chip">Committee chair/alternate vote</span></h2>
         <p class="cc-small">Chair and alternate of each committee are elected by the <strong>whole legislature</strong>
           via ranked-choice vote — the alternate is the top runner-up.
-          <span class="citation">available to Legislative Representatives</span></p>
+          <span class="citation">available to legislators</span></p>
         <div class="table-wrap"><table class="table">
           <caption class="visually-hidden">Committee chairs and alternates</caption>
           <thead><tr><th>Committee</th><th>Chair</th><th>Alternate</th></tr></thead>
@@ -123,8 +122,8 @@
             seats — creation acts, member preferences, and the Speaker's run;
             electing each committee's chair and alternate; and
             filling vacancies or new committees.</p>
-          <p><strong>How a seat moves:</strong> Allocated (formula) → Preferences-Submitted →
-            Assigned | Tie-Broken → Seated → Vacated → Refilled.</p>
+          <p><strong>How a seat moves:</strong> allocated by formula → preferences submitted →
+            assigned (ties broken) → seated → vacated → refilled.</p>
           <p class="citation">As built (<a href="../shared/constitutional-questions.html#q2">ledger #2</a>)</p>
         </div>
       </details>
@@ -140,7 +139,7 @@
       roles: ['R-09', 'R-10', 'R-11', 'R-13'],
       workflows: ['WF-LEG-03', 'WF-LEG-04', 'WF-LEG-13'],
       forms: ['F-LEG-009', 'F-LEG-010', 'F-SPK-005', 'F-LEG-011'],
-      citation: 'Faction-independent committee assignment, with ties broken by normalized vote share — as built',
+      citation: 'Committee assignment from each member\'s own preferences, ties broken by vote share — as built',
       flow: 'WF-LEG-03',
       register: 'governance'
     };
@@ -201,7 +200,7 @@
             '</span></li>';
         }).join('');
         document.getElementById('pref-confirm').innerHTML = submitted
-          ? S.badge('success', 'Preferences submitted — input to the assignment algorithm', 'check') : '';
+          ? S.badge('success', 'Preferences submitted — they drive the assignment', 'check') : '';
 
         /* Tie-break illustration from chamber voteShareNorm fixtures. */
         var chen = memberByName('Marcus Chen'), asha = memberByName('Asha Okonkwo');

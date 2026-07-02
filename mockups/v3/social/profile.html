@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile — CGA mockups v3</title>
+  <title>Profile — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -29,10 +29,19 @@
   (function () {
     'use strict';
     var root = document.getElementById('root');
+    function hasWho() {
+      try { return !!new URLSearchParams(location.search).get('who'); } catch (e) { return false; }
+    }
     function paint() {
-      root.innerHTML = CGA.profileV2.render({});   // who/tab read from the URL; self by default
+      var S = window.CGA.shellV2;
+      /* this page is for LOOKING SOMEONE UP (?who=). Without ?who it shows a
+         sample so the layout is browsable — with a signpost to the real thing. */
+      var note = hasWho() ? '' :
+        '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
+        '<div>Showing a sample profile. Your own lives at <a href="' + S.hrefV2('civic/my-civic-life.html') + '">My profile</a> — open any person from the square or the halls to see theirs here.</div></div>';
+      root.innerHTML = note + CGA.profileV2.render({});   // who/tab read from the URL; self by default
       CGA.profileV2.wire(root);
-      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
+      if (S) S.refresh();
     }
     paint();
     document.addEventListener('cga:v2:rerender', paint);

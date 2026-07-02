@@ -18,6 +18,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -31,6 +32,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -143,9 +147,8 @@ function submitFiling() {
     <PageScaffold :surface="surface" :title="`Case docket — ${judiciary.name}`">
         <template #intro>
             Every case filed in this court, from local civil disputes to full-court constitutional
-            questions. Anyone jurisdictionally associated can file; the court assigns panels with
-            conflict screening, and reclassifies severity at acceptance — panel size follows the
-            court's classification, not the filer's claim.
+            questions. Anyone who lives here (a verified resident) can file; panels are assigned by
+            the court with conflict screening.
         </template>
 
         <!-- engine 422: the rejection citation, verbatim -->

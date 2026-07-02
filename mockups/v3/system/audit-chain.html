@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Audit chain — CGA mockups</title>
+  <title>Audit chain — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,14 +16,13 @@
       <header>
         <span class="eyebrow">System of record</span>
         <h1>Audit chain</h1>
-        <p class="page-intro">Every state transition in this instance — civic, electoral, legislative, judicial —
-          passes the constitutional engine and is appended to this cryptographically chained log. Invalid transitions
-          are rejected before commit, and the rejection itself is recorded. Nothing is ever removed.</p>
-        <p class="citation">Constitutional validation and tamper-evident audit chain.</p>
+        <p class="page-intro">Everything that happens here — every vote, ruling, election, and rule change — is written
+          into one permanent history that no one, not an operator, a legislator, or a judge, can quietly change.
+          Moves the rules forbid are refused, and the refusal itself is recorded. Nothing is ever removed.</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-4)">
-        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+        <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Hardened — no setting, act, or office can switch this off</span>
         <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh-cw"></use></svg> Head hash published to peers on the federation heartbeat</span>
       </div>
 
@@ -94,7 +93,7 @@
 
       /* Pseudo-hashes — sequence continues to the instance head (auditSeq 84,113). */
       var entries = [
-        { seq: 84104, time: '2031-06-09 06:00', module: 'Elections', event: 'Daily approval-standing snapshot — New York County general (24 candidates, finalist line at 21)', ref: 'Daily election snapshot', hash: '9e41c07ab3d2f618' },
+        { seq: 84104, time: '2031-06-09 06:00', module: 'Elections', event: 'Daily approval-standing snapshot — New York County general (30 candidates, finalist line at 27)', ref: 'Daily election snapshot', hash: '9e41c07ab3d2f618' },
         { seq: 84105, time: '2031-06-09 11:42', module: 'Residency', event: 'Residency verified → home assignments created at all 4 nesting levels (subject pseudonymous)', ref: 'Residency check', hash: '4b8a2e91d5c0f733' },
         { seq: 84106, time: '2031-06-09 15:08', module: 'Legislature', event: 'Public statement appended — sponsor statement, New York County Clean Air Act', ref: 'Public records pipeline', hash: 'c72d50fa18e9b264' },
         { seq: 84107, time: '2031-06-10 00:00', module: 'Emergency', event: 'Emergency clock roll — Hurricane Dorinda, day 41 of 90 (New York)', ref: 'Emergency powers', hash: '1fd4a86c92e30b57' },

@@ -1,31 +1,28 @@
 /* ============================================================================
-   CGA MOCKUPS v2 — shell-v2.js  (the game-layer chrome)
-   The sole chrome renderer for v2 pages. Consumes the SHARED v1 foundation
-   (CGA.state, CGA.fixtures, CGA.fixtures.v2, CGA.icons, CGA.i18n) and the v1
-   token + component CSS — it never forks them. Renders a v2 header, the
-   interaction-class / journey / live-room sidebar, a footer, and the v1 demo
-   bar extended with the five v2 game scenarios.
+   WORLD OF STATECRAFT MOCKUPS v3 — shell-v2.js  (the shared chrome)
+   The sole chrome renderer for every page in mockups/v3, a SELF-CONTAINED
+   static environment. Renders the floating header, the two-tier Menu (a short
+   player tier over the full design-contract sitemap), the guided tour, the
+   Learn/Report drawer, the footer, and the demo controls.
 
-   A v2 page is a complete HTML doc with <main id="main"> + window.CGA_PAGE,
+   A page is a complete HTML doc with <main id="main"> + window.CGA_PAGE,
    loading (in this order):
-     <head>  ../assets/css/colors_and_type.css  ../assets/css/fonts.css
-             ../assets/css/mockup.css            assets/css/v2.css
-             ../assets/js/demo-state.js
-     </body> ../assets/js/fixtures.js   assets/js/fixtures-v2.js
-             manifest.js                ../assets/js/icons.js
-             ../assets/js/i18n.js       assets/js/shell-v2.js
+     <head>  assets/css/colors_and_type.css   assets/css/fonts.css
+             assets/css/mockup.css            assets/css/v2.css
+             assets/js/demo-state.js
+     </body> assets/js/fixtures.js  assets/js/fixtures-v2.js  [domain spines]
+             manifest.js  assets/js/icons.js  assets/js/i18n.js  shell-v2.js
 
-   Deep links: hrefV2(rel) stays inside mockups/v2/; hrefV1(rel) crosses back
-   to the v1 operations site (mockups/) — both carry demo state.
+   All links resolve inside mockups/v3 via href()/hrefV2() and carry the demo
+   state. hrefV1()/ROOT_V1 survive only as aliases for older inline scripts.
    ============================================================================ */
 (function () {
   'use strict';
   var CGA = window.CGA = window.CGA || {};
 
   var SRC = (document.currentScript && document.currentScript.src) || '';
-  /* v2 is now SELF-CONTAINED: it holds its own copy of every v1 asset and page,
-     so both roots resolve INSIDE …/mockups/v2/. hrefV1() points at the
-     operations pages copied into this version — it never escapes to ../ anymore. */
+  /* v3 is SELF-CONTAINED: one root. ROOT_V1 is an alias kept only so older
+     inline page scripts calling hrefV1() keep working. */
   var ROOT_V2 = SRC.replace(/assets\/js\/shell-v2\.js.*$/, '');
   var ROOT_V1 = ROOT_V2;
 
@@ -116,17 +113,40 @@
     setTimeout(function () { liveEl.textContent = text; }, 30);
   }
 
-  /* ------------------------------------------------------------ NAV (v2) */
+  /* --------------------------------------------------- the live-room variants
+     THE single source for the eight room configurations — id, label, icon, and
+     the one-line blurb. index.html and any picker render from this list. */
   var ROOM_VARIANTS = [
-    ['committee', 'Committee hearing', 'landmark'],
-    ['legislative', 'Legislative session', 'landmark'],
-    ['exec', 'Executive committee', 'briefcase'],
-    ['board', 'Board meeting', 'building'],
-    ['court', 'Court hearing', 'scale'],
-    ['forum', 'Candidate forum', 'vote'],
-    ['townhall', 'Referendum town hall', 'users'],
-    ['group', 'Informal-group meeting', 'users']
+    { id: 'committee', label: 'Committee hearing', icon: 'landmark', blurb: 'Testimony to the record; a committee vote.' },
+    { id: 'legislative', label: 'Legislative session', icon: 'landmark', blurb: 'The whole chamber, live — every vote counted against all serving seats.' },
+    { id: 'exec', label: 'Executive committee', icon: 'briefcase', blurb: 'Equal-power members deliberate and decide.' },
+    { id: 'board', label: 'Board meeting', icon: 'building', blurb: 'Worker and owner seats; the org’s own rules of order.' },
+    { id: 'court', label: 'Court hearing', icon: 'scale', blurb: 'The judge chairs; advocates hold the floor.' },
+    { id: 'forum', label: 'Candidate forum', icon: 'vote', blurb: 'Candidates speak in turn during the approval phase.' },
+    { id: 'townhall', label: 'Referendum town hall', icon: 'users', blurb: 'Open deliberation before the vote window.' },
+    { id: 'group', label: 'Group meeting', icon: 'users', blurb: 'A voluntary group, meeting on its own terms.' }
   ];
+
+  /* The standard "Planned" banner — ONE wording for every design-ahead surface.
+     Pages call S.plannedBanner() instead of hand-rolling their own copy. */
+  function plannedBanner(extra) {
+    return '<div class="banner banner--demo planned-banner"><div>' +
+      '<span class="banner-title">Planned — a preview.</span> ' +
+      esc(extra || 'This part of the world is designed ahead of the build. Nothing here is live yet, and no real money is anywhere.') +
+      '</div></div>';
+  }
+
+  /* Humanize a raw entity-state token for player display: an explicit map wins;
+     otherwise strip machine punctuation ([Brackets], pipes, hyphen-chains). */
+  function plainState(s, map) {
+    s = String(s == null ? '' : s).trim();
+    if (map && Object.prototype.hasOwnProperty.call(map, s)) return map[s];
+    return s.replace(/[\[\]]/g, '')
+      .replace(/\s*\|\s*/g, ' / ')
+      .replace(/(\w)-(\w)/g, '$1 $2')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
 
   /* ------------------------------------------------------ the guided tour
      One linear path through the whole game layer. A page enters "tour mode"
@@ -137,61 +157,56 @@
      logical narrative order. The single source of truth for both the follow-
      along bar (?step=N) and tour.html. */
   var TOUR = [
-    { act: 'Found an instance', rel: 'system/setup.html', title: 'Found the instance', blurb: 'From cosmic address to a seated constitution — operator first, then join or start fresh.' },
-    { act: 'Found an instance', rel: 'system/setup-wizard.html', title: 'The setup wizard', blurb: 'The detailed founding wizard, step by step.' },
-    { act: 'Found an instance', rel: 'jurisdictions/bootstrap.html', title: 'Bootstrap a jurisdiction', blurb: 'A place reaches critical mass and boots its government.' },
+    { act: 'Arrive', rel: 'civic/join.html', title: 'You’re invited', blurb: 'A friend’s invite link lands here — see the room, pick a name, step in. Nothing else required.' },
+    { act: 'Arrive', rel: 'shared/live-room.html?variant=group', title: 'Your first room', blurb: 'People talking, meeting, and deciding — live. Watching is open to everyone.' },
+    { act: 'Arrive', rel: 'civic/today.html', title: 'Home — what’s happening', blurb: 'Everything live right now in the places you belong to, plus the community calendar.' },
+    { act: 'Arrive', rel: 'atlas.html', title: 'The Atlas', blurb: 'A live heartbeat of the whole game — every place and every number on one map.' },
+    { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'Every door into the world on one screen.' },
+    { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My profile', blurb: 'Your record, your wallet, your representatives, and your achievements in one place.' },
 
-    { act: 'Arrive', rel: 'atlas.html', title: 'The Atlas', blurb: 'A live heartbeat of the whole game — every node, place, and number on one map.' },
-    { act: 'Arrive', rel: 'index.html', title: 'The launchpad', blurb: 'The five kinds of civic interaction — the whole map on one screen.' },
-    { act: 'Arrive', rel: 'civic/today.html', title: 'Today', blurb: 'Everything live right now in the places you belong to, plus the community calendar.' },
-    { act: 'Arrive', rel: 'civic/my-civic-life.html', title: 'My profile', blurb: 'Your whole civic life in one tabbed profile — record, wallet, your reps, and more.' },
+    { act: 'Become a resident', rel: 'civic/onboarding.html', title: 'Create your account', blurb: 'A name is all it takes to start.' },
+    { act: 'Become a resident', rel: 'civic/residency.html', title: 'Say where you live', blurb: 'Residency is the one key — it unlocks voting and standing for office.' },
+    { act: 'Become a resident', rel: 'civic/identity-verification.html', title: 'Link an ID (optional)', blurb: 'Optional — link a real-world ID where your place supports it. Your rights never depend on this step.' },
+    { act: 'Become a resident', rel: 'civic/relocation.html', title: 'Move somewhere new', blurb: 'Take your residency with you when life moves.' },
+    { act: 'Become a resident', rel: 'civic/advocate-registration.html', title: 'Become an advocate', blurb: 'Sign up to argue cases for others.' },
 
-    { act: 'Become a resident', rel: 'civic/civic-home.html', title: 'Civic home', blurb: 'Your jurisdiction at a glance — what you can do here.' },
-    { act: 'Become a resident', rel: 'civic/onboarding.html', title: 'Create your account', blurb: 'The first steps into the world.' },
-    { act: 'Become a resident', rel: 'civic/identity-verification.html', title: 'Verify your identity', blurb: 'Prove you are a real person — the gate to your rights.' },
-    { act: 'Become a resident', rel: 'civic/residency.html', title: 'Residency', blurb: 'Confirm where you live; residency unlocks every right.' },
-    { act: 'Become a resident', rel: 'civic/relocation.html', title: 'Relocate', blurb: 'Move your residency to a new place.' },
-    { act: 'Become a resident', rel: 'civic/learn.html', title: 'Civic learning', blurb: 'Find your way around your civic home.' },
-    { act: 'Become a resident', rel: 'civic/advocate-registration.html', title: 'Register as an advocate', blurb: 'Sign up to argue cases for others.' },
-
-    { act: 'Speak & gather', rel: 'social/social-home.html', title: 'The public square', blurb: 'A feed, the halls, and your jurisdiction’s community standards.' },
+    { act: 'Speak & gather', rel: 'social/social-home.html', title: 'The public square', blurb: 'The open feed, and who’s in the halls right now.' },
     { act: 'Speak & gather', rel: 'social/profile.html?who=marcus-chen&tab=office', title: 'Anyone’s profile', blurb: 'The same profile, for a neighbour who holds a seat — one person, any role.' },
-    { act: 'Speak & gather', rel: 'social/rep.html', title: 'My representatives', blurb: 'The several people who hold your seats — open anyone to reach them.' },
-    { act: 'Speak & gather', rel: 'groups/groups-home.html', title: 'Messages & parties', blurb: 'Direct messages and temporary parties — talk, files, voice, video.' },
-    { act: 'Speak & gather', rel: 'groups/group-detail.html', title: 'A conversation', blurb: 'A party thread with the shared toolkit.' },
-    { act: 'Speak & gather', rel: 'groups/group-create.html', title: 'New message or party', blurb: 'Start a DM or a temporary party.' },
-    { act: 'Speak & gather', rel: 'civic/petitions.html', title: 'Petitions', blurb: 'Gather signatures toward a referendum.' },
+    { act: 'Speak & gather', rel: 'groups/groups-home.html', title: 'Messages', blurb: 'Direct and group messages — talk, files, voice, video.' },
+    { act: 'Speak & gather', rel: 'groups/group-detail.html', title: 'A conversation', blurb: 'A group message with the shared toolkit.' },
+    { act: 'Speak & gather', rel: 'groups/group-create.html', title: 'New message', blurb: 'Start a direct or group message.' },
+    { act: 'Speak & gather', rel: 'civic/petitions.html', title: 'Petitions', blurb: 'Gather signatures to put a question to everyone.' },
     { act: 'Speak & gather', rel: 'civic/petition-detail.html', title: 'A petition', blurb: 'One petition — its progress and signatures.' },
 
     { act: 'An election', rel: 'journeys/journey.html?id=election', title: 'An election, end to end', blurb: 'The flagship journey — now, your part, next.' },
-    { act: 'An election', rel: 'electoral/candidacy-registration.html', title: 'Stand for office', blurb: 'Add yourself to the race — nothing required beyond residency.' },
-    { act: 'An election', rel: 'electoral/candidate-profile.html', title: 'A candidate', blurb: 'Who they are, who endorses them.' },
+    { act: 'An election', rel: 'electoral/candidacy-registration.html', title: 'Stand for office', blurb: 'If you live there, you can run — that’s the whole requirement.' },
+    { act: 'An election', rel: 'social/profile.html?who=diego-ramos&tab=candidacy', title: 'A candidate', blurb: 'Who they are, who endorses them — a tab on their one profile.' },
     { act: 'An election', rel: 'electoral/election-detail.html', title: 'An election', blurb: 'The race, its phase, and the clock.' },
     { act: 'An election', rel: 'shared/live-room.html?variant=forum', title: 'The candidate forum', blurb: 'Candidates take the floor in turn — a Live Civic Room.' },
-    { act: 'An election', rel: 'electoral/open-ballot.html', title: 'Open ballot', blurb: 'The approval phase — endorse who you support.' },
-    { act: 'An election', rel: 'electoral/ranked-ballot.html', title: 'Ranked ballot', blurb: 'The ranking window — STV with the Droop quota.' },
-    { act: 'An election', rel: 'electoral/results.html', title: 'Results', blurb: 'The count, round by round.' },
-    { act: 'An election', rel: 'electoral/vacancy-countback.html', title: 'Vacancy countback', blurb: 'A seat falls vacant — fill it from the same ballots.' },
+    { act: 'An election', rel: 'electoral/open-ballot.html', title: 'Open ballot', blurb: 'The approval phase — quietly approve the people you’d want on the ballot.' },
+    { act: 'An election', rel: 'electoral/ranked-ballot.html', title: 'Ranked ballot', blurb: 'Rank your choices — seats go out in fair shares, and no vote is wasted.' },
+    { act: 'An election', rel: 'electoral/results.html', title: 'Results', blurb: 'The count, round by round — watch votes move until every seat is filled.' },
+    { act: 'An election', rel: 'electoral/vacancy-countback.html', title: 'Filling an empty seat', blurb: 'A seat falls vacant — the same ballots decide, no new election needed (a countback).' },
     { act: 'An election', rel: 'electoral/election-board-console.html', title: 'The election board', blurb: 'The neutral officers who run the vote.' },
 
     { act: 'Lawmaking', rel: 'journeys/journey.html?id=bill', title: 'A bill becomes law', blurb: 'A reading, a committee, the floor vote, the versioned law.' },
     { act: 'Lawmaking', rel: 'legislature/legislature-home.html', title: 'The chamber', blurb: 'The seated legislature for your jurisdiction.' },
-    { act: 'Lawmaking', rel: 'shared/live-room.html?variant=legislative', title: 'The legislative session', blurb: 'The chamber in the round — seats by tenure, votes coming in live.' },
-    { act: 'Lawmaking', rel: 'legislature/session-console.html', title: 'Session console', blurb: 'The speaker runs the agenda and the floor.' },
+    { act: 'Lawmaking', rel: 'shared/live-room.html?variant=legislative', title: 'The legislative session', blurb: 'The chamber in the round — votes landing live.' },
+    { act: 'Lawmaking', rel: 'legislature/session-console.html', title: 'Run a session', blurb: 'The Speaker’s console — open, run, and adjourn a session.' },
     { act: 'Lawmaking', rel: 'legislature/bills.html', title: 'Bills', blurb: 'Everything moving through the chamber.' },
-    { act: 'Lawmaking', rel: 'shared/bill.html', title: 'A bill', blurb: 'Open a bill — its progress, comments, and redline negotiation.' },
-    { act: 'Lawmaking', rel: 'legislature/bill-detail.html', title: 'A bill — the record', blurb: 'The full bill record and its versions.' },
+    { act: 'Lawmaking', rel: 'shared/bill.html', title: 'A bill — the conversation', blurb: 'Follow a bill, comment on it, and watch the redlines land.' },
+    { act: 'Lawmaking', rel: 'legislature/bill-detail.html', title: 'A bill — the record', blurb: 'The formal record — lifecycle and the vote math.' },
     { act: 'Lawmaking', rel: 'legislature/committees.html', title: 'Committees', blurb: 'Where bills are shaped before the floor.' },
-    { act: 'Lawmaking', rel: 'legislature/committee-detail.html', title: 'A committee', blurb: 'Members, agenda, and referred bills.' },
+    { act: 'Lawmaking', rel: 'legislature/committee-detail.html', title: 'A committee', blurb: 'Members, reports, and referred bills — the standing record.' },
     { act: 'Lawmaking', rel: 'shared/live-room.html?variant=committee', title: 'A committee hearing', blurb: 'Testimony to the record; a committee vote.' },
     { act: 'Lawmaking', rel: 'legislature/referendums.html', title: 'Referendums', blurb: 'Questions put to the whole jurisdiction.' },
     { act: 'Lawmaking', rel: 'shared/live-room.html?variant=townhall', title: 'A referendum town hall', blurb: 'Residents deliberate before the vote.' },
     { act: 'Lawmaking', rel: 'legislature/emergency-powers.html', title: 'Emergency powers', blurb: 'Bounded, clock-limited, and reviewed.' },
-    { act: 'Lawmaking', rel: 'legislature/oversight.html', title: 'Oversight', blurb: 'The legislature watching the executive.' },
-    { act: 'Lawmaking', rel: 'legislature/speaker-tools.html', title: 'Speaker tools', blurb: 'The chair’s controls for running the chamber.' },
-    { act: 'Lawmaking', rel: 'legislature/settings.html', title: 'Legislature settings', blurb: 'The amendable rules for this chamber.' },
+    { act: 'Lawmaking', rel: 'legislature/oversight.html', title: 'Ethics & removals', blurb: 'Complaints, removal votes, and vacant seats.' },
+    { act: 'Lawmaking', rel: 'legislature/speaker-tools.html', title: 'The Speaker', blurb: 'The neutral chair — ties, priorities, and presiding over removals.' },
+    { act: 'Lawmaking', rel: 'legislature/settings.html', title: 'The chamber’s rules', blurb: 'The rules this chamber can change — each inside limits no law can override.' },
 
-    { act: 'The executive', rel: 'executive/executive-home.html', title: 'The executive', blurb: 'Committee or individual — delegated, then directly elected.' },
+    { act: 'The executive', rel: 'executive/executive-home.html', title: 'The executive', blurb: 'The government’s doing arm — it carries out the laws and runs the departments.' },
     { act: 'The executive', rel: 'shared/live-room.html?variant=exec', title: 'The executive committee', blurb: 'Equal seats around the table, deliberating.' },
     { act: 'The executive', rel: 'executive/departments.html', title: 'Departments', blurb: 'The standing machinery the executive runs.' },
     { act: 'The executive', rel: 'executive/department-detail.html', title: 'A department', blurb: 'Its board of governors and its work.' },
@@ -208,80 +223,109 @@
     { act: 'The judiciary', rel: 'judiciary/juror-view.html', title: 'A juror’s view', blurb: 'Serving on a jury.' },
 
     { act: 'Organizations', rel: 'journeys/journey.html?id=start-org', title: 'Found an organization', blurb: 'Register a party, business, nonprofit, or common-good corp.' },
-    { act: 'Organizations', rel: 'organizations/org-registry.html', title: 'The org registry', blurb: 'Every registered organization.' },
-    { act: 'Organizations', rel: 'social/org-profile.html', title: 'An organization', blurb: 'Charter, listings, a job board, admin controls, the board.' },
-    { act: 'Organizations', rel: 'organizations/org-detail.html', title: 'Org detail', blurb: 'The full operational record of an org.' },
-    { act: 'Organizations', rel: 'organizations/co-determination.html', title: 'Co-determination', blurb: 'Worker seats from 100 employees; parity at 2,000.' },
+    { act: 'Organizations', rel: 'organizations/org-registry.html', title: 'The org registry', blurb: 'Every registered organization, in one open list.' },
+    { act: 'Organizations', rel: 'social/org-profile.html', title: 'An organization', blurb: 'One page — its people, board, listings, jobs, and record.' },
+    { act: 'Organizations', rel: 'organizations/co-determination.html', title: 'Worker seats on the board', blurb: 'From 100 employees, workers hold board seats; at 2,000 they hold half.' },
     { act: 'Organizations', rel: 'organizations/board-elections.html', title: 'Board elections', blurb: 'Workers and owners elect the board.' },
-    { act: 'Organizations', rel: 'shared/live-room.html?variant=board', title: 'A board meeting', blurb: 'Worker and owner seats; co-determination in the room.' },
-    { act: 'Organizations', rel: 'organizations/cgc-detail.html', title: 'A common-good corp', blurb: 'Its IP is perpetually public domain.' },
-    { act: 'Organizations', rel: 'organizations/transfers-conversions.html', title: 'Transfers & conversions', blurb: 'Ownership moves and structure changes.' },
+    { act: 'Organizations', rel: 'shared/live-room.html?variant=board', title: 'A board meeting', blurb: 'Worker and owner seats, in the same room.' },
+    { act: 'Organizations', rel: 'organizations/cgc-detail.html', title: 'A common-good corporation', blurb: 'Everything it makes is public domain, forever.' },
+    { act: 'Organizations', rel: 'organizations/transfers-conversions.html', title: 'Ownership changes', blurb: 'Sold, taken public, restructured, or wound down.' },
 
-    { act: 'The economy', rel: 'economy/economy-home.html', title: 'The economy', blurb: 'The hub — the Open Market, the live tape, and the economic clock.' },
-    { act: 'The economy', rel: 'economy/exchange.html', title: 'The exchange floor', blurb: 'A live ticker, an order book, and trades printing in real time.' },
-    { act: 'The economy', rel: 'economy/marketplace.html', title: 'The marketplace', blurb: 'Offers for the specific goods people have.' },
-    { act: 'The economy', rel: 'economy/listing-detail.html', title: 'A listing', blurb: 'One marketplace offer in full.' },
-    { act: 'The economy', rel: 'economy/requests.html', title: 'The request board', blurb: 'The labor board and mutual-aid asks.' },
+    { act: 'The economy', rel: 'economy/economy-home.html', title: 'The economy', blurb: 'The hub — the open market, the live tape, and the economic clock.' },
+    { act: 'The economy', rel: 'economy/exchange.html', title: 'The exchange floor', blurb: 'Organization shares trade on a live order book.' },
+    { act: 'The economy', rel: 'economy/marketplace.html', title: 'The open market', blurb: 'Offers and requests, side by side — goods, work, and mutual aid.' },
+    { act: 'The economy', rel: 'economy/listing-detail.html', title: 'A listing', blurb: 'One offer in full.' },
     { act: 'The economy', rel: 'economy/request-detail.html', title: 'A request', blurb: 'One ask, and how it’s met.' },
-    { act: 'The economy', rel: 'economy/agreements.html', title: 'Instruments of agreement', blurb: 'Contracts with a Supremacy-of-Rights floor.' },
+    { act: 'The economy', rel: 'economy/agreements.html', title: 'Agreements', blurb: 'Contracts that can never override anyone’s rights.' },
     { act: 'The economy', rel: 'economy/agreement-detail.html', title: 'An agreement', blurb: 'Draft, redline, and sign — the negotiation interface.' },
-    { act: 'The economy', rel: 'economy/wallet.html', title: 'My wallet', blurb: 'A private balance with transfers — never federated, like a ballot.' },
+    { act: 'The economy', rel: 'economy/wallet.html', title: 'My wallet', blurb: 'A private balance with transfers — like a ballot, only you can read it.' },
     { act: 'The economy', rel: 'economy/joint-ledgers.html', title: 'Joint ledgers', blurb: 'Co-owned accounts that move only by agreement.' },
-    { act: 'The economy', rel: 'economy/units.html', title: 'Units & monetary policy', blurb: 'The unit, its subdivisions, and the dual-door levers.' },
-    { act: 'The economy', rel: 'economy/stipend.html', title: 'The civic stipend', blurb: 'A residency floor plus tunable per-role pay.' },
+    { act: 'The economy', rel: 'economy/units.html', title: 'Units & money', blurb: 'The currency, its subdivisions, and the levers both chambers must pull.' },
+    { act: 'The economy', rel: 'economy/stipend.html', title: 'The civic stipend', blurb: 'A floor everyone shares, plus a small bump for people doing civic work.' },
     { act: 'The economy', rel: 'economy/treasury.html', title: 'Public finance', blurb: 'Revenue, budget, disbursement, and the public ledger.' },
-    { act: 'The economy', rel: 'economy/org-settings.html', title: 'Org economics', blurb: 'Shares, dues, and the co-determined package.' },
+    { act: 'The economy', rel: 'economy/org-settings.html', title: 'Org economics', blurb: 'Shares, dues, and the organization’s books.' },
 
-    { act: 'Recognition & reach', rel: 'social/achievements.html', title: 'Achievements', blurb: 'A decorative catalog — fenced: no vote, no seat, no advantage.' },
-    { act: 'Recognition & reach', rel: 'social/legitimacy.html', title: 'Reach & legitimacy', blurb: 'A jurisdiction’s reach as a percent of population — display only.' },
+    { act: 'Recognition & reach', rel: 'social/achievements.html', title: 'Achievements', blurb: 'The record of what you’ve done, on your profile — never a vote, a seat, or an advantage.' },
+    { act: 'Recognition & reach', rel: 'social/legitimacy.html', title: 'Reach', blurb: 'How many of a place’s people are actually here — a gauge, never a lever.' },
 
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/jurisdiction-browser.html', title: 'The jurisdiction view', blurb: 'Every place, its data, and its reach — the data home.' },
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/district-mapper.html', title: 'The district mapper', blurb: 'Draw and seat a legislature’s districts.' },
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/federation.html', title: 'Federation', blurb: 'Discover peers and Full Faith & Credit sync.' },
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/union-formation.html', title: 'Union formation', blurb: 'Jurisdictions joining into a larger one.' },
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/restoration.html', title: 'Restoration', blurb: 'Bringing a dormant jurisdiction back.' },
-    { act: 'Jurisdictions & federation', rel: 'jurisdictions/disintermediation.html', title: 'Disintermediation', blurb: 'A jurisdiction leaving a union.' },
+    { act: 'Places & their processes', rel: 'jurisdictions/jurisdiction-browser.html', title: 'Every place on Earth', blurb: 'Planet to neighborhood — boundaries, people, and who represents them.' },
+    { act: 'Places & their processes', rel: 'jurisdictions/district-mapper.html', title: 'The district mapper', blurb: 'How a legislature’s seats map onto real ground.' },
+    { act: 'Places & their processes', rel: 'jurisdictions/bootstrap.html', title: 'Wake a place up', blurb: 'A place reaches critical mass and elects its first government (bootstrap).' },
+    { act: 'Places & their processes', rel: 'jurisdictions/union-formation.html', title: 'Merge places into a union', blurb: 'Check the differences, agree one rulebook, then everyone votes.' },
+    { act: 'Places & their processes', rel: 'jurisdictions/disintermediation.html', title: 'Remove a middle layer', blurb: 'A layer of government dissolves — its places answer directly to the level above (disintermediation).' },
+    { act: 'Places & their processes', rel: 'jurisdictions/restoration.html', title: 'Rebuild a lost government', blurb: 'When a government is captured or destroyed, elections rebuild it — the three-tier cascade (restoration).' },
+    { act: 'Places & their processes', rel: 'jurisdictions/federation.html', title: 'Between governments', blurb: 'Neighboring places settle a shared border — deliberation, referendum, done.' },
 
-    { act: 'Run a node', rel: 'operator/operator-home.html', title: 'The operator plane', blurb: 'The infrastructure, off the constitutional plane.' },
+    { act: 'Run a node', rel: 'operator/operator-home.html', title: 'The operator plane', blurb: 'The volunteer servers the world runs on — keeping it online buys no vote and no seat.' },
+    { act: 'Run a node', rel: 'system/setup.html', title: 'Found an instance', blurb: 'From first boot to a seated constitution — start a world, or join one.' },
     { act: 'Run a node', rel: 'operator/setup.html', title: 'Set up your node', blurb: 'The technical node setup — DNS, certs, mesh keys.' },
     { act: 'Run a node', rel: 'operator/console.html', title: 'The operator console', blurb: 'Your roles at a glance; everything advanced behind a toggle.' },
     { act: 'Run a node', rel: 'operator/roles.html', title: 'Roles & channels', blurb: 'The trust channels a node can adopt.' },
-    { act: 'Run a node', rel: 'operator/mesh.html', title: 'Mesh & federation', blurb: 'Join a cluster, your peers, and the sync meters.' },
+    { act: 'Run a node', rel: 'operator/mesh.html', title: 'Mesh & peers', blurb: 'Join the mesh, sync the record, and become a full peer.' },
     { act: 'Run a node', rel: 'operator/dns.html', title: 'DNS & certificates', blurb: 'Names and certs for your node.' },
-    { act: 'Run a node', rel: 'operator/identity.html', title: 'Identity', blurb: 'The identity bridge between players and the mesh.' },
-    { act: 'Run a node', rel: 'operator/moderation.html', title: 'Moderation & legal', blurb: 'The reactive, content-neutral legal plane.' },
+    { act: 'Run a node', rel: 'operator/identity.html', title: 'Identity', blurb: 'How players stay themselves on any node.' },
+    { act: 'Run a node', rel: 'operator/moderation.html', title: 'Moderation & legal', blurb: 'The reactive, content-neutral legal duties of a node.' },
     { act: 'Run a node', rel: 'operator/versioning.html', title: 'Versions & upgrades', blurb: 'Constitutional version and peer-upgrade agreement.' },
 
     { act: 'Learn & get help', rel: 'learn/learn-home.html', title: 'Learn', blurb: 'Short lessons — video, procedure, a check.' },
     { act: 'Learn & get help', rel: 'learn/lesson.html?id=cast-your-ballot', title: 'A lesson', blurb: 'Video + the standard procedure + a knowledge check.' },
-    { act: 'Learn & get help', rel: 'learn/guides.html', title: 'Guides & procedures', blurb: 'Every workflow’s standard operating procedure, searchable.' },
-    { act: 'Learn & get help', rel: 'shared/video-player.html', title: 'The video library', blurb: 'One silent master, narration and captions in many languages.' },
-    { act: 'Learn & get help', rel: 'translation/translation-home.html', title: 'Translation status', blurb: 'Languages × modalities, AI first round, community-verified.' },
-    { act: 'Learn & get help', rel: 'translation/language.html?code=es', title: 'A language', blurb: 'One language’s coverage, modality by modality.' },
-    { act: 'Learn & get help', rel: 'support/support-home.html', title: 'Help & support', blurb: 'Where to get help and what’s on file.' },
-    { act: 'Learn & get help', rel: 'support/report.html', title: 'Report an issue', blurb: 'It routes itself — to operators, translators, or moderation.' },
+    { act: 'Learn & get help', rel: 'learn/guides.html', title: 'Guides & procedures', blurb: 'Every process, step by step, searchable.' },
+    { act: 'Learn & get help', rel: 'shared/video-player.html', title: 'The video library', blurb: 'Every guide video, narrated and captioned in many languages.' },
+    { act: 'Learn & get help', rel: 'translation/translation-home.html', title: 'Help translate', blurb: 'Getting the world into every language its people speak.' },
+    { act: 'Learn & get help', rel: 'translation/language.html?code=es', title: 'A language', blurb: 'One language’s coverage, piece by piece.' },
+    { act: 'Learn & get help', rel: 'support/report.html', title: 'Report an issue', blurb: 'It routes itself — to operators, translators, or the moderation & legal team.' },
     { act: 'Learn & get help', rel: 'support/tickets.html', title: 'Tickets', blurb: 'Everything reported, and where it stands.' },
     { act: 'Learn & get help', rel: 'support/ticket.html', title: 'A ticket', blurb: 'One issue, its thread, and its status.' },
+    { act: 'Learn & get help', rel: 'shared/constitutional-questions.html', title: 'Open constitutional questions', blurb: 'The “why” debates this design surfaced — kept in the open.' },
 
-    { act: 'Records & the clock', rel: 'system/public-records.html', title: 'Public records', blurb: 'The append-only, hash-chained public ledger.' },
+    { act: 'Records & the clock', rel: 'system/public-records.html', title: 'Public records', blurb: 'The permanent public record — nothing in it can be quietly changed.' },
     { act: 'Records & the clock', rel: 'system/audit-chain.html', title: 'The audit chain', blurb: 'How every act is sealed and verifiable.' },
-    { act: 'Records & the clock', rel: 'system/amendments.html', title: 'Amendments', blurb: 'Changing the amendable settings within bounds.' },
-    { act: 'Records & the clock', rel: 'system/term-sync.html', title: 'Term sync', blurb: 'Keeping civil and judicial terms in lockstep.' },
-    { act: 'Records & the clock', rel: 'shared/clocks.html', title: 'The clocks', blurb: 'The scheduled jobs that drive the world.' },
+    { act: 'Records & the clock', rel: 'system/amendments.html', title: 'Amendments', blurb: 'Changing the changeable rules, within limits nothing can override.' },
+    { act: 'Records & the clock', rel: 'system/term-sync.html', title: 'Terms end together', blurb: 'Every elected term ends on the same day; the next election is scheduled the moment the last one certifies.' },
+    { act: 'Records & the clock', rel: 'shared/clocks.html', title: 'The clocks', blurb: 'The scheduled sweeps that drive the world.' },
 
-    { act: 'Design contract', rel: 'shared/coverage.html', title: 'Coverage', blurb: 'What’s mocked, and the contract behind it.' },
-    { act: 'Design contract', rel: 'shared/styleguide.html', title: 'Style guide', blurb: 'The design system — tokens, type, components.' },
-    { act: 'Design contract', rel: 'shared/accessibility.html', title: 'Accessibility', blurb: 'The accessibility commitments.' },
-    { act: 'Design contract', rel: 'shared/constitutional-questions.html', title: 'Constitutional questions', blurb: 'Open questions the mockups surface.' }
+    { act: 'For the build team', rel: 'shared/coverage.html', title: 'Coverage', blurb: 'What’s mocked, and the contract behind it.' },
+    { act: 'For the build team', rel: 'shared/coverage-ops.html', title: 'Coverage — the ops matrix', blurb: 'Roles × processes × forms — the definition-of-done instrument.' },
+    { act: 'For the build team', rel: 'shared/styleguide.html', title: 'Style guide', blurb: 'The design system — tokens, type, components.' },
+    { act: 'For the build team', rel: 'shared/accessibility.html', title: 'Accessibility', blurb: 'The accessibility commitments.' }
   ];
 
+  /* The tour is a MODE, not a set of pages. Entering any ?step=N turns it on
+     (sessionStorage); from then on the follow-along bar rides along on EVERY
+     page: if the page you navigated to is itself a tour stop, your position
+     moves to that stop's number; if it isn't, you keep your place. Exit ends
+     the mode. */
+  var TOUR_KEY = 'cga:tour-step';
+  function stopMatchesLocation(stop) {
+    var parts = stop.rel.split('?'), path = parts[0];
+    if (location.pathname.slice(-path.length - 1) !== '/' + path) return false;
+    var want = new URLSearchParams(parts[1] || ''), have = new URLSearchParams(location.search);
+    var ok = true;
+    want.forEach(function (v, k) { if (have.get(k) !== v) ok = false; });
+    return ok;
+  }
   function currentTourIndex() {
     try {
       var s = new URLSearchParams(location.search).get('step');
-      if (!s) return -1;
-      var i = parseInt(s, 10) - 1;
-      return (i >= 0 && i < TOUR.length) ? i : -1;
+      if (s) {
+        var i = parseInt(s, 10) - 1;
+        if (i >= 0 && i < TOUR.length) { sessionStorage.setItem(TOUR_KEY, String(i + 1)); return i; }
+        return -1;
+      }
+      var stored = parseInt(sessionStorage.getItem(TOUR_KEY) || '', 10);
+      if (!(stored >= 1 && stored <= TOUR.length)) return -1;
+      /* wandered onto another screen: if it's a stop, the tour follows you there */
+      for (var k = 0; k < TOUR.length; k++) {
+        if (stopMatchesLocation(TOUR[k])) { sessionStorage.setItem(TOUR_KEY, String(k + 1)); return k; }
+      }
+      return stored - 1; /* not a stop — keep your place */
     } catch (e) { return -1; }
+  }
+  function exitTour() {
+    try { sessionStorage.removeItem(TOUR_KEY); } catch (e) { /* no-op */ }
+    try {
+      var u = new URL(location.href); u.searchParams.delete('step'); location.href = u.href;
+    } catch (e) { location.reload(); }
   }
   function tourHref(i) {
     var abs = CGA.state.link(ROOT_V2 + TOUR[i].rel);
@@ -303,7 +347,8 @@
       '<strong class="tour-title">' + esc(stop.title) + '</strong>' +
       '<span class="tour-blurb">' + esc(stop.blurb) + '</span></div>' +
       '<div class="tour-bar-nav">' + back + next +
-      '<a class="tour-exit" href="' + hrefV2('tour.html') + '">All steps</a></div>' +
+      '<a class="tour-exit" href="' + hrefV2('tour.html') + '">All steps</a>' +
+      '<a class="tour-exit" href="#" data-tour-exit>Exit</a></div>' +
       '<div class="tour-prog" aria-hidden="true"><i style="inline-size:' + pct + '%"></i></div></div>';
   }
 
@@ -318,8 +363,14 @@
     economy: { video: 'v-market', about: 'How the economy works — trading, agreements, and money, in plain terms.' },
     social: { video: 'v-square', about: 'How the social layer works — the square, groups, and reaching people.' },
     groups: { video: 'v-square', about: 'Groups — talking, meeting, and gathering with other people.' },
-    operator: { video: 'v-node', about: 'Running a node — the infrastructure the game runs on.' },
-    system: { video: 'v-node', about: 'Founding and setting up an instance.' },
+    electoral: { video: 'v-welcome', about: 'How elections work here — anyone who lives in a place can vote and stand for office. Approvals pick the ballot; ranking fills the seats in fair shares, so no vote is wasted.' },
+    legislature: { video: 'v-floor', about: 'How lawmaking works — bills are shaped in committee, debated on the floor, and every vote is counted against all serving seats, so absence never shrinks the bar.' },
+    executive: { video: 'v-welcome', about: 'The executive is the doing arm — it carries out the laws and runs the departments, and it answers to the legislature that created it.' },
+    judiciary: { video: 'v-welcome', about: 'How the courts work — panels of judges, advocates open to anyone, juries of residents, and rulings on the public record.' },
+    organizations: { video: 'v-welcome', about: 'Organizations — parties, businesses, nonprofits, and common-good corporations share one open registry. Anyone, person or organization, can endorse any candidate.' },
+    jurisdictions: { video: 'v-welcome', about: 'Places — every jurisdiction from a neighborhood to the planet: how they wake up, merge, split, and govern themselves.' },
+    operator: { video: 'v-node', about: 'Running a node — the volunteer servers the world runs on. Keeping it online buys no vote and no seat.' },
+    system: { video: 'v-node', about: 'The permanent public record, the clocks that drive the world, and how an instance is founded.' },
     learn: { video: 'v-welcome', about: 'Learning your way around World of Statecraft.' },
     translation: { video: 'v-translate', about: 'How the interface gets into your language — and how to help.' },
     support: { video: 'v-welcome', about: 'Getting help and reporting anything that’s wrong.' }
@@ -330,7 +381,7 @@
     'economy/exchange': { video: 'v-market', about: 'How the exchange works — the order book and the live tape.' },
     'economy/stipend': { video: 'v-units', about: 'How the civic stipend works — a floor everyone shares plus a small role bump.' },
     'social/legitimacy': { video: 'v-welcome', about: 'What reach means — a transparency gauge, never a lever on anyone’s rights.' },
-    'journeys/journey': { video: 'v-welcome', about: 'How this journey works — watch from the gallery, or take part where you live.' }
+    'journeys/journey': { video: 'v-welcome', about: 'Learn by doing — each journey walks you through one real process, step by step. Finishing one earns an achievement on your profile.' }
   };
   function learnFor() {
     return LEARN_BY_ID[PAGE.id] || LEARN_BY_MODULE[PAGE.module] || { video: 'v-welcome', about: 'A quick guide to this screen.' };
@@ -361,7 +412,13 @@
   function screenContextHtml() {
     var F = CGA.fixtures.flows;
     if (!F || !F.byScreen) return '';
-    var rows = F.byScreen[PAGE.id] || [];
+    /* pages folded into another page inherit its flow context (the flows data
+       is frozen — its generator inputs, the 80 flow pages, are gone) */
+    var ABSORBED = { 'social/profile': ['electoral/candidate-profile'] };
+    var rows = (F.byScreen[PAGE.id] || []).slice();
+    (ABSORBED[PAGE.id] || []).forEach(function (old) {
+      (F.byScreen[old] || []).forEach(function (r) { rows.push(r); });
+    });
     if (!rows.length) return '';
     var CAP = 6, shown = rows.slice(0, CAP), more = rows.length - shown.length;
     var cards = shown.map(function (r) {
@@ -432,124 +489,110 @@
       html += '<a class="sidebar-link" href="' + hrefV1(rel) + '">' + icon(iconName, { size: 'sm' }) + esc(label) + '</a>';
     }
 
-    /* one unified nav — every area, game and operations, no version split */
-    section('Start here');
-    linkV2('launchpad', 'Launchpad', 'globe', 'index.html');
+    /* -------- TIER 1 · the player tier — where you actually go ---------- */
+    section('Go');
+    linkV2('today', 'Home', 'home', 'civic/today.html');
     linkV2('atlas', 'The Atlas', 'globe', 'atlas.html');
-    linkV2('tour', 'Guided tour', 'map', 'tour.html');
-    linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
-    linkV2('today', 'Today', 'home', 'civic/today.html');
+    linkV2('social-home', 'The square', 'users', 'social/social-home.html');
+    linkV2('groups', 'Messages', 'message-square', 'groups/groups-home.html');
+    linkV2('live-room', 'Live rooms', 'landmark', 'shared/live-room.html?variant=group');
+    linkV2('jurisdiction-browser', 'Places', 'map', 'jurisdictions/jurisdiction-browser.html');
+    linkV2('economy-home', 'Market', 'bar-chart', 'economy/economy-home.html');
     linkV2('my-civic-life', 'My profile', 'user', 'civic/my-civic-life.html');
+    linkV2('journeys', 'Journeys', 'list-checks', 'index.html#journeys-h');
+    linkV2('learn-home', 'Learn & help', 'graduation-cap', 'learn/learn-home.html');
+    linkV2('tour', 'Guided tour', 'map', 'tour.html');
     endSection();
 
-    section('Identity & residency');
-    linkV2('civic-home', 'Civic home', 'home', 'civic/civic-home.html');
-    linkV2('onboarding', 'Create your account', 'user', 'civic/onboarding.html');
-    linkV2('identity-verification', 'Verify your identity', 'lock', 'civic/identity-verification.html');
-    linkV2('residency', 'Residency', 'map-pin', 'civic/residency.html');
-    linkV2('relocation', 'Relocate', 'map', 'civic/relocation.html');
-    linkV2('advocate-registration', 'Register as an advocate', 'briefcase', 'civic/advocate-registration.html');
+    /* -------- TIER 2 · every screen — the full design-contract sitemap -- */
+    html += '<details class="sidebar-more"><summary class="sidebar-title eyebrow">All screens — the full map ' +
+      icon('chevron-down', { size: 'sm' }) + '</summary>';
+
+    section('Rooms & the square');
+    ROOM_VARIANTS.forEach(function (v) {
+      var id = 'room-' + v.id;
+      var current = PAGE.nav === id;
+      html += '<a class="sidebar-link" href="' + hrefV2('shared/live-room.html?variant=' + v.id) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(v.icon, { size: 'sm' }) + esc(v.label) + '</a>';
+    });
     linkV2('petitions', 'Petitions', 'file-text', 'civic/petitions.html');
     endSection();
 
-    section('Elections');
+    section('Me & my account');
+    linkV2('join', 'You’re invited (arrival)', 'user', 'civic/join.html');
+    linkV2('onboarding', 'Create your account', 'user', 'civic/onboarding.html');
+    linkV2('residency', 'Say where you live', 'map-pin', 'civic/residency.html');
+    linkV2('identity-verification', 'Link an ID (optional)', 'lock', 'civic/identity-verification.html');
+    linkV2('relocation', 'Move somewhere new', 'map', 'civic/relocation.html');
+    linkV2('advocate-registration', 'Become an advocate', 'briefcase', 'civic/advocate-registration.html');
+    linkV2('achievements', 'Achievements', 'award', 'social/achievements.html');
+    endSection();
+
+    section('A place’s elections');
+    linkV2('candidacy', 'Stand for office', 'user', 'electoral/candidacy-registration.html');
+    linkV2('election-detail', 'An election', 'clock', 'electoral/election-detail.html');
     linkV2('open-ballot', 'Open ballot', 'vote', 'electoral/open-ballot.html');
     linkV2('ranked-ballot', 'Ranked ballot', 'check', 'electoral/ranked-ballot.html');
-    linkV2('candidacy', 'Stand for office', 'user', 'electoral/candidacy-registration.html');
-    linkV2('candidate-profile', 'A candidate', 'user', 'electoral/candidate-profile.html');
-    linkV2('election-detail', 'An election', 'clock', 'electoral/election-detail.html');
     linkV2('results', 'Results', 'bar-chart', 'electoral/results.html');
-    linkV2('vacancy-countback', 'Vacancy countback', 'refresh-cw', 'electoral/vacancy-countback.html');
-    linkV2('election-board-console', 'Election board', 'shield', 'electoral/election-board-console.html');
+    linkV2('vacancy-countback', 'Filling an empty seat', 'refresh-cw', 'electoral/vacancy-countback.html');
+    linkV2('election-board-console', 'The election board', 'shield', 'electoral/election-board-console.html');
     endSection();
 
-    section('The Live Civic Room');
-    ROOM_VARIANTS.forEach(function (v) {
-      var id = 'room-' + v[0];
-      var current = PAGE.nav === id;
-      html += '<a class="sidebar-link" href="' + hrefV2('shared/live-room.html?variant=' + v[0]) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(v[2], { size: 'sm' }) + esc(v[1]) + '</a>';
-    });
-    endSection();
-
-    section('Lawmaking · the legislature');
+    section('A place’s chamber');
     linkV2('legislature-home', 'The chamber', 'landmark', 'legislature/legislature-home.html');
-    linkV2('session-console', 'Session console', 'users', 'legislature/session-console.html');
     linkV2('bills', 'Bills', 'file-text', 'legislature/bills.html');
     linkV2('committees', 'Committees', 'users', 'legislature/committees.html');
     linkV2('referendums', 'Referendums', 'vote', 'legislature/referendums.html');
     linkV2('emergency-powers', 'Emergency powers', 'alert-triangle', 'legislature/emergency-powers.html');
-    linkV2('oversight', 'Oversight', 'shield', 'legislature/oversight.html');
-    linkV2('speaker-tools', 'Speaker tools', 'landmark', 'legislature/speaker-tools.html');
-    linkV2('leg-settings', 'Legislature settings', 'sliders', 'legislature/settings.html');
+    linkV2('oversight', 'Ethics & removals', 'shield', 'legislature/oversight.html');
+    linkV2('session-console', 'Run a session (Speaker)', 'users', 'legislature/session-console.html');
+    linkV2('speaker-tools', 'The Speaker', 'landmark', 'legislature/speaker-tools.html');
+    linkV2('leg-settings', 'The chamber’s rules', 'sliders', 'legislature/settings.html');
     endSection();
 
-    section('The executive');
-    linkV2('executive-home', 'Executive home', 'briefcase', 'executive/executive-home.html');
+    section('A place’s executive');
+    linkV2('executive-home', 'The executive', 'briefcase', 'executive/executive-home.html');
     linkV2('departments', 'Departments', 'building', 'executive/departments.html');
     linkV2('executive-actions', 'Executive actions', 'file-text', 'executive/executive-actions.html');
     linkV2('department-reporting', 'Department reporting', 'bar-chart', 'executive/department-reporting.html');
     endSection();
 
-    section('The judiciary');
-    linkV2('judiciary-home', 'Judiciary home', 'scale', 'judiciary/judiciary-home.html');
-    linkV2('case-docket', 'Case docket', 'file-text', 'judiciary/case-docket.html');
-    linkV2('constitutional-challenge', 'Constitutional challenge', 'scale', 'judiciary/constitutional-challenge.html');
-    linkV2('advocate-console', 'Advocate console', 'briefcase', 'judiciary/advocate-console.html');
-    linkV2('juror-view', 'Juror view', 'users', 'judiciary/juror-view.html');
+    section('A place’s courts');
+    linkV2('judiciary-home', 'The courts', 'scale', 'judiciary/judiciary-home.html');
+    linkV2('case-docket', 'The docket', 'file-text', 'judiciary/case-docket.html');
+    linkV2('constitutional-challenge', 'Challenge a law', 'scale', 'judiciary/constitutional-challenge.html');
+    linkV2('advocate-console', 'The advocate console', 'briefcase', 'judiciary/advocate-console.html');
+    linkV2('juror-view', 'A juror’s view', 'users', 'judiciary/juror-view.html');
     endSection();
 
     section('Organizations');
+    linkV2('org-registry', 'The registry', 'building', 'organizations/org-registry.html');
     linkV2('org-profile', 'An organization', 'building', 'social/org-profile.html');
-    linkV2('org-registry', 'Org registry', 'building', 'organizations/org-registry.html');
-    linkV2('org-detail', 'Org detail', 'building', 'organizations/org-detail.html');
-    linkV2('co-determination', 'Co-determination', 'users', 'organizations/co-determination.html');
+    linkV2('co-determination', 'Worker seats on the board', 'users', 'organizations/co-determination.html');
     linkV2('board-elections', 'Board elections', 'vote', 'organizations/board-elections.html');
-    linkV2('cgc-detail', 'Common-good corp', 'building', 'organizations/cgc-detail.html');
-    linkV2('transfers-conversions', 'Transfers & conversions', 'refresh-cw', 'organizations/transfers-conversions.html');
+    linkV2('cgc-detail', 'A common-good corporation', 'building', 'organizations/cgc-detail.html');
+    linkV2('transfers-conversions', 'Ownership changes', 'refresh-cw', 'organizations/transfers-conversions.html');
     endSection();
 
-    section('The economy · Planned');
-    linkV2('economy-home', 'The economy', 'bar-chart', 'economy/economy-home.html');
+    section('Places & their processes');
+    linkV2('district-mapper', 'The district mapper', 'map', 'jurisdictions/district-mapper.html');
+    linkV2('legitimacy', 'Reach', 'bar-chart', 'social/legitimacy.html');
+    linkV2('bootstrap', 'Wake a place up', 'globe', 'jurisdictions/bootstrap.html');
+    linkV2('union-formation', 'Merge places into a union', 'users', 'jurisdictions/union-formation.html');
+    linkV2('disintermediation', 'Remove a middle layer', 'globe', 'jurisdictions/disintermediation.html');
+    linkV2('restoration', 'Rebuild a lost government', 'refresh-cw', 'jurisdictions/restoration.html');
+    linkV2('federation', 'Between governments', 'globe', 'jurisdictions/federation.html');
+    endSection();
+
+    section('Market · planned');
     linkV2('exchange', 'The exchange', 'bar-chart', 'economy/exchange.html');
-    linkV2('marketplace', 'Marketplace', 'building', 'economy/marketplace.html');
-    linkV2('requests', 'Request board', 'users', 'economy/requests.html');
+    linkV2('marketplace', 'The open market', 'building', 'economy/marketplace.html');
     linkV2('agreements', 'Agreements', 'file-text', 'economy/agreements.html');
     linkV2('wallet', 'My wallet', 'lock', 'economy/wallet.html');
     linkV2('joint-ledgers', 'Joint ledgers', 'users', 'economy/joint-ledgers.html');
     linkV2('units', 'Units & money', 'sliders', 'economy/units.html');
-    linkV2('stipend', 'Civic stipend', 'refresh-cw', 'economy/stipend.html');
+    linkV2('stipend', 'The civic stipend', 'refresh-cw', 'economy/stipend.html');
     linkV2('treasury', 'Public finance', 'bar-chart', 'economy/treasury.html');
     linkV2('org-settings', 'Org economics', 'building', 'economy/org-settings.html');
-    endSection();
-
-    section('People & social');
-    linkV2('rep', 'My representatives', 'landmark', 'social/rep.html');
-    linkV2('social-home', 'Social', 'users', 'social/social-home.html');
-    linkV2('groups', 'Messages', 'message-square', 'groups/groups-home.html');
-    linkV2('achievements', 'Achievements', 'award', 'social/achievements.html', 'Proposed');
-    linkV2('legitimacy', 'Reach & legitimacy', 'bar-chart', 'social/legitimacy.html', 'Phase I');
-    endSection();
-
-    section('Jurisdictions & federation');
-    linkV2('jurisdiction-browser', 'Jurisdiction browser', 'globe', 'jurisdictions/jurisdiction-browser.html');
-    linkV2('district-mapper', 'District mapper', 'map', 'jurisdictions/district-mapper.html');
-    linkV2('bootstrap', 'Bootstrap a jurisdiction', 'globe', 'jurisdictions/bootstrap.html');
-    linkV2('federation', 'Federation', 'globe', 'jurisdictions/federation.html');
-    linkV2('union-formation', 'Union formation', 'users', 'jurisdictions/union-formation.html');
-    linkV2('restoration', 'Restoration', 'refresh-cw', 'jurisdictions/restoration.html');
-    linkV2('disintermediation', 'Disintermediation', 'globe', 'jurisdictions/disintermediation.html');
-    endSection();
-
-    section('Run a node · operator plane');
-    linkV2('operator-home', 'Operator home', 'sliders', 'operator/operator-home.html');
-    linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
-    linkV2('operator-console', 'Operator console', 'landmark', 'operator/console.html');
-    linkV2('operator-roles', 'Roles & channels', 'users', 'operator/roles.html');
-    linkV2('operator-mesh', 'Mesh & federation', 'globe', 'operator/mesh.html');
-    linkV2('operator-dns', 'DNS & certificates', 'globe', 'operator/dns.html');
-    linkV2('operator-identity', 'Identity', 'lock', 'operator/identity.html');
-    linkV2('operator-moderation', 'Moderation & legal', 'shield', 'operator/moderation.html');
-    linkV2('operator-versioning', 'Versions & upgrades', 'refresh-cw', 'operator/versioning.html');
     endSection();
 
     section('Journeys');
@@ -558,30 +601,45 @@
     });
     endSection();
 
-    section('Learn & support');
-    linkV2('learn-home', 'Learn', 'graduation-cap', 'learn/learn-home.html');
+    section('Learn & help');
     linkV2('guides', 'Guides & procedures', 'list-checks', 'learn/guides.html');
-    linkV2('video-library', 'Video library', 'play', 'shared/video-player.html');
-    linkV2('translation-home', 'Translation status', 'languages', 'translation/translation-home.html');
-    linkV2('support-home', 'Help & support', 'life-buoy', 'support/support-home.html');
-    linkV2('tickets', 'Tickets', 'ticket', 'support/tickets.html');
+    linkV2('video-library', 'The video library', 'play', 'shared/video-player.html');
+    linkV2('translation-home', 'Help translate', 'languages', 'translation/translation-home.html');
     linkV2('report', 'Report an issue', 'flag', 'support/report.html');
-    endSection();
-
-    section('System & records');
-    linkV2('public-records', 'Public records', 'file-text', 'system/public-records.html');
-    linkV2('audit-chain', 'Audit chain', 'lock', 'system/audit-chain.html');
-    linkV2('amendments', 'Amendments', 'file-text', 'system/amendments.html');
-    linkV2('term-sync', 'Term sync', 'refresh-cw', 'system/term-sync.html');
-    linkV2('clocks', 'Clocks', 'clock', 'shared/clocks.html');
-    endSection();
-
-    section('Design contract');
-    linkV2('coverage', 'Coverage', 'check', 'shared/coverage.html');
-    linkV2('styleguide', 'Style guide', 'sliders', 'shared/styleguide.html');
+    linkV2('tickets', 'Tickets', 'ticket', 'support/tickets.html');
+    linkV2('constitutional-questions', 'Open constitutional questions', 'scale', 'shared/constitutional-questions.html');
     linkV2('accessibility', 'Accessibility', 'shield', 'shared/accessibility.html');
-    linkV2('constitutional-questions', 'Constitutional questions', 'scale', 'shared/constitutional-questions.html');
     endSection();
+
+    section('Records & the clock');
+    linkV2('public-records', 'Public records', 'file-text', 'system/public-records.html');
+    linkV2('audit-chain', 'The audit chain', 'lock', 'system/audit-chain.html');
+    linkV2('amendments', 'Amendments', 'file-text', 'system/amendments.html');
+    linkV2('term-sync', 'Terms end together', 'refresh-cw', 'system/term-sync.html');
+    linkV2('clocks', 'The clocks', 'clock', 'shared/clocks.html');
+    endSection();
+
+    section('Run a node');
+    linkV2('operator-home', 'The operator plane', 'sliders', 'operator/operator-home.html');
+    linkV2('founding', 'Found an instance', 'sliders', 'system/setup.html');
+    linkV2('operator-setup', 'Set up your node', 'sliders', 'operator/setup.html');
+    linkV2('operator-console', 'The console', 'landmark', 'operator/console.html');
+    linkV2('operator-roles', 'Roles & channels', 'users', 'operator/roles.html');
+    linkV2('operator-mesh', 'Mesh & peers', 'globe', 'operator/mesh.html');
+    linkV2('operator-dns', 'DNS & certificates', 'globe', 'operator/dns.html');
+    linkV2('operator-identity', 'Identity', 'lock', 'operator/identity.html');
+    linkV2('operator-moderation', 'Moderation & legal', 'shield', 'operator/moderation.html');
+    linkV2('operator-versioning', 'Versions & upgrades', 'refresh-cw', 'operator/versioning.html');
+    endSection();
+
+    section('For the build team');
+    linkV2('launchpad', 'The launchpad (cover)', 'globe', 'index.html');
+    linkV2('coverage', 'Coverage', 'check', 'shared/coverage.html');
+    linkV2('coverage-ops', 'Coverage — ops matrix', 'check', 'shared/coverage-ops.html');
+    linkV2('styleguide', 'Style guide', 'sliders', 'shared/styleguide.html');
+    endSection();
+
+    html += '</details>';
 
     return html;
   }
@@ -621,9 +679,9 @@
     var locales = CGA.i18n.LOCALES.map(function (l) {
       return '<option value="' + l.code + '"' + (s.locale === l.code ? ' selected' : '') + '>' + esc(l.name) + '</option>';
     }).join('') + (s.locale === 'en-XA' ? '<option value="en-XA" selected>Pseudo (en-XA)</option>' : '');
-    return '<a class="wordmark" href="' + hrefV2('index.html') + '">' +
-      '<img src="' + ROOT_V1 + 'assets/img/social-square-purple.png" alt="" style="border-radius:var(--radius-sm)" /> ' +
-      '<span>World of Statecraft</span> <span class="wordmark-tag">the game layer · v3</span></a>' +
+    return '<a class="wordmark" href="' + hrefV2('civic/today.html') + '">' +
+      '<img src="' + ROOT_V2 + 'assets/img/social-square-purple.png" alt="" style="border-radius:var(--radius-sm)" /> ' +
+      '<span>World of Statecraft</span> <span class="wordmark-tag">v3 mockups</span></a>' +
       renderJurSwitcher() + '<span class="header-spacer"></span>' +
       '<label class="demo-control"><span class="visually-hidden">Language</span>' + icon('languages', { size: 'sm' }) +
       '<select class="select" style="inline-size:auto" data-set-locale>' + locales + '</select></label>' +
@@ -636,9 +694,9 @@
   function renderFooter() {
     var authJur = BY.jurisdictions[W.instance.authoritativeFor];
     var instanceLine = 'Instance: ' + W.instance.host + ' · authoritative for ' + (authJur ? authJur.name : W.instance.authoritativeFor);
-    return '<span class="footer-citation">' + esc(PAGE.citation || 'CGA mockups v2 · the game layer') + '</span>' +
+    return '<span class="footer-citation">' + esc(PAGE.citation || 'World of Statecraft mockups · v3') + '</span>' +
       '<span class="header-spacer"></span>' +
-      '<a href="' + hrefV1('shared/accessibility.html') + '">Accessibility</a>' +
+      '<a href="' + hrefV2('shared/accessibility.html') + '">Accessibility</a>' +
       '<a href="' + hrefV2('support/report.html?ref=' + encodeURIComponent(PAGE.id || PAGE.nav || 'page')) + '">' + icon('flag', { size: 'sm' }) + ' Report an issue</a>' +
       '<span class="footer-instance">' + esc(instanceLine) + '</span>' +
       '<span class="audit-chip">Audit #' + W.instance.auditSeq.toLocaleString('en-US') + ' · chained ' + icon('check', { size: 'sm', label: 'verified' }) + '</span>';
@@ -837,6 +895,7 @@
       var jurBtn = ev.target.closest ? ev.target.closest('[data-set-jur]') : null;
       if (jurBtn) { CGA.state.set({ jurisdiction: jurBtn.getAttribute('data-set-jur') }); return; }
       if (ev.target.closest && ev.target.closest('[data-demo-reset]')) { CGA.state.reset(); return; }
+      if (ev.target.closest && ev.target.closest('[data-tour-exit]')) { ev.preventDefault(); exitTour(); return; }
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
@@ -886,10 +945,10 @@
 
   CGA.shellV2 = {
     ROOT_V1: ROOT_V1, ROOT_V2: ROOT_V2, ROOT: ROOT_V2,
-    icon: icon, esc: esc, plainCodes: plainCodes, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
-    hrefV1: hrefV1, hrefV2: hrefV2, href: hrefV2, isBuiltV2: isBuiltV2, isBuilt: isBuiltV2, plannedFlag: plannedFlag,
+    icon: icon, esc: esc, plainCodes: plainCodes, plainState: plainState, badge: badge, pill: pill, formatPop: formatPop, admLabel: admLabel,
+    hrefV1: hrefV1, hrefV2: hrefV2, href: hrefV2, isBuiltV2: isBuiltV2, isBuilt: isBuiltV2, plannedFlag: plannedFlag, plannedBanner: plannedBanner,
     announce: announce, activePersona: activePersona, jurisdictionChain: jurisdictionChain, t: t,
-    tour: TOUR, tourHref: tourHref,
+    tour: TOUR, tourHref: tourHref, roomVariants: ROOM_VARIANTS,
     refresh: function () { renderChrome(); applyBindings(); applyI18nAttrs(document); rewriteMainLinks(); wrapTables(); pseudoTransformMain(); }
   };
   /* one harmonized shell: operations pages that boot against `CGA.shell` get the

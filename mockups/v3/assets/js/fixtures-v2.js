@@ -2,7 +2,7 @@
    CGA MOCKUPS v2 — fixtures-v2.js  (the game layer)
    AUGMENTS v1's CGA.fixtures (registry / world / byId) — never reshapes it.
    Adds CGA.fixtures.v2 = { interactionClasses, journeys, rooms, handles,
-   marketplace, requests, stipend, treasury, groups, legitimacy }.
+   groups, legitimacy, live, journeyLive, achievements, bills }.
 
    Load order on a v2 page:
      <head>  ../assets/js/demo-state.js
@@ -57,7 +57,7 @@
       icon: 'landmark', accent: 'adm-2',
       journeys: ['election', 'committee-session', 'bill', 'court-case', 'budget'] },
     { id: 'gov-gov', n: 4, title: 'Governments with each other',
-      blurb: 'Governments interacting — federation and Full Faith & Credit, trade and treaty talks, union formation, border settlement, the cross-instance public square.',
+      blurb: 'Governments interacting — recognizing each other’s records, trade and treaty talks, union formation, border settlement, the shared public square.',
       icon: 'globe', accent: 'adm-1',
       journeys: ['two-governments'] },
     { id: 'gov-orgs-people', n: 5, title: 'Government with organizations & people',
@@ -67,12 +67,15 @@
   ];
 
   /* =============================================================== JOURNEYS
-     Each is a guided arc (§8). status: 'built-layer' rides built surfaces;
-     'planned-layer' is design-ahead (Phase I/J/L/M) and badged "Planned". */
+     Each is a guided lesson you can complete (§8). status: 'built-layer' is
+     live in this world; 'planned-layer' is not live yet, badged "Coming soon".
+     yourPart: the player's own role in this journey (falls back to the generic
+     gallery line only for spectator journeys that have a room). */
   var journeys = [
     { id: 'election', cls: 'gov-itself', flagship: true, status: 'built-layer',
       title: 'An election, end to end',
       now: 'Candidates are gathering approvals in Manhattan; the forum is tonight.',
+      yourPart: 'you vote this one — approve the candidates you trust, then rank them when the window opens',
       rail: ['Approval', 'Candidate forum', 'Finalist cutoff', 'Ranked vote', 'Count', 'Seated', 'First session'],
       rooms: ['forum'], reusesV1: ['electoral/open-ballot.html', 'electoral/ranked-ballot.html', 'electoral/results.html', 'electoral/election-detail.html'] },
     { id: 'committee-session', cls: 'gov-itself', status: 'built-layer',
@@ -98,26 +101,30 @@
     { id: 'start-org', cls: 'orgs-people', status: 'built-layer',
       title: 'Starting an organization',
       now: 'Register, charter, seat a first board, onboard members and workers.',
+      yourPart: 'you do this one — register the organization, write the charter, and seat the first board',
       rail: ['Register', 'Charter', 'First board', 'Onboard', 'Market (opt.)'],
-      rooms: ['board'], reusesV1: ['organizations/org-registry.html', 'organizations/org-detail.html', 'organizations/board-elections.html'] },
+      rooms: ['board'], reusesV1: ['organizations/org-registry.html', 'social/org-profile.html', 'organizations/board-elections.html'] },
     { id: 'board-meeting', cls: 'orgs-people', status: 'built-layer',
       title: 'Holding a board meeting',
       now: 'Bluefin Logistics — worker and owner seats deliberate together.',
       rail: ['Convene', 'Composition', 'Motions', 'Board vote', 'Minutes'],
-      rooms: ['board'], reusesV1: ['organizations/board-elections.html', 'organizations/co-determination.html', 'organizations/org-detail.html'] },
+      rooms: ['board'], reusesV1: ['organizations/board-elections.html', 'organizations/co-determination.html', 'social/org-profile.html'] },
     { id: 'form-a-group', cls: 'people', status: 'built-layer',
       title: 'An informal group forms and meets',
       now: 'Neighbors start a harbor-cleanup crew and call their first meeting.',
+      yourPart: 'you do this one — start the group, invite your neighbours, and call the first meeting',
       rail: ['Create', 'Discuss', 'Call a meeting', 'Decide', 'Next steps (opt.)'],
-      rooms: ['group'], reusesV1: ['civic/civic-home.html'] },
+      rooms: ['group'], reusesV1: ['groups/group-create.html'] },
     { id: 'mutual-aid', cls: 'people', status: 'planned-layer', phase: 'Phase M',
       title: 'Asking for and giving help',
       now: 'Post an assistance request; a neighbor responds; coordinate in a room.',
+      yourPart: 'you do this one — post a request for help, or answer a neighbour’s',
       rail: ['Post request', 'A neighbor responds', 'Coordinate', 'Resolved'],
       rooms: ['group'], reusesV1: [] },
     { id: 'petition-to-referendum', cls: 'gov-orgs-people', status: 'built-layer',
       title: 'From a petition to a referendum',
       now: 'A participatory-budget petition is gathering signatures toward the threshold.',
+      yourPart: 'you do this one — sign (or start) the petition, then vote when the referendum opens',
       rail: ['Petition', 'Signatures', 'Reaches legislature', 'Referendum', 'Town hall', 'Vote', 'Result'],
       rooms: ['townhall'], reusesV1: ['civic/petitions.html', 'civic/petition-detail.html', 'legislature/referendums.html', 'electoral/ranked-ballot.html'] },
     { id: 'public-service', cls: 'gov-orgs-people', status: 'built-layer',
@@ -128,12 +135,13 @@
     { id: 'stipend-and-tax', cls: 'gov-orgs-people', status: 'planned-layer', phase: 'Phase L/M',
       title: 'The money between a person and their government',
       now: 'Receive the civic stipend and file tax — the two directions of the fiscal tie.',
+      yourPart: 'this one comes to you — the stipend lands in your wallet, and you file the tax side yourself',
       rail: ['Stipend run', 'Your receipt', 'Tax filing', 'Public ledger'],
       rooms: [], reusesV1: [] },
     { id: 'two-governments', cls: 'gov-gov', status: 'built-layer',
       title: 'Two governments meet, trade, and merge',
-      now: 'Discover a peer, establish Full Faith & Credit, talk trade, then unite.',
-      rail: ['Discover peer', 'Full Faith & Credit', 'Trade talks', 'Union or border'],
+      now: 'Discover a peer, trust each other’s records, talk trade, then unite.',
+      rail: ['Discover a peer', 'Trust each other’s records', 'Trade talks', 'Union or border'],
       rooms: ['townhall'], reusesV1: ['jurisdictions/federation.html', 'jurisdictions/union-formation.html', 'jurisdictions/disintermediation.html'] }
   ];
 
@@ -236,11 +244,11 @@
         form: 'F-LEG-004', citation: 'Floor vote · ordinary majority of all serving',
         deepLink: 'legislature/bill-detail.html' },
       vote: { question: 'Pass the New York County Clean Air Act on the floor?',
-        method: { label: 'Passes at a majority of all 8 serving members — peg quorum, never those present', citation: 'Peg quorum' },
+        method: { label: 'Passes at a majority of all 8 serving members — present or not', citation: 'Majority of all serving' },
         mode: 'unicameral', thresholdClass: 'majority',
         serving: 8, requiredYes: 5, quorum: { present: 7, required: 5 },
         tallies: { yes: 4, no: 2, abstain: 1 }, outcome: 'pending',
-        gloss: 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.' },
+        gloss: 'The count is measured against every serving seat — an absent member counts the same as a no.' },
       presence: [
         P('yuki-tanaka', 1, 'chair', { tenure: 9, perf: 96 }),
         P('marcus-chen', 2, 'floor', { speaking: true, tenure: 6, perf: 91 }),
@@ -466,7 +474,7 @@
       galleryNote: 'Anyone may watch the forum. Only residents may ask from the floor; endorsing — your approval — happens on the ballot and is always secret. After approval comes the ranking window.',
       forms: [],
       chairControls: ['Open the forum', 'Recognize the next candidate', 'Start the speaking clock', 'Open resident questions', 'Close & link the ballot'],
-      reusesV1: ['electoral/open-ballot.html', 'electoral/candidate-profile.html'],
+      reusesV1: ['electoral/open-ballot.html', 'social/profile.html (Candidacy tab)'],
       productionPages: ['resources/js/Pages/Elections/OpenBallot.vue']
     },
 
@@ -560,53 +568,14 @@
       forms: [],
       chairControls: ['Open the meeting', 'Recognize the next person', 'Pick a meeting type', 'Summarize the decision', 'Suggest next steps'],
       nextSteps: ['Register as an organization', 'File a petition'],
-      reusesV1: ['civic/civic-home.html'],
+      reusesV1: ['groups/groups-home.html'],
       productionPages: ['resources/js/Pages/Civic/MatrixCommons.vue']
     }
   };
 
-  /* ============================================ ECONOMY / GROUPS / LEGITIMACY
-     Light fixtures consumed by Stages 3–5. Defined here so the launchpad's
-     journey directory and the demo bar can reference real numbers; the full
-     surfaces are built in their stages. All economy data is PLANNED + the
-     individual rows are PRIVATE / never federated. */
-  var economy = {
-    marketplace: {
-      planned: true, unit: 'abstract units of account',
-      privacy: 'Your purchases are private and never leave this server.',
-      listings: [
-        { id: 'lst-1', title: 'Repaired cargo bikes', kind: 'good', qty: 6, price: 240, seller: 'Bluefin Logistics', sellerKind: 'business', form: 'F-IND-021' },
-        { id: 'lst-2', title: 'Rooftop garden consultation', kind: 'service', qty: 'by appointment', price: 35, seller: 'Hudson Mutual Aid', sellerKind: 'nonprofit', form: 'F-IND-021' },
-        { id: 'lst-3', title: 'Water-quality testing kits', kind: 'good', qty: 40, price: 18, seller: 'Manhattan Water & Power', sellerKind: 'common_good_corp', cgc: true, form: 'F-IND-021', note: 'A CGC sells on identical terms to any private seller' }
-      ]
-    },
-    requests: {
-      planned: true,
-      work: [
-        { id: 'wk-1', title: 'Recurring depot loader (40 hires)', org: 'Bluefin Logistics', form: 'F-IND-019', triggers: 'A recurring labor contract adds to the worker headcount that drives co-determination.' }
-      ],
-      assistance: [
-        { id: 'aid-1', title: 'Help moving a wheelchair-accessible ramp', kind: 'mutual_aid', privacy: 'private by default' }
-      ]
-    },
-    stipend: {
-      planned: true, eligibility: 'Active residency association only — the same gate as voting, no means test, no application',
-      lastRun: { id: 'ubi-2031-06', recipients: 1690000, total: '1,690,000 units (public aggregate)', form: 'F-TRE-004', perReceiptPrivate: true },
-      bumps: { enabled: false, keys: ['civic_stipend_enabled', 'stipend_bump_operator', 'stipend_bump_moderator', 'stipend_bump_officeholder'], gate: 'dual-door: chamber supermajority + constituent consent' }
-    },
-    treasury: {
-      planned: true,
-      ledger: 'Double-entry, append-only, hash-chained · Σdebits = Σcredits per currency',
-      accountsPublic: 'Jurisdiction & department accounts are PUBLIC', accountsPrivate: 'User & org accounts are PRIVATE',
-      cycle: [
-        { step: 'Revenue', form: 'F-LEG-037' }, { step: 'Budget', form: 'F-LEG-038', note: 'enactment spawns appropriations' },
-        { step: 'Disbursement', form: 'F-TRE-001…003', actor: 'Board of Governors' }, { step: 'Public ledger', form: null }
-      ],
-      gated: { borrowing: 'Borrowing', currency: 'Currency (root jurisdiction only)' },
-      rail: 'No fee may attach to a civic-rights form — such a fee is rejected.'
-    }
-  };
-
+  /* ==================================================== GROUPS / LEGITIMACY
+     Light fixtures consumed by Stages 3–5. (The economy fixtures live in
+     fixtures-econ.js — pages read F.v2.econ.) */
   var groups = {
     spaces: [
       { id: 'grp-harbor', name: 'Harbor Cleanup Crew', purpose: 'Keep the Manhattan waterfront clean', members: 23, privacy: 'open', room: 'group', meeting: 'group' },
@@ -644,21 +613,22 @@
           { from: 'u-pier7', when: '8:10', text: 'Pier 7 looks great after Saturday. Same time next week?' },
           { from: 'amara', when: '8:15', text: 'Yes! Shared the cleanup map.', attach: { type: 'share', label: 'Harbor cleanup map' } }
         ] },
-      { id: 'party-harbor', kind: 'party', linkSpace: 'grp-harbor', title: 'Harbor Cleanup Crew', members: 23, when: '12m', unread: 3, live: true,
+      { id: 'party-saturday', kind: 'party', title: 'Saturday crew (planning)', members: 5, when: '12m', unread: 3, live: true, ephemeral: true,
+        participants: ['amara', 'u-pier7', 'noor', 'diego'],
+        messages: [
+          { from: 'noor', when: '6:30', text: 'Who’s in for the early start?' },
+          { from: 'diego', when: '6:45', text: 'Me. I’ll record a clip of the route.', attach: { type: 'video', label: 'Route walkthrough · 1:12' } },
+          { from: 'amara', when: '9:00', text: 'Calling a quick voice huddle at 7 — jump in. This group can dissolve after Saturday.', attach: { type: 'voice', label: 'Voice huddle · 0:42' } }
+        ] },
+      { id: 'party-harbor', kind: 'party', linkSpace: 'grp-harbor', title: 'Harbor Cleanup Crew', members: 23, when: '3h', unread: 0, live: false,
         participants: ['amara', 'u-pier7', 'u-harborwatch', 'u-greenwood'],
         messages: [
           { from: 'u-harborwatch', when: '8:40', text: 'Gloves and bags sorted for Saturday.' },
           { from: 'u-greenwood', when: '8:51', text: 'I can bring the cargo bike for hauling.', attach: { type: 'file', label: 'route.gpx' } },
-          { from: 'amara', when: '9:00', text: 'Calling a quick voice huddle at 7 — jump in.', attach: { type: 'voice', label: 'Voice huddle · 0:42' } }
-        ] },
-      { id: 'party-saturday', kind: 'party', title: 'Saturday crew (planning)', members: 5, when: '3h', unread: 0, live: false, ephemeral: true,
-        participants: ['amara', 'u-pier7', 'noor', 'diego'],
-        messages: [
-          { from: 'noor', when: '6:30', text: 'Who’s in for the early start?' },
-          { from: 'diego', when: '6:45', text: 'Me. I’ll record a clip of the route.', attach: { type: 'video', label: 'Route walkthrough · 1:12' } }
+          { from: 'amara', when: '8:55', text: 'This crew keeps happening — I’ve set us up as a standing group so the schedule sticks.' }
         ] }
     ],
-    note: 'A group is an ephemeral conversation — a party for talk, files, voice, and video, just like a standing room but temporary. It confers no governance power, membership is private to each member, and it never federates. A party that wants to last can become an organization.'
+    note: 'A group message is a temporary conversation — talk, files, voice, and video, just like a standing room but passing. It confers no governance power, and it’s private — like a ballot, only the people in it can read it. A group that wants to last can become a standing group or an organization.'
   };
 
   /* ---- LIVE FEED (today.html / my-civic-life.html) ----------------------
@@ -671,14 +641,14 @@
   var live = {
     rail: 'You watch everything; you act where you reside. A ballot row shows only that voting is OPEN — never how you voted.',
     rows: [
-      { id: 'lv-session', kind: 'session', icon: 'landmark', title: 'Council — regular session', what: 'The chamber is in session; the locked agenda is on item 2.', part: 'Watch from the gallery, or take the floor if you reside here.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Live now', tip: 'In session · peg quorum = majority of ALL serving' }, form: { name: 'Session', id: 'F-SPK-001' }, target: { kind: 'closesAt', iso: inMin(74) }, to: { rel: 'shared/live-room.html?variant=legislative' }, scenarioFlag: 'liveSession' },
+      { id: 'lv-session', kind: 'session', icon: 'landmark', title: 'Council — regular session', what: 'The chamber is in session; the locked agenda is on item 2.', part: 'Watch from the gallery, or take the floor if you reside here.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Live now', tip: 'In session · decisions need a majority of ALL members, present or not' }, form: { name: 'Session', id: 'F-SPK-001' }, target: { kind: 'closesAt', iso: inMin(74) }, to: { rel: 'shared/live-room.html?variant=legislative' }, scenarioFlag: 'liveSession' },
       { id: 'lv-committee', kind: 'committee', icon: 'landmark', title: 'Environment & Infrastructure — hearing', what: 'Public testimony on the Clean Air Act is open.', part: 'Add testimony to the record if you reside in the district.', jurisdiction: 'usa-3-new-york-county', status: 'live', pill: { tone: 'live', label: 'Taking testimony' }, form: { name: 'Testimony', id: 'F-SOC-002' }, target: { kind: 'closesAt', iso: inMin(38) }, to: { rel: 'shared/live-room.html?variant=committee' }, scenarioFlag: 'liveSession' },
       { id: 'lv-ballot', kind: 'election', icon: 'vote', title: 'Manhattan election — approval phase', what: 'Endorse the candidates you approve of; the ranking window opens next.', part: 'Endorse who you support — it’s your approval, and it stays secret.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'vote', label: 'Approval open' }, form: { name: 'Open ballot', id: null }, target: { kind: 'closesAt', iso: inMin(220) }, to: { rel: 'electoral/open-ballot.html', v1: true } },
       { id: 'lv-forum', kind: 'forum', icon: 'vote', title: 'Candidate forum — tonight', what: 'Candidates speak in turn before the vote window opens.', part: 'Listen, ask, decide.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Starts soon' }, form: null, target: { kind: 'opensAt', iso: inMin(95) }, to: { rel: 'shared/live-room.html?variant=forum' } },
       { id: 'lv-veto', kind: 'challenge', icon: 'scale', title: 'A signed bill is in its veto window', what: 'The executive may sign or veto.', part: 'Track the clock; an override needs a supermajority of ALL serving.', jurisdiction: 'usa-3-new-york-county', status: 'window', pill: { tone: 'wait', label: 'Window open' }, form: null, target: { kind: 'dayOf', day: 4, max: 90 }, to: { rel: 'legislature/bills.html', v1: true } },
       { id: 'lv-group', kind: 'group', icon: 'users', title: 'Harbor Cleanup Crew — meeting', what: 'The group is calling a facilitated meeting.', part: 'Join if you are a member.', jurisdiction: 'usa-3-new-york-county', status: 'soon', pill: { tone: 'wait', label: 'Meeting soon' }, form: null, target: { kind: 'opensAt', iso: inMin(150) }, to: { rel: 'shared/live-room.html?variant=group' }, scenarioFlag: 'groupForming' },
-      { id: 'lv-stipend', kind: 'stipend', icon: 'refresh-cw', title: 'Civic-stipend run posted', what: 'The economic clock posted this period’s stipend.', part: 'See your private receipt in your wallet.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'planned', label: 'Planned · L/M' }, form: { name: 'Stipend run', id: 'F-TRE-004' }, target: null, to: { rel: 'economy/stipend.html' }, planned: true, scenarioFlag: 'ubiRun' },
-      { id: 'lv-trade', kind: 'trade', icon: 'globe', title: 'Cross-government trade talk', what: 'Two governments are negotiating terms.', part: 'Observe the talks; only the governments act.', jurisdiction: 'earth', status: 'soon', pill: { tone: 'planned', label: 'Planned · L/M' }, form: null, target: { kind: 'opensAt', iso: inMin(300) }, to: { rel: 'economy/economy-home.html' }, planned: true, scenarioFlag: 'tradeTalk' }
+      { id: 'lv-stipend', kind: 'stipend', icon: 'refresh-cw', title: 'Civic-stipend run posted', what: 'The economic clock posted this period’s stipend.', part: 'See your private receipt in your wallet.', jurisdiction: 'usa-3-new-york-county', status: 'open', pill: { tone: 'planned', label: 'Coming soon' }, form: { name: 'Stipend run', id: 'F-TRE-004' }, target: null, to: { rel: 'economy/stipend.html' }, planned: true, scenarioFlag: 'ubiRun' },
+      { id: 'lv-trade', kind: 'trade', icon: 'globe', title: 'Cross-government trade talk', what: 'Two governments are negotiating terms.', part: 'Observe the talks; only the governments act.', jurisdiction: 'earth', status: 'soon', pill: { tone: 'planned', label: 'Coming soon' }, form: null, target: { kind: 'opensAt', iso: inMin(300) }, to: { rel: 'economy/economy-home.html' }, planned: true, scenarioFlag: 'tradeTalk' }
     ],
     forFootprint: function () { return live.rows; },
     /* ---- COMMUNITY CALENDAR (today.html) — what's coming up, across the three
@@ -700,15 +670,15 @@
     'committee-session': { currentStep: 3, snapshot: { now: 'Public testimony is open', statusPill: { tone: 'live', label: 'Live now' }, target: { iso: inMin(38) }, roomVariant: 'committee' } },
     bill: { currentStep: 2, snapshot: { now: 'Floor reading in progress', statusPill: { tone: 'live', label: 'On the floor' }, target: { iso: inMin(74) }, roomVariant: 'legislative' } },
     'court-case': { currentStep: 3, snapshot: { now: 'Evidence is being heard', statusPill: { tone: 'live', label: 'In session' }, target: { iso: inMin(50) }, roomVariant: 'court' } },
-    budget: { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · L' } } },
+    budget: { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Coming soon' } } },
     'start-org': { currentStep: 2, snapshot: { now: 'The first board meeting is forming', statusPill: { tone: 'wait', label: 'Board forming' }, target: { iso: inMin(180) }, roomVariant: 'board' } },
     'board-meeting': { currentStep: 1, snapshot: { now: 'The board is in session', statusPill: { tone: 'live', label: 'Live now' }, target: { iso: inMin(40) }, roomVariant: 'board' } },
     'form-a-group': { currentStep: 2, snapshot: { now: 'Calling a meeting', statusPill: { tone: 'wait', label: 'Meeting soon' }, target: { iso: inMin(150) }, roomVariant: 'group' } },
-    'mutual-aid': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · M' } } },
+    'mutual-aid': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Coming soon' } } },
     'petition-to-referendum': { currentStep: 1, snapshot: { now: 'Gathering signatures to the threshold', statusPill: { tone: 'wait', label: 'Signatures' }, target: null } },
-    'public-service': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned' } } },
-    'stipend-and-tax': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Planned · L/M' } } },
-    'two-governments': { currentStep: 2, snapshot: { now: 'Trade talks are underway', statusPill: { tone: 'planned', label: 'Planned' }, target: null } }
+    'public-service': { currentStep: 0, snapshot: { now: 'A charter is being drafted', statusPill: { tone: 'wait', label: 'Charter in draft' }, target: null } },
+    'stipend-and-tax': { currentStep: 0, snapshot: { statusPill: { tone: 'planned', label: 'Coming soon' } } },
+    'two-governments': { currentStep: 2, snapshot: { now: 'Trade talks are underway', statusPill: { tone: 'wait', label: 'In talks' }, target: null } }
   };
 
   /* ---- LEGITIMACY / REACH (legitimacy.html) — time-series + tier console.
@@ -731,21 +701,21 @@
   ];
   var legitimacy = {
     planned: true, phase: 'Phase I',
-    note: 'Reach is a display-only transparency gauge. It is NEVER a governance input — it changes no vote, no moderation, no right.',
-    rails: ['Display-only — never a governance input', 'No per-person score', 'No individual leaderboard — jurisdiction scope only', 'Measured from the envelope, not the ballot', 'k-anonymous floor suppresses small counts', 'Reach is named coverage, not the wartime test'],
+    note: 'Reach is a gauge, never a lever. It changes no vote, no moderation, no right — ever.',
+    rails: ['A gauge, never a lever — it changes no vote, no seat, no right', 'No per-person score, ever', 'No leaderboard of people — only places are measured', 'Counted from turnout envelopes, never from anyone’s ballot', 'Small counts are hidden to protect people'],
     jurisdictions: legitJurs,
     byJur: (function () { var m = {}; legitJurs.forEach(function (j) { m[j.slug] = j; }); return m; })(),
-    tierParams: { enabled: false, k: 1, exponent: 3, floor: 5, cap: 9, devDefaultNote: 'disabled → default = 1 verified resident boots a government', samplePops: [27, 216, 343, 512, 729, 1000000], rail: 'Gates when a GOVERNMENT may BOOT, never the franchise. Amendable policy authored by founders / the legislature — not a hardcoded ceiling.' },
+    tierParams: { enabled: false, k: 1, exponent: 3, floor: 5, cap: 9, devDefaultNote: 'While tiers are switched off, a single verified resident is enough to start a government.', samplePops: [27, 216, 343, 512, 729, 1000000], rail: 'It gates only when a government may start — never anyone’s vote or right to stand. The numbers are policy a legislature can amend, not a hardcoded ceiling.' },
     sample: legitJurs[0]
   };
 
-  /* ---- ACHIEVEMENTS (social/achievements.html) — a decorative, fenced catalog.
-     CI-1 no governance advantage; PI-6 no per-person score; PI-1 no individual
-     leaderboard; PI-3 k-anon; PI-2 from the envelope not the ballot; PI-4
-     individual default-private. Proposed — founder/legislature-authored policy. */
+  /* ---- ACHIEVEMENTS (social/achievements.html) — earned records of journeys
+     completed and civic firsts, kept on your profile. The one constitutional
+     fence: never a governance advantage. The ACH-* codes are data keys only —
+     never rendered. Proposed — founder/legislature-authored policy. */
   var achievements = {
     proposed: true,
-    rails: ['No governance advantage — no vote, no seat, no role, no moderation, no eligibility', 'No per-person score or rank', 'No individual leaderboard — jurisdiction scope only', 'k-anonymous floor', 'From the envelope, never the ballot — no abstention leak', 'Default private for individuals, opt-in to show', 'No economic reward — hard-separate from treasury and the exchange'],
+    rails: ['Never a governance advantage — no vote, no seat, no role, no moderation, no eligibility', 'No per-person score or rank, and no leaderboard of people', 'Small counts are hidden to protect people', 'A “first ballot” medal shows you took part — never how you voted', 'Private by default — you choose which medals to show'],
     inProgress: [{ code: 'ACH-IND-VERIFIED', label: 'Resident → Verified', have: 21, need: 30, unit: 'days' }],
     tiers: [
       { key: 'individual', label: 'Individual', prefix: 'ACH-IND', visibility: 'Default private · opt-in to show', items: [
@@ -827,7 +797,6 @@
     journeys: journeys,
     rooms: rooms,
     handleFor: handleFor,
-    economy: economy,
     groups: groups,
     bills: bills,
     legitimacy: legitimacy,

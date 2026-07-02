@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ticket — CGA mockups v2</title>
+  <title>Ticket — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -48,8 +48,8 @@
       var out = '';
       if (tk.routedNote) {
         out += '<div class="route-note">' + S.icon('shield', { size: 'sm' }) +
-          '<div><strong style="color:var(--gov-fg)">Routed off the support queue.</strong> ' + esc(tk.routedNote) + ' ' +
-          '<a href="' + S.hrefV2('operator/moderation.html') + '">The moderation &amp; legal plane ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div></div>';
+          '<div><strong style="color:var(--gov-fg)">Not a tech-support matter.</strong> ' + esc(tk.routedNote) + ' ' +
+          '<a href="' + S.hrefV2('operator/moderation.html') + '">The moderation &amp; legal team ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div></div>';
       }
       if (tk.linkedTranslation) {
         var lt = tk.linkedTranslation, ln = T.byLang[lt.code];

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Co-determination — CGA mockups</title>
+  <title>Worker seats on the board — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,13 +16,12 @@
       <div id="emergency-banner"></div>
 
       <header>
-        <span class="eyebrow">Organizations · work councils</span>
-        <h1>Co-determination scaling</h1>
-        <p class="page-intro">When an organization employs 100 or more workers, its workers elect board members. The
-          first worker seat arrives at 100 workers, and worker representation scales uniformly until it reaches parity
-          with owner-side seats at 2,000 workers. The same scale binds private enterprises, Common Good Corporations,
-          and executive departments.</p>
-        <p class="citation">First worker seat at 100 workers · parity at 2,000 workers.</p>
+        <span class="eyebrow">Organizations · workers on the board</span>
+        <h1>Worker seats on the board</h1>
+        <p class="page-intro">When a company employs 100 or more people, its workers start electing seats on its board.
+          The first worker seat arrives at 100 workers, and worker seats grow evenly until they match the owners’ seats
+          at 2,000 workers. The formal name for this is <em>co-determination</em>. The same scale applies to private
+          companies, Common Good Corporations, and government departments.</p>
       </header>
 
       <section class="card" aria-labelledby="meter-h">
@@ -60,13 +59,12 @@
       </section>
 
       <section class="card" aria-labelledby="trigger-h">
-        <h2 id="trigger-h">Composition change → joint chair election</h2>
+        <h2 id="trigger-h">When seats change, the chair is re-elected</h2>
         <p style="font-size:var(--text-sm)">Every time the scale adds (or removes) a worker seat, the board's composition
           changes — and a composition change triggers a fresh <strong>joint chair election by the entire board</strong>,
           owner-elected and worker-elected members voting together. The board is valid only while its composition matches
           the scale.</p>
-        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span></p>
-        <p class="citation">Chair elected jointly by the entire board.</p>
+        <p><span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> A protected rule — enforced in code</span></p>
         <div id="worker-election-formcard" style="margin-block-start:var(--space-3)"></div>
         <p style="margin-block-start:var(--space-3)"><a href="board-elections.html">Open board elections
           <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
@@ -93,20 +91,18 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="clk13-h">
-          <h2 id="clk13-h">Co-determination minimum</h2>
+          <h2 id="clk13-h">The first-seat number</h2>
           <p class="amendable"><span class="amendable-value">100 workers</span> — headcount at which the first
             worker-elected board seat is required.
             <span class="amendable-meta">Template default · no enacting act yet on this instance · amendable by legislative
-              act (must stay below the parity threshold)</span></p>
-          <p class="citation">Opens the first worker seat.</p>
+              act (must stay below the parity number)</span></p>
         </section>
         <section class="card" aria-labelledby="clk14-h">
-          <h2 id="clk14-h">Co-determination parity</h2>
+          <h2 id="clk14-h">The parity number</h2>
           <p class="amendable"><span class="amendable-value">2,000 workers</span> — headcount at which worker-elected
-            seats reach parity with owner-side seats.
+            seats match owner-side seats.
             <span class="amendable-meta">Template default · no enacting act yet on this instance · amendable by legislative
-              act (must stay above the minimum threshold)</span></p>
-          <p class="citation">Brings worker seats to parity with owner seats.</p>
+              act (must stay above the first-seat number)</span></p>
         </section>
       </div>
 
@@ -126,7 +122,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'organizations/co-determination',
-      title: 'Co-determination scaling',
+      title: 'Worker seats on the board',
       module: 'organizations',
       nav: 'co-determination',
       roles: ['R-25', 'R-27', 'R-23'],
@@ -166,13 +162,13 @@
         if (!f) return '';
         return '<div class="card card--inset"><h3 style="font-size:var(--text-base)">' + esc(f.name) + '</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(f.desc) + '</p>' +
-          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to org agents or the system itself · opens a worker board election that seats worker-elected board members.</p></div>';
+          '<p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">The organization’s point of contact starts this — or the system does, the moment the headcount crosses a threshold. It opens a worker board election that seats the new worker representatives.</p></div>';
       }
 
       function appliesRow(name, href, kind, workers, ownerSeats, ownerLabel) {
         var seats = ownerSeats == null ? null : workerSeats(workers, ownerSeats);
         var state;
-        if (workers < MIN) state = S.badge('neutral', 'below first-seat threshold');
+        if (workers < MIN) state = S.badge('neutral', 'below 100 workers');
         else if (workers >= PAR) state = S.badge('success', 'parity', 'users');
         else state = S.badge('info', 'scaling', 'users');
         return '<tr><td>' + (href ? '<a href="' + href + '">' + esc(name) + '</a>' : esc(name)) + '</td>' +
@@ -227,12 +223,12 @@
         var treasury = W.departments.filter(function (d) { return d.id === 'dep-treasury'; })[0];
 
         document.getElementById('applies-body').innerHTML =
-          appliesRow(bluefin.name, 'org-detail.html', 'Private enterprise (stock)', bluefin.workers, 9, 'shareholder-elected') +
+          appliesRow(bluefin.name, '../social/org-profile.html?org=bluefin-logistics', 'Private enterprise (stock)', bluefin.workers, 9, 'shareholder-elected') +
           appliesRow(cobalt.name, 'transfers-conversions.html', 'Private enterprise (stock)', cobalt.workers, 9, 'shareholder-elected') +
           appliesRow(mwp.name, 'cgc-detail.html', 'Common Good Corporation', mwp.workers, 7, 'appointed governors') +
           appliesRow(works.name, '../executive/department-detail.html', 'Executive department', works.workers, works.governors, 'appointed governors') +
           appliesRow(treasury.name, '../executive/departments.html', 'Executive department', treasury.workers, treasury.governors, 'appointed governors') +
-          appliesRow(northstar.name, 'org-detail.html', 'Private enterprise (equal partnership)', northstar.workers, null, '');
+          appliesRow(northstar.name, '../social/org-profile.html?org=northstar-equal-partners', 'Private enterprise (equal partnership)', northstar.workers, null, '');
 
         document.getElementById('worker-election-formcard').innerHTML = formCard('F-ORG-004');
 

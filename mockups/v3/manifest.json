@@ -2,6 +2,7 @@
  {
   "file": "index.html",
   "title": "Launchpad — the five interaction classes + journey directory",
+  "module": "shared",
   "interactionClass": "all",
   "journeys": [],
   "reusesV1": [
@@ -17,6 +18,7 @@
  {
   "file": "atlas.html",
   "title": "The Atlas — public, game-wide heartbeat dashboard",
+  "module": "shared",
   "interactionClass": "all",
   "journeys": [],
   "reusesV1": [],
@@ -29,13 +31,11 @@
  },
  {
   "file": "system/setup.html",
-  "title": "Instance setup — the founding loop",
+  "title": "Found the instance — the founding loop",
   "module": "system",
   "interactionClass": "all",
   "journeys": [],
-  "reusesV1": [
-   "system/setup-wizard.html"
-  ],
+  "reusesV1": [],
   "productionPages": [
    "resources/js/Pages/Setup/Step0_CosmicAddress.vue",
    "resources/js/Pages/Setup/Step1_Constants.vue",
@@ -47,7 +47,7 @@
   "forms": [],
   "status": "built-layer",
   "stage": 0,
-  "notes": "The five-step constitutional founding wizard (cosmic address -> 19 reference-default constitution settings -> map data/ETL -> districts -> seat institutions), ported 1:1 from the v1 setup-wizard into the v2 shell, shown as its completed end-state. Reference defaults not locks (Art. VII); apportionment fires at the planet-scope Accept Map Data button (1,999 seats / 393 districts / 951,636 rows / 11.30 GB seed). DISTINCT from operator/setup.html (node/mesh provisioning). First stop of the guided tour."
+  "notes": "The five-step constitutional founding: cosmic address -> 19 reference-default constitution settings -> map data/ETL -> districts -> seat institutions, shown as its completed end-state, plus the restore-from-backup path. Reference defaults not locks (Art. VII); apportionment fires at the planet-scope Accept Map Data button (1,999 seats / 393 districts / 951,636 rows / 11.30 GB seed). DISTINCT from operator/setup.html (node/mesh provisioning). Lives in the Run-a-node act of the tour; setup-wizard.html merged into this page (now a redirect)."
  },
  {
   "file": "tour.html",
@@ -66,6 +66,7 @@
  {
   "file": "shared/live-room.html",
   "title": "Live Civic Room — the keystone (8 variants via ?variant=)",
+  "module": "shared",
   "interactionClass": "all",
   "journeys": [
    "election",
@@ -120,8 +121,26 @@
   "notes": "THE keystone. The fused form+social surface: header band + countdown clocks, locked/unlocked agenda, center-stage floor with How-this-works drawer + v1 deep-link, the vote tile (denominator always visible), the speaker rail (presence, hands-raised queue, Matrix chat with seat badges + testimony, voice, the translation privacy rail), the testimony-bridge record strip. Chair controls go live when you assume the chair persona; aria-live announces floor/vote/result. Eight variants: committee, legislative, exec, board, court, forum, townhall, group."
  },
  {
+  "file": "shared/bill.html",
+  "title": "A bill — the conversation",
+  "module": "shared",
+  "nav": "bills",
+  "interactionClass": "all",
+  "journeys": [
+   "bill"
+  ],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 3,
+  "notes": "One bill as a living conversation: what it changes in plain words, where it sits in the process, the discussion, and the redline negotiation. The full formal record lives at legislature/bill-detail.html."
+ },
+ {
   "file": "shared/coverage.html",
   "title": "v2 coverage — meeting types × journeys × interaction classes × mechanics",
+  "module": "shared",
   "interactionClass": "all",
   "journeys": [],
   "reusesV1": [],
@@ -176,7 +195,7 @@
  },
  {
   "file": "economy/marketplace.html",
-  "title": "Marketplace — offers on the Open Market",
+  "title": "The open market",
   "module": "economy",
   "interactionClass": "all",
   "journeys": [],
@@ -201,20 +220,6 @@
   "status": "planned-layer",
   "stage": 2,
   "notes": "One listing; the order flow forms an agreement; private settlement."
- },
- {
-  "file": "economy/requests.html",
-  "title": "Request board — the mirror",
-  "module": "economy",
-  "interactionClass": "all",
-  "journeys": [],
-  "reusesV1": [],
-  "productionPages": [],
-  "matrix": [],
-  "forms": [],
-  "status": "planned-layer",
-  "stage": 2,
-  "notes": "Work board (F-IND-019 -> F-IND-014 -> co-determination) + mutual-aid/assistance (private). Offer<->Request."
  },
  {
   "file": "economy/request-detail.html",
@@ -242,7 +247,7 @@
   "forms": [],
   "status": "planned-layer",
   "stage": 2,
-  "notes": "Personal balance + transactions; never federated, like a ballot; abstract units; F-IND-023 transfer."
+  "notes": "Personal balance + transactions; private — like a ballot, only you can read it; abstract units; F-IND-023 transfer."
  },
  {
   "file": "economy/joint-ledgers.html",
@@ -354,7 +359,7 @@
   "forms": [],
   "status": "built-layer",
   "stage": 2,
-  "notes": "Social profile: bio, endorsements (public by choice), groups, orgs, achievements (Proposed), follow/message. Pseudonymity. Art. I."
+  "notes": "Social profile: bio, endorsements (public by choice), groups, orgs, achievements (Proposed), follow/message. Pseudonymity. Art. I. ONE profile per person: when the subject is standing in a race a Candidacy tab appears (statement, approval meter w/ finalist line, stages, endorsement web, requests; manage/withdraw when self) — electoral/candidate-profile.html is now a redirect that forwards ?candidate=&name=&race= here as ?who=&name=&race=&tab=candidacy (F-CAN-001/002/003, WF-CIV-05/08, CLK-21)."
  },
  {
   "file": "social/org-profile.html",
@@ -371,22 +376,8 @@
   "notes": "Org public page: type/charter/workers/board/co-determination/listings/contracts/ledger."
  },
  {
-  "file": "social/rep.html",
-  "title": "Your representative (rep<->citizen)",
-  "module": "social",
-  "interactionClass": "all",
-  "journeys": [],
-  "reusesV1": [],
-  "productionPages": [],
-  "matrix": [],
-  "forms": [],
-  "status": "built-layer",
-  "stage": 2,
-  "notes": "A rep public page: record, forum, office hours, request a meeting, constituent message, the requests queue. Art. I Fair Representation."
- },
- {
   "file": "social/social-home.html",
-  "title": "Social — the network home",
+  "title": "The public square",
   "module": "social",
   "interactionClass": "all",
   "journeys": [],
@@ -399,8 +390,23 @@
   "notes": "Public square + halls entry, a feed, follows; uncensorable + pseudonymity. Art. I."
  },
  {
+  "file": "civic/join.html",
+  "title": "You're invited",
+  "module": "civic",
+  "nav": "join",
+  "interactionClass": "all",
+  "journeys": [],
+  "reusesV1": [],
+  "productionPages": [],
+  "matrix": [],
+  "forms": [],
+  "status": "built-layer",
+  "stage": 2,
+  "notes": "The invite landing page — someone sent you a link into a room: see what it is, pick a name, and step in. The front door of the first minute."
+ },
+ {
   "file": "civic/today.html",
-  "title": "Today — what is live now",
+  "title": "Home — today",
   "module": "civic",
   "interactionClass": "all",
   "journeys": [],
@@ -414,7 +420,7 @@
  },
  {
   "file": "civic/my-civic-life.html",
-  "title": "My civic life",
+  "title": "My profile",
   "module": "civic",
   "interactionClass": "all",
   "journeys": [],
@@ -470,7 +476,7 @@
  },
  {
   "file": "social/achievements.html",
-  "title": "Achievements — a fenced catalog",
+  "title": "Achievements",
   "module": "social",
   "interactionClass": "all",
   "journeys": [],
@@ -484,7 +490,7 @@
  },
  {
   "file": "social/legitimacy.html",
-  "title": "Reach & legitimacy gauge",
+  "title": "Reach",
   "module": "social",
   "interactionClass": "all",
   "journeys": [],
@@ -602,7 +608,7 @@
   "forms": [],
   "status": "built-layer",
   "stage": "G",
-  "notes": "DNS-before-cert; per-name primary + wildcard backup (gated/stub); DDNS; DNS providers (Cloudflare live, stubs); the LE budget pre-flight. Token write-only, never federates. services/mesh-cert-broker."
+  "notes": "DNS-before-cert; per-name primary + wildcard backup (gated/stub); DDNS; DNS providers (Cloudflare live, stubs); the LE budget pre-flight. Token write-only — never shown again after entry. services/mesh-cert-broker."
  },
  {
   "file": "operator/identity.html",
@@ -743,20 +749,6 @@
   "notes": "One language via ?code=: per-modality breakdown, the review queue (source + AI draft -> accept/correct -> quorum), the contributor leaderboard, and the rail that verification is gated to people who read the interface in that language."
  },
  {
-  "file": "support/support-home.html",
-  "title": "Help & support — the hub",
-  "module": "support",
-  "interactionClass": "all",
-  "journeys": [],
-  "reusesV1": [],
-  "productionPages": [],
-  "matrix": [],
-  "forms": [],
-  "status": "built-layer",
-  "stage": "ops",
-  "notes": "The help hub: report an issue, the ticket queue, the guides/SOPs, the translation interface, and how a report routes itself by category."
- },
- {
   "file": "support/report.html",
   "title": "Report an issue",
   "module": "support",
@@ -797,19 +789,6 @@
   "status": "built-layer",
   "stage": "ops",
   "notes": "One ticket via ?id=: the report, the routing, the status thread, linked translation review or moderation carve-out where relevant."
- },
- {
-  "file": "operations.html",
-  "title": "Launchpad — role picker & workflow directory (operations index)",
-  "module": "shared",
-  "roles": [],
-  "workflows": [],
-  "forms": [],
-  "entities": [],
-  "clocks": [],
-  "suggestedVuePage": null,
-  "notes": "Mockup-only surface (not a product screen). Brand register hero; role picker for all 30 roles in 7 tiers; 80-workflow directory; unbuilt targets render as Planned cards so dead links are structurally impossible.",
-  "stage": 0
  },
  {
   "file": "shared/coverage-ops.html",
@@ -868,37 +847,8 @@
   "stage": 1
  },
  {
-  "file": "civic/civic-home.html",
-  "title": "Civic home — R-03/R-04 dashboard",
-  "module": "civic",
-  "roles": [
-   "R-03",
-   "R-04",
-   "R-05"
-  ],
-  "workflows": [
-   "WF-CIV-02",
-   "WF-CIV-04",
-   "WF-CIV-06",
-   "WF-CIV-08"
-  ],
-  "forms": [],
-  "entities": [
-   "Individual"
-  ],
-  "clocks": [
-   "CLK-03",
-   "CLK-17",
-   "CLK-18",
-   "CLK-21"
-  ],
-  "suggestedVuePage": "resources/js/Pages/Civic/Home.vue",
-  "notes": "Rights-unlocked card with all six tier chips; phase-aware election cards; emergency banner pattern; civic-journey card (Proposed).",
-  "stage": 1
- },
- {
   "file": "civic/identity-verification.html",
-  "title": "Identity verification",
+  "title": "Link an ID (optional)",
   "module": "civic",
   "roles": [
    "R-01"
@@ -918,29 +868,8 @@
   "stage": 1
  },
  {
-  "file": "civic/my-record.html",
-  "title": "My record",
-  "module": "civic",
-  "roles": [
-   "R-03",
-   "R-04"
-  ],
-  "workflows": [
-   "WF-SYS-03",
-   "WF-SYS-04"
-  ],
-  "forms": [],
-  "entities": [
-   "Individual"
-  ],
-  "clocks": [],
-  "suggestedVuePage": "resources/js/Pages/Civic/MyRecord.vue",
-  "notes": "Append-only log-row pattern (seq + UTC-hinted date + type badge + text + chained hash, data-no-i18n on hashes); stats match civic-home (14 ballots / 2 petitions / 1 statement); explicit ballot-secrecy banner — participation public, choices never recorded; feeds WF-CIV-05 candidate profiles.",
-  "stage": 1
- },
- {
   "file": "civic/onboarding.html",
-  "title": "Onboarding",
+  "title": "Create your account",
   "module": "civic",
   "roles": [
    "R-01"
@@ -1017,7 +946,7 @@
  },
  {
   "file": "civic/relocation.html",
-  "title": "Relocation",
+  "title": "Move somewhere new",
   "module": "civic",
   "roles": [
    "R-03"
@@ -1040,7 +969,7 @@
  },
  {
   "file": "civic/residency.html",
-  "title": "Residency",
+  "title": "Say where you live",
   "module": "civic",
   "roles": [
    "R-01",
@@ -1090,36 +1019,6 @@
   ],
   "suggestedVuePage": "resources/js/Pages/Elections/CandidacyRegistration.vue",
   "notes": "Real F-IND-011 form (office select scoped to associated jurisdictions, position-tag chips, residency attestation); one result card toggles between the validated path (→ approval pool, R-06) and the rejection path (residency-only ground, court appeal to ../judiciary/case-docket.html citing Pham v. Charlotte election board, case-2031-101); phase banner reacts to scenario.election per CLK-18.",
-  "stage": 2
- },
- {
-  "file": "electoral/candidate-profile.html",
-  "title": "Candidate profile",
-  "module": "electoral",
-  "roles": [
-   "R-03",
-   "R-04",
-   "R-06",
-   "R-07"
-  ],
-  "workflows": [
-   "WF-CIV-05",
-   "WF-CIV-08"
-  ],
-  "forms": [
-   "F-CAN-001",
-   "F-CAN-002",
-   "F-CAN-003"
-  ],
-  "entities": [
-   "Candidacy",
-   "Approval Standing"
-  ],
-  "clocks": [
-   "CLK-21"
-  ],
-  "suggestedVuePage": "resources/js/Pages/Elections/CandidateProfile.vue",
-  "notes": "Renders diego-ramos by default and honors ?candidate= (captured in head before demo-state strips it) plus a #candidate= hash fallback; reusable patterns: SVG endorsement graph (orgs + individuals, ledger #1), auto-attached public record (legislative votes only for incumbents), approval-standing meter with the finalist line positioned at the 21st candidate's approvals, withdraw-with-confirm locked after the finalist cutoff.",
   "stage": 2
  },
  {
@@ -1480,7 +1379,7 @@
  },
  {
   "file": "legislature/oversight.html",
-  "title": "Oversight & ethics — admin office",
+  "title": "Ethics & removals",
   "module": "legislature",
   "roles": [
    "R-29",
@@ -1849,7 +1748,7 @@
  },
  {
   "file": "organizations/co-determination.html",
-  "title": "Co-determination scaling",
+  "title": "Worker seats on the board",
   "module": "organizations",
   "roles": [
    "R-25",
@@ -1872,38 +1771,6 @@
   ],
   "suggestedVuePage": "resources/js/Pages/Organizations/CoDetermination.vue",
   "notes": "Keyboard-operable range slider drives the scaling meter with live formula block — worker_seats = max(1, round((W−100)÷1900×owner_seats)) → Bluefin 740 = 3 of 9, labeled 'uniform interpolation · as implemented (CGA spec)'; applies-equally table spans private orgs, the CGC, and executive departments (matches dep fixtures: 1240→4/7, 152→1/5); CLK-13/14 rendered as amendable cards.",
-  "stage": 4
- },
- {
-  "file": "organizations/org-detail.html",
-  "title": "Organization profile",
-  "module": "organizations",
-  "roles": [
-   "R-23",
-   "R-24",
-   "R-06",
-   "R-07"
-  ],
-  "workflows": [
-   "WF-ORG-02",
-   "WF-ORG-03"
-  ],
-  "forms": [
-   "F-ORG-001",
-   "F-CAN-002",
-   "F-ORG-002",
-   "F-IND-013",
-   "F-IND-014"
-  ],
-  "entities": [
-   "Organization"
-  ],
-  "clocks": [
-   "CLK-13",
-   "CLK-14"
-  ],
-  "suggestedVuePage": "resources/js/Pages/Organizations/Detail.vue",
-  "notes": "Tab-switch pattern (Commons Party party-tab vs Bluefin business-tab, same entity type); endorsement panel pairs F-CAN-002 request queue with F-ORG-002 grant action conferring R-07 (ledger #1 cited); endorsed candidates pulled live from W.candidates; join forms F-IND-013/014 with simulated confirmations.",
   "stage": 4
  },
  {
@@ -1934,7 +1801,7 @@
  },
  {
   "file": "organizations/transfers-conversions.html",
-  "title": "Transfers and conversions",
+  "title": "Ownership changes",
   "module": "organizations",
   "roles": [
    "R-23",
@@ -2134,23 +2001,8 @@
   "stage": 5
  },
  {
-  "file": "civic/learn.html",
-  "title": "Learn",
-  "module": "civic",
-  "roles": [
-   "R-01"
-  ],
-  "workflows": [],
-  "forms": [],
-  "entities": [],
-  "clocks": [],
-  "suggestedVuePage": "resources/js/Pages/Civic/Learn.vue",
-  "notes": "Brand register (modest launchpad-hero strip, purple+gold); 12 Topic_Knowledge course cards with question counts (max(minutes/5,3) rounded) + video length + external https links with external-link icon; 'learning is never a gate · Art. I' banner; suggested-path stepper; gamification card flagged Proposed.",
-  "stage": 6
- },
- {
   "file": "jurisdictions/bootstrap.html",
-  "title": "Jurisdiction bootstrap",
+  "title": "How a place wakes up",
   "module": "jurisdictions",
   "roles": [
    "R-01",
@@ -2174,7 +2026,7 @@
  },
  {
   "file": "jurisdictions/disintermediation.html",
-  "title": "Disintermediation",
+  "title": "Removing a middle layer",
   "module": "jurisdictions",
   "roles": [
    "R-09"
@@ -2221,7 +2073,7 @@
  },
  {
   "file": "jurisdictions/federation.html",
-  "title": "Federation",
+  "title": "Between governments",
   "module": "jurisdictions",
   "roles": [
    "R-09",
@@ -2268,7 +2120,7 @@
  },
  {
   "file": "jurisdictions/restoration.html",
-  "title": "Constitutional restoration",
+  "title": "Rebuilding a lost government",
   "module": "jurisdictions",
   "roles": [
    "R-03",
@@ -2464,27 +2316,6 @@
   ],
   "suggestedVuePage": "resources/js/Pages/System/TermSync.vue",
   "notes": "Inline SVG lockstep timeline (2030→2036): three elected-branch bars ending together at 2035-11-01 plus dashed 10-year appointed-clock contrast bar; hardened no-skip chip; 1,604-day countdown vs demo date 2031-06-11; vacancies-never-reset-the-clock card; emergency scenario reactive.",
-  "stage": 6
- },
- {
-  "file": "system/setup-wizard.html",
-  "title": "Instance setup — the founding loop",
-  "module": "system",
-  "roles": [],
-  "workflows": [
-   "WF-JUR-01"
-  ],
-  "forms": [],
-  "entities": [
-   "Jurisdiction"
-  ],
-  "clocks": [
-   "CLK-01",
-   "CLK-05",
-   "CLK-06"
-  ],
-  "suggestedVuePage": "resources/js/Pages/Setup/* (SHIPPED — Steps 0–4 exist; they adopt this design system)",
-  "notes": "Placement contract for the developed setup wizard: Step 0 cosmic address + restore-from-backup, Step 1 constitutional defaults (defaults-of-defaults as reference), Step 2 ETL run with live layer progress + jurisdiction-viewer review, Step 3 apportionment + district-mapper handoff, Step 4 confirm/seat + instance export (the federation seed). Marked with a developed-component slot strip.",
   "stage": 6
  }
 ]

@@ -62,12 +62,12 @@
     }).join('');
 
     return '<div class="cluster" style="justify-content:space-between;align-items:center;margin-block-end:var(--space-3)">' +
-      '<p class="gloss" style="margin:0">Your direct messages and parties — talk, files, voice, and video.</p>' +
-      '<a class="btn btn--primary btn--sm" href="' + hrefV2('groups/group-create.html') + '">' + icon('plus', { size: 'sm' }) + ' New message or party</a>' +
+      '<p class="gloss" style="margin:0">Your direct and group messages — talk, files, voice, and video.</p>' +
+      '<a class="btn btn--primary btn--sm" href="' + hrefV2('groups/group-create.html') + '">' + icon('plus', { size: 'sm' }) + ' New message</a>' +
       '</div>' +
       '<section class="card" style="padding:0" aria-label="Conversations"><div class="msg-inbox">' + rows + '</div></section>' +
       '<div class="lr-note" style="margin-block-start:var(--space-3)"><div>' + icon('shield', { size: 'sm' }) + '</div>' +
-      '<div><strong style="color:var(--gov-fg)">A party is just people talking.</strong> It is temporary, it confers no governance power, and who is in it is private to you — it never leaves this server. If a party wants to last, it can become an <a href="' + hrefV2('social/org-profile.html') + '">organization</a> — but it never has to.</div></div>';
+      '<div><strong style="color:var(--gov-fg)">A group message is just people talking.</strong> It is temporary, it grants no governance power, and it is private to its members — nobody else can read it. If a group wants to last, it can become an <a href="' + hrefV2('organizations/org-registry.html#register-h') + '">organization</a> — but it never has to.</div></div>';
   }
 
   /* ---- one conversation: thread + toolkit ------------------------------ */
@@ -103,18 +103,18 @@
       '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-2)">' +
       '<div class="cluster" style="gap:var(--space-2);align-items:center">' +
       '<span class="conv-avatar" aria-hidden="true">' + esc(isParty ? initialsOf(c.title.replace(/\s/g, '')) : initialsOf(c.with || c.title)) + '</span>' +
-      '<span class="stack" style="gap:0"><strong style="font-size:var(--text-lg);color:var(--gov-fg)">' + esc(c.title) + '</strong>' +
-      '<span class="gloss">' + (isParty ? icon('users', { size: 'sm' }) + ' Party · ' + (c.members != null ? c.members + ' people' : (c.participants || []).length + ' people') + (c.ephemeral ? ' · temporary' : '') : icon('user', { size: 'sm' }) + ' Direct message') + '</span></span>' +
+      '<div class="stack" style="gap:0"><h1 style="font-size:var(--text-lg);color:var(--gov-fg);margin:0">' + esc(c.title) + '</h1>' +
+      '<span class="gloss">' + (isParty ? icon('users', { size: 'sm' }) + ' Party · ' + (c.members != null ? c.members + ' people' : (c.participants || []).length + ' people') + (c.ephemeral ? ' · temporary' : '') : icon('user', { size: 'sm' }) + ' Direct message') + '</span></div>' +
       '</div>' +
       (c.live ? '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span>live now</span>' : '') +
       '</div>' + liveBar;
 
     var members = isParty
-      ? '<section class="card card--inset" aria-labelledby="mem-h"><h2 id="mem-h" style="font-size:var(--text-base)">' + icon('users', { size: 'sm' }) + ' In this party</h2>' +
+      ? '<section class="card card--inset" aria-labelledby="mem-h"><h2 id="mem-h" style="font-size:var(--text-base)">' + icon('users', { size: 'sm' }) + ' In this group</h2>' +
         '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap">' +
         (c.participants || []).map(function (h) { return '<span class="party-chip">' + esc(nameOf(h)) + '</span>'; }).join('') + '</div>' +
-        '<p class="gloss" style="margin-block-start:var(--space-2)">Anyone here can add or leave at any time. When the last person leaves, the party is gone.</p>' +
-        '<div class="cluster" style="margin-block-start:var(--space-2)"><a class="btn btn--ghost btn--sm" href="' + hrefV2('social/org-profile.html') + '">' + icon('building', { size: 'sm' }) + ' Make this a standing organization</a></div></section>'
+        '<p class="gloss" style="margin-block-start:var(--space-2)">Anyone here can add or leave at any time. When the last person leaves, the conversation is gone.</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)"><a class="btn btn--ghost btn--sm" href="' + hrefV2('organizations/org-registry.html#register-h') + '">' + icon('building', { size: 'sm' }) + ' Make this a standing organization</a></div></section>'
       : '';
 
     return '<section class="card msg-thread-card">' + head +

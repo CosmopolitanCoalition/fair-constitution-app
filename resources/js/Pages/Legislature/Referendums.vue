@@ -10,6 +10,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -22,6 +23,9 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -116,9 +120,9 @@ const ORIGIN_LABELS = { delegation: 'Delegated by the chamber', petition: 'Citiz
     <PageScaffold :surface="surface" :title="`Referendums — ${legislature.name}`">
         <template #intro>
             The legislature can put any issue to the population by supermajority. The passage
-            threshold is not chosen — it is fixed by the act type: a majority-class act resolves
-            by majority of the population, a supermajority-class act by supermajority. Absent
-            voters count exactly like a no.
+            threshold is not chosen — it matches the kind of act: a question the legislature
+            could pass by simple majority resolves by a majority of the population; one that
+            would need a supermajority resolves by a population supermajority.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

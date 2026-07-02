@@ -102,7 +102,9 @@ class ColdSyncService
             'next_from_seq' => $toSeq,
             'last_page_hash' => (string) ($page['head_hash'] ?? ''),
             'pages_applied' => (int) $cursor->pages_applied + 1,
-            'records_applied' => (int) $cursor->records_applied + count($log->detail['applied'] ?? []),
+            'records_applied' => (int) $cursor->records_applied
+                + count($log->detail['applied'] ?? [])
+                + count($log->detail['achievements_applied'] ?? []),
         ])->save();
 
         if (count($entries) < $pageSize) {

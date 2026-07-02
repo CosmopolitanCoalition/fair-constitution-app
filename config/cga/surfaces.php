@@ -916,4 +916,193 @@ return [
         'citation'  => 'Dev harness — fixture-first component verification (FE-E1) · not product UI',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 2 — system read-only pages
+    |----------------------------------------------------------------------
+    | Contract data from the mockups' CGA_PAGE blocks
+    | (mockups/v3/shared/clocks.html, mockups/v3/system/amendments.html).
+    | Both READ-ONLY BY DESIGN — zero forms, zero actions.
+    */
+
+    'system/clocks' => [
+        'title'     => 'The clocks',
+        'module'    => 'system',
+        'nav'       => 'clocks',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        // The whole registry — this page IS the scheduler spec.
+        'clocks'    => [
+            'CLK-01', 'CLK-02', 'CLK-03', 'CLK-04', 'CLK-05', 'CLK-06', 'CLK-07',
+            'CLK-08', 'CLK-09', 'CLK-10', 'CLK-11', 'CLK-12', 'CLK-13', 'CLK-14',
+            'CLK-15', 'CLK-16', 'CLK-17', 'CLK-18', 'CLK-19', 'CLK-20', 'CLK-21',
+        ],
+        'citation'  => 'Clocks hold no state — they move other things · the registry is the scheduler spec',
+    ],
+
+    'system/amendments' => [
+        'title'     => 'Amendments',
+        'module'    => 'system',
+        'nav'       => 'amendments',
+        'roles'     => ['R-09'],
+        'workflows' => ['WF-SYS-05'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII',
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 3c — the journeys engine
+    |----------------------------------------------------------------------
+    | Contract data from mockups/v3/journeys/journey.html (CGA_PAGE block)
+    | + config/cga/journeys.php. Zero forms/clocks — journeys are the learn
+    | layer: they nudge, never gate, and a medal grants nothing.
+    */
+
+    'civic/journeys' => [
+        'title'     => 'Journeys',
+        'module'    => 'civic',
+        'nav'       => 'journeys',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+    ],
+
+    'civic/journey' => [
+        'title'     => 'A journey',
+        'module'    => 'civic',
+        'nav'       => 'journeys',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 3e — the monolith retirements
+    |----------------------------------------------------------------------
+    | Legislature/Show (5.2k) split into the overview (legislature/overview)
+    | + the extracted district mapper (legislature/districts); the
+    | jurisdiction viewer joins the v2 shell (jurisdictions/viewer).
+    */
+
+    'legislature/overview' => [
+        'title'     => 'A legislature',
+        'module'    => 'jurisdictions',
+        'nav'       => 'legislatures',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Every legislature sized by the cube-root law; 5–9 seats per district · Art. II §2',
+    ],
+
+    'legislature/districts' => [
+        'title'     => 'The district mapper',
+        'module'    => 'jurisdictions',
+        'nav'       => 'legislatures',
+        'roles'     => ['R-08'],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [
+            ['id' => 'F-ELB-008', 'citation' => 'Art. II §2 (manual district draw — childless leaf giants)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Districts partition the jurisdiction; every district seats 5–9 · Webster rounding · Art. II §2',
+    ],
+
+    'jurisdictions/viewer' => [
+        'title'     => 'A jurisdiction',
+        'module'    => 'jurisdictions',
+        'nav'       => 'jurisdiction-browser',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Every place governs itself — sitting inside a bigger one changes scope, never rank · Art. V §1',
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 4 — the operator/* console suite
+    |----------------------------------------------------------------------
+    | The operator plane (infrastructure & mesh), deliberately separate from
+    | constitutional_settings and the citizen R-xx roles — so no `roles` /
+    | `forms` entries here. Console language is the settled slate: "authority"
+    | attaches to a JURISDICTION (the home copy of a place), never to a node
+    | as rank; "become a peer" is one process; role elevation is the separate,
+    | trust-gated ladder (PHASE_4_DESIGN_peerage.md §§1, 3.4).
+    */
+
+    'operator/home' => [
+        'title'     => 'Operator home',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'One process to peerage — a node that can get a cert and take clients is a full, equal peer · authority attaches to a place, never a node',
+    ],
+
+    'operator/console' => [
+        'title'     => 'Mesh console',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'The consent meters govern capability grants and upgrades — never a caste of node · Art. II §2; Art. VII',
+    ],
+
+    'operator/roles' => [
+        'title'     => 'Mesh roles',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A role is the set of channels a box hosts; a governed channel follows the dual-meter consent, never a self-claim · Mesh Roles & Channels of Trust',
+    ],
+
+    'operator/mesh' => [
+        'title'     => 'Peers & transports',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'Peers replicate the record in full faith & credit; each place\'s home copy decides its writes · Art. V',
+    ],
+
+    'operator/identity' => [
+        'title'     => 'Node identity',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'The node signs as itself (Ed25519); operators are recognized by device-key possession — the password never federates',
+    ],
+
+    'operator/versioning' => [
+        'title'     => 'Versioning',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A constitutional bump clears every applicable meter; a regressive bump can never pass · Art. VII',
+    ],
+
 ];

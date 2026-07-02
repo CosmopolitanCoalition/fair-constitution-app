@@ -27,6 +27,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -40,6 +41,9 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -116,8 +120,8 @@ const panelColumns = [
             An independent court serving this jurisdiction and its constituents. Created by
             supermajority act of the legislature; judges nominated by the constituent jurisdictions
             in equal numbers (or the judicial committee as fallback) and confirmed by consent vote.
-            Appointed is the default judiciary type — conversion to elected requires two independent
-            supermajorities.
+            Appointed is the default kind of court — converting it to an elected court takes two
+            separate supermajorities.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

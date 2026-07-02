@@ -99,6 +99,12 @@
   --gov-primary-fg:    var(--cc-white);
   --gov-focus:         var(--cc-gold-400);    /* gold focus ring on dark       */
   --gov-link:          var(--cc-gold-300);
+  /* v2 layer aliases (components-v2.css): --gov-accent had no definition in
+     the mockups (it silently inherited); pinned to the link gold here.
+     --gov-surface-subtle is the between-surface wash the v2 sheet reaches
+     for with fallbacks. */
+  --gov-accent:         var(--gov-link);
+  --gov-surface-subtle: color-mix(in oklch, var(--gov-surface) 60%, var(--gov-bg));
 
   /* ========================================================= SEMANTIC: BRAND
      Identity + marketing + civic-card surfaces. Warm, light, classical. */

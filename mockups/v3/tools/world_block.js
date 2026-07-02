@@ -117,9 +117,9 @@
         flags: ['monopoly_target'], note: 'Monopoly-acquisition scenario target (F-LEG-026).' }
     ],
 
-    /* Candidates in the Manhattan approval phase (7 seats → finalist line at
-       X = 21 · CLK-21, so 24 registrants keep the line visible mid-list).
-       Zero-endorsement candidates are first-class throughout. All fictional. */
+    /* Candidates in the Manhattan approval phase (9 seats → finalist line at
+       X = 27 · CLK-21, so 30 registrants keep the line visible mid-list).
+       Zero-endorsement candidates appear and count the same as everyone else. All fictional. */
     candidates: [
       { id: 'diego-ramos', name: 'Diego Ramos', election: 'elec-manhattan-2031', endorsedBy: ['commons-party'], individualEndorsements: 41, approvals: 4182, deltaDay: 3, tags: ['housing', 'transit'], statement: 'Frequent buses, fewer evictions, open books.' },
       { id: 'keisha-boyd', name: 'Keisha Boyd', election: 'elec-manhattan-2031', endorsedBy: ['green-horizon'], individualEndorsements: 28, approvals: 3974, deltaDay: -1, tags: ['climate', 'parks'], incumbent: true, statement: 'Tree canopy and clean air are infrastructure.' },
@@ -144,7 +144,13 @@
       { id: 'sun-li-park', name: 'Sun-Li Park', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 13, approvals: 1140, deltaDay: 4, tags: ['education'] },
       { id: 'gloria-acheampong', name: 'Gloria Acheampong', election: 'elec-manhattan-2031', endorsedBy: ['green-horizon'], individualEndorsements: 2, approvals: 1056, deltaDay: -1, tags: ['climate', 'transit'] },
       { id: 'bastian-keller', name: 'Bastian Keller', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 1, approvals: 967, deltaDay: 0, tags: ['budget'] },
-      { id: 'yara-haddad', name: 'Yara Haddad', election: 'elec-manhattan-2031', endorsedBy: ['hudson-mutual-aid'], individualEndorsements: 16, approvals: 873, deltaDay: 2, tags: ['mutual-aid', 'health'] }
+      { id: 'yara-haddad', name: 'Yara Haddad', election: 'elec-manhattan-2031', endorsedBy: ['hudson-mutual-aid'], individualEndorsements: 16, approvals: 873, deltaDay: 2, tags: ['mutual-aid', 'health'] },
+      { id: 'tarek-aziz', name: 'Tarek Aziz', election: 'elec-manhattan-2031', endorsedBy: ['five-boroughs-chamber'], individualEndorsements: 10, approvals: 812, deltaDay: 1, tags: ['zoning', 'small-business'] },
+      { id: 'oksana-melnyk', name: 'Oksana Melnyk', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 6, approvals: 746, deltaDay: 2, tags: ['health', 'parks'] },
+      { id: 'ravi-krishnan', name: 'Ravi Krishnan', election: 'elec-manhattan-2031', endorsedBy: ['commons-party'], individualEndorsements: 7, approvals: 689, deltaDay: -1, tags: ['transit', 'education'] },
+      { id: 'paloma-reyes', name: 'Paloma Reyes', election: 'elec-manhattan-2031', endorsedBy: ['uptown-neighbors'], individualEndorsements: 5, approvals: 601, deltaDay: 0, tags: ['parks', 'housing'] },
+      { id: 'kofi-asante', name: 'Kofi Asante', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 3, approvals: 544, deltaDay: 1, tags: ['water'], statement: 'Below the line today — approve me, or write me in on the ballot.' },
+      { id: 'maren-solheim', name: 'Maren Solheim', election: 'elec-manhattan-2031', endorsedBy: [], individualEndorsements: 2, approvals: 488, deltaDay: 0, tags: ['budget'], statement: 'Every validated candidate can still be written in — including me.' }
     ],
 
     /* Petitions (F-IND-009/010; threshold = 5% of jurisdiction population · CLK-17). */
@@ -236,7 +242,7 @@
        is a real race here, not a metaphor). */
     elections: [
       { id: 'elec-manhattan-2031', jurisdiction: 'usa-3-new-york-county', kind: 'general', phase: 'approval',
-        seats: 7, finalistCount: 21, finalistRule: 'X = f(seats) · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
+        seats: 9, finalistCount: 27, finalistRule: 'X = f(seats) · CLK-21', clocks: ['CLK-18', 'CLK-21'] },
       { id: 'elec-brooklyn-2031', jurisdiction: 'usa-3-kings-county', kind: 'general', phase: 'ranked',
         seats: 5, finalistCount: 15, ranksClose: '2031-05-30T23:59:00Z', clocks: ['CLK-21'] },
       { id: 'elec-queens-2031', jurisdiction: 'usa-3-queens-county', kind: 'general', phase: 'certifying',
@@ -378,7 +384,7 @@
           screen: { href: 'civic/residency.html', params: { role: 'R-03' } } },
         { n: 5, actor: 'System', action: 'Unlock civic rights', engine: 'Constitutional Engine',
           outcome: 'Voting + candidacy unlocked automatically, no other requirements; population records updated (WF-JUR-09)',
-          screen: { href: 'civic/civic-home.html', params: { role: 'R-03' } },
+          screen: { href: 'civic/today.html', params: { role: 'R-03' } },
           branches: [{ label: 'Population records update', goto: { wf: 'WF-JUR-09', step: 1 } }] }
       ]
     },

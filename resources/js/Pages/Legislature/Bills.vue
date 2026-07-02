@@ -17,6 +17,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -26,6 +27,9 @@ import DataTable from '@/Components/Ui/DataTable.vue';
 import Field from '@/Components/Ui/Field.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -157,9 +161,9 @@ function boundsLabel(bounds) {
 <template>
     <PageScaffold :surface="surface" :title="`Bills — ${legislature.name}`">
         <template #intro>
-            Every bill this chamber has seen, end to end: introduction (scale &amp; scope fixed
-            there — Art. V §4), committee, floor, enactment as a versioned law. Failed bills
-            archive with their public casts and explanations.
+            Every bill declares its scale (which jurisdictions are bound) and scope (which
+            court level hears disputes) at introduction. Acts pass by majority of all serving
+            members, and some act types require a supermajority.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

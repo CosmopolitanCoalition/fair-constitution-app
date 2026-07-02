@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Residency — CGA mockups</title>
+  <title>Say where you live — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,37 +15,35 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Civic onboarding · step 3 of 3</span>
-        <h1>Residency</h1>
-        <p class="page-intro">Declare where you live, and the system verifies it from your long-term presence pattern —
-          nothing else. The moment residency verifies, you are associated with <strong>every</strong> enclosing
-          jurisdiction at once, and voting and candidacy unlock automatically with no other requirements.</p>
-        <p class="citation">Residency verified → all associations → rights unlocked.</p>
+        <h1>Say where you live</h1>
+        <p class="page-intro">Declare where you live, and living there does the rest — nothing else is checked. The
+          moment your residency is confirmed, you belong to <strong>every</strong> place that contains your home at
+          once, and voting and candidacy unlock automatically with no other requirements.</p>
       </header>
 
       <section class="card" aria-labelledby="claim-h">
         <h2 id="claim-h">Your residency claim</h2>
         <div id="claim-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Declared → Ping-Monitoring → Threshold-Met → Verified → Active.</p></noscript>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Threshold days is an amendable setting; pings are encrypted at rest.</p>
+        <noscript><p class="gloss">The progress strip renders with JavaScript — steps: Declared → Building the pattern → Enough days → Confirmed → Active.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Live here for the threshold days and the rest happens by itself.</p>
       </section>
 
       <section class="card" aria-labelledby="decl-h">
         <h2 id="decl-h">Residency declaration</h2>
-        <p class="cc-small">Declare intent to establish residency in a jurisdiction. Begins GPS ping monitoring.
-          <span class="citation" style="display:block">Available to anyone · creates your residency tracking record · the right to reside is guaranteed.</span></p>
+        <p class="cc-small">Say where you live. Your phone then checks in now and then to show you really live there.</p>
         <form id="decl-form" novalidate>
           <div class="field">
-            <label class="field-label" for="decl-jur">Jurisdiction of residence</label>
+            <label class="field-label" for="decl-jur">Where do you live?</label>
             <select class="select" id="decl-jur">
-              <option value="usa-3-new-york-county" selected>New York County (Manhattan) — County (deepest available US level)</option>
-              <option value="usa-3-kings-county">Kings County (Brooklyn) — County (New York, United States)</option>
-              <option value="smr-2-serravalle">Serravalle — San Marino (chain ends here — no deeper subdivisions in the dataset)</option>
+              <option value="usa-3-new-york-county" selected>New York County (Manhattan) — New York, United States</option>
+              <option value="usa-3-kings-county">Kings County (Brooklyn) — New York, United States</option>
+              <option value="smr-2-serravalle">Serravalle — San Marino</option>
             </select>
-            <span class="field-hint">Declare the smallest boundary you live inside; every enclosing level associates automatically.</span>
+            <span class="field-hint">Pick the smallest place you live inside; every place that contains it counts you automatically.</span>
           </div>
           <div class="field">
             <label class="checkbox"><input type="checkbox" id="decl-consent" checked />
-              Start collecting periodic location pings to establish my residency pattern. Pings are encrypted at rest and never shown to anyone.</label>
+              Let my phone check in now and then to show I live here. Locations stay encrypted — no one ever sees them, only the day count.</label>
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--primary">Declare residency</button>
@@ -56,21 +54,19 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="ping-h">
-          <h2 id="ping-h">GPS residency ping</h2>
-          <p class="cc-small">Periodic automated or manual location check-in for residency pattern establishment.
-            <span class="citation" style="display:block">Available to anyone · appends to your private residency ping log.</span></p>
+          <h2 id="ping-h">Location check-ins</h2>
+          <p class="cc-small">Your phone checks in now and then to show you really live here. Locations stay
+            encrypted — only the day count is ever visible.</p>
           <div id="ping-meter" class="meter-block"></div>
           <noscript><p class="gloss">Live meter renders with JavaScript — 22 of 30 qualifying days in the fixture state.</p></noscript>
           <p style="margin-block-start:var(--space-3)" class="amendable">
-            <span class="amendable-value">30 days</span> — residency verification threshold
+            <span class="amendable-value">30 days</span> — residency confirmation threshold
             <span class="amendable-meta">Constitutional default — can be changed by a legislative act.</span>
           </p>
           <div class="banner banner--info" style="margin-block-start:var(--space-3)">
             <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-            <div><span class="banner-title">Pings are encrypted at rest.</span>
-              Only the derived day-count is ever visible — to you or to anyone. Raw locations are never published,
-              never shared, and purge on verification.
-              <span class="citation">Your location pings stay private.</span></div>
+            <div><span class="banner-title">Your locations stay private — like a ballot, only you can ever see anything, and even you only see the day count.</span>
+              Raw locations are never published and are deleted once residency is confirmed.</div>
           </div>
         </section>
 
@@ -90,16 +86,15 @@
             <text x="216" y="116" fill="var(--gov-fg-strong)" font-size="12">New York County</text>
             <text x="120" y="222" fill="var(--gov-fg-subtle)" font-size="10">qualifying ping days cluster inside the boundary</text>
           </svg>
-          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS (point-in-polygon against the county boundary from geoBoundaries).</p>
+          <p class="gloss">Illustrative map.</p>
         </section>
       </div>
 
       <section class="card" aria-labelledby="verify-h">
-        <h2 id="verify-h">Residency verification confirmation</h2>
-        <p class="cc-small">System auto-generates when the ping threshold is met; you confirm or correct.
-          <span class="citation" style="display:block">Creates your verified residency and all jurisdictional associations at once.</span></p>
+        <h2 id="verify-h">Confirming your residency</h2>
+        <p class="cc-small">When you have been here long enough, the confirmation appears by itself — you confirm it, or correct it if the system got the place wrong.</p>
         <div id="verify-body"></div>
-        <noscript><p class="gloss">Verification panel renders with JavaScript — it shows locked, pending-confirmation, and fully-associated states as you become a resident and then fully associated.</p></noscript>
+        <noscript><p class="gloss">The confirmation panel renders with JavaScript — it shows locked, pending-confirmation, and confirmed states as you become a resident.</p></noscript>
       </section>
 
       <details class="about-surface">
@@ -109,7 +104,10 @@
             location pattern build up over time, then confirm. Moving later re-runs the same steps, and
             population records update automatically.</p>
           <p><strong>How your claim progresses:</strong> Declared → Ping-Monitoring → Threshold-Met → Verified → Active.
-            Along the way you go from resident to fully associated with every jurisdiction you live inside.</p>
+            Along the way you become a resident of every jurisdiction that contains your home (formally:
+            jurisdictional association).</p>
+          <p>The boundary map on this page is a stylized stand-in — production uses Leaflet + PostGIS
+            (point-in-polygon against the county boundary from geoBoundaries).</p>
           <p class="citation">Your right to reside is guaranteed, and authority rests on your consent.</p>
         </div>
       </details>
@@ -119,9 +117,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'civic/residency',
-      title: 'Residency',
+      title: 'Say where you live',
       module: 'civic',
-      nav: 'civic-home',
+      nav: 'residency',
       roles: ['R-01', 'R-02', 'R-03'],
       workflows: ['WF-CIV-02'],
       forms: ['F-IND-003', 'F-IND-005', 'F-IND-006'],
@@ -157,7 +155,7 @@
         return W.defaultChain.map(function (slug) {
           var j = BY.jurisdictions[slug];
           return '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + ' ' +
-            S.icon('check', { size: 'sm', label: 'associated' }) + '</span>';
+            S.icon('check', { size: 'sm', label: 'you live here' }) + '</span>';
         }).join('');
       }
 
@@ -166,12 +164,22 @@
         var days = st === 1 ? 22 : THRESHOLD;
         var pct = Math.round(days / THRESHOLD * 100);
 
-        /* Residency Claim lifecycle strip */
+        /* Residency-claim progress strip — plain display labels; the raw tokens stay
+           in the data, and the terminal Superseded/Lapsed state is not part of the story. */
+        var STEP_LABEL = {
+          'Declared': 'Declared',
+          'Ping-Monitoring': 'Building the pattern',
+          'Threshold-Met': 'Enough days',
+          'Verified': 'Confirmed',
+          'Active': 'Active'
+        };
         var current = st === 1 ? 'Ping-Monitoring' : st === 2 ? 'Threshold-Met' : 'Active';
-        document.getElementById('claim-strip').innerHTML = BY.entities['Residency Claim'].states.map(function (s2, i) {
-          var cls = 'state-node' + (s2.indexOf(current) === 0 ? ' state-node--current' : '');
+        document.getElementById('claim-strip').innerHTML = BY.entities['Residency Claim'].states.filter(function (s2) {
+          return Object.prototype.hasOwnProperty.call(STEP_LABEL, s2);
+        }).map(function (s2, i) {
+          var cls = 'state-node' + (s2 === current ? ' state-node--current' : '');
           return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
-            '<span class="' + cls + '">' + esc(s2) + '</span>';
+            '<span class="' + cls + '">' + esc(S.plainState(s2, STEP_LABEL)) + '</span>';
         }).join('');
 
         /* Live ping-pattern meter (CLK-05) */
@@ -192,14 +200,13 @@
             '<div class="cluster"><button type="button" class="btn btn--primary" id="confirm-btn">Confirm — this is my residence</button>' +
             '<button type="button" class="btn btn--ghost" id="correct-btn">Correct the boundary</button></div>';
         } else {
-          body = '<p>' + S.badge('success', 'Residency verified — you are a verified resident', 'check') + '</p>' +
-            '<p style="margin-block-start:var(--space-3)"><strong>Associated with every level:</strong> your location resolved your entire chain — a chip for every level, all associated simultaneously.</p>' +
+          body = '<p>' + S.badge('success', 'Residency confirmed — you are a resident', 'check') + '</p>' +
+            '<p style="margin-block-start:var(--space-3)"><strong>You belong to every place that contains your home:</strong></p>' +
             '<div class="cluster" style="margin-block-start:var(--space-2)">' + chipChain() + '</div>' +
             '<div class="cluster" style="margin-block-start:var(--space-4);gap:var(--space-4)">' +
             S.badge('success', 'Voting unlocked', 'check') + S.badge('success', 'Candidacy unlocked', 'check') +
             '<span class="hardened">' + S.icon('lock', { size: 'sm' }) + ' Protected — guaranteed and cannot be taken away</span></div>' +
-            '<p class="citation" style="margin-block-start:var(--space-2)">Voting and candidacy unlocked — no other requirements.</p>' +
-            '<p style="margin-block-start:var(--space-3)"><a href="civic-home.html">Go to your civic home ' +
+            '<p style="margin-block-start:var(--space-3)"><a href="today.html">Go home — see what’s happening ' +
             S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + '</a></p>';
         }
         document.getElementById('verify-body').innerHTML = body;
@@ -217,7 +224,7 @@
       document.getElementById('decl-form').addEventListener('submit', function (ev) {
         ev.preventDefault();
         if (!document.getElementById('decl-consent').checked) {
-          document.getElementById('decl-status').innerHTML = S.badge('danger', 'Ping consent is required to verify', 'alert-triangle');
+          document.getElementById('decl-status').innerHTML = S.badge('danger', 'Location check-ins are needed to confirm residency', 'alert-triangle');
           return;
         }
         document.getElementById('decl-status').innerHTML = S.badge('success', 'Declaration recorded — monitoring started', 'check');

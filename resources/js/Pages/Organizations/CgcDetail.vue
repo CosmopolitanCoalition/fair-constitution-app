@@ -18,6 +18,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -32,6 +33,9 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -93,9 +97,9 @@ function submitIp() {
 <template>
     <PageScaffold :surface="surface" :title="`Common Good Corporation — ${organization.name}`">
         <template #intro>
-            A Common Good Corporation: the legislature creates it, the executive oversees it, and it is
-            regulated identically to its private peers. Every work it produces is public domain from the
-            moment of creation — universally, eternally, irreversibly.
+            A Common Good Corporation is a public enterprise chartered by a legislature to provide
+            goods or services to its jurisdiction. It competes and is regulated exactly like its
+            private peers — with one permanent difference: everything it creates belongs to everyone.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

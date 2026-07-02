@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roles &amp; channels — the operator plane — CGA mockups v2</title>
+  <title>Roles &amp; channels — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -51,9 +51,7 @@
             '<span class="orc-title">' + esc(r.label) + '</span>' + pillHtml + '</div>' +
           '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
           '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
-          '<div class="orc-channels">' + chans +
-            (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') +
-          '</div>' +
+          '<div class="orc-channels">' + chans + '</div>' +
           '<span class="citation">' +
             (r.consent === 'self'
               ? 'Self-asserted — every channel goes live on one click; no gate.'
@@ -84,7 +82,7 @@
 
       /* ---- Section 3: the lifecycle as an .fsm strip ---- */
       var lifecycle = [
-        { node: 'qualify', words: 'the node proves it can run the channel (reachable, on-version, has the substrate)' },
+        { node: 'qualify', words: 'the node proves it can run the channel (reachable, on the right version, and has the storage and data the channel needs)' },
         { node: 'request', words: 'the operator asks for the capability over a named peer or jurisdiction' },
         { node: 'approve', words: 'the dual-meter consents — operator board, or the seated government' },
         { node: 'join', words: 'the channel turns on; it now shows as Active' }
@@ -111,7 +109,7 @@
           '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Who:</strong> ' + esc(m.who) + '</p>' +
           '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Threshold:</strong> ' + esc(m.threshold) + '</p>' +
           '<p style="font-size:var(--text-sm)"><strong style="color:var(--gov-fg-muted)">Applies:</strong> ' + esc(m.applies) + '</p>' +
-          (future ? '<span class="advanced-note">Co-affected peer-mesh unanimity ships with the next constitutional-versioning round; today it degrades safely.</span>' : '') +
+          (m.futureNote ? '<span class="advanced-note">' + esc(m.futureNote) + '</span>' : '') +
         '</div>';
       }).join('');
 

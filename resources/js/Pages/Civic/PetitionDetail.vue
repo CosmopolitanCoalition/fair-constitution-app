@@ -11,6 +11,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -19,6 +20,9 @@ import Card from '@/Components/Ui/Card.vue';
 import LifecycleTracker from '@/Components/Ui/LifecycleTracker.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import SignatureMeter from '@/Components/Civic/SignatureMeter.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -64,8 +68,8 @@ function toggleSignature() {
     <PageScaffold :surface="surface" :title="petition.title">
         <template #intro>
             A citizen-drafted law at {{ petition.jurisdiction.name }} scale, created by
-            {{ petition.creator ?? 'an associated resident' }}. Petitions face two kill-paths:
-            a failed signature audit, or an unconstitutional finding.
+            {{ petition.creator ?? 'an associated resident' }}. A petition can be stopped two
+            ways: a failed signature audit, or a finding that the proposed law is unconstitutional.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

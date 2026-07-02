@@ -97,12 +97,13 @@
 <script setup>
 import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppShell from '@/Layouts/AppShell.vue'
+import AppShellV2 from '@/Layouts/AppShellV2.vue'
 
 // Table-led tool surface: full chrome + flush main, reproducing the legacy
 // full-height column (toolbar / scrolling table / pinned pagination).
+// Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN).
 defineOptions({
-    layout: (h, page) => h(AppShell, { variant: 'flush' }, () => page),
+    layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
 })
 
 const admLabels = {

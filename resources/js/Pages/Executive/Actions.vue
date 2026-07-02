@@ -17,6 +17,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -27,6 +28,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import OrderScopeCard from '@/Components/Executive/OrderScopeCard.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -171,10 +175,11 @@ function money(n) {
 <template>
     <PageScaffold :surface="surface" title="Executive actions">
         <template #intro>
-            Orders, policy proposals, investigations, and grants — every one inside the
-            executive's delegated scope. An order's scope is validated <em>before</em> it can
-            issue; a rejected order never takes effect, but the attempt itself goes on the
-            public record. The rails apply from the first order.
+            Orders, policy proposals, investigations, and grants — all within the authority
+            the legislature delegated. The engine validates scope before anything takes
+            effect: an order outside the delegated scope is rejected before issuance, and the
+            rejection itself goes on the public record. Every issued order remains judicially
+            reviewable.
         </template>
 
         <!-- engine 422: the rejection citation, verbatim (exit criterion 1) -->

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>New message or party — CGA mockups v3</title>
+  <title>New message — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'groups/group-create', title: 'New message or party', module: 'groups', nav: 'groups', register: 'governance' };
+    window.CGA_PAGE = { id: 'groups/group-create', title: 'New message', module: 'groups', nav: 'groups', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -27,11 +27,11 @@
     var S = window.CGA.shellV2, esc = S.esc;
     function render() {
       document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">People, together · start a conversation</span><h1>New message or party</h1>' +
-        '<p class="page-intro">Message one person, or start a party with a few. A party is just a temporary group — talk, files, voice, and video. You can do this from anywhere you see someone, the same way you would on any social app.</p></header>' +
+        '<header><span class="eyebrow">People, together · start a conversation</span><h1>New message</h1>' +
+        '<p class="page-intro">Message one person directly, or start a group message with a few. Either way it is just a conversation — talk, files, voice, and video. You can do this from anywhere you see someone, the same way you would on any social app.</p></header>' +
         '<section class="card"><form id="c-form" novalidate>' +
         '<fieldset class="field" style="border:0;padding:0;margin-inline:0"><legend class="field-label">Who is this with</legend>' +
-        '<p class="cc-small">Add one person for a direct message, or several for a party.</p>' +
+        '<p class="cc-small">Add one person for a direct message, or several for a group message.</p>' +
         '<div class="cluster" style="gap:var(--space-2);flex-wrap:wrap" id="people">' +
         '<span class="party-chip">@u-pier7 <button type="button" class="chip-x" data-rm aria-label="remove">' + S.icon('x', { size: 'sm' }) + '</button></span>' +
         '<span class="party-chip">@u-greenwood <button type="button" class="chip-x" data-rm aria-label="remove">' + S.icon('x', { size: 'sm' }) + '</button></span>' +
@@ -39,14 +39,14 @@
         '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
         '<input class="field-input" id="c-add" type="text" placeholder="Add by @handle…" autocomplete="off" />' +
         '<button type="button" class="btn btn--secondary btn--sm" id="c-add-btn">' + S.icon('plus', { size: 'sm' }) + ' Add</button></div></fieldset>' +
-        '<div class="field"><label class="field-label" for="c-name">Name (optional, for a party)</label>' +
+        '<div class="field"><label class="field-label" for="c-name">Name (optional, for a group)</label>' +
         '<input class="field-input" id="c-name" type="text" placeholder="e.g. Saturday crew" /></div>' +
         '<div class="cluster" style="margin-block-start:var(--space-4)"><button type="submit" class="btn btn--primary">' + S.icon('message-square', { size: 'sm' }) + ' Start the conversation</button>' +
         '<a class="btn btn--ghost" href="' + S.hrefV2('groups/groups-home.html') + '">Cancel</a></div>' +
         '<p id="c-confirm" role="status" class="gloss" style="margin-block-start:var(--space-2)"></p>' +
         '</form></section>' +
         '<div class="lr-note"><div>' + S.icon('shield', { size: 'sm' }) + '</div><div>' +
-        '<strong style="color:var(--gov-fg)">A party is temporary and private.</strong> It confers no governance power, who is in it is private to each member, and it never federates. When everyone leaves, it is gone. If a party wants to last, it can become an organization — but it never has to.</div></div>';
+        '<strong style="color:var(--gov-fg)">A group message is temporary and private.</strong> It grants no governance power, and it is private like a ballot — only the people in it can read it. When everyone leaves, it is gone. If a group wants to last, it can become an <a href="' + S.hrefV2('organizations/org-registry.html#register-h') + '">organization</a> — but it never has to.</div></div>';
 
       var people = document.getElementById('people');
       document.getElementById('c-add-btn').addEventListener('click', function () {
@@ -61,7 +61,7 @@
         ev.preventDefault();
         var n = people.querySelectorAll('.party-chip').length;
         var name = (document.getElementById('c-name').value || '').trim();
-        var label = n > 1 ? (name || 'New party') + ' started with ' + n + ' people' : 'Direct message started';
+        var label = n > 1 ? (name || 'New group message') + ' started with ' + n + ' people' : 'Direct message started';
         document.getElementById('c-confirm').textContent = label + ' (simulated) — opening the conversation.';
         S.announce(label);
       });

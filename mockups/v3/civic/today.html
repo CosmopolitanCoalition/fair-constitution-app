@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Today — CGA mockups v2</title>
+  <title>Home — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack" id="root"><p class="gloss">Loading today…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'civic/today', title: 'Today', module: 'civic', nav: 'today', citation: 'Today — what is live in your jurisdictions', register: 'governance' };
+    window.CGA_PAGE = { id: 'civic/today', title: 'Home', module: 'civic', nav: 'today', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -107,11 +107,21 @@
       return r.to.v1 ? S.hrefV1(r.to.rel) : S.hrefV2(r.to.rel);
     }
 
+    /* pill labels/tips come from fixture data; humanize the two insider strings
+       at render time ("Planned · L/M" roadmap code, "peg quorum" engine-speak). */
+    function pillHtml(r) {
+      if (!r.pill) return '';
+      var label = /planned/i.test(r.pill.label || '') ? 'Coming soon' : r.pill.label;
+      var tip = r.pill.tip && /peg quorum/i.test(r.pill.tip)
+        ? 'In session — decisions need a majority of all members, present or not.'
+        : r.pill.tip;
+      return S.pill(r.pill.tone, label, tip);
+    }
+
     function liveRow(r) {
       var cls = 'live-row' + (r.status === 'live' ? ' live-row--live' : '');
-      var pill = r.pill ? S.pill(r.pill.tone, r.pill.label, r.pill.tip) : '';
+      var pill = pillHtml(r);
       var clock = countdownHtml(r.target);
-      var v1tag = r.to.v1 ? '' : '';
 
       return '<div class="' + cls + '">' +
         '<span class="live-icon" aria-hidden="true">' + S.icon(r.icon, { size: 'sm' }) + '</span>' +
@@ -122,14 +132,14 @@
           pill + clock +
         '</span>' +
         '<a class="btn btn--secondary btn--sm" href="' + rowHref(r) + '">' +
-          'Open ' + S.icon('arrow-right', { size: 'sm' }) + v1tag +
+          'Open ' + S.icon('arrow-right', { size: 'sm' }) +
         '</a>' +
       '</div>';
     }
 
     function emptyState() {
       return '<div class="card card--inset stack" style="gap:var(--space-2)">' +
-        '<strong style="color:var(--gov-fg)">Nothing is live in your jurisdictions right now</strong>' +
+        '<strong style="color:var(--gov-fg)">Nothing is live in your places right now</strong>' +
         '<span class="gloss">The galleries stay open — every chamber, hall, and gallery is here whenever a proceeding begins.</span>' +
         '</div>';
     }
@@ -169,6 +179,28 @@
         body + '</section>';
     }
 
+    /* "Your rights here" — the compact rights-unlocked block (merged in from the
+       old civic-home page): the two unlocked rights plus the chain of places. */
+    function rightsSection() {
+      var F = window.CGA.fixtures, W = F.world, BY = F.byId;
+      var chips = W.defaultChain.map(function (slug) {
+        var j = BY.jurisdictions[slug];
+        return '<span class="adm-chip adm-chip--' + Math.min(j.admLevel, 5) + '">' + esc(j.name) + ' ' +
+          S.icon('check', { size: 'sm', label: 'you live here' }) + '</span>';
+      }).join('');
+      return '<section class="card" aria-labelledby="rights-h">' +
+        '<h2 id="rights-h">Your rights here</h2>' +
+        '<div class="cluster" style="gap:var(--space-4)">' +
+        S.badge('success', 'Voting unlocked', 'check') +
+        S.badge('success', 'Candidacy unlocked', 'check') +
+        '<span class="hardened">' + S.icon('lock', { size: 'sm' }) +
+        ' Protected — built into the rules; no vote or official can take these away</span></div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-3)">Living here is the only requirement — ' +
+        'these unlocked the moment your residency was confirmed, in every place that contains your home:</p>' +
+        '<div class="cluster" style="margin-block-start:var(--space-2)">' + chips + '</div>' +
+        '</section>';
+    }
+
     function render() {
       if (tick) { clearInterval(tick); tick = null; }
 
@@ -179,11 +211,10 @@
       }).length;
 
       var header =
-        '<header><span class="eyebrow">Civic · your jurisdictions</span>' +
-        '<h1>Now — ' + happening + ' thing' + (happening === 1 ? ' is' : 's are') + ' happening</h1>' +
-        '<p class="page-intro">Everything live in the places you reside, each one a tap away. ' +
-        'You watch every public proceeding; you speak, testify, and vote only where you reside.</p>' +
-        '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>';
+        '<header><span class="eyebrow">Home · today in your places</span>' +
+        '<h1>Home — ' + happening + ' thing' + (happening === 1 ? ' is' : 's are') + ' happening now</h1>' +
+        '<p class="page-intro">Everything live in the places you live, each one a tap away. ' +
+        'You can watch every public proceeding; you speak, testify, and vote where you live.</p></header>';
 
       var rail =
         '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
@@ -191,22 +222,16 @@
 
       var feed =
         '<section aria-labelledby="now-h" class="stack" style="gap:var(--space-2)">' +
-        '<h2 id="now-h">Live in your jurisdictions</h2>' +
+        '<h2 id="now-h">Live in your places</h2>' +
         (list.length ? list.map(liveRow).join('') : emptyState()) +
         '</section>';
 
       var calendar = calendarSection();
 
       var foot =
-        '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">How today works</h2><ul>' +
-        '<li><strong>You watch everything; you act where you reside.</strong> Galleries are open to all — the floor, testimony, and the vote belong to residents.</li>' +
-        '<li><strong>A ballot row shows only that voting is open.</strong> It never shows how — or whether — you voted.</li>' +
-        '<li><strong>The denominator never shrinks.</strong> A floor vote pegs quorum to a majority of all serving — an absent member counts the same as a no.</li>' +
-        '<li><strong>An override needs a supermajority of all serving.</strong> Not a supermajority of those present.</li>' +
-        '<li><strong>Groups confer no power.</strong> A voluntary association binds only its own members.</li>' +
-        '</ul><p class="citation">The economic items in this feed are <strong>Planned</strong> (Phases L &amp; M) — abstract units, no payment rails.</p></section>';
+        '<p class="gloss">The money items are previews — practice units only, no real payments yet.</p>';
 
-      document.getElementById('root').innerHTML = header + rail + feed + calendar + foot;
+      document.getElementById('root').innerHTML = header + rail + feed + calendar + rightsSection() + foot;
 
       // start the single re-diffing interval unless reduced motion is requested.
       if (!reduce && document.querySelector('#root [data-countdown]')) {

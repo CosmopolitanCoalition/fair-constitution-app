@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The exchange — CGA mockups v2</title>
+  <title>The exchange — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the exchange…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'economy/exchange', title: 'The exchange', module: 'economy', nav: 'exchange', citation: 'The Open Market — price discovery · shares trade at fair market · settles to private wallets', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/exchange', title: 'The exchange', module: 'economy', nav: 'exchange', citation: 'The Open Market — price discovery · organization shares trade at fair market', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -87,7 +87,8 @@
           }).join('') + '</div>';
       }
       var bestBid = bk.bids[0].price, bestAsk = bk.asks[0].price, spread = (bestAsk - bestBid).toFixed(2);
-      return '<div class="ex-book">' + side(bk.bids, 'ex-bid') + side(bk.asks, 'ex-ask') +
+      return '<p class="gloss" style="margin-block:var(--space-1) 0">Bids are what buyers will pay; asks are what sellers want. The gap between them is the spread.</p>' +
+        '<div class="ex-book">' + side(bk.bids, 'ex-bid') + side(bk.asks, 'ex-ask') +
         '<div class="ex-spread">spread ' + spread + ' ' + sym + ' · best bid ' + bestBid.toFixed(2) + ' / best ask ' + bestAsk.toFixed(2) + '</div></div>';
     }
 
@@ -129,7 +130,7 @@
         '<label class="field" style="margin:0"><span class="field-label">Size</span><input class="field-input" type="number" value="50" min="1" data-o-size style="inline-size:6rem" /></label>' +
         '<label class="field" style="margin:0"><span class="field-label">Limit (' + sym + ')</span><input class="field-input" type="number" value="' + bk.asks[0].price.toFixed(2) + '" step="0.01" data-o-price style="inline-size:7rem" /></label>' +
         '<button type="button" class="btn btn--primary" data-o-submit>Send order</button></div>' +
-        '<p class="citation" style="margin-block-start:var(--space-2)">Mockup — a matched order forms an agreement and settles only to the private wallets. No payment rails, no custody.</p></div>';
+        '<p class="citation" style="margin-block-start:var(--space-2)">Mockup — a matched order forms an agreement and settles to the parties’ private wallets. No payment rails, no custody.</p></div>';
     }
 
     function render() {
@@ -137,20 +138,24 @@
       var live = '<span class="ex-live">' + (reduce ? S.icon('check', { size: 'sm' }) : '<span class="dotlive" aria-hidden="true"></span>') +
         ' ' + esc(X.session.label) + ' · volume today ' + num(X.session.volumeToday) + ' ' + sym + '</span>';
 
+      var goodsLinks = (X.marketGoods || []).map(function (g) {
+        return '<li><a href="' + S.hrefV2('economy/listing-detail.html?id=' + encodeURIComponent(g.listing)) + '">' + esc(g.name) + '</a> <span class="citation">' + esc(g.seller) + '</span></li>';
+      }).join('');
+
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('bar-chart', { size: 'sm' }) + ' The economy · the exchange</span>' +
         '<div class="cluster" style="justify-content:space-between"><h1 style="margin:0">The exchange</h1>' + live + '</div>' +
-        '<p class="page-intro">' + esc(X.venue) + ' — price discovery in the open. Shares of organizations trade on a <strong>fair market</strong>; fungible goods clear against standing offers and requests. ' +
+        '<p class="page-intro">' + esc(X.venue) + ' — price discovery in the open. Shares of organizations trade here on a <strong>fair market</strong>. ' +
+        'Single items are bought and sold on the <a href="' + S.hrefV2('economy/marketplace.html') + '">open market</a>; shares trade here. ' +
         'Tap a symbol on the tape to bring it into focus.</p>' +
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
 
-        '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the market layer (Phase M).</strong> ' + esc(X.session.note) + ' Liveness on this page is simulated in your browser.</div></div>' +
+        S.plannedBanner('Prices and trades on this page are simulated in your browser.') +
 
         tickerHtml() +
 
         '<div class="ex-floor">' +
-        '<section class="card" aria-labelledby="foc-h"><h2 id="foc-h" class="visually-hidden">Focused instrument</h2><div id="ex-focus">' + focusedHtml() + '</div></section>' +
+        '<section class="card" aria-labelledby="foc-h"><h2 id="foc-h" class="visually-hidden">Focused share</h2><div id="ex-focus">' + focusedHtml() + '</div></section>' +
         '<div class="stack">' +
         '<section class="card" aria-labelledby="tape-h"><div class="cluster" style="justify-content:space-between"><h2 id="tape-h" style="font-size:var(--text-lg);margin:0">Live trades</h2>' +
         (reduce ? '<span class="citation">updates paused · reduced motion</span>' : '<span class="ex-live"><span class="dotlive" aria-hidden="true"></span> streaming</span>') + '</div>' +
@@ -162,9 +167,15 @@
         }).join('') + '</div></section>' +
         '</div></div>' +
 
+        '<section class="card" aria-labelledby="goods-h"><h2 id="goods-h">Looking for goods?</h2>' +
+        '<p class="gloss">Single items sell on the open market, each at one place and one price — only organization shares trade on this floor.</p>' +
+        '<ul style="margin-block:var(--space-2) 0">' + goodsLinks + '</ul>' +
+        '<p style="margin-block-start:var(--space-2)"><a class="btn btn--secondary btn--sm" href="' + S.hrefV2('economy/marketplace.html') + '">' +
+        S.icon('building', { size: 'sm' }) + ' Browse the open market ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p></section>' +
+
         '<section class="card card--inset" aria-labelledby="rail-h"><h2 id="rail-h">What the exchange is — and is not</h2>' +
         '<p>' + esc(X.rail) + '</p>' +
-        '<p class="citation">See a single listing on the <a href="' + S.hrefV2('economy/marketplace.html') + '">marketplace</a>, or the rules of money on <a href="' + S.hrefV2('economy/units.html') + '">units &amp; monetary policy</a>.</p></section>';
+        '<p class="citation">The rules of money live on <a href="' + S.hrefV2('economy/units.html') + '">units &amp; money</a>.</p></section>';
 
       bindFloor();
       startStream();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lesson — CGA mockups v2</title>
+  <title>Lesson — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -61,7 +61,11 @@
     }
 
     function nextBlock() {
-      if (!track) return '';
+      if (!track) {
+        return '<a class="role-card" href="' + S.hrefV2('learn/learn-home.html') + '">' + S.icon('graduation-cap') +
+          '<span class="role-name">Browse all tracks</span><span>This guide stands on its own — the full lessons live in Learn.</span>' +
+          '<span class="enter-as">Open Learn ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+      }
       var ids = track.lessons, i = ids.indexOf(lesson.id), nxt = ids[i + 1];
       if (!nxt) return '<p class="gloss">That’s the last lesson in <strong style="color:var(--gov-fg)">' + esc(track.title) + '</strong>. ' +
         '<a href="' + S.hrefV2('learn/learn-home.html') + '">Back to all tracks</a>.</p>';

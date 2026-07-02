@@ -11,6 +11,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
@@ -18,6 +19,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -62,9 +66,9 @@ const REFUSAL_RULES = [
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Legislative, elected executive, and elected judicial terms all expire together, and
-            every election derives from one clock. There is no calendar to manipulate: the next
-            general election exists in the scheduler from the moment the last one certifies.
+            Every elected term — legislature, executive, judiciary — ends on the same day, and one
+            clock schedules every election. There is no calendar to manipulate: the next general
+            election exists from the moment the last one certifies.
         </template>
 
         <p>

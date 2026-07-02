@@ -18,6 +18,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -28,6 +29,9 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import StvRound from '@/Components/Electoral/StvRound.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -80,10 +84,10 @@ const chairRounds = computed(() => props.chair?.rounds?.rounds ?? []);
 <template>
     <PageScaffold :surface="surface" :title="`Board elections — ${organization.name}`">
         <template #intro>
-            A board fills on two tracks and elects its own chair. The owner side and the worker
-            side each run the same PR-STV engine as a public election; the chair is then chosen by
-            a ranked vote of the entire seated board. Voting itself happens on the public ballot
-            surfaces — the counts published here are the record.
+            Three counts seat one board: shareholders elect the owner track by STV, workers elect
+            the worker track by STV, and then the entire board jointly elects its chair by ranked
+            choice. Voting itself happens on the public ballot surfaces — the counts published
+            here are the record.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
