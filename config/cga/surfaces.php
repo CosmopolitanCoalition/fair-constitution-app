@@ -1027,4 +1027,82 @@ return [
         'citation'  => 'Every place governs itself — sitting inside a bigger one changes scope, never rank · Art. V §1',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 4 — the operator/* console suite
+    |----------------------------------------------------------------------
+    | The operator plane (infrastructure & mesh), deliberately separate from
+    | constitutional_settings and the citizen R-xx roles — so no `roles` /
+    | `forms` entries here. Console language is the settled slate: "authority"
+    | attaches to a JURISDICTION (the home copy of a place), never to a node
+    | as rank; "become a peer" is one process; role elevation is the separate,
+    | trust-gated ladder (PHASE_4_DESIGN_peerage.md §§1, 3.4).
+    */
+
+    'operator/home' => [
+        'title'     => 'Operator home',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'One process to peerage — a node that can get a cert and take clients is a full, equal peer · authority attaches to a place, never a node',
+    ],
+
+    'operator/console' => [
+        'title'     => 'Mesh console',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'The consent meters govern capability grants and upgrades — never a caste of node · Art. II §2; Art. VII',
+    ],
+
+    'operator/roles' => [
+        'title'     => 'Mesh roles',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A role is the set of channels a box hosts; a governed channel follows the dual-meter consent, never a self-claim · Mesh Roles & Channels of Trust',
+    ],
+
+    'operator/mesh' => [
+        'title'     => 'Peers & transports',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => ['CLK-20'],
+        'citation'  => 'Peers replicate the record in full faith & credit; each place\'s home copy decides its writes · Art. V',
+    ],
+
+    'operator/identity' => [
+        'title'     => 'Node identity',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'The node signs as itself (Ed25519); operators are recognized by device-key possession — the password never federates',
+    ],
+
+    'operator/versioning' => [
+        'title'     => 'Versioning',
+        'module'    => 'operator',
+        'nav'       => 'operator-operations',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A constitutional bump clears every applicable meter; a regressive bump can never pass · Art. VII',
+    ],
+
 ];

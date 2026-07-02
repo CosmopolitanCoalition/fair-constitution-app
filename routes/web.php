@@ -928,5 +928,45 @@ Route::middleware('auth:operator')->group(function () {
         ->name('operator.link');
 });
 
+// ── mockups-v3-wiring Phase 4 — the operator/* console suite (PHASE_4_DESIGN_peerage.md
+// §3.1) + the traveling-write receipt (§4). READS gate like /operator/operations: the
+// page shell is reachable by any authenticated user, the operator data block is built
+// only for an auth:operator session (a citizen sees a sign-in prompt). The role-lifecycle
+// ACTIONS ride auth:operator, wrapping the mesh:role CLI verbs one-for-one. The G3c
+// read-write petition ladder is NOT presented here (design flag 1 — /federation keeps it).
+Route::middleware('auth')->group(function () {
+    Route::get('/operator', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'home'])
+        ->name('operator.home');
+    Route::get('/operator/console', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'console'])
+        ->name('operator.console');
+    Route::get('/operator/roles', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'roles'])
+        ->name('operator.roles');
+    Route::get('/operator/mesh', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'mesh'])
+        ->name('operator.mesh');
+    Route::get('/operator/identity', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'identity'])
+        ->name('operator.identity');
+    Route::get('/operator/versioning', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'versioning'])
+        ->name('operator.versioning');
+
+    // The traveling-write receipt: poll the ForwardedWrite outcome for a write YOU
+    // filed (own-writes only, determined through the sealed audit row; else 404).
+    Route::get('/api/federation/write-status/{origin}/{key}', \App\Http\Controllers\Federation\WriteStatusController::class)
+        ->whereUuid('origin')->where('key', '[A-Za-z0-9_\-]{1,128}')
+        ->name('federation.write-status');
+});
+
+// Phase 4 — the qualify → request → approve → join lifecycle over the wall the
+// /operator/operations POSTs use (auth:operator; thin wrappers over the services).
+Route::middleware('auth:operator')->group(function () {
+    Route::post('/operator/roles/qualify', [\App\Http\Controllers\Operator\MeshRolesController::class, 'qualify'])
+        ->name('operator.roles.qualify');
+    Route::post('/operator/roles/request', [\App\Http\Controllers\Operator\MeshRolesController::class, 'request'])
+        ->name('operator.roles.request');
+    Route::post('/operator/roles/approve', [\App\Http\Controllers\Operator\MeshRolesController::class, 'approve'])
+        ->name('operator.roles.approve');
+    Route::post('/operator/roles/revoke', [\App\Http\Controllers\Operator\MeshRolesController::class, 'revoke'])
+        ->name('operator.roles.revoke');
+});
+
 // Session auth — register / login / logout (WI-3).
 require __DIR__.'/auth.php';

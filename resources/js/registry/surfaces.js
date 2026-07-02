@@ -126,8 +126,14 @@ export const SITEMAP = [
     ] },
     { key: 'node', title: 'Run a node', items: [
         { id: 'setup-wizard', label: 'Found the instance', icon: 'sliders', href: '/setup', contract: 'system/setup.html' },
-        { id: 'operator-operations', label: 'The operator plane', icon: 'sliders', href: '/operator/operations', contract: 'operator/operator-home.html', phase: 4 },
-        { id: 'federation-console', label: 'Mesh & peers', icon: 'globe', href: '/federation', contract: 'operator/mesh.html', phase: 4 },
+        { id: 'operator-home', label: 'The operator plane', icon: 'sliders', href: '/operator', contract: 'operator/operator-home.html' },
+        { id: 'operator-console', label: 'The console', icon: 'landmark', href: '/operator/console', contract: 'operator/console.html' },
+        { id: 'operator-roles', label: 'Roles & channels', icon: 'users', href: '/operator/roles', contract: 'operator/roles.html' },
+        { id: 'operator-mesh', label: 'Mesh & peers', icon: 'globe', href: '/operator/mesh', contract: 'operator/mesh.html' },
+        { id: 'operator-identity', label: 'Identity', icon: 'lock', href: '/operator/identity', contract: 'operator/identity.html' },
+        { id: 'operator-versioning', label: 'Versions & upgrades', icon: 'refresh-cw', href: '/operator/versioning', contract: 'operator/versioning.html' },
+        { id: 'operator-operations', label: 'Operations (legacy console)', icon: 'sliders', href: '/operator/operations', contract: 'operator/console.html' },
+        { id: 'federation-console', label: 'Federation (legacy)', icon: 'globe', href: '/federation', contract: 'operator/mesh.html' },
     ] },
 ];
 
