@@ -58,6 +58,32 @@ Cost: Serravalle's grid is 1,487 pixels — interactive. A metropolis-scale leaf
 progress pattern. Determinism: fixed angle set + fixed tie-breaks ⇒ same map +
 same rasters = same plan, on any node.
 
+### 3b. Seeding-options review (operator's AI survey, 2026-07-02)
+
+Six candidate initializers judged against the LIVE Map Quality metrics
+(`DistrictingService`: per-seat deviation avg/max, constitutional contiguity with
+exemptions, convex-hull-ratio compactness, uniform-diversity seat grouping) plus the
+two platform-specific constraints the survey couldn't know: **determinism** (same map +
+same rasters must reproduce identically on every mesh node — the audit chain and FF&C
+demand it) and **no partisan data** (the platform holds none, by design).
+
+| Option | Verdict | Why |
+|---|---|---|
+| 5. Shortest splitline | **PRIMARY (build — §3)** | Deterministic → auditable; exact balance by binary search; reuses shipped primitives (pixelGrid/splitByBlade/ST_Split); its cuts are the same species the manual tool commits (F-ELB-008) |
+| 1+4. Balanced power diagram seeded by high-density anchors | **SECONDARY (build — the "different auto seed")** | Convex cells ≈ top CHR; capacity weights → near-exact balance; density-peak seeds keep towns intact (the community-integrity value that survives inside a childless leaf); deterministic with pinned seeding + tie-breaks |
+| 3. Population-tiered slicing + region growing | Fold the goal, skip the algorithm | Its ≤5% target is already exact under both builds; grown regions have ragged borders that would DRAG the CHR stat below the composite baseline |
+| 2. Farthest-point sampling → simulated annealing | **Reject** (SA) | Nondeterministic/unbounded runtime — unauditable on the constitutional plane. (FPS itself survives as a deterministic seeding fallback if anchors cluster.) |
+| 6. MCMC / ensemble baseline | **Reject as seeder** | It mutates maps, it doesn't draw them; ensemble gerrymander detection presupposes partisan vote data the platform deliberately lacks. If ever wanted, it is an offline audit instrument, not a seeder. |
+
+Both builds land as PREVIEW plans scored by the same Map Quality panel, side by side —
+the operator accepts whichever reads better per scope. Note: inside leaf giants,
+free-form drawing should typically RAISE the map-wide stats versus the composite
+baseline (Earth today: mean CHR 0.639, avg deviation 2.3%) — composite inherits ugly
+admin-unit shapes and whole-unit quantization; pixel-resolution cuts and convex cells
+do not. Splitline caveat for 5a: `ST_Split` of a NON-convex leaf can yield >2 pieces /
+a disconnected side — validate contiguity per candidate cut and discard violators
+(the shortest-line criterion rarely picks them anyway).
+
 **Secondary: "snap to balance" for a hand-placed line.** The operator places a rough
 line; one button slides it perpendicular (the inner loop of step 2, one angle) to the
 nearest in-band balance. This is the assist for "line drawing is hard" — the human
