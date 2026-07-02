@@ -618,7 +618,7 @@
         messages: [
           { from: 'noor', when: '6:30', text: 'Who’s in for the early start?' },
           { from: 'diego', when: '6:45', text: 'Me. I’ll record a clip of the route.', attach: { type: 'video', label: 'Route walkthrough · 1:12' } },
-          { from: 'amara', when: '9:00', text: 'Calling a quick voice huddle at 7 — jump in. This party can dissolve after Saturday.', attach: { type: 'voice', label: 'Voice huddle · 0:42' } }
+          { from: 'amara', when: '9:00', text: 'Calling a quick voice huddle at 7 — jump in. This group can dissolve after Saturday.', attach: { type: 'voice', label: 'Voice huddle · 0:42' } }
         ] },
       { id: 'party-harbor', kind: 'party', linkSpace: 'grp-harbor', title: 'Harbor Cleanup Crew', members: 23, when: '3h', unread: 0, live: false,
         participants: ['amara', 'u-pier7', 'u-harborwatch', 'u-greenwood'],
@@ -628,7 +628,7 @@
           { from: 'amara', when: '8:55', text: 'This crew keeps happening — I’ve set us up as a standing group so the schedule sticks.' }
         ] }
     ],
-    note: 'A group is a temporary conversation — a party for talk, files, voice, and video, just like a standing room but passing. It confers no governance power, and it’s private — like a ballot, only the people in it can read it. A party that wants to last can become a standing group or an organization.'
+    note: 'A group message is a temporary conversation — talk, files, voice, and video, just like a standing room but passing. It confers no governance power, and it’s private — like a ballot, only the people in it can read it. A group that wants to last can become a standing group or an organization.'
   };
 
   /* ---- LIVE FEED (today.html / my-civic-life.html) ----------------------

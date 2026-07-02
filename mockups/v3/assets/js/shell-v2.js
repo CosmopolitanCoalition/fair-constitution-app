@@ -172,9 +172,9 @@
 
     { act: 'Speak & gather', rel: 'social/social-home.html', title: 'The public square', blurb: 'The open feed, and who’s in the halls right now.' },
     { act: 'Speak & gather', rel: 'social/profile.html?who=marcus-chen&tab=office', title: 'Anyone’s profile', blurb: 'The same profile, for a neighbour who holds a seat — one person, any role.' },
-    { act: 'Speak & gather', rel: 'groups/groups-home.html', title: 'Messages & parties', blurb: 'Direct messages and temporary crews — talk, files, voice, video.' },
-    { act: 'Speak & gather', rel: 'groups/group-detail.html', title: 'A conversation', blurb: 'A party thread with the shared toolkit.' },
-    { act: 'Speak & gather', rel: 'groups/group-create.html', title: 'Start a party', blurb: 'Start a DM or a temporary crew.' },
+    { act: 'Speak & gather', rel: 'groups/groups-home.html', title: 'Messages', blurb: 'Direct and group messages — talk, files, voice, video.' },
+    { act: 'Speak & gather', rel: 'groups/group-detail.html', title: 'A conversation', blurb: 'A group message with the shared toolkit.' },
+    { act: 'Speak & gather', rel: 'groups/group-create.html', title: 'New message', blurb: 'Start a direct or group message.' },
     { act: 'Speak & gather', rel: 'civic/petitions.html', title: 'Petitions', blurb: 'Gather signatures to put a question to everyone.' },
     { act: 'Speak & gather', rel: 'civic/petition-detail.html', title: 'A petition', blurb: 'One petition — its progress and signatures.' },
 
@@ -290,13 +290,42 @@
     { act: 'For the build team', rel: 'shared/accessibility.html', title: 'Accessibility', blurb: 'The accessibility commitments.' }
   ];
 
+  /* The tour is a MODE, not a set of pages. Entering any ?step=N turns it on
+     (sessionStorage); from then on the follow-along bar rides along on EVERY
+     page: if the page you navigated to is itself a tour stop, your position
+     moves to that stop's number; if it isn't, you keep your place. Exit ends
+     the mode. */
+  var TOUR_KEY = 'cga:tour-step';
+  function stopMatchesLocation(stop) {
+    var parts = stop.rel.split('?'), path = parts[0];
+    if (location.pathname.slice(-path.length - 1) !== '/' + path) return false;
+    var want = new URLSearchParams(parts[1] || ''), have = new URLSearchParams(location.search);
+    var ok = true;
+    want.forEach(function (v, k) { if (have.get(k) !== v) ok = false; });
+    return ok;
+  }
   function currentTourIndex() {
     try {
       var s = new URLSearchParams(location.search).get('step');
-      if (!s) return -1;
-      var i = parseInt(s, 10) - 1;
-      return (i >= 0 && i < TOUR.length) ? i : -1;
+      if (s) {
+        var i = parseInt(s, 10) - 1;
+        if (i >= 0 && i < TOUR.length) { sessionStorage.setItem(TOUR_KEY, String(i + 1)); return i; }
+        return -1;
+      }
+      var stored = parseInt(sessionStorage.getItem(TOUR_KEY) || '', 10);
+      if (!(stored >= 1 && stored <= TOUR.length)) return -1;
+      /* wandered onto another screen: if it's a stop, the tour follows you there */
+      for (var k = 0; k < TOUR.length; k++) {
+        if (stopMatchesLocation(TOUR[k])) { sessionStorage.setItem(TOUR_KEY, String(k + 1)); return k; }
+      }
+      return stored - 1; /* not a stop — keep your place */
     } catch (e) { return -1; }
+  }
+  function exitTour() {
+    try { sessionStorage.removeItem(TOUR_KEY); } catch (e) { /* no-op */ }
+    try {
+      var u = new URL(location.href); u.searchParams.delete('step'); location.href = u.href;
+    } catch (e) { location.reload(); }
   }
   function tourHref(i) {
     var abs = CGA.state.link(ROOT_V2 + TOUR[i].rel);
@@ -318,7 +347,8 @@
       '<strong class="tour-title">' + esc(stop.title) + '</strong>' +
       '<span class="tour-blurb">' + esc(stop.blurb) + '</span></div>' +
       '<div class="tour-bar-nav">' + back + next +
-      '<a class="tour-exit" href="' + hrefV2('tour.html') + '">All steps</a></div>' +
+      '<a class="tour-exit" href="' + hrefV2('tour.html') + '">All steps</a>' +
+      '<a class="tour-exit" href="#" data-tour-exit>Exit</a></div>' +
       '<div class="tour-prog" aria-hidden="true"><i style="inline-size:' + pct + '%"></i></div></div>';
   }
 
@@ -859,6 +889,7 @@
       var jurBtn = ev.target.closest ? ev.target.closest('[data-set-jur]') : null;
       if (jurBtn) { CGA.state.set({ jurisdiction: jurBtn.getAttribute('data-set-jur') }); return; }
       if (ev.target.closest && ev.target.closest('[data-demo-reset]')) { CGA.state.reset(); return; }
+      if (ev.target.closest && ev.target.closest('[data-tour-exit]')) { ev.preventDefault(); exitTour(); return; }
     });
     document.addEventListener('keydown', function (ev) {
       if (ev.key !== 'Escape') return;
