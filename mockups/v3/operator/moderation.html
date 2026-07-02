@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Moderation & the legal floor — the operator plane — CGA mockups v2</title>
+  <title>Moderation & the legal floor — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -76,7 +76,7 @@
         esc(M.viewpointImpossible) +
         ' <span class="citation">the uncensorable square</span></div></div>';
 
-      /* ---------- Section 3 — M-5, the physical-law legal floor ---------- */
+      /* ---------- Section 3 — the real-world legal floor ---------- */
       var m5 = M.m5;
       var basisChips = m5.basis.map(function (b) {
         return '<span class="channel-chip channel-chip--governed">' + esc(b) + '</span>';
@@ -85,14 +85,14 @@
       var m5Body =
         '<div class="op-role-card"><div class="cluster" style="justify-content:space-between">' +
         '<span class="orc-title">' + esc(m5.label) + '</span>' +
-        S.pill('info', 'Off the constitutional plane', 'Physical law, not a constitutional act') + '</div>' +
+        S.pill('info', 'Off the constitutional plane', 'Real-world law, not a constitutional act') + '</div>' +
         '<p style="font-size:var(--text-sm)">' + esc(m5.what) + '</p>' +
         '<p class="orc-duty">Authority: ' + esc(m5.auth) + '</p>' +
         '<div class="stack" style="gap:var(--space-1)"><span class="advanced-note">Legal basis — a fixed, closed list:</span>' +
         '<div class="orc-channels">' + basisChips + '</div></div>' +
         '<p style="font-size:var(--text-sm)">' + esc(m5.rails) + '</p>' +
         '<div class="orc-channels"><span class="form-chip">Legal-compliance removal</span></div>' +
-        '<span class="citation">key-possession, not a standing attestation · append-only sealed trail · physical-law floor</span></div>';
+        '<span class="citation">key-possession, not a standing attestation · append-only sealed trail</span></div>';
 
       var m5Rails =
         '<div class="grid-2">' +
@@ -105,18 +105,17 @@
         '<div class="card"><span class="eyebrow op-eyebrow">What an illegal-content match does</span>' +
         '<p style="font-size:var(--text-sm)">It <strong>purges the bytes</strong> — a delete, not a quarantine. ' +
         'A specific court order or a true threat redacts. The sealed evidence trail is add-only for forensics.</p>' +
-        '<span class="citation">DELETE not quarantine · physical-law floor</span></div></div>';
+        '<span class="citation">delete, not quarantine · the legal floor</span></div></div>';
 
       /* ---------- assemble ---------- */
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow op-eyebrow">The operator plane · moderation</span>' +
         '<h1>Moderation & the legal floor</h1>' +
         '<p class="page-intro">The operator-plane side of the uncensorable square. An operator hosts the rooms — but holds no power to remove on viewpoint. ' +
-        'Only the four logged carve-outs and the physical-law legal floor can act, and the right to act flips automatically the moment a government seats itself.</p></header>' +
+        'Only the four logged carve-outs and the real-world legal floor — the law of the country the server sits in — can act, and the right to act flips automatically the moment a government seats itself.</p></header>' +
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
-        ' This is capability, never a citizen privilege — running the square buys no say in any constitutional act.<br />' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> Hosting the rooms is capability, never a citizen privilege — running the square buys no say in any constitutional act.<br />' +
         '<span class="citation">' + esc(O.plane.supersession) + '</span></div></div>' +
 
         '<section aria-labelledby="flip-h"><h2 id="flip-h">The legitimacy flip</h2>' +
@@ -133,21 +132,21 @@
         carveTable + viewpointNote +
         '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + '<div>' +
         '<strong style="color:var(--gov-fg)">A per-user block is yours alone.</strong> ' +
-        'It is an ignore list applied client-side — never an appservice action, and never logged. ' +
-        '<span class="citation">client-side · the local-only privacy rail</span></div></div>' +
+        'It is an ignore list applied on your own screen — never a server-side action, and never logged. ' +
+        '<span class="citation">only your screen filters it</span></div></div>' +
         '</section>' +
 
         '<section aria-labelledby="m5-h"><h2 id="m5-h">The legal floor</h2>' +
-        '<p class="page-intro">Separate from the four carve-outs sits the legal-compliance floor: the removal of already-posted ' +
-        '<em>illegal</em> material. This is physical law, off the constitutional plane — there is no viewpoint and nothing to vote on.</p>' +
+        '<p class="page-intro">Separate from the four carve-outs sits the legal floor: the removal of already-posted ' +
+        '<em>illegal</em> material. This is the law of the country the server sits in, off the constitutional plane — there is no viewpoint and nothing to vote on.</p>' +
         m5Body + m5Rails +
         '</section>' +
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
         '<strong style="color:var(--gov-fg)">See it from the citizen side.</strong> ' +
-        'The square the citizen reads — and why it can never be censored on viewpoint — lives on the operations site: ' +
-        '<a href="' + S.hrefV1('civic/civic-home.html') + '">the public square</a>.' +
-        '<br /><span class="citation">the uncensorable square · the physical-law legal floor</span></div></div>';
+        'The square the citizen reads — and why it can never be censored on viewpoint: ' +
+        '<a href="' + S.hrefV2('social/social-home.html') + '">the public square</a>.' +
+        '<br /><span class="citation">the uncensorable square</span></div></div>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>District mapper — CGA mockups</title>
+  <title>District mapper — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -34,14 +34,14 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Jurisdictions · districting</span>
-        <h1>District mapper — the Legislature Browser</h1>
-        <p class="page-intro" style="max-inline-size:56rem">The placement contract for the developed Legislature Browser — same panes, same position in the
-          navigation; the shipped tool adopts this design system (round peg, round hole). One legislature — Earth, 1,999 seats — seen at two scopes: the planetary root, and Mexico,
-          a member jurisdiction whose seat share exceeds the 9-seat ceiling and therefore subdivides further. Mexico's own
-          election board draws those districts over its own scope, inside the parent budget.</p>
-        <p class="citation">Sizing: cube-root law, as implemented (<a href="../shared/constitutional-questions.html#q3">ledger #3</a>)
-          — districts are composites of real jurisdictional lines, so legislatures subdivide cleanly
-          (<a href="../shared/constitutional-questions.html#q4">ledger #4</a>) — the election board draws the subdivision boundaries.</p>
+        <h1>District mapper</h1>
+        <p class="page-intro" style="max-inline-size:56rem">One legislature's map: how its seats are split
+          into districts drawn along real boundaries. Here it is Earth — 1,999 seats — seen at two scopes:
+          the planetary root, and Mexico, a member place whose seat share exceeds the 9-seat ceiling and
+          therefore subdivides further. Mexico's own election board draws those districts over its own
+          scope, inside the parent budget.</p>
+        <p class="citation">Seat counts follow population; districts are built from real jurisdictional
+          lines, so legislatures subdivide cleanly — the election board draws the boundaries.</p>
       </header>
 
       <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Legislature Browser (district mapper) mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
@@ -67,6 +67,9 @@
           <p><strong>Vocabulary:</strong> seats budget and quota (population ÷ seats) shown at every scope; "intact" =
             drawn along real jurisdictional lines; free-drawn lines are needed only where a jurisdiction exceeds the
             ceiling with no subdivisions in the dataset.</p>
+          <p class="citation">The sizing rule (cube-root of population) and the composite-districts rule are
+            entries <a href="../shared/constitutional-questions.html#q3">#3</a> and
+            <a href="../shared/constitutional-questions.html#q4">#4</a> in the constitutional questions ledger.</p>
         </div>
       </details>
     </div>
@@ -75,7 +78,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/district-mapper',
-      title: 'District mapper — Legislature Browser',
+      title: 'District mapper',
       module: 'jurisdictions',
       nav: 'district-mapper',
       roles: ['R-03', 'R-08'],
@@ -240,7 +243,7 @@
         }).join('');
         document.getElementById('lb-panel').innerHTML =
           '<div class="lb-head"><div class="cluster" style="justify-content:space-between">' +
-          '<div><span class="eyebrow">Legislature Browser</span><h2 style="margin:0">' + esc(sc.name) + '</h2></div>' +
+          '<div><span class="eyebrow">District mapper</span><h2 style="margin:0">' + esc(sc.name) + '</h2></div>' +
           '<div class="stat stat--accent" style="text-align:end"><span class="stat-number" style="font-size:var(--text-2xl)">' + sc.seats + '</span><span class="stat-label">root seats</span></div></div>' +
           '<p class="citation" style="margin-block-start:var(--space-1)"><span class="q-ok">' + sc.seats + ' seats</span> to assign here · Quota: ' + sc.quota + ' pop/seat</p>' +
           '<p class="cc-small" style="margin-block:var(--space-1) 0">' + crumb + '</p></div>' +

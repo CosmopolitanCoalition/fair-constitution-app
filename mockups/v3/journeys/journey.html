@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Journey — CGA mockups v2</title>
+  <title>Journey — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -13,7 +13,7 @@
 <body>
   <main id="main"><div class="stack" id="root"><p class="gloss">Loading the journey…</p></div></main>
   <script>
-    window.CGA_PAGE = { id: 'journeys/journey', title: 'Journey', module: 'journeys', nav: 'journeys', citation: 'A guided civic journey · now / your part / next', register: 'governance' };
+    window.CGA_PAGE = { id: 'journeys/journey', title: 'Journey', module: 'journeys', nav: 'journeys', citation: 'A guided civic journey · learn it by doing it', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -33,13 +33,35 @@
     function jid() { try { return new URLSearchParams(location.search).get('id') || 'election'; } catch (e) { return 'election'; } }
     var J = V2.byJourney[jid()] || V2.byJourney.election;
     var cls = V2.byClass[J.cls];
-    /* the TRUE current step + a snapshot — the rail marker, the arc marker, and
-       the now/next sentence ALL derive from this single currentStep. */
+    /* the world's TRUE current step + a snapshot — the rail marker, the arc
+       marker, and the now/next sentence ALL derive from this single currentStep.
+       This is the WORLD's live state; your own progress is stored separately. */
     var jl = (V2.journeyLive && V2.journeyLive[J.id]) || { currentStep: 0, snapshot: { statusPill: { tone: 'info', label: 'In progress' } } };
     var cur = jl.currentStep || 0;
     var snap = jl.snapshot || { statusPill: { tone: 'info', label: 'In progress' } };
     var ROOM_LABEL = { committee: 'Committee hearing', legislative: 'Legislative session', exec: 'Executive committee', board: 'Board meeting', court: 'Court hearing', forum: 'Candidate forum', townhall: 'Referendum town hall', group: 'Group meeting' };
     var ROOM_ICON = { committee: 'landmark', legislative: 'landmark', exec: 'briefcase', board: 'building', court: 'scale', forum: 'vote', townhall: 'users', group: 'users' };
+
+    /* human titles for the formal-moment chips — looked up from the tour */
+    var TOUR_TITLE = {};
+    (S.tour || []).forEach(function (t2) { TOUR_TITLE[t2.rel] = t2.title; });
+
+    /* ---- YOUR progress — durable, per journey, stored in this browser ---- */
+    var DONE_KEY = 'cga-journey-done:' + J.id;
+    function loadDone() {
+      try { var a = JSON.parse(localStorage.getItem(DONE_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+      catch (e) { return []; }
+    }
+    function saveDone(a) { try { localStorage.setItem(DONE_KEY, JSON.stringify(a)); } catch (e) {} }
+    var myDone = loadDone();
+    function stepDone(i) { return myDone.indexOf(i) >= 0; }
+    function toggleStep(i) {
+      var at = myDone.indexOf(i);
+      if (at >= 0) myDone.splice(at, 1); else myDone.push(i);
+      saveDone(myDone);
+      S.announce(at >= 0 ? 'Step marked not done.' : 'Step marked done — saved to your progress.');
+      render();
+    }
 
     /* reduced-motion-guarded live countdown */
     var reduce = false;
@@ -71,25 +93,47 @@
     function render() {
       var built = J.status === 'built-layer';
       var statusPill = built
-        ? '<span class="pill pill--live">Rides built surfaces</span>'
-        : '<span class="pill pill--planned" title="design-ahead of code">Planned · ' + esc(J.phase || '') + '</span>';
+        ? '<span class="pill pill--live">Live in this world</span>'
+        : '<span class="pill pill--planned">Coming soon</span>';
 
-      /* the progress rail — current marker = jl.currentStep; past steps get a check */
-      var rail = '<ol class="journey-rail" aria-label="Progress through this journey">' + J.rail.map(function (step, i) {
+      /* the world's progress rail — current marker = jl.currentStep */
+      var rail = '<ol class="journey-rail" aria-label="Where the world is in this journey">' + J.rail.map(function (step, i) {
         var done = i < cur;
         return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +
           '<li' + (i === cur ? ' class="rail--current"' : '') + (i === cur ? ' aria-current="step"' : '') + '>' +
           (done ? S.icon('check', { size: 'sm' }) + ' ' : '') + esc(step) + '</li>';
       }).join('') + '</ol>';
 
-      /* the arc — each rail step as a card; current = jl.currentStep, past = check */
+      /* the arc — each step as a card; the world's marker + YOUR done-toggle */
       var arc = '<ol class="flow-steps">' + J.rail.map(function (step, i) {
-        var done = i < cur;
+        var worldDone = i < cur;
+        var mine = stepDone(i);
         return '<li class="flow-step' + (i === cur ? ' flow-step--current' : '') + '">' +
           '<div class="flow-step-head"><span class="flow-step-n">' + (i + 1) + '</span>' +
-          (done ? '<span class="live-icon">' + S.icon('check', { size: 'sm' }) + '</span>' : '') +
-          '<span class="flow-action" style="color:var(--gov-fg)">' + esc(step) + '</span></div></li>';
+          (worldDone ? '<span class="live-icon">' + S.icon('check', { size: 'sm' }) + '</span>' : '') +
+          '<span class="flow-action" style="color:var(--gov-fg)">' + esc(step) + '</span></div>' +
+          '<div class="cluster" style="margin-block-start:var(--space-1)">' +
+          '<button type="button" class="btn ' + (mine ? 'btn--secondary' : 'btn--ghost') + ' btn--sm" data-step-done="' + i + '" aria-pressed="' + (mine ? 'true' : 'false') + '">' +
+          (mine ? S.icon('check', { size: 'sm' }) + ' Done — tap to undo' : 'Mark this step done') + '</button></div></li>';
       }).join('') + '</ol>';
+
+      /* YOUR progress — a durable rail of your own, distinct from the world's */
+      var doneCount = 0;
+      for (var di = 0; di < J.rail.length; di++) if (stepDone(di)) doneCount++;
+      var minePct = Math.round((doneCount / J.rail.length) * 100);
+      var complete = doneCount === J.rail.length;
+      var mineBlock = '<div class="card card--inset" style="margin-block-start:var(--space-3)">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<span class="eyebrow">' + S.icon('user', { size: 'sm' }) + ' Your progress</span>' +
+        (complete ? '<span class="pill pill--pass">' + S.icon('award', { size: 'sm' }) + ' Journey complete</span>'
+                  : '<span class="pill pill--info">' + doneCount + ' of ' + J.rail.length + ' steps</span>') + '</div>' +
+        '<div class="meter" role="meter" aria-valuemin="0" aria-valuemax="' + J.rail.length + '" aria-valuenow="' + doneCount + '" aria-label="Your progress — ' + doneCount + ' of ' + J.rail.length + ' steps done">' +
+        '<span class="meter-fill' + (complete ? ' meter-fill--met' : '') + '" style="inline-size:' + minePct + '%"></span></div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-1)">' +
+        (complete
+          ? 'You’ve walked the whole arc — this journey now belongs on <a href="' + S.hrefV2('civic/my-civic-life.html?tab=achievements') + '">your profile</a>.'
+          : 'Mark off each step as you do it. Your progress is yours — it’s saved for you, separate from where the world is.') +
+        '</p></div>';
 
       /* the live rooms this journey passes through */
       var rooms = (J.rooms || []).map(function (rv) {
@@ -99,16 +143,20 @@
           '<span class="enter-as">Open the room ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
       }).join('');
 
-      /* the formal steps deep-link into the v1 ops site */
+      /* the formal steps open their own screens — human titles from the tour */
       var v1 = (J.reusesV1 || []).map(function (rel) {
-        var label = rel.replace(/^.*\//, '').replace(/\.html$/, '').replace(/-/g, ' ');
+        var label = TOUR_TITLE[rel] || rel.replace(/^.*\//, '').replace(/\.html$/, '').replace(/-/g, ' ');
         return '<a class="form-chip" href="' + S.hrefV1(rel) + '">' + S.icon('arrow-right', { size: 'sm' }) + ' ' + esc(label) + '</a>';
       }).join(' ');
 
-      /* now / your part / next — ALL recomputed from the same currentStep */
+      /* now / your part / next — the world's side, from the same currentStep */
       var curStepName = J.rail[cur] || J.rail[0];
       var nowText = snap.now || curStepName;
       var nextStep = J.rail[cur + 1] || J.rail[J.rail.length - 1];
+      var yourPart = J.yourPart ||
+        ((J.rooms || []).length
+          ? 'follow the arc below — watch from the gallery, or take the floor where you’re a resident'
+          : 'follow the arc below');
 
       /* the live snapshot strip — current step + status pill, an honest countdown
          to the next step (only when a real target exists and it isn't planned),
@@ -138,18 +186,30 @@
             C.sopPanel(sop.id, { hideVideo: true }) + '</section>'
         : '';
 
+      /* what completing this journey earns — the durable reward footer */
+      var roomNames = (J.rooms || []).map(function (rv) { return ROOM_LABEL[rv] || rv; });
+      var unlockText = roomNames.length
+        ? 'the ' + roomNames.join(' and the ').toLowerCase() + ' will greet you as someone who knows the ropes'
+        : 'the places this journey touches will greet you as someone who knows the ropes';
+      var earns = '<section class="card" aria-labelledby="earn-h"><h2 id="earn-h">' + S.icon('award', { size: 'sm' }) + ' What completing this earns</h2><ul>' +
+        '<li><strong>A medal on your profile</strong> — “' + esc(J.title) + '” joins <a href="' + S.hrefV2('social/achievements.html') + '">your achievements</a>.</li>' +
+        '<li><strong>A one-time stipend bonus</strong> — paid into your wallet when the economy goes live.</li>' +
+        '<li><strong>A head start</strong> — ' + esc(unlockText) + '. A friendly nudge, never a locked door.</li>' +
+        '</ul><p class="citation">A medal never changes a vote, a seat, or what you’re allowed to do.</p></section>';
+
       document.getElementById('root').innerHTML =
         '<header><div class="cluster" style="justify-content:space-between">' +
         '<div class="cluster">' + (J.flagship ? '<span class="pill pill--vote">Flagship</span>' : '') +
         '<span class="eyebrow">' + esc(cls.title) + '</span></div>' + statusPill + '</div>' +
-        '<h1>' + esc(J.title) + '</h1></header>' +
+        '<h1>' + esc(J.title) + '</h1>' +
+        '<p class="page-intro">A journey is something you learn by doing it. Follow the real thing as it moves through the world, mark off the steps you take, and finish it to earn a place on your profile.</p></header>' +
         /* now / your part / next */
         '<div class="lr-note"><div>' + S.icon('info', { size: 'sm' }) + '</div><div>' +
         '<strong style="color:var(--gov-fg)">Now:</strong> ' + esc(nowText) + '. ' +
-        '<strong style="color:var(--gov-fg)">Your part:</strong> follow the arc below — watch from the gallery, or take the floor where you’re a resident. ' +
+        '<strong style="color:var(--gov-fg)">Your part:</strong> ' + esc(yourPart) + '. ' +
         '<strong style="color:var(--gov-fg)">Next:</strong> ' + esc(nextStep) + '.</div></div>' +
         understand +
-        '<section class="card"><span class="eyebrow">The arc</span>' + liveStrip + rail + arc + '</section>' +
+        '<section class="card"><span class="eyebrow">The arc</span>' + liveStrip + rail + mineBlock + arc + '</section>' +
         (rooms ? '<section aria-labelledby="rooms-h"><h2 id="rooms-h">Where you act — the Live Civic Room</h2>' +
           '<p class="page-intro">Every journey passes through at least one live room, where the form, the vote, and the social floor are fused.</p>' +
           '<div class="role-grid">' + rooms + '</div></section>' : '') +
@@ -157,8 +217,9 @@
           '<p>You can open this bill and watch it move — its progress through the stages, the comments, and the redline negotiation over its clauses.</p>' +
           '<a class="btn btn--primary btn--sm" href="' + S.hrefV2('shared/bill.html?id=bill-2031-07') + '">' + S.icon('file-text', { size: 'sm' }) + ' Open the Clean Air Act ' + S.icon('arrow-right', { size: 'sm' }) + '</a></section>' : '') +
         (v1 ? '<section class="card"><span class="eyebrow">The formal moment</span>' +
-          '<p>The formal steps open the existing operations screen — v2 wraps them in this journey rather than re-mocking them.</p>' +
+          '<p>The formal steps happen on their own screens — open one to see the actual paperwork moment.</p>' +
           '<div class="cluster" style="gap:var(--space-1)">' + v1 + '</div></section>' : '') +
+        earns +
         '<div class="cluster" style="justify-content:space-between"><a href="' + S.hrefV2('index.html') + '">' + S.icon('arrow-right', { size: 'sm', cls: 'icon--directional' }) + ' All journeys</a>' +
         C.reportLink(J.title) + '</div>';
 
@@ -166,6 +227,13 @@
       startTicker();
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }
+
+    /* one delegated listener survives re-renders */
+    document.getElementById('root').addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-step-done]') : null;
+      if (b) toggleStep(parseInt(b.getAttribute('data-step-done'), 10));
+    });
+
     render();
     document.addEventListener('cga:v2:rerender', render);
   })();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Transfers &amp; conversions — CGA mockups</title>
+  <title>Ownership changes — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,24 +17,23 @@
 
       <header>
         <span class="eyebrow">Organizations · ownership</span>
-        <h1>Transfers and conversions</h1>
-        <p class="page-intro">Ownership moves four ways: by mutual agreement between private parties, by legislative
-          acquisition of a monopoly, by conversion between public and private forms, or by dissolution. Structures can
-          also restructure within the private side by owner consent. Only the monopoly path ever overrides owner
-          consent — and it carries a protected compensation floor.</p>
-        <p class="citation">Mutual consent is the rule; legislative monopoly acquisition is the sole exception.</p>
+        <h1>Ownership changes</h1>
+        <p class="page-intro">An organization's ownership can change five ways, and this page shows all five: sold by
+          mutual agreement, acquired by the legislature when a monopoly is found, converted between public and private,
+          restructured within private hands, or wound down. Only the monopoly path ever overrides the owners' consent —
+          and it carries a protected compensation floor.</p>
       </header>
 
       <section class="card" aria-labelledby="mutual-h">
-        <h2 id="mutual-h">Mutual transfer
+        <h2 id="mutual-h">Selling by mutual agreement
           <span class="form-chip">Ownership Transfer Initiation</span></h2>
-        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: Organization Agent · Creates: a transfer agreement
-          record (requires mutual consent).</p>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Only the organization's agent can start this;
+          it creates a transfer agreement both sides must sign.</p>
         <div class="banner banner--info">
           <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
           <div><span class="banner-title">Mutual consent is mandatory for standard transfers.</span>
             No private acquisition proceeds unless both parties agree — there is no hostile path through this form.
-            The completed record syncs across jurisdictions with full faith &amp; credit.</div>
+            The completed record is public, visible from any server.</div>
         </div>
         <form id="transfer-form" novalidate style="margin-block-start:var(--space-4)">
           <div class="grid-2">
@@ -51,7 +50,7 @@
             <label class="checkbox"><input type="checkbox" id="tr-consent-from" /> Transferring board / owners consent on record</label>
             <label class="checkbox"><input type="checkbox" id="tr-consent-to" /> Receiving entity consents on record</label>
           </div>
-          <button type="submit" class="btn btn--primary" style="margin-block-start:var(--space-3)">Draft transfer instrument</button>
+          <button type="submit" class="btn btn--primary" style="margin-block-start:var(--space-3)">Draft the transfer agreement</button>
         </form>
         <div id="transfer-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
       </section>
@@ -59,8 +58,8 @@
       <section class="card" aria-labelledby="monopoly-h">
         <h2 id="monopoly-h">Monopoly acquisition — Cobalt Grid Co., live case
           <span class="form-chip">Monopoly Acquisition Vote</span></h2>
-        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: Legislative Representative ·
-          Modifies: the organization converts to a Common Good Corporation, with fair-market compensation.</p>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Only a legislative representative can start this;
+          it converts the organization into a Common Good Corporation, with fair-market compensation.</p>
         <ol class="lifecycle" style="margin-block:var(--space-3)">
           <li class="lifecycle-stage lifecycle-stage--done">Legislative finding of monopolistic control</li>
           <li class="lifecycle-stage lifecycle-stage--current" aria-current="step">Acquisition vote</li>
@@ -72,7 +71,7 @@
           of regional grid interconnects in New York County — the New York County legislature found monopolistic control
           by an ordinary majority of all serving members and opened the acquisition path. This is the only path that
           overrides owner consent.
-          <span class="citation">finding adopted 2031-04-02 · shown in your timezone (UTC−5 · America/New_York) · stored as UTC</span></p>
+          <span class="citation">finding adopted 2031-04-02 · shown in your timezone (UTC−5 · America/New_York)</span></p>
         <div class="grid-2">
           <div class="card card--inset">
             <h3 style="font-size:var(--text-base)">Acquisition vote — New York County legislature</h3>
@@ -97,7 +96,7 @@
         </div>
         <p style="font-size:var(--text-sm);margin-block-start:var(--space-3)"><strong>After conversion:</strong> Cobalt
           Grid becomes a Common Good Corporation; its five sitting directors are each offered founding seats on the new
-          Board of Governors. Its 510 workers keep their co-determination position —
+          Board of Governors. Its 510 workers keep their board seats —
           <a href="co-determination.html">2 worker seats on today's scale</a>.
           <span class="citation">The prior board is offered founding governor seats.</span></p>
       </section>
@@ -108,15 +107,15 @@
           <div class="card card--inset">
             <h3 style="font-size:var(--text-base)">Public-Private Conversion Request</h3>
             <p style="font-size:var(--text-sm)">Request to convert from private to public (CGC) or vice versa.</p>
-            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: Organization Agent / Legislature ·
-              Modifies: the organization's type.</p>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">The organization's agent or the legislature
+              can request this; it changes what kind of organization this is.</p>
           </div>
           <div class="card card--inset">
             <h3 style="font-size:var(--text-base)">CGC Reorganization/Sale Vote</h3>
             <p style="font-size:var(--text-sm)">Vote to reorganize, dissolve, or sell a Common Good Corporation —
               the public→private direction runs through the legislature, on the open market.</p>
-            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: Legislative Representative ·
-              Modifies: the CGC record → reorganized, dissolved, or privatized.</p>
+            <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Only the legislature can vote this;
+              it reorganizes, dissolves, or sells the public company.</p>
           </div>
         </div>
         <div class="banner banner--warning" style="margin-block-start:var(--space-4)">
@@ -171,7 +170,7 @@
               <span>threshold: unanimity (the structure's own rule)</span>
             </div>
           </div>
-          <button type="submit" class="btn btn--primary">Draft conversion instrument</button>
+          <button type="submit" class="btn btn--primary">Draft the conversion agreement</button>
         </form>
         <div id="rs-confirm" aria-live="polite" style="margin-block-start:var(--space-3)"></div>
         <p class="citation" style="margin-block-start:var(--space-3)">Owner consent follows the structure's own rules —
@@ -179,10 +178,10 @@
       </section>
 
       <section class="card" aria-labelledby="dissolve-h">
-        <h2 id="dissolve-h">Dissolution
+        <h2 id="dissolve-h">Winding down
           <span class="form-chip">Organization Dissolution</span></h2>
-        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Available to: Organization Agent · Modifies: the
-          organization's status → dissolved.</p>
+        <p style="font-size:var(--text-xs);color:var(--gov-fg-subtle)">Only the organization's agent can file this;
+          it marks the organization dissolved.</p>
         <p style="font-size:var(--text-sm)">Winding down settles obligations, archives the public record, and ends the
           entity. Courts can also order dissolution.</p>
         <form id="dissolve-form" novalidate>
@@ -197,11 +196,11 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> it handles the four ways ownership can move — mutual transfer
+          <p><strong>What this screen does:</strong> it handles the five ways ownership can change — mutual transfer
             between private parties, monopoly acquisition through the legislature, conversion between public and
-            private forms, and dissolution — plus internal restructuring within the private side.</p>
+            private forms, internal restructuring within the private side, and dissolution.</p>
           <p><strong>How ownership state changes:</strong> this surface drives the
-            <em>Transfer-Pending → Transferred</em>, <em>Converted Public↔Private</em>, and <em>Dissolved</em> states.</p>
+            <em>transfer pending → transferred</em>, <em>converted public ↔ private</em>, and <em>dissolved</em> states.</p>
           <p><strong>Protected rules here:</strong> compensation can never fall below fair market on a monopoly
             acquisition; a CGC's intellectual property stays in the public domain forever. Both are enforced in code,
             not by policy.</p>
@@ -213,7 +212,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'organizations/transfers-conversions',
-      title: 'Transfers and conversions',
+      title: 'Ownership changes',
       module: 'organizations',
       nav: 'org-registry',
       roles: ['R-23', 'R-24', 'R-09'],
@@ -272,9 +271,9 @@
         }
         var from = BY.organizations[fromSel.value];
         box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
-          '<div><span class="banner-title">Simulated: transfer instrument drafted.</span> ' +
-          S.badge('info', 'Transfer-Pending', 'clock') + ' ' + esc(from.name) + ' → ' + esc(to) +
-          ' — awaiting counterparty signature; on completion the record syncs across jurisdictions with full faith &amp; credit.</div></div>';
+          '<div><span class="banner-title">Simulated: transfer agreement drafted.</span> ' +
+          S.badge('info', 'Transfer pending', 'clock') + ' ' + esc(from.name) + ' → ' + esc(to) +
+          ' — awaiting the other side’s signature; the completed record becomes public, visible from any server.</div></div>';
         S.refresh();
       });
 
@@ -301,8 +300,8 @@
             'rejects the draft. The attempt is recorded.</div></div>';
         } else {
           box.innerHTML = '<div class="banner banner--info">' + S.icon('check') +
-            '<div><span class="banner-title">Simulated: conversion instrument drafted.</span> ' +
-            S.badge('info', 'Conversion-Pending', 'clock') + ' Northstar Equal Partners — equal partnership → ' +
+            '<div><span class="banner-title">Simulated: conversion agreement drafted.</span> ' +
+            S.badge('info', 'Conversion pending', 'clock') + ' Northstar Equal Partners — equal partnership → ' +
             esc(target.toLowerCase()) + '. All 12 owner consents are on record per the partnership’s own rules; the ' +
             'organization stays private throughout, and its structure history is preserved on the public record.</div></div>';
         }

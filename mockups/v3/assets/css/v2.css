@@ -14,11 +14,6 @@
   color: var(--cc-gold-300); border: 1px solid var(--gov-border-strong);
   border-radius: var(--radius-full); padding-block: 0; padding-inline: var(--space-2);
 }
-.v1-tag {
-  font-family: var(--font-mono); font-size: var(--text-xs); color: var(--gov-fg-subtle);
-  border: 1px solid var(--gov-border); border-radius: var(--radius-sm); padding-inline: var(--space-1);
-  margin-inline-start: auto;
-}
 .demo-sep { color: var(--cc-purple-400); }
 
 /* ------------------------------------------------------------ plain pills
@@ -1069,6 +1064,17 @@ a.cal-row:hover { border-color: var(--gov-link); }
 /* the menu nav fills the panel; its .sidebar-* item styles still apply */
 .cmdbar-panel--menu .sidebar-nav { display: block; }
 .cmdbar-panel--menu .sidebar-section { margin-block-end: var(--space-4); }
+/* the two-tier menu: the full design-contract sitemap sits collapsed beneath
+   the player tier */
+.sidebar-more {
+  border-block-start: 1px solid var(--gov-border);
+  margin-block-start: var(--space-3); padding-block-start: var(--space-3);
+}
+.sidebar-more > summary { cursor: pointer; list-style: none; }
+.sidebar-more > summary::-webkit-details-marker { display: none; }
+.sidebar-more > summary .icon { transition: transform .15s ease; }
+.sidebar-more[open] > summary .icon { transform: rotate(180deg); }
+.sidebar-more > summary:hover { color: var(--gov-fg); }
 /* the demo flyout lays its controls out in a wrapping row */
 .cmdbar-panel--demo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
 .cmdbar-panel--demo .cmdbar-panel-title { flex: 1 1 100%; }

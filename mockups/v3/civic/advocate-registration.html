@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Advocate registration — CGA mockups</title>
+  <title>Become an advocate — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -31,8 +31,8 @@
             <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — New York County judiciary operating (appointed)</span>
           </div>
           <div class="cluster" style="justify-content:space-between">
-            <div><strong>You are associated with the jurisdiction</strong>
-              <span class="citation" style="display:block">association is the only constitutional requirement; the rest is jurisdiction law</span></div>
+            <div><strong>You live in the jurisdiction</strong>
+              <span class="citation" style="display:block">living there is the only constitutional requirement; the rest is jurisdiction law</span></div>
             <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Met — <span data-bind="persona.name">Sofia Petrova</span>, New York County</span>
           </div>
           <div class="cluster" style="justify-content:space-between">
@@ -47,7 +47,7 @@
       <section class="card" aria-labelledby="form-h">
         <h2 id="form-h">Advocate registration</h2>
         <p class="cc-small">Register as a legal advocate qualified to practice in a jurisdiction.
-          <span class="citation" style="display:block">open to anyone associated with the jurisdiction · creates your advocate record</span></p>
+          <span class="citation" style="display:block">open to anyone who lives in the jurisdiction · creates your advocate record</span></p>
         <form id="adv-form" novalidate>
           <div class="field">
             <label class="field-label" for="adv-jur">Jurisdiction of practice</label>
@@ -55,7 +55,7 @@
               <option selected>New York County court (county scale)</option>
               <option>New York State court (state scale)</option>
             </select>
-            <span class="field-hint">You can register with any judiciary whose jurisdiction you are associated with.</span>
+            <span class="field-hint">You can register with any court of a place you live in.</span>
           </div>
           <fieldset class="field" style="border:0;padding:0;margin-inline:0">
             <legend class="field-label">Qualifications under New York County law (example local law)</legend>
@@ -101,7 +101,7 @@
           <p><strong>What this screen does:</strong> advocate registration —
             you finish as a registered advocate eligible for case representation; cases then run through the
             judiciary case flow.</p>
-          <p><strong>What it changes:</strong> registration adds the advocate role to someone already associated with
+          <p><strong>What it changes:</strong> registration adds the advocate role to someone who already lives in
             the jurisdiction; it does not change their residency.</p>
         </div>
       </details>
@@ -111,9 +111,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'civic/advocate-registration',
-      title: 'Advocate registration',
+      title: 'Become an advocate',
       module: 'civic',
-      nav: 'civic-home',
+      nav: 'advocate-registration',
       roles: ['R-03', 'R-21'],
       workflows: ['WF-CIV-07'],
       forms: ['F-IND-015'],

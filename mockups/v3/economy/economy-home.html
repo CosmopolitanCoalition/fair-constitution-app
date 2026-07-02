@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The economy — CGA mockups v2</title>
+  <title>The economy — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -12,7 +12,7 @@
 </head>
 <body>
   <main id="main">
-    <div class="stack" id="econ-root"><p class="gloss">Loading the exchange…</p></div>
+    <div class="stack" id="econ-root"><p class="gloss">Loading the economy…</p></div>
   </main>
   <script>
     window.CGA_PAGE = { id: 'economy/economy-home', title: 'The economy', module: 'economy', nav: 'economy-home', citation: 'The economy — Open Market', register: 'governance' };
@@ -29,11 +29,6 @@
     'use strict';
     var S = window.CGA.shellV2, E = window.CGA.fixtures.v2.econ, esc = S.esc;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
-    }
-
     function render() {
       var c = E.currency;
       var ticker = E.exchange.instruments.map(function (i) {
@@ -42,16 +37,15 @@
       }).join('');
 
       var surfaces = [
-        { rel: 'economy/exchange.html', icon: 'bar-chart', title: 'The exchange', note: 'The trading floor — a live ticker, the order book, and recent trades for shares and goods.' },
-        { rel: 'economy/marketplace.html', icon: 'building', title: 'Marketplace', note: 'Offers — goods and services for sale on the Open Market. Buy, or list your own.' },
-        { rel: 'economy/requests.html', icon: 'users', title: 'Request board', note: 'The mirror — work postings and mutual-aid requests. Offer ↔ Request.' },
-        { rel: 'economy/agreements.html', icon: 'file-text', title: 'Instruments of agreement', note: 'Contracts — labor, ownership transfer, joint ledgers, sale. Each with a constitutional floor.' },
-        { rel: 'economy/wallet.html', icon: 'lock', title: 'My wallet', note: 'Your private balance and transactions — never federated, like a ballot.' },
+        { rel: 'economy/exchange.html', icon: 'bar-chart', title: 'The exchange', note: 'The trading floor — a live ticker, the order book, and recent trades in organization shares.' },
+        { rel: 'economy/marketplace.html', icon: 'building', title: 'The open market', note: 'Offers and requests side by side — goods, services, work, and mutual aid. Buy, list, or ask.' },
+        { rel: 'economy/agreements.html', icon: 'file-text', title: 'Agreements', note: 'Contracts between people and organizations — work, sales, transfers — each with a floor no clause can cross.' },
+        { rel: 'economy/wallet.html', icon: 'lock', title: 'My wallet', note: 'Your private balance and activity — only you can read it.' },
         { rel: 'economy/joint-ledgers.html', icon: 'users', title: 'Joint ledgers', note: 'Co-owned accounts whose movements need every signer to agree.' },
-        { rel: 'economy/units.html', icon: 'sliders', title: 'Units & monetary policy', note: 'The currency, its worth, its subdivisions — and the dual-door levers that set them.' },
-        { rel: 'economy/stipend.html', icon: 'refresh-cw', title: 'Civic stipend', note: 'The residency floor plus a role differential, on the economic clock.' },
+        { rel: 'economy/units.html', icon: 'sliders', title: 'Units & money', note: 'The currency, its worth, its subdivisions — and the levers only a two-door act can move.' },
+        { rel: 'economy/stipend.html', icon: 'refresh-cw', title: 'The civic stipend', note: 'A floor everyone shares, plus a small bump for people doing civic work.' },
         { rel: 'economy/treasury.html', icon: 'bar-chart', title: 'Public finance', note: 'The public ledger, the budget cycle, revenue and borrowing.' },
-        { rel: 'economy/org-settings.html', icon: 'building', title: 'Organization economics', note: 'Org settings, shares, dues, and the org’s ledger.' }
+        { rel: 'economy/org-settings.html', icon: 'building', title: 'Org economics', note: 'Shares, dues, and the organization’s books.' }
       ];
       var cards = surfaces.map(function (s) {
         return '<a class="role-card" href="' + S.hrefV2(s.rel) + '">' + S.icon(s.icon) +
@@ -66,23 +60,23 @@
         '<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.name) + ' (' + esc(c.code) + '), reserved to ' + esc(c.issuerLabel) + '. ' +
         'It is an abstract unit of account: no payment rails, no custody, never touching outside finance.</p>' +
         '</header>' +
-        plannedBanner() +
+        S.plannedBanner() +
         '<div class="exchange-hero"><div class="ticker" role="status" aria-label="live market tape">' + ticker + '</div>' +
-        '<p style="margin-block-start:var(--space-3)">A government with itself, organizations and people, and people together — all meet here to make agreements and move value. The square is for talk; the exchange is for trade.</p>' +
+        '<p style="margin-block-start:var(--space-3)">Governments, organizations, and people all meet here to make agreements and move value. The square is for talk; the market is for trade.</p>' +
         '<a class="btn btn--primary" href="' + S.hrefV2('economy/exchange.html') + '">' + S.icon('bar-chart', { size: 'sm' }) + ' Enter the trading floor ' + S.icon('arrow-right', { size: 'sm' }) + '</a></div>' +
         '<div class="econ-clock">' +
         '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The economic clock</strong> — ' + esc(clk.label) + '. ' +
         '<span class="citation">next run ' + esc(clk.nextRun) + '</span><br />' +
-        '<span class="gloss">The interval is itself a dual-door monetary key — the legislature can lengthen or shorten the cycle.</span></div></div>' +
+        '<span class="gloss">The interval is itself set by law — the legislature can lengthen or shorten the cycle.</span></div></div>' +
         '<section aria-labelledby="surf-h"><h2 id="surf-h">Where to go</h2><div class="role-grid">' + cards + '</div></section>' +
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold everywhere</h2><ul>' +
         '<li><strong>No paywall on civic rights.</strong> No tax, fee, or cost may ever attach to voting, candidacy, residency, or petitioning.</li>' +
-        '<li><strong>Individual economic data is private.</strong> Balances, receipts, and transactions never federate — like ballots.</li>' +
+        '<li><strong>Individual economic data is private.</strong> Like a ballot, nobody else can read your balances, receipts, or transactions.</li>' +
         '<li><strong>Currency is root-reserved.</strong> Only the most-encompassing jurisdiction produces it, sets its worth, and defines the unit.</li>' +
-        '<li><strong>Monetary policy is a dual-door act,</strong> not an admin knob — chamber supermajority and constituent consent.</li>' +
-        '<li><strong>Every agreement has a constitutional floor</strong> — no contract clause can waive a right.</li>' +
-        '<li><strong>CGCs trade on identical terms</strong> to private sellers; their IP stays perpetually public domain.</li>' +
+        '<li><strong>Money rules change only when two doors open</strong> — a supermajority of the chamber AND the consent of the people it governs (the “dual-door” rule). Never an admin knob.</li>' +
+        '<li><strong>Every agreement has a floor</strong> — no contract clause can waive a right.</li>' +
+        '<li><strong>Common-good corporations trade on identical terms</strong> to private sellers; their work stays public domain forever.</li>' +
         '</ul></section>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Petition detail — CGA mockups</title>
+  <title>Petition detail — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -22,10 +22,9 @@
       </header>
 
       <section class="card" aria-labelledby="life-h">
-        <h2 id="life-h">Lifecycle</h2>
+        <h2 id="life-h">Where it stands</h2>
         <ol class="lifecycle" id="pet-lifecycle"></ol>
-        <noscript><p class="gloss">Lifecycle tracker renders with JavaScript — current state: Constitutional-Review.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-2)">Created → … → Constitutional review → Validated → On the ballot</p>
+        <noscript><p class="gloss">The progress tracker renders with JavaScript — current stage: constitution check.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="law-h">
@@ -56,36 +55,29 @@
           <button type="button" class="switch" id="sign-btn" aria-pressed="false">Sign this petition</button>
           <span id="sign-status"></span>
         </div>
-        <p class="cc-small" style="margin-block-start:var(--space-2)">Sign an existing citizen petition.
-          Signatures stay open while review proceeds; the audited count is frozen at
-          the threshold check.
-          <span class="citation" style="display:block">available to anyone associated with this jurisdiction · adds your signature to the petition</span></p>
+        <p class="cc-small" style="margin-block-start:var(--space-2)">Signing is open to anyone who lives in
+          New York. Signatures stay open while review proceeds; the checked count is frozen at
+          the threshold check.</p>
       </section>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="audit-h">
-          <h2 id="audit-h">Signature audit</h2>
-          <div id="audit-card"></div>
-          <noscript><p class="gloss">Audit card renders with JavaScript — audit complete, threshold confirmed.</p></noscript>
+          <h2 id="audit-h">Signature check</h2>
           <p style="margin-block-start:var(--space-3)">
-            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Audit complete — threshold confirmed</span>
+            <span class="badge badge--success"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> Check complete — threshold confirmed</span>
           </p>
           <p class="cc-small">1,031,778 of 1,044,310 signatures valid (98.8%) — still above the 1,010,062 threshold.
-            Completed 2031-04-30 by the New York State election board · shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
-          <p class="citation">independent audit</p>
+            Completed 2031-04-30 by the independent New York State election board · shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
         </section>
 
         <section class="card" aria-labelledby="review-h">
           <h2 id="review-h">Constitutionality review</h2>
-          <div id="review-card"></div>
-          <noscript><p class="gloss">Review card renders with JavaScript — under review by the New York State court.</p></noscript>
           <p style="margin-block-start:var(--space-3)">
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-scale"></use></svg> Under review — New York State court</span>
           </p>
-          <p class="cc-small">Threshold met; referred for constitutional review before ballot placement. If the proposed
-            law unjustly impedes rights, the petition is invalidated; otherwise it is validated for the next
-            jurisdiction-wide ballot.</p>
-          <p class="citation">petitions are invalidated if found unconstitutional</p>
+          <p class="cc-small">Threshold met; the court now checks the proposed law against the constitution before
+            ballot placement. If it unjustly impedes rights, the petition is invalidated; otherwise it is validated
+            for the next jurisdiction-wide ballot.</p>
         </section>
       </div>
 
@@ -93,10 +85,9 @@
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
           <p>This screen tracks one citizen petition from signature gathering through its
-            constitutionality review. This petition is at the review step. If it is validated, the proposed
-            law goes to the next jurisdiction-wide ballot at the threshold matching the act type.</p>
-          <p><strong>Where it stands:</strong> Petition — currently in constitutional review. A petition can be
-            stopped by a failed signature audit or a finding that the proposed law is unconstitutional.</p>
+            constitutionality review (forms F-ELB-005 signature audit, F-JDG-008 review). This petition is at
+            the review step. If it is validated, the proposed law goes to the next jurisdiction-wide ballot at
+            the threshold matching the act type.</p>
           <p><strong>Back to:</strong> <a href="petitions.html">all petitions</a>.</p>
         </div>
       </details>
@@ -131,21 +122,20 @@
       var pet = W.petitions.filter(function (p) { return p.id === 'pet-2030-11'; })[0];
       var signed = false;
 
-      function formCard(fid) {
-        var f = BY.forms[fid];
-        return '<div class="card card--inset">' +
-          '<p style="margin-block-end:var(--space-1)"><strong>' + esc(f.name) + '</strong></p>' +
-          '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
-          '</div>';
-      }
+      /* Plain display labels for the progress tracker — raw tokens stay in the data. */
+      var STAGE_LABEL = {
+        'Signature-Audit': 'Signature check',
+        'Constitutional-Review': 'Constitution check',
+        'On-Ballot': 'On the ballot'
+      };
 
       function render() {
-        /* Lifecycle tracker — current: Constitutional-Review */
+        /* Progress tracker — current: Constitutional-Review */
         var states = BY.entities['Petition'].states;
         var currentIdx = states.indexOf('Constitutional-Review');
         document.getElementById('pet-lifecycle').innerHTML = states.map(function (st, i) {
           var cls = 'lifecycle-stage' + (i < currentIdx ? ' lifecycle-stage--done' : i === currentIdx ? ' lifecycle-stage--current' : '');
-          return '<li class="' + cls + '"' + (i === currentIdx ? ' aria-current="step"' : '') + '>' + esc(st) + '</li>';
+          return '<li class="' + cls + '"' + (i === currentIdx ? ' aria-current="step"' : '') + '>' + esc(S.plainState(st, STAGE_LABEL)) + '</li>';
         }).join('');
 
         /* Signature meter — threshold already met */
@@ -155,10 +145,6 @@
           '<div class="meter"><span class="meter-fill meter-fill--met" style="inline-size:' + pct + '%"></span></div>' +
           '<div class="meter-caption"><span>' + sigs.toLocaleString('en-US') + ' of ' + pet.threshold.toLocaleString('en-US') +
           ' signatures — threshold met</span><span>5% of 20,201,249 (New York)</span></div>';
-
-        /* Form-cards for the two institutional gates */
-        document.getElementById('audit-card').innerHTML = formCard('F-ELB-005');
-        document.getElementById('review-card').innerHTML = formCard('F-JDG-008');
 
         var btn = document.getElementById('sign-btn');
         btn.setAttribute('aria-pressed', signed ? 'true' : 'false');

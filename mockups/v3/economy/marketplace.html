@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Marketplace — CGA mockups v2</title>
+  <title>The open market — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -12,10 +12,10 @@
 </head>
 <body>
   <main id="main">
-    <div class="stack" id="root"><p class="gloss">Loading the marketplace…</p></div>
+    <div class="stack" id="root"><p class="gloss">Loading the open market…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/marketplace', title: 'Marketplace', module: 'economy', nav: 'marketplace', citation: 'The Open Market — offers', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/marketplace', title: 'The open market', module: 'economy', nav: 'marketplace', citation: 'The Open Market — offers and requests', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -29,17 +29,19 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the forms are reserved, not yet built. Units are abstract — no payment rails, no custody.</div></div>';
-    }
+    /* which side of the market is showing — ?tab=requests preselects Requests */
+    var tab = 'offers';
+    try {
+      if ((new URLSearchParams(window.location.search).get('tab') || '') === 'requests') tab = 'requests';
+    } catch (e) {}
 
     function kindLabel(k) { return k === 'service' ? 'Service' : 'Good'; }
 
-    function formChip(name, id) {
+    function formChip(name) {
       return '<span class="form-chip">' + esc(name) + '</span>';
     }
 
+    /* ------------------------------------------------------------- offers */
     function offerCard(o) {
       var tags = (o.tags || []).map(function (tg) {
         return '<span class="tag-chip">' + esc(tg) + '</span>';
@@ -51,6 +53,7 @@
       var note = (o.cgc && o.note)
         ? '<p class="gloss" style="margin:0">' + esc(o.note) + '</p>'
         : '';
+      var detailHref = S.hrefV2('economy/listing-detail.html?id=' + encodeURIComponent(o.id));
       return '<article class="offer-card">' +
         '<div class="cluster" style="justify-content:space-between;align-items:flex-start;gap:var(--space-2)">' +
           '<h3 style="font-size:var(--text-base);margin:0">' + esc(o.title) + '</h3>' +
@@ -63,56 +66,122 @@
         note +
         (tags ? '<div class="cluster" style="gap:var(--space-1)">' + tags + '</div>' : '') +
         '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-1)">' +
-          '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('file-text', { size: 'sm' }) + ' View</a>' +
-          '<a class="btn btn--primary btn--sm" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('check', { size: 'sm' }) + ' Place an order</a>' +
+          '<a class="btn btn--secondary btn--sm" href="' + detailHref + '">' + S.icon('file-text', { size: 'sm' }) + ' View</a>' +
+          '<a class="btn btn--primary btn--sm" href="' + detailHref + '">' + S.icon('check', { size: 'sm' }) + ' Place an order</a>' +
         '</div>' +
-        '<div class="cluster" style="gap:var(--space-1)"><span class="gloss" style="font-size:var(--text-xs)">Ordering files</span> ' + formChip('Place an order', 'F-IND-022') + '</div>' +
         '</article>';
     }
 
-    function render() {
+    function offersPanel() {
       var offers = E.marketplace;
       var goods = offers.filter(function (o) { return o.kind === 'good'; }).length;
       var services = offers.length - goods;
-
-      var theSwitch =
-        '<div class="offer-request-switch" role="group" aria-label="Offers or requests">' +
-          '<button type="button" aria-pressed="true">Offers</button>' +
-          '<a class="btn btn--ghost btn--sm" href="' + S.hrefV2('economy/requests.html') + '" style="border-radius:0" role="button">Requests</a>' +
-        '</div>';
-
       var cards = offers.map(offerCard).join('');
+      return '<section aria-labelledby="grid-h">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:center">' +
+          '<h2 id="grid-h">Open offers</h2>' +
+          '<a class="btn btn--primary" href="' + S.hrefV2('economy/listing-detail.html?create=1') + '">' + S.icon('building', { size: 'sm' }) + ' List something</a>' +
+        '</div>' +
+        '<p class="gloss" style="margin-block:0 var(--space-3)">Anyone — a person, a business, a nonprofit, or a common-good corporation — can post an offer. ' +
+        esc(String(offers.length)) + ' open offers · ' + esc(String(goods)) + ' goods · ' + esc(String(services)) + ' services.</p>' +
+        '<div class="offer-grid">' + cards + '</div>' +
+      '</section>';
+    }
 
+    /* ----------------------------------------------------------- requests */
+    function workCard(w) {
+      var detailHref = S.hrefV2('economy/request-detail.html?id=' + encodeURIComponent(w.id));
+      return '<div class="card offer-card">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:start">' +
+          '<div><h3 style="margin:0">' + esc(w.title) + '</h3>' +
+          '<span class="offer-seller">' + S.icon('building', { size: 'sm' }) + ' ' + esc(w.org) + '</span></div>' +
+          S.pill('vote', 'Hiring') +
+        '</div>' +
+        '<p class="offer-price">' + esc(w.rate) + '</p>' +
+        '<div class="lr-note"><strong>On acceptance</strong> ' + esc(w.triggers) + '</div>' +
+        '<div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-2)">' +
+          '<a class="btn btn--secondary btn--sm" href="' + detailHref + '">' + S.icon('file-text', { size: 'sm' }) + ' View posting</a>' +
+          '<a class="btn btn--primary btn--sm" href="' + detailHref + '">' + S.icon('check', { size: 'sm' }) + ' Apply</a>' +
+        '</div>' +
+        '</div>';
+    }
+
+    function aidCard(a) {
+      return '<div class="card offer-card">' +
+        '<div class="cluster" style="justify-content:space-between;align-items:start">' +
+          '<div><h3 style="margin:0">' + esc(a.title) + '</h3>' +
+          '<span class="offer-seller">' + S.icon('user', { size: 'sm' }) + ' ' + esc(a.by) + '</span></div>' +
+          S.badge('info', 'Non-market', 'users') +
+        '</div>' +
+        '<p class="gloss" style="margin-block-start:var(--space-2)">A neighbor asking for help — no price, no contract, nothing to sell. ' +
+          esc(a.note || '') + '</p>' +
+        '<div class="lr-note">' + S.icon('lock', { size: 'sm' }) + ' ' + esc(a.privacy) +
+          ' — only the people involved see it.</div>' +
+        '</div>';
+    }
+
+    function requestsPanel() {
+      var work = (E.requests.work || []).map(workCard).join('');
+      var aid = (E.requests.assistance || []).map(aidCard).join('');
+      return '<section aria-labelledby="work-h"><h2 id="work-h">' + S.icon('briefcase', { size: 'sm' }) + ' Work board</h2>' +
+        '<p class="gloss">Open job postings. Applying and being accepted creates a real, recurring work agreement — and enough hires earn workers seats on the organization’s board. ' +
+        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">How worker seats are earned ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '<div class="offer-grid">' + work + '</div></section>' +
+
+        '<section aria-labelledby="aid-h"><h2 id="aid-h">' + S.icon('users', { size: 'sm' }) + ' Mutual aid</h2>' +
+        '<p class="gloss">Help requested between people — no price, no contract: this is neighbors helping neighbors, not a trade.</p>' +
+        '<div class="offer-grid">' + aid + '</div></section>';
+    }
+
+    /* ------------------------------------------------------- the tab bar */
+    function tabBar() {
+      function tabBtn(key, label) {
+        var on = tab === key;
+        return '<button type="button" class="btn btn--sm ' + (on ? 'btn--primary' : 'btn--ghost') + '" data-tab="' + key + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + esc(label) + '</button>';
+      }
+      return '<div class="offer-request-switch" role="group" aria-label="Offers or requests">' +
+        tabBtn('offers', 'Offers') + tabBtn('requests', 'Requests') + '</div>';
+    }
+
+    function railsCard() {
+      return '<section class="card card--inset" aria-labelledby="rails-h">' +
+        '<h2 id="rails-h">How the market holds</h2>' +
+        '<ul>' +
+          '<li><strong>The unit is abstract.</strong> Prices are quoted in the <span class="unit-symbol">' + esc(E.currency.symbol) + '</span> ' + esc(E.currency.name) + ' (' + esc(E.currency.code) + ') — no payment rails, no custody, never touching outside finance.</li>' +
+          '<li><strong>Nothing binds until both sides agree.</strong> An order or a job post becomes an <a href="' + S.hrefV2('economy/agreements.html') + '">agreement</a> only when everyone named has signed — and no clause can waive a right.</li>' +
+          '<li><strong>Common-good corporations trade like anyone else</strong> — same terms as a private seller, and their work stays public domain.</li>' +
+          '<li><strong>No paywall on civic rights.</strong> Buying, selling, posting, or asking here never gates voting, candidacy, residency, or petitioning.</li>' +
+        '</ul>' +
+        '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + ' Your orders, receipts, applications, and asks are private — like a ballot, only the people involved can read them.</p>' +
+      '</section>';
+    }
+
+    function render() {
       document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">The Open Market · offers</span><h1>Marketplace</h1>' +
-        '<p class="page-intro">Goods and services on offer to anyone. The Open Market is open to every resident — no licence, no membership, ' +
-        'no permission needed to buy or to list. ' + S.icon('arrow-right', { size: 'sm' }) + ' Looking for the mirror? The ' +
-        '<a href="' + S.hrefV2('economy/requests.html') + '">request board</a> carries work postings and mutual-aid requests. ' +
-        'Offer ↔ request.</p>' +
-        '<p class="citation">Economic freedom — the right to trade · The Open Market — a Common Good Corp sells on identical terms</p>' +
-        '<div class="cluster" style="gap:var(--space-3);align-items:center;margin-block-start:var(--space-2)">' + theSwitch +
-          '<span class="gloss">' + esc(String(offers.length)) + ' open offers · ' + esc(String(goods)) + ' goods · ' + esc(String(services)) + ' services</span></div>' +
+        '<header><span class="eyebrow">The economy · the Open Market</span><h1>The open market</h1>' +
+        '<p class="page-intro">One market, two directions. <strong>Offers</strong> are what people will give — goods and services for sale. ' +
+        '<strong>Requests</strong> are what people need — work to be done and a hand from a neighbor. ' +
+        'The market is open to every resident: no licence, no membership, no permission needed.</p>' +
+        '<div class="cluster" style="gap:var(--space-3);align-items:center;margin-block-start:var(--space-2)">' + tabBar() + '</div>' +
         '</header>' +
-        plannedBanner() +
-        '<section aria-labelledby="grid-h">' +
-          '<div class="cluster" style="justify-content:space-between;align-items:center">' +
-            '<h2 id="grid-h">Open offers</h2>' +
-            '<a class="btn btn--primary" href="' + S.hrefV2('economy/listing-detail.html') + '">' + S.icon('building', { size: 'sm' }) + ' List something</a>' +
-          '</div>' +
-          '<p class="gloss" style="margin-block:0 var(--space-3)">Anyone — a person, a business, a nonprofit, or a Common Good Corp — can post an offer. ' +
-          'Listing files ' + formChip('List an offer', 'F-IND-021') + '.</p>' +
-          '<div class="offer-grid">' + cards + '</div>' +
-        '</section>' +
-        '<section class="card card--inset" aria-labelledby="rails-h">' +
-          '<h2 id="rails-h">How the market holds</h2>' +
-          '<ul>' +
-            '<li><strong>The unit is abstract.</strong> Prices are quoted in the <span class="unit-symbol">' + esc(E.currency.symbol) + '</span> ' + esc(E.currency.name) + ' (' + esc(E.currency.code) + ') — an abstract unit of account with no payment rails and no custody, never touching outside finance.</li>' +
-            '<li><strong>Common Good Corps trade like anyone else.</strong> A CGC posts, prices, and sells on identical terms to a private seller; its IP stays perpetually public domain.</li>' +
-            '<li><strong>No paywall on civic rights.</strong> Buying or selling here never gates voting, candidacy, residency, or petitioning.</li>' +
-            '<li><strong>Placing an order opens an instrument of agreement,</strong> with a constitutional floor no clause can waive.</li>' +
-          '</ul>' +
-          '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + ' Your purchases are private — orders, receipts, and balances live only on this server and are never federated, like a ballot.</p>' +
-        '</section>';
+        S.plannedBanner() +
+        '<div id="market-panel">' + (tab === 'requests' ? requestsPanel() : offersPanel()) + '</div>' +
+        railsCard();
+
+      document.querySelectorAll('[data-tab]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var next = b.getAttribute('data-tab');
+          if (next === tab) return;
+          tab = next;
+          try {
+            var u = new URL(window.location.href);
+            if (tab === 'requests') u.searchParams.set('tab', 'requests'); else u.searchParams.delete('tab');
+            window.history.replaceState(null, '', u.toString());
+          } catch (e) {}
+          render();
+          S.announce(tab === 'requests' ? 'Showing requests — work and mutual aid.' : 'Showing offers — goods and services for sale.');
+        });
+      });
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

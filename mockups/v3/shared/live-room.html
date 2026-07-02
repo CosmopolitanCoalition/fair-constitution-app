@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live Civic Room — CGA mockups v2</title>
+  <title>Live Civic Room — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -19,7 +19,12 @@
 
   <script>
     window.CGA_PAGE = {
-      id: 'shared/live-room', title: 'Live Civic Room', module: 'shared', nav: 'room-committee',
+      id: 'shared/live-room', title: 'Live Civic Room', module: 'shared',
+      /* nav follows the room variant so the sidebar highlights the room you are in */
+      nav: 'room-' + (function () {
+        try { return new URLSearchParams(location.search).get('variant') || 'committee'; }
+        catch (e) { return 'committee'; }
+      })(),
       citation: 'The Live Civic Room — the form + the live social floor, fused', register: 'governance'
     };
   </script>
@@ -191,20 +196,18 @@
         /* quorum meter */
         meterHtml(v.quorum.present, v.serving, v.quorum.required,
           v.quorum.present + ' of ' + v.serving + ' serving present',
-          'peg quorum: ' + v.quorum.required + ' of ' + v.serving + ' serving', 'Quorum — present of all serving') +
+          'needs ' + v.quorum.required + ' of all ' + v.serving + ' serving', 'Quorum — present of all serving') +
         /* votes-in-favor meter */
         meterHtml(t.yes, v.serving, v.requiredYes,
           t.yes + ' yes of ' + v.serving + ' (all serving)',
-          'needs ' + v.requiredYes + ' of ' + v.serving, 'Votes in favor — of all serving') +
-        '<p class="gloss">' + esc(v.gloss || 'Peg quorum: the denominator is every serving seat. An absent member counts the same as a no.') + '</p>' +
+          'needs ' + v.requiredYes + ' yes of all ' + v.serving + ' serving', 'Votes in favor — of all serving') +
+        '<p class="gloss">' + esc(v.gloss || 'Both bars count every serving seat, so absence never shrinks the bar — an absent member counts the same as a no.') + '</p>' +
         (!decided && canCast()
           ? '<div class="lr-cast"><span class="citation">cast as ' + esc((BY.roles[window.CGA.state.get('role')] || {}).shortName || (BY.roles[window.CGA.state.get('role')] || {}).name || 'a member') + ':</span>' +
             '<button type="button" class="btn btn--primary btn--sm" data-act="cast" data-v="yes">Vote yes</button>' +
             '<button type="button" class="btn btn--danger btn--sm" data-act="cast" data-v="no">Vote no</button>' +
             '<button type="button" class="btn btn--secondary btn--sm" data-act="cast" data-v="abstain">Abstain</button></div>'
           : (decided ? '' : '<p class="pill pill--wait">Only seated members vote here</p>')) +
-        '<details style="margin-block-start:var(--space-2)"><summary class="citation" style="cursor:pointer">Why these numbers — the rules</summary>' +
-        '<p class="about-surface-body" style="padding-inline:0">Every number is an engine snapshot, never recomputed in the UI: <code class="cc-code">serving</code> is every seat that is filled; an absent or vacant seat counts the same as a no; the threshold line is drawn at <code class="cc-code">' + v.requiredYes + ' of ' + v.serving + '</code>. ' + (st.vote.deepLink ? 'Ranked and STV votes open the v1 count surface.' : '') + '</p></details>' +
         '</section>';
     }
     function canCast() {
@@ -280,7 +283,7 @@
           '<span class="chat-handle">' + esc(mxid(m.handle)) + '</span>' +
           (m.seat ? '<span class="chat-seat" title="acting seat, computed live">' + esc(m.seat) + '</span>' : '') +
           '</div><div class="chat-body">' + esc(m.body) + '</div>' +
-          (m.testimony ? '<span class="chat-testimony">' + S.icon('check', { size: 'sm' }) + ' filed as testimony → sealed to the record</span>' : '') +
+          (m.testimony ? '<span class="chat-testimony">' + S.icon('check', { size: 'sm' }) + ' filed as testimony — sealed to the public record</span>' : '') +
           '</div>';
       }).join('');
       var compose = st.residencyGated
@@ -301,7 +304,7 @@
       return '<div class="lr-translate">' + S.icon('languages', { size: 'sm' }) +
         '<label class="demo-control">Show in: <select aria-label="Translate this room"><option>' + esc(st.translation.to) + '</option><option>' + esc(st.translation.from) + '</option></select></label>' +
         '<span class="lr-rail-flag' + (blocked ? ' lr-rail-flag--blocked' : '') + '">' + S.icon('lock', { size: 'sm' }) +
-        (blocked ? 'private room — never sent to a cloud translator (server-local only)' : 'translated on this server; private rooms are never sent to a cloud translator') + '</span></div>';
+        (blocked ? 'private room — translated by the game itself, never by an outside service; only the people named here can read it' : 'translated by the game itself; a private room is never sent to an outside translation service') + '</span></div>';
     }
     function moderationNote() {
       if (st.residencyGated) {
@@ -323,13 +326,13 @@
         return '<div class="record-row"><span class="rec-handle">' + esc(mxid(r.handle)) + '</span>' +
           '<span class="rec-body">' + esc(r.body) + '</span>' +
           '<span class="seal--' + r.sealState + '">' + S.icon(s[1], { size: 'sm' }) + ' ' + esc(s[0]) + '</span>' +
-          (r.recordHref ? ' <a class="citation" href="' + S.hrefV1(r.recordHref) + '">on the chain ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
+          (r.recordHref ? ' <a class="citation" href="' + S.hrefV1(r.recordHref) + '">view in the public record ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' : '') +
           '</div>';
       }).join('');
       return '<section class="lr-record"><div class="cluster" style="justify-content:space-between">' +
-        '<span class="eyebrow">The record — testimony bridge</span>' +
-        '<span class="never-federated" title="Plane B (Matrix) → Plane A (append-only public record)">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
-        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements in the halls are sealed into the append-only record · pseudonymity preserved</p>' +
+        '<span class="eyebrow">The record</span>' +
+        '<span class="never-federated" title="What’s said here is saved to the permanent public record">' + S.icon('lock', { size: 'sm' }) + ' on the public record</span></div>' +
+        '<p class="citation" style="margin-block:var(--space-1) var(--space-2)">Statements made here are sealed to the permanent public record — under your handle, never your legal name</p>' +
         rows + '</section>';
     }
 
@@ -341,14 +344,13 @@
       var forms = (st.forms || []).map(function (id) {
         return '<span class="form-chip">' + esc(formTitle(id)) + '</span>';
       }).join(' ');
-      var reuse = (st.reusesV1 || []).map(function (r) { return '<a class="citation" href="' + S.hrefV1(r) + '">' + esc(r) + '</a>'; }).join(' · ');
-      var prod = (st.productionPages || []).map(function (p) { return '<code class="cc-code">' + esc(p) + '</code>'; }).join(' · ');
+      /* reusesV1 / productionPages stay in the room config data for the build
+         team — they are not rendered here. */
       return '<details class="about-surface"><summary>' + S.icon('chevron-right', { size: 'sm' }) + ' The machinery behind this room</summary>' +
         '<div class="about-surface-body">' +
         '<p>The player-facing controls are plain buttons; each maps to a constitutional form filed by the engine. The forms in play here:</p>' +
         '<p class="cluster" style="gap:var(--space-1)">' + (forms || '<span class="gloss">no constitutional forms — this room is deliberation only</span>') + '</p>' +
-        (reuse ? '<p><strong>Reuses v1:</strong> ' + reuse + '</p>' : '') +
-        (prod ? '<p><strong>Production surfaces:</strong> ' + prod + '</p>' : '') +
+        (st.vote ? '<p>The vote numbers come straight from the counting engine — this page never does its own math. “Serving” counts every filled seat, so an absent or vacant seat counts the same as a no; that is why the bar never lowers when people stay home.</p>' : '') +
         '<p class="citation">Speaker-queue recognition, timers, calling the question, and declaring results are human chair acts. Quorum checks, tabulation, threshold math, and record-sealing are automatic and shown as ambient.</p>' +
         '</div></details>';
     }
@@ -372,7 +374,7 @@
         (st.vote ? '<span><span class="lr-legend-dot" style="background:var(--status-success)"></span> yes</span><span><span class="lr-legend-dot" style="background:var(--status-danger)"></span> no</span><span><span class="lr-legend-dot" style="background:var(--status-warning)"></span> abstain</span>' : '') +
         '<span><span class="lr-legend-dot" style="background:var(--cc-gold-400)"></span> chair</span></div>';
       var orderNote = st.variant === 'legislative'
-        ? '<p class="citation" style="margin-block-start:var(--space-2)">A chamber in the round — the Speaker at the head, members seated by tenure, then by relative performance.</p>'
+        ? '<p class="citation" style="margin-block-start:var(--space-2)">A chamber in the round — no head of the room; the Speaker’s seat is marked in gold, and members alternate most-senior/least-senior around the circle.</p>'
         : '';
       return '<section class="lr-chamber"><div class="lr-chamber-head">' +
         '<span class="eyebrow">In ' + esc(SCENE_NAME[st.variant] || 'the room') + ' — you are here</span>' + legend + '</div>' +

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Constitutional restoration — CGA mockups</title>
+  <title>Rebuilding a lost government — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -18,11 +18,11 @@
 
       <header>
         <span class="eyebrow">Jurisdictions · restoration</span>
-        <h1>Constitutional restoration</h1>
-        <p class="page-intro">If a government is countermanded, captured, or destroyed, the constitution does
-          not pause — restoration cascades through three tiers until a legitimate government stands again.
+        <h1>Rebuilding a lost government (restoration)</h1>
+        <p class="page-intro">If a government is overthrown, captured, or destroyed, the constitution does
+          not pause — rebuilding cascades through three tiers until a legitimate government stands again.
           Each tier activates only when the one above it cannot act. This page is the standing drill.</p>
-        <p class="citation">Detection triggers a restoration elections cascade.</p>
+        <p class="citation">Detection triggers a cascade of rebuilding elections.</p>
       </header>
 
       <section class="card" aria-labelledby="conditions-h">
@@ -31,14 +31,14 @@
           jurisdiction's government. Detection is evidence-based and judicially reviewable — never a
           unilateral switch.</p>
         <div class="grid-2" id="condition-cards"></div>
-        <p class="citation" style="margin-block-start:var(--space-3)">Three conditions: countermanded, captured or disabled, or destroyed.</p>
       </section>
 
       <section class="card" aria-labelledby="cascade-h">
         <h2 id="cascade-h">The restoration cascade</h2>
         <ol class="flow-steps" id="cascade-steps"></ol>
-        <p class="gloss">Restoration elections reuse the bootstrap election machinery — system-run, STV/Droop,
-          constitutional defaults (<a href="bootstrap.html">bootstrap sequence</a>).</p>
+        <p class="gloss">Rebuilding elections reuse the first-election machinery — run by the system with the
+          constitution's defaults, using the standard proportional ranked vote
+          (<a href="bootstrap.html">how a place wakes up</a>).</p>
         <noscript><p class="gloss">Tier 1: constituent jurisdictions elect a new legislature · Tier 2: the
           encompassing jurisdiction calls elections · Tier 3: individuals self-organize new jurisdictions per
           the Template.</p></noscript>
@@ -69,10 +69,10 @@
       </div>
 
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where restoration sits in the Jurisdiction lifecycle</h2>
+        <h2 id="state-h">The life of a place — where rebuilding sits</h2>
         <div class="state-strip" id="jur-states" style="margin-block-start:var(--space-2)"></div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Restoration-Mode is a branch, not an end
-          state — the jurisdiction returns to Self-Governing the moment a restored government is seated and
+        <p class="gloss" style="margin-block-start:var(--space-2)">Rebuilding is a branch, not an end
+          state — the place returns to self-governing the moment a restored government is seated and
           certified.</p>
       </section>
 
@@ -95,9 +95,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'jurisdictions/restoration',
-      title: 'Constitutional restoration',
+      title: 'Rebuilding a lost government',
       module: 'jurisdictions',
-      nav: 'jurisdiction-browser',
+      nav: 'restoration',
       roles: ['R-03', 'R-09'],
       workflows: ['WF-JUR-07'],
       forms: [],
@@ -176,11 +176,23 @@
             '</li>';
         }).join('');
 
+        /* Player wording for the raw place states; prefix match keeps the
+           marker working if the fixture labels are rephrased. */
+        var PLACE_STATES = {
+          'Boundary-Loaded (dormant)': 'Dormant — boundary loaded',
+          'Critical-Population': 'Critical population reached',
+          'Bootstrapping': 'Waking up',
+          'Self-Governing': 'Self-governing',
+          '[Subdivided]': 'Subdivided',
+          '[In-Union | Intermediary]': 'In a union / a middle layer',
+          '[Disintermediated]': 'Middle layer dissolved',
+          '[Restoration-Mode]': 'Rebuilding'
+        };
         var entity = BY.entities['Jurisdiction'];
         document.getElementById('jur-states').innerHTML = entity.states.map(function (s2, i) {
-          var cur = active && s2.indexOf('[Restoration-Mode') === 0;
+          var cur = active && String(s2).replace(/[\[\]]/g, '').indexOf('Restoration-Mode') === 0;
           return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(s2) + '</span>';
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(S.plainState(s2, PLACE_STATES)) + '</span>';
         }).join('');
 
         S.refresh();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Emergency powers — CGA mockups</title>
+  <title>Emergency powers — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -32,7 +32,7 @@
       <section class="card" aria-labelledby="invoke-h">
         <h2 id="invoke-h">Invoke emergency powers <span class="form-chip">Emergency powers declaration vote</span></h2>
         <p class="cc-small">Vote by supermajority to invoke emergency powers — define scope, area, duration, methods.
-          <span class="citation">available to legislative representatives</span></p>
+          <span class="citation">available to legislators</span></p>
         <form id="invoke-form">
           <div class="grid-2">
             <div class="field">
@@ -68,7 +68,7 @@
           </div>
           <div class="cluster">
             <button type="submit" class="btn btn--danger btn--sm">Put invocation to a vote</button>
-            <span class="citation">requires supermajority of all serving — 6 of 9</span>
+            <span class="citation">requires supermajority of all serving — 6 of 8 (6 of 9 when the chamber is full)</span>
           </div>
         </form>
         <div id="invoke-confirm" style="margin-block-start:var(--space-3)"></div>
@@ -79,7 +79,7 @@
           <h2 id="renew-h">Renewal <span class="form-chip">Emergency powers renewal vote</span></h2>
           <p class="cc-small">Vote by supermajority to renew emergency powers — each renewal is a fresh vote and a fresh
             90-day maximum; nothing rolls over silently.
-            <span class="citation">available to legislative representatives</span></p>
+            <span class="citation">available to legislators</span></p>
           <div id="renew-state"></div>
         </section>
 
@@ -101,7 +101,7 @@
           <li>Judicially reviewable at any time.</li>
         </ul>
         <div class="cluster" style="margin-block-start:var(--space-3)">
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — no vote can loosen these rails</span>
           <span class="citation">the 90-day ceiling is the constitutional maximum</span>
         </div>
       </section>
@@ -112,8 +112,8 @@
           <p><strong>What this screen does:</strong> walks an emergency power through its whole lifecycle —
             invoke, run active, then renew or expire. A court can narrow or strike it at any point, and an
             active power always leads the session agenda.</p>
-          <p><strong>Lifecycle:</strong> Emergency Powers — Invoked (supermajority) → Active
-            (duration/area/methods defined) → [Under Judicial Review] → [Renewed ≤ max] → Expired | Struck | Narrowed.</p>
+          <p><strong>Lifecycle:</strong> invoked by supermajority → active (duration, area, and methods defined) →
+            possibly under judicial review → possibly renewed → expired, struck, or narrowed.</p>
         </div>
       </details>
     </div>
@@ -217,7 +217,7 @@
           '<div class="banner banner--info" role="status">' + S.icon('check') +
           '<div><span class="banner-title">Invocation validated — sent to a supermajority vote</span>' +
           'Cause: ' + esc(cause.options[cause.selectedIndex].text) + ' · duration ' + esc(durInput.value) +
-          ' days · area and methods within authority. The vote needs 6 of 9 serving. ' +
+          ' days · area and methods within authority. The vote needs 6 of 8 serving. ' +
           '</div></div>';
       });
 

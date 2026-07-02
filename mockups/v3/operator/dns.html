@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DNS &amp; certificates — the operator plane — CGA mockups v2</title>
+  <title>DNS &amp; certificates — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -72,7 +72,7 @@
         '<p style="font-size:var(--text-sm)">' + esc(B.perName) + '</p>' +
         '<div class="orc-channels"><span class="channel-chip channel-chip--self">' + S.icon('check', { size: 'sm' }) + ' the only ungated path</span>' +
         '<span class="channel-chip channel-chip--governed">tried first</span></div>' +
-        '<span class="citation">DNS-before-cert, name by name — the root defines names and standards</span></div>';
+        '<span class="citation">DNS first, then the certificate — name by name</span></div>';
 
       var wildcardCard =
         '<div class="meter-card">' +
@@ -114,9 +114,8 @@
         '<p class="page-intro">The Identity Broker gives peers their names and the certificates that prove them. This is the heaviest operator capability — naming a peer touches that peer’s own subtree — so it lives behind governed channels and, on two of them, peer consent.</p></header>' +
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.wall) +
-        ' Naming is a capability, never a citizen role; it buys no vote, seat, or say.<br />' +
-        '<span class="citation">Naming runs through governed channels — the root defines names &amp; standards</span></div></div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> Naming is a capability, never a citizen role; it buys no vote, seat, or say.<br />' +
+        '<span class="citation">Naming runs through governed channels</span></div></div>' +
 
         /* ---------- the model ---------- */
         '<section aria-labelledby="model-h"><h2 id="model-h">The model — DNS is the identity, the cert is the proof</h2>' +
@@ -129,7 +128,7 @@
         '<section aria-labelledby="domains-h"><h2 id="domains-h">Domains</h2>' +
         '<p class="page-intro">Each registered domain carries its own zone, an encrypted write-only token, the cert posture, and a 7-day budget. The token is set once and never shown again — the broker reads it to write records; no surface ever reads it back.</p>' +
         domainsTable +
-        '<p class="gloss">The write token is encrypted at rest, local-only, and never federates — it lives only on the broker box (services/mesh-cert-broker).</p>' +
+        '<p class="gloss">The write token is encrypted at rest and write-only — the broker uses it to write records; no surface ever reads it back or shows it.</p>' +
         '</section>' +
 
         /* ---------- per-name vs wildcard ---------- */
@@ -180,9 +179,9 @@
 
         /* ---------- separate box + trust core ---------- */
         '<div class="plane-wall"><span>' + S.icon('lock', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">A separate box, a sealed token.</strong> The broker runs as its own service (<span class="form-id">services/mesh-cert-broker</span>). Its write token is encrypted, local-only, and never federates. ' +
+        '<strong style="color:var(--gov-fg)">A separate box, a sealed token.</strong> The broker runs as its own sealed service, apart from the app. Its write token is encrypted and write-only — set once, never shown again. ' +
         'Minting a wildcard grant or a promotion grant runs through the authority, which touches the protected trust core and, where it acts under a peer’s zone, requires that peer’s consent.<br />' +
-        '<span class="citation">Names &amp; standards are reserved to the root · authority ≠ leadership</span></div></div>';
+        '<span class="citation">authority ≠ leadership</span></div></div>';
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();
     }

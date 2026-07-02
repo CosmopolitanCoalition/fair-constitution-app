@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relocation — CGA mockups</title>
+  <title>Move somewhere new — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,12 +14,11 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Civic · relocation &amp; re-association</span>
+        <span class="eyebrow">Civic · moving</span>
         <h1>It looks like you may have moved</h1>
         <p class="page-intro">Your residency follows where you actually live. When a sustained presence pattern forms
           outside your home jurisdiction, the system asks — it never reassigns you silently, and it never penalizes
           travel.</p>
-        <p class="citation">Your association transfers when your residence does.</p>
       </header>
 
       <section class="card" aria-labelledby="detect-h">
@@ -27,9 +26,8 @@
         <div class="banner banner--warning">
           <svg class="icon" aria-hidden="true"><use href="#i-map-pin"></use></svg>
           <div><span class="banner-title">9 qualifying days near Albany, New York — outside New York County.</span>
-            Home residency: New York County, New York (active). Detection uses the same encrypted ping log as
-            verification; only day-counts are visible.
-            <span class="citation">Counted against the same residency threshold as your home verification.</span></div>
+            Home residency: New York County, New York (active). This uses the same encrypted check-ins as your
+            home confirmation — only day counts are ever visible.</div>
         </div>
         <div class="grid-2" style="margin-block-start:var(--space-4)">
           <div>
@@ -46,7 +44,7 @@
             <circle cx="242" cy="94" r="4" fill="var(--wong-skyblue)"></circle>
             <text x="20" y="44" fill="var(--gov-fg-strong)" font-size="12">New York County (home)</text>
             <text x="216" y="36" fill="var(--gov-fg-muted)" font-size="12">near Albany (detected)</text>
-            <text x="92" y="144" fill="var(--gov-fg-subtle)" font-size="10">stylized stand-in — production uses Leaflet + PostGIS</text>
+            <text x="92" y="144" fill="var(--gov-fg-subtle)" font-size="10">illustrative map</text>
           </svg>
         </div>
       </section>
@@ -57,10 +55,10 @@
           still requires the full threshold pattern before anything transfers.</p>
         <div class="cluster" role="group" aria-label="Travel or move">
           <button type="button" class="btn btn--secondary" id="choose-travel" aria-pressed="false">I&#39;m travelling — keep my residency</button>
-          <button type="button" class="btn btn--secondary" id="choose-move" aria-pressed="false">I&#39;m moving — start re-association</button>
+          <button type="button" class="btn btn--secondary" id="choose-move" aria-pressed="false">I&#39;m moving — transfer my residency</button>
         </div>
         <div id="choice-panel" style="margin-block-start:var(--space-4)"></div>
-        <noscript><p class="gloss">Outcome panels render with JavaScript — travel keeps all associations; a move starts re-association with grace-period handling.</p></noscript>
+        <noscript><p class="gloss">Outcome panels render with JavaScript — travel changes nothing; a move starts transferring your residency, with grace-period handling for held offices.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="office-h">
@@ -77,7 +75,7 @@
             <div class="meter"><span class="meter-fill" style="inline-size:30%"></span></div>
             <div class="meter-caption"><span>day 9 of 30 — grace ends if the move completes</span><span>seat vacates, then fills by countback</span></div>
           </div>
-          <p class="cc-small" style="margin-block-start:var(--space-3)">If re-association completes, the seat is declared vacant and fills by
+          <p class="cc-small" style="margin-block-start:var(--space-3)">If the move completes, the seat is declared vacant and fills by
             countback — prior ballots re-run with the vacated member removed.
             If you stay, nothing changes.</p>
           <p class="citation">A vacancy fills by countback first, with a special election (90–180 days) as the fallback.</p>
@@ -85,11 +83,10 @@
       </section>
 
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <h2 id="state-h">Where you are</h2>
         <div id="ind-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — a confirmed move enters the [Relocating] state.</p></noscript>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Your old residency claim becomes Superseded only when the new one verifies — there is never a gap in your rights.</p>
-        <p class="citation">Your old residency stays active until the new one verifies.</p>
+        <noscript><p class="gloss">The journey strip renders with JavaScript — a confirmed move shows the Moving step.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Your old residency stays active until the new one is confirmed — there is never a gap in your rights.</p>
       </section>
 
       <details class="about-surface">
@@ -98,10 +95,9 @@
           <p><strong>What this screen does:</strong> it detects a sustained presence pattern outside your home
             jurisdiction and lets you mark it as travel or start a move. A move
             re-runs residency declaration in the new jurisdiction; a completed move
-            with a held seat hands off to a vacancy countback, and federation peers
-            are notified.</p>
-          <p><strong>How your status changes:</strong> you move into the Relocating state and then Re-associated, while
-            your old residency claim goes from Active to Superseded.</p>
+            with a held seat hands off to a vacancy countback.</p>
+          <p><strong>How your status changes:</strong> you are marked as moving (formally: the Relocating state)
+            until the new residency confirms; your old residency claim then retires (Active → Superseded).</p>
           <p><strong>No forms on this surface:</strong> the move path reuses the residency declaration on
             <a href="residency.html">the residency screen</a>.</p>
           <p class="citation">Your rights never lapse during a move.</p>
@@ -113,9 +109,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'civic/relocation',
-      title: 'Relocation',
+      title: 'Move somewhere new',
       module: 'civic',
-      nav: 'civic-home',
+      nav: 'relocation',
       roles: ['R-03'],
       workflows: ['WF-CIV-03'],
       forms: [],
@@ -156,33 +152,44 @@
         if (choice === 'travel') {
           panel = '<div class="banner banner--info" role="status">' + S.icon('check') +
             '<div><span class="banner-title">Marked as travel — nothing changes.</span> ' +
-            'Your New York County residency and every association in your chain stay active. The detection resets; the system will ' +
-            'only ask again if a new sustained pattern forms. <span class="citation">Nothing transfers; your associations stay put.</span></div></div>';
+            'Your New York County residency stays active in every place that contains it. The detection resets; the system will ' +
+            'only ask again if a new sustained pattern forms.</div></div>';
         } else if (choice === 'move') {
           panel = '<div class="banner banner--warning" role="status">' + S.icon('arrow-right') +
-            '<div><span class="banner-title">Re-association started — your rights stay intact throughout.</span> ' +
-            'The move completes only when the new pattern reaches the threshold. <span class="citation">Your association transfers when your residence does.</span></div></div>' +
+            '<div><span class="banner-title">Move started — your rights stay intact throughout.</span> ' +
+            'The move completes only when the new pattern reaches the threshold.</div></div>' +
             '<ol class="flow-steps" style="margin-block-start:var(--space-3)">' +
             '<li class="flow-step flow-step--current"><div class="flow-step-head"><span class="flow-step-n">1</span><span class="flow-actor">You</span>' +
-            '<span class="flow-action">Declare residency in the new jurisdiction</span></div>' +
-            '<p class="flow-outcome">Declare residency on <a href="residency.html">the residency screen</a>; ping monitoring restarts there.</p></li>' +
+            '<span class="flow-action">Say where you live now</span></div>' +
+            '<p class="flow-outcome">Declare your new residency on <a href="residency.html">the residency screen</a>; check-ins restart there.</p></li>' +
             '<li class="flow-step"><div class="flow-step-head"><span class="flow-step-n">2</span><span class="flow-actor">System</span>' +
-            '<span class="flow-action">Away-pattern accumulates to the residency threshold</span></div>' +
-            '<p class="flow-outcome">Old associations remain fully active until then — no gap in voting or candidacy.</p></li>' +
+            '<span class="flow-action">Days in the new place add up to the residency threshold</span></div>' +
+            '<p class="flow-outcome">Your old residency stays fully active until then — no gap in voting or candidacy.</p></li>' +
             '<li class="flow-step"><div class="flow-step-head"><span class="flow-step-n">3</span><span class="flow-actor">System</span>' +
-            '<span class="flow-action">Associations transfer; held offices resolve via the grace period</span></div>' +
-            '<p class="flow-outcome">Old roles and eligibilities gracefully expire; a held seat vacates into a countback; federation peers are notified.</p></li></ol>';
+            '<span class="flow-action">Your residency transfers; a held office resolves via the grace period</span></div>' +
+            '<p class="flow-outcome">Old roles gracefully expire; a held seat vacates and refills by re-running the election ballots (a countback).</p></li></ol>';
         } else {
-          panel = '<p class="gloss">No answer yet — your residency and all associations remain exactly as they are.</p>';
+          panel = '<p class="gloss">No answer yet — your residency stays exactly as it is, everywhere you live.</p>';
         }
         document.getElementById('choice-panel').innerHTML = panel;
 
-        /* Individual lifecycle strip */
+        /* Journey strip — plain display labels; raw tokens stay in the data. The
+           Deceased/Closed terminal is folded into the plain "settled" label. */
+        var STEP_LABEL = {
+          'Registered': 'Signed up',
+          'Identity-Verified': 'ID linked (optional)',
+          'Residency-Declared': 'Residency declared',
+          'Jurisdictionally Associated': 'Resident — full rights unlocked',
+          '[Relocating]': 'Moving',
+          'Re-associated | Deceased/Closed': 'Settled in the new place'
+        };
         var current = choice === 'move' ? '[Relocating]' : 'Jurisdictionally Associated';
-        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.map(function (st, i) {
+        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.filter(function (st) {
+          return Object.prototype.hasOwnProperty.call(STEP_LABEL, st);
+        }).map(function (st, i) {
           var cls = 'state-node' + (st === current ? ' state-node--current' : '');
           return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
-            '<span class="' + cls + '">' + esc(st) + '</span>';
+            '<span class="' + cls + '">' + esc(S.plainState(st, STEP_LABEL)) + '</span>';
         }).join('');
 
         S.refresh();

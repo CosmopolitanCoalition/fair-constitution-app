@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Election detail — CGA mockups</title>
+  <title>Election detail — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -18,25 +18,25 @@
       <header>
         <span class="eyebrow">Elections · election record</span>
         <h1>New York County general election — 2031 cycle</h1>
-        <p class="page-intro">The full lifecycle of one election: a continuous approval phase, a pre-published finalist
-          cutoff, a ranked window, an instant PR-STV count, and certification. Use the mockup controls (election phase)
-          to walk the state machine below through every stage.</p>
+        <p class="page-intro">The full lifecycle of one election: a continuous approval phase, a finalist cutoff
+          published in advance, a ranked voting window, an instant proportional count, and certification. Use the
+          mockup controls (election phase) to walk this election through every stage.</p>
         <p class="citation">General election cycle</p>
       </header>
 
       <section class="card" aria-labelledby="state-h">
         <h2 id="state-h">Election state <span id="phase-badge"></span></h2>
-        <div class="state-strip" id="election-state" aria-label="Election state machine"></div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">The approval phase spans the entire inter-election
-          period; the finalist cutoff and ranked window are the only time-boxed stages. Tabulation is instant.</p>
+        <div class="state-strip" id="election-state" aria-label="Election stages"></div>
+        <p class="gloss" style="margin-block-start:var(--space-2)">The approval phase runs the whole time between
+          elections; the finalist cutoff and ranked window are the only time-boxed stages. Counting is instant.</p>
         <div class="cluster" id="state-actions" style="margin-block-start:var(--space-2)"></div>
         <p class="citation">How an election moves from open registration through to a certified result (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
       </section>
 
       <div class="cluster" style="gap:var(--space-6)">
-        <div class="stat"><span class="stat-number">7</span><span class="stat-label">seats this race</span></div>
-        <div class="stat stat--accent"><span class="stat-number">21</span><span class="stat-label">finalist places · pre-published X</span></div>
-        <div class="stat"><span class="stat-number">24</span><span class="stat-label">validated candidates</span></div>
+        <div class="stat"><span class="stat-number" id="stat-seats">9</span><span class="stat-label">seats this race</span></div>
+        <div class="stat stat--accent"><span class="stat-number" id="stat-finalists">27</span><span class="stat-label">places on the final ballot</span></div>
+        <div class="stat"><span class="stat-number" id="stat-cands">30</span><span class="stat-label">validated candidates</span></div>
         <div class="stat"><span class="stat-number" id="stat-stage">—</span><span class="stat-label">current stage</span></div>
       </div>
 
@@ -59,18 +59,17 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="races-h">
-          <h2 id="races-h">Races &amp; pre-published X</h2>
-          <p class="cc-small">The finalist count X for every race is published <strong>before</strong> the cutoff, so
-            candidates and voters always know where the line will fall.</p>
+          <h2 id="races-h">Who makes the final ballot</h2>
+          <p class="cc-small" id="races-line">The top 27 advance — 3 for each of the 9 seats — and the line is
+            published <strong>before</strong> the cutoff, so candidates and voters always know where it falls.</p>
           <div class="table-wrap"><table class="table">
             <caption class="visually-hidden">Races in this election</caption>
-            <thead><tr><th>Race</th><th>Seats</th><th>X</th><th>Candidates</th></tr></thead>
-            <tbody><tr><td>New York County at-large</td><td>7</td><td class="mono">21</td><td>24</td></tr></tbody>
+            <thead><tr><th>Race</th><th>Seats</th><th>Final-ballot places</th><th>Candidates</th></tr></thead>
+            <tbody><tr><td>New York County at-large</td><td id="race-seats">9</td><td class="mono" id="race-finalists">27</td><td id="race-cands">30</td></tr></tbody>
           </table></div>
-          <p class="gloss">X = f(seats in race) — the current setting is 3 × seats.</p>
-          <p class="amendable">Finalist multiplier: <span class="amendable-value">3 × seats</span>
+          <p class="amendable">Finalist places per seat: <span class="amendable-value">3</span>
             <span class="amendable-meta">Set at instance founding · effective 2030-11-08 · amendable setting</span></p>
-          <p class="citation">Finalist count per race · the right to stand is preserved via write-in</p>
+          <p class="citation">The number of finalist places is set by the number of seats · the right to stand is preserved via write-in</p>
         </section>
 
         <section class="card" aria-labelledby="map-h">
@@ -81,10 +80,10 @@
             <text x="40" y="52" font-size="11" fill="var(--gov-fg-muted)">New York</text>
             <polygon points="110,70 230,58 268,110 232,158 130,162 92,118" fill="var(--wong-orange)" fill-opacity="0.55" stroke="var(--gov-border-strong)" stroke-width="1.5"></polygon>
             <text x="180" y="116" text-anchor="middle" font-size="12" fill="var(--gov-fg)" font-weight="600">New York County at-large</text>
-            <text x="180" y="132" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">7 seats · single district</text>
+            <text x="180" y="132" text-anchor="middle" font-size="10" fill="var(--gov-fg-muted)">9 seats · single district</text>
           </svg>
-          <p class="gloss">Stylized stand-in — production uses Leaflet + PostGIS.</p>
-          <p class="cc-small">This race is a single district: 7 seats sits inside the constitutional 5–9 band, so no
+          <p class="gloss">Stylized stand-in — the live game draws the real map.</p>
+          <p class="cc-small">This race is a single district: 9 seats sits inside the constitutional 5–9 band, so no
             subdivision is required. A legislature above 9 seats must subdivide into districts of 5–9 seats each.</p>
           <p class="citation">Legislature maximum size · 9 members</p>
           <p><a href="../jurisdictions/district-mapper.html">See a subdivided legislature in the district mapper
@@ -139,12 +138,29 @@
       /* Local sub-state inside the "certifying" scenario phase: tabulating → certified → recount. */
       var certStep = 'tabulating'; /* tabulating | certified | recount */
 
+      /* This page's race — the New York County general election. */
+      var election = W.elections[0];
+      var FINALISTS = election.finalistCount;
+
       var STATES = BY.entities['Election'].states;
+      /* Plain display labels for the raw election tokens — keys stay untouched. */
+      var STATE_LABELS = {
+        'Prior-Cycle-Certified': 'Last election certified',
+        'Approval-Phase-Open (registration + endorsements + approvals, continuous)': 'Approval phase open — sign-ups, endorsements, approvals',
+        'Finalist-Cutoff (top X by approval standing; X = f(seats in race))': 'Finalist cutoff — the top ' + FINALISTS + ' lock in',
+        'Ranked-Voting-Open (finalists + write-ins)': 'Ranked voting open — finalists plus write-ins',
+        'Voting-Closed': 'Voting closed',
+        'Tabulating (instant)': 'Counting (instant)',
+        'Certified': 'Certified',
+        '[Recount]': 'Recount (if ordered)',
+        'Final': 'Final',
+        'next Approval-Phase-Open': 'Next approval phase opens'
+      };
       var SCHEDULE = [
         { stage: 'Prior cycle certified — approval phase opens', when: '2030-11-08 09:00', key: 'opened' },
-        { stage: 'Finalist cutoff (top 21 lock; standings freeze)', when: '2031-08-01 17:00', key: 'cutoff' },
+        { stage: 'Finalist cutoff — the top ' + FINALISTS + ' lock in; standings freeze', when: '2031-08-01 17:00', key: 'cutoff' },
         { stage: 'Ranked window — finalists + write-ins', when: '2031-08-02 08:00 → 2031-08-16 19:59', key: 'ranked' },
-        { stage: 'Tabulation — instant PR-STV, Droop quota, Gregory transfers', when: '2031-08-16 20:00', key: 'tabulating' },
+        { stage: 'Counting — instant, proportional ranked-choice (details in Learn)', when: '2031-08-16 20:00', key: 'tabulating' },
         { stage: 'Certification target', when: '2031-08-18 12:00', key: 'certified' }
       ];
 
@@ -178,17 +194,30 @@
         document.getElementById('election-state').innerHTML = STATES.map(function (s, i) {
           var cls = s === cur ? ' state-node--current' : '';
           return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + cls + '"' + (s === cur ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+            '<span class="state-node' + cls + '"' + (s === cur ? ' aria-current="step"' : '') + '>' + esc(S.plainState(s, STATE_LABELS)) + '</span>';
         }).join('');
+
+        /* Race numbers, derived from the fixture so the copy tracks the world. */
+        var candCount = W.candidates.length;
+        var perSeat = Math.round(FINALISTS / election.seats);
+        document.getElementById('stat-seats').textContent = election.seats;
+        document.getElementById('stat-finalists').textContent = FINALISTS;
+        document.getElementById('stat-cands').textContent = candCount;
+        document.getElementById('race-seats').textContent = election.seats;
+        document.getElementById('race-finalists').textContent = FINALISTS;
+        document.getElementById('race-cands').textContent = candCount;
+        document.getElementById('races-line').innerHTML = 'The top ' + FINALISTS + ' advance — ' + perSeat +
+          ' for each of the ' + election.seats + ' seats — and the line is published <strong>before</strong> the ' +
+          'cutoff, so candidates and voters always know where it falls.';
 
         var badge = phase === 'approval' ? S.badge('info', 'Approval phase', 'clock')
           : phase === 'ranked' ? S.badge('warning', 'Ranked window open', 'vote')
           : certStep === 'recount' ? S.badge('danger', 'Recount ordered', 'refresh-cw')
           : certStep === 'certified' ? S.badge('success', 'Certified', 'check')
-          : S.badge('neutral', 'Tabulating', 'clock');
+          : S.badge('neutral', 'Counting', 'clock');
         document.getElementById('phase-badge').innerHTML = badge;
         document.getElementById('stat-stage').textContent = phase === 'approval' ? 'approval'
-          : phase === 'ranked' ? 'ranked' : certStep;
+          : phase === 'ranked' ? 'ranked' : (certStep === 'tabulating' ? 'counting' : certStep);
 
         /* Stage-appropriate actions */
         var actions = '';
@@ -230,9 +259,12 @@
           var link = p === 'approval' ? '<a href="open-ballot.html">Open ballot</a>'
             : p === 'ranked' ? '<a href="ranked-ballot.html">Ranked ballot</a>'
             : '<a href="results.html">Count record</a>';
+          var sub = e.finalistCount
+            ? 'finalists: top ' + e.finalistCount + ' per race'
+            : S.plainCodes(e.note || '');
           return '<div class="card card--inset"><div class="cluster" style="justify-content:space-between">' +
-            '<div><strong>' + esc(j.name) + '</strong> · general · ' + e.seats + ' seats' +
-            '<span class="citation" style="display:block">finalists: top ' + e.finalistCount + ' per race</span></div>' +
+            '<div><strong>' + esc(j.name) + '</strong> · general · ' + e.seats.toLocaleString('en-US') + ' seats' +
+            (sub ? '<span class="citation" style="display:block">' + esc(sub) + '</span>' : '') + '</div>' +
             '<div class="cluster">' + S.badge(pb[0], pb[1], 'clock') + link + '</div></div></div>';
         }).join('');
 

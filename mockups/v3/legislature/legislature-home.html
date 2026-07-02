@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chamber — CGA mockups</title>
+  <title>Chamber — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,18 +16,17 @@
       <header>
         <span class="eyebrow">Legislature · New York County</span>
         <h1>New York County legislature</h1>
-        <p class="page-intro">Nine seats elected in one PR-STV count. There is no faction layer — members carry the
-          endorsing organizations from their candidacies, and members with no endorsements are first-class.
-          Seat 4 is vacant and a countback is running.</p>
-        <p class="citation">Created through consent · proportional ranked-choice count · no faction layer
-          (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>)</p>
+        <p class="page-intro">Nine seats, all elected at once by proportional ranked-choice vote. Members carry the
+          endorsements they ran with — people and organizations endorse candidates directly, so there are no party
+          blocs. Seat 4 is empty; the election's ballots are being re-run to pick a replacement (a countback).</p>
+        <p class="citation">Created through consent · proportional ranked-choice count</p>
       </header>
 
       <div class="cluster" style="gap:var(--space-6)">
         <div class="stat"><span class="stat-number">9</span><span class="stat-label">seats</span></div>
         <div class="stat"><span class="stat-number">8</span><span class="stat-label">serving · seat 4 vacant</span></div>
-        <div class="stat"><span class="stat-number">5</span><span class="stat-label">peg quorum — of all serving, never of those present</span></div>
-        <div class="stat stat--accent"><span class="stat-number">6</span><span class="stat-label">supermajority — two-thirds of all serving members</span></div>
+        <div class="stat"><span class="stat-number">5</span><span class="stat-label">quorum — counted against all serving seats, never those present</span></div>
+        <div class="stat stat--accent"><span class="stat-number">6</span><span class="stat-label">supermajority — two-thirds of all serving, rounded up</span></div>
       </div>
 
       <section class="card" aria-labelledby="seatmap-h">
@@ -41,7 +40,7 @@
           break ties). Dashed = vacant seat in countback — vacancies join at the junior-most position. Seniority is total
           days as a chamber member; ties (common — a general election seats everyone at once) break by normalized prior
           election performance. Larger chambers add outer circles, up to 12 seats in the innermost.</p>
-        <p class="citation">Quorum: 5 of 9 serving — supermajority: two-thirds of all serving members = 6 of 9</p>
+        <p class="citation">Quorum: 5 of 8 serving (5 of 9 when the chamber is full) — supermajority: two-thirds of all serving, rounded up = 6 of 8</p>
       </section>
 
       <section class="card" style="padding:0" aria-labelledby="roster-h">
@@ -59,34 +58,42 @@
 
       <div class="grid-2">
         <section class="card" aria-labelledby="term-h">
-          <h2 id="term-h">Term lockstep</h2>
+          <h2 id="term-h">Terms end together</h2>
           <div class="cluster" style="gap:var(--space-6)">
             <div class="stat stat--accent"><span class="stat-number" id="term-days">—</span><span class="stat-label">days until the term ends</span></div>
             <div class="stat"><span class="stat-number">2035-11-01</span><span class="stat-label">term end · all branches together</span></div>
           </div>
           <p style="margin-block-start:var(--space-3)">Legislative, elected-executive, and elected-judicial terms expire
             together; the next general election derives from one clock and cannot be skipped or delayed by officials.</p>
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected by the constitutional test suite</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — no law or official can change this</span>
           <p class="citation" style="margin-block-start:var(--space-2)">Terms expire together —
             dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
         </section>
 
         <section class="card" aria-labelledby="vacancy-h">
           <h2 id="vacancy-h">Seat 4 vacancy</h2>
-          <p><strong>Renata Silva</strong> resigned. The countback engine is re-running the prior election's ballots with
-            the vacated member removed as a candidate.</p>
+          <p><strong>Renata Silva</strong> resigned. The prior election's ballots are being re-run with her removed as
+            a candidate — that re-run (the countback) picks the replacement.</p>
           <div class="cluster">
             <span class="badge badge--warning"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh-cw"></use></svg> Countback running</span>
             <span class="form-chip">Vacancy declaration</span>
           </div>
-          <p class="citation" style="margin-block-start:var(--space-2)">Prior ballots re-run with the vacated member removed — universally, with no faction filtering ·
+          <p class="citation" style="margin-block-start:var(--space-2)">Prior ballots re-run with the vacated member removed ·
             as implemented (<a href="../shared/constitutional-questions.html#q6">ledger #6</a>)</p>
-          <p style="margin-block-start:var(--space-3)"><a href="oversight.html">Vacancy handling in oversight
+          <p style="margin-block-start:var(--space-3)"><a href="oversight.html">Vacancy handling in ethics &amp; removals
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
             · <a href="../electoral/vacancy-countback.html">Countback engine
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         </section>
       </div>
+
+      <section class="card" aria-labelledby="rules-h">
+        <h2 id="rules-h">The rules this chamber can change</h2>
+        <p class="cc-small">Some of the rules the chamber lives by can be changed by passing a law — how often
+          elections happen, how long appointments last, and more — each inside limits that no law can override.</p>
+        <p><a href="settings.html">Open the register of changeable rules
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
+      </section>
 
       <section class="card" aria-labelledby="first-h">
         <h2 id="first-h">First sessions checklist <span class="citation">Constituting the legislature</span></h2>
@@ -107,8 +114,9 @@
             session; a vacant seat hands off to the vacancy handling flow.</p>
           <p><strong>Behind the scenes:</strong> each committee seat moves from allocated to seated; a vacancy moves from
             detected to declared to countback-running to filled — that is the state behind seat 4.</p>
-          <p><strong>No faction layer:</strong> the roster shows endorsing organizations because the system replaced
-            faction registration with open endorsements
+          <p><strong>Endorsements, not parties:</strong> the roster shows endorsing organizations because people and
+            organizations endorse candidates directly — there's no party machinery, and members with no endorsements
+            have exactly the same standing
             (<a href="../shared/constitutional-questions.html#q1">ledger #1</a>).</p>
         </div>
       </details>
@@ -171,7 +179,7 @@
         return '<div class="card card--inset">' +
           '<h3 style="font-size:var(--text-base);margin-block-end:var(--space-1)">' + esc(f.name) + '</h3>' +
           '<p class="cc-small" style="margin-block-end:var(--space-1)">' + esc(f.desc) + '</p>' +
-          '<span class="citation" style="display:block">available to ' + esc(String(f.availableToRaw).replace(/\bR-\d+\s*/g, '')) + '</span>' +
+          '<span class="citation" style="display:block">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</span>' +
           (extra || '') + '</div>';
       }
 

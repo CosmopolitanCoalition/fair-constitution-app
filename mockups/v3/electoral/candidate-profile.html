@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Candidate profile — CGA mockups</title>
+  <title>Candidate profile — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -33,14 +33,14 @@
           <div class="cluster" style="gap:var(--space-6)">
             <div class="stat stat--accent"><span class="stat-number" id="stat-rank">—</span><span class="stat-label">rank in the race</span></div>
             <div class="stat"><span class="stat-number" id="stat-approvals">—</span><span class="stat-label">approvals (aggregate · updated daily)</span></div>
-            <div class="stat"><span class="stat-number">21</span><span class="stat-label">finalist places · top X advance</span></div>
+            <div class="stat"><span class="stat-number" id="stat-finalists">27</span><span class="stat-label">places on the final ballot</span></div>
           </div>
           <div class="meter-block" style="margin-block-start:var(--space-3)">
             <div class="meter"><span class="meter-fill" id="standing-fill" style="inline-size:0%"></span><span class="meter-threshold" id="standing-line" style="inset-inline-start:27%"></span></div>
-            <div class="meter-caption"><span id="standing-caption">—</span><span>gold tick = finalist line · top 21 of 24</span></div>
+            <div class="meter-caption"><span id="standing-caption">—</span><span id="line-caption">gold tick = finalist line</span></div>
           </div>
-          <p class="gloss">Finalists: the top X candidates by approval standing when the phase closes; X = f(seats) — here 3 × 7 seats. Non-finalists stay write-in eligible.</p>
-          <p class="citation" id="standing-cite">Finalist count per race · X = f(seats) · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
+          <p class="gloss" id="finalist-gloss">The candidates highest in approvals when the phase closes make the final ballot. Everyone else stays write-in eligible.</p>
+          <p class="citation" id="standing-cite">The number of finalist places is set by the number of seats · as implemented (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>)</p>
         </div>
         <div id="standing-generic" hidden>
           <p class="cc-small">Approval standing applies only during the approval phase. For this race, standing lives in the
@@ -49,20 +49,20 @@
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
           <p class="citation">Round-by-round proportional count record</p>
         </div>
-        <div class="state-strip" id="cand-state" style="margin-block-start:var(--space-3)" aria-label="Candidacy state machine"></div>
+        <div class="state-strip" id="cand-state" style="margin-block-start:var(--space-3)" aria-label="Candidacy stages"></div>
       </section>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="endorse-h">
           <h2 id="endorse-h">Endorsements</h2>
-          <p class="cc-small">Organizations <strong>and</strong> individuals endorse candidates directly — there is no party or faction registration anywhere in the system.</p>
+          <p class="cc-small">People <strong>and</strong> organizations endorse candidates directly — there's no party machinery to join.</p>
           <div id="endorse-graph-wrap">
             <svg viewBox="0 0 340 190" role="img" aria-labelledby="graph-title" style="inline-size:100%;block-size:auto">
               <title id="graph-title">Endorsement graph — organizations and individuals linked to the candidate</title>
               <g id="graph-edges" stroke="var(--gov-border-strong)" stroke-width="1.5"></g>
               <g id="graph-nodes"></g>
             </svg>
-            <p class="gloss">Stylized stand-in — the running game renders the live endorsement graph from the polymorphic endorsements table.</p>
+            <p class="gloss">Illustrative — in the live game this graph is drawn from real endorsements as they happen.</p>
           </div>
           <div id="endorse-list" class="cluster" style="margin-block-start:var(--space-2)"></div>
           <h3 style="margin-block-start:var(--space-4)">Public individual endorsers — the public web</h3>
@@ -80,7 +80,7 @@
             <thead><tr><th>Organization</th><th>Requested</th><th>Status</th></tr></thead>
             <tbody id="request-rows"></tbody>
           </table></div>
-          <p class="gloss" id="request-note">A granted organizational endorsement marks the candidacy as an endorsed candidate. Candidates with no endorsements are first-class throughout.</p>
+          <p class="gloss" id="request-note">A granted organizational endorsement marks the candidacy as an endorsed candidate. Candidates with no endorsements appear and count exactly the same as everyone else.</p>
         </section>
       </div>
 
@@ -134,9 +134,9 @@
           <p><strong>What this screen does:</strong> shows a candidate's public profile — platform statement, approval
             standing, endorsements, and the public record. The candidate can edit their profile, request endorsements,
             and withdraw; standings feed the open ballot.</p>
-          <p><strong>Entity state machine:</strong> Candidacy — Registered → Validated → In-Approval-Pool → [Endorsed] →
-            Finalist | Non-finalist (write-in eligible) → On-Ranked-Ballot / Written-In → Elected | Not elected | Withdrawn.
-            The strip above highlights this candidate's current state.</p>
+          <p><strong>The stages of a candidacy:</strong> registered, validated, in the approval pool, optionally
+            endorsed, then finalist (or write-in eligible), on the ballot, and finally elected, not elected, or
+            withdrawn. The strip above highlights this candidate's current stage.</p>
           <p><strong>Deep linking:</strong> this page honors <code data-no-i18n>?candidate=</code> — every name on the open ballot
             links here. The count and ranked-ballot pages link non-fixture names with
             <code data-no-i18n>?candidate=&lt;slug&gt;&amp;name=&lt;display name&gt;&amp;race=&lt;election id&gt;</code>, which renders
@@ -304,7 +304,7 @@
           var more = split.pub - split.named.length;
           html += '<p class="gloss" style="margin-block-end:0">+ ' + more + ' more public ' +
             (more === 1 ? 'endorser' : 'endorsers') +
-            ' — the full list renders from the endorsements table; this mockup names the web for the leading candidates.</p>';
+            ' — the live game shows every public endorser; this mockup names the web for the leading candidates.</p>';
         }
         return html;
       }
@@ -347,6 +347,13 @@
         if (!generic) {
           document.getElementById('stat-rank').textContent = '#' + rank + ' of ' + W.candidates.length;
           document.getElementById('stat-approvals').textContent = cand.approvals.toLocaleString('en-US');
+          document.getElementById('stat-finalists').textContent = FINALISTS;
+          document.getElementById('line-caption').textContent = 'gold tick = finalist line · top ' + FINALISTS + ' of ' + W.candidates.length;
+          var perSeat = election && election.seats ? Math.round(FINALISTS / election.seats) : 0;
+          document.getElementById('finalist-gloss').textContent = perSeat
+            ? 'The top ' + FINALISTS + ' candidates by approvals when the phase closes — ' + perSeat + ' for each of the ' +
+              election.seats + ' seats — make the final ballot. Everyone else stays write-in eligible.'
+            : 'The candidates highest in approvals when the phase closes make the final ballot. Everyone else stays write-in eligible.';
           var topApprovals = byApprovals[0].approvals;
           var lineApprovals = (byApprovals[FINALISTS - 1] || byApprovals[byApprovals.length - 1]).approvals;
           document.getElementById('standing-fill').style.inlineSize = Math.round(cand.approvals / topApprovals * 100) + '%';
@@ -357,18 +364,26 @@
             : 'rank #' + rank + ' — below the finalist line · write-in eligible';
         }
 
-        /* Candidacy state strip. The registry's terminal-state key predates the
-           outcome wording rule; the page displays "Elected | Not elected | Withdrawn". */
+        /* Candidacy state strip — raw registry tokens stay as keys; the display
+           labels are plain language via S.plainState. */
+        var CAND_LABELS = {
+          'Registered (any time after prior certification)': 'Registered',
+          'Validated': 'Validated',
+          'In-Approval-Pool': 'In the approval pool',
+          '[Endorsed]': 'Endorsed (optional)',
+          'Finalist | Non-finalist (write-in eligible)': 'Made the final ballot — or staying write-in eligible',
+          'On-Ranked-Ballot / Written-In': 'On the ballot',
+          'Elected | Not elected | Withdrawn': 'Elected, not elected, or withdrew'
+        };
         var states = BY.entities['Candidacy'].states;
         var TERMINAL = states[states.length - 1];
-        function stateLabel(s) { return s === TERMINAL ? 'Elected | Not elected | Withdrawn' : s; }
         var current = withdrawn ? TERMINAL
           : generic ? (!phase ? 'Validated' : phaseOpen ? 'In-Approval-Pool' : 'On-Ranked-Ballot / Written-In')
           : !phaseOpen ? 'Finalist | Non-finalist (write-in eligible)'
           : (cand.endorsedBy || []).length ? '[Endorsed]' : 'In-Approval-Pool';
         document.getElementById('cand-state').innerHTML = states.map(function (s, i) {
           return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(stateLabel(s)) + '</span>';
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(S.plainState(s, CAND_LABELS)) + '</span>';
         }).join('');
 
         /* Endorsements: org chips + the public/private individual split.
@@ -383,7 +398,7 @@
           chips += '<span class="tag-chip">no public endorsements recorded</span>';
         } else {
           chips += '<span class="tag-chip">' + cand.individualEndorsements + ' individual · ' + split.pub + ' public, ' + split.priv + ' private</span>';
-          if (!(cand.endorsedBy || []).length) chips += '<span class="tag-chip">no organizational endorsements — first-class</span>';
+          if (!(cand.endorsedBy || []).length) chips += '<span class="tag-chip">running without endorsements</span>';
         }
         document.getElementById('endorse-list').innerHTML = chips;
         document.getElementById('endorse-split').innerHTML = generic

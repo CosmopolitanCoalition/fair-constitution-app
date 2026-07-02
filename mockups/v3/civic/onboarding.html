@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Onboarding — CGA mockups</title>
+  <title>Create your account — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,22 +16,20 @@
       <header>
         <span class="eyebrow">Civic onboarding · step 1 of 3</span>
         <h1>Create your account</h1>
-        <p class="page-intro">Anyone can register — being a person is the only requirement. Your rights are inherent;
+        <p class="page-intro">Anyone can join — being a person is the only requirement. Your rights are yours already;
           this account simply gives them a record to attach to. Voting and candidacy unlock later, automatically,
-          when your residency is verified.</p>
-        <p class="citation">Registration is open to any person — rights are inherent.</p>
+          once you live somewhere long enough.</p>
       </header>
 
       <ol class="stepper">
-        <li class="stepper-step stepper-step--active" aria-current="step">1 · Account &amp; profile</li>
-        <li class="stepper-step"><a href="identity-verification.html">2 · Identity verification</a></li>
-        <li class="stepper-step"><a href="residency.html">3 · Residency</a></li>
+        <li class="stepper-step stepper-step--active" aria-current="step">1 · Account</li>
+        <li class="stepper-step"><a href="identity-verification.html">2 · Link an ID (optional)</a> <a href="residency.html" class="gloss">skip</a></li>
+        <li class="stepper-step"><a href="residency.html">3 · Say where you live</a></li>
       </ol>
 
       <section class="card" aria-labelledby="reg-h">
-        <h2 id="reg-h">Individual registration</h2>
-        <p class="cc-small">Create an account and identity record in the system.
-          <span class="citation" style="display:block">Open to anyone — creates your personal record.</span></p>
+        <h2 id="reg-h">Your account</h2>
+        <p class="cc-small">A name and your languages — that is all it takes.</p>
         <form id="reg-form" novalidate>
           <div class="field">
             <label class="field-label" for="reg-name">Full name</label>
@@ -47,7 +45,7 @@
               <option value="zh-Hans">中文 — 简体 (zh-Hans)</option>
               <option value="hi">हिन्दी (hi)</option>
             </select>
-            <span class="field-hint">Multiselect stub — the production list covers every supported locale. Records are translated per your selection.</span>
+            <span class="field-hint">Pick every language you are comfortable in — the world translates itself for you.</span>
           </div>
           <div class="field">
             <label class="field-label" for="reg-tz">Timezone</label>
@@ -61,7 +59,7 @@
           </div>
           <div class="field" id="terms-field">
             <label class="checkbox"><input type="checkbox" id="reg-terms" />
-              I understand my account record is mine, my location pings stay encrypted, and my civic actions become part of an append-only public record.</label>
+              I understand my account is mine, my location check-ins stay encrypted, and my civic actions become part of a permanent public record.</label>
             <span class="field-error" id="terms-error" hidden><svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert-triangle"></use></svg>
               Confirm the terms to continue.</span>
           </div>
@@ -72,50 +70,29 @@
         </form>
         <div class="banner banner--info" id="reg-confirm" hidden style="margin-block-start:var(--space-4)">
           <svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>
-          <div><span class="banner-title">Account created — your Individual record now exists.</span>
-            Next step: <a href="identity-verification.html">identity verification</a> (where supported), then
-            <a href="residency.html">declare residency</a> to start unlocking your rights.
-            <span class="citation">Creates your personal record.</span></div>
+          <div><span class="banner-title">Account created — welcome.</span>
+            Head to <a href="today.html">Home</a> to see what&#39;s live, or go back to the room that invited you.
+            Whenever you&#39;re ready, <a href="residency.html">say where you live</a> to unlock voting —
+            linking an ID is optional and can wait.
+            <span style="display:block">You can edit your name, languages, and notifications any time in
+            <a href="my-civic-life.html">My profile</a>.</span></div>
         </div>
       </section>
 
-      <section class="card" aria-labelledby="prof-h">
-        <h2 id="prof-h">Profile management</h2>
-        <p class="cc-small">Edit personal information, communication preferences, language settings — any time after registration.
-          <span class="citation" style="display:block">Available once you have an account.</span></p>
-        <form id="prof-form" novalidate>
-          <div class="field">
-            <label class="field-label" for="prof-display">Display name</label>
-            <input class="field-input" id="prof-display" type="text" autocomplete="nickname" value="Amara Okafor" />
-          </div>
-          <fieldset class="field" style="border:0;padding:0;margin-inline:0">
-            <legend class="field-label">Communication preferences</legend>
-            <div class="radio-group">
-              <label class="checkbox"><input type="checkbox" checked /> Election reminders (approval phase, ranked window, results)</label>
-              <label class="checkbox"><input type="checkbox" checked /> Petition milestones in my jurisdictions</label>
-              <label class="checkbox"><input type="checkbox" /> Session digests from my legislatures</label>
-            </div>
-          </fieldset>
-          <div class="cluster">
-            <button type="submit" class="btn btn--secondary">Save profile</button>
-            <span id="prof-status"></span>
-          </div>
-        </form>
-      </section>
-
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <h2 id="state-h">Your journey so far</h2>
         <div id="ind-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — states: Registered → Identity-Verified → Residency-Declared → Resident → Jurisdictionally Associated.</p></noscript>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Association exists simultaneously at every nesting level (local → Earth); voting and candidacy unlock once you are jurisdictionally associated, with no other requirements.</p>
+        <noscript><p class="gloss">The journey strip renders with JavaScript — steps: Signed up → ID linked (optional) → Residency declared → Resident, full rights unlocked.</p></noscript>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Once your residency is confirmed, your rights unlock in every place that contains your home — neighborhood, city, country, all at once. Nothing else is required.</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p>This screen handles onboarding &amp; identity verification —
-            which leads into establishing residency.</p>
-          <p>It covers the first step of your journey — creating your account; the strip above tracks the steps that follow.</p>
+          <p>This screen is the first step of joining: creating your account. Linking an ID is an
+            optional second step; saying where you live is what unlocks voting and candidacy.</p>
+          <p>The strip above tracks the steps that follow. Profile settings (name, languages,
+            notifications — form F-IND-002) live on My profile.</p>
         </div>
       </details>
     </div>
@@ -124,9 +101,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'civic/onboarding',
-      title: 'Onboarding',
+      title: 'Create your account',
       module: 'civic',
-      nav: 'civic-home',
+      nav: 'onboarding',
       roles: ['R-01'],
       workflows: ['WF-CIV-01'],
       forms: ['F-IND-001', 'F-IND-002'],
@@ -148,14 +125,25 @@
       var esc = S.esc;
       var registered = false;
 
+      /* Plain display labels for the journey strip — raw tokens stay in the data;
+         terminal / bracket states are not part of the signup story and are dropped. */
+      var STEP_LABEL = {
+        'Registered': 'Signed up',
+        'Identity-Verified': 'ID linked (optional)',
+        'Residency-Declared': 'Residency declared',
+        'Jurisdictionally Associated': 'Resident — full rights unlocked'
+      };
+
       function render() {
-        /* Individual lifecycle strip — current state advances after simulated submit. */
+        /* Journey strip — current step advances after simulated submit. */
         var current = registered ? 'Identity-Verified' : 'Registered';
-        var states = BY.entities['Individual'].states;
+        var states = BY.entities['Individual'].states.filter(function (st) {
+          return Object.prototype.hasOwnProperty.call(STEP_LABEL, st);
+        });
         document.getElementById('ind-strip').innerHTML = states.map(function (st, i) {
-          var cls = 'state-node' + (st.indexOf(current) === 0 ? ' state-node--current' : '');
+          var cls = 'state-node' + (st === current ? ' state-node--current' : '');
           return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
-            '<span class="' + cls + '">' + esc(st) + '</span>';
+            '<span class="' + cls + '">' + esc(S.plainState(st, STEP_LABEL)) + '</span>';
         }).join('');
         S.refresh();
       }
@@ -170,11 +158,6 @@
         document.getElementById('reg-confirm').hidden = false;
         document.getElementById('reg-status').innerHTML = S.badge('success', 'Account created', 'check');
         render();
-      });
-
-      document.getElementById('prof-form').addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        document.getElementById('prof-status').innerHTML = S.badge('success', 'Profile saved', 'check');
       });
 
       render();

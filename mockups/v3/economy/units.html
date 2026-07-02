@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Units &amp; monetary policy — CGA mockups v2</title>
+  <title>Units &amp; money — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -12,10 +12,10 @@
 </head>
 <body>
   <main id="main">
-    <div class="stack" id="root"><p class="gloss">Loading units &amp; monetary policy…</p></div>
+    <div class="stack" id="root"><p class="gloss">Loading units &amp; money…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/units', title: 'Units & monetary policy', module: 'economy', nav: 'units', citation: 'Making and managing the currency (reserved to the most-encompassing jurisdiction)', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/units', title: 'Units & money', module: 'economy', nav: 'units', citation: 'Making and managing the currency (reserved to the most-encompassing jurisdiction)', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -29,14 +29,11 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code. The unit is abstract — no payment rails, no custody.</div></div>';
-    }
-
     function kindLabel(k) {
       return k === 'monetary' ? 'Monetary' : 'Policy';
     }
+
+    var TWO_DOOR_TIP = 'Two doors must open — a supermajority of the chamber AND the consent of the people it governs.';
 
     function render() {
       var c = E.currency;
@@ -51,14 +48,15 @@
           '</div>';
       }).join('');
 
-      /* ---- Section 2: a lever-row per monetary key ---- */
+      /* ---- Section 2: a lever-row per monetary key (human label first;
+              the machine key lives in the tooltip + citation) ---- */
       var levers = E.monetaryKeys.map(function (k) {
         return '<div class="lever-row">' +
-          '<span class="lever-key">' + esc(k.key) + '</span>' +
+          '<span style="color:var(--gov-fg);font-weight:var(--weight-semibold)" title="' + esc(k.key) + '">' + esc(k.label) + '</span>' +
           '<span class="lever-val">' + esc(k.value) + '</span>' +
-          '<span class="dual-door">' + S.icon('lock', { size: 'sm' }) + esc(k.gate) + '</span>' +
-          '<span class="pill pill--info" title="' + esc(kindLabel(k.kind)) + ' lever">' + esc(k.label) + '</span>' +
-          '<span class="citation" style="margin-inline-start:auto">' + esc(k.enactingAct) + '</span>' +
+          '<span class="dual-door" title="' + esc(TWO_DOOR_TIP) + '">' + S.icon('lock', { size: 'sm' }) + 'two-door change</span>' +
+          '<span class="pill pill--info" title="' + esc(kindLabel(k.kind)) + ' lever">' + esc(kindLabel(k.kind)) + '</span>' +
+          '<span class="citation" style="margin-inline-start:auto" title="setting: ' + esc(k.key) + '">' + esc(k.enactingAct) + '</span>' +
           '</div>';
       }).join('');
 
@@ -66,12 +64,13 @@
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">The economy · the Open Market</span>' +
-        '<h1>Units &amp; monetary policy</h1>' +
-        '<p class="page-intro">The unit of account, what it is worth, how it subdivides — and the dual-door levers that set every one of those. ' +
+        '<h1>Units &amp; money</h1>' +
+        '<p class="page-intro">The unit of account, what it is worth, how it subdivides — and the levers that set every one of those. ' +
+        'Each lever moves only when two doors open: a supermajority of the chamber AND the consent of the people it governs (the “dual-door” rule). ' +
         'The currency, its worth, and its measurement standards are reserved to ' + esc(c.issuerLabel) + ': the most-encompassing jurisdiction alone produces it.</p>' +
         '<p class="citation">' + esc(c.citation) + '</p></header>' +
 
-        plannedBanner() +
+        S.plannedBanner() +
 
         /* ============================ SECTION 1 — THE UNIT ============================ */
         '<section class="card" aria-labelledby="unit-h">' +
@@ -106,9 +105,9 @@
         'legislative act and can only be changed by another.</p>' +
 
         '<div class="banner banner--warning" role="note">' + S.icon('lock', { size: 'sm' }) +
-        '<div>These keys change <strong>only</strong> through a single dual-door act — ' +
+        '<div>These levers change <strong>only</strong> through a single two-door act — ' +
         '<span class="form-chip">Monetary policy act</span> — ' +
-        'requiring a chamber supermajority <em>and</em> constituent consent. ' +
+        'two doors must open: a supermajority of the chamber <em>and</em> the consent of the people it governs. ' +
         'No operator, admin panel, or unilateral executive order can move them.</div></div>' +
 
         '<div style="margin-block-start:var(--space-4)">' + levers + '</div>' +
@@ -122,10 +121,10 @@
         '<div class="clock-dial">' + S.icon('refresh-cw') + '</div>' +
         '<div><strong style="color:var(--gov-fg)">The interval is itself a lever.</strong> ' + esc(clk.label) + '. ' +
         '<span class="citation">next run ' + esc(clk.nextRun) + '</span><br />' +
-        '<span class="gloss">The economic clock’s cadence (' + esc(clk.key) + ') is a dual-door key like any other — the legislature can lengthen or shorten it.</span></div></div>' +
+        '<span class="gloss" title="setting: ' + esc(clk.key) + '">The economic clock’s cadence is a lever like any other — the legislature can lengthen or shorten it.</span></div></div>' +
 
         '<p class="citation" style="margin-block-start:var(--space-3)">' +
-        'Back to <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> · ' +
+        'Back to <a href="' + S.hrefV2('economy/economy-home.html') + '">the economy</a> · ' +
         'the worker/shareholder parity math at <a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination</a>.</p>' +
         '</section>';
 

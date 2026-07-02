@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Organization economics — CGA mockups v2</title>
+  <title>Org economics — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -12,10 +12,10 @@
 </head>
 <body>
   <main id="main">
-    <div class="stack" id="root"><p class="gloss">Loading organization economics…</p></div>
+    <div class="stack" id="root"><p class="gloss">Loading org economics…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/org-settings', title: 'Organization economics', module: 'economy', nav: 'org-settings', citation: 'Organization economics', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/org-settings', title: 'Org economics', module: 'economy', nav: 'org-settings', citation: 'Org economics — for organization stewards', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -32,14 +32,9 @@
     function orgName(id, fb) { var o = BY.organizations[id]; return o ? o.name : (fb || id); }
     function nm(id, fb) { var p = BY.personas[id]; return p ? p.name : (fb || id); }
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer (Phases L &amp; M).</strong> These surfaces are design-ahead of code: the forms are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
-    }
-
-    function neverFederated(text) {
+    function privacyNote(text) {
       return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
-        esc(text || 'The org’s ledger is private to this server — never federated, like a ballot.') + '</span>';
+        esc(text || 'The org’s ledger is private — readable only by the organization.') + '</span>';
     }
 
     function formChip(name, id) {
@@ -53,44 +48,15 @@
       var board = prof.board;
       var stock = E.stock, dues = E.dues, taxes = E.taxes;
 
-      /* ---- 1. governance & board ---- */
-      var compSeats = '';
-      for (var i = 0; i < board.ownerSeats; i++) {
-        compSeats += '<span class="comp-seat comp-seat--owner">' + S.icon('briefcase', { size: 'sm' }) + 'Owner seat</span>';
-      }
-      for (var w = 0; w < board.workerSeats; w++) {
-        compSeats += '<span class="comp-seat comp-seat--worker">' + S.icon('users', { size: 'sm' }) + 'Worker seat</span>';
-      }
-
-      var cdMet = org.workers >= cd.threshold;
-      var parityMet = org.workers >= cd.parity;
-      var cdPct = Math.min(100, Math.round((org.workers / cd.parity) * 100));
-      var firstSeatPct = Math.round((cd.threshold / cd.parity) * 100);
-
+      /* ---- 1. governance & board → lives on the co-determination page ---- */
       var governanceSection =
         '<section class="card" aria-labelledby="gov-h">' +
-        '<h2 id="gov-h">Governance &amp; board</h2>' +
-        '<p>' + esc(org.name) + ' is a ' + esc(org.type) + ' with <b>' + esc(org.workers.toLocaleString('en-US')) + '</b> workers. ' +
-        'Its board is co-determined — owner seats and worker seats sit together as the workforce grows.</p>' +
-        '<div class="lr-composition" style="margin-block:var(--space-3)">' + compSeats + '</div>' +
-        '<p class="gloss">Chair: ' + esc(nm(board.chair, board.chair)) + (board.jointChair ? ' · joint chair (worker &amp; owner co-sign)' : '') + '. ' +
-        'Board elections seat the worker bloc by PR-STV among the workforce.</p>' +
-
-        '<div class="meter-block" style="margin-block-start:var(--space-4)">' +
-        '<div class="meter" role="img" aria-label="Workforce ' + esc(org.workers) + ' of ' + esc(cd.parity) + ' toward parity">' +
-        '<div class="meter-fill' + (parityMet ? ' meter-fill--met' : '') + '" style="inline-size:' + cdPct + '%"></div>' +
-        '<span class="meter-threshold" style="inset-inline-start:' + firstSeatPct + '%" title="First worker seat at 100 employees"></span>' +
-        '</div>' +
-        '<p class="meter-caption">First worker seat at <b>' + esc(cd.threshold) + '</b> employees · worker/owner parity at <b>' + esc(cd.parity.toLocaleString('en-US')) + '</b>. ' +
-        'Now: ' + esc(cd.status) + '.</p></div>' +
-
-        '<ul style="margin-block-start:var(--space-3)">' +
-        '<li><strong>First worker seat at ' + esc(cd.threshold) + ' employees.</strong> Below this the board may be owner-only.</li>' +
-        '<li><strong>Worker/owner parity at ' + esc(cd.parity.toLocaleString('en-US')) + ' employees.</strong> At and above, worker seats equal owner seats.</li>' +
-        '<li><strong>The split is computed, never set by hand.</strong> Headcount changes (a hire crossing a threshold) recompute composition automatically.</li>' +
-        '</ul>' +
-        '<p class="citation">The hardened co-determination math: ' +
-        '<a href="' + S.hrefV1('organizations/co-determination.html') + '">co-determination.html</a></p>' +
+        '<h2 id="gov-h">Board &amp; worker seats</h2>' +
+        '<p>' + esc(org.name) + ' is a ' + esc(org.type) + ' with <b>' + esc(org.workers.toLocaleString('en-US')) + '</b> workers — ' +
+        esc(cd.status) + '. How the board is split between workers and owners, and how a hire can change it, ' +
+        'lives on its own page.</p>' +
+        '<p style="margin-block-start:var(--space-2)"><a class="btn btn--secondary btn--sm" href="' + S.hrefV1('organizations/co-determination.html') + '">' +
+        S.icon('users', { size: 'sm' }) + ' Open board &amp; worker seats ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
         '</section>';
 
       /* ---- 2. shares ---- */
@@ -141,7 +107,7 @@
         '<section class="card" aria-labelledby="led-h">' +
         '<h2 id="led-h">The org ledger</h2>' +
         '<p>An organization keeps its own double-entry ledger — append-only and hash-chained, like the public one, but <strong>private</strong>.</p>' +
-        '<p>' + neverFederated('The org’s balances, receipts, and movements live only on this server — never federated, like a ballot.') + '</p>' +
+        '<p>' + privacyNote('The org’s balances, receipts, and movements are private — readable only by the organization, like a ballot.') + '</p>' +
         '<div class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
         '<div><strong>Inter-organizational units within scaling institutions.</strong> Where an organization spans nested jurisdictions, its internal transfers move on the same abstract unit of account ' +
         'and reconcile through joint, signer-gated ledgers.</div></div>' +
@@ -163,7 +129,7 @@
         '<div class="table-wrap"><table class="table">' +
         '<thead><tr><th scope="col">Levy</th><th scope="col">Base</th><th scope="col" style="text-align:end">Rate</th><th scope="col">Civic-rights</th></tr></thead>' +
         '<tbody>' + leviesRows + '</tbody></table></div>' +
-        '<p>' + neverFederated(taxes.filing.note) + '</p>' +
+        '<p>' + privacyNote(taxes.filing.note) + '</p>' +
         '<div class="agreement-floor" style="margin-block-start:var(--space-3)">' + S.icon('shield', { size: 'sm' }) +
         '<div><strong>The hard rail.</strong> ' + esc(taxes.rail) + '</div></div>' +
         '<ul style="margin-block-start:var(--space-3)">' +
@@ -174,15 +140,15 @@
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">The economy · the organization</span>' +
-        '<h1>Organization economics</h1>' +
-        '<p class="page-intro">How an organization governs its board, holds its shares, charges its dues, keeps its ledger, ' +
-        'and settles its taxes — each surface fenced by a constitutional floor. Reading for <strong>' + esc(org.name) + '</strong>.</p>' +
-        '<p class="citation">Co-determination · conversion &amp; public-domain IP · no civic-right gate</p>' +
+        '<h1>Org economics</h1>' +
+        '<p class="page-intro">How an organization holds its shares, charges its dues, keeps its ledger, ' +
+        'and settles its taxes — each fenced by a floor no rule-change can cross. ' +
+        'You are reading this as a steward of <strong>' + esc(org.name) + '</strong> — most players never need this page.</p>' +
         '<div class="cluster" style="margin-block-start:var(--space-2)">' +
         formChip('Organization economic settings', 'F-ORG-008') +
         formChip('Ownership transfer', 'F-ORG-005') +
         '</div></header>' +
-        plannedBanner() +
+        S.plannedBanner() +
         governanceSection +
         sharesSection +
         duesSection +

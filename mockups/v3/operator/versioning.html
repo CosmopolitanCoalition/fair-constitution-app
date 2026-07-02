@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Versions &amp; upgrades — the operator plane — CGA mockups v2</title>
+  <title>Versions &amp; upgrades — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -32,8 +32,9 @@
       /* Section 1 — what can change */
       var kindCards = V.kinds.map(function (k) {
         return '<div class="op-role-card"><div class="cluster" style="justify-content:space-between">' +
-          '<span class="orc-title" style="font-size:var(--text-base)">' + esc(k) + '</span>' +
-          S.icon('refresh-cw', { size: 'sm' }) + '</div></div>';
+          '<span class="orc-title" style="font-size:var(--text-base)">' + esc(k.label) + '</span>' +
+          S.icon('refresh-cw', { size: 'sm' }) + '</div>' +
+          '<p style="font-size:var(--text-sm)">' + esc(k.desc) + '</p></div>';
       }).join('');
 
       /* Section 2 — the admissibility filter (a small FSM strip + the rule) */
@@ -54,7 +55,7 @@
           '<p style="font-size:var(--text-sm)"><strong>Who:</strong> ' + esc(m.who) + '</p>' +
           '<p style="font-size:var(--text-sm)"><strong>Threshold:</strong> ' + esc(m.threshold) + '</p>' +
           '<p class="orc-duty">Applies: ' + esc(m.applies) + '</p>' +
-          (m.id === 'C' ? '<span class="pill pill--planned">Peer unanimity — future (G-VER 4)</span>' : '') +
+          (m.futureNote ? '<span class="citation">' + esc(m.futureNote) + '</span>' : '') +
           '</div>';
       }).join('');
 
@@ -84,7 +85,7 @@
         '<div class="health-line"><span class="health-dot health-dot--green" aria-hidden="true"></span>' +
         '<strong style="color:var(--gov-fg)">This instance runs</strong>' +
         '<code class="form-id" style="font-size:var(--text-sm)">' + esc(V.selfVersion) + '</code>' +
-        '<span class="citation">the constitutional version — a derived hash of the hardened surface</span></div>' +
+        '<span class="citation">the constitutional version — a fingerprint of the hardened rules in force</span></div>' +
 
         /* Section 1 — what can change */
         '<section aria-labelledby="kinds-h"><h2 id="kinds-h">What can change</h2>' +

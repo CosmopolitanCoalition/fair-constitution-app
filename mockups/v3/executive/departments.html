@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Departments — CGA mockups</title>
+  <title>Departments — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,9 +17,8 @@
         <span class="eyebrow">Executive · departments</span>
         <h1>Department registry — New York County</h1>
         <p class="page-intro">Departments are created by legislative act, chartered for a specific function, and run
-          by an appointed Board of Governors under executive oversight. Co-determination applies to departments
-          exactly as it does to private organizations: the first worker-elected board seat arrives at 100 workers.</p>
-        <p class="citation">Departments are created by legislative act, run by appointed boards under executive oversight, and follow the same co-determination rules as private organizations.</p>
+          by an appointed Board of Governors under executive oversight. Workers get board seats here exactly as they
+          do in private organizations (co-determination): the first worker-elected seat arrives at 100 workers.</p>
       </header>
 
       <section class="card" style="padding:0" aria-labelledby="registry-h">
@@ -30,7 +29,7 @@
           <table class="table">
             <thead>
               <tr><th scope="col">Department</th><th scope="col">Type</th><th scope="col">Board</th>
-                <th scope="col">Workers</th><th scope="col">Co-determination</th><th scope="col">Oversight</th></tr>
+                <th scope="col">Workers</th><th scope="col">Worker seats</th><th scope="col">Oversight</th></tr>
             </thead>
             <tbody id="dep-rows">
               <tr><td colspan="6">Loading from fixtures…</td></tr>
@@ -114,49 +113,30 @@
         </div>
         <p class="citation" style="margin-block-start:var(--space-2)">Consent = a majority of all serving members (5 of 8 serving) —
           politically neutral · 10-year civil-officer term — dates shown in your timezone (UTC−5 · America/New_York) · stored as UTC</p>
-        <div class="grid-2" style="margin-block-start:var(--space-4)">
-          <div>
-            <div id="form-exe-001"></div>
-            <button type="button" class="btn btn--secondary btn--sm" id="nominate-btn" style="margin-block-start:var(--space-2)">Simulate a nomination</button>
-            <p id="nominate-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
-          </div>
-          <div id="form-leg-020"></div>
-        </div>
+        <p style="margin-block-start:var(--space-3)"><a href="department-detail.html">Nominate or remove a governor — open the department
+          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
       </section>
 
-      <div class="grid-2">
-        <section class="card" aria-labelledby="removal-h">
-          <h2 id="removal-h">Governor removal</h2>
-          <div id="form-exe-003"></div>
-          <button type="button" class="btn btn--danger btn--sm" id="removal-btn" style="margin-block-start:var(--space-3)">Simulate a removal request</button>
-          <p id="removal-confirm" role="status" style="margin-block-start:var(--space-2)"></p>
-          <p class="citation" style="margin-block-start:var(--space-2)">Good-faith finding by the executive → removal decided by an ordinary
-            majority of all serving members (hiring and firing — a supermajority applies only where the constitution states it) ·
-            flow: governor removal</p>
-        </section>
-
-        <section class="card" aria-labelledby="civil-h">
-          <h2 id="civil-h">Civil officers</h2>
-          <p>Appointed officials across departments serve fixed civil-officer terms — insulation from electoral
-            cycles is the point.</p>
-          <p><strong>Grace Mwangi</strong> · disbursement officer, Treasury<br />
-            <span class="citation">Civil officer · appointed 2029-10-01 · term ends 2039-10-01</span></p>
-          <p class="amendable"><span class="amendable-value">10 years</span> civil appointment term
-            <span class="amendable-meta">default 10 · must stay in lockstep with the judicial appointment term · set at founding (no amending act yet)</span></p>
-        </section>
-      </div>
+      <section class="card" aria-labelledby="civil-h">
+        <h2 id="civil-h">Civil officers</h2>
+        <p>Appointed officials across departments serve fixed civil-officer terms — insulation from electoral
+          cycles is the point.</p>
+        <p><strong>Grace Mwangi</strong> · disbursement officer, Treasury<br />
+          <span class="citation">Civil officer · appointed 2029-10-01 · term ends 2039-10-01</span></p>
+        <p class="amendable"><span class="amendable-value">10 years</span> civil appointment term
+          <span class="amendable-meta">default 10 · must stay in lockstep with the judicial appointment term · set at founding (no amending act yet)</span></p>
+      </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> create departments by legislative act, run the
-            department creation,
-            Board of Governors appointment, and
-            governor removal flows. Consent votes happen in the
+          <p><strong>What this screen does:</strong> the registry of departments — create one by legislative act,
+            follow each board's appointment pipeline, and open a department for its roster, nominations, removals,
+            and reporting. Consent votes happen in the
             <a href="../legislature/session-console.html">session console</a>.</p>
-          <p><strong>Entity state machine:</strong> Department / Board — Chartered → Oversight-Assigned →
-            Governors-Nominated → Consented → Operating → [Member Removal Requested → Voted] → Reporting →
-            Re-chartered | Dissolved. Governors are politically neutral with default 10-year civil-officer terms.</p>
+          <p><strong>How a department moves:</strong> from chartered, through board nomination and consent, to
+            operating and reporting — with removal votes and re-chartering (or dissolution) along the way. Governors
+            are politically neutral with default 10-year civil-officer terms.</p>
         </div>
       </details>
     </div>
@@ -188,17 +168,16 @@
       var S = window.CGA.shell, F = window.CGA.fixtures, W = F.world, BY = F.byId;
       var esc = S.esc;
       /* page-local simulated states */
-      var sim = { created: false, nominated: false, removal: false };
+      var sim = { created: false };
 
       var KIND_LABEL = { chief_executive: 'Chief Executive', treasury: 'Treasury', justice: 'Justice', other: 'Custom' };
 
       function formCard(fid) {
         var f = BY.forms[fid];
         if (!f) return '';
-        var who = String(f.availableToRaw || '').replace(/R-[0-9]+(?:\/R-[0-9]+)*\s*/g, '').trim();
         return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(who) + '</p></div>';
+          '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p></div>';
       }
 
       function coDetCell(d) {
@@ -225,17 +204,10 @@
         }).join('');
 
         document.getElementById('form-leg-016').innerHTML = formCard('F-LEG-016');
-        document.getElementById('form-exe-001').innerHTML = formCard('F-EXE-001');
-        document.getElementById('form-leg-020').innerHTML = formCard('F-LEG-020');
-        document.getElementById('form-exe-003').innerHTML = formCard('F-EXE-003');
 
         document.getElementById('create-confirm').innerHTML = sim.created
           ? S.badge('info', 'Drafted', 'file-text') + ' <span class="cc-small">Department Creation Act queued for a floor vote — ' +
             'a majority of all serving members. Nothing was sent; this is a simulation.</span>' : '';
-        document.getElementById('nominate-confirm').innerHTML = sim.nominated
-          ? S.badge('info', 'Dossier created', 'file-text') + ' <span class="cc-small">Consent vote triggered in the chamber — simulated.</span>' : '';
-        document.getElementById('removal-confirm').innerHTML = sim.removal
-          ? S.badge('warning', 'Removal proceeding opened', 'alert-triangle') + ' <span class="cc-small">Referred to the legislature — an ordinary majority of all serving members decides. Simulated.</span>' : '';
 
         S.refresh();
       }
@@ -245,8 +217,6 @@
         sim.created = true;
         render();
       });
-      document.getElementById('nominate-btn').addEventListener('click', function () { sim.nominated = true; render(); });
-      document.getElementById('removal-btn').addEventListener('click', function () { sim.removal = true; render(); });
 
       render();
       document.addEventListener('cga:statechange', render);

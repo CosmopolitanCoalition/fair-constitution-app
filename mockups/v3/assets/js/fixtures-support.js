@@ -6,9 +6,10 @@
    A report routes itself by category:
    - bug / accessibility / content -> the operators (Record Keeper, Archivist)
    - translation -> the translation-support interface
-   - abuse / illegal -> OFF the support queue, to the moderation & legal plane
-     (the constitutional carve-outs + the legal floor) — support staff
-     never adjudicate viewpoint.
+   - abuse / illegal -> OFF the support queue, to the moderation & legal team
+     (internally: the content-neutral carve-outs + the M-5 legal floor) —
+     support staff never decide what people may say. Rendered copy stays
+     plain; the constitutional detail lives in learn/.
    - idea -> the product backlog
    ============================================================================ */
 (function () {
@@ -18,11 +19,11 @@
   var V2 = CGA.fixtures.v2;
 
   var categories = [
-    { id: 'bug', label: 'Something is broken', icon: 'alert-triangle', routesTo: 'Operators · Record Keeper', note: 'A page errors, a button does nothing, data looks wrong.' },
+    { id: 'bug', label: 'Something is broken', icon: 'alert-triangle', routesTo: 'The operators (Record Keeper)', note: 'A page errors, a button does nothing, data looks wrong.' },
     { id: 'translation', label: 'Wording or translation', icon: 'languages', routesTo: 'Translation support', note: 'A label reads wrong in your language, or is still in English.', deep: 'translation/translation-home.html' },
-    { id: 'accessibility', label: 'Accessibility barrier', icon: 'users', routesTo: 'Operators · design', note: 'Hard to read, hard to use with a keyboard or screen reader.' },
-    { id: 'content', label: 'Wrong information', icon: 'file-text', routesTo: 'Operators · Archivist', note: 'A rule, citation, or record is stated incorrectly.' },
-    { id: 'abuse', label: 'Abuse or illegal content', icon: 'shield', routesTo: 'Moderation & legal plane', note: 'Routed off the support queue to the carve-outs and the legal floor — never adjudicated here.', deep: 'operator/moderation.html' },
+    { id: 'accessibility', label: 'Accessibility barrier', icon: 'users', routesTo: 'The operators (design)', note: 'Hard to read, hard to use with a keyboard or screen reader.' },
+    { id: 'content', label: 'Wrong information', icon: 'file-text', routesTo: 'The operators (Archivist)', note: 'A rule, citation, or record is stated incorrectly.' },
+    { id: 'abuse', label: 'Abuse or illegal content', icon: 'shield', routesTo: 'Moderation & legal team', note: 'Goes straight to the moderation & legal team, not the tech-support queue. Support staff never decide what people may say.', deep: 'operator/moderation.html' },
     { id: 'idea', label: 'An idea', icon: 'plus', routesTo: 'Product backlog', note: 'Something that would make the system better.' }
   ];
   var byCategory = {}; categories.forEach(function (c) { byCategory[c.id] = c; });
@@ -68,11 +69,11 @@
                 ev('Archivist', '2 days ago', 'status', 'Resolved — worker seat now seats on the next board cycle.') ] },
 
     { id: 'ticket-square-flood', n: 1048, title: 'Repeated identical posts flooding a hall', category: 'abuse', status: 'triaged', severity: 'high',
-      reporter: 'u-kenji', assignee: 'Moderation & legal plane', created: '1 day ago', updated: '6 hours ago', page: 'social/social-home.html', votes: 3,
+      reporter: 'u-kenji', assignee: 'Moderation & legal team', created: '1 day ago', updated: '6 hours ago', page: 'social/social-home.html', votes: 3,
       body: 'One account is posting the same message hundreds of times in the budget hall. Not a viewpoint problem — it is drowning the room.',
-      routedNote: 'Off the support queue. Off-topic flooding is one of the four content-neutral carve-outs — handled on the moderation plane, never as a viewpoint removal.',
+      routedNote: 'It went straight to the moderation & legal team. Flooding is judged by volume, not by what was said — no one’s viewpoint is ever the basis for removal.',
       thread: [ ev('u-kenji', '1 day ago', 'open', 'Same text, 300+ times in an hour.'),
-                ev('Moderation & legal plane', '6 hours ago', 'status', 'Routed to the carve-out review — rate, not content. Viewpoint is never the basis.') ] },
+                ev('Moderation & legal team', '6 hours ago', 'status', 'Taken up by the moderation & legal team — judged on volume, not content. What was said is never the basis.') ] },
 
     { id: 'ticket-market-units', n: 1044, title: 'Unit subdivision shows three decimals but accepts four', category: 'bug', status: 'new', severity: 'normal',
       reporter: 'u-pier7', assignee: null, created: '8 hours ago', updated: '8 hours ago', page: 'economy/units.html', votes: 1,
@@ -99,7 +100,7 @@
                 ev('design', '3 days ago', 'status', 'Resolved — raised to gold-500, now 4.9:1. Verified against the a11y battery.') ] },
 
     { id: 'ticket-idea-digest', n: 1051, title: 'A weekly digest of what my representatives did', category: 'idea', status: 'new', severity: 'low',
-      reporter: 'u-kenji', assignee: null, created: '5 hours ago', updated: '5 hours ago', page: 'social/rep.html', votes: 18,
+      reporter: 'u-kenji', assignee: null, created: '5 hours ago', updated: '5 hours ago', page: 'civic/my-civic-life.html?tab=representatives', votes: 18,
       body: 'It would help to get a short weekly summary of every vote, statement, and office-hour from the seats I belong to.',
       thread: [ ev('u-kenji', '5 hours ago', 'open', 'Built from public records, so no privacy cost.') ] },
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>v2 coverage — CGA mockups v2</title>
+  <title>Coverage — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,12 +14,22 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Design contract · v2</span>
-        <h1>v2 coverage</h1>
-        <p class="page-intro">Built live from the v2 manifest and fixtures. It proves the definition of done as
-          stages land — at Stage 1 the keystone and its eight meeting types are green; the journeys and economy fill
-          in over Stages 2–5.</p>
+        <span class="eyebrow">For the build team</span>
+        <h1>Coverage</h1>
+        <p class="page-intro">Built live from the manifest and fixtures — what the manifest covers today: the Live
+          Civic Room's eight meeting types, the interaction classes and journeys, and the mechanics that must render.
+          Anything not green here is marked Planned across the site.</p>
+        <p class="citation">Companion instrument: <a href="coverage-ops.html">the coverage matrix</a> — roles,
+          workflows, and forms against the same manifest.</p>
       </header>
+
+      <section aria-labelledby="build-h" class="card">
+        <h2 id="build-h">For the build team</h2>
+        <p class="cc-small">The working documents behind these mockups:
+          <a href="../MANIFEST.md">MANIFEST.md</a> ·
+          <a href="../OPEN_QUESTIONS.md">OPEN_QUESTIONS.md</a> ·
+          <a href="../tools/audit_harness.html">the audit harness</a></p>
+      </section>
       <div id="cov-stats" class="grid-2"></div>
       <section aria-labelledby="rooms-h" class="card"><h2 id="rooms-h">Live Civic Room — meeting types</h2><div id="cov-rooms" class="stack"></div></section>
       <section aria-labelledby="classes-h" class="card"><h2 id="classes-h">Interaction classes — each has ≥1 journey</h2><div id="cov-classes" class="stack"></div></section>
@@ -28,7 +38,7 @@
     </div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'shared/coverage', title: 'v2 coverage', module: 'shared', nav: 'coverage', citation: 'v2 coverage · built from the manifest', register: 'governance' };
+    window.CGA_PAGE = { id: 'shared/coverage', title: 'Coverage', module: 'shared', nav: 'coverage', citation: 'Coverage · built from the manifest', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -80,7 +90,7 @@
         ['The chair runs the room; the system runs the bureaucracy', true],
         ['Civic rights are never paywalled', true],
         ['UBI eligibility = residency only', 'Stage 4'],
-        ['Individual economic data is private and never federated', 'Stage 4'],
+        ['Individual economic data is private — like a ballot, only you can read it', 'Stage 4'],
         ['Two-sided market — Offer ↔ Request', 'Stage 4'],
         ['A hire feeds co-determination', true],
         ['CGCs trade on identical terms; IP public-domain', 'Stage 4'],

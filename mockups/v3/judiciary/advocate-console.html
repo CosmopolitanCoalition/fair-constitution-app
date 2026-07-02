@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Advocate console — CGA mockups</title>
+  <title>Advocate console — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -17,8 +17,7 @@
         <span class="eyebrow">Judiciary · advocate</span>
         <h1>Advocate console</h1>
         <p class="page-intro">Your filings, motions, evidence, and briefs — everything you submit lands on the
-          public docket of the case it belongs to. Representation is a constitutional right of your clients;
-          registration keeps the bar of advocates zealous and competent.</p>
+          public docket of the case it belongs to. Representation is a constitutional right of your clients.</p>
         <p class="citation">Everyone has the right to legal representation; registration keeps advocates zealous and competent.</p>
       </header>
 
@@ -32,8 +31,6 @@
           court of New York and its constituent counties.</p>
         <div id="fc-ind-015"></div>
         <noscript><p class="gloss">The advocate registration card renders with JavaScript enabled.</p></noscript>
-        <p style="margin-block-start:var(--space-3)">How registration works
-          <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></p>
       </section>
 
       <section class="card" aria-labelledby="cases-h">
@@ -82,7 +79,7 @@
       </section>
 
       <section class="card" aria-labelledby="forms-h">
-        <h2 id="forms-h">Your four instruments</h2>
+        <h2 id="forms-h">Your four filing types</h2>
         <div id="adv-forms" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--space-3)"></div>
         <noscript><p class="gloss">Form cards render with JavaScript enabled: case filing, motion, evidence, and brief — all available to advocates.</p></noscript>
       </section>
@@ -90,8 +87,7 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>How it connects:</strong> see how registration works;
-            every filing feeds the case lifecycle.</p>
+          <p><strong>How it connects:</strong> every filing feeds the case lifecycle.</p>
           <p><strong>When filings attach:</strong> motions before and during the hearing, evidence on the open docket,
             briefs until deliberation; the <a href="case-detail.html">case detail page</a> plays the full sequence.</p>
           <p class="citation">Backed by the right to legal representation and the right to a fair trial.</p>
@@ -141,14 +137,14 @@
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
           '</div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(String(f.availableToRaw).replace(/^R-\d+\s+/, '')) + '</span>' +
+          '<span class="citation">available to ' + esc(S.plainCodes(f.availableToRaw).replace(/jurisdictionally associated/ig, 'any verified resident')) + '</span>' +
           alias + (extra || '') + '</div>';
       }
 
       var NEXT_ACTION = {
         'Evidence docket': 'Evidence docket open — submissions accepted',
         'Deliberation': 'In deliberation — no filings accepted; await judgement',
-        'Jury selection': 'Voir dire under way — challenge motions only'
+        'Jury selection': 'Juror questioning under way — challenge motions only'
       };
       var STATE_TONE = { 'Evidence docket': 'info', 'Deliberation': 'neutral', 'Jury selection': 'info' };
 

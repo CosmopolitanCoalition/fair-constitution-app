@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Oversight — CGA mockups</title>
+  <title>Ethics &amp; removals — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack">
       <header>
         <span class="eyebrow">Administrative office</span>
-        <h1>Oversight &amp; ethics</h1>
+        <h1>Ethics &amp; removals</h1>
         <p class="page-intro">The independent administrative office enforces parliamentary procedure and the ethics
           code. It takes misconduct complaints, investigates, and refers findings to removal proceedings — and it
           declares vacancies when seats fall empty.</p>
@@ -56,7 +56,7 @@
       <section class="card" aria-labelledby="proceeding-h">
         <h2 id="proceeding-h">Removal proceeding <span class="form-chip">Removal, impeachment, censure, or expulsion vote</span></h2>
         <p class="cc-small">Vote to remove an officeholder by supermajority.
-          <span class="citation">available to legislative representatives</span></p>
+          <span class="citation">available to legislators</span></p>
         <div class="card card--inset">
           <strong style="color:var(--gov-fg)">Demonstration proceeding — censure motion (gifts-disclosure lapse)</strong>
           <p class="cc-small" style="margin-block:var(--space-1) var(--space-3)">Referred from investigation INV-2031-03.
@@ -75,7 +75,7 @@
         <h2 id="vacancy-h">Vacancy declaration <span class="form-chip">Vacancy declaration</span></h2>
         <p class="cc-small">Declare a seat vacant due to death, resignation, removal, or incapacity — the declaration
           triggers the countback automatically.
-          <span class="citation">available to legislative representatives and the Speaker</span></p>
+          <span class="citation">available to legislators and the Speaker</span></p>
         <div class="card card--inset">
           <div class="cluster" style="justify-content:space-between">
             <span><strong style="color:var(--gov-fg)" id="vac-office">New York County legislature · seat 4</strong>
@@ -83,7 +83,7 @@
             <span id="vac-badge"></span>
           </div>
           <div class="state-strip" style="margin-block-start:var(--space-3)" id="vac-strip"></div>
-          <p class="gloss" style="margin-block-start:var(--space-2)" id="vac-gloss">Prior ballots re-run with the vacated member removed — universally, with no faction filtering.</p>
+          <p class="gloss" style="margin-block-start:var(--space-2)" id="vac-gloss">Prior ballots re-run with the vacated member removed.</p>
           <p style="margin-block-start:var(--space-2)"><a href="../electoral/vacancy-countback.html">Open the countback engine
             <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></p>
         </div>
@@ -108,7 +108,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'legislature/oversight',
-      title: 'Oversight & ethics — admin office',
+      title: 'Ethics & removals — admin office',
       module: 'legislature',
       nav: 'oversight',
       roles: ['R-29', 'R-09', 'R-10'],
@@ -165,7 +165,7 @@
 
         /* Vacancy — scenario.countbackFailed flips the state to the special-election branch. */
         var failed = !!st.scenario.countbackFailed;
-        var states = ['Detected', 'Declared', 'Countback-Running', failed ? 'Countback-Failed' : 'Filled | Countback-Failed', 'Special-Election-Scheduled (90–180d)', 'Filled'];
+        var states = ['Detected', 'Declared', 'Countback running', failed ? 'Countback failed' : 'Filled (or countback fails)', 'Special election scheduled (90–180 days)', 'Filled'];
         var currentIdx = failed ? 4 : 2;
         document.getElementById('vac-strip').innerHTML = states.map(function (s, i) {
           return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +

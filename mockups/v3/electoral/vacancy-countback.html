@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vacancy countback — CGA mockups</title>
+  <title>Vacancy countback — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,13 +14,14 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Elections · vacancy</span>
-        <h1>Vacancy countback — New York County legislature, seat 4</h1>
-        <p class="page-intro">Renata Silva resigned. No new election is needed yet: the countback engine re-runs the
-          prior election's ballots with the vacated member removed as a candidate. The voters' original preferences
-          decide the replacement — only if those ballots exhaust does a special election follow.</p>
+        <span class="eyebrow">Elections · a vacant seat</span>
+        <h1>A seat opened up — the old ballots decide again</h1>
+        <p class="page-intro">Renata Silva resigned seat 4 of the New York County legislature. No new election is
+          needed yet: the game re-runs the prior election's ballots with her removed as a candidate (a "vacancy
+          countback"). The voters' original preferences decide the replacement — only if those ballots run out does
+          a special election follow.</p>
         <p class="citation">Vacancies are filled by re-counting the prior ballots, not by a new election.</p>
-        <noscript><p class="gloss">The countback visualization renders from fixture data and needs JavaScript.</p></noscript>
+        <noscript><p class="gloss">The re-count visualization renders from fixture data and needs JavaScript.</p></noscript>
       </header>
 
       <section class="card" aria-labelledby="trigger-h">
@@ -32,18 +33,17 @@
         </div>
         <p class="cc-small" style="margin-block-start:var(--space-3)">Declared by the Speaker on 2031-05-28 14:12 —
           shown in your timezone (UTC−5 · America/New_York) · stored as UTC.</p>
-        <div class="state-strip" id="vac-state" aria-label="Vacancy state machine"></div>
+        <div class="state-strip" id="vac-state" aria-label="Vacancy stages"></div>
       </section>
 
       <section class="card" aria-labelledby="engine-h">
         <h2 id="engine-h">The re-run <span id="engine-badge"></span></h2>
-        <p class="cc-small">Re-run source: the prior 2030 New York County election — 287,540 valid ballots, 9 seats, Droop quota
-          <span class="citation" data-no-i18n>floor(287,540 ÷ 10) + 1 = 28,755</span>. The engine strikes the vacated
-          member and continues the count from the voters' next preferences. The re-run is universal — every prior ballot
-          counts, with no faction filtering anywhere in the procedure.</p>
+        <p class="cc-small">Re-run source: the prior 2030 New York County election — 287,540 valid ballots, 9 seats,
+          28,755 votes needed to win a seat (the quota). The count strikes the vacated member and continues from the
+          voters' next preferences. Every prior ballot counts.</p>
         <div id="engine-bars"></div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Gold tick = the Droop quota. A continuing candidate
-          who reaches it fills the seat; ballots with no remaining preference become exhausted.</p>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Gold tick = the quota. A continuing candidate
+          who reaches it fills the seat; ballots with no remaining preference drop out of the count.</p>
         <p class="citation">Re-counts the prior ballots with the vacated member removed (see <a href="../shared/constitutional-questions.html#q6">ledger #6</a>).</p>
       </section>
 
@@ -61,7 +61,7 @@
         </section>
 
         <section class="card" id="branch-failed" aria-labelledby="failed-h">
-          <h2 id="failed-h">Branch: ballots exhausted <span id="failed-flag"></span></h2>
+          <h2 id="failed-h">Branch: the ballots run out <span id="failed-flag"></span></h2>
           <p class="cc-small">No continuing candidate can reach the quota — the re-count fails and a special election
             must be held no sooner than 90 and no later than 180 days after the vacancy.</p>
           <p class="citation">Special election window: 90–180 days after the vacancy.</p>
@@ -69,8 +69,8 @@
             <div class="field">
               <label class="field-label" for="se-date">Special election date</label>
               <input class="field-input" type="date" id="se-date" value="2031-09-14" min="2031-08-26" max="2031-11-24" />
-              <span class="field-hint">Window for this vacancy: 2031-08-26 → 2031-11-24 (declared 2031-05-28). The engine
-                rejects dates outside the window.</span>
+              <span class="field-hint">Window for this vacancy: 2031-08-26 → 2031-11-24 (declared 2031-05-28). Dates
+                outside the window are rejected.</span>
             </div>
             <div class="cluster">
               <button type="submit" class="btn btn--primary btn--sm" id="se-btn">Schedule special election</button>
@@ -91,7 +91,7 @@
           </div>
           <div class="card card--inset">
             <strong>Live example of the failed branch</strong>
-            <span class="citation" style="display:block">Kings County legislature · seat 2 — re-count exhausted · special election scheduled 2031-09-14 (inside the 90–180 day window)</span>
+            <span class="citation" style="display:block">Kings County legislature · seat 2 — the re-count failed · special election scheduled 2031-09-14 (inside the 90–180 day window)</span>
           </div>
         </div>
       </section>
@@ -175,20 +175,29 @@
         var st = window.CGA.state.getAll();
         var failed = st.scenario.countbackFailed;
 
-        /* Vacancy state strip */
+        /* Vacancy state strip — raw registry tokens stay as keys; the display
+           labels are plain language via S.plainState. */
+        var VAC_LABELS = {
+          'Detected': 'Seat opens',
+          'Declared': 'Declared vacant',
+          'Countback-Running': 'Re-count running',
+          'Filled | Countback-Failed': 'Filled — or the re-count fails',
+          'Special-Election-Scheduled (90–180d)': 'Special election scheduled (90–180 days)',
+          'Filled': 'Filled'
+        };
         var states = BY.entities['Vacancy'].states;
         var current = failed
           ? (scheduled ? 'Special-Election-Scheduled (90–180d)' : 'Filled | Countback-Failed')
           : (certified ? 'Filled | Countback-Failed' : 'Countback-Running');
         document.getElementById('vac-state').innerHTML = states.map(function (s, i) {
           return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(S.plainState(s, VAC_LABELS)) + '</span>';
         }).join('') + (current === 'Filled | Countback-Failed'
-          ? ' <span class="citation">· resolved as: ' + (failed ? 'countback-failed' : 'filled') + '</span>' : '');
+          ? ' <span class="citation">· resolved as: ' + (failed ? 're-count failed' : 'filled') + '</span>' : '');
 
         /* Engine outcome */
         document.getElementById('engine-badge').innerHTML = failed
-          ? S.badge('danger', 'Countback failed — ballots exhausted', 'alert-triangle')
+          ? S.badge('danger', 'Re-count failed — the ballots ran out', 'alert-triangle')
           : S.badge('success', 'Winner found — Camille Verhoeven', 'check');
         document.getElementById('engine-bars').innerHTML = RERUN[failed ? 'failed' : 'found'].map(bar).join('');
 
@@ -204,11 +213,11 @@
 
         /* Certify area */
         document.getElementById('certify-area').innerHTML = failed
-          ? '<button type="button" class="btn btn--secondary btn--sm" disabled title="No winner in this scenario">Certify countback winner</button>'
+          ? '<button type="button" class="btn btn--secondary btn--sm" disabled title="No winner in this scenario">Certify the re-count winner</button>'
           : certified
             ? S.badge('success', 'Camille Verhoeven certified · seated by oath', 'check') +
               '<span class="citation">Certification recorded · proportionality re-check queued · simulated</span>'
-            : '<button type="button" class="btn btn--primary btn--sm" id="certify-btn">Certify countback winner</button>' +
+            : '<button type="button" class="btn btn--primary btn--sm" id="certify-btn">Certify the re-count winner</button>' +
               '<span class="citation">certifies Camille Verhoeven for seat 4</span>';
 
         document.getElementById('se-btn').disabled = !failed || scheduled;

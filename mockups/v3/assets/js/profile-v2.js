@@ -117,7 +117,7 @@
       '<span class="profile-avatar" aria-hidden="true">' + esc(p.initials) + '</span>' +
       '<div class="stack" style="gap:var(--space-1);flex:1 1 16rem">' +
       '<div class="cluster" style="align-items:baseline;gap:var(--space-2)">' +
-      '<strong style="font-size:var(--text-xl);color:var(--gov-fg)">' + esc(p.name) + '</strong>' +
+      '<h1 style="font-size:var(--text-xl);color:var(--gov-fg);margin:0">' + esc(p.name) + '</h1>' +
       '<span class="gloss">' + sub2 + '</span>' +
       (prof ? pill('info', 'Your choice to show', 'Your legal name shows only because you chose to. A handle is the default — and the choice never changes a single right.') : '') +
       '</div>' +
@@ -187,7 +187,8 @@
         }).join('') + '</div>';
     }
 
-    var recHref = (prof && prof.record) ? prof.record : 'civic/my-civic-life.html?tab=record';
+    /* the full record lives on the public-records surface — never back here */
+    var recHref = sub.isSelf ? 'system/public-records.html' : ((prof && prof.record) ? prof.record : 'system/public-records.html');
     return '<section class="card" aria-labelledby="rec-h"><h2 id="rec-h">' + icon('file-text', { size: 'sm' }) + ' Public record</h2>' +
       '<p class="gloss">The complete, audited civic history — residency, votes cast (counts only, never how), offices, filings. The receipt for a civic life; it cannot be quietly edited.</p>' +
       acts + endChips +
@@ -242,25 +243,36 @@
 
     return '<section class="card" aria-labelledby="off-h">' +
       '<h2 id="off-h">' + icon('landmark', { size: 'sm' }) + ' Office record — ' + esc(rep.office) + '</h2>' +
-      '<p class="gloss">A seat won under proportional STV answers to <strong>every</strong> resident of ' + esc(jurName(rep.jurisdiction)) + ', not only those who ranked this member.</p>' +
+      '<p class="gloss">Seats here are won in multi-winner rounds (proportional STV), so this member answers to <strong>every</strong> resident of ' + esc(jurName(rep.jurisdiction)) + ' — not only those who ranked them.</p>' +
       connect + surgeries + reach + queue + '</section>';
   }
 
   /* ---- TAB: representatives (self) — the people who hold your seats ------ */
   function repsPanel(sub) {
     var reps = sub.myReps;
+    var jur = reps.length ? jurName(reps[0].jurisdiction) : 'your jurisdiction';
     var cards = reps.map(function (rep) {
       var p = personaOf(rep.persona);
+      var nextHours = (rep.surgeries || []).map(function (sg) { return esc(sg.kind) + ' (' + esc(sg.date) + ')'; }).join(' · ');
       return '<a class="role-card" href="' + hrefV2('social/profile.html?who=' + encodeURIComponent(rep.persona) + '&tab=office') + '" style="text-decoration:none">' +
         '<span class="profile-avatar profile-avatar--sm" aria-hidden="true">' + esc(p.initials) + '</span>' +
         '<span class="role-name">' + esc(p.name) + '</span>' +
         '<span>' + esc(rep.office) + '</span>' +
-        '<span class="enter-as">Open their profile ' + icon('arrow-right', { size: 'sm' }) + '</span></a>';
+        (nextHours ? '<span class="gloss">' + icon('clock', { size: 'sm' }) + ' Next: ' + nextHours + '</span>' : '') +
+        '<span class="enter-as">Open their profile &amp; reach them ' + icon('arrow-right', { size: 'sm' }) + '</span></a>';
     }).join('');
     return '<section class="card" aria-labelledby="reps-h">' +
       '<h2 id="reps-h">' + icon('landmark', { size: 'sm' }) + ' Your representatives</h2>' +
-      '<p class="gloss">Seats are elected in multi-winner rounds, so <strong>several people</strong> represent you at once — not just one. Every one of them answers to you, including the ones you didn’t rank. Open anyone to reach them.</p>' +
-      '<div class="role-grid">' + (cards || '<p class="gloss">No representatives seated yet.</p>') + '</div></section>';
+      '<p class="gloss">Seats are elected in multi-winner rounds, so <strong>several people</strong> represent you at once — not just one. Every one of them answers to you, including the ones you didn’t rank. Open anyone to read their record, walk into their open meetings, and send a message that lands in their queue.</p>' +
+      '<div class="banner banner--info">' + icon('info', { size: 'sm' }) +
+      '<div><strong>Reaching a representative is always free.</strong> No payment, membership, or status is ever required to contact the people who serve you.</div></div>' +
+      '<div class="role-grid" style="margin-block-start:var(--space-3)">' + (cards || '<p class="gloss">No representatives seated yet.</p>') + '</div>' +
+      '<section aria-labelledby="reach-how-h" style="margin-block-start:var(--space-4)"><h3 id="reach-how-h">How reaching a representative works</h3><ul>' +
+      '<li><strong>Open meetings are genuinely open.</strong> Office hours and town halls run in the live room — anyone may watch; residents of ' + esc(jur) + ' may take the floor.</li>' +
+      '<li><strong>The chair orders the queue, not the politics.</strong> A request reaches the floor in its turn — the chair never decides whose request has merit.</li>' +
+      '<li><strong>Your message is yours.</strong> A constituent message is a private channel to your representative — like a ballot, only the two of you can read it.</li>' +
+      '<li><strong>Representation does not depend on your vote.</strong> Multi-winner seats answer to every resident, including those who ranked someone else.</li>' +
+      '</ul></section></section>';
   }
 
   /* ---- TAB: wallet (self) ----------------------------------------------- */
@@ -270,7 +282,7 @@
     return '<section class="card" aria-labelledby="wal-h">' +
       '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
       '<h2 id="wal-h">' + icon('lock', { size: 'sm' }) + ' Wallet</h2>' + badge('warning', 'Planned', 'clock') + '</div>' +
-      '<p class="never-federated">' + icon('lock', { size: 'sm' }) + '<span>' + esc(w.neverFederated) + '</span></p>' +
+      '<p class="never-federated">' + icon('lock', { size: 'sm' }) + '<span>Private — like a ballot, only you can read it.</span></p>' +
       '<p class="wallet-balance">' + esc(w.balance) + '</p>' +
       '<p class="gloss">In ' + esc(c.name) + ' (<span class="unit-symbol">' + esc(c.symbol) + '</span> ' + esc(c.code) + '). ' + esc(c.abstractNote) + '</p>' +
       '<p>Your civic stipend this period: <strong style="color:var(--gov-fg)">' + esc(mine.amount) + ' ' + esc(c.symbol) + '</strong> ' +
@@ -293,7 +305,7 @@
     var orgRows = (prof.orgs || []).map(function (oid) {
       var o = byId().organizations[oid] || {};
       return '<tr><th scope="row">' + esc(orgName(oid)) + '</th><td>' + esc((o.type || 'organization')) + '</td>' +
-        '<td><a href="' + hrefV2('social/org-profile.html') + '">View organization ' + icon('arrow-right', { size: 'sm' }) + '</a></td></tr>';
+        '<td><a href="' + hrefV2('social/org-profile.html?org=' + encodeURIComponent(oid)) + '">View organization ' + icon('arrow-right', { size: 'sm' }) + '</a></td></tr>';
     }).join('');
     return '<section class="card" aria-labelledby="grp-h"><h2 id="grp-h">' + icon('users', { size: 'sm' }) + ' Groups</h2>' +
       '<p class="gloss">Voluntary groups you joined. Membership is private to you, and joining or leaving never changes a right.</p>' +
@@ -310,16 +322,17 @@
 
   /* ---- TAB: achievements (self / anyone with a profile) ----------------- */
   function achievementsPanel(sub) {
-    var prof = sub.prof;
+    var prof = sub.prof || {};
     var chips = (prof.achievements || []).map(function (a) {
-      return '<a class="achievement-chip" href="' + hrefV2('social/achievements.html') + '" title="' + esc(a.note || 'Decorative — a marker of taking part') + '">' +
+      return '<a class="achievement-chip" href="' + hrefV2('social/achievements.html') + '" title="' + esc(a.note || 'An earned record of taking part') + '">' +
         icon('check', { size: 'sm' }) + esc(a.name) + '</a>';
     }).join(' ');
+    var empty = '<span class="gloss">Nothing here yet — finish your first <a href="' + hrefV2('index.html') + '">journey</a> to earn one.</span>';
     return '<section class="card card--inset" aria-labelledby="ach-h">' +
       '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
       '<h2 id="ach-h">' + icon('award', { size: 'sm' }) + ' Achievements</h2>' + badge('neutral', 'Proposed') + '</div>' +
-      '<p class="gloss">Markers of taking part. They are decorative — they never change a vote, a seat, a role, or what you are allowed to do.</p>' +
-      '<div class="cluster" style="margin-block-start:var(--space-3)">' + (chips || '<span class="gloss">No achievements yet.</span>') + '</div>' +
+      '<p class="gloss">Earned records of the journeys you complete and your civic firsts. Each carries a one-time stipend bonus when the economy goes live — and none ever changes a vote, a seat, or what you are allowed to do.</p>' +
+      '<div class="cluster" style="margin-block-start:var(--space-3)">' + (chips || empty) + '</div>' +
       '<div class="cluster" style="margin-block-start:var(--space-3)">' +
       '<a class="btn btn--secondary btn--sm" href="' + hrefV2('social/achievements.html') + '">' + icon('award', { size: 'sm' }) + ' The achievement catalog ' + icon('arrow-right', { size: 'sm' }) + '</a></div>' +
       '</section>';
@@ -334,7 +347,8 @@
     if (sub.isSelf) t.push({ key: 'representatives', label: 'Representatives', icon: 'landmark', html: repsPanel(sub) });
     if (sub.isSelf) t.push({ key: 'wallet', label: 'Wallet', icon: 'lock', html: walletPanel(sub) });
     if (sub.prof && ((sub.prof.groups || []).length || (sub.prof.orgs || []).length)) t.push({ key: 'groups', label: 'Groups & orgs', icon: 'users', html: groupsPanel(sub) });
-    if (sub.prof && (sub.prof.achievements || []).length) t.push({ key: 'achievements', label: 'Achievements', icon: 'award', html: achievementsPanel(sub) });
+    /* Achievements always shows for yourself — the empty state is the invitation */
+    if (sub.isSelf || (sub.prof && (sub.prof.achievements || []).length)) t.push({ key: 'achievements', label: 'Achievements', icon: 'award', html: achievementsPanel(sub) });
     return t;
   }
 
@@ -348,7 +362,7 @@
     var eyebrow = sub.isSelf ? 'Your profile · one place, every role'
       : (sub.rep ? 'A profile · the person who holds your seat' : 'A profile · a fellow resident');
     var intro = sub.isSelf
-      ? 'Everything about your civic life in one place — who you are, your record, your wallet, the people who represent you, and (if you ever hold office) your office record. Public threads are on the record; private threads stay on this server alone.'
+      ? 'Everything about your civic life in one place — who you are, your record, your wallet, the people who represent you, and (if you ever hold office) your office record. Public threads are on the record; private threads are private — like a ballot, only the people named can read them.'
       : 'One person, shown the same way everyone is. If they hold an office, their office record is just another tab — there is no separate kind of profile for officials.';
 
     var tablist = '<div class="profile-tabs" role="tablist" aria-label="Profile sections">' +

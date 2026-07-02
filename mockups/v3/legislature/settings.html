@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Constitutional settings — CGA mockups</title>
+  <title>The rules this chamber can change — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,36 +14,36 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Legislature · amendable settings</span>
-        <h1>Constitutional settings — New York County</h1>
-        <p class="page-intro">The flexible layer of the two-layer model: every value here can be changed by a valid
-          legislative act — but only inside hardened bounds the act cannot touch. Out-of-range values are rejected
-          before any vote is taken.</p>
+        <span class="eyebrow">Legislature · New York County</span>
+        <h1>The rules this chamber can change</h1>
+        <p class="page-intro">These are the rules this legislature can change by passing a law (its "constitutional
+          settings") — each one inside limits that no law can override. Out-of-range proposals are rejected before
+          any vote is taken.</p>
         <div class="cluster">
-          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected · these bounds cannot be changed</span>
-          <span class="citation">bounds are enforced before any vote is taken</span>
+          <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected · these limits cannot be changed</span>
+          <span class="citation">limits are enforced before any vote is taken</span>
         </div>
       </header>
 
       <section class="card" style="padding:0" aria-labelledby="register-h">
         <div style="padding-block:var(--space-4) 0;padding-inline:var(--space-6)">
           <h2 id="register-h">The register</h2>
-          <p class="cc-small">Current value · hardened bounds · enacting act with effective date. "Propose change"
-            opens the bill flow pre-targeted at that key.</p>
+          <p class="cc-small">Current value · protected limits · enacting act with effective date. "Propose change"
+            opens the bill flow pre-targeted at that rule.</p>
         </div>
         <div class="table-wrap"><table class="table">
-          <caption class="visually-hidden">Amendable constitutional settings for New York County</caption>
-          <thead><tr><th>Setting</th><th>Current value</th><th>Hardened bounds</th><th>Set by</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+          <caption class="visually-hidden">The rules the New York County legislature can change</caption>
+          <thead><tr><th>Rule</th><th>Current value</th><th>Protected limits</th><th>Set by</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
           <tbody id="settings-rows"></tbody>
         </table></div>
-        <noscript><p style="padding:var(--space-4) var(--space-6)">The register renders with JavaScript — 16 settings from election_interval_months to worker_rep_parity_employees.</p></noscript>
+        <noscript><p style="padding:var(--space-4) var(--space-6)">The register renders with JavaScript — 17 rules, from how often elections happen to worker–owner board parity.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="propose-h">
         <h2 id="propose-h">Propose a change <span class="form-chip">Amendable setting change (via bill)</span></h2>
-        <p class="cc-small">Pass a bill that changes one of these settings. The system checks the
+        <p class="cc-small">Pass a bill that changes one of these rules. The system checks the
           proposed value against the protected range before the bill can reach a vote.
-          <span class="citation">available to a Legislative Representative</span></p>
+          <span class="citation">available to legislators</span></p>
         <div id="propose-panel">
           <p class="gloss">Pick "Propose change" on any row above to pre-target a bill at that setting.</p>
         </div>
@@ -54,7 +54,7 @@
         <section class="card" aria-labelledby="rules-h">
           <h2 id="rules-h">Rules of order <span class="form-chip">Rules of order adoption</span></h2>
           <p class="cc-small">Adopt or modify parliamentary rules of order.
-            <span class="citation">available to a Legislative Representative</span></p>
+            <span class="citation">available to legislators</span></p>
           <p class="amendable" style="margin-block-end:0">
             <span class="amendable-value">New York County standing rules, 3rd edition</span>
             <span class="amendable-meta">Adopted by Act 2030-01 · effective 2030-12-09 · modifiable by motion at any session</span>
@@ -64,7 +64,7 @@
         <section class="card" aria-labelledby="ethics-h">
           <h2 id="ethics-h">Ethics code <span class="form-chip">Ethics code adoption</span></h2>
           <p class="cc-small">Adopt or modify the ethics code for all elected officials and civil officers.
-            <span class="citation">available to a Legislative Representative</span></p>
+            <span class="citation">available to legislators</span></p>
           <p class="amendable" style="margin-block-end:0">
             <span class="amendable-value">New York County ethics code, 1st edition</span>
             <span class="amendable-meta">Adopted by Act 2030-02 · effective 2030-12-09 · enforced by the administrative office</span>
@@ -75,11 +75,11 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p>This screen lists the settings a legislature can change by passing a bill. A range check wraps
-            the ordinary <a href="bills.html">bill flow</a> so out-of-range values are rejected before any vote.
-            Rules of order and the ethics code are adopted the same way. The protected bounds themselves can
-            only be changed by a full constitutional amendment.</p>
-          <p>A setting change is a bill whose enactment records the new value, linked to the act with its
+          <p>This screen lists the rules a legislature can change by passing a bill — formally, its constitutional
+            settings. A range check wraps the ordinary <a href="bills.html">bill flow</a> so out-of-range values are
+            rejected before any vote. Rules of order and the ethics code are adopted the same way. The protected
+            limits themselves can only be changed by a full constitutional amendment.</p>
+          <p>A rule change is a bill whose enactment records the new value, linked to the act with its
             effective date.</p>
         </div>
       </details>
@@ -89,7 +89,7 @@
   <script>
     window.CGA_PAGE = {
       id: 'legislature/settings',
-      title: 'Constitutional settings register',
+      title: 'The rules this chamber can change',
       module: 'legislature',
       nav: 'settings',
       roles: ['R-09', 'R-10'],
@@ -114,43 +114,44 @@
 
       var FOUNDING = 'Template default · in force since founding (2030-12-02)';
 
-      /* Every amendable key. min/max present only where a numeric hardened bound exists. */
+      /* Every amendable rule — plain name first, engine key as metadata.
+         min/max present only where a numeric hardened bound exists. */
       var SETTINGS = [
-        { key: 'election_interval_months', value: '60', meta: '5-year default',
+        { name: 'How often elections happen', key: 'election_interval_months', value: '60', meta: '5-year default',
           bounds: 'Elections cannot be skipped or delayed by officials — protected scheduler', basis: 'Elections are mandatory and on schedule', act: FOUNDING },
-        { key: 'voting_method', value: 'stv_droop', meta: 'proportional ranked-choice',
+        { name: 'How votes are counted', key: 'voting_method', value: 'stv_droop', meta: 'proportional ranked-choice',
           bounds: 'May only be replaced by a MORE proportional method — never first-past-the-post or plurality', basis: 'Proportional voting is required', act: FOUNDING },
-        { key: 'legislature_min_seats', value: '5', meta: 'minimum seats', min: 5, max: 9,
+        { name: 'Smallest allowed legislature', key: 'legislature_min_seats', value: '5', meta: 'minimum seats', min: 5, max: 9,
           bounds: 'Floor 5 — cannot go below', basis: 'A legislature has at least 5 seats', act: FOUNDING },
-        { key: 'legislature_max_seats', value: '9', meta: 'maximum seats', min: 5, max: 9,
+        { name: 'Largest allowed legislature', key: 'legislature_max_seats', value: '9', meta: 'maximum seats', min: 5, max: 9,
           bounds: 'Ceiling 9 — mandatory subdivision above', basis: 'Above 9 seats the jurisdiction must subdivide', act: FOUNDING },
-        { key: 'special_election_min_days', value: '90', meta: 'vacancy window floor', min: 1, max: 180,
+        { name: 'Earliest a special election can run', key: 'special_election_min_days', value: '90', meta: 'vacancy window floor', min: 1, max: 180,
           bounds: 'Window must stay inside the 90–180-day vacancy rule', basis: 'Vacancies are filled within 90–180 days', act: FOUNDING },
-        { key: 'special_election_max_days', value: '180', meta: 'vacancy window ceiling', min: 90, max: 180,
+        { name: 'Latest a special election can run', key: 'special_election_max_days', value: '180', meta: 'vacancy window ceiling', min: 90, max: 180,
           bounds: 'Window must stay inside the 90–180-day vacancy rule', basis: 'Vacancies are filled within 90–180 days', act: FOUNDING },
-        { key: 'supermajority_numerator', value: '2', meta: 'with denominator: 2/3',
+        { name: 'Supermajority fraction — top number', key: 'supermajority_numerator', value: '2', meta: 'with the bottom number: 2/3',
           bounds: 'Resulting threshold can never fall below majority + 1', basis: 'A supermajority can never be less than a majority', act: FOUNDING },
-        { key: 'supermajority_denominator', value: '3', meta: 'rounds up to 6 of 9',
+        { name: 'Supermajority fraction — bottom number', key: 'supermajority_denominator', value: '3', meta: 'rounds up — 6 of the 8 serving today',
           bounds: 'Resulting threshold can never fall below majority + 1', basis: 'A supermajority can never be less than a majority', act: FOUNDING },
-        { key: 'max_days_between_meetings', value: '90', meta: 'days between sessions', min: 1, max: 90,
+        { name: 'Longest gap between sessions', key: 'max_days_between_meetings', value: '90', meta: 'days between sessions', min: 1, max: 90,
           bounds: 'Ceiling 90 days between sessions', basis: 'No more than 90 days between meetings', act: FOUNDING },
-        { key: 'emergency_powers_max_days', value: '90', meta: 'emergency powers limit', min: 1, max: 90,
+        { name: 'Longest an emergency power can run', key: 'emergency_powers_max_days', value: '90', meta: 'emergency powers limit', min: 1, max: 90,
           bounds: 'Hard ceiling of 90 days', basis: 'Emergency powers expire after 90 days', act: FOUNDING },
-        { key: 'civil_appointment_years', value: '10', meta: 'civil appointment term', min: 1, max: 10,
+        { name: 'Civil appointment term', key: 'civil_appointment_years', value: '10', meta: 'years', min: 1, max: 10,
           bounds: 'Must stay in lockstep with the judicial appointment term · range 1–10 years', basis: 'Civil and judicial terms move together',
           act: 'Set by Act 2031-14 · effective 2031-03-01' },
-        { key: 'judicial_appointment_years', value: '10', meta: 'judicial term · matches civil', min: 1, max: 10,
+        { name: 'Judicial appointment term', key: 'judicial_appointment_years', value: '10', meta: 'years · matches civil', min: 1, max: 10,
           bounds: 'Must stay in lockstep with the civil appointment term · range 1–10 years', basis: 'Civil and judicial terms move together',
           act: 'Set by Act 2031-14 · effective 2031-03-01' },
-        { key: 'residency_confirmation_days', value: '30', meta: 'residency confirmation',
+        { name: 'Days to confirm residency', key: 'residency_confirmation_days', value: '30', meta: 'residency confirmation',
           bounds: 'Must remain achievable by ordinary residence — no exclusionary thresholds', basis: 'Confirming residency must stay easy for any resident', act: FOUNDING },
-        { key: 'initiative_petition_threshold_pct', value: '5.00', meta: '% of jurisdiction population',
+        { name: 'Signatures needed for a petition', key: 'initiative_petition_threshold_pct', value: '5.00', meta: '% of jurisdiction population',
           bounds: 'Must leave the petition right practically exercisable', basis: 'The petition right must stay usable', act: FOUNDING },
-        { key: 'judiciary_is_elected', value: 'false', meta: 'appointed is the default',
+        { name: 'Are judges elected?', key: 'judiciary_is_elected', value: 'false', meta: 'appointed is the default',
           bounds: 'Switching to elected requires a supermajority plus a supermajority of constituent jurisdictions', basis: 'Switching to an elected judiciary needs a double supermajority', act: FOUNDING },
-        { key: 'worker_rep_min_employees', value: '100', meta: 'first worker board seat',
+        { name: 'Company size for the first worker board seat', key: 'worker_rep_min_employees', value: '100', meta: 'employees',
           bounds: 'Scale must reach parity at the parity threshold', basis: 'Worker representation scales up to parity', act: FOUNDING },
-        { key: 'worker_rep_parity_employees', value: '2000', meta: 'worker/shareholder parity',
+        { name: 'Company size for worker–owner board parity', key: 'worker_rep_parity_employees', value: '2000', meta: 'employees',
           bounds: 'Must remain ≥ the minimum threshold', basis: 'Worker representation scales up to parity', act: FOUNDING }
       ];
 
@@ -158,7 +159,8 @@
 
       function render() {
         document.getElementById('settings-rows').innerHTML = SETTINGS.map(function (s) {
-          return '<tr><td class="mono" data-no-i18n>' + esc(s.key) + '</td>' +
+          return '<tr><td><strong style="color:var(--gov-fg)">' + esc(s.name) + '</strong>' +
+            '<span class="citation mono" style="display:block" data-no-i18n>' + esc(s.key) + '</span></td>' +
             '<td><span class="amendable"><span class="amendable-value" data-no-i18n>' + esc(s.value) + '</span>' +
             '<span class="amendable-meta">' + esc(s.meta) + '</span></span></td>' +
             '<td><span class="cc-small">' + esc(s.bounds) + '</span>' +
@@ -189,22 +191,24 @@
               '<a href="bills.html">bill flow</a> (see the <a href="bill-detail.html">bill surface</a> for the vote tiles). ' +
               '<span class="citation">' + esc(S.plainCodes(s.basis)) + '</span></div></div>'
             : '<div class="banner banner--emergency" role="alert">' + S.icon('alert-triangle') +
-              '<div><span class="banner-title">Rejected before any vote — outside the protected bounds</span>' +
+              '<div><span class="banner-title">Rejected before any vote — outside the protected limits</span>' +
               'Proposed value ' + esc(String(checked)) + ' violates the range ' + s.min + '–' + s.max + ' for ' +
-              '<span data-no-i18n>' + esc(s.key) + '</span>. The system blocks the bill before any vote is taken — ' +
+              '<strong>' + esc(s.name) + '</strong> <span class="citation mono" data-no-i18n>' + esc(s.key) + '</span>. ' +
+              'The system blocks the bill before any vote is taken — ' +
               'no screen, admin panel, or legislative act can carry an out-of-range value. ' +
               '<span class="citation">' + esc(s.bounds) + ' · ' + esc(S.plainCodes(s.basis)) + '</span></div></div>';
         }
         panel.innerHTML =
           '<div class="card card--inset">' +
-          '<p style="margin-block-end:var(--space-2)">Bill pre-targeted at <span class="kbd" data-no-i18n>' + esc(s.key) + '</span>' +
+          '<p style="margin-block-end:var(--space-2)">Bill pre-targeted at <strong>' + esc(s.name) + '</strong> ' +
+          '<span class="citation mono" data-no-i18n>' + esc(s.key) + '</span>' +
           ' — current value <strong data-no-i18n>' + esc(s.value) + '</strong>. <span class="citation">' + esc(s.bounds) + ' · ' + esc(S.plainCodes(s.basis)) + '</span></p>' +
           (numeric
             ? '<div class="cluster"><label class="field-label" for="prop-value">Proposed value</label>' +
               '<input class="field-input" style="inline-size:8rem" id="prop-value" type="number" value="' + esc(s.value) + '" />' +
-              '<button type="button" class="btn btn--primary btn--sm" id="prop-check">Validate against bounds</button>' +
-              '<span class="citation">try 12 on legislature_max_seats to see the pre-vote block</span></div>'
-            : '<p class="gloss">This setting is non-numeric — the engine validates the proposal against its rule (' +
+              '<button type="button" class="btn btn--primary btn--sm" id="prop-check">Validate against the limits</button>' +
+              '<span class="citation">try 12 on "Largest allowed legislature" to see the pre-vote block</span></div>'
+            : '<p class="gloss">This rule is not a number — the proposal is checked against its limit (' +
               esc(s.bounds) + ') the same way. <a href="bills.html">Continue in the bill flow</a>.</p>') +
           '</div>' + result;
 

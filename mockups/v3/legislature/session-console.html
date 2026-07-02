@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Session console — CGA mockups</title>
+  <title>Session console — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,6 +16,13 @@
       <div id="emergency-banner"></div>
 
       <div class="banner banner--info" role="status">
+        <svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg>
+        <div><span class="banner-title">The session happens live in the chamber</span>
+          <a href="../shared/live-room.html?variant=legislative">Join the live session</a> — that room is the meeting.
+          This console is the Speaker's procedural side of it: open, attendance, agenda, motions, and minutes.</div>
+      </div>
+
+      <div class="banner banner--info" role="status">
         <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
         <div><span class="banner-title">Session due in 12 days</span>
           Next session due 2031-06-23 — the legislature must meet at least every 90 days; the scheduler compels it.
@@ -23,10 +30,11 @@
       </div>
 
       <header>
-        <span class="eyebrow">Legislature · live session</span>
+        <span class="eyebrow">Legislature · the Speaker's console</span>
         <h1>Session console — New York County legislature</h1>
-        <p class="page-intro">The meeting surface for a regular session: open, take attendance, verify the peg quorum,
-          then work the agenda in constitutional order. All times shown in your timezone
+        <p class="page-intro">The Speaker's procedural console for a regular session. The meeting itself is the live
+          chamber room; from here the Speaker opens it, takes attendance, confirms quorum against every serving seat,
+          then works the agenda in constitutional order. All times shown in your timezone
           (UTC−5 · America/New_York) · stored as UTC.</p>
         <p class="citation">Regular session in constitutional order</p>
       </header>
@@ -42,15 +50,16 @@
         <h2 id="att-h">Attendance &amp; quorum</h2>
         <div class="cluster" style="margin-block-end:var(--space-3)">
           <span class="form-chip">Attendance registration</span>
-          <span class="citation">available to legislators · peg quorum</span>
+          <span class="citation">available to legislators · counted against all serving seats</span>
           <span class="form-chip">Quorum count publication</span>
-          <span class="citation">available to the Speaker · peg quorum</span>
+          <span class="citation">available to the Speaker · counted against all serving seats</span>
         </div>
         <div id="attendance" class="stack" style="gap:var(--space-2)"></div>
         <noscript><p>Attendance toggles render with JavaScript — 8 of 8 serving present by default.</p></noscript>
         <div id="quorum-block" style="margin-block-start:var(--space-4)"></div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Peg quorum: majorities are computed against all
-          serving members — never against those present. Seat 4 is vacant, so 8 serve.</p>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Quorum and majorities are counted against all
+          serving members — never against those present. An absent member counts the same as a no. Seat 4 is vacant,
+          so 8 serve.</p>
         <div id="compulsion"></div>
       </section>
 
@@ -70,14 +79,14 @@
           <span class="form-chip">Motion submission</span>
           <span class="citation">available to legislators · rules of order</span>
           <span class="form-chip">Floor vote</span>
-          <span class="citation">available to legislators · peg quorum</span>
+          <span class="citation">available to legislators · counted against all serving seats</span>
         </div>
         <div class="state-strip" style="margin-block-end:var(--space-3)">
           <span class="state-node">Submitted</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Seconded/Recognized</span><span class="state-arrow" aria-hidden="true">→</span>
+          <span class="state-node">Seconded / recognized</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Debated</span><span class="state-arrow" aria-hidden="true">→</span>
           <span class="state-node">Voted</span><span class="state-arrow" aria-hidden="true">→</span>
-          <span class="state-node">Adopted | Failed</span>
+          <span class="state-node">Adopted or failed</span>
         </div>
         <div id="motion-list" class="stack" style="gap:var(--space-2)"></div>
         <form id="motion-form" class="cluster" style="margin-block-start:var(--space-3)">
@@ -116,12 +125,13 @@
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> it runs a regular session — open the meeting, take attendance,
-            confirm the quorum, then work the agenda in order. Motions flow through their own handling steps, and a
-            separate path covers what happens if the quorum fails. The session-due banner comes from the 90-day
-            meeting deadline.</p>
-          <p><strong>Motion lifecycle:</strong> Submitted → Seconded/Recognized → Debated → Voted →
-            Adopted | Failed; an active emergency power drives agenda item 1 when present.</p>
+          <p><strong>What this screen does:</strong> it is the procedural side of a regular session — the meeting
+            itself happens live in the <a href="../shared/live-room.html?variant=legislative">chamber room</a>. From
+            here the Speaker opens the meeting, takes attendance, confirms the quorum, then works the agenda in order.
+            Motions flow through their own handling steps, and a separate path covers what happens if the quorum
+            fails. The session-due banner comes from the 90-day meeting deadline.</p>
+          <p><strong>Motion lifecycle:</strong> submitted → seconded / recognized → debated → voted →
+            adopted or failed; an active emergency power drives agenda item 1 when present.</p>
         </div>
       </details>
     </div>
@@ -136,7 +146,7 @@
       roles: ['R-09', 'R-10'],
       workflows: ['WF-LEG-05', 'WF-LEG-09', 'WF-LEG-20', 'WF-SYS-02'],
       forms: ['F-SPK-001', 'F-SPK-002', 'F-SPK-003', 'F-SPK-008', 'F-SPK-009', 'F-LEG-002', 'F-LEG-004', 'F-LEG-006', 'F-LEG-007'],
-      citation: 'Peg quorum: 5 of 9 serving · constitutional order of business',
+      citation: 'Quorum: 5 of 8 serving, counted against all serving seats · constitutional order of business',
       flow: 'WF-LEG-05',
       register: 'governance'
     };

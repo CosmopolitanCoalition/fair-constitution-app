@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Candidacy registration — CGA mockups</title>
+  <title>Candidacy registration — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -18,27 +18,26 @@
       <header>
         <span class="eyebrow">Elections · stand for office</span>
         <h1>Candidacy registration</h1>
-        <p class="page-intro">Any jurisdictionally associated resident can stand for any office in their jurisdictions —
-          there are no other requirements. Registration stays open for the entire inter-election period: it opens the
-          moment the prior election certifies and closes only at the finalist cutoff.</p>
-        <p class="citation">No requirements beyond residency in the jurisdiction — an absolute right.</p>
-        <p class="citation">Registration window: from the prior election's certification to the finalist cutoff.</p>
+        <p class="page-intro">If you live somewhere, you can run for office there — that's the only requirement.
+          Sign-ups stay open the whole time between elections: they open the moment the last election is certified
+          and close only when the final ballot locks (the finalist cutoff).</p>
+        <p class="citation">Residency is the only requirement — an absolute right.</p>
         <span class="hardened"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-lock"></use></svg> Protected — this rule cannot be changed.</span>
       </header>
 
       <div class="grid-2">
         <section class="card" aria-labelledby="form-h">
           <h2 id="form-h">Register</h2>
-          <p class="citation">Open to any associated resident · creates your candidate record · the right to stand for office.</p>
+          <p class="citation">Open to any resident · creates your candidate record · the right to stand for office.</p>
           <form id="reg-form">
             <div class="field">
               <label class="field-label" for="f-office">Office</label>
               <select class="select" id="f-office">
-                <option value="usa-3-new-york-county">New York County legislature — general election · 7 seats</option>
+                <option value="usa-3-new-york-county">New York County legislature — general election · 9 seats</option>
                 <option value="usa-3-kings-county">Kings County legislature — general election · 5 seats</option>
                 <option value="usa-3-queens-county">Queens County legislature — general election · 9 seats</option>
               </select>
-              <span class="field-hint">Only jurisdictions you are associated with are listed. Your association exists at every nesting level simultaneously.</span>
+              <span class="field-hint">You can run anywhere you live — your neighborhood, city, and county all count at once.</span>
             </div>
             <div class="field">
               <label class="field-label" for="f-statement">Platform statement <span class="citation">optional</span></label>
@@ -61,13 +60,14 @@
 
         <section class="card" aria-labelledby="next-h">
           <h2 id="next-h">What happens next</h2>
-          <div class="state-strip" id="cand-state" aria-label="Candidacy state machine"></div>
+          <div class="state-strip" id="cand-state" aria-label="Candidacy stages"></div>
           <ol style="margin-block-start:var(--space-4)">
             <li>The election board validates the registration — the <strong>only</strong> check is jurisdictional residency.
               <span class="citation">Candidate validation, done by an election board member.</span></li>
             <li>Validated candidates enter the approval pool immediately and appear on the
               <a href="open-ballot.html">open ballot</a> with live standings.</li>
-            <li>At the finalist cutoff the top X per race lock onto the ranked ballot; everyone else stays write-in eligible.
+            <li>When the cutoff arrives, the top candidates lock onto the ranked ballot — 3 for each seat, so 27 in
+              this race — and everyone else stays write-in eligible.
               <span class="citation">How many lock in depends on the number of seats (<a href="../shared/constitutional-questions.html#q5">ledger #5</a>).</span></li>
           </ol>
           <p class="gloss">Your public record — votes attended, statements, civic actions — attaches to the candidacy automatically.</p>
@@ -133,12 +133,23 @@
         return '<button type="button" class="chip-toggle" data-tag="' + esc(t) + '" aria-pressed="false">' + esc(t) + '</button>';
       }).join('');
 
+      /* Plain display labels for the raw candidacy tokens — keys stay untouched. */
+      var CAND_LABELS = {
+        'Registered (any time after prior certification)': 'Registered',
+        'Validated': 'Validated',
+        'In-Approval-Pool': 'In the approval pool',
+        '[Endorsed]': 'Endorsed (optional)',
+        'Finalist | Non-finalist (write-in eligible)': 'Made the final ballot — or staying write-in eligible',
+        'On-Ranked-Ballot / Written-In': 'On the ballot',
+        'Elected | Not elected | Withdrawn': 'Elected, not elected, or withdrew'
+      };
+
       function stateStrip() {
         var states = BY.entities['Candidacy'].states;
         var current = submitted ? (showRejection ? 'Registered (any time after prior certification)' : 'Validated') : 'Registered (any time after prior certification)';
         document.getElementById('cand-state').innerHTML = states.map(function (s, i) {
           return (i ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(s) + '</span>';
+            '<span class="state-node' + (s === current ? ' state-node--current' : '') + '"' + (s === current ? ' aria-current="step"' : '') + '>' + esc(S.plainState(s, CAND_LABELS)) + '</span>';
         }).join('');
       }
 

@@ -86,14 +86,15 @@
 
       '<div class="vplayer-status" data-v-status></div>' +
 
+      /* toolchain facts (silent master, drift correction, file keys) live in the
+         title tooltip, not the rendered line — player copy stays plain. */
       '<figcaption class="vplayer-cap">' +
         '<strong style="color:var(--gov-fg)">' + esc(v.title) + '</strong> · ' + esc(v.summary) +
-        '<span class="vplayer-meta citation">' +
-          'One silent master + ' + v.audio.length + ' audio · ' + v.captions.length + ' caption tracks · ' +
-          'drift-corrected &gt;0.3s · your choice is remembered · ' + esc(v.subject) + '-{Language}.{ext}' +
+        '<span class="vplayer-meta citation" title="One silent master video + per-language audio and caption tracks (' + esc(v.subject) + '-{Language}.{ext}), drift-corrected past 0.3s">' +
+          'Narrated in ' + v.audio.length + ' languages · captions in ' + v.captions.length + ' · your language choice is remembered' +
         '</span>' +
         '<details class="vplayer-transcript"><summary>' + icon('file-text', { size: 'sm' }) + ' Transcript</summary>' +
-          '<p class="gloss">' + esc(sampleLine('en')) + ' … (full transcript travels with the captions track, so it is searchable and translatable like any other modality.)</p>' +
+          '<p class="gloss">' + esc(sampleLine('en')) + ' … (the full transcript travels with the captions, so it is searchable and translatable like everything else.)</p>' +
         '</details>' +
       '</figcaption>' +
       '</figure>';
@@ -183,7 +184,7 @@
   /* --------------------------------------------------------------- sopPanel */
   function scopePill(scope) {
     return scope === 'operator'
-      ? '<span class="pill pill--planned" title="off the constitutional plane">Operator</span>'
+      ? '<span class="pill pill--planned" title="for the people who run a server">Operator</span>'
       : '<span class="pill pill--live">Anyone</span>';
   }
   function sopPanel(sopId, opts) {

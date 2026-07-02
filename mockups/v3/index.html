@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>World of Statecraft — the game layer (CGA mockups v2)</title>
-  <meta name="description" content="The player's view of the Cosmopolitan Governance App: governance as a live, social activity. End-to-end journeys, the Matrix-fused Live Civic Room, the economy, and informal groups — organized by who is acting with whom." />
-  <meta property="og:title" content="World of Statecraft — the game layer" />
-  <meta property="og:description" content="Walk the Cosmopolitan Governance App as the people in it experience it: live rooms, journeys, the economy, and informal groups." />
+  <title>World of Statecraft — mockups v3</title>
+  <meta name="description" content="World of Statecraft: governance as a live, social game. Walk into a room, see what's happening today, watch the living world on the Atlas — and discover the government working underneath." />
+  <meta property="og:title" content="World of Statecraft" />
+  <meta property="og:description" content="Governance as a live, social game — walk in and see the world as the people in it do: live rooms, journeys, places, and the market." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/img/social-square-purple.png" />
   <link rel="icon" href="assets/img/social-square-purple.png" />
@@ -20,21 +20,24 @@
     <div class="stack">
       <div class="v2-hero">
         <p class="kosmopolites">Kosmopolitês</p>
-        <h1>World of Statecraft — the game layer</h1>
-        <p class="tagline" style="color:var(--cc-gold-300)">Governance as a live, social activity — the human acts in the foreground, the bureaucracy automated behind them.</p>
-        <p style="max-inline-size:48rem;margin-block-start:var(--space-3)">The whole system, the way the people in it experience it: an
-          election night, a committee hearing, founding an org, a court case, a market — each a guided journey, each
-          passing through a <a href="shared/live-room.html?variant=committee">Live Civic Room</a> where people actually
-          speak, debate, persuade, and vote. Every screen — from a ballot to a board meeting to the operator plane —
-          lives in one place, on the <a href="tour.html">guided tour</a>.</p>
+        <h1>World of Statecraft</h1>
+        <p class="tagline" style="color:var(--cc-gold-300)">A world you walk into — the people in the foreground, the
+          government working quietly underneath.</p>
+        <p style="max-inline-size:48rem;margin-block-start:var(--space-3)">Everything a society does — meeting, arguing,
+          voting, trading, judging — happens here live, in rooms full of people. Play where you actually live, on a real
+          map of Earth, or on any map you invent. Start anywhere below.</p>
       </div>
+
+      <section aria-labelledby="doors-h">
+        <h2 id="doors-h" class="visually-hidden">Ways in</h2>
+        <div id="door-grid" class="role-grid"></div>
+      </section>
 
       <div class="banner banner--demo">
         <div>
-          <span class="banner-title">A mockup of the game layer, not the running application.</span>
-          Everything is simulated in-page. v2 reuses v1's design system and links into v1 for the formal steps; the
-          economy and reach surfaces are <strong>design-ahead</strong> and marked <span class="pill pill--planned">Planned</span>.
-          Use the controls below to switch persona, jurisdiction, and game scenarios.
+          <span class="banner-title">This is a mockup of the game, not the running application.</span>
+          Everything is simulated in-page. Screens marked <span class="pill pill--planned">Planned</span> are designed
+          ahead of the build. Use the Demo controls to switch persona, place, and scenarios.
         </div>
       </div>
 
@@ -42,58 +45,56 @@
         <div class="tour-bar-text">
           <span class="tour-step"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-map"></use></svg> New here?</span>
           <strong class="tour-title">Take the guided tour</strong>
-          <span class="tour-blurb">One linear path through the whole game layer — step through it with Back / Next on every screen.</span>
+          <span class="tour-blurb">One linear walk through the whole world, starting the way a real first visit does —
+            with an invitation.</span>
         </div>
         <div class="tour-bar-nav"><a class="btn btn--primary btn--sm" id="tour-cta" href="tour.html">Start the tour <svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></div>
       </div>
 
-      <section aria-labelledby="classes-h">
-        <h2 id="classes-h">Enter by who is acting</h2>
-        <p class="page-intro">The honest map of the system is five kinds of interaction. Every journey belongs to one
-          of them.</p>
-        <div id="class-grid" class="class-grid"></div>
-      </section>
-
-      <section aria-labelledby="journeys-h">
-        <h2 id="journeys-h">Journeys</h2>
-        <p class="page-intro">Each journey is a guided arc — what's happening now, what's your part, what happens next —
-          that passes through at least one Live Civic Room and deep-links to the v1 screen for the formal moment.</p>
-        <div id="journey-list" class="stack"></div>
-      </section>
-
       <section aria-labelledby="room-h">
-        <h2 id="room-h">The keystone — the Live Civic Room</h2>
-        <p class="page-intro">One fused surface — the form, the vote, and the live social floor together — recurs across
-          the whole game. The same component, configured eight ways:</p>
+        <h2 id="room-h">Step into a live room</h2>
+        <p class="page-intro">Wherever people meet — a hearing, a courtroom, a board, a crew of friends — it’s a room
+          you can walk into and watch. Eight kinds of meeting, one familiar door:</p>
         <div id="room-grid" class="role-grid"></div>
       </section>
 
-      <section aria-labelledby="operator-h">
-        <h2 id="operator-h">Behind the game — run a node</h2>
-        <p class="page-intro">The infrastructure the game runs on, off the constitutional plane: operator accounts,
-          the four named roles over the capability channels, joining the mesh, DNS &amp; certificates, identity, and
-          the operator side of moderation. Operators are a de-facto board, answerable to the seated government.</p>
-        <div id="operator-link"></div>
+      <section aria-labelledby="journeys-h">
+        <h2 id="journeys-h">Journeys — learn by doing</h2>
+        <p class="page-intro">Each journey walks you through one real thing this world does — what’s happening now,
+          what’s your part, what happens next. Finish one and it goes on your profile.</p>
+        <div id="journey-list" class="stack"></div>
+      </section>
+
+      <section aria-labelledby="classes-h">
+        <h2 id="classes-h">How it all fits together</h2>
+        <p class="page-intro">Underneath, every journey is one of five kinds of interaction — a useful map once you’ve
+          been here a while.</p>
+        <div id="class-grid" class="class-grid"></div>
       </section>
 
       <section aria-labelledby="learn-h">
         <h2 id="learn-h">Learn, get help, and translate</h2>
-        <p class="page-intro">The standard procedure for every workflow, a short video in many languages, the place to report a problem,
-          and the interface that gets World of Statecraft into every language its people speak.</p>
+        <p class="page-intro">A short lesson for every tool, a video in many languages, one place to report anything
+          wrong — and the interface that gets this world into every language its people speak.</p>
         <div id="learn-links" class="role-grid"></div>
       </section>
 
-      <section aria-labelledby="handoff-h">
-        <h2 id="handoff-h">For the build team</h2>
-        <div class="grid-2" id="handoff-links"></div>
+      <section aria-labelledby="operator-h">
+        <h2 id="operator-h">Behind the game — run a node</h2>
+        <p class="page-intro">The world runs on volunteer servers anyone can offer. Keeping it online buys no vote and
+          no seat — and if one node survives, the whole world survives.</p>
+        <div id="operator-link"></div>
       </section>
+
+      <p class="citation">Building this? The full design contract — coverage, the component inventory, and the
+        hand-off notes — lives in <a href="shared/coverage.html">Coverage</a>.</p>
     </div>
   </main>
 
   <script>
     window.CGA_PAGE = {
       id: 'index', title: 'Launchpad', module: 'shared', nav: 'launchpad',
-      citation: 'CGA mockups v2 · the game layer · design contract', register: 'governance'
+      citation: 'World of Statecraft mockups · v3', register: 'governance'
     };
   </script>
   <script src="assets/js/fixtures.js"></script>
@@ -107,8 +108,56 @@
       'use strict';
       var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
 
-      /* ---- the five interaction classes ---- */
       function render() {
+        /* ---- the doors — where a first visit actually goes ---- */
+        var doors = [
+          { rel: 'civic/join.html', icon: 'user', title: 'You’re invited', note: 'The way most people arrive — a friend’s link into a live room. Pick a name, step in, just watch.' },
+          { rel: 'civic/today.html', icon: 'home', title: 'What’s happening today', note: 'Everything live right now in the places you belong to — votes closing, rooms open, the calendar.' },
+          { rel: 'atlas.html', icon: 'globe', title: 'See the living world', note: 'The Atlas — every place and every number on one breathing map.' },
+          { rel: 'shared/live-room.html?variant=group', icon: 'users', title: 'Step into a room', note: 'People meeting live — watching is open to everyone, always.' }
+        ];
+        document.getElementById('door-grid').innerHTML = doors.map(function (d) {
+          return '<a class="role-card" href="' + S.hrefV2(d.rel) + '">' + S.icon(d.icon) +
+            '<span class="role-name">' + esc(d.title) + '</span><span>' + esc(d.note) + '</span>' +
+            '<span class="enter-as">Go ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+        }).join('');
+
+        /* ---- the eight live-room variants — from the shell's single source ---- */
+        document.getElementById('room-grid').innerHTML = S.roomVariants.map(function (v) {
+          return '<a class="role-card" href="' + S.hrefV2('shared/live-room.html?variant=' + v.id) + '">' +
+            '<span class="role-name">' + esc(v.label) + '</span><span>' + esc(v.blurb) + '</span>' +
+            '<span class="enter-as">Open the room ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+        }).join('');
+
+        /* ---- journey directory ---- */
+        document.getElementById('journey-list').innerHTML = V2.journeys.map(function (j) {
+          var cls = V2.byClass[j.cls];
+          var built = j.status === 'built-layer';
+          var rel = 'journeys/journey.html?id=' + j.id;
+          var head = '<div class="cluster" style="justify-content:space-between">' +
+            '<div class="cluster">' +
+            (j.flagship ? '<span class="pill pill--vote" title="The flagship journey">Flagship</span> ' : '') +
+            '<strong style="color:var(--gov-fg)">' + esc(j.title) + '</strong>' +
+            '<span class="tag-chip" title="Interaction class ' + cls.n + '">' + esc(cls.title) + '</span>' +
+            (built ? '' : '<span class="pill pill--planned">Coming soon</span>') +
+            '</div>' +
+            '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(rel) + '">Open journey ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
+            '</div>';
+          var rail = '<ol class="journey-rail" aria-label="Progress">' + j.rail.map(function (step, i) {
+            return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +
+              '<li' + (i === 0 ? ' class="rail--current"' : '') + '>' + esc(step) + '</li>';
+          }).join('') + '</ol>';
+          var byId = {};
+          S.roomVariants.forEach(function (v) { byId[v.id] = v.label; });
+          var rooms = (j.rooms || []).map(function (rv) {
+            return '<a class="form-chip" href="' + S.hrefV2('shared/live-room.html?variant=' + rv) + '">' + S.icon('landmark', { size: 'sm' }) + ' ' + esc(byId[rv] || rv) + '</a>';
+          }).join(' ');
+          return '<div class="journey-card"><div class="journey-now">' + esc(j.now) + '</div>' + head + rail +
+            (rooms ? '<div class="cluster" style="gap:var(--space-1)"><span class="citation">passes through:</span> ' + rooms + '</div>' : '') +
+            '</div>';
+        }).join('');
+
+        /* ---- the five interaction classes — the deeper map, demoted ---- */
         document.getElementById('class-grid').innerHTML = V2.interactionClasses.map(function (c) {
           var journeys = c.journeys.map(function (jid) {
             var j = V2.byJourney[jid];
@@ -122,68 +171,12 @@
             '<div class="class-journeys">' + journeys + '</div></a>';
         }).join('');
 
-        /* ---- journey directory ---- */
-        document.getElementById('journey-list').innerHTML = V2.journeys.map(function (j) {
-          var cls = V2.byClass[j.cls];
-          var built = j.status === 'built-layer';
-          var rel = 'journeys/journey.html?id=' + j.id;
-          var head = '<div class="cluster" style="justify-content:space-between">' +
-            '<div class="cluster">' +
-            (j.flagship ? '<span class="pill pill--vote" title="The flagship journey">Flagship</span> ' : '') +
-            '<strong style="color:var(--gov-fg)">' + esc(j.title) + '</strong>' +
-            '<span class="tag-chip" title="Interaction class ' + cls.n + '">' + esc(cls.title) + '</span>' +
-            (built ? '' : '<span class="pill pill--planned" title="Design-ahead of code — ' + esc(j.phase || '') + '">Planned · ' + esc(j.phase || '') + '</span>') +
-            '</div>' +
-            '<a class="btn btn--secondary btn--sm" href="' + S.hrefV2(rel) + '">Open journey ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
-            '</div>';
-          var rail = '<ol class="journey-rail" aria-label="Progress">' + j.rail.map(function (step, i) {
-            return (i > 0 ? '<li class="rail-arrow" aria-hidden="true">' + S.icon('arrow-right', { size: 'sm' }) + '</li>' : '') +
-              '<li' + (i === 0 ? ' class="rail--current"' : '') + '>' + esc(step) + '</li>';
-          }).join('') + '</ol>';
-          var rooms = (j.rooms || []).map(function (rv) {
-            var label = ({ committee: 'Committee hearing', legislative: 'Legislative session', exec: 'Executive committee', board: 'Board meeting', court: 'Court hearing', forum: 'Candidate forum', townhall: 'Town hall', group: 'Group meeting' })[rv] || rv;
-            return '<a class="form-chip" href="' + S.hrefV2('shared/live-room.html?variant=' + rv) + '">' + S.icon('landmark', { size: 'sm' }) + ' ' + esc(label) + '</a>';
-          }).join(' ');
-          return '<div class="journey-card"><div class="journey-now">' + esc(j.now) + '</div>' + head + rail +
-            (rooms ? '<div class="cluster" style="gap:var(--space-1)"><span class="citation">passes through:</span> ' + rooms + '</div>' : '') +
-            '</div>';
-        }).join('');
-
-        /* ---- the eight live-room variants ---- */
-        var variants = [
-          ['committee', 'Committee hearing', 'Testimony to the record; a committee vote.'],
-          ['legislative', 'Legislative session', 'The locked constitutional agenda; a floor vote at peg quorum.'],
-          ['exec', 'Executive committee', 'Equal-power members deliberate and decide.'],
-          ['board', 'Board meeting', 'Worker and owner seats; the org’s own rules of order.'],
-          ['court', 'Court hearing', 'The judge chairs; advocates hold the floor.'],
-          ['forum', 'Candidate forum', 'Candidates speak in turn during the approval phase.'],
-          ['townhall', 'Referendum town hall', 'Open deliberation before the vote window.'],
-          ['group', 'Informal-group meeting', 'A voluntary group, meeting on its own terms.']
-        ];
-        document.getElementById('room-grid').innerHTML = variants.map(function (v) {
-          return '<a class="role-card" href="' + S.hrefV2('shared/live-room.html?variant=' + v[0]) + '">' +
-            '<span class="role-name">' + esc(v[1]) + '</span><span>' + esc(v[2]) + '</span>' +
-            '<span class="enter-as">Open the room ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
-        }).join('');
-
-        /* ---- handoff ---- */
-        var links = [
-          { rel: 'shared/coverage.html', v2: true, title: 'v2 coverage', note: 'Live proof that every meeting type, journey, interaction class, and mechanic is covered — built from the v2 manifest.' },
-          { rel: 'shared/live-room.html?variant=committee', v2: true, title: 'The Live Civic Room', note: 'The keystone fused surface. Its config-object contract drives every variant — the single most important thing for the build team to lift.' },
-          { href: 'MANIFEST.md', title: 'MANIFEST.md', note: 'The v1-reuse map, the Live-Room config contract, the component inventory, and the a11y/RTL results.' },
-          { href: 'OPEN_QUESTIONS.md', title: 'OPEN_QUESTIONS.md', note: 'Every divergence between this design and the as-built code (e.g. economy forms not yet in the registry).' }
-        ];
-        document.getElementById('handoff-links').innerHTML = links.map(function (l) {
-          var target = l.href ? l.href : S.hrefV2(l.rel);
-          return '<a class="role-card" href="' + target + '"><span class="role-name">' + esc(l.title) + '</span><span>' + esc(l.note) + '</span></a>';
-        }).join('');
-
+        /* ---- learn & help ---- */
         var learnLinks = [
-          { rel: 'learn/learn-home.html', icon: 'graduation-cap', title: 'Learn', note: 'Six tracks of short lessons — a video, the procedure, and a quick check for every tool.' },
-          { rel: 'learn/guides.html', icon: 'list-checks', title: 'Guides & procedures', note: 'Every journey’s standard operating procedure, in one searchable place.' },
-          { rel: 'shared/video-player.html', icon: 'play', title: 'Video library', note: 'One silent master, narration and captions in many languages — the multi-track player.' },
-          { rel: 'translation/translation-home.html', icon: 'languages', title: 'Translation status', note: 'Languages × modalities, AI first round, then community-verified.' },
-          { rel: 'support/support-home.html', icon: 'life-buoy', title: 'Help & support', note: 'Report an issue and track tickets — routed to the right people automatically.' }
+          { rel: 'learn/learn-home.html', icon: 'graduation-cap', title: 'Learn', note: 'Six tracks of short lessons — a video, the steps, and a quick check for every tool.' },
+          { rel: 'learn/guides.html', icon: 'list-checks', title: 'Guides & procedures', note: 'Every process, step by step, in one searchable place.' },
+          { rel: 'translation/translation-home.html', icon: 'languages', title: 'Help translate', note: 'Languages × everything — AI does the first draft, people verify it.' },
+          { rel: 'support/report.html', icon: 'life-buoy', title: 'Get help', note: 'Report anything — it routes itself to the right people.' }
         ];
         document.getElementById('learn-links').innerHTML = learnLinks.map(function (l) {
           return '<a class="role-card" href="' + S.hrefV2(l.rel) + '">' + S.icon(l.icon) +
@@ -194,7 +187,8 @@
         document.getElementById('operator-link').innerHTML =
           '<a class="role-card" style="border-block-start:3px solid var(--status-info)" href="' + S.hrefV2('operator/operator-home.html') + '">' +
           S.icon('sliders') + '<span class="role-name">Run a node — the operator plane</span>' +
-          '<span>Operator account setup, the console, the four named roles over the capability channels, mesh &amp; federation, DNS &amp; certificates, identity, moderation, and versioning.</span>' +
+          '<span>Offer a server, join the mesh, and help carry the world. One process takes any node to full peerage; ' +
+          'the only differences are what your hardware can host and the trust some duties require.</span>' +
           '<span class="enter-as">Open the operator plane ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
 
         var cta = document.getElementById('tour-cta');

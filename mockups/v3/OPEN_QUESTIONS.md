@@ -22,10 +22,15 @@ F-SOC-001/002/003/004). They are reserved IDs for unbuilt phases:
 | F-TRE-001 … 004 | Board-of-Governors treasury ops · UBI run | L / M | **absent** (no F-TRE prefix) |
 | F-ORG-008 | Org market participation | M | **absent** (only F-ORG-001…007 exist) |
 
-**v2 does:** every economy surface (Stage 4) is badged **Planned** with the abstract-unit
-note and the never-federated guarantee. Form chips for these IDs render with a "Planned"
-flag, never as live forms. The "form name first, ID second" rule still applies so a
-reserved ID can't be mistaken for a live one.
+**The mockups do:** every economy surface is badged **Planned** (via the shared
+`S.plannedBanner()`) with the abstract-unit note. Form chips for these IDs render with a
+"Planned" flag, never as live forms. The "form name first, ID second" rule still applies so
+a reserved ID can't be mistaken for a live one.
+
+> **Superseded (operator, 2026-07-01):** the earlier "never-federated wallet rail" is gone.
+> Everything syncs between nodes — economic data included; privacy is a READER property
+> ("private — like a ballot, only you can read it"), never a topology claim. All economy
+> copy was reframed accordingly in the simplification pass.
 
 Forms the Live Civic Room **does** use are all live and verified: F-SPK-001…009,
 F-CHR-001…004, F-LEG-002…007, F-JDG-001…003, F-ORG-003/004, F-SOC-001/002, F-IND-014.

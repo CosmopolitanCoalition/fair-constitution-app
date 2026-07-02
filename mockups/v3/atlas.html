@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Atlas — CGA mockups</title>
+  <title>The Atlas — World of Statecraft mockups · v3</title>
   <link rel="icon" href="assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="assets/css/mockup.css" />
@@ -331,18 +331,18 @@
       });
 
       var mesh = domain({
-        title: 'The mesh', icon: 'shield', accent: 'cc-blue-400',
-        lead: 'Running a node is infrastructure — off the constitutional plane. It buys no vote and no seat.',
+        title: 'The servers carrying the world', icon: 'shield', accent: 'cc-blue-400',
+        lead: 'Volunteer-run — keeping the world online buys no vote and no seat. If one node survives, the world survives.',
         tiles: [
           { n: num(nodes.length), label: 'nodes' },
           { n: num(nodesAlive), label: 'alive now', tone: 'success' },
-          { n: num(O.readiness.peerCount), label: 'trusted peers' },
+          { n: num(O.readiness.peerCount), label: 'connected to each other' },
           { n: onLatest + ' / ' + O.versioning.peerMatch.length, label: 'on the latest version' },
-          { n: num(transportsUp), label: 'transports up' },
-          { n: num(Math.max.apply(null, nodes.map(function (n) { return n.syncSeq; }))), label: 'highest sync seq' }
+          { n: num(transportsUp), label: 'ways to reach each other' },
+          { n: (nodesAlive === nodes.length ? 'all' : num(nodesAlive) + ' of ' + num(nodes.length)), label: 'caught up on the record' }
         ],
         extra: '<div class="atlas-mesh-health"><span class="health-line"><span class="health-dot health-dot--' + O.readiness.rollup + '"></span>' +
-          'Mesh readiness: <strong>' + esc(O.readiness.rollup) + '</strong> · last sync ' + esc(O.readiness.lastSync) + '</span></div>'
+          'Health: <strong>' + esc(O.readiness.rollup) + '</strong> · everyone last compared notes ' + esc(O.readiness.lastSync) + '</span></div>'
       });
 
       return '<div class="grid-2 atlas-grid">' + world + reach + representation + executive + judiciary + organizations + economy + people + mesh + '</div>';

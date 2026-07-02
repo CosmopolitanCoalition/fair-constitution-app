@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guided tour — World of Statecraft (CGA mockups v2)</title>
-  <meta name="description" content="A single linear path through the World of Statecraft game layer — walk it step by step, in order, with Back / Next on every screen." />
+  <title>Guided tour — World of Statecraft</title>
+  <meta name="description" content="A single linear path through all of World of Statecraft — walk it step by step, in order, with Back / Next on every screen. Or take the ten-stop first visit." />
   <link rel="icon" href="assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="assets/css/mockup.css" />
@@ -36,8 +36,30 @@
       return order.map(function (a) { return { act: a, stops: groups[a] }; });
     }
 
+    /* The ten-stop first visit — the way a real arrival goes: an invite, a
+       room, home, the world, a ballot, a lesson. Each entry indexes into the
+       full TOUR by rel, so the two tracks can never drift apart. */
+    var FIRST_VISIT_RELS = [
+      'civic/join.html',
+      'shared/live-room.html?variant=group',
+      'civic/today.html',
+      'atlas.html',
+      'civic/onboarding.html',
+      'civic/residency.html',
+      'social/social-home.html',
+      'journeys/journey.html?id=election',
+      'electoral/ranked-ballot.html',
+      'learn/learn-home.html'
+    ];
+    function firstVisitStops() {
+      var byRel = {};
+      TOUR.forEach(function (stop, i) { byRel[stop.rel] = { stop: stop, i: i }; });
+      return FIRST_VISIT_RELS.map(function (rel) { return byRel[rel]; }).filter(Boolean);
+    }
+
     function render() {
       var groups = acts();
+      var fv = firstVisitStops();
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('map', { size: 'sm' }) + ' Guided tour</span>' +
         '<h1>Walk the whole thing, in order</h1>' +
@@ -47,6 +69,20 @@
         '<div class="cluster" style="margin-block-start:var(--space-3)">' +
         '<a class="btn btn--primary" href="' + S.tourHref(0) + '">Start the tour ' + S.icon('arrow-right', { size: 'sm' }) + '</a>' +
         '<span class="citation">or pick any step below</span></div></header>' +
+
+        '<section class="tour-act" aria-labelledby="act-first-visit" style="border-block-start:3px solid var(--cc-gold-300)">' +
+        '<h2 id="act-first-visit">First visit — ten stops</h2>' +
+        '<p class="cc-small">The short version, the way a real arrival goes: a friend’s invite, a live room, home, ' +
+        'the living world, and your first ballot. About ten minutes.</p>' +
+        fv.map(function (o, n) {
+          return '<a class="tour-stop" href="' + S.tourHref(o.i) + '">' +
+            '<span class="tour-stop-n">' + (n + 1) + '</span>' +
+            '<span class="tour-stop-title">' + esc(o.stop.title) + '</span>' +
+            '<span class="tour-stop-blurb">' + esc(o.stop.blurb) + '</span>' +
+            '<span class="lesson-meta">' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
+        }).join('') + '</section>' +
+
+        '<h2 style="margin-block-start:var(--space-6)">The complete walkthrough</h2>' +
 
         groups.map(function (g) {
           return '<section class="tour-act" aria-labelledby="act-' + esc(g.act.replace(/\s+/g, '-')) + '">' +

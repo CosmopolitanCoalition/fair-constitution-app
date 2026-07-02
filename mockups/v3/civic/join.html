@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>You’re invited — World of Statecraft</title>
+  <link rel="icon" href="../assets/img/social-square-purple.png" />
+  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
+  <link rel="stylesheet" href="../assets/css/mockup.css" />
+  <link rel="stylesheet" href="../assets/css/v2.css" />
+  <script src="../assets/js/demo-state.js"></script>
+</head>
+<body>
+  <main id="main">
+    <div class="stack" style="max-inline-size:44rem;margin-inline:auto">
+      <header style="text-align:center">
+        <span class="eyebrow">World of Statecraft</span>
+        <h1 id="invite-h1">Amara invited you</h1>
+        <p class="page-intro" id="invite-sub">She’s in a room right now with the Harbor Cleanup Crew — step in and see
+          what this is. You don’t need an account to watch.</p>
+      </header>
+
+      <section class="card" aria-labelledby="room-h" id="room-preview"></section>
+
+      <section class="card" aria-labelledby="name-h">
+        <h2 id="name-h" class="visually-hidden">Pick a name and step in</h2>
+        <form id="join-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="join-name">What should people call you?</label>
+            <input class="field-input" id="join-name" type="text" autocomplete="nickname"
+              placeholder="Any name you like — you can change it later" />
+            <span class="field-hint">That’s the only question. No email, no ID, nothing else to fill in.</span>
+          </div>
+          <div class="cluster" style="gap:var(--space-2);margin-block-start:var(--space-3)">
+            <a class="btn btn--primary" id="step-in" href="../shared/live-room.html?variant=group">Step into the room</a>
+            <a class="btn btn--secondary" href="today.html">Look around first</a>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="honest-h">
+        <h2 id="honest-h">What you can do right now</h2>
+        <ul class="cc-small" style="margin:0;padding-inline-start:var(--space-5)">
+          <li><strong>Watch any public room</strong> — every hearing, meeting, and vote happens in the open. The gallery
+            is always free to sit in.</li>
+          <li><strong>Browse everything</strong> — every place on Earth, every law, every public record.</li>
+          <li><strong>When you want a voice</strong> — to speak on the record, vote, or run for office — you’ll
+            <a href="onboarding.html">create an account</a> and say where you live. Living somewhere is the only
+            requirement there is.</li>
+        </ul>
+        <p class="citation" style="margin-block-start:var(--space-3)">An invite carries no power — nobody gains a vote,
+          a seat, or an advantage by inviting you. It’s just a door.</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    window.CGA_PAGE = {
+      id: 'civic/join', title: 'You’re invited', module: 'civic', nav: 'join',
+      citation: 'The invite landing — arrival with zero gates', register: 'governance'
+    };
+  </script>
+  <script src="../assets/js/fixtures.js"></script>
+  <script src="../assets/js/fixtures-v2.js"></script>
+  <script src="../manifest.js"></script>
+  <script src="../assets/js/icons.js"></script>
+  <script src="../assets/js/i18n.js"></script>
+  <script src="../assets/js/shell-v2.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
+
+      /* The invited-into-a-room preview: rendered from the same room config the
+         live room itself uses, so the preview is honest about what's inside. */
+      function render() {
+        var room = (V2.rooms && V2.rooms.group) || {};
+        var people = (room.presence || []).filter(function (p) { return p.online; }).length;
+        var status = room.status || { state: 'open', label: 'Meeting now' };
+        var live = status.state === 'open';
+        document.getElementById('room-preview').innerHTML =
+          '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
+          '<div><span class="eyebrow">' + S.icon('users', { size: 'sm' }) + ' A room on this world</span>' +
+          '<h2 id="room-h" style="margin-block:var(--space-1) 0">' + esc(room.title || 'Harbor Cleanup Crew — first meeting') + '</h2>' +
+          '<p class="cc-small" style="margin-block:var(--space-1) 0">A neighborhood crew planning a waterfront cleanup — ' +
+          'talking, sharing files, and deciding things together.</p></div>' +
+          '<span class="pill ' + (live ? 'pill--live' : 'pill--wait') + '">' + (live ? '<span class="dotlive" aria-hidden="true"></span> ' : '') + esc(status.label) + '</span>' +
+          '</div>' +
+          '<div class="cluster" style="gap:var(--space-4);margin-block-start:var(--space-3)">' +
+          '<span class="cc-small">' + S.icon('users', { size: 'sm' }) + ' ' + people + ' people inside now</span>' +
+          '<span class="cc-small">' + S.icon('map-pin', { size: 'sm' }) + ' ' + esc(room.jurisdiction ? (CGA.fixtures.byId.jurisdictions[room.jurisdiction] || {}).name || 'New York County' : 'New York County') + '</span>' +
+          '<span class="cc-small">' + S.icon('eye', { size: 'sm', label: '' }) + ' Anyone may watch</span>' +
+          '</div>';
+
+        /* the Step-in button carries the chosen name along as a friendly touch;
+           blank is fine — you can watch namelessly. */
+        var name = document.getElementById('join-name').value.trim();
+        var btn = document.getElementById('step-in');
+        btn.textContent = name ? 'Step in as ' + name : 'Step into the room';
+      }
+
+      document.getElementById('join-name').addEventListener('input', render);
+      document.getElementById('join-form').addEventListener('submit', function (ev) { ev.preventDefault(); });
+      render();
+      document.addEventListener('cga:v2:rerender', render);
+    })();
+  </script>
+</body>
+</html>

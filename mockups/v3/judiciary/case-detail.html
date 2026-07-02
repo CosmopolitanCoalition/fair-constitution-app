@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Case detail — CGA mockups</title>
+  <title>Case detail — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -22,9 +22,9 @@
           <span class="badge badge--info"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg> 3 judges + jury</span>
           <span class="badge badge--neutral"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-landmark"></use></svg> New York State court</span>
         </div>
-        <p class="page-intro">The accusation: falsifying GPS residency pings to manufacture jurisdictional
-          association ahead of the 2031 general election. The live case is at <strong>jury selection</strong>;
-          this page lets you replay earlier stages and preview later ones.</p>
+        <p class="page-intro">The accusation: falsifying GPS residency pings to fake living somewhere — and
+          gain the rights that come with it — ahead of the 2031 general election. The live case is at
+          <strong>jury selection</strong>; this page lets you replay earlier stages and preview later ones.</p>
         <p class="citation">Panel of 3 — odd, sized to severity. A criminal outcome will carry the double-jeopardy flag.</p>
       </header>
 
@@ -35,10 +35,10 @@
           court acts.</div>
       </div>
 
-      <section class="card card--inset" aria-label="Case state machine">
-        <span class="eyebrow">Case state machine</span>
+      <section class="card card--inset" aria-label="How a case moves">
+        <span class="eyebrow">How a case moves</span>
         <div class="state-strip" id="entity-strip" style="margin-block-start:var(--space-2)"></div>
-        <noscript><p class="gloss">The state strip renders with JavaScript enabled. Case states: Filed → Validated → Panel-Assigned → [Jury-Empaneled] → Scheduled → Hearing → Deliberation → Decided → Opinion-Published → [Appealed] → Closed.</p></noscript>
+        <noscript><p class="gloss">The strip renders with JavaScript enabled. A case moves: Filed → Accepted → Panel chosen → Jury seated → Scheduled → Hearing → Deliberation → Decided → Opinion published → Appealed → Closed.</p></noscript>
       </section>
 
       <section class="card" aria-labelledby="stages-h">
@@ -108,6 +108,11 @@
       var esc = S.esc;
       var TZ = 'shown in your timezone (UTC−5 · America/New_York) · stored as UTC';
 
+      /* Codes stripped by the shell; the surviving role-phrase gets player words. */
+      function who(raw) {
+        return S.plainCodes(raw).replace(/jurisdictionally associated/ig, 'any verified resident');
+      }
+
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
@@ -115,7 +120,7 @@
           '<div class="cluster" style="justify-content:space-between;align-items:baseline">' +
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong></div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</span>' +
+          '<span class="citation">available to ' + esc(who(f.availableToRaw)) + '</span>' +
           (extra || '') + '</div>';
       }
 
@@ -123,9 +128,30 @@
         return '<p style="margin-block-end:var(--space-1)"><strong style="color:var(--gov-fg)">' + esc(label) + ':</strong> ' + value + '</p>';
       }
 
-      /* Stage n → Case entity state (bracketed states are optional passes). */
-      var STAGE_STATE = ['Filed', 'Validated', 'Panel-Assigned (3 or more, odd, sized to severity)', 'Scheduled', 'Scheduled',
-        '[Jury-Empaneled]', 'Hearing', 'Deliberation', 'Decided', 'Opinion-Published'];
+      /* Stage n → Case entity state, matched on PREFIX (after stripping the
+         optional-pass brackets) so a rewording of a fixture suffix can never
+         silently drop the current-state marker. */
+      var STAGE_STATE = ['Filed', 'Validated', 'Panel chosen', 'Scheduled', 'Scheduled',
+        'Jury-Empaneled', 'Hearing', 'Deliberation', 'Decided', 'Opinion-Published'];
+      function isStageState(rawState, key) {
+        return String(rawState).replace(/[\[\]]/g, '').indexOf(key) === 0;
+      }
+
+      /* Player wording for the raw case states; S.plainState falls back to a
+         generic cleanup if the fixture labels ever change. */
+      var CASE_STATES = {
+        'Filed': 'Filed',
+        'Validated': 'Accepted',
+        'Panel chosen (3 or more judges, always an odd number)': 'Panel chosen (at least 3 judges, always odd)',
+        '[Jury-Empaneled]': 'Jury seated (when there is one)',
+        'Scheduled': 'Scheduled',
+        'Hearing': 'Hearing',
+        'Deliberation': 'Deliberation',
+        'Decided': 'Decided',
+        'Opinion-Published': 'Opinion published',
+        '[Appealed]': 'Appealed (if it happens)',
+        'Closed': 'Closed'
+      };
 
       var stages = [
         { title: 'Filing — claimed scale & severity', html: function () {
@@ -133,7 +159,7 @@
             fact('Filed by', 'Justice Administration (prosecuting authority) through advocate Devon Marsh') +
             fact('Claimed scale', 'New York — the residency-integrity law at issue is state law, so the state court hears it') +
             fact('Claimed severity', 'Serious') +
-            fact('Accusation', 'Falsifying GPS residency pings to manufacture jurisdictional association') +
+            fact('Accusation', 'Falsifying GPS residency pings to fake living somewhere and gain the rights that come with it') +
             '<div style="margin-block-start:var(--space-3)">' + formCard('F-IND-017') + '</div>' +
             '<p class="gloss" style="margin-block-start:var(--space-2)">A constitutional challenge would instead arrive through a different filing, and an advocate can file on behalf of any client — see the <a href="case-docket.html">docket entry points</a>.</p>';
         } },
@@ -183,11 +209,11 @@
             fact('Witness lists', 'Prosecution 4 (forensic analyst, registry officer, two neighbors) · Defense 2 (the accused, household member)') +
             '<div style="margin-block-start:var(--space-3)">' + formCard('F-ADV-003') + '</div>';
         } },
-        { title: 'Jury selection — random draw & voir dire (current stage)', html: function () {
+        { title: 'Jury selection — random draw & juror questioning (current stage)', html: function () {
           return '<div class="banner banner--info" role="status">' + S.icon('users') +
-            '<div><span class="banner-title">Random draw complete — voir dire under way</span>' +
-            '12 jurors + 2 alternates drawn at random from 14,733,408 eligible jurisdictionally associated residents of New York. The selection seed is published to the <a href="../system/audit-chain.html">audit chain</a>. <span class="citation">A jury of peers, drawn at random.</span></div></div>' +
-            '<p style="margin-block-start:var(--space-3)"><strong style="color:var(--gov-fg)">Voir dire filters:</strong> conflict questionnaire (relationship to parties, ' +
+            '<div><span class="banner-title">Random draw complete — juror questioning (voir dire) under way</span>' +
+            '12 jurors + 2 alternates drawn at random from 14,733,408 eligible verified residents of New York. The selection seed is published to the <a href="../system/audit-chain.html">audit chain</a>. <span class="citation">A jury of peers, drawn at random.</span></div></div>' +
+            '<p style="margin-block-start:var(--space-3)"><strong style="color:var(--gov-fg)">Juror questioning filters:</strong> conflict questionnaire (relationship to parties, ' +
             'financial interest, prior involvement) and hardship review. Filters remove conflicts — never opinions, demographics, or politics.</p>' +
             '<p><strong style="color:var(--gov-fg)">Civic-obligation protection:</strong> jury service is a protected civic obligation — no employer interference, and no fee or payment can ever be required of a juror.</p>' +
             '<p class="citation">No one may interfere with a civic obligation, and no payment can ever be required to exercise a civic right.</p>' +
@@ -224,7 +250,7 @@
             'interprets. Opinions are <strong>commentary on the law as written or edited</strong> — they explain and ' +
             'persuade, but only the formal challenge process can change the law’s text.</p>' +
             '<div style="margin-block-start:var(--space-3)">' + formCard('F-JDG-003') + '</div>' +
-            '<p style="margin-block-start:var(--space-3)">An appeal, where available, re-enters the lifecycle at a wider panel ([Appealed]); otherwise the case closes.</p>' +
+            '<p style="margin-block-start:var(--space-3)">An appeal, where available, re-enters the lifecycle at a wider panel; otherwise the case closes.</p>' +
             '<p class="citation">Opinion linked as commentary — see the <a href="constitutional-challenge.html">challenge tracker</a> for how findings change law</p>';
         } }
       ];
@@ -235,9 +261,9 @@
         var stage = stages[current - 1];
 
         document.getElementById('entity-strip').innerHTML = BY.entities['Case'].states.map(function (st, i) {
-          var cur = STAGE_STATE[current - 1] === st;
+          var cur = isStageState(st, STAGE_STATE[current - 1]);
           return (i > 0 ? '<span class="state-arrow" aria-hidden="true">→</span>' : '') +
-            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(st) + '</span>';
+            '<span class="state-node' + (cur ? ' state-node--current' : '') + '">' + esc(S.plainState(st, CASE_STATES)) + '</span>';
         }).join('');
 
         document.querySelectorAll('#stage-track .lifecycle-stage').forEach(function (li) {

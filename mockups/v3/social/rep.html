@@ -2,75 +2,11 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Your representatives — CGA mockups v3</title>
-  <link rel="icon" href="../assets/img/social-square-purple.png" />
-  <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
-  <link rel="stylesheet" href="../assets/css/mockup.css" />
-  <link rel="stylesheet" href="../assets/css/v2.css" />
-  <script src="../assets/js/demo-state.js"></script>
+  <meta http-equiv="refresh" content="0; url=../civic/my-civic-life.html?tab=representatives" />
+  <title>Moved — World of Statecraft</title>
+  <link rel="canonical" href="../civic/my-civic-life.html?tab=representatives" />
 </head>
 <body>
-  <main id="main">
-    <div class="stack" id="root"><p class="gloss">Loading your representatives…</p></div>
-  </main>
-  <script>
-    window.CGA_PAGE = { id: 'social/rep', title: 'Your representatives', module: 'social', nav: 'rep', register: 'governance' };
-  </script>
-  <script src="../assets/js/fixtures.js"></script>
-  <script src="../assets/js/fixtures-v2.js"></script>
-  <script src="../assets/js/fixtures-econ.js"></script>
-  <script src="../manifest.js"></script>
-  <script src="../assets/js/icons.js"></script>
-  <script src="../assets/js/i18n.js"></script>
-  <script src="../assets/js/shell-v2.js"></script>
-  <script>
-  (function () {
-    'use strict';
-    var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
-    var BY = window.CGA.fixtures.byId;
-    function nm(id) { var p = BY.personas[id]; return p ? p.name : id; }
-    function initials(id) { var p = BY.personas[id]; return p ? p.initials : '?'; }
-    function jurName(slug) { var j = BY.jurisdictions[slug]; return j ? j.name : slug; }
-
-    function render() {
-      var reps = E.reps || [];
-      var jur = reps.length ? jurName(reps[0].jurisdiction) : 'your jurisdiction';
-
-      var cards = reps.map(function (rep) {
-        var p = BY.personas[rep.persona] || {};
-        var nextHours = (rep.surgeries || []).map(function (s2) { return esc(s2.kind) + ' (' + esc(s2.date) + ')'; }).join(' · ');
-        return '<a class="card rep-card" href="' + S.hrefV2('social/profile.html?who=' + encodeURIComponent(rep.persona) + '&tab=office') + '" style="text-decoration:none">' +
-          '<div class="profile-head" style="margin:0">' +
-          '<span class="profile-avatar" aria-hidden="true">' + esc(initials(rep.persona)) + '</span>' +
-          '<div class="stack" style="gap:var(--space-1)">' +
-          '<strong style="font-size:var(--text-lg);color:var(--gov-fg)">' + esc(nm(rep.persona)) + '</strong>' +
-          '<span class="gloss">' + esc(rep.office) + '</span>' +
-          (nextHours ? '<span class="gloss">' + S.icon('clock', { size: 'sm' }) + ' Next: ' + nextHours + '</span>' : '') +
-          '</div></div>' +
-          '<span class="enter-as" style="margin-block-start:var(--space-3)">Open their profile &amp; reach them ' + S.icon('arrow-right', { size: 'sm' }) + '</span>' +
-          '</a>';
-      }).join('');
-
-      document.getElementById('root').innerHTML =
-        '<header><span class="eyebrow">My civic life · the people who hold your seats</span>' +
-        '<h1>Your representatives</h1>' +
-        '<p class="page-intro">Seats are elected in multi-winner rounds, so <strong>several people</strong> represent you at once — never just one. Every one of them answers to you, including the ones you didn’t rank. Open anyone to read their record, walk into their open meetings, and send a message that lands in their queue.</p></header>' +
-        '<div class="banner banner--info">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Reaching a representative is always free.</strong> No payment, membership, or status is ever required to contact the people who serve you.</div></div>' +
-        '<div class="role-grid" style="margin-block-start:var(--space-4)">' + (cards || '<p class="gloss">No representatives seated yet.</p>') + '</div>' +
-        '<section class="card" aria-labelledby="how-h" style="margin-block-start:var(--space-5)"><h2 id="how-h">How reaching a representative works</h2><ul>' +
-        '<li><strong>Open meetings are genuinely open.</strong> Office hours and town halls run in the live room — anyone may watch; residents of ' + esc(jur) + ' may take the floor.</li>' +
-        '<li><strong>The chair orders the queue, not the politics.</strong> A request reaches the floor in its turn — the chair never decides whose request has merit.</li>' +
-        '<li><strong>Your message is yours.</strong> A constituent message is a private channel to your representative; it is not a public post and never leaves this server.</li>' +
-        '<li><strong>Representation does not depend on your vote.</strong> Multi-winner seats answer to every resident, including those who ranked someone else.</li>' +
-        '</ul></section>';
-
-      if (window.CGA.shellV2) window.CGA.shellV2.refresh();
-    }
-    render();
-    document.addEventListener('cga:v2:rerender', render);
-  })();
-  </script>
+  <main><h1>This page moved</h1><p>It now lives at <a href="../civic/my-civic-life.html?tab=representatives">My profile — Representatives</a>.</p></main>
 </body>
 </html>

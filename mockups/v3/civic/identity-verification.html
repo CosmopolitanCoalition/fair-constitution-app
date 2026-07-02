@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Identity verification — CGA mockups</title>
+  <title>Link an ID (optional) — World of Statecraft mockups</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -14,97 +14,94 @@
   <main id="main">
     <div class="stack">
       <header>
-        <span class="eyebrow">Civic onboarding · step 2 of 3</span>
-        <h1>Identity verification</h1>
-        <p class="page-intro">Where your jurisdiction supports it, you can bridge an external identity document to your
-          account. Verification strengthens election integrity — it is <strong>never</strong> a requirement for your
-          rights. Voting and candidacy depend only on verified residency.</p>
-        <p class="citation">Identity verification strengthens election integrity — it is never a voting requirement.</p>
+        <span class="eyebrow">Civic onboarding · step 2 of 3 — optional</span>
+        <h1>Link a government ID (optional)</h1>
+        <p class="page-intro">Where your jurisdiction supports it, you can link a government ID (formally: identity
+          verification) to your account. It helps keep elections honest — it is <strong>never</strong> required.
+          Voting and candidacy come from living somewhere, nothing else. You can
+          <a href="residency.html">skip straight to saying where you live</a>.</p>
       </header>
 
       <ol class="stepper">
-        <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> <a href="onboarding.html">1 · Account &amp; profile</a></li>
-        <li class="stepper-step stepper-step--active" aria-current="step">2 · Identity verification</li>
-        <li class="stepper-step"><a href="residency.html">3 · Residency</a></li>
+        <li class="stepper-step stepper-step--done"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg> <a href="onboarding.html">1 · Account</a></li>
+        <li class="stepper-step stepper-step--active" aria-current="step">2 · Link an ID (optional)</li>
+        <li class="stepper-step"><a href="residency.html">3 · Say where you live</a></li>
       </ol>
 
       <section class="card" aria-labelledby="branch-h">
-        <h2 id="branch-h">Does your jurisdiction support an external ID bridge?</h2>
-        <p class="cc-small">The answer is resolved automatically from your declared jurisdiction in the application —
-          these buttons preview both branch states.</p>
+        <h2 id="branch-h">Can you link a government ID here?</h2>
+        <p class="cc-small">The answer comes automatically from where you live —
+          these buttons preview both cases.</p>
         <div class="cluster" role="group" aria-label="Branch preview">
-          <button type="button" class="btn btn--secondary" id="branch-supported" aria-pressed="true">Supported jurisdiction — New York</button>
-          <button type="button" class="btn btn--secondary" id="branch-manual" aria-pressed="false">Unsupported jurisdiction — manual path</button>
+          <button type="button" class="btn btn--secondary" id="branch-supported" aria-pressed="true">New York — automatic ID check</button>
+          <button type="button" class="btn btn--secondary" id="branch-manual" aria-pressed="false">No automatic check — in-person option</button>
         </div>
       </section>
 
       <section class="card" id="panel-supported" aria-labelledby="bridge-h">
-        <h2 id="bridge-h">Identity verification submission</h2>
-        <p class="cc-small">Submit external identity verification documents where the jurisdiction supports it.
-          <span class="citation" style="display:block">Available to you once your account and profile are set up. Strengthens election integrity; never affects your rights.</span></p>
+        <h2 id="bridge-h">Link your ID</h2>
+        <p class="cc-small">Submit a government ID where your jurisdiction can check it automatically.</p>
         <form id="bridge-form" novalidate>
           <div class="field">
-            <label class="field-label" for="bridge-system">Identity system</label>
+            <label class="field-label" for="bridge-system">ID type</label>
             <select class="select" id="bridge-system">
-              <option selected>New York state ID bridge</option>
-              <option>United States passport bridge</option>
+              <option selected>New York state ID</option>
+              <option>United States passport</option>
             </select>
-            <span class="field-hint">Bridges are configured per jurisdiction by its legislature.</span>
+            <span class="field-hint">Which IDs can be checked is decided by each jurisdiction&#39;s legislature.</span>
           </div>
           <div class="field">
             <label class="field-label" for="bridge-doc">Document number</label>
             <input class="field-input" id="bridge-doc" type="text" inputmode="numeric" placeholder="As printed on the document" />
-            <span class="field-hint">Sent encrypted to the bridge for a yes/no match — the document number is not stored here.</span>
+            <span class="field-hint">Sent encrypted for a simple yes/no match — the number itself is never stored here.</span>
           </div>
           <div class="cluster">
-            <button type="submit" class="btn btn--primary">Submit for verification</button>
+            <button type="submit" class="btn btn--primary">Submit for checking</button>
             <span id="bridge-status"></span>
           </div>
         </form>
         <div class="banner banner--info" id="bridge-confirm" hidden style="margin-block-start:var(--space-4)">
           <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
-          <div><span class="banner-title">Submitted — pending verification by the external bridge.</span>
-            Your account works fully while this is pending. Continue to <a href="residency.html">residency</a> —
-            rights never wait on this step.
-            <span class="citation">Updates your account with a verified status. Your rights are unaffected.</span></div>
+          <div><span class="banner-title">Submitted — the ID office checks it and reports back a simple yes or no.</span>
+            Your account works fully while this is pending. Continue to <a href="residency.html">say where you live</a> —
+            your rights never wait on this step.</div>
         </div>
       </section>
 
       <section class="card" id="panel-manual" hidden aria-labelledby="manual-h">
-        <h2 id="manual-h">Manual verification path</h2>
+        <h2 id="manual-h">In-person option</h2>
         <div class="banner banner--warning">
           <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <div><span class="banner-title">No external ID bridge is configured for this jurisdiction.</span>
-            A temporary manual path applies until in-person institutions can supplant the app-based system:
-            an attestation session with a neutral officer of your jurisdiction stands in for the bridge.
-            <span class="citation">This temporary path keeps election integrity strong while in-person institutions are not yet available.</span></div>
+          <div><span class="banner-title">This jurisdiction can&#39;t check IDs automatically yet.</span>
+            A local officer can confirm yours in person instead — a short appointment with a neutral
+            officer of your jurisdiction.</div>
         </div>
         <ol style="margin-block-start:var(--space-4)">
-          <li>Request an attestation appointment below — the queue is served by the jurisdiction's administrative office.</li>
+          <li>Request an appointment below — the queue is served by the jurisdiction's administrative office.</li>
           <li>Bring any identifying document recognized under local law.</li>
-          <li>The officer records a verified flag only — no document data enters the system.</li>
+          <li>The officer records a simple &#39;confirmed&#39; — no document data enters the system.</li>
         </ol>
         <div class="cluster">
-          <button type="button" class="btn btn--secondary" id="manual-request">Request attestation appointment</button>
+          <button type="button" class="btn btn--secondary" id="manual-request">Request an in-person appointment</button>
           <span id="manual-status"></span>
         </div>
         <p class="gloss" style="margin-block-start:var(--space-3)">Skipping this entirely is always allowed — unverified accounts keep every right that residency grants.</p>
       </section>
 
       <section class="card" aria-labelledby="state-h">
-        <h2 id="state-h">Where you are in the Individual lifecycle</h2>
+        <h2 id="state-h">Your journey so far</h2>
         <div id="ind-strip" class="state-strip"></div>
-        <noscript><p class="gloss">Lifecycle strip renders with JavaScript — Identity-Verified is the state this surface produces.</p></noscript>
-        <p class="citation" style="margin-block-start:var(--space-2)">Verification never affects your rights — it only strengthens election integrity.</p>
+        <noscript><p class="gloss">The journey strip renders with JavaScript — ID linked (optional) is the step this screen covers.</p></noscript>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
-          <p><strong>What this screen does:</strong> it's step 2 of onboarding — identity verification. It branches between
-            a jurisdiction's external ID bridge and a temporary manual path; the branch is the only fork here.</p>
+          <p><strong>What this screen does:</strong> it's the optional step of onboarding — linking a government ID
+            (formally: identity verification, F-IND-004). It branches between an automatic check run by the
+            jurisdiction and a temporary in-person path; the branch is the only fork here.</p>
           <p><strong>Lifecycle:</strong> completing it marks your account <em>Identity-Verified</em>. Your rights do not depend on it.</p>
-          <p class="citation">Verification strengthens election security and integrity; it is never a requirement for your rights.</p>
+          <p class="citation">Verification strengthens election security and integrity; it is never a requirement for your rights — residency alone unlocks them.</p>
         </div>
       </details>
     </div>
@@ -113,9 +110,9 @@
   <script>
     window.CGA_PAGE = {
       id: 'civic/identity-verification',
-      title: 'Identity verification',
+      title: 'Link an ID (optional)',
       module: 'civic',
-      nav: 'civic-home',
+      nav: 'identity-verification',
       roles: ['R-01'],
       workflows: ['WF-CIV-01'],
       forms: ['F-IND-004'],
@@ -144,11 +141,21 @@
         document.getElementById('branch-supported').setAttribute('aria-pressed', branch === 'supported' ? 'true' : 'false');
         document.getElementById('branch-manual').setAttribute('aria-pressed', branch === 'manual' ? 'true' : 'false');
 
+        /* Plain display labels for the journey strip — raw tokens stay in the data;
+           terminal / bracket states are dropped from the signup story. */
+        var STEP_LABEL = {
+          'Registered': 'Signed up',
+          'Identity-Verified': 'ID linked (optional)',
+          'Residency-Declared': 'Residency declared',
+          'Jurisdictionally Associated': 'Resident — full rights unlocked'
+        };
         var current = submitted ? 'Identity-Verified' : 'Registered';
-        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.map(function (st, i) {
-          var cls = 'state-node' + (st.indexOf(current) === 0 ? ' state-node--current' : '');
+        document.getElementById('ind-strip').innerHTML = BY.entities['Individual'].states.filter(function (st) {
+          return Object.prototype.hasOwnProperty.call(STEP_LABEL, st);
+        }).map(function (st, i) {
+          var cls = 'state-node' + (st === current ? ' state-node--current' : '');
           return (i ? '<span class="state-arrow" aria-hidden="true">&rarr;</span>' : '') +
-            '<span class="' + cls + '">' + esc(st) + '</span>';
+            '<span class="' + cls + '">' + esc(S.plainState(st, STEP_LABEL)) + '</span>';
         }).join('');
         S.refresh();
       }

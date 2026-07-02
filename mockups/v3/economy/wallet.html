@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My wallet — CGA mockups v2</title>
+  <title>My wallet — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack" id="econ-root"><p class="gloss">Loading your wallet…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'economy/wallet', title: 'My wallet', module: 'economy', nav: 'wallet', citation: 'My wallet — a private account, like a ballot, never federated', register: 'governance' };
+    window.CGA_PAGE = { id: 'economy/wallet', title: 'My wallet', module: 'economy', nav: 'wallet', citation: 'My wallet — a private account: like a ballot, only you can read it', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -29,12 +29,7 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, E = V2.econ, esc = S.esc;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the underlying forms are reserved, not yet registered. The unit is abstract — no payment rails, no custody.</div></div>';
-    }
-
-    function neverFederated(text) {
+    function privacyNote(text) {
       return '<p class="never-federated">' + S.icon('lock', { size: 'sm' }) + '<span>' + esc(text) + '</span></p>';
     }
 
@@ -76,14 +71,13 @@
 
       document.getElementById('econ-root').innerHTML =
         '<header><span class="eyebrow">The economy · your private account</span><h1>My wallet</h1>' +
-        '<p class="page-intro">Everything you hold, earn, spend, and send — for your eyes only. Your balance and every receipt live on this server alone. ' +
-        'They are private the same way a ballot is private: nobody else, on this instance or any other, can read them.</p>' +
-        '<p class="citation">My wallet — a private account, with the right to privacy of one’s economic life, never federated</p></header>' +
+        '<p class="page-intro">Everything you hold, earn, spend, and send — for your eyes only. Your balance and every receipt are ' +
+        'private the same way a ballot is private: only you can read them.</p></header>' +
 
-        // Lead with the never-federated guarantee (this is a PERSONAL surface).
-        neverFederated(w.neverFederated) +
+        // The one privacy note on this page (a PERSONAL surface).
+        privacyNote(w.neverFederated) +
 
-        plannedBanner() +
+        S.plannedBanner() +
 
         // The big balance.
         '<section class="card" aria-labelledby="bal-h">' +
@@ -138,13 +132,12 @@
 
         // The rails that protect a personal wallet.
         '<section class="card card--inset" aria-labelledby="rails-h"><h2 id="rails-h">Why your wallet stays yours</h2><ul>' +
-        '<li><strong>Private, like a ballot.</strong> Balances, receipts, and transactions never federate — they live only on this server.</li>' +
+        '<li><strong>Private, like a ballot.</strong> Only you can read your balance, receipts, and transactions.</li>' +
         '<li><strong>No payment rails, no custody.</strong> The unit is abstract; nothing here moves real money or holds it for you.</li>' +
         '<li><strong>No paywall on civic rights.</strong> No tax, fee, or cost may ever attach to voting, candidacy, residency, or petitioning.</li>' +
         '<li><strong>A stipend can only credit you,</strong> never withhold — and it writes only this ledger, never a role, seat, or vote.</li>' +
-        '<li><strong>Every transfer needs both parties.</strong> The engine rejects a single-sided agreement; no clause can waive a right.</li>' +
+        '<li><strong>Every transfer needs both parties.</strong> A one-sided agreement never takes effect; no clause can waive a right.</li>' +
         '</ul>' +
-        neverFederated('This page never leaves this instance — there is nothing here to sync.') +
         '</section>';
 
       // wire the (simulated) transfer composer

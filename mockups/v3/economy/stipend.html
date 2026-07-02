@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Civic stipend — CGA mockups v2</title>
+  <title>Civic stipend — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -35,57 +35,35 @@
       return p ? p.name : id;
     }
 
-    /* strip constitutional codes out of a human-readable display string */
-    function plainify(s) {
-      if (s == null) return s;
-      return String(s)
-        // drop trailing " · Art. …" / " · CLK-…" / " · F-…" style citation tails
-        .replace(/\s*·\s*(Art\.[^·]*|CLK-[^·]*|F-[A-Z]+-[0-9.…]+[^·]*|WF-[^·]*)\s*$/g, '')
-        // drop inline article/section citations
-        .replace(/\s*\(?\bArt\.\s*[IVXLC]+(?:\s*§\s*\d+)?\)?/g, '')
-        // role-code runs like "R-09" or "R-19/R-20", with a trailing label word
-        .replace(/\bR-\d+(?:\s*\/\s*R-\d+)*\s*/g, '')
-        .replace(/\s*\bF-[A-Z]+-[0-9.…]+/g, '')
-        .replace(/\s*\bCLK-\d+\b/g, '')
-        // tidy leftover punctuation / parens / spacing
-        .replace(/\(\s*\)/g, '')
-        .replace(/\(\s*,\s*/g, '(')
-        .replace(/,\s*\)/g, ')')
-        .replace(/\s+([,.;])/g, '$1')
-        .replace(/\s{2,}/g, ' ')
-        .replace(/[\s·,;]+$/g, '')
-        .trim();
-    }
+    /* plain-language pass over fixture strings (the shell's shared stripper) */
+    var plainify = S.plainCodes;
 
-    function plannedBanner() {
-      return '<div class="planned-banner">' + S.icon('info', { size: 'sm' }) +
-        '<div><strong>Planned — the economic layer.</strong> These surfaces are design-ahead of code: the stipend keys and the run are reserved, not yet registered. Units are abstract — no payment rails, no custody.</div></div>';
-    }
-
-    function neverFederated() {
+    function privacyNote() {
       return '<span class="never-federated">' + S.icon('lock', { size: 'sm' }) +
-        'Your receipt is private — never federated, like a ballot.</span>';
+        'Your receipt is private — only you can see your own amount.</span>';
     }
 
-    /* an editable per-role pay control — the policy controllers' view */
-    function payField(id, label, val, sym) {
-      return '<div class="field" style="margin:0"><label class="field-label" for="' + id + '">' + esc(label) + '</label>' +
-        '<div class="cluster" style="gap:var(--space-1);align-items:center"><input class="field-input" id="' + id + '" type="number" min="0" step="1" value="' + esc(val) + '" style="max-inline-size:6rem" />' +
-        '<span class="gloss">' + esc(sym) + '</span></div></div>';
+    /* the current values, read-only — these are set by law, never an admin knob */
+    function payValue(label, val, sym) {
+      return '<div class="card card--inset" style="flex:1 1 9rem"><span class="eyebrow">' + esc(label) + '</span>' +
+        '<p style="margin-block:var(--space-1) 0;font-size:var(--text-lg);color:var(--gov-fg)">' + esc(val) + ' ' + esc(sym) + '</p></div>';
     }
-    function perRoleControls() {
+    function currentValues() {
       var st = E.stipend, sym = E.currency.symbol;
-      var roleFields = st.classes.map(function (c) { return payField('bump-' + c.key, c.label, c.bump, sym); }).join('');
+      var roleVals = st.classes.map(function (c) { return payValue(c.label, c.bump, sym); }).join('');
       return '<section class="card" aria-labelledby="ctrl-h">' +
-        '<div class="cluster" style="justify-content:space-between;align-items:flex-start">' +
-        '<h2 id="ctrl-h">' + S.icon('sliders', { size: 'sm' }) + ' Per-role pay controls</h2>' + S.badge('neutral', 'Policy controllers', 'user') + '</div>' +
-        '<p class="gloss">The offices that own civic-duty pay set the amount for each role. These are this jurisdiction’s defaults — set once at founding, they cascade to new child jurisdictions, and each jurisdiction can edit its own once its legitimacy gate activates.</p>' +
-        '<form id="pay-form" class="stack" style="gap:var(--space-3)">' +
-        '<div class="cluster" style="gap:var(--space-4)">' + payField('pay-base', 'Residency floor', st.base, sym) + payField('pay-cap', 'Bump cap (max stacked)', st.cap, sym) + '</div>' +
-        '<div><span class="eyebrow">Per-role bumps</span><div class="cluster" style="gap:var(--space-4);margin-block-start:var(--space-2)">' + roleFields + '</div></div>' +
-        '<div class="cluster"><button type="submit" class="btn btn--primary btn--sm">' + S.icon('check', { size: 'sm' }) + ' Save defaults</button>' +
-        '<span class="gloss">Simulated — in the real app this is a dual-door change (the offices propose, the constituents consent).</span></div>' +
-        '<p id="pay-confirm" role="status" class="gloss" style="margin:0"></p></form></section>';
+        '<h2 id="ctrl-h">' + S.icon('sliders', { size: 'sm' }) + ' The numbers, and how they change</h2>' +
+        '<p class="gloss">The current values, on the record. Nobody edits these on a settings screen: each one moves only when ' +
+        '<strong>two doors open</strong> — a supermajority of the chamber AND the consent of the people it governs (the “dual-door” rule). ' +
+        'Because the constituents’ own money is spent, they must agree.</p>' +
+        '<div class="cluster" style="gap:var(--space-3);margin-block-start:var(--space-3)">' +
+        payValue('Residency floor', st.base, sym) + payValue('Bump cap (max stacked)', st.cap, sym) + roleVals + '</div>' +
+        '<div class="cluster" style="margin-block-start:var(--space-3)">' +
+        '<button type="button" class="btn btn--primary btn--sm" data-propose>' + S.icon('file-text', { size: 'sm' }) + ' Propose a change</button>' +
+        '<span class="gloss">Drafts a proposal for the chamber — it never saves a default.</span></div>' +
+        '<p id="pay-confirm" role="status" class="gloss" style="margin:0"></p>' +
+        '<p class="citation" style="margin-block-start:var(--space-2)">Every lever, its value, and its enacting act: <a href="' + S.hrefV2('economy/units.html') + '">Units &amp; money</a>.</p>' +
+        '</section>';
     }
 
     function render() {
@@ -152,8 +130,8 @@
         'Only the total and a k-anonymous head-count post to the public ledger.</p>' +
         '<p class="citation"><a href="' + S.hrefV1('system/public-records.html') + '">Public records</a> — the run posts as one double-entry line</p></div>' +
         '<div class="card card--inset"><span class="eyebrow">Private — your receipt</span>' +
-        '<p style="margin-block:var(--space-2)">' + neverFederated() + '</p>' +
-        '<p class="gloss">Each person’s own amount writes only to their private wallet on this server. A small recipient class is folded into the general aggregate and never published on its own.</p>' +
+        '<p style="margin-block:var(--space-2)">' + privacyNote() + '</p>' +
+        '<p class="gloss">Each person’s own amount writes only to their own private wallet. A small recipient class is folded into the general aggregate and never published on its own.</p>' +
         '<p class="citation"><a href="' + S.hrefV2('economy/wallet.html') + '">My wallet</a> — see your own line</p></div></div>';
 
       document.getElementById('root').innerHTML =
@@ -163,7 +141,7 @@
         'qualification for office, the differential is add-only, capped, and writes nothing but the private ledger — it grants no ' +
         'seat, no vote, no advantage. <span class="citation">the Right to Stand</span></p>' +
         '<p class="citation">' + esc(window.CGA_PAGE.citation) + '</p></header>' +
-        plannedBanner() +
+        S.plannedBanner() +
 
         '<section aria-labelledby="formula-h"><h2 id="formula-h">How an amount is computed</h2>' +
         formula + floorNote + '</section>' +
@@ -175,7 +153,7 @@
         'None of these is a constitutional role, and stacking them can never exceed the ' + esc(st.cap) + ' ' + esc(sym) + ' cap.</p>' +
         '<div class="grid-2">' + classCards + '</div></section>' +
 
-        perRoleControls() +
+        currentValues() +
 
         '<section class="card" aria-labelledby="examples-h"><h2 id="examples-h">Worked examples</h2>' +
         '<p class="gloss">Same floor for all; the spread is only the duty differential. The election board is deliberately not in the paid set.</p>' +
@@ -185,30 +163,15 @@
         '<section class="card" aria-labelledby="rails-h"><h2 id="rails-h">The rails that hold everywhere</h2>' +
         '<ul>' + railItems + '</ul></section>' +
 
-        '<section aria-labelledby="agg-h"><h2 id="agg-h">Public aggregate vs private receipt</h2>' + aggregateBlock + '</section>' +
+        '<section aria-labelledby="agg-h"><h2 id="agg-h">Public aggregate vs private receipt</h2>' + aggregateBlock + '</section>';
 
-        '<section class="card card--inset" aria-labelledby="keys-h"><h2 id="keys-h">These numbers are dual-door keys</h2>' +
-        '<p>The base, the cap, every bump, and the interval itself are <span class="dual-door">' + S.icon('lock', { size: 'sm' }) + 'dual-door</span> ' +
-        'monetary keys — adjusted only by the constitutional offices through a chamber supermajority and constituent consent, never an admin knob. ' +
-        'Because constituents’ own money is spent, they must agree (anti-self-dealing).</p>' +
-        '<p class="citation">See every key, its value, and its enacting act on <a href="' + S.hrefV2('economy/units.html') + '">Units &amp; monetary policy</a>.</p></section>';
-
-      // wire the per-role pay controls (simulated; updates the published rates)
-      var payForm = document.getElementById('pay-form');
-      if (payForm) payForm.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        var base = parseInt(document.getElementById('pay-base').value, 10);
-        var cap = parseInt(document.getElementById('pay-cap').value, 10);
-        if (!isNaN(base)) st.base = base;
-        if (!isNaN(cap)) st.cap = cap;
-        st.classes.forEach(function (c) {
-          var v = parseInt((document.getElementById('bump-' + c.key) || {}).value, 10);
-          if (!isNaN(v)) { c.bump = v; if (st.bumps && st.bumps[c.key] != null) st.bumps[c.key] = v; }
-        });
-        S.announce('Per-role pay defaults saved (simulated).');
-        render();
+      // wire the propose-a-change CTA (simulated; nothing is ever saved here)
+      var proposeBtn = document.querySelector('[data-propose]');
+      if (proposeBtn) proposeBtn.addEventListener('click', function () {
         var out = document.getElementById('pay-confirm');
-        if (out) out.textContent = 'Saved — the published floor, cap, and per-role bumps now reflect your changes. New child jurisdictions inherit these.';
+        var msg = 'Proposal drafted (simulated). In the real game this files a legislative act — the chamber must pass it by supermajority AND the constituents must consent before any number moves.';
+        if (out) out.textContent = msg;
+        S.announce(msg);
       });
 
       if (window.CGA.shellV2) window.CGA.shellV2.refresh();

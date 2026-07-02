@@ -152,10 +152,23 @@
     naming: '{Subject}-{Language}.{ext} — the same convention as the existing toolchain.'
   };
   var addLanguageSteps = [
-    { do: 'Pick the language', detail: 'Choose from the 115 mapped in languages.py, or request a new one.' },
-    { do: 'Generate the first round', detail: 'The machine engine drafts every modality at once.', cite: engine.tier1 + ' + ' + engine.tail },
+    { do: 'Pick the language', detail: 'Choose from the 115 mapped languages, or request a new one.' },
+    { do: 'Generate the first round', detail: 'The machine writes a first draft of everything at once — people never start from a blank box.' },
     { do: 'Open it for review', detail: 'Readers of that language see the drafts and begin verifying.' },
     { do: 'Publish on quorum', detail: 'Strings auto-publish once enough verifications land and QA is clean.' }
+  ];
+
+  /* the languages a person knows — collected at account creation, they default
+     the interface and weight that person's verifications. */
+  var myLangs = [
+    { code: 'en', native: 'English', fluency: 'Native' },
+    { code: 'es', native: 'Español', fluency: 'Fluent' }
+  ];
+  /* contributions awaiting a verifier who reads the language */
+  var pendingContributions = [
+    { id: 'tc1', lang: 'es', surface: 'The public square', original: 'Report an issue', machine: 'Reportar un problema', by: 'machine' },
+    { id: 'tc2', lang: 'es', surface: 'Your wallet', original: 'Send a transfer', machine: 'Enviar una transferencia', by: '@u-greenwood' },
+    { id: 'tc3', lang: 'fr', surface: 'A live room', original: 'Take the floor', machine: 'Prendre la parole', by: 'machine' }
   ];
 
   V2.tr = {
@@ -164,6 +177,7 @@
     matrix: matrix, byRow: byRow, rowFor: rowFor,
     reviewQueue: reviewQueue, contributors: contributors,
     engine: engine, addLanguageSteps: addLanguageSteps,
+    myLangs: myLangs, pendingContributions: pendingContributions,
     totals: { mapped: 115, shipped: 77, curated: langs.length },
     /* shared so the video player can name tracks without loading the full matrix */
     expose: function () { V2.langName = langName; V2.langNative = langNative; V2.byLang = byLang; }

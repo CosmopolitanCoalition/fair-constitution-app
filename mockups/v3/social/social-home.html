@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Social — CGA mockups v2</title>
+  <title>The public square — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -15,7 +15,7 @@
     <div class="stack" id="social-root"><p class="gloss">Loading the square…</p></div>
   </main>
   <script>
-    window.CGA_PAGE = { id: 'social/social-home', title: 'Social', module: 'social', nav: 'my-civic-life', citation: 'The public square — open resident discourse', register: 'governance' };
+    window.CGA_PAGE = { id: 'social/social-home', title: 'The square', module: 'social', nav: 'social-home', citation: 'The public square — open resident discourse', register: 'governance' };
   </script>
   <script src="../assets/js/fixtures.js"></script>
   <script src="../assets/js/fixtures-v2.js"></script>
@@ -28,10 +28,8 @@
     'use strict';
     var S = window.CGA.shellV2, V2 = window.CGA.fixtures.v2, esc = S.esc;
 
-    /* the personal profile lives on fixtures-econ in the full economy site, but
-       the social home carries its own light feed + a follows summary drawn from
-       the v2 personas. Compose a few pseudonymous square posts in-page. */
-    var me = { handle: 'amara', name: 'Amara Okafor', followsCount: 84, followersCount: 212 };
+    /* THIS page is the square — the open feed plus who's in the halls right
+       now. Compose a few pseudonymous square posts in-page. */
 
     /* recent square posts — pseudonymous @u-handles; seat badges where the
        author is a seated rep speaking in their own capacity. */
@@ -60,7 +58,7 @@
     function presNameOf(p) { return p.name || p.handleName || mxid(p.handle); }
 
     /* "who is in the halls right now" — rosters of two open rooms, each linking
-       into the live room. Presence is server-local and never federated. */
+       into the live room. */
     function presenceStrip() {
       var rooms = V2.rooms || {};
       var openRooms = [
@@ -91,8 +89,8 @@
       return '<section aria-labelledby="halls-now-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
         '<h2 id="halls-now-h">Who is in the halls right now</h2></div>' +
         '<div class="grid-2">' + cols + '</div>' +
-        '<p class="never-federated" style="margin-block-start:var(--space-2)">' + S.icon('lock', { size: 'sm' }) +
-        ' Presence is server-local — who is in a room is never federated and confers no governance power.</p></section>';
+        '<p class="citation" style="margin-block-start:var(--space-2)">' + S.icon('info', { size: 'sm' }) +
+        ' Being in a room is a glimpse, not a record — and it confers no governance power.</p></section>';
     }
     function tagChips(tags) {
       return (tags || []).map(function (t) {
@@ -114,42 +112,21 @@
     }
 
     function render() {
-      var entries = [
-        { kind: 'v1', rel: 'civic/civic-home.html', icon: 'globe', title: 'The public square',
-          note: 'Open resident discussion — pseudonymous, and governed by your jurisdiction’s community standards.' },
-        { kind: 'v2', rel: 'shared/live-room.html?variant=townhall', icon: 'landmark', title: 'The halls of governance',
-          note: 'Speak into the public record at a hearing, a town hall, or a floor session.' },
-        { kind: 'v2', rel: 'groups/groups-home.html', icon: 'message-square', title: 'Messages & parties',
-          note: 'Direct messages and temporary parties — talk, files, voice, and video. Private to you, never federated.' }
-      ];
-      var cards = entries.map(function (e) {
-        var href = e.kind === 'v1' ? S.hrefV1(e.rel) : S.hrefV2(e.rel);
-        var tag = e.kind === 'v1' ? '' : '';
-        var planned = (e.kind === 'v2' && !S.isBuiltV2(e.rel)) ? ' ' + S.plannedFlag('Stage 3') : '';
-        return '<a class="role-card" href="' + href + '">' + S.icon(e.icon) +
-          '<span class="role-name">' + esc(e.title) + tag + planned + '</span><span>' + esc(e.note) + '</span>' +
-          '<span class="enter-as">Open ' + S.icon('arrow-right', { size: 'sm' }) + '</span></a>';
-      }).join('');
-
       var posts = feed.map(postRow).join('');
 
       document.getElementById('social-root').innerHTML =
-        '<header><span class="eyebrow">My civic life · the public square</span><h1>Social</h1>' +
-        '<p class="page-intro">Where residents talk. Follow your neighbours and your representatives, ' +
-        'read the square, send a message, and step into the halls when you want your words on the record. ' +
+        '<header><span class="eyebrow">Where residents talk</span><h1>The public square</h1>' +
+        '<p class="page-intro">You’re standing in it. Read what your neighbours and representatives are saying, ' +
+        'see who’s in the halls right now, and step into a room when you want your words on the record. ' +
+        'For a private word, open <a href="' + S.hrefV2('groups/groups-home.html') + '">Messages &amp; parties</a>. ' +
         'The square is for talk; <a href="' + S.hrefV2('economy/economy-home.html') + '">the exchange</a> is for trade — they never mix.</p></header>' +
 
-        /* entry cards */
-        '<section aria-labelledby="go-h"><h2 id="go-h">Where to go</h2><div class="role-grid">' + cards + '</div></section>' +
-
-        /* who is in the halls right now — presence strip above the feed */
+        /* who is in the halls right now — presence first: this is a place */
         presenceStrip() +
 
         /* the feed */
         '<section aria-labelledby="feed-h"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
-        '<h2 id="feed-h">Recent in the square</h2>' +
-        '<a class="btn btn--secondary btn--sm" href="' + S.hrefV1('civic/civic-home.html') + '">' +
-        S.icon('globe', { size: 'sm' }) + ' Open the full square</a></div>' +
+        '<h2 id="feed-h">Recent in the square</h2></div>' +
         '<div class="stack">' + posts + '</div>' +
         '<p class="lr-note" style="margin-block-start:var(--space-3)">' + S.icon('info', { size: 'sm' }) +
         ' A post is talk, not an act. To put words into the permanent public record, testify in the halls.</p></section>' +

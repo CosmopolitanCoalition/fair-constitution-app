@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Judiciary home — CGA mockups</title>
+  <title>Judiciary home — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -112,7 +112,7 @@
             </tbody>
           </table>
         </div>
-        <p class="gloss" style="margin-block-start:var(--space-2)">Confirmation needs the same supermajority as creation — 182 of 272 serving members. Sixty-two consent votes were held, one per nominee; the seven decisive votes are shown (the 55 not shown fell short of the threshold). Richmond and Erie counties keep their nomination rights; replacement nominees go to a fresh consent vote when a seat next opens.</p>
+        <p class="gloss" style="margin-block-start:var(--space-2)">Confirmation needs the same supermajority as creation — 182 of 272 serving members. Sixty-two consent votes were held, one per nominee; the five confirmations and two of the near-misses are shown (the other 55 nominees also fell short). Richmond and Erie counties keep their nomination rights; replacement nominees go to a fresh consent vote when a seat next opens.</p>
         <p class="citation">A consent vote is held for each nominee — sixty-two in all.</p>
       </section>
 
@@ -185,10 +185,6 @@
          Constituent counties: 62 → ceil(62 × 2/3) = 42. Both start two consents short. */
       var conv = { leg: 180, legOf: 272, legNeed: 182, jur: 40, jurOf: 62, jurNeed: 42 };
 
-      function roleLabel(raw) {
-        return String(raw || '').replace(/\bR-\d+\s*·?\s*/g, '').trim();
-      }
-
       function formCard(fid, extra) {
         var f = BY.forms[fid];
         if (!f) return '';
@@ -197,7 +193,7 @@
           '<strong style="color:var(--gov-fg)">' + esc(f.name) + '</strong>' +
           '</div>' +
           '<p style="font-size:var(--text-sm);margin-block:var(--space-1) var(--space-2)">' + esc(f.desc) + '</p>' +
-          '<span class="citation">available to ' + esc(roleLabel(f.availableToRaw)) + '</span>' +
+          '<span class="citation">available to ' + esc(S.plainCodes(f.availableToRaw).replace(/jurisdictionally associated/ig, 'any verified resident')) + '</span>' +
           (extra || '') + '</div>';
       }
 

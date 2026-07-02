@@ -72,8 +72,8 @@ def rids(s):
 AUG = {
  'R-01': ('registered individual', 'amara-okafor', 'civic/onboarding.html'),
  'R-02': ('verified resident', 'amara-okafor', 'civic/residency.html'),
- 'R-03': ('jurisdictionally associated', 'amara-okafor', 'civic/civic-home.html'),
- 'R-04': ('voter', 'amara-okafor', 'civic/civic-home.html'),
+ 'R-03': ('jurisdictionally associated', 'amara-okafor', 'civic/today.html'),
+ 'R-04': ('voter', 'amara-okafor', 'civic/today.html'),
  'R-05': ('petitioner', 'amara-okafor', 'civic/petitions.html'),
  'R-06': ('registered candidate', 'diego-ramos', 'electoral/candidate-profile.html'),
  'R-07': ('endorsed candidate', 'diego-ramos', 'electoral/candidate-profile.html'),
@@ -93,7 +93,7 @@ AUG = {
  'R-21': ('registered advocate', 'sofia-petrova', 'judiciary/advocate-console.html'),
  'R-22': ('juror', 'omar-farouk', 'judiciary/juror-view.html'),
  'R-23': ('organization agent', 'priya-sharma', 'organizations/org-registry.html'),
- 'R-24': ('member / shareholder', 'priya-sharma', 'organizations/org-detail.html'),
+ 'R-24': ('member / shareholder', 'priya-sharma', 'social/org-profile.html'),
  'R-25': ('organization worker', 'tomas-ferreira', 'organizations/co-determination.html'),
  'R-26': ('owner-elected board member', 'helena-brandt', 'organizations/board-elections.html'),
  'R-27': ('worker-elected board member', 'tomas-ferreira', 'organizations/board-elections.html'),
@@ -118,6 +118,17 @@ ALIASES = {
  'F-LEG-024': ['F-LEG-023 · workflows catalog'],
  'F-LEG-025': ['F-LEG-024 · workflows catalog'],
  'F-LEG-036': ['F-LEG-030 · workflows catalog'],
+}
+
+# ---- entity display-state rewords (plain language). Keys are the exact split
+# tokens; the two Organization tokens repair a bracket pair the split malforms.
+# Machine ids stay untouched; statesRaw keeps the source string.
+STATE_REWORDS = {
+ '[Transfer-Pending': 'Transfer pending',
+ 'Transferred]': 'Transferred',
+ 'Panel-Assigned (≥3, odd, severity-scaled)': 'Panel chosen (3 or more judges, always an odd number)',
+ 'Boundary-Loaded (dormant)': 'On the map (dormant)',
+ 'Trust-Established': 'Trust established',
 }
 
 
@@ -170,8 +181,7 @@ def build_registry():
             workflows.append({'id': wid, 'family': wid.split('-')[1], 'name': g(c, 1),
                               'timeScale': g(c, 2), 'trigger': g(c, 3), 'actors': g(c, 4),
                               'institutions': g(c, 5), 'forms': g(c, 6), 'terminal': g(c, 7),
-                              'basis': g(c, 8), 'flowPage': 'flows/' + wid + '.html',
-                              'stage': stage_of(wid)})
+                              'basis': g(c, 8), 'stage': stage_of(wid)})
 
     clocks = []
     for r in cat_wb['4. Clocks & Triggers']:
@@ -188,6 +198,7 @@ def build_registry():
             # Owner wording: outcomes display as Elected / Not elected (never "Defeated").
             raw = g(c, 1).replace('Defeated', 'Not elected')
             states = [s.strip() for s in re.split(r'→|->', raw) if s.strip()]
+            states = [STATE_REWORDS.get(s, s) for s in states]
             entities.append({'id': g(c, 0), 'statesRaw': raw, 'states': states, 'notes': g(c, 2)})
 
     cur = None

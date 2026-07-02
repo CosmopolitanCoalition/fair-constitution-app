@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Department reporting — CGA mockups</title>
+  <title>Department reporting — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,8 +16,8 @@
       <header>
         <span class="eyebrow">Executive · board of governors</span>
         <h1>Department reporting — Public Works &amp; Utilities</h1>
-        <p class="page-intro">The governor surface. The board implements rules pursuant to the charter and the acts
-          the legislature passes, and files periodic operational and financial reports to both the executive and the
+        <p class="page-intro">This is where a department's board does its day-to-day work: writing the rules that put
+          laws into practice, and filing regular operational and financial reports to both the executive and the
           legislature. Everything filed here is public record.</p>
         <p class="citation">Rule implementation and reporting cycle.</p>
       </header>
@@ -135,7 +135,7 @@
         if (!f) return '';
         return '<div class="card card--inset"><h3>' + esc(f.name) + '</h3>' +
           '<p class="cc-small">' + esc(f.desc) + '</p>' +
-          '<p class="citation">available to ' + esc(f.availableToRaw.replace(/R-\d+\s*/g, '')) + '</p></div>';
+          '<p class="citation">available to ' + esc(S.plainCodes(f.availableToRaw)) + '</p></div>';
       }
 
       function ruleStatus(r) {

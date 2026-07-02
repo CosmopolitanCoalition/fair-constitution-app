@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Set up your node — the operator plane — CGA mockups v2</title>
+  <title>Set up your node — the operator plane — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -64,11 +64,10 @@
           '<label class="stack" style="gap:var(--space-1)"><span>Operator username</span>' +
             '<input class="field-input" type="text" value="' + esc(a.username) + '" autocomplete="off" /></label>' +
           '<label class="stack" style="gap:var(--space-1)"><span>Local password</span>' +
-            '<input class="field-input" type="password" value="local-only-secret" autocomplete="off" /></label>' +
+            '<input class="field-input" type="password" placeholder="choose a password — it works on this box only" autocomplete="off" /></label>' +
           '<div class="banner banner--info">' + S.icon('lock', { size: 'sm' }) +
-            '<div>This password authenticates you <strong>here only</strong>. It never federates — no other box ever sees it. ' +
-            esc(a.authNote) + '</div></div>' +
-          btn('primary', 'Create operator account', 'user', 'Demo: operator account “' + a.username + '” created — local password set, never federated.') +
+            '<div>' + esc(a.authNote) + '</div></div>' +
+          btn('primary', 'Create operator account', 'user', 'Demo: operator account “' + a.username + '” created — local password set, recognised on this box only.') +
         '</div>' +
         '<div class="card stack">' +
           '<span class="eyebrow">Path B · link an existing mesh identity</span>' +
@@ -110,8 +109,7 @@
                            : '<span class="pill pill--' + pill.pill + '">' + esc(pill.label) + '</span>') + '</div>' +
           '<p style="font-size:var(--text-sm)">' + esc(r.what) + '</p>' +
           '<p class="orc-duty">Your duty: ' + esc(r.duty) + '</p>' +
-          '<div class="orc-channels">' + chans +
-            (r.extra ? '<span class="channel-chip channel-chip--governed">' + esc(r.extra) + '</span>' : '') + '</div>' +
+          '<div class="orc-channels">' + chans + '</div>' +
           '<span class="citation">' + (r.consent === 'self'
             ? 'self-asserted — one click' : 'governed — the wizard can only request; then a vote approves it') + '</span>' +
           (r.recommended
@@ -139,7 +137,7 @@
             '<span class="fsm-node">qualifiable</span><span class="fsm-arrow" aria-hidden="true">→</span>' +
             '<span class="fsm-node">establishing</span><span class="fsm-arrow" aria-hidden="true">→</span>' +
             '<span class="fsm-node">established</span></div>' +
-          '<p class="advanced-note">etl serves the geodata archive; the raster bytes themselves land in Phase H.</p>' +
+          '<p class="advanced-note">etl serves the geodata archive; the heavy map layers arrive in a later release.</p>' +
           btn('gold', 'Establish both channels', 'check', 'Demo: mirror and etl established — your node is now a Record Keeper, no approval needed.') +
         '</div>' +
         '<div class="card stack">' +
@@ -147,7 +145,7 @@
           '<h3 style="margin:0;color:var(--gov-fg)">DNS before cert</h3>' +
           '<p style="font-size:var(--text-sm)">' + esc(O.broker.model) + '</p>' +
           '<label class="stack" style="gap:var(--space-1)"><span>' + esc(providerLive.name) + ' API token</span>' +
-            '<input class="field-input" type="password" value="write-only-encrypted-token" autocomplete="off" /></label>' +
+            '<input class="field-input" type="password" placeholder="never shown again after save" autocomplete="off" /></label>' +
           '<p class="advanced-note">' + esc(O.broker.providers.map(function (p) { return p.name + ' (' + p.state + ')'; }).join(' · ')) + '</p>' +
           '<div class="banner banner--warning">' + S.icon('alert-triangle', { size: 'sm' }) +
             '<div>Identity Broker is <strong>governed</strong>. Dropping a token sets up the channel, but writing DNS and granting authority still await approval — and they touch a peer’s area, so affected peers must consent too. <span class="pill pill--planned">future</span> non-Cloudflare DNS providers and wildcard certs are stubs.</div></div>' +
@@ -159,9 +157,7 @@
 
         '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
           '<strong style="color:var(--gov-fg)">The honest truth: only Record Keeper is one-click.</strong> ' +
-          'Record Keeper’s channels are self-asserted, so you turn them on yourself. Archivist, Social Moderator and Identity Broker are <strong>governed</strong> — this wizard can only <em>request</em> them. They then wait for approval: the operator board below a seated legislature, and the seated government’s supermajority the moment one exists. ' +
-          esc(O.plane.wall) + '<br />' +
-          '<span class="citation">Authority is granted by the government, never self-claimed. Governed roles need the government&rsquo;s vote; peers whose area is affected must agree too.</span></div></div>';
+          'Record Keeper’s channels are self-asserted, so you turn them on yourself. Archivist, Social Moderator and Identity Broker are <strong>governed</strong> — this wizard can only <em>request</em> them. They then wait for approval: the operator board below a seated legislature, and the seated government’s supermajority the moment one exists. Peers whose area is affected must agree too.</div></div>';
     }
 
     /* ---- step 4: you're set ---- */
@@ -200,16 +196,10 @@
         '<p class="page-intro">Five steps from a bare box to a live node on the mesh: claim an operator account, name the instance, pick a role, run any role-specific setup, and go. Every step is shown below; the first is active.</p></header>' +
 
         '<div class="plane-wall"><span>' + S.icon('shield', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.plainNote) + ' ' +
-        esc(O.plane.board) + '<br />' +
-        '<span class="citation">Authority is not leadership. It is earned by population and granted by the government, never self-asserted.</span></div></div>' +
+        '<strong style="color:var(--gov-fg)">Off the constitutional plane.</strong> ' + esc(O.plane.plainNote) + '</div></div>' +
 
         stepper(active) +
-        sections +
-
-        '<div class="plane-wall"><span>' + S.icon('info', { size: 'sm' }) + '</span><div>' +
-        '<strong style="color:var(--gov-fg)">Answerable to the government.</strong> ' + esc(O.plane.supersession) +
-        '<br /><span class="citation">Governed-role requests need the government&rsquo;s approval before they can act.</span></div></div>';
+        sections;
 
       var root = document.getElementById('root');
       if (!root.__wired) {

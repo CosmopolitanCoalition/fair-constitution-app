@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clocks &amp; triggers — CGA mockups</title>
+  <title>Clocks &amp; triggers — World of Statecraft mockups · v3</title>
   <link rel="icon" href="../assets/img/social-square-purple.png" />
   <link rel="stylesheet" href="../assets/css/colors_and_type.css" />
   <link rel="stylesheet" href="../assets/css/mockup.css" />
@@ -16,19 +16,10 @@
       <header>
         <span class="eyebrow">System of record</span>
         <h1>Clocks &amp; triggers</h1>
-        <p class="page-intro">The complete registry of constitutional clocks — every interval,
-          deadline, window, and threshold that fires a workflow without anyone asking. Time and population do the
-          triggering; officials never do.</p>
-        <p class="citation">The complete registry of clocks and triggers.</p>
+        <p class="page-intro">The scheduled sweeps that drive the world — every interval, deadline, window, and
+          threshold that starts a process without anyone asking. Time and population do the triggering; officials
+          never do, and nothing here needs a human to remember it.</p>
       </header>
-
-      <div class="banner banner--info">
-        <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-        <div><span class="banner-title">This page doubles as the scheduler spec.</span>
-          The production scheduler implements exactly these clock records — one row, one trigger source. Amendable
-          defaults can be changed by a legislative act; hardened and structural clocks are
-          fixed in code and cannot be changed.</div>
-      </div>
 
       <div class="cluster" style="gap:var(--space-6)">
         <div class="stat"><span class="stat-number">21</span><span class="stat-label">clocks in the registry</span></div>
@@ -46,23 +37,23 @@
         <ul style="margin-block-end:var(--space-2)">
           <li><strong>Type</strong> is the scheduler contract: recurring intervals re-arm on fire; countdowns expire once; bounded windows open and close; thresholds watch a quantity and fire on crossing.</li>
           <li><strong>Amendable</strong> means a valid legislative act can change the default within fixed bounds — see <a href="../system/amendments.html">amendments</a> and the <a href="../legislature/settings.html">settings register</a>.</li>
-          <li><strong>Fires</strong> names the workflow the scheduler invokes; each link opens the step-by-step walkthrough.</li>
+          <li><strong>Fires</strong> names the process the clock starts — open Learn on the relevant screen for the step-by-step walkthrough.</li>
           <li>Every fire event is appended to the <a href="../system/audit-chain.html">audit chain</a>.</li>
         </ul>
-        <p class="gloss">Glossary: a "peg quorum" counts all serving members, not those present; the Droop quota is the
-          smallest vote count that mathematically guarantees a seat; the finalist count X is a function of seats in the
-          race.</p>
+        <p class="gloss">Glossary: quorum here always counts all serving members, never just those present; the Droop
+          quota is the smallest vote count that mathematically guarantees a seat; the number of ballot finalists grows
+          with the seats in the race (3 per seat).</p>
       </section>
 
       <details class="about-surface">
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
           <p><strong>What this screen does:</strong> the scheduler itself is the engine behind
-            term synchronization and
-            90-day meeting enforcement; the Fires column links every
-            other consumer.</p>
-          <p><strong>Entity state machine:</strong> clocks are stateless trigger records — they move other entities
-            (Election, Emergency Powers, Vacancy, Residency Claim) through their lifecycles.</p>
+            term synchronization and 90-day meeting enforcement; the Fires column names every other consumer.</p>
+          <p><strong>For the build team:</strong> this page doubles as the scheduler spec — the production scheduler
+            implements exactly these clock records, one row, one trigger source. Amendable defaults can be changed by
+            a legislative act; hardened and structural clocks are fixed in code. Clocks themselves hold no state —
+            they move other things (elections, emergency powers, vacancies, residency claims) through their stages.</p>
         </div>
       </details>
     </div>
