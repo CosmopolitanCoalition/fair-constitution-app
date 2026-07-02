@@ -265,6 +265,14 @@ Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\C
 // Split-line bisection: draw a line, see the population each side, commit both districts.
 Route::post('/api/legislatures/{legislature_id}/split-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitProbe'])->name('legislatures.split-probe');
 Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit');
+// Shortest-splitline AUTOSEED for a childless leaf giant (Phase 5 design §3):
+// preview computes the full deterministic cut plan (read-only), commit
+// recomputes it server-side and files one F-ELB-008 per leaf district, and
+// split-balance slides a hand-placed line to the nearest in-band seat
+// balance without changing its angle.
+Route::post('/api/legislatures/{legislature_id}/autoseed-lines/preview', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedPreview'])->name('legislatures.autoseed-lines.preview');
+Route::post('/api/legislatures/{legislature_id}/autoseed-lines/commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedCommit'])->name('legislatures.autoseed-lines.commit');
+Route::post('/api/legislatures/{legislature_id}/split-balance', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitBalance'])->name('legislatures.split-balance');
 
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
 // giant_threshold-aware). Returns { steps: [{ scope_id, scope_name }, ...],

@@ -7,6 +7,7 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Http\Controllers\Controller;
 use App\Services\ConstitutionalDefaults;
 use App\Services\Districting\PopulationRaster;
+use App\Services\Districting\SubdivisionAutoseedService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -28,6 +29,7 @@ class SubdivisionDrawController extends Controller
     public function __construct(
         private readonly PopulationRaster $raster,
         private readonly ConstitutionalEngine $engine,
+        private readonly SubdivisionAutoseedService $autoseed,
     ) {
     }
 
@@ -225,6 +227,174 @@ class SubdivisionDrawController extends Controller
         Cache::tags(["revealed.{$legislature_id}"])->flush();
 
         return response()->json(['ok' => true, 'districts' => $districts]);
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/autoseed-lines/preview — READ-ONLY.
+     * The full deterministic shortest-splitline plan for a leaf giant: ordered
+     * cuts + final districts + plan_hash. No draft map required; nothing persists.
+     */
+    public function autoseedPreview(Request $request, string $legislature_id): JsonResponse
+    {
+        $scopeId = (string) $request->input('scope_id', '');
+        $year    = (int) $request->input('population_year', 2023);
+        if ($scopeId === '') {
+            return response()->json(['error' => 'scope_id is required'], 422);
+        }
+
+        $ctx = $this->giantContext($legislature_id, $scopeId);
+        if ($ctx === null) {
+            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+        }
+
+        try {
+            $plan = $this->autoseed->plan($scopeId, $ctx, $year);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        return response()->json($plan + ['floor' => $ctx['floor'], 'ceiling' => $ctx['ceiling']]);
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/autoseed-lines/commit — file the
+     * previewed plan. The plan is RECOMPUTED server-side (determinism makes that
+     * sound — client geometry is never trusted) and refused on a hash mismatch.
+     * Only the tree's LEAVES become districts (each one an audited F-ELB-008,
+     * all-or-nothing) — intermediate cuts are scaffolding, never replayed
+     * pairwise through split-commit.
+     */
+    public function autoseedCommit(Request $request, string $legislature_id): JsonResponse
+    {
+        $validated = $request->validate([
+            'scope_id'  => ['required', 'uuid'],
+            'map_id'    => ['required', 'uuid'],
+            'plan_hash' => ['required', 'string'],
+        ]);
+        $year = (int) $request->input('population_year', 2023);
+
+        $ctx = $this->giantContext($legislature_id, $validated['scope_id']);
+        if ($ctx === null) {
+            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+        }
+
+        // The same draft-plan guard F-ELB-008 enforces per filing — checked up
+        // front so a wrong map fails before the recomputation is paid for.
+        $map = DB::table('legislature_district_maps')
+            ->where('id', $validated['map_id'])->whereNull('deleted_at')->first();
+        if ($map === null || $map->legislature_id !== $legislature_id) {
+            return response()->json(['error' => 'Unknown district map for this legislature'], 422);
+        }
+        if ($map->status !== 'draft') {
+            return response()->json([
+                'error' => "District map is not a draft (status: {$map->status}) — commit into a draft plan.",
+            ], 422);
+        }
+
+        try {
+            $plan = $this->autoseed->plan($validated['scope_id'], $ctx, $year);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+        if (! hash_equals($plan['plan_hash'], (string) $validated['plan_hash'])) {
+            return response()->json(['error' => 'Plan changed — run the preview again.'], 422);
+        }
+
+        $jurisdictionId = (string) DB::table('legislatures')->where('id', $legislature_id)->value('jurisdiction_id');
+
+        try {
+            // Atomic: every leaf district files, or none do. Districts are
+            // already in deterministic (path) order from the service.
+            $districtIds = DB::transaction(function () use ($plan, $legislature_id, $jurisdictionId, $validated, $request, $year) {
+                $ids = [];
+                foreach ($plan['districts'] as $d) {
+                    $res = $this->engine->file('F-ELB-008', $request->user(), [
+                        'legislature_id'  => $legislature_id,
+                        'jurisdiction_id' => $jurisdictionId,
+                        'scope_id'        => $validated['scope_id'],
+                        'map_id'          => $validated['map_id'],
+                        'geojson'         => json_encode($d['geometry']),
+                        'label'           => null,
+                        'population_year' => $year,
+                    ]);
+                    $ids[] = $res->recorded['district_id'];
+                }
+
+                return $ids;
+            });
+        } catch (ConstitutionalViolation $e) {
+            return response()->json(['error' => $e->getMessage(), 'citation' => $e->citation], 422);
+        }
+
+        Cache::tags(["revealed.{$legislature_id}"])->flush();
+
+        return response()->json([
+            'ok'                => true,
+            'districts_created' => count($districtIds),
+            'district_ids'      => $districtIds,
+        ]);
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/split-balance — READ-ONLY assist
+     * for a hand-placed line: keep its angle, slide it to the nearest in-band
+     * seat balance. Superset of the split-probe response shape.
+     */
+    public function splitBalance(Request $request, string $legislature_id): JsonResponse
+    {
+        $scopeId = (string) $request->input('scope_id', '');
+        $line    = $request->input('line');
+        $year    = (int) $request->input('population_year', 2023);
+        if (is_array($line)) {
+            $line = json_encode($line);
+        }
+        if (!is_string($line) || $line === '' || $scopeId === '') {
+            return response()->json(['error' => 'scope_id and line are required'], 422);
+        }
+
+        $ctx = $this->giantContext($legislature_id, $scopeId);
+        if ($ctx === null) {
+            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+        }
+
+        $blade = $this->bladeEndpoints($line);
+        if ($blade === null) {
+            return response()->json(['error' => 'A split line needs at least two points'], 422);
+        }
+
+        try {
+            $balanced = $this->autoseed->balanceLine($scopeId, $ctx, $blade, $year);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        $sides = [];
+        $bothInBand = true;
+        foreach ($balanced['pops'] as $i => $pop) {
+            $frac   = $this->raster->impliedSeats($pop, $ctx['quota']);
+            $seats  = (int) round($frac);
+            $inBand = $seats >= $ctx['floor'] && $seats <= $ctx['ceiling'];
+            $bothInBand = $bothInBand && $inBand;
+            $sides[] = [
+                'population'              => $pop,
+                'implied_fractional_seats'=> round($frac, 3),
+                'implied_seats'           => $seats,
+                'target_seats'            => $balanced['seat_split'][$i],
+                'in_band'                 => $inBand,
+            ];
+        }
+
+        return response()->json([
+            'line'              => $balanced['line'],
+            'angle_deg'         => round($balanced['angle_deg'], 3),
+            'seat_split'        => $balanced['seat_split'],
+            'sides'             => $sides,
+            'both_in_band'      => $bothInBand,
+            'total'             => $sides[0]['population'] + $sides[1]['population'],
+            'floor'             => $ctx['floor'],
+            'ceiling'           => $ctx['ceiling'],
+            'giant_seat_budget' => $ctx['budget'],
+        ]);
     }
 
     /**
