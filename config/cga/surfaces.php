@@ -983,4 +983,48 @@ return [
         'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 3e — the monolith retirements
+    |----------------------------------------------------------------------
+    | Legislature/Show (5.2k) split into the overview (legislature/overview)
+    | + the extracted district mapper (legislature/districts); the
+    | jurisdiction viewer joins the v2 shell (jurisdictions/viewer).
+    */
+
+    'legislature/overview' => [
+        'title'     => 'A legislature',
+        'module'    => 'jurisdictions',
+        'nav'       => 'legislatures',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Every legislature sized by the cube-root law; 5–9 seats per district · Art. II §2',
+    ],
+
+    'legislature/districts' => [
+        'title'     => 'The district mapper',
+        'module'    => 'jurisdictions',
+        'nav'       => 'legislatures',
+        'roles'     => ['R-08'],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [
+            ['id' => 'F-ELB-008', 'citation' => 'Art. II §2 (manual district draw — childless leaf giants)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Districts partition the jurisdiction; every district seats 5–9 · Webster rounding · Art. II §2',
+    ],
+
+    'jurisdictions/viewer' => [
+        'title'     => 'A jurisdiction',
+        'module'    => 'jurisdictions',
+        'nav'       => 'jurisdiction-browser',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Every place governs itself — sitting inside a bigger one changes scope, never rank · Art. V §1',
+    ],
+
 ];

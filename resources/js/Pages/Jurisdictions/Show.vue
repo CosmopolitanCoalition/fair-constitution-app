@@ -1,11 +1,19 @@
 <template>
-    <!-- flex-1 instead of an explicit calc(100vh - 49px). The hardcoded
-         49px assumed only the top nav existed; if a SchemaUpdateBanner
-         (or any other element) renders above us, the explicit height
-         overflows and the top nav can scroll out of view. flex-1 lets
-         AppShell's main--flush flex column do the sizing, which is correct
-         regardless of how many siblings render above us. -->
-    <div class="flex flex-1 overflow-hidden min-h-0">
+    <PageScaffold :surface="surface" :title="jurisdiction.name">
+        <template #intro>
+            Every place on Earth, planet to neighborhood — its boundaries, its people,
+            and who represents them. The map is real, preloaded geography; the live
+            count of verified residents layers on top. Every place governs itself —
+            sitting inside a bigger one changes scope, never rank.
+        </template>
+
+    <!-- The two-pane viewer. Under the wide (scrolling) main the old
+         flex-1/flush sizing has no viewport column to fill, so the wrapper
+         is height-bound explicitly: the sidebar scrolls internally and the
+         Leaflet pane fills every remaining pixel — same containment, new
+         shell. -->
+    <div class="flex overflow-hidden min-h-0 rounded-lg border border-gray-800"
+         style="height: calc(100vh - 22rem); min-height: 32rem">
 
             <!-- Left panel: metadata -->
             <aside class="w-80 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
@@ -200,16 +208,19 @@
                             Chamber →
                         </a>
                         <!-- This jurisdiction IS the legislature's root, so its
-                             own slug is the legislature's canonical address. -->
+                             own slug is the legislature's canonical address.
+                             District links go straight to the extracted mapper
+                             (Phase 3e); the overview lives one level up at
+                             /legislatures/{slug}. -->
                         <a v-if="has_district_map"
-                           :href="`/legislatures/${jurisdiction.slug}`"
+                           :href="`/legislatures/${jurisdiction.slug}/districts`"
                            :class="chamber_seated ? 'mt-1.5' : ''"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
                             {{ chamber_seated ? 'District map →' : 'View Legislature & Districts →' }}
                         </a>
                         <a v-else
-                           :href="`/legislatures/${jurisdiction.slug}`"
+                           :href="`/legislatures/${jurisdiction.slug}/districts`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">
                             Create first district map →
@@ -375,22 +386,29 @@
                 </div>
             </div>
     </div>
+    </PageScaffold>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
-import AppShell from '@/Layouts/AppShell.vue'
+import AppShellV2 from '@/Layouts/AppShellV2.vue'
+import PageScaffold from '@/Components/Surface/PageScaffold.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// Map tool: full chrome + flush main (the Leaflet sizing contract — flex
-// column, no padding, overflow hidden; panes manage their own scroll).
+// mockups-v3-wiring Phase 3e reshape: the jurisdiction viewer joins the v3
+// player chrome on the WIDE variant (it was deliberately skipped by the
+// Phase-2 restyle wave). The two-pane viewer (sidebar + Leaflet map) is
+// unchanged — it just sits inside a height-bound wrapper under a scrolling
+// wide main instead of the flush full-viewport column. The full
+// jurisdiction-browser fusion is Phase 5, NOT this pass.
 defineOptions({
-    layout: (h, page) => h(AppShell, { variant: 'flush' }, () => page),
+    layout: (h, page) => h(AppShellV2, { variant: 'wide' }, () => page),
 })
 
 const props = defineProps({
+    surface:             { type: Object, default: null },
     jurisdiction:        Object,
     ancestors:           Array,
     childCount:          Number,

@@ -169,6 +169,9 @@ class JurisdictionController extends Controller
             ->first(['state', 'critical_population_at', 'activated_at']);
 
         return Inertia::render('Jurisdictions/Show', [
+            // Phase 3e reshape: the viewer joins the v2 shell + PageScaffold,
+            // which reads the surface record for eyebrow/citation.
+            'surface' => \App\Support\SurfaceMeta::for('jurisdictions/viewer'),
             'jurisdiction' => [
                 'id' => $jurisdiction->id,
                 'name' => $jurisdiction->name,

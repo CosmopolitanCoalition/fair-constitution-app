@@ -30,7 +30,7 @@ class PrivateRoomController extends Controller
         private readonly MatrixPostingGateService $posting,
     ) {}
 
-    /** GET /civic/rooms — the player's own + joined private rooms. */
+    /** GET /civic/rooms — the Messages inbox: the player's own + joined direct & group messages. */
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -48,25 +48,40 @@ class PrivateRoomController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $asRow = fn (SocialSpace $s) => [
+            'id'          => (string) $s->id,
+            'title'       => $s->title,
+            'is_owner'    => (string) $s->owner_user_id === (string) $user->getKey(),
+            'memberCount' => (int) $s->memberships_count,
+            'openedAt'    => $s->created_at?->toIso8601String(),
+        ];
+
+        // The just-created conversation (store() lands back here with ?created=<id>) — resolved ONLY
+        // from the member-filtered set above, so the "Bring people in" share panel can never surface
+        // a room the player isn't in.
+        $createdId = (string) $request->query('created', '');
+        $created = $createdId !== ''
+            ? $spaces->first(fn (SocialSpace $s) => (string) $s->id === $createdId)
+            : null;
+
         return Inertia::render('Civic/PrivateRooms', [
-            'surface' => ['title' => 'Private rooms', 'nav' => 'rooms'],
-            'rooms'   => $spaces->map(fn (SocialSpace $s) => [
-                'id'       => (string) $s->id,
-                'title'    => $s->title,
-                'is_owner' => (string) $s->owner_user_id === (string) $user->getKey(),
-                'members'  => (int) $s->memberships_count,
-            ])->values()->all(),
+            'surface' => ['title' => 'Messages', 'nav' => 'rooms'],
+            'rooms'   => $spaces->map($asRow)->values()->all(),
+            'created' => $created !== null ? $asRow($created) : null,
         ]);
     }
 
-    /** POST /civic/rooms — create a private room (you become its owner). */
+    /** POST /civic/rooms — create a direct/group message room (you become its owner). */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate(['name' => ['required', 'string', 'max:200']]);
 
         $space = $this->rooms->create($request->user(), $data['name']);
 
-        return redirect('/civic/rooms/'.$space->id)->with('status', 'Private room created — invite a friend to join you.');
+        // Land back on the Messages inbox with the share step open ("Bring people in") — the invite
+        // link is THE way people arrive (no user directory, by design); the room is one click away.
+        return redirect('/civic/rooms?created='.$space->id)
+            ->with('status', 'Your conversation is ready — share a link to bring people in.');
     }
 
     /** GET /civic/rooms/{space} — member-gated room view (timeline + call + invite). */

@@ -97,10 +97,11 @@ onBeforeUnmount(() => {
     <div v-else class="space-y-4">
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div>
+                <p class="text-xs uppercase tracking-wide opacity-60">Messages</p>
                 <h1 class="text-xl font-semibold">{{ room.title }}</h1>
                 <p class="text-sm opacity-70">
-                    A private room — only invited people can see this. Off the public record: nothing here is
-                    testimony or sealed.
+                    Private — like a ballot. Talk, files, voice, and video; the call surface is the same one
+                    every room carries.
                 </p>
             </div>
             <div class="flex items-center gap-2">

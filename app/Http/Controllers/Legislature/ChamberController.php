@@ -64,7 +64,10 @@ class ChamberController extends Controller
             'members'       => $this->memberRows($legislature, $members),
             'vacancies'     => $this->vacancyRows($legislature),
             'firstSessions' => $this->firstSessionsChecklist($legislature),
-            'mapperHref'    => '/legislatures/' . ($legislature->jurisdiction?->slug ?? $legislature->id),
+            // Phase 3e: the mapper moved to its own surface — keep the
+            // "Districts & maps →" label honest (the overview stays at
+            // /legislatures/{slug}).
+            'mapperHref'    => '/legislatures/' . ($legislature->jurisdiction?->slug ?? $legislature->id) . '/districts',
             'can'           => [
                 'takeOath'     => $viewer !== null && $viewer->status === LegislatureMember::STATUS_ELECTED,
                 'oathMemberId' => $viewer !== null ? (string) $viewer->id : null,

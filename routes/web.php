@@ -238,6 +238,11 @@ Route::post('/api/import/jurisdictions', [JurisdictionController::class, 'import
 // catch-all; same public posture as show().
 Route::get('/legislatures', [LegislatureController::class, 'index'])->name('legislatures.index');
 Route::get('/legislatures/{legislature_id}', [LegislatureController::class, 'show'])->name('legislatures.show');
+// Phase 3e monolith retirement: the district mapper extracted from show()
+// onto its own surface. Same public posture + dual-accept (UUID|slug) as
+// show(); pre-split mapper deep links (?scope/?map/?setup/?compare) on the
+// show route 302 here with the query preserved.
+Route::get('/legislatures/{legislature_id}/districts', [LegislatureController::class, 'districts'])->name('legislatures.districts');
 
 // Legislature district editing API
 Route::post('/api/legislatures/{legislature_id}/districts', [LegislatureController::class, 'createDistrict'])->name('legislatures.districts.create');

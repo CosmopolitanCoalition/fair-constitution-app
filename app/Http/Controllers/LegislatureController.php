@@ -193,14 +193,158 @@ class LegislatureController extends Controller
     }
 
     /**
-     * Legislature browser.
+     * The legislature overview — what remains of the pre-split monolith
+     * page (mockups-v3-wiring Phase 3e). Renders Legislature/Show: seats,
+     * term, status, current members, a district-maps summary, and a
+     * prominent door into the district mapper at
+     * /legislatures/{legislature}/districts.
      *
-     * GET /legislatures/{legislature_id}[?scope={jurisdiction_id}]
+     * GET /legislatures/{legislature_id}
+     *
+     * Back-compat shim: every pre-split mapper deep link carried mapper
+     * query params (?scope= / ?map= / ?setup= / ?compare=) — including the
+     * setup wizard's ?setup=1 handoff. Those requests 302 to the districts
+     * route with the query string preserved, so nothing bookmarked breaks.
+     */
+    public function show(Request $request, string $legislature_id): Response|RedirectResponse
+    {
+        // Dual-accept the path param: a UUID (legacy / internal links) OR a
+        // jurisdiction slug (canonical human-facing form) — the same
+        // contract as districts() below.
+        $uuidRe = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+        $legEnteredByUuid = (bool) preg_match($uuidRe, $legislature_id);
+        if ($legEnteredByUuid) {
+            $leg = DB::table('legislatures')
+                ->where('id', $legislature_id)
+                ->whereNull('deleted_at')
+                ->first();
+        } else {
+            $leg = DB::table('legislatures')
+                ->join('jurisdictions', 'jurisdictions.id', '=', 'legislatures.jurisdiction_id')
+                ->where('jurisdictions.slug', $legislature_id)
+                ->whereNull('legislatures.deleted_at')
+                ->select('legislatures.*')
+                ->first();
+        }
+
+        abort_if(!$leg, 404, 'Legislature not found.');
+        $legislature_id = $leg->id;   // canonicalize to UUID for all downstream use
+
+        $legSlug = DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('slug');
+        $legPath = $legSlug ?? $leg->id;
+
+        // Mapper deep-link shim (see the docblock above): forward the whole
+        // query string to the districts surface.
+        if ($request->query('scope') !== null || $request->query('map') !== null
+            || $request->query('setup') !== null || $request->query('compare') !== null) {
+            $qs = http_build_query($request->query());
+            return redirect()->to("/legislatures/{$legPath}/districts" . ($qs !== '' ? "?{$qs}" : ''));
+        }
+
+        // Canonical-form redirect: UUID arrivals 302 to the pretty slug.
+        if ($legEnteredByUuid && $legSlug) {
+            return redirect()->to("/legislatures/{$legSlug}");
+        }
+
+        $jurisdiction = DB::table('jurisdictions')
+            ->where('id', $leg->jurisdiction_id)
+            ->whereNull('deleted_at')
+            ->first(['id', 'name', 'slug']);
+
+        // Current members (elected|seated) with the display name + district
+        // label — the overview roster. Ordered by seat.
+        $members = DB::table('legislature_members as m')
+            ->leftJoin('users as u', 'u.id', '=', 'm.user_id')
+            ->leftJoin('legislature_districts as d', 'd.id', '=', 'm.district_id')
+            ->where('m.legislature_id', $legislature_id)
+            ->whereIn('m.status', ['elected', 'seated'])
+            ->whereNull('m.deleted_at')
+            ->orderBy('m.seat_no')
+            ->get([
+                'm.id', 'm.seat_no', 'm.status', 'm.seated_on', 'm.term_ends_on',
+                'u.name as user_name', 'u.display_name as user_display_name',
+                'd.district_number',
+            ])
+            ->map(fn ($m) => [
+                'id'             => (string) $m->id,
+                'seat_no'        => $m->seat_no !== null ? (int) $m->seat_no : null,
+                'name'           => $m->user_display_name ?: ($m->user_name ?: '—'),
+                'district_label' => $m->district_number !== null ? "District {$m->district_number}" : '—',
+                'status'         => $m->status,
+                'seated_on'      => $m->seated_on,
+                'term_ends_on'   => $m->term_ends_on,
+            ])
+            ->values()
+            ->all();
+
+        // District-map summary — count + the active map (with its district
+        // count) power the "Districts & maps" card.
+        $mapsTotal = DB::table('legislature_district_maps')
+            ->where('legislature_id', $legislature_id)
+            ->whereNull('deleted_at')
+            ->count();
+        $activeMap = DB::table('legislature_district_maps')
+            ->where('legislature_id', $legislature_id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->orderByDesc('created_at')
+            ->first(['id', 'name', 'status']);
+        $activeMapDistricts = $activeMap
+            ? DB::table('legislature_districts')
+                ->where('legislature_id', $legislature_id)
+                ->where('map_id', $activeMap->id)
+                ->whereNull('deleted_at')
+                ->count()
+            : 0;
+
+        $speakerName = $leg->speaker_id
+            ? DB::table('legislature_members as m')
+                ->leftJoin('users as u', 'u.id', '=', 'm.user_id')
+                ->where('m.id', $leg->speaker_id)
+                ->value(DB::raw('COALESCE(u.display_name, u.name)'))
+            : null;
+
+        return Inertia::render('Legislature/Show', [
+            'surface' => \App\Support\SurfaceMeta::for('legislature/overview'),
+            'legislature' => [
+                'id'             => (string) $leg->id,
+                'slug'           => $legSlug,
+                'name'           => $jurisdiction?->name ?? $legSlug ?? (string) $leg->id,
+                'status'         => $leg->status,
+                'term_number'    => $leg->term_number !== null ? (int) $leg->term_number : null,
+                'term_starts_on' => $leg->term_starts_on,
+                'term_ends_on'   => $leg->term_ends_on,
+                'type_a_seats'   => (int) $leg->type_a_seats,
+                'type_b_seats'   => (int) ($leg->type_b_seats ?? 0),
+                'serving'        => count($members),
+                'speaker_name'   => $speakerName,
+                'chamber_seated' => count($members) > 0,
+            ],
+            'members' => $members,
+            'maps' => [
+                'total'  => $mapsTotal,
+                'active' => $activeMap ? [
+                    'id'             => (string) $activeMap->id,
+                    'name'           => $activeMap->name,
+                    'status'         => $activeMap->status,
+                    'district_count' => $activeMapDistricts,
+                ] : null,
+            ],
+            'districtsHref' => "/legislatures/{$legPath}/districts",
+        ]);
+    }
+
+    /**
+     * The district mapper — the legislature browser's Leaflet machine,
+     * extracted VERBATIM from show() (mockups-v3-wiring Phase 3e; the page
+     * component moved to Legislature/Districts.vue).
+     *
+     * GET /legislatures/{legislature_id}/districts[?scope={jurisdiction_id}]
      *
      * Scope defaults to the legislature's own parent jurisdiction.
      * Drill-down is achieved by passing ?scope=<child_jurisdiction_id>.
      */
-    public function show(Request $request, string $legislature_id): Response|RedirectResponse
+    public function districts(Request $request, string $legislature_id): Response|RedirectResponse
     {
         // Dual-accept the path param: a UUID (legacy / internal links) OR a
         // jurisdiction slug (canonical human-facing form — parity with the
@@ -252,9 +396,10 @@ class LegislatureController extends Controller
         abort_if(!$scope, 404, 'Scope jurisdiction not found.');
 
         // Canonical legislature slug (= its root jurisdiction's slug) + a helper
-        // that builds the canonical /legislatures/{slug}?scope={slug} URL for any
-        // scope id, preserving map/setup query params. Used by the giant-guard
-        // and canonical-form redirects below so addresses always read cleanly.
+        // that builds the canonical /legislatures/{slug}/districts?scope={slug}
+        // URL for any scope id, preserving map/setup query params. Used by the
+        // giant-guard and canonical-form redirects below so addresses always
+        // read cleanly.
         $legSlug = DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('slug');
         $canonicalUrl = function (?string $sId) use ($legSlug, $leg, $request) {
             $q = [];
@@ -266,7 +411,7 @@ class LegislatureController extends Controller
                 $v = $request->query($k);
                 if ($v !== null && $v !== '') $q[$k] = $v;
             }
-            return '/legislatures/' . $legSlug . (count($q) ? '?' . http_build_query($q) : '');
+            return '/legislatures/' . $legSlug . '/districts' . (count($q) ? '?' . http_build_query($q) : '');
         };
 
         // Root jurisdiction population — always the legislature's own jurisdiction (e.g. Earth).
@@ -802,7 +947,8 @@ class LegislatureController extends Controller
             ? DB::table('legislature_district_maps')->where('id', $mapId)->first()
             : null;
 
-        return Inertia::render('Legislature/Show', [
+        return Inertia::render('Legislature/Districts', [
+            'surface' => \App\Support\SurfaceMeta::for('legislature/districts'),
             'legislature' => [
                 'id'                   => $leg->id,
                 'slug'                 => $legSlug,   // canonical = root jurisdiction slug
