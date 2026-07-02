@@ -778,16 +778,77 @@
                     <!-- Phase H — manual draw panel: a childless leaf giant is subdivided by hand. -->
                     <div v-if="isLeafGiantScope"
                          class="px-3 py-2 border-b border-amber-800 bg-amber-950/40 text-xs shrink-0">
-                        <template v-if="!drawMode">
+                        <template v-if="!drawMode && !autoseedPlan">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60"
+                                            :disabled="autoseedBusy"
+                                            @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Autoseed lines' }}</button>
+                                    <button v-if="drawTargetIsDraft"
+                                            class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white"
+                                            @click="enterDrawMode">✏️ Draw</button>
+                                    <button v-else
+                                            class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
+                                            :disabled="creatingMap"
+                                            @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
+                                </div>
+                            </div>
+                            <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
+                        </template>
+
+                        <!-- Autoseed-lines proposal — replaces the hint row until accepted or discarded. -->
+                        <template v-else-if="!drawMode">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-amber-300 font-semibold">⚡ Autoseed proposal</span>
+                                <span class="text-gray-500 tabular-nums shrink-0">{{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</span>
+                            </div>
+                            <div class="text-amber-300/80 mb-1">
+                                {{ autoseedPlan.districts.length }} districts · {{ autoseedSeatTotal }} seats ·
+                                quota {{ formatPop(autoseedPlan.quota) }} · pop {{ formatPop(autoseedPlan.total_pop) }}
+                            </div>
+                            <div class="flex items-center gap-1.5 px-1.5 text-[10px] text-gray-500">
+                                <span class="w-2 shrink-0"></span>
+                                <span class="flex-1">District</span>
+                                <span class="w-8 text-right shrink-0">Seats</span>
+                                <span class="w-12 text-right shrink-0">Pop</span>
+                                <span class="w-10 text-right shrink-0" title="Per-seat population deviation">Dev</span>
+                                <span class="w-8 text-right shrink-0" title="Convex-hull ratio (compactness)">CHR</span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <div v-for="(d, i) in autoseedPlan.districts" :key="d.path"
+                                     class="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-gray-900/60">
+                                    <span class="shrink-0 w-2 h-2 rounded-full" :style="{ background: districtFillColor(i) }"></span>
+                                    <span class="font-mono text-gray-300 flex-1 truncate" :title="d.path">{{ d.path }}</span>
+                                    <span class="tabular-nums text-gray-200 w-8 text-right shrink-0">{{ d.seats }}</span>
+                                    <span class="tabular-nums text-gray-400 w-12 text-right shrink-0">{{ formatPop(d.pop) }}</span>
+                                    <span class="tabular-nums w-10 text-right shrink-0"
+                                          :class="qualityColor(Math.abs(d.per_seat_deviation_pct), 5, 10)">{{ d.per_seat_deviation_pct.toFixed(1) }}%</span>
+                                    <span class="tabular-nums text-gray-500 w-8 text-right shrink-0">{{ d.convex_hull_ratio.toFixed(2) }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1.5">
                                 <button v-if="drawTargetIsDraft"
-                                        class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white shrink-0"
-                                        @click="enterDrawMode">✏️ Draw</button>
+                                        class="flex-1 px-2 py-1 rounded text-white"
+                                        :class="autoseedCommitBusy ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
+                                        :disabled="autoseedCommitBusy"
+                                        @click="acceptAutoseedPlan">{{ autoseedCommitBusy ? 'Committing…' : 'Accept plan' }}</button>
                                 <button v-else
-                                        class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white shrink-0 disabled:opacity-60"
+                                        class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
                                         :disabled="creatingMap"
-                                        @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
+                                        @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft plan to accept' }}</button>
+                                <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60"
+                                        :disabled="autoseedCommitBusy"
+                                        @click="discardAutoseedPlan">Discard</button>
+                            </div>
+                            <div v-if="autoseedError || drawError" class="text-red-400 mt-1">{{ autoseedError || drawError }}</div>
+                        </template>
+                        <!-- Narrow portrait: the fixed bottom bar (teleported to body) carries the
+                             controls; the panel keeps only the exit so nothing is duplicated. -->
+                        <template v-else-if="showMobileDrawBar">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-amber-300/80">Draw controls are in the bar at the bottom of the screen.</span>
+                                <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
                             </div>
                         </template>
                         <template v-else>
@@ -803,9 +864,9 @@
                                 <button class="px-2 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 shrink-0" @click="exitDrawMode">Done</button>
                             </div>
 
-                            <!-- Split-line: click two points, see population each side. -->
+                            <!-- Split-line: tap two points, see population each side. -->
                             <template v-if="drawMethod === 'split'">
-                                <div class="text-amber-300/80 mb-1">Press and drag across {{ scope.name }} to cut a line; both sides update live.</div>
+                                <div class="text-amber-300/80 mb-1">Tap the start of the cut, then tap the end — drag the dots to adjust; both sides update live.</div>
                                 <div v-if="splitSides" class="space-y-1">
                                     <div v-for="(s, i) in splitSides.sides" :key="i"
                                          class="flex items-center justify-between gap-2 px-1.5 py-0.5 rounded"
@@ -817,9 +878,12 @@
                                             <span class="text-gray-600">({{ s.implied_fractional_seats }})</span>
                                         </span>
                                     </div>
+                                    <button class="w-full mt-1 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="snapBusy || drawBusy"
+                                            @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                            :class="(splitCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                            :disabled="!splitCommitReady || drawBusy"
+                                            :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!splitCommitReady || drawBusy || snapBusy"
                                             @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit both districts' : 'A side is out of band — move the line') }}</button>
                                 </div>
                                 <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
@@ -855,6 +919,12 @@
 
                             <div v-if="drawError" class="text-red-400 mt-1">{{ drawError }}</div>
                         </template>
+
+                        <!-- Undo the most recent commit (split / polygon / autoseed accept). -->
+                        <button v-if="undoStack.length && !showMobileDrawBar"
+                                class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60"
+                                :disabled="undoBusy"
+                                @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : `↩ Undo last — ${undoStack[undoStack.length - 1].label}` }}</button>
                     </div>
 
                     <!-- Sort header -->
@@ -1301,6 +1371,68 @@
                         ✂️ {{ splitHint }}
                     </div>
                 </div>
+
+                <!-- Phase 5c — mobile draw bar: on the portrait stack the sidebar sits below
+                     the map, so the draw controls move into a fixed thumb-height bar. Same
+                     refs and functions as the sidebar panel — this is a mirror, not a fork.
+                     Teleported so `fixed` anchors to the visual viewport. -->
+                <Teleport to="body">
+                    <div v-if="showMobileDrawBar"
+                         class="fixed inset-x-0 bottom-0 z-[1300] border-t border-amber-800 bg-gray-950/95 backdrop-blur px-2 pt-2 text-xs"
+                         style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px))">
+                        <div class="flex items-stretch gap-1.5">
+                            <div class="inline-flex rounded overflow-hidden border border-amber-800">
+                                <button class="px-3 min-h-[44px]"
+                                        :class="drawMethod === 'split' ? 'bg-amber-600 text-white' : 'text-amber-300'"
+                                        @click="setDrawMethod('split')">📏 Split</button>
+                                <button class="px-3 min-h-[44px]"
+                                        :class="drawMethod === 'polygon' ? 'bg-amber-600 text-white' : 'text-amber-300'"
+                                        @click="setDrawMethod('polygon')">✏️ Polygon</button>
+                            </div>
+                            <button v-if="undoStack.length"
+                                    class="px-3 min-h-[44px] rounded border border-gray-700 bg-gray-800/80 text-gray-300 disabled:opacity-60"
+                                    :disabled="undoBusy"
+                                    @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : '↩ Undo' }}</button>
+                            <button class="ml-auto px-3 min-h-[44px] rounded bg-gray-700 text-gray-200"
+                                    @click="exitDrawMode">Done</button>
+                        </div>
+
+                        <template v-if="drawMethod === 'split'">
+                            <div v-if="splitSides" class="flex items-center gap-1.5 mt-1.5 overflow-x-auto">
+                                <span v-for="(s, i) in splitSides.sides" :key="i"
+                                      class="px-2 py-1 rounded whitespace-nowrap tabular-nums"
+                                      :class="s.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">
+                                    {{ i === 0 ? 'A' : 'B' }} · {{ formatPop(s.population) }} · {{ s.implied_seats }} seat{{ s.implied_seats === 1 ? '' : 's' }}
+                                </span>
+                            </div>
+                            <div v-else class="mt-1.5 text-amber-300/80">{{ splitHint }}</div>
+                            <div v-if="splitSides" class="flex items-stretch gap-1.5 mt-1.5">
+                                <button class="flex-1 min-h-[44px] px-2 rounded border border-amber-700 bg-amber-900/40 text-amber-200 disabled:opacity-60"
+                                        :disabled="snapBusy || drawBusy"
+                                        @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
+                                <button class="flex-1 min-h-[44px] px-2 rounded text-white"
+                                        :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                        :disabled="!splitCommitReady || drawBusy || snapBusy"
+                                        @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit' : 'Out of band') }}</button>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div v-if="drawProbe" class="flex items-center gap-1.5 mt-1.5 overflow-x-auto">
+                                <span class="px-2 py-1 rounded bg-gray-800 text-gray-200 whitespace-nowrap tabular-nums">{{ formatPop(drawProbe.population) }} · {{ drawProbe.implied_seats }} seat{{ drawProbe.implied_seats === 1 ? '' : 's' }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.in_band ? '✓ band' : '✕ band' }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
+                                <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                            </div>
+                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                            <button v-if="drawProbe"
+                                    class="w-full min-h-[44px] px-2 rounded text-white mt-1.5"
+                                    :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                    :disabled="!drawCommitReady || drawBusy"
+                                    @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
+                        </template>
+                        <div v-if="drawError" class="mt-1 text-red-400">{{ drawError }}</div>
+                    </div>
+                </Teleport>
                 <!-- Rubber-band selection overlay (drag-select mode) -->
                 <div ref="rubberBandEl"
                      class="rubber-band"
@@ -1691,13 +1823,36 @@ let _drawControl = null
 let _drawnItems  = null
 let _drawnLayer  = null
 let _probeSeq    = 0
-// Split-line interaction (press-drag-release — one gesture, pan suspended only
-// while the cut is being dragged).
+// Split-line interaction (two taps place the cut; panning stays enabled — a
+// drag is always a pan, only a tap places a point).
 let _splitPts      = []          // [L.latLng, L.latLng] once a cut is set
-let _splitStart    = null        // gesture start latlng
-let _splitDragging = false
+const splitArmed   = ref(false)  // first point placed, awaiting the second tap
 let _splitLine     = null        // L.polyline blade
-let _splitMarkers  = []          // endpoint dots
+let _splitMarkers  = []          // armed dot, or the 2 endpoint + 1 mid drag handles
+const snapBusy     = ref(false)  // split-balance POST in-flight
+
+// Undo-last — one LIFO entry per successful commit this page-session; each undo
+// DELETEs the districts that commit created (newest first).
+const undoStack = ref([])        // [{ label, ids: [district_id, …] }]
+const undoBusy  = ref(false)
+
+// Mobile draw bar — mirrors the portrait-stack breakpoint of .lm-split below.
+const _drawBarMq = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(orientation: portrait) and (max-width: 768px)')
+    : null
+const isPortraitPhone = ref(_drawBarMq?.matches ?? false)
+function _onDrawBarMq(e) { isPortraitPhone.value = e.matches }
+_drawBarMq?.addEventListener('change', _onDrawBarMq)
+const showMobileDrawBar = computed(() => drawMode.value && isPortraitPhone.value)
+
+// Autoseed-lines (Phase 5b) — a whole-plan preview from the splitline autoseeder,
+// rendered as a translucent proposal overlay until accepted (commit by plan_hash)
+// or discarded. Preview needs no draft; Accept reuses the drawTargetIsDraft guard.
+const autoseedPlan       = ref(null)   // { plan_hash, seat_sizes, quota, total_pop, cuts, districts }
+const autoseedBusy       = ref(false)  // preview POST in-flight
+const autoseedCommitBusy = ref(false)  // commit POST in-flight
+const autoseedError      = ref('')
+let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
@@ -3477,16 +3632,19 @@ function exitDrawMode() {
     teardownSplitTool()
 }
 
-// Split-line — a custom 2-click interaction. Clicks place the two ends; a drag
-// still pans and the wheel still zooms (Leaflet separates click from drag), so
-// there is no modal tool to fight. A third click starts a fresh line.
+// Split-line — a two-tap interaction. Taps place the two ends; a drag still
+// pans and the wheel/pinch still zooms (Leaflet only fires a map 'click' when
+// the gesture never crossed its drag threshold), so there is no modal tool to
+// fight and touch panning keeps working mid-placement. A tap after a placed
+// cut starts a fresh line. doubleClickZoom is parked so the second tap of a
+// fast pair can't zoom the map out from under the cut.
 function startSplitTool() {
     teardownPolygonTool()
     resetSplit()
     if (_map && !_map.__splitBound) {
-        _map.on('mousedown', onSplitDown)
-        _map.on('mousemove', onSplitMove)
-        _map.on('mouseup', onSplitUp)
+        _map.on('click', onSplitTap)
+        _map.on('mousemove', onSplitCursor)
+        if (_map.doubleClickZoom) _map.doubleClickZoom.disable()
         _map.getContainer().style.cursor = 'crosshair'
         _map.__splitBound = true
     }
@@ -3494,14 +3652,12 @@ function startSplitTool() {
 
 function teardownSplitTool() {
     if (_map && _map.__splitBound) {
-        _map.off('mousedown', onSplitDown)
-        _map.off('mousemove', onSplitMove)
-        _map.off('mouseup', onSplitUp)
+        _map.off('click', onSplitTap)
+        _map.off('mousemove', onSplitCursor)
+        if (_map.doubleClickZoom) _map.doubleClickZoom.enable()
         _map.getContainer().style.cursor = ''
-        if (_map.dragging) _map.dragging.enable()
         _map.__splitBound = false
     }
-    _splitDragging = false
     resetSplit()
 }
 
@@ -3600,6 +3756,8 @@ async function commitDraw() {
         }
         // Persisted: clear the pending piece, repaint the revealed layer (now
         // includes the new sub-district), and refresh the sidebar counts.
+        const data = await resp.json().catch(() => ({}))
+        _pushUndo('drawn district', [data.district?.district_id])
         if (_drawnItems) _drawnItems.clearLayers()
         _drawnLayer = null
         drawProbe.value = null
@@ -3614,7 +3772,7 @@ async function commitDraw() {
 
 function resetSplit() {
     _splitPts = []
-    _splitStart = null
+    splitArmed.value = false
     splitSides.value = null
     if (_splitLine && _map) { _map.removeLayer(_splitLine); _splitLine = null }
     for (const m of _splitMarkers) { if (_map) _map.removeLayer(m) }
@@ -3622,37 +3780,100 @@ function resetSplit() {
 }
 
 function _splitDot(latlng) {
-    return L.circleMarker(latlng, { radius: 5, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1 }).addTo(_map)
+    // Non-interactive: the second tap may land right next to the first dot and
+    // must reach the map, not get swallowed by the dot's own hit path.
+    return L.circleMarker(latlng, { radius: 5, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 1, weight: 1, interactive: false }).addTo(_map)
 }
 
-// Press where the cut starts, drag to its end, release. Map panning is suspended
-// only for the duration of this one gesture, so a normal drag would otherwise
-// pan — here it draws.
-function onSplitDown(e) {
+// Tap where the cut starts, tap where it ends. Leaflet suppresses 'click' for
+// any gesture that crossed its drag threshold, so pans and pinches can never
+// place a point and dragging.disable() is never needed.
+function onSplitTap(e) {
     if (drawMethod.value !== 'split' || !drawMode.value) return
-    resetSplit()
-    _splitStart = e.latlng
-    _splitDragging = true
-    if (_map.dragging) _map.dragging.disable()
-    _splitMarkers.push(_splitDot(e.latlng))
-    _splitLine = L.polyline([e.latlng, e.latlng], { color: '#fbbf24', weight: 3, dashArray: '6 4' }).addTo(_map)
-}
-
-function onSplitMove(e) {
-    if (!_splitDragging || !_splitLine) return
-    _splitLine.setLatLngs([_splitStart, e.latlng])
-}
-
-function onSplitUp(e) {
-    if (!_splitDragging) return
-    _splitDragging = false
-    if (_map.dragging) _map.dragging.enable()
-    const end = e.latlng
-    if (!_splitStart || _splitStart.distanceTo(end) < 15) { resetSplit(); return }  // a stray click — ignore
-    _splitPts = [_splitStart, end]
-    _splitMarkers.push(_splitDot(end))
-    _splitLine.setLatLngs([_splitStart, end])
+    if (_splitPts.length >= 2) resetSplit()   // a tap after a placed cut starts over
+    if (_splitPts.length === 0) {
+        _splitPts = [e.latlng]
+        splitArmed.value = true
+        _splitMarkers.push(_splitDot(e.latlng))
+        _splitLine = L.polyline([e.latlng, e.latlng], { color: '#fbbf24', weight: 3, dashArray: '6 4' }).addTo(_map)
+        return
+    }
+    // Second tap — but not a double-tap on the first point (screen-space check:
+    // 15 m of latlng distance means nothing when zoomed out to a whole country).
+    if (_map.latLngToContainerPoint(_splitPts[0]).distanceTo(_map.latLngToContainerPoint(e.latlng)) < 10) return
+    _splitPts = [_splitPts[0], e.latlng]
+    splitArmed.value = false
+    _splitLine.setLatLngs(_splitPts)
+    _rebuildSplitHandles()
     probeSplit()
+}
+
+// Rubber-band: while armed, the pending line follows the mouse. Touch has no
+// hover — there the line stays anchored on the first dot until the second tap.
+function onSplitCursor(e) {
+    if (!splitArmed.value || !_splitLine) return
+    _splitLine.setLatLngs([_splitPts[0], e.latlng])
+}
+
+function _splitMidpoint() {
+    const [a, b] = _splitPts
+    return L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2)
+}
+
+// One drag handle: a 44px invisible hit area around a 14px visible dot. The
+// marker's own Draggable captures its pointer events, so dragging a handle
+// never pans the map, and its 'click' is stopped so a clean tap on a handle
+// never places a new point.
+function _splitHandleMarker(latlng, mid = false) {
+    const icon = L.divIcon({
+        className: 'split-handle',
+        html: `<span class="split-handle-dot${mid ? ' split-handle-dot--mid' : ''}"></span>`,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+    })
+    const m = L.marker(latlng, { icon, draggable: true, keyboard: false, zIndexOffset: 1200 }).addTo(_map)
+    m.on('click', L.DomEvent.stop)
+    return m
+}
+
+// Once both ends are placed the cut gets three handles: one per endpoint plus
+// a mid-line handle that translates the whole cut. Every dragend re-probes.
+function _rebuildSplitHandles() {
+    for (const m of _splitMarkers) { if (_map) _map.removeLayer(m) }
+    _splitMarkers = []
+    if (_splitPts.length !== 2) return
+    const mid  = _splitHandleMarker(_splitMidpoint(), true)
+    const ends = _splitPts.map((p, i) => {
+        const h = _splitHandleMarker(p)
+        h.on('drag', () => {
+            _splitPts[i] = h.getLatLng()
+            if (_splitLine) _splitLine.setLatLngs(_splitPts)
+            mid.setLatLng(_splitMidpoint())
+        })
+        h.on('dragend', () => probeSplit())
+        return h
+    })
+    let from = null   // dragstart snapshot — the delta moves both endpoints together
+    mid.on('dragstart', () => { from = { at: mid.getLatLng(), pts: _splitPts.map(p => L.latLng(p.lat, p.lng)) } })
+    mid.on('drag', () => {
+        if (!from) return
+        const cur  = mid.getLatLng()
+        const dLat = cur.lat - from.at.lat
+        const dLng = cur.lng - from.at.lng
+        _splitPts = from.pts.map(p => L.latLng(p.lat + dLat, p.lng + dLng))
+        if (_splitLine) _splitLine.setLatLngs(_splitPts)
+        ends.forEach((h, i) => h.setLatLng(_splitPts[i]))
+    })
+    mid.on('dragend', () => { from = null; probeSplit() })
+    _splitMarkers = [...ends, mid]
+}
+
+// Escape cancels an armed first point (or clears a placed cut) — same cleanup
+// path as the panel's reset, so no dot survives leaving split mode.
+function _onSplitEscape(e) {
+    if (e.key !== 'Escape' || !drawMode.value || drawMethod.value !== 'split') return
+    if (_splitPts.length === 0) return
+    resetSplit()
 }
 
 async function probeSplit() {
@@ -3684,13 +3905,49 @@ async function probeSplit() {
 
 const splitCommitReady = computed(() => !!splitSides.value && splitSides.value.both_in_band)
 const splitHint = computed(() =>
-    splitSides.value
-        ? 'Drag again to redraw the cut — then Commit in the sidebar'
-        : 'Press and drag across the map to cut a line'
+    splitArmed.value
+        ? 'Tap the end of the cut — Esc cancels'
+        : drawBusy.value
+            ? 'Measuring…'
+            : splitSides.value
+                ? 'Drag the dots to adjust — tap elsewhere to start over'
+                : 'Tap the start of the cut, then tap the end. Drag the dots to adjust.'
 )
 
+// Slide the hand-placed line to the nearest in-band balance (the human picks
+// the direction, the server binary-searches the perpendicular offset). The
+// returned line replaces the blade in place; sides update without a re-probe.
+async function snapToBalance() {
+    if (_splitPts.length !== 2 || snapBusy.value || drawBusy.value) return
+    snapBusy.value = true
+    drawError.value = ''
+    try {
+        const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-balance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, line }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = apiError(resp, err, 'Snap failed.')
+            return
+        }
+        const data   = await resp.json()
+        const coords = data.line.coordinates
+        _splitPts = [coords[0], coords[coords.length - 1]].map(c => L.latLng(c[1], c[0]))
+        if (_splitLine) _splitLine.setLatLngs(_splitPts)
+        _rebuildSplitHandles()
+        splitSides.value = { ...splitSides.value, sides: data.sides, both_in_band: data.both_in_band }
+    } catch (e) {
+        drawError.value = 'Snap failed.'
+    } finally {
+        snapBusy.value = false
+    }
+}
+
 async function commitSplit() {
-    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value) return
+    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value) return
     if (!drawTargetIsDraft.value) { drawError.value = 'Create a draft plan to draw into.'; return }
     drawBusy.value = true
     drawError.value = ''
@@ -3706,6 +3963,8 @@ async function commitSplit() {
             drawError.value = apiError(resp, err, 'Commit failed.')
             return
         }
+        const data = await resp.json().catch(() => ({}))
+        _pushUndo('split cut', (data.districts ?? []).map(d => d.district_id))
         resetSplit()
         await reinitMapLayers()
         router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
@@ -3735,6 +3994,147 @@ async function createDraftHere() {
         drawError.value = 'Network error creating the draft plan.'
     } finally {
         creatingMap.value = false
+    }
+}
+
+// ── Autoseed-lines proposal (Phase 5b) ───────────────────────────────────────
+const autoseedSeatTotal = computed(() =>
+    (autoseedPlan.value?.districts ?? []).reduce((s, d) => s + d.seats, 0)
+)
+
+async function previewAutoseedLines() {
+    if (autoseedBusy.value) return
+    autoseedBusy.value = true
+    autoseedError.value = ''
+    try {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            autoseedError.value = apiError(resp, err, 'Autoseed preview failed.')
+            return
+        }
+        const plan = await resp.json()
+        autoseedPlan.value = plan
+        renderAutoseedOverlay(plan)
+    } catch (e) {
+        autoseedError.value = 'Autoseed preview failed.'
+    } finally {
+        autoseedBusy.value = false
+    }
+}
+
+// Proposal overlay: one translucent fill per proposed district (same palette +
+// opacity as the revealed sub-district layer) plus each cut as a dashed blade.
+// Non-interactive so map clicks pass through, like the leaf-giant outline.
+function renderAutoseedOverlay(plan) {
+    if (!_map) return
+    clearAutoseedOverlay()
+    const group = new L.FeatureGroup()
+    ;(plan.districts ?? []).forEach((d, i) => {
+        const color = districtFillColor(i)
+        L.geoJSON(d.geometry, {
+            interactive: false,
+            style: { fillColor: color, fillOpacity: 0.33, color, weight: 1, opacity: 1 },
+        }).addTo(group)
+    })
+    for (const cut of plan.cuts ?? []) {
+        L.geoJSON(cut.line, {
+            interactive: false,
+            style: { color: '#fbbf24', weight: 2.5, dashArray: '6 4', opacity: 0.9 },
+        }).addTo(group)
+    }
+    group.addTo(_map)
+    _autoseedLayers = group
+}
+
+function clearAutoseedOverlay() {
+    if (_autoseedLayers && _map) _map.removeLayer(_autoseedLayers)
+    _autoseedLayers = null
+}
+
+function discardAutoseedPlan() {
+    autoseedPlan.value  = null
+    autoseedError.value = ''
+    clearAutoseedOverlay()
+}
+
+async function acceptAutoseedPlan() {
+    if (!autoseedPlan.value || autoseedCommitBusy.value) return
+    if (!drawTargetIsDraft.value) { autoseedError.value = 'Create a draft plan to accept into.'; return }
+    autoseedCommitBusy.value = true
+    autoseedError.value = ''
+    try {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/commit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({
+                scope_id:  props.scope.id,
+                map_id:    props.active_map.id,
+                plan_hash: autoseedPlan.value.plan_hash,
+            }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            autoseedError.value = apiError(resp, err, 'Commit failed.')
+            return
+        }
+        const data = await resp.json().catch(() => ({}))
+        const ids  = data.district_ids ?? []
+        _pushUndo(`autoseed plan (${ids.length} districts)`, ids)
+        discardAutoseedPlan()
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        autoseedError.value = 'Commit failed.'
+    } finally {
+        autoseedCommitBusy.value = false
+    }
+}
+
+// ── Undo last commit (split / polygon / autoseed accept) ─────────────────────
+function _pushUndo(label, ids) {
+    ids = (ids ?? []).filter(Boolean)
+    if (ids.length) undoStack.value.push({ label, ids })
+}
+
+// Deletes the district(s) the most recent commit created, newest id first, via
+// the same DELETE endpoint as Disband. Partial failure keeps the undeleted ids
+// on the stack so the operator can retry; the map is repainted either way.
+async function undoLastCommit() {
+    const entry = undoStack.value[undoStack.value.length - 1]
+    if (!entry || undoBusy.value) return
+    const n = entry.ids.length
+    if (!window.confirm(`Undo ${entry.label}? This deletes ${n} district${n === 1 ? '' : 's'}.`)) return
+    undoBusy.value = true
+    try {
+        while (entry.ids.length) {
+            const id   = entry.ids[entry.ids.length - 1]
+            const resp = await fetch(
+                `/api/legislatures/${props.legislature.id}/districts/${id}`,
+                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+            )
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}))
+                showStatus('error', apiError(resp, err, 'Undo failed — some districts may remain.'))
+                break
+            }
+            entry.ids.pop()
+        }
+        if (entry.ids.length === 0) {
+            undoStack.value = undoStack.value.slice(0, -1)
+            showStatus('success', `Undid ${entry.label}`)
+        }
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        console.error('undoLastCommit:', e)
+        showStatus('error', 'Network error during undo')
+    } finally {
+        undoBusy.value = false
     }
 }
 
@@ -4533,6 +4933,7 @@ async function reinitMapLayers() {
                     // Click drills into the parent giant jurisdiction (skip in edit/new-district mode)
                     layer.on('click', () => {
                         if (editingDistrictId.value) return  // don't interrupt edit / new-district mode
+                        if (drawMode.value) return  // a split tap over a committed piece places a point, never drills
                         drillTo(feat.properties.parent_jurisdiction_id)
                     })
             }
@@ -4965,6 +5366,9 @@ onMounted(async () => {
 // onMounted handles the initial load; this watch handles subsequent prop-only updates
 // (e.g. if Inertia ever delivers a partial update rather than a full remount).
 watch(() => props.scope.id, async () => {
+    discardAutoseedPlan()   // a proposal is scope-bound — never survives navigation
+    if (drawMode.value) exitDrawMode()   // an armed tap / placed cut is scope-bound too
+    undoStack.value = []    // undo ids target the previous scope's districts
     await reinitMapLayers()
 
     // Steps may be empty if this fires before onMounted's bootstrap completes.
@@ -5052,14 +5456,18 @@ function scheduleMapRefresh() {
 
 window.addEventListener('keydown', _onSpaceDown)
 window.addEventListener('keyup',   _onSpaceUp)
+window.addEventListener('keydown', _onSplitEscape)
 onUnmounted(() => {
     window.removeEventListener('keydown', _onSpaceDown)
     window.removeEventListener('keyup',   _onSpaceUp)
+    window.removeEventListener('keydown', _onSplitEscape)
+    _drawBarMq?.removeEventListener('change', _onDrawBarMq)
     if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null }
     document.removeEventListener('visibilitychange', _onVisibleHeartbeat)
     if (_mapResizeRO) { _mapResizeRO.disconnect(); _mapResizeRO = null }
     window.removeEventListener('orientationchange', scheduleMapRefresh)
     if (_mapResizeTimer) { clearTimeout(_mapResizeTimer); _mapResizeTimer = null }
+    clearAutoseedOverlay()  // detach proposal layers from the outgoing map instance
     clearAutoStepTimer()   // safety cleanup in case of unexpected unmount mid-countdown
     // The mass-status + elapsed timers leak across navigation if a job is
     // running when the operator leaves the page. Without this cleanup, every
@@ -5077,6 +5485,9 @@ onUnmounted(() => {
 // Re-initialize map layers when the active map changes (e.g. switching from Test Map to another).
 // Without this, the old map's layers stay visible even though a different map is selected.
 watch(() => props.active_map?.id, async () => {
+    discardAutoseedPlan()   // proposal targets the previous plan selection
+    if (drawMode.value) exitDrawMode()   // a pending cut targets the previous draft
+    undoStack.value = []    // undo ids belong to the previous plan's districts
     await reinitMapLayers()
 })
 
@@ -5197,6 +5608,34 @@ watch([pendingAdd, editingDistrictId], refreshJursLabels, { flush: 'post' })
     background: rgba(96, 165, 250, 0.08);
     pointer-events: none;
     z-index: 1000;
+}
+
+/* ── Split-cut drag handles — 44px invisible hit target around a 14px dot.
+   touch-action:none keeps the browser from claiming the drag for scrolling;
+   Leaflet's marker Draggable does the rest (its events never reach the map). */
+.split-handle {
+    background: transparent;
+    border: 0;
+    cursor: grab;
+    touch-action: none;
+}
+.split-handle-dot {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 14px; height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 9999px;
+    background: #fbbf24;
+    border: 2px solid #7c2d12;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.6);
+}
+/* Mid-line handle (translates the whole cut) — hollow ring, so the operator
+   can tell "move the line" apart from "move an end". */
+.split-handle-dot--mid {
+    width: 16px; height: 16px;
+    margin: -8px 0 0 -8px;
+    background: #0f172a;
+    border: 3px solid #fbbf24;
 }
 
 /* ── Mobile District Mapper — SHORT viewports (phone landscape, any short window).
