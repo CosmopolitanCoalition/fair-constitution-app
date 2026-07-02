@@ -43,8 +43,8 @@ class FederationSyncService
 
     /**
      * Build a signed tail of our audit chain (seq > fromSeq) plus the public
-     * records published in that window. Only locally-originated records ship
-     * (source_server_id IS NULL) — mirrored peer records never re-export.
+     * records and achievements published in that window. Only locally-originated
+     * rows ship (source_server_id IS NULL) — mirrored peer rows never re-export.
      *
      * @return array<string,mixed>
      */
@@ -118,6 +118,28 @@ class FederationSyncService
                 'published_at' => (string) $r->published_at,
             ])->all();
 
+        // Achievements ride the same window — append-any-verified (operator-settled,
+        // PHASE_4_DESIGN_peerage §5.2): medals are per-USER facts about play, sealed
+        // to the chain at earn (JourneyService::recordAchievement). Same locally-
+        // originated selection as public_records; ordered by audit_seq because the
+        // table has no bigint `seq` identity column (each earn seals exactly one
+        // chain entry, so audit_seq is unique per local row). audit_seq and
+        // source_server_id never ship — they are exporter-local.
+        $achievements = DB::table('achievements')
+            ->whereNull('source_server_id')
+            ->whereNotNull('audit_seq')
+            ->where('audit_seq', '>', $fromSeq)
+            ->where('audit_seq', '<=', $toSeq)
+            ->orderBy('audit_seq')
+            ->get()
+            ->map(fn ($a) => [
+                'id' => $a->id,
+                'user_id' => $a->user_id,
+                'journey_id' => $a->journey_id,
+                'title' => $a->title,
+                'earned_at' => (string) $a->earned_at,
+            ])->all();
+
         $tail = [
             'server_id' => $this->identity->serverId(),
             'schema_version' => (string) config('cga.schema_version', '1'),
@@ -130,6 +152,7 @@ class FederationSyncService
             'head_hash' => $headHash,
             'entries' => $entries,
             'records' => $records,
+            'achievements' => $achievements,
         ];
 
         $tail['signature'] = $this->identity->sign(self::tailCanonical($tail));
@@ -250,7 +273,9 @@ class FederationSyncService
     // ──────────────────────────────────────────────────────────────────────
 
     /**
-     * Verify a peer's tail and apply its public records under authoritative-wins.
+     * Verify a peer's tail and apply its public records under authoritative-wins
+     * plus its achievements under append-any-verified (per-user facts — no
+     * jurisdiction authority applies; PHASE_4_DESIGN_peerage §5.2).
      *
      * @param  array<string,mixed>  $tail
      */
@@ -262,6 +287,7 @@ class FederationSyncService
         $signature = (string) ($tail['signature'] ?? '');
         $entries = (array) ($tail['entries'] ?? []);
         $records = (array) ($tail['records'] ?? []);
+        $achievements = (array) ($tail['achievements'] ?? []); // absent on pre-upgrade peers
         $payloadHash = hash('sha256', self::tailCanonical($tail));
 
         // 1. Schema-version agreement — canonical JSON must match byte-for-byte.
@@ -296,7 +322,7 @@ class FederationSyncService
         }
 
         // 4. Apply records under authoritative-instance-wins (atomic).
-        return DB::transaction(function () use ($peer, $records, $headHash, $fromSeq, $toSeq, $payloadHash, $entries) {
+        return DB::transaction(function () use ($peer, $records, $achievements, $headHash, $fromSeq, $toSeq, $payloadHash, $entries) {
             $applied = $conflicts = $nonAuthoritative = $skipped = [];
 
             foreach ($records as $rec) {
@@ -317,6 +343,40 @@ class FederationSyncService
                 };
             }
 
+            // Achievements — APPEND-ANY-VERIFIED (operator-settled, PHASE_4_DESIGN_peerage
+            // §5.2): medals are per-USER facts about play wherever it happened, so no
+            // authorityDisposition and no users.home_server_id gate — any locally-
+            // originated, audit-sealed row inside a tail that passed gates 1/2/2b/3
+            // applies. The earning user may not exist locally (soft-ref, no FK) — the
+            // row still lands and becomes visible if/when that identity does.
+            // insertOrIgnore (targetless ON CONFLICT DO NOTHING) rides BOTH unique
+            // layers: origin-id pk replay AND the partial-unique (user_id, journey_id)
+            // pair, so replays and cross-node double-earns collapse to first-arrival-
+            // wins without aborting the transaction. Foreign posture matches
+            // mirrorRecord: audit_seq NULL (not in OUR chain), source_server_id = the
+            // shipping peer. The append-only trigger allows pure INSERTs only — never
+            // "upgrade" this to an upsert.
+            $achievementsApplied = [];
+            foreach ($achievements as $a) {
+                if (($a['id'] ?? null) === null || ($a['user_id'] ?? null) === null || ($a['journey_id'] ?? null) === null) {
+                    continue;
+                }
+                $inserted = DB::table('achievements')->insertOrIgnore([
+                    'id' => (string) $a['id'],
+                    'user_id' => (string) $a['user_id'],
+                    'journey_id' => (string) $a['journey_id'],
+                    'title' => (string) ($a['title'] ?? ''),
+                    'audit_seq' => null,
+                    'source_server_id' => $peer->server_id,
+                    'earned_at' => (string) ($a['earned_at'] ?? now()),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                if ($inserted > 0) {
+                    $achievementsApplied[] = (string) $a['id'];
+                }
+            }
+
             // Materialize foreign attestation REVOCATIONS from the (chain-verified) audit entries into the
             // local CRL — so a verifying peer honors a revocation the home authority issued (Flag 2). This
             // is identity-scoped, not jurisdiction-scoped: the issuer-binding + signature proof inside
@@ -332,10 +392,14 @@ class FederationSyncService
                 }
             }
 
+            // Applied achievements count as "something applied" — a tail whose only
+            // public_record hit a conflict but whose medals landed is an APPLIED
+            // exchange, not a rejection. Tails without an achievements key leave
+            // $achievementsApplied empty, so pre-achievements semantics are unchanged.
             $result = SyncLogEntry::RESULT_APPLIED;
-            if ($applied === [] && $conflicts !== []) {
+            if ($applied === [] && $achievementsApplied === [] && $conflicts !== []) {
                 $result = SyncLogEntry::RESULT_CONFLICT_AUTHORITATIVE_WINS;
-            } elseif ($applied === [] && $conflicts === [] && $nonAuthoritative !== []) {
+            } elseif ($applied === [] && $achievementsApplied === [] && $conflicts === [] && $nonAuthoritative !== []) {
                 $result = SyncLogEntry::RESULT_REJECTED_NON_AUTHORITATIVE;
             }
 
@@ -346,6 +410,7 @@ class FederationSyncService
                 'skipped' => $skipped,
                 'entries' => count($entries),
                 'revocations' => $revocations,
+                'achievements_applied' => $achievementsApplied,
             ]);
 
             if ($toSeq > 0) {

@@ -1,8 +1,9 @@
 # Phase 4 design note — one process to peerage
 
-**Status: DRAFT for operator review — the ⚑ flags below are decision points; nothing
-flagged is implemented until the operator settles it. The unflagged dispositions are
-implemented in Phase 4 (they execute the already-settled 2026-07-01 slate).**
+**Status: SETTLED — the operator ruled on all three flags at the 2026-07-02 morning
+walkthrough; §5 records the rulings verbatim and their dispositions. The unflagged
+dispositions shipped in Phase 4 (6c3ef60); the flag-gated work (achievements sync-tail
+registration) shipped at Phase 4 close-out. One residual nuance is re-flagged in §5.1.**
 
 MASTER_PLAN Phase 4 requires this note before implementation: map the operator-settled
 peerage model onto the existing mirror/write-guard/authority code, explicitly, not
@@ -67,24 +68,42 @@ node" with the idempotency key as the reference, and a small
 poll the `ForwardedWrite` outcome (executed + audit_seq | rejected + citation). No new
 semantics — it reads the existing table.
 
-## 5. ⚑ Flags for the operator (decision points — not implemented until settled)
+## 5. ⚑ Flags — SETTLED by the operator, 2026-07-02
 
-1. **Retiring the RW-petition UI.** The G3c petition flow (mirror asks a host for
-   read-write standing; host approves/denies) is presented today as a consent flow.
-   Reading the settled slate strictly, it is a caste ritual and should leave the
-   console. BUT it also functions as the only host-side "do I accept this node as a
-   full peer" gate beyond join-key minting. Proposed disposition: the join-key mint
-   (host chooses to mint, node redeems) IS the peerage consent; the RW petition
-   retires. Confirm, or keep a host-side "accept as peer" acknowledgment step.
-2. **Achievements ingest policy.** Achievements are per-USER (not per-jurisdiction), so
-   the jurisdiction-based authoritative-instance-wins rule doesn't apply cleanly.
-   Proposed: append-any-verified — any peer's locally-originated, audit-sealed
-   achievement rows apply (idempotent on (user, journey)); a user's medals are facts
-   about play wherever it happened, and `users.home_server_id` does not gate them.
-   Alternative: only the user's home server exports their medals.
-3. **Traveling-write receipt scope.** §4 proposes the minimal poll surface now; the
-   full "watch your filing travel" UX (progress states, retry visibility) belongs to
-   Phase 6's rooms/events work. Confirm minimal-now is enough.
+1. **RW-petition UI: retire — CONFIRMED, with the keyless rule.** Ruling (verbatim):
+   *"When providing a key then the adoption is presupposed assuming the way they get
+   those keys is from some prior step. If no key is provided then the joined mesh
+   needs to approve the adoption."* Dispositions: the ladder never enters the new
+   console; the legacy Federation.vue copy keeps it only until multibox parity (§2
+   row 4), then it goes; wire routes untouched this campaign.
+   Code facts (verified 2026-07-02): both halves of the ruling already exist on ONE
+   endpoint, `POST /api/federation/adopt`. Keyed: `MirrorJoinKeyService` mint →
+   `MirrorService::admitMirror` — immediate admission, consent presupposed. Keyless
+   (`key === ''`): `MirrorService::requestAdoption` → pending `ClusterAdoptionRequest`
+   → host approves (`cluster:approve` CLI / the GUI queue) while the joiner polls
+   until admitted — the setup wizard and the federation console both support it.
+   ⚑ **RESIDUAL NUANCE (queued, not built):** today the keyless approver is ONE host
+   operator's click — no meter runs. If "the joined mesh approves" means METERED
+   consent (a PeerUpgradeProposal-style adoption vote — Meter A board, Meter C
+   co-affected peers), that gate is new wiring; the pending-queue model, the poll
+   loop, and the meter services it would reuse all exist. Decision belongs with the
+   multibox campaign phase; flagged rather than silently built.
+2. **Achievements ingest: APPEND-ANY-VERIFIED — confirmed and implemented.**
+   Export: locally-originated sealed rows (`source_server_id IS NULL`, `audit_seq`
+   set) windowed to the tail, ordered by `audit_seq` (achievements has no bigint
+   `seq` column). Ingest: after the four tail gates, `insertOrIgnore` keeping the
+   ORIGIN id, `audit_seq` NULL + `source_server_id` = the shipping peer (the
+   mirrorRecord posture); NO authorityDisposition, NO `users.home_server_id` gate.
+   Idempotency is two-layer: pk replay + the partial-unique (user_id, journey_id)
+   collapses cross-node double-earns to first-arrival-wins. Applied medals fold into
+   the sync result classification, ledger as `detail.achievements_applied`, and count
+   on the cold-sync cursor. Rollout note: a tail pushed to a PRE-UPGRADE peer drops
+   the achievements key silently while `last_synced_seq` still advances — same-version
+   mesh, or a cold-sync re-pull, backfills.
+3. **Traveling-write receipt: minimal-now CONFIRMED.** The owner-only poll endpoint
+   stands as shipped; notification plumbing (async rejected-write receipts, "watch
+   your filing travel") moves to Phase 6 on the event feed — operator: *"Notification
+   Plumbing moves to Phase 6 is fine."*
 
 ## 6. What Phase 4 does NOT do
 
