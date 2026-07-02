@@ -2133,7 +2133,14 @@ function applyRasterOverlay() {
         if (!rasterLayer) {
             rasterLayer = L.tileLayer('/api/rasters/{z}/{x}/{y}.png', {
                 minZoom: 0,
-                maxZoom: 12,
+                // maxNativeZoom, NOT maxZoom: z12 is the deepest tile the backend
+                // generates (RasterTileController::MAX_ZOOM ≈ WorldPop's ~100 m
+                // native resolution) — past z12 Leaflet keeps the z12 tiles and
+                // CSS-upscales them. A layer-level `maxZoom` would make Leaflet
+                // clamp the whole MAP to 12 while the overlay is on (map zoom
+                // limits derive from its layers), forcibly yanking out an operator
+                // who zoomed in to draw a line. Honest blockiness beats a cap.
+                maxNativeZoom: 12,
                 opacity: 0.7,
                 tms: false,
                 attribution: 'Population &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>',
@@ -2799,7 +2806,38 @@ function pct(n, total, decimals = 1) {
     return (n / total * 100).toFixed(decimals) + '%'
 }
 function csrf() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? ''
+    return _freshCsrf || (document.querySelector('meta[name="csrf-token"]')?.content ?? '')
+}
+
+// ── Session heartbeat ─────────────────────────────────────────────────────
+// Drawing sessions run for hours; the CSRF token baked into the page dies
+// with the session (SESSION_LIFETIME, default 120 min) and every POST after
+// that 419s as an HTML "Page Expired" the fetch helpers can only report
+// generically ("Probe failed."). A light ping keeps the session warm while
+// the tab lives, and re-arms the token after a laptop-sleep gap
+// (visibilitychange fires on wake → immediate ping → fresh token for the
+// next probe; the draw/probe routes need no auth, so drawing just resumes).
+let _freshCsrf = ''
+let _heartbeatTimer = null
+async function sessionHeartbeat() {
+    try {
+        const resp = await fetch('/api/session/heartbeat', { headers: { Accept: 'application/json' } })
+        if (resp.ok) {
+            const data = await resp.json()
+            if (data.csrf) _freshCsrf = data.csrf
+        }
+    } catch (e) { /* offline — the next tick retries */ }
+}
+function _onVisibleHeartbeat() {
+    if (document.visibilityState === 'visible') sessionHeartbeat()
+}
+
+// A 419 response is a session-expiry HTML page, not JSON — name it honestly
+// instead of the generic fallback. The heartbeat above makes this rare
+// (laptop-sleep past the session lifetime is the residual case).
+function apiError(resp, err, fallback) {
+    if (resp.status === 419) return 'Session expired — reload the page to keep working.'
+    return (err.citation ? `[${err.citation}] ` : '') + (err.error ?? fallback)
 }
 function showStatus(type, text, ms = 3500) {
     clearTimeout(statusTimer)
@@ -3524,7 +3562,7 @@ async function probeDrawnLayer() {
         if (seq !== _probeSeq) return   // a newer probe superseded this one
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = err.error ?? 'Probe failed.'
+            drawError.value = apiError(resp, err, 'Probe failed.')
             drawProbe.value = null
             return
         }
@@ -3557,7 +3595,7 @@ async function commitDraw() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = (err.citation ? `[${err.citation}] ` : '') + (err.error ?? 'Commit failed.')
+            drawError.value = apiError(resp, err, 'Commit failed.')
             return
         }
         // Persisted: clear the pending piece, repaint the revealed layer (now
@@ -3632,7 +3670,7 @@ async function probeSplit() {
         if (seq !== _probeSeq) return
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = err.error ?? 'Probe failed.'
+            drawError.value = apiError(resp, err, 'Probe failed.')
             splitSides.value = null
             return
         }
@@ -3665,7 +3703,7 @@ async function commitSplit() {
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
-            drawError.value = (err.citation ? `[${err.citation}] ` : '') + (err.error ?? 'Commit failed.')
+            drawError.value = apiError(resp, err, 'Commit failed.')
             return
         }
         resetSplit()
@@ -4634,6 +4672,12 @@ onMounted(async () => {
     // If a mass job was already running when the page loaded, start polling immediately
     if (massJobRunning.value) startMassStatusPolling()
 
+    // Session heartbeat — see sessionHeartbeat()'s comment. 10 min is well
+    // inside the 120 min session lifetime even with background-tab timer
+    // throttling; the visibility hook covers laptop-sleep wakes immediately.
+    _heartbeatTimer = setInterval(sessionHeartbeat, 10 * 60 * 1000)
+    document.addEventListener('visibilitychange', _onVisibleHeartbeat)
+
     // boxZoom is Leaflet's built-in shift+drag-to-zoom; we disable it while our own
     // drag-select mode is active so Shift+drag can be used for "include assigned" instead.
     //
@@ -5011,6 +5055,8 @@ window.addEventListener('keyup',   _onSpaceUp)
 onUnmounted(() => {
     window.removeEventListener('keydown', _onSpaceDown)
     window.removeEventListener('keyup',   _onSpaceUp)
+    if (_heartbeatTimer) { clearInterval(_heartbeatTimer); _heartbeatTimer = null }
+    document.removeEventListener('visibilitychange', _onVisibleHeartbeat)
     if (_mapResizeRO) { _mapResizeRO.disconnect(); _mapResizeRO = null }
     window.removeEventListener('orientationchange', scheduleMapRefresh)
     if (_mapResizeTimer) { clearTimeout(_mapResizeTimer); _mapResizeTimer = null }

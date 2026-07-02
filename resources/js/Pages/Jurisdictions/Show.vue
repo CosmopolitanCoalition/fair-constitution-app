@@ -636,7 +636,12 @@ function applyRasterOverlay() {
             // layer serves every scope, naturally including Earth.
             rasterLayer = L.tileLayer('/api/rasters/{z}/{x}/{y}.png', {
                 minZoom: 0,
-                maxZoom: 12,
+                // maxNativeZoom, NOT maxZoom: past z12 (the backend's deepest
+                // real tile) Leaflet CSS-upscales the z12 tiles instead of
+                // clamping the whole map's zoom to 12 while the overlay is on —
+                // a layer `maxZoom` forcibly yanks a zoomed-in viewer back out
+                // the moment the raster toggles on. Same fix as Districts.vue.
+                maxNativeZoom: 12,
                 opacity: 0.7,
                 tms: false,
                 attribution: 'Population &copy; <a href="https://www.worldpop.org/" target="_blank" rel="noopener">WorldPop</a>',

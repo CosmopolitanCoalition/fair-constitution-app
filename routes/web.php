@@ -272,6 +272,19 @@ Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Contro
 // jurisdiction in the legislature's giant tree.
 Route::get('/api/legislatures/{legislature_id}/wizard-steps', [LegislatureController::class, 'wizardSteps'])->name('legislatures.wizard-steps');
 
+// The district mapper is a long-lived tab (drawing sessions run hours). Its
+// heartbeat keeps the session warm so the CSRF token baked into the page at
+// render never dies mid-draw (an expired session turns every probe/commit
+// POST into an HTML 419 the fetch helpers could only report generically),
+// and returns the CURRENT token so a tab revived after laptop sleep can
+// re-arm its headers without a reload.
+Route::get('/api/session/heartbeat', function () {
+    return response()->json([
+        'csrf' => csrf_token(),
+        'auth' => \Illuminate\Support\Facades\Auth::check(),
+    ]);
+})->name('session.heartbeat');
+
 // District map management
 Route::get('/api/legislatures/{legislature_id}/maps', [LegislatureController::class, 'listMaps'])->name('legislatures.maps.list');
 Route::post('/api/legislatures/{legislature_id}/maps', [LegislatureController::class, 'createMap'])->name('legislatures.maps.create');
