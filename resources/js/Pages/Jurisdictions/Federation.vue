@@ -1,7 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import SyncProgress from '@/Components/Federation/SyncProgress.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     instance: { type: Object, required: true },

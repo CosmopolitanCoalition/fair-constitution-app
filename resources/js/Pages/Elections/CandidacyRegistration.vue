@@ -16,6 +16,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import PhaseBanner from '@/Components/Electoral/PhaseBanner.vue';
@@ -29,6 +30,9 @@ import Field from '@/Components/Ui/Field.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -79,8 +83,10 @@ const machineCurrent = computed(() => {
 <template>
     <PageScaffold :surface="surface" :title="`Stand for office — ${election.jurisdiction_name}`">
         <template #intro>
-            Any associated resident may stand for office — residency is the only requirement,
-            and nothing else may ever be asked.
+            If you live somewhere, you can run for office there — that's the only requirement.
+            Sign-ups stay open the whole time between elections: they open the moment the last
+            election is certified and close only when the final ballot locks (the finalist
+            cutoff).
         </template>
         <template #about>
             <p>

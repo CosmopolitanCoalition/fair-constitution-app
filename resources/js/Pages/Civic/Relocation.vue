@@ -15,6 +15,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -23,6 +24,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },

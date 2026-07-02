@@ -7,12 +7,16 @@
  */
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import { requestPrivateVoiceToken } from '@/lib/deviceIdentity.js';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     locked: { type: Boolean, default: false },

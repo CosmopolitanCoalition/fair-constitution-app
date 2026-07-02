@@ -18,6 +18,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -29,6 +30,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -156,10 +160,9 @@ const ruleBasis = computed({
 <template>
     <PageScaffold :surface="surface" :title="`Reporting — ${department.name}`">
         <template #intro>
-            The department's implementation rules and its report obligations. Rules implement —
-            they cannot exceed — the charter and the acts that enable them; reports file to the
-            executive and the legislature and land on the public record. Every register here is
-            publicly readable; only this board's seated governors (R-18) file.
+            This is where a department's board does its day-to-day work: writing the rules that
+            put laws into practice, and filing regular operational and financial reports to both
+            the executive and the legislature. Everything filed here is public record.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

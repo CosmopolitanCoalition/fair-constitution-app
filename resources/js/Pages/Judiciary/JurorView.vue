@@ -27,6 +27,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -37,6 +38,9 @@ import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import Stepper from '@/Components/Ui/Stepper.vue';
 import JurorScreening from '@/Components/Judiciary/JurorScreening.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -115,9 +119,9 @@ function submitScreening({ answers }) {
                 <span class="eyebrow" data-no-i18n>Jury service · WF-JUD-04</span>
                 <h1>Juror summons — {{ summons.case.title }}</h1>
                 <p class="page-intro">
-                    You were drawn at random from the eligible pool of jurisdictionally associated
-                    residents. Service is a protected civic obligation — nobody can interfere with it,
-                    and nothing about it can ever cost you a fee.
+                    You were drawn at random from the eligible pool of verified residents. Service is
+                    a protected civic obligation — nobody can interfere with it, and nothing about it
+                    can ever cost you a fee.
                 </p>
                 <p class="citation" data-no-i18n>
                     Jury of peers · Art. IV §4 — service protected · Art. II §8

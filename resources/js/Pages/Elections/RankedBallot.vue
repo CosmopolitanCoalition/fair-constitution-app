@@ -17,6 +17,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -30,6 +31,9 @@ import BallotReceipt from '@/Components/Electoral/BallotReceipt.vue';
 import RankList from '@/Components/Electoral/RankList.vue';
 import StvBar from '@/Components/Electoral/StvBar.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -213,9 +217,8 @@ const aggScale = computed(() =>
         <template #intro>
             {{ race.seats }} {{ race.seats === 1 ? 'seat' : 'seats' }},
             {{ finalists.length }} finalists, one count. Rank as many candidates as you like —
-            in a multi-winner district, ranking for <strong>all seats</strong> keeps your vote
-            alive through surplus and elimination transfers. Your ballot is secret; your
-            receipt hash lets you verify it was counted.
+            ranking for <strong>all seats</strong> keeps your vote alive as the count unfolds.
+            Your ballot is secret; your receipt code lets you check it was counted.
         </template>
 
         <p class="citation">

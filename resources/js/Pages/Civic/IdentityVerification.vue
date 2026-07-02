@@ -12,6 +12,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -20,6 +21,9 @@ import Card from '@/Components/Ui/Card.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -59,8 +63,11 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Identity verification strengthens election integrity — it is an integrity tool, not a
-            gate. Verify if you like, skip if you like: your rights are identical either way.
+            Where your jurisdiction supports it, you can link a government ID (formally: identity
+            verification) to your account. It helps keep elections honest — it is
+            <strong>never</strong> required. Voting and candidacy come from living somewhere,
+            nothing else. You can
+            <Link href="/civic/residency">skip straight to saying where you live</Link>.
         </template>
         <template #about>
             <p>

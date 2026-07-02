@@ -17,6 +17,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -29,6 +30,9 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import Stepper from '@/Components/Ui/Stepper.vue';
 import DepartmentCard from '@/Components/Executive/DepartmentCard.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -68,10 +72,10 @@ function consentSummary(consent) {
 <template>
     <PageScaffold :surface="surface" :title="`Departments — ${executive.jurisdiction.name}`">
         <template #intro>
-            Departments are chartered by the legislature (F-LEG-016 — an ordinary-majority act),
-            overseen by the executive, and governed by a Board of Governors the executive nominates
-            and the legislature consents to. Worker seats arrive through the same co-determination
-            scale as every other board.
+            Departments are created by legislative act, chartered for a specific function, and
+            run by an appointed Board of Governors under executive oversight. Workers get board
+            seats here exactly as they do in private organizations (co-determination): the first
+            worker-elected seat arrives at 100 workers.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

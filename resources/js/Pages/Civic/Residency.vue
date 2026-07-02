@@ -20,6 +20,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -34,6 +35,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -486,10 +490,10 @@ onBeforeUnmount(() => {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Declare where you live, and the system verifies it from your long-term presence
-            pattern — nothing else. The moment residency verifies, you are associated with
-            <strong>every</strong> enclosing jurisdiction at once, and voting and candidacy unlock
-            automatically with no other requirements.
+            Declare where you live, and living there does the rest — nothing else is checked.
+            The moment your residency is confirmed, you belong to <strong>every</strong> place
+            that contains your home at once, and voting and candidacy unlock automatically with
+            no other requirements.
         </template>
         <template #about>
             <p>

@@ -15,6 +15,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -23,6 +24,9 @@ import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -129,10 +133,9 @@ function fmt(iso) {
 <template>
     <PageScaffold :surface="surface" :title="`Constitutional settings register — ${legislature.name}`">
         <template #intro>
-            Every amendable constitutional value in force for this jurisdiction — with its
-            hardened bounds, its constitutional basis, and the act that set it. Changes have
-            exactly one door: a setting bill through the ordinary legislative process, range-
-            validated before any vote is taken.
+            These are the rules this legislature can change by passing a law (its
+            "constitutional settings") — each one inside limits that no law can override.
+            Out-of-range proposals are rejected before any vote is taken.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

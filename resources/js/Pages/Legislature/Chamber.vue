@@ -15,6 +15,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -26,6 +27,9 @@ import OrgChip from '@/Components/Ui/OrgChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import SeatMap from '@/Components/Legislature/SeatMap.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },

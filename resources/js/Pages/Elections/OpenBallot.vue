@@ -17,6 +17,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import CandidateRow from '@/Components/Electoral/CandidateRow.vue';
 import FinalistLine from '@/Components/Electoral/FinalistLine.vue';
@@ -30,6 +31,9 @@ import FilterBar from '@/Components/Ui/FilterBar.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -188,8 +192,11 @@ function switchRace(raceId) {
 <template>
     <PageScaffold :surface="surface" :title="race ? `Open ballot — ${race.label}` : 'Open ballot'">
         <template #intro>
-            Approve as many candidates as you like — approvals are revocable any time during the
-            approval phase, and the top X by approvals advance to the ranked ballot.
+            The continuous approval phase: anyone who lives here can run, and any voter can
+            approve — and un-approve — at any time. The top
+            {{ finalistX || 'X' }} candidates when the phase closes lock onto the ranked
+            ballot. Approving here costs you nothing on election day: you will still rank
+            freely among the finalists, and write-ins always remain open.
         </template>
         <template #about>
             <p>

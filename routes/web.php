@@ -780,6 +780,11 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
 Route::middleware('auth')->prefix('system')->name('system.')->group(function () {
     Route::get('/audit-chain', [AuditChainController::class, 'show'])->name('audit-chain');
     Route::post('/audit-chain/verify', [AuditChainController::class, 'verify'])->name('audit-chain.verify');
+    // mockups-v3-wiring Phase 2 — read-only registry/ledger pages over
+    // EXISTING services (design contracts: mockups/v3/shared/clocks.html,
+    // mockups/v3/system/amendments.html). Zero actions by design.
+    Route::get('/clocks', [\App\Http\Controllers\System\ClocksController::class, 'show'])->name('clocks');
+    Route::get('/amendments', [\App\Http\Controllers\System\AmendmentsController::class, 'show'])->name('amendments');
 });
 
 // mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form

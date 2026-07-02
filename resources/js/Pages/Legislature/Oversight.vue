@@ -11,6 +11,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -24,6 +25,9 @@ import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -185,11 +189,9 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
 <template>
     <PageScaffold :surface="surface" :title="`Oversight & ethics — ${legislature.name}`">
         <template #intro>
-            Misconduct intake is open to any resident; the independent administrative office
-            investigates and publishes findings to the public record. Removal runs by the same
-            standard for every officeholder — a supermajority of ALL serving members, with
-            vacancies staying in the denominator — and a removal closes the loop into the
-            countback machinery.
+            The independent administrative office enforces parliamentary procedure and the
+            ethics code. It takes misconduct complaints, investigates, and refers findings to
+            removal proceedings — and it declares vacancies when seats fall empty.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

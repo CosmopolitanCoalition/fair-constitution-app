@@ -14,6 +14,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -25,6 +26,9 @@ import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -182,7 +186,7 @@ function runPetitionAudit(row) {
         <template #intro>
             The board is an independent, politically neutral office: it schedules, validates,
             oversees boundaries, certifies, audits, and orders recounts. It never counts by
-            hand — tabulation is hardened code.
+            hand — tabulation runs in protected code.
         </template>
 
         <p class="citation">Establish independent election boards · Art. II §2</p>

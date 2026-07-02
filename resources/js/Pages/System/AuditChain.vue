@@ -11,6 +11,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -20,6 +21,9 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -63,9 +67,10 @@ function verify() {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            The append-only, hash-chained record of every state transition this instance accepted —
-            and every one it rejected. Nothing is ever updated or removed; tampering with any link
-            breaks every hash after it.
+            Everything that happens here — every vote, ruling, election, and rule change — is
+            written into one permanent history that no one, not an operator, a legislator, or a
+            judge, can quietly change. Moves the rules forbid are refused, and the refusal itself
+            is recorded. Nothing is ever removed.
         </template>
         <template #about>
             <p>

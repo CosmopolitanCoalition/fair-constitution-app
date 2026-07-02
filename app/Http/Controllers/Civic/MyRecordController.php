@@ -6,6 +6,8 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Controller;
 use App\Models\AuditEntry;
+use App\Models\Candidacy;
+use App\Services\RepresentativesResolver;
 use App\Services\ResidencyService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +20,12 @@ use Inertia\Response;
 /**
  * WI-8 — GET /civic/record: the user's own slice of the audit chain
  * (my-record contract) + the F-IND-002 personal-settings panel.
+ *
+ * Phase 2 (mockups-v3-wiring): /civic/record is now the ONE person page —
+ * the unified tabbed profile (mockups/v3 profile-v2.js contract). One
+ * person, every role: Overview · Record · Candidacy (only when standing) ·
+ * Representatives · Achievements (designed empty state) · Wallet (planned)
+ * · Settings (the F-IND-002 panel, unchanged).
  *
  * The record is READ from audit_log (actor_user_id = me) — it is the same
  * hash-chained ledger the system keeps, filtered, never a parallel copy.
@@ -34,9 +42,21 @@ class MyRecordController extends Controller
     /** Locales offered in the personal-settings panel (mirrors onboarding). */
     public const LOCALES = ['en', 'es', 'ar', 'zh-Hans', 'hi'];
 
+    /** Profile tabs (profile-v2.js tabsFor(), self view). Invalid ?tab= → 'overview'. */
+    public const TABS = [
+        'overview',
+        'record',
+        'candidacy',
+        'representatives',
+        'achievements',
+        'wallet',
+        'settings',
+    ];
+
     public function __construct(
         private readonly ConstitutionalEngine $engine,
         private readonly ResidencyService $residency,
+        private readonly RepresentativesResolver $representatives,
     ) {
     }
 
@@ -92,8 +112,38 @@ class MyRecordController extends Controller
                 : (int) $claim->qualifying_days;
         }
 
+        // Candidacies — every one the user ever filed (terminal states stay
+        // on the public record); the Candidacy tab renders only when > 0.
+        $candidacies = Candidacy::query()
+            ->where('user_id', $userId)
+            ->with([
+                'election:id,kind,status,jurisdiction_id',
+                'election.jurisdiction:id,name',
+                'race:id,election_id,jurisdiction_id,seat_kind,seats',
+                'race.jurisdiction:id,name',
+            ])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Candidacy $candidacy) => [
+                'id'                 => (string) $candidacy->id,
+                'election_id'        => (string) $candidacy->election_id,
+                'race_label'         => $this->raceLabel($candidacy),
+                'status'             => $candidacy->status,
+                'platform_statement' => $candidacy->platform_statement,
+                'position_tags'      => $candidacy->position_tags ?? [],
+            ])
+            ->values()
+            ->all();
+
+        // Validated ?tab= — anything off the contract falls back to overview.
+        $tab = $request->query('tab');
+        $tab = in_array($tab, self::TABS, true) ? $tab : 'overview';
+
         return Inertia::render('Civic/MyRecord', [
-            'surface'      => SurfaceMeta::for('civic/my-record'),
+            'surface'         => SurfaceMeta::for('civic/my-record'),
+            'tab'             => $tab,
+            'representatives' => $this->representatives->forUser($user),
+            'candidacies'     => $candidacies,
             'entries'      => $entries,
             'associations' => $associations,
             'stats'        => [
@@ -147,5 +197,27 @@ class MyRecordController extends Controller
         $this->engine->file('F-IND-002', $user, $payload);
 
         return back()->with('status', 'Profile updated — the change is on your record.');
+    }
+
+    /**
+     * Human race label for a candidacy card — jurisdiction + election kind
+     * (+ seats when the race row is loaded). Degrades gracefully when the
+     * election/race rows are gone (soft-deleted history).
+     */
+    private function raceLabel(Candidacy $candidacy): string
+    {
+        $jurisdiction = $candidacy->race?->jurisdiction?->name
+            ?? $candidacy->election?->jurisdiction?->name;
+
+        $kind  = $candidacy->election?->kind;
+        $seats = $candidacy->race?->seats;
+
+        $parts = array_filter([
+            $jurisdiction,
+            ($kind !== null ? str_replace('_', ' ', $kind) . ' ' : '') . 'election',
+            $seats !== null ? $seats . ' seat' . ($seats === 1 ? '' : 's') : null,
+        ]);
+
+        return implode(' · ', $parts);
     }
 }

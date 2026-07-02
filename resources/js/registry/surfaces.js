@@ -120,9 +120,9 @@ export const SITEMAP = [
     { key: 'records', title: 'Records & the clock', items: [
         { id: 'public-records', label: 'Public records', icon: 'file-text', href: '/system/public-records', contract: 'system/public-records.html' },
         { id: 'audit-chain', label: 'The audit chain', icon: 'lock', href: '/system/audit-chain', contract: 'system/audit-chain.html' },
-        { id: 'amendments', label: 'Amendments', icon: 'file-text', href: null, contract: 'system/amendments.html', phase: 2 },
+        { id: 'amendments', label: 'Amendments', icon: 'file-text', href: '/system/amendments', contract: 'system/amendments.html' },
         { id: 'term-sync', label: 'Terms end together', icon: 'refresh-cw', href: '/system/term-sync', contract: 'system/term-sync.html' },
-        { id: 'clocks', label: 'The clocks', icon: 'clock', href: null, contract: 'shared/clocks.html', phase: 2 },
+        { id: 'clocks', label: 'The clocks', icon: 'clock', href: '/system/clocks', contract: 'shared/clocks.html' },
     ] },
     { key: 'node', title: 'Run a node', items: [
         { id: 'setup-wizard', label: 'Found the instance', icon: 'sliders', href: '/setup', contract: 'system/setup.html' },
@@ -156,6 +156,8 @@ export const TOUR = [
     { act: 'The courts', href: '/judiciary/docket', title: 'The docket', blurb: 'Every case is public record — panels of judges, juries of residents.' },
     { act: 'The record', href: '/system/public-records', title: 'Public records', blurb: 'The permanent public record — it cannot be quietly edited.' },
     { act: 'The record', href: '/system/audit-chain', title: 'The audit chain', blurb: 'Every act, hash-chained — verify it yourself.' },
+    { act: 'The record', href: '/system/amendments', title: 'Amendments', blurb: 'The constitution changes through exactly two doors — both in the open.' },
+    { act: 'The record', href: '/system/clocks', title: 'The clocks', blurb: 'Every interval, deadline, and threshold that starts a process without anyone asking.' },
     { act: 'Help', href: '/support/report', title: 'Report an issue', blurb: 'A bug, a question, or something that needs review — file it here.' },
 ];
 
@@ -182,6 +184,8 @@ export const LEARN_BY_SURFACE = {
     'system/audit-chain': 'The audit chain — every constitutional act, hash-chained in order. Anyone can verify that nothing was quietly changed.',
     'system/public-records': 'The permanent public record — testimony, votes, acts, and rulings, readable by anyone, editable by no one.',
     'elections/detail': 'One election, end to end — the schedule, the candidates, the count, and the certification, all on the record.',
+    'system/clocks': 'The scheduled sweeps that drive the world — every interval, deadline, window, and threshold that starts a process without anyone asking. Clocks hold no state; they move other things.',
+    'system/amendments': 'The constitution changes through exactly two doors: settings move by ordinary acts within locked bounds, and the hardened core changes only by a software release that passes the public constitutional checks.',
 };
 
 /* Convenience: the tour entry href (stop 1 with the mode armed). */

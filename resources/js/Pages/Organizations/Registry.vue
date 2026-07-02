@@ -16,6 +16,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -30,6 +31,9 @@ import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -136,11 +140,8 @@ const columns = [
 <template>
     <PageScaffold :surface="surface" title="Organization registry">
         <template #intro>
-            One registry, no faction layer — political parties, businesses, nonprofits, and
-            Common Good Corporations are all organizations, discriminated by type. Any
-            associated resident may register one (Art. I, Economic Freedom). The
-            co-determination column reads the engine's worker-seat snapshot, never a client
-            calculation.
+            Every registered organization where you live — parties, businesses, nonprofits, and
+            public companies share one open list. Anyone who lives here can start one.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

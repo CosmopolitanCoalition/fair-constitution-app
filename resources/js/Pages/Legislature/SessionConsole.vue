@@ -15,6 +15,7 @@
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -29,6 +30,9 @@ import AgendaStrip from '@/Components/Legislature/AgendaStrip.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import RankList from '@/Components/Electoral/RankList.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },

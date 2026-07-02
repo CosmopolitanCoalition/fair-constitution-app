@@ -916,4 +916,40 @@ return [
         'citation'  => 'Dev harness — fixture-first component verification (FE-E1) · not product UI',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 2 — system read-only pages
+    |----------------------------------------------------------------------
+    | Contract data from the mockups' CGA_PAGE blocks
+    | (mockups/v3/shared/clocks.html, mockups/v3/system/amendments.html).
+    | Both READ-ONLY BY DESIGN — zero forms, zero actions.
+    */
+
+    'system/clocks' => [
+        'title'     => 'The clocks',
+        'module'    => 'system',
+        'nav'       => 'clocks',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        // The whole registry — this page IS the scheduler spec.
+        'clocks'    => [
+            'CLK-01', 'CLK-02', 'CLK-03', 'CLK-04', 'CLK-05', 'CLK-06', 'CLK-07',
+            'CLK-08', 'CLK-09', 'CLK-10', 'CLK-11', 'CLK-12', 'CLK-13', 'CLK-14',
+            'CLK-15', 'CLK-16', 'CLK-17', 'CLK-18', 'CLK-19', 'CLK-20', 'CLK-21',
+        ],
+        'citation'  => 'Clocks hold no state — they move other things · the registry is the scheduler spec',
+    ],
+
+    'system/amendments' => [
+        'title'     => 'Amendments',
+        'module'    => 'system',
+        'nav'       => 'amendments',
+        'roles'     => ['R-09'],
+        'workflows' => ['WF-SYS-05'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII',
+    ],
+
 ];

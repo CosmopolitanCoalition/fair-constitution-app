@@ -5,9 +5,13 @@
  * can see them; nothing here is testimony or sealed (the "Art. I private half").
  */
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 defineProps({ rooms: { type: Array, default: () => [] } });
 

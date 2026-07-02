@@ -21,6 +21,7 @@
  */
 import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -32,6 +33,9 @@ import LifecycleTracker from '@/Components/Ui/LifecycleTracker.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -92,9 +96,10 @@ function consentBadge(at) {
 <template>
     <PageScaffold :surface="surface" title="Transfers and conversions">
         <template #intro>
-            How ownership moves and changes form. Every path is gated by consent or by the legislature —
-            there is no hostile takeover. The one path that overrides owner consent (monopoly acquisition)
-            compensates owners at or above fair market value, and the engine blocks anything less.
+            An organization's ownership can change five ways, and this page shows all five: sold by
+            mutual agreement, acquired by the legislature when a monopoly is found, converted between
+            public and private, restructured within private hands, or wound down. Only the monopoly
+            path ever overrides the owners' consent — and it carries a protected compensation floor.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>

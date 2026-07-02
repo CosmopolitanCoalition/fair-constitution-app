@@ -11,6 +11,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
@@ -22,6 +23,9 @@ import StateStrip from '@/Components/Ui/StateStrip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import SignatureMeter from '@/Components/Civic/SignatureMeter.vue';
+
+/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -95,9 +99,9 @@ function submitCreate() {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Any associated resident can draft a law and put it before the population. Reach the
-            signature threshold, pass an independent audit and a constitutionality review, and
-            your initiative goes on the next jurisdiction-wide ballot.
+            Anyone who lives here can draft a law and put it to a vote. Reach the signature
+            threshold, pass an independent check and a constitutionality review, and your
+            proposal goes on the next jurisdiction-wide ballot.
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
