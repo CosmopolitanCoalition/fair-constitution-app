@@ -111,14 +111,63 @@ state — filed for the constitutional-cleanup phase, not churned mid-campaign).
 6. The events layer is node-local state — it must never become federated writes.
 7. Phases 4/5 merge only at operator-declared campaign pauses.
 
-## Decisions the operator owns (each blocks only its own phase)
+## SETTLED decisions (operator, 2026-07-01) — supersede the open list
 
-- **§C events-layer transport** (websockets/Reverb vs structured polling) — blocks Phase 5; Phase 3's
-  today-feed ships poll-based interim either way.
-- **Journey progress**: stateless rails (shipping in Phase 3) vs a per-user progress table later.
-- **Groups meeting-type schema** shape + its mesh-replication classification — blocks the Phase-5 groups suite.
-- **messages-v2 DMs**: no backend exists; in-scope via Matrix rooms, later phase, or out — flagged, not silently built.
-- **Learn content storage**: static fixtures vs DB — decides Phase 6's learn slice.
-- **Checkpoint timing** for Phases 4/5 relative to campaign pauses.
-- **Atlas growth snapshots vs legitimacy_snapshots**: one shared mechanism or two jobs.
-- **Economy/achievements design sign-off** — the explicit Phase-7 gate.
+0. **Mockups are no longer read-only.** The Designer lane is disengaged (re-engaged only if the
+   operator opens a new design phase). This lane now owns BOTH `mockups/` and the app. Mandate: a
+   **simplification pass over v3** — make it novice-friendly, remove the redundancy/patchwork from
+   its authoring — EARLY (before the module waves wire redundancy in). Manifest integrity fixes
+   now commit directly here.
+1. **Events transport: polling-first behind the `EventFeed` interface — ratified, with boundaries.**
+   The events layer serves browser↔own-node governance UI state ONLY. It never touches (a)
+   node↔node record propagation — that stays the CLK-20 FF&C tail, race-safe because tallies are
+   engine snapshots with sequence numbers — nor (b) Matrix/LiveKit, whose native sub-second
+   transports are never proxied or risked. Reverb remains a drop-in transport upgrade if wanted.
+2. **Journeys: DURABLE per-user completion (overrides "stateless").** Journeys ARE the lesson layer
+   (the single-player simulations under the Learn flyout/tour). Completion earns an **achievement on
+   the player's PUBLIC PROFILE** (public-record-like → syncs; confers NO game power — no vote/
+   office/authority effect) and a **one-time stipend bonus** (the payout hook lands with the economy
+   phase; completion tracking lands with journeys). Journeys **soft-gate** live actions: a player's
+   first live use of a surface nudges the tutorial first (dismissible, never blocking).
+3. **Rooms: ground on Matrix-native structure; the app models the BINDING, Matrix owns replication.**
+   Standing rooms for institutions within jurisdictions (a courthouse has many courtrooms; a
+   legislature many committee rooms) + orgs + individuals; **nesting/categories via Matrix Spaces**
+   (Discord-like), adaptable and scalable to match real institutions. Reachability is cross-node by
+   construction: a client on any node reaches any public room (Matrix S2S; live calls pick a host
+   node others backend-connect to — the existing voice-reach model). Do NOT reinvent replication.
+   Management surfaces (create/organize/categorize standing rooms per institution) are in scope.
+4. **DMs: thin UI over the existing private-room/Matrix primitive** (2-person room), Phase 5 with
+   the groups suite. Ratified as recommended.
+5. **Learn content: BUILT-IN (static, ships with the app)** — journeys are the interactive layer on
+   top. The v3 simplification pass (item 0) shapes this material first.
+6. **Merges: on green suite + operator walkthrough** (campaign suspended). Endgame after the wiring
+   campaign: blow all containers away → Box A from main (no worktree) → **full-scale demo** → then a
+   Box B demo. Phase-4 keeps legacy Federation.vue flag-routable until that demo proves parity.
+7. **Snapshots: one shared mechanism, ratified** (operator indifferent on backend method).
+   Collectors must serve the per-jurisdiction activation gates (player population vs potential
+   population) as well as Atlas growth.
+8. **Economy: design round still required, now seeded with operator input:** Earth legislature (the
+   topmost) sets regulations; UBI stipend units are operator-default constitutional settings like
+   everything else; **UBI = base amount per interval + a bonus on the same interval for operators
+   and civic/elected/appointed role-holders** (encourages volunteering); **orgs may issue their own
+   units** to workers/members/owners under their own agreements; users transfer/trade directly or
+   via a common marketplace (fungible + non-fungible); tax/inflation controls are UIs operated by
+   the people empowered to use them; **no basket of goods** — but as a centralized game currency,
+   currency-distribution telemetry should let tax structures auto-manage inflation within bounds
+   (⚑ that mechanism deserves its own design round).
+   **⚑ SUPERSEDED by the operator: the "never-federated wallet rail."** One consistent game world:
+   **everything syncs between nodes** — wallet state included — minus only per-node-unique identity
+   and services a node can't host.
+
+## ⚑ New architecture directives (operator, 2026-07-01)
+
+- **Collapse the read vs read-write operator distinction.** One operator process to peerage: any
+  node that can get a cert and take clients becomes a full, EQUAL peer. The only differentiators:
+  services a node can't host (e.g. the social layer, by hardware) and trust-elevated roles
+  (broker/DNS). Implementation mapping — how this reshapes the mirror/write-guard/authority model
+  (G3c read-write petitions become vestigial; write-forwarding is the norm) — is a Phase-4 design
+  note to work through explicitly, not silently.
+- **Pretty URLs everywhere (cross-cutting, adopt in Phase 1-2):** slugs over UUIDs wherever a
+  unique slug will do; shareable public links for rooms/streams/pages; where a generated id is
+  needed, use short YouTube-style encodings (base62/sqids), never raw UUIDs in URLs; avoid
+  GET-parameter noise on shareable surfaces.
