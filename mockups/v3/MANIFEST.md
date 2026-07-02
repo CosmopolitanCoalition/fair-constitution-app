@@ -1,11 +1,44 @@
 # World of Statecraft Mockups v3 — MANIFEST
 
-**`mockups/v3/` is a single, self-contained environment: 108 screens, one shell, one tour,
+**`mockups/v3/` is a single, self-contained environment: 107 screens, one shell, one tour,
 one plain player voice.** This file is what the production wiring reads first: the current
 state (below), the **Live-Room config contract** (§1), the reuse maps, the component
 inventory, and the a11y/responsive results.
 
 Read alongside `OPEN_QUESTIONS.md` (every divergence from the as-built code).
+
+---
+
+## v3.2 — Phase 0, "finish the contract" (2026-07-02; MASTER_PLAN.md Phase 0)
+
+Operator tour-feedback items 3–7 landed as contract changes:
+
+1. **One person = one profile (0a).** `electoral/candidate-profile.html` is the 8th redirect
+   stub: the candidacy is now a **Candidacy tab** on `social/profile.html` (statement,
+   approval meter with the finalist line, candidacy stages, endorsement web + requests,
+   manage/withdraw when self). Deep links forward `?candidate=&name=&race=` →
+   `?who=&name=&race=&tab=candidacy`; count pages link non-fixture names the same way.
+   Manifest drops to 107 records; the Learn drawer's flow context for the old page id is
+   inherited via the ABSORBED alias in shell-v2.
+2. **The real call surface (0b).** Every live-room variant carries the wired LiveKit room's
+   UI (`.lr-call` in v2.css, mirrors `ChamberStage`/`ParticipantTile`/`VoiceControls`):
+   pre-join → Join voice; in-call → presenter screen tiles above a 2/3/4-column camera grid
+   (speaking ring, avatar fallback, mute badge, "you"), mic/camera/share toggles, Leave,
+   and camera–mic–speaker device pickers. All states simulated; icons `mic`/`video`/
+   `screen-share`/`phone` (+off variants) added to the sprite.
+3. **Built map containment (0c).** `district-mapper` and `jurisdiction-browser` are
+   full-bleed: shared `.map-split` rules (v2.css) pin the tool to the visible viewport under
+   a thin head row; the sidebar scrolls inside; mobile portrait puts the map on top at 45dvh
+   (the built breakpoints). The stylized SVG now honors the built map behavior — drag to pan
+   with **seamless east–west wrap** (±world-width clones) and **bounded zoom-out** (the world
+   always fills the view). Sidebar look/functions preserved verbatim.
+4. **Open nomination windows (0d).** `organizations/board-elections.html` shows the
+   nomination window that precedes ranking (10 days, state strip + dates); the days are an
+   org-level, role-gated setting shown in `economy/org-settings.html` ("Elections &
+   appointments") — never a constitutional value.
+5. **The founding fork (0e).** `system/setup.html` step 1 is the three-way, one-way fork:
+   **join an existing world · start fresh · restore from records** (restoration = also a
+   founding path; the map step's "upload an export" is where restore lands).
 
 ---
 

@@ -129,8 +129,8 @@
 
       function slugify(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
       function profileHref(name) {
-        return S.href('electoral/candidate-profile.html?candidate=' + slugify(name) +
-          '&name=' + encodeURIComponent(name.replace(' (write-in)', '')) + '&race=' + RACE);
+        return S.href('social/profile.html?who=' + slugify(name) +
+          '&name=' + encodeURIComponent(name.replace(' (write-in)', '')) + '&race=' + RACE + '&tab=candidacy');
       }
       function nameLink(name, extraTitle) {
         var clean = name.replace(' (write-in)', '');

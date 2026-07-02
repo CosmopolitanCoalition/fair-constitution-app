@@ -474,7 +474,7 @@
       galleryNote: 'Anyone may watch the forum. Only residents may ask from the floor; endorsing — your approval — happens on the ballot and is always secret. After approval comes the ranking window.',
       forms: [],
       chairControls: ['Open the forum', 'Recognize the next candidate', 'Start the speaking clock', 'Open resident questions', 'Close & link the ballot'],
-      reusesV1: ['electoral/open-ballot.html', 'electoral/candidate-profile.html'],
+      reusesV1: ['electoral/open-ballot.html', 'social/profile.html (Candidacy tab)'],
       productionPages: ['resources/js/Pages/Elections/OpenBallot.vue']
     },
 

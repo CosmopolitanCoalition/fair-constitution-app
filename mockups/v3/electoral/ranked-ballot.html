@@ -169,8 +169,8 @@
 
       function slugify(n) { return String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
       function profileHref(n) {
-        return S.href('electoral/candidate-profile.html?candidate=' + slugify(n) +
-          '&name=' + encodeURIComponent(n) + '&race=elec-brooklyn-2031');
+        return S.href('social/profile.html?who=' + slugify(n) +
+          '&name=' + encodeURIComponent(n) + '&race=elec-brooklyn-2031&tab=candidacy');
       }
 
       function renderFinalists() {

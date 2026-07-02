@@ -88,7 +88,7 @@
      "acquisition": "Self-registration during candidacy window",
      "shortName": "registered candidate",
      "defaultPersona": "diego-ramos",
-     "entryScreen": "electoral/candidate-profile.html"
+     "entryScreen": "social/profile.html?who=diego-ramos&tab=candidacy"
     },
     {
      "id": "R-07",
@@ -100,7 +100,7 @@
      "acquisition": "Organization submits endorsement form",
      "shortName": "endorsed candidate",
      "defaultPersona": "diego-ramos",
-     "entryScreen": "electoral/candidate-profile.html"
+     "entryScreen": "social/profile.html?who=diego-ramos&tab=candidacy"
     },
     {
      "id": "R-08",

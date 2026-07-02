@@ -10,38 +10,30 @@
   <link rel="stylesheet" href="../assets/css/v2.css" />
   <script src="../assets/js/demo-state.js"></script>
   <style>
-    /* Two-pane recreation of the developed Jurisdiction viewer (tokens only). */
-    .jv-wrap { display: grid; grid-template-columns: 22rem minmax(0, 1fr); border: 1px solid var(--gov-border); border-radius: var(--radius-lg); overflow: hidden; min-block-size: 38rem; }
-    .jv-panel { background: var(--gov-surface); border-inline-end: 1px solid var(--gov-border); overflow-y: auto; max-block-size: 46rem; }
-    .jv-map { position: relative; background: var(--cc-gray-200); min-block-size: 38rem; }
-    .jv-map svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
+    /* Two-pane recreation of the developed Jurisdiction viewer (tokens only).
+       Layout/containment comes from the shared .map-split rules in v2.css. */
+    .jv-wrap.map-split { grid-template-columns: 22rem minmax(0, 1fr); }
     .map-toggles { position: absolute; inset-block-start: var(--space-3); inset-inline-end: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); z-index: 5; }
     .map-attrib { position: absolute; inset-block-end: 0; inset-inline-end: 0; background: color-mix(in oklch, var(--cc-white) 80%, transparent); color: var(--cc-gray-700); font-size: var(--text-xs); padding: 2px var(--space-2); z-index: 5; }
     .jv-pop { color: var(--wong-orange); font-size: var(--text-2xl); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
     .jv-members { color: var(--wong-skyblue); font-size: var(--text-2xl); font-weight: var(--weight-bold); font-variant-numeric: tabular-nums; }
-    @media (max-width: 64rem) { .jv-wrap { grid-template-columns: 1fr; } .jv-panel { max-block-size: none; border-inline-end: 0; border-block-end: 1px solid var(--gov-border); } .jv-map { min-block-size: 24rem; } }
   </style>
 </head>
 <body>
-  <main id="main" class="main--wide">
+  <main id="main" class="main--wide main--map">
     <div class="stack">
-      <header>
+      <div class="map-head">
         <span class="eyebrow">Jurisdictions · browser</span>
         <h1>Jurisdiction browser</h1>
-        <p class="page-intro" style="max-inline-size:56rem">Every place on Earth, planet to neighborhood —
-          its boundaries, its people, and who represents them. The map is real, preloaded geography (about a
-          million places); the live count of verified residents layers on top. Every place governs itself —
-          sitting inside a bigger one changes scope, never rank.</p>
-        <p class="citation">Cosmic address: … · Solar System · Earth</p>
-      </header>
+        <span class="citation">Every place on Earth, planet to neighborhood · Cosmic address: … · Solar System · Earth</span>
+      </div>
 
-      <p class="dev-slot"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-grip-vertical"></use></svg> Developed component slot — the shipped Jurisdiction viewer mounts exactly here and adopts this design system; the panel below shows its placement and content in mockup form.</p>
-
-      <div class="jv-wrap">
-        <div class="jv-panel" id="jv-panel"></div>
-        <div class="jv-map">
+      <div class="jv-wrap map-split">
+        <div class="jv-panel map-side" id="jv-panel"></div>
+        <div class="jv-map map-pane">
+          <div class="map-zoom" id="jv-zoom" role="group" aria-label="Zoom"></div>
           <div class="map-toggles" id="jv-toggles" role="group" aria-label="Map layers"></div>
-          <svg id="jv-svg" viewBox="0 0 980 600" role="img" aria-label="Stylized jurisdiction map — the running application renders Leaflet with protomaps tiles, geoBoundaries geometry, and the WorldPop raster"></svg>
+          <svg id="jv-svg" viewBox="0 0 980 600" role="img" aria-label="Stylized jurisdiction map — drag to pan; east–west wraps seamlessly. The running application renders Leaflet with protomaps tiles, geoBoundaries geometry, and the WorldPop raster"></svg>
           <span class="map-attrib" data-no-i18n>Leaflet | Boundaries © geoBoundaries, Protomaps © OpenStreetMap, Population © WorldPop — stylized stand-in</span>
         </div>
       </div>
@@ -66,10 +58,17 @@
         <summary><svg class="icon icon--sm icon--directional" aria-hidden="true"><use href="#i-chevron-right"></use></svg> About this surface</summary>
         <div class="about-surface-body">
           <p><strong>What it does:</strong> shows population records and apportionment for a place, and is the
-            entry to <a href="district-mapper.html">the district mapper</a> via "View Legislature &amp; Districts".</p>
+            entry to <a href="district-mapper.html">the district mapper</a> via "View Legislature &amp; Districts".
+            Every place on Earth, planet to neighborhood — its boundaries, its people, and who represents them.
+            The map is real, preloaded geography (about a million places); the live count of verified residents
+            layers on top. Every place governs itself — sitting inside a bigger one changes scope, never rank.</p>
           <p><strong>What the view shows:</strong> breadcrumb ancestors, natural level badge, population (WorldPop year)
             beside live member count, region &amp; dataset provenance, the maps-accepted / apportionment-completed record,
             and the federation authority line. Map layers: Names · Population · Members · Raster (WorldPop dots).</p>
+          <p><strong>The containment mirrors what's built:</strong> the map fills every pixel inside a thin wrapper;
+            zoom-out is bounded so the world always fills the view, and east–west panning wraps seamlessly with no
+            visible seam. On a phone, the map takes the top of the screen and the panel scrolls beneath it. The
+            shipped Jurisdiction viewer mounts exactly here and adopts this design system.</p>
         </div>
       </details>
     </div>
@@ -205,9 +204,13 @@
           '</div>';
       }
 
-      function renderMap() {
+      /* ---- the map: bounded zoom + seamless east–west wrap (built containment:
+         ±world-width clones = worldCopyJump; zoom-out clamped = dynamic minZoom) ---- */
+      var pan = { x: 0, z: 1 }, WORLD_W = 980, WORLD_CY = 300;
+
+      function worldSvg() {
         var v = VIEWS[state.view];
-        var svg = '<rect width="980" height="600" fill="var(--cc-gray-200)"/>';
+        var svg = '';
         var blobs = state.view === 'earth-0-earth'
           ? [[60, 60, 380, 250], [340, 330, 220, 220], [470, 90, 460, 230], [500, 280, 180, 200], [690, 290, 180, 130], [780, 450, 150, 100], [120, 290, 200, 150]]
           : [[140, 80, 700, 460]];
@@ -224,7 +227,31 @@
           var sub = state.layer === 'Population' ? '· pop' : state.layer === 'Members' ? '· members' : '';
           svg += '<text x="' + l[1] + '" y="' + l[2] + '" font-size="13" fill="var(--cc-gray-700)" text-anchor="middle">' + esc(l[0]) + (sub ? ' ' + sub : '') + '</text>';
         });
-        document.getElementById('jv-svg').innerHTML = svg;
+        return svg;
+      }
+
+      function applyPan() {
+        var g = document.getElementById('jv-view');
+        if (!g) return;
+        var W2 = WORLD_W * pan.z;
+        var px = ((pan.x % W2) + W2) % W2; if (px > 0) px -= W2;
+        g.setAttribute('transform', 'translate(' + px.toFixed(1) + ' ' + (WORLD_CY - WORLD_CY * pan.z).toFixed(1) + ') scale(' + pan.z + ')');
+      }
+      function renderZoom() {
+        document.getElementById('jv-zoom').innerHTML =
+          '<button type="button" data-zoom="in" aria-label="Zoom in"' + (pan.z >= 2.45 ? ' disabled' : '') + '>+</button>' +
+          '<button type="button" data-zoom="out" aria-label="Zoom out" title="Zoom-out is bounded — the world always fills the view"' + (pan.z <= 1.01 ? ' disabled' : '') + '>−</button>';
+      }
+
+      function renderMap() {
+        var w = worldSvg();
+        var copies = [-WORLD_W, 0, WORLD_W].map(function (off) {
+          return '<g transform="translate(' + off + ' 0)">' + w + '</g>';
+        }).join('');
+        document.getElementById('jv-svg').innerHTML =
+          '<rect width="980" height="600" fill="var(--cc-gray-200)"/><g id="jv-view">' + copies + '</g>';
+        applyPan();
+        renderZoom();
         document.getElementById('jv-toggles').innerHTML = ['Names', 'Population', 'Members', 'Raster'].map(function (l) {
           return '<button type="button" class="chip-toggle" data-layer="' + l + '" aria-pressed="' + (state.layer === l ? 'true' : 'false') + '">' + l + '</button>';
         }).join('');
@@ -232,10 +259,34 @@
 
       function render() { renderPanel(); renderMap(); S.refresh(); }
 
+      /* drag to pan — wraps at the antimeridian without a visible seam */
+      (function wireDrag() {
+        var el = document.getElementById('jv-svg');
+        var dragging = false, lastX = 0;
+        el.addEventListener('pointerdown', function (e) {
+          dragging = true; lastX = e.clientX; el.classList.add('dragging');
+          if (el.setPointerCapture) try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        el.addEventListener('pointermove', function (e) {
+          if (!dragging) return;
+          var r = el.getBoundingClientRect();
+          pan.x += (e.clientX - lastX) * WORLD_W / Math.max(r.width, 1);
+          lastX = e.clientX;
+          applyPan();
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) {
+          el.addEventListener(t, function () { dragging = false; el.classList.remove('dragging'); });
+        });
+      })();
+
       document.body.addEventListener('click', function (ev) {
-        var t = ev.target.closest ? ev.target.closest('[data-view],[data-layer]') : null;
+        var t = ev.target.closest ? ev.target.closest('[data-view],[data-layer],[data-zoom]') : null;
         if (!t || t.disabled) return;
         if (t.hasAttribute('data-view')) { state.view = t.getAttribute('data-view'); render(); }
+        else if (t.hasAttribute('data-zoom')) {
+          pan.z = t.getAttribute('data-zoom') === 'in' ? Math.min(2.5, pan.z * 1.4) : Math.max(1, pan.z / 1.4);
+          renderZoom(); applyPan();
+        }
         else { state.layer = t.getAttribute('data-layer'); render(); }
       });
 

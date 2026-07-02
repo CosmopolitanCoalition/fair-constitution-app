@@ -182,7 +182,7 @@
           (phaseOpen ? '' : ' disabled title="Approval phase is closed"') + '>' + (approved ? 'Approved' : 'Approve') + '</button>' +
           '<div class="candidate-main">' +
           '<span class="citation" style="margin-inline-end:var(--space-2)">#' + rank + '</span>' +
-          '<a class="candidate-name" href="candidate-profile.html?candidate=' + esc(c.id) + '" title="' + esc(c.name) + ' — open public profile · rank ' + rank + ' · ' + approvals.toLocaleString('en-US') + ' approvals">' + esc(c.name) + '</a> ' + inc +
+          '<a class="candidate-name" href="../social/profile.html?who=' + esc(c.id) + '&tab=candidacy" title="' + esc(c.name) + ' — open public profile · rank ' + rank + ' · ' + approvals.toLocaleString('en-US') + ' approvals">' + esc(c.name) + '</a> ' + inc +
           (c.statement ? '<span class="cc-small" style="display:block;color:var(--gov-fg-muted)">' + esc(c.statement) + '</span>' : '') +
           '<span class="candidate-meta">' + orgs + indiv + none + tags + '</span>' +
           '</div>' +

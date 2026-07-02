@@ -360,7 +360,7 @@ window.CGA_MANIFEST = [
   "forms": [],
   "status": "built-layer",
   "stage": 2,
-  "notes": "Social profile: bio, endorsements (public by choice), groups, orgs, achievements (Proposed), follow/message. Pseudonymity. Art. I."
+  "notes": "Social profile: bio, endorsements (public by choice), groups, orgs, achievements (Proposed), follow/message. Pseudonymity. Art. I. ONE profile per person: when the subject is standing in a race a Candidacy tab appears (statement, approval meter w/ finalist line, stages, endorsement web, requests; manage/withdraw when self) — electoral/candidate-profile.html is now a redirect that forwards ?candidate=&name=&race= here as ?who=&name=&race=&tab=candidacy (F-CAN-001/002/003, WF-CIV-05/08, CLK-21)."
  },
  {
   "file": "social/org-profile.html",
@@ -1020,36 +1020,6 @@ window.CGA_MANIFEST = [
   ],
   "suggestedVuePage": "resources/js/Pages/Elections/CandidacyRegistration.vue",
   "notes": "Real F-IND-011 form (office select scoped to associated jurisdictions, position-tag chips, residency attestation); one result card toggles between the validated path (→ approval pool, R-06) and the rejection path (residency-only ground, court appeal to ../judiciary/case-docket.html citing Pham v. Charlotte election board, case-2031-101); phase banner reacts to scenario.election per CLK-18.",
-  "stage": 2
- },
- {
-  "file": "electoral/candidate-profile.html",
-  "title": "Candidate profile",
-  "module": "electoral",
-  "roles": [
-   "R-03",
-   "R-04",
-   "R-06",
-   "R-07"
-  ],
-  "workflows": [
-   "WF-CIV-05",
-   "WF-CIV-08"
-  ],
-  "forms": [
-   "F-CAN-001",
-   "F-CAN-002",
-   "F-CAN-003"
-  ],
-  "entities": [
-   "Candidacy",
-   "Approval Standing"
-  ],
-  "clocks": [
-   "CLK-21"
-  ],
-  "suggestedVuePage": "resources/js/Pages/Elections/CandidateProfile.vue",
-  "notes": "Renders diego-ramos by default and honors ?candidate= (captured in head before demo-state strips it) plus a #candidate= hash fallback; reusable patterns: SVG endorsement graph (orgs + individuals, ledger #1), auto-attached public record (legislative votes only for incumbents), approval-standing meter with the finalist line positioned at the 27th candidate's approvals, withdraw-with-confirm locked after the finalist cutoff.",
   "stage": 2
  },
  {

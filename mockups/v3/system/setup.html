@@ -26,10 +26,12 @@
     'use strict';
     var S = window.CGA.shellV2, esc = S.esc;
     /* The founding flow, reordered (v3): your operator account first, then a
-       one-way choice — JOIN a federation (nothing to found) or START FROM
-       SCRATCH (found a world). The scratch path ends by creating your first
-       federation account — your player username, player one. */
-    var STEPS = ['Operator account', 'Join or start fresh', 'Cosmic address', 'Constitution & economy', 'Map data', 'Build districts', 'Seat & your account'];
+       one-way, three-way fork — JOIN an existing world (nothing to found),
+       START FRESH (found a brand-new world), or RESTORE FROM RECORDS (found a
+       world from what survives — also a founding path). The founding paths end
+       by creating your first federation account — your player username,
+       player one. */
+    var STEPS = ['Operator account', 'The founding fork', 'Cosmic address', 'Constitution & economy', 'Map data', 'Build districts', 'Seat & your account'];
 
     var fseq = 0;
     function field(label, value, hint, opts) {
@@ -65,20 +67,25 @@
         '</section>';
     }
 
-    /* 1 — the one-way binary: join, or start from scratch */
+    /* 1 — the one-way, three-way fork: join, start fresh, or restore */
     function stepBranch() {
       return '<section class="card setup-step" aria-labelledby="s1">' + stepHead(1) +
-        '<p>Now a single, one-way choice. <strong>Joining</strong> connects you to a world that already exists; <strong>starting fresh</strong> founds a brand-new one. The moment you start fresh you are a new, separate node — you can’t then join (you could later fork or disconnect, but that’s another story).</p>' +
+        '<p>Now a single, one-way question: <strong>why does this world exist?</strong> Three answers. <strong>Joining</strong> connects you to a world that already exists. <strong>Starting fresh</strong> founds a brand-new one. <strong>Restoring from records</strong> also founds one — from what survives — because you chose not to join an existing federation, or because the nodes that carried a government have fallen. The moment you found (fresh or restored) you are a new, separate world — you can’t then join (you could later fork or disconnect, but that’s another story).</p>' +
         '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
         '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
-        '<h3>' + S.icon('globe', { size: 'sm' }) + ' Join a federation</h3>' + S.badge('info', 'Short path') + '</div>' +
-        '<p>Connect to an existing federation. You inherit its constitution, its map, and its institutions — there is <strong>nothing to found</strong>. You finish at <a href="' + S.hrefV2('jurisdictions/federation.html') + '">federation-join</a>, where you enter your federation account and connect as a node.</p>' +
+        '<h3>' + S.icon('globe', { size: 'sm' }) + ' Join an existing world</h3>' + S.badge('info', 'Short path') + '</div>' +
+        '<p>Connect to a federation that already exists. You inherit its constitution, its map, and its institutions — there is <strong>nothing to found</strong>. You finish at <a href="' + S.hrefV2('jurisdictions/federation.html') + '">federation-join</a>, where you enter your federation account and connect as a node.</p>' +
         '<p class="gloss">All the founding steps below are skipped.</p>' +
         '<button type="button" class="btn btn--secondary btn--sm" data-sim>Join a federation</button></div>' +
         '<div class="card card--inset" style="border-color:var(--gov-primary)"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
-        '<h3>' + S.icon('sliders', { size: 'sm' }) + ' Start from scratch</h3>' + S.badge('success', 'Selected') + '</div>' +
-        '<p>Found a brand-new world. You author the constitution and its economy, load the map, draw districts, and seat the institutions — the full founding loop below. The <strong>last</strong> step creates your first federation account: your player username, player one.</p>' +
+        '<h3>' + S.icon('sliders', { size: 'sm' }) + ' Start fresh</h3>' + S.badge('success', 'Selected') + '</div>' +
+        '<p>Found a brand-new world. You author the constitution and its economy, load the standard open map data, draw districts, and seat the institutions — the full founding loop below. The <strong>last</strong> step creates your first federation account: your player username, player one.</p>' +
         '<p class="gloss">Continue through the steps below.</p></div>' +
+        '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
+        '<h3>' + S.icon('refresh-cw', { size: 'sm' }) + ' Restore from records</h3>' + S.badge('warning', 'Founding path') + '</div>' +
+        '<p>Stand a world up from existing records — an export another instance made, or the surviving archive of a government whose nodes have fallen. The <strong>same founding loop</strong> runs; at the map step you load your records instead of fresh geodata, and what was saved (boundaries, institutions, history) comes back with them.</p>' +
+        '<p class="gloss"><a href="' + S.hrefV2('jurisdictions/restoration.html') + '">Rebuilding a lost government</a> explains when and why a restored world is the legitimate one.</p>' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-sim>Restore from records</button></div>' +
         '</div></section>';
     }
 
@@ -146,7 +153,7 @@
         '<p>Where does your map come from? Three real choices:</p>' +
         '<div class="card card--inset"><div class="radio-group">' +
         '<label class="radio"><input type="radio" name="src" /> <strong>Sync with a federation</strong> — pull the boundaries and populations a federation already uses.</label>' +
-        '<label class="radio"><input type="radio" name="src" /> <strong>Upload an export</strong> — a <code>.tar.gz</code> from another instance (it carries the map and saved state; you can pick the file from your browser). The file is checked for a compatible version before anything loads — an older snapshot is refused with a clear message, and a backup made mid-founding drops you back at the step it left off.</label>' +
+        '<label class="radio"><input type="radio" name="src" /> <strong>Upload an export</strong> — a <code>.tar.gz</code> from another instance (it carries the map and saved state; you can pick the file from your browser). This is where the <strong>restore-from-records</strong> path lands. The file is checked for a compatible version before anything loads — an older snapshot is refused with a clear message, and a backup made mid-founding drops you back at the step it left off.</label>' +
         '<label class="radio"><input type="radio" name="src" checked /> <strong>Start fresh</strong> — load the standard open geodata (geoBoundaries boundaries + WorldPop populations), planet to neighbourhood.</label>' +
         '</div>' +
         '<div class="cluster" style="margin-block-start:var(--space-2)"><button type="button" class="btn btn--secondary btn--sm" data-sim>Choose a file…</button>' +
@@ -207,7 +214,7 @@
 
       document.getElementById('root').innerHTML =
         '<header><span class="eyebrow">' + S.icon('sliders', { size: 'sm' }) + ' System · the founding loop</span><h1>Found the instance</h1>' +
-        '<p class="page-intro">Before anyone plays, someone founds the world. It starts with <strong>your operator account</strong>, then a one-way choice — <strong>join</strong> a federation or <strong>start from scratch</strong> — and the scratch path ends by creating your first account: <strong>player one</strong>. Shown here as a completed end-state.</p></header>' +
+        '<p class="page-intro">Before anyone plays, someone founds the world. It starts with <strong>your operator account</strong>, then a one-way fork — <strong>start fresh</strong>, <strong>restore from records</strong>, or <strong>join</strong> a world that already exists — and the founding paths end by creating your first account: <strong>player one</strong>. Shown here as a completed end-state.</p></header>' +
 
         stepper +
         stepOperator() + stepBranch() + stepCosmic() + stepDefaults() + stepMap() + stepDistricts() + stepSeat() +

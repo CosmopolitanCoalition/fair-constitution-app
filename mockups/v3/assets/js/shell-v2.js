@@ -180,7 +180,7 @@
 
     { act: 'An election', rel: 'journeys/journey.html?id=election', title: 'An election, end to end', blurb: 'The flagship journey — now, your part, next.' },
     { act: 'An election', rel: 'electoral/candidacy-registration.html', title: 'Stand for office', blurb: 'If you live there, you can run — that’s the whole requirement.' },
-    { act: 'An election', rel: 'electoral/candidate-profile.html', title: 'A candidate', blurb: 'Who they are, who endorses them.' },
+    { act: 'An election', rel: 'social/profile.html?who=diego-ramos&tab=candidacy', title: 'A candidate', blurb: 'Who they are, who endorses them — a tab on their one profile.' },
     { act: 'An election', rel: 'electoral/election-detail.html', title: 'An election', blurb: 'The race, its phase, and the clock.' },
     { act: 'An election', rel: 'shared/live-room.html?variant=forum', title: 'The candidate forum', blurb: 'Candidates take the floor in turn — a Live Civic Room.' },
     { act: 'An election', rel: 'electoral/open-ballot.html', title: 'Open ballot', blurb: 'The approval phase — quietly approve the people you’d want on the ballot.' },
@@ -412,7 +412,13 @@
   function screenContextHtml() {
     var F = CGA.fixtures.flows;
     if (!F || !F.byScreen) return '';
-    var rows = F.byScreen[PAGE.id] || [];
+    /* pages folded into another page inherit its flow context (the flows data
+       is frozen — its generator inputs, the 80 flow pages, are gone) */
+    var ABSORBED = { 'social/profile': ['electoral/candidate-profile'] };
+    var rows = (F.byScreen[PAGE.id] || []).slice();
+    (ABSORBED[PAGE.id] || []).forEach(function (old) {
+      (F.byScreen[old] || []).forEach(function (r) { rows.push(r); });
+    });
     if (!rows.length) return '';
     var CAP = 6, shown = rows.slice(0, CAP), more = rows.length - shown.length;
     var cards = shown.map(function (r) {

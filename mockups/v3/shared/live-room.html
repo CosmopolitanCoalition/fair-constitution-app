@@ -51,6 +51,8 @@
     var st = JSON.parse(JSON.stringify(CFG));
     var voteCalled = !!(st.vote && st.vote.tallies); /* legislative starts mid-vote */
     var clockRunning = false, speakingLeft = st.clocks.speaking, clockTimer = null;
+    /* your AV state in the call (simulated; mirrors the wired useVoiceRoom) */
+    var call = { joined: false, mic: true, cam: true, sharing: false };
 
     var root = document.getElementById('lr-root');
 
@@ -294,10 +296,114 @@
         (st.variant === 'court' || st.constitutionalOrder || st.variant === 'committee' || st.variant === 'townhall' ? ' · in the halls you may file your own message as testimony' : '') + '</p>';
     }
     function voiceHtml() {
-      return '<div class="lr-voice">' + S.icon('users', { size: 'sm' }) +
-        '<span>Voice: ' + st.voice.participants.length + ' in the call</span>' +
-        '<button type="button" class="btn btn--secondary btn--sm">Join voice</button>' +
+      /* compact rail mirror of the call surface on the stage */
+      return '<div class="lr-voice">' + S.icon('phone', { size: 'sm' }) +
+        '<span>In the call: ' + (st.voice.participants.length + (call.joined ? 1 : 0)) + '</span>' +
+        (call.joined
+          ? '<span class="pill pill--live"><span class="dotlive" aria-hidden="true"></span> connected</span>'
+          : '<button type="button" class="btn btn--secondary btn--sm" data-act="call-join">Join voice</button>') +
         '<span class="lr-rail-flag">' + S.icon('shield', { size: 'sm' }) + (st.voice.residencyGated ? 'residents only on the floor; anyone may listen' : 'open to members') + '</span></div>';
+    }
+
+    /* ---------- the call surface (the stage) — mirrors the WIRED LiveKit room:
+       ChamberStage (presenter tiles above a responsive camera grid, speaking
+       ring, avatar fallback, "you" badge) + VoiceControls (join/leave, mic /
+       camera / screen-share toggles, camera-mic-speaker device pickers). ---- */
+    var DEVICES = {
+      camera: ['Built-in camera', 'USB webcam'],
+      mic: ['Built-in microphone', 'Headset microphone'],
+      speaker: ['Speakers', 'Headset']
+    };
+    function tileInitials(label) {
+      var s2 = String(label || '').replace(/^@?u-/, '').replace(/[^a-zA-Z0-9 ]/g, ' ').trim();
+      var parts = s2.split(/\s+/);
+      return ((parts[0] || '?').charAt(0) + (parts[1] ? parts[1].charAt(0) : (parts[0] || '').charAt(1) || '')).toUpperCase();
+    }
+    function callTile(o) {
+      /* o: { handle, label, cam, speaking, screen, screenTitle, muted, you } */
+      var cls = 'lr-tile' + (o.screen ? ' lr-tile--screen' : (o.speaking ? ' lr-tile--speaking' : ''));
+      var body;
+      if (o.screen) {
+        body = '<div class="lr-tile-doc" aria-hidden="true"><span class="doc-title">' + esc(o.screenTitle || 'Shared screen') + '</span>' +
+          '<span class="doc-line" style="inline-size:82%"></span><span class="doc-line" style="inline-size:94%"></span>' +
+          '<span class="doc-line" style="inline-size:71%"></span><span class="doc-line" style="inline-size:88%"></span></div>';
+      } else if (o.cam) {
+        body = '<div class="lr-tile-cam" aria-hidden="true"><span class="avatar">' + esc(tileInitials(o.label)) + '</span></div>';
+      } else {
+        body = '<span class="avatar" aria-hidden="true">' + esc(tileInitials(o.label)) + '</span>';
+      }
+      var badge = o.screen ? S.icon('screen-share', { size: 'sm' }) : (o.muted ? S.icon('mic-off', { size: 'sm' }) : '');
+      return '<div class="' + cls + '">' + body +
+        '<div class="lr-tile-label">' + badge +
+        '<span class="t-name">' + esc(o.label) + (o.screen ? ' · screen' : '') + '</span>' +
+        (o.you ? '<span class="lr-tile-you">you</span>' : '') + '</div></div>';
+    }
+    function callHtml() {
+      var others = st.voice.participants.map(function (h) { return findPresence(h) || { handle: h }; });
+      var count = others.length + (call.joined ? 1 : 0);
+      var youHandle = V2.handleFor(window.CGA.state.get('persona')) || 'you';
+      var flag = st.voice.residencyGated ? 'Residents may take the floor; anyone may listen.' : 'Open to members.';
+
+      var head = '<div class="lr-call-head"><span style="font-weight:var(--weight-medium)">In ' + esc(SCENE_NAME[st.variant] || 'the room') + '</span>' +
+        '<span class="live">' + (call.joined
+          ? '<span class="lr-call-dot" aria-hidden="true"></span>' + count + ' in the call'
+          : 'Not connected') + '</span></div>';
+
+      if (!call.joined) {
+        return '<section class="lr-call" aria-label="The call">' + head +
+          '<div class="lr-call-empty">No one is on the floor for you yet — join the voice call to take your seat. ' +
+          'You choose what to share: voice, camera, screen, or just your presence.</div>' +
+          '<div class="lr-call-controls">' +
+          '<button type="button" class="btn btn--primary btn--sm" data-act="call-join">' + S.icon('phone', { size: 'sm' }) + ' Join voice</button>' +
+          '<span class="lr-rail-flag">' + S.icon('shield', { size: 'sm' }) + esc(flag) + '</span></div>' +
+          '<p class="citation" style="margin-block-start:var(--space-2)">Mockup — the wired room runs a real call on your node’s own media server (LiveKit); nothing routes through an outside service.</p>' +
+          '</section>';
+      }
+
+      /* presenter tiles above the camera grid — the floor holder shares the
+         document on the floor; your screen joins when you hit Share screen */
+      var presenterH = st.floorHolder || (others[0] && others[0].handle);
+      var screens = '';
+      if (presenterH) screens += callTile({ label: mxid(presenterH), screen: true, screenTitle: st.floor.title });
+      if (call.sharing) screens += callTile({ label: mxid(youHandle), screen: true, screenTitle: 'Your screen', you: true });
+      var twoUp = (presenterH && call.sharing) ? ' two-up' : '';
+
+      var grid = others.map(function (p, i) {
+        var speaking = p.handle === st.floorHolder || !!p.speaking;
+        return callTile({ label: mxid(p.handle), cam: speaking || i === 0, speaking: speaking, muted: !speaking && i % 2 === 1 });
+      }).join('');
+      grid += callTile({ label: mxid(youHandle), cam: call.cam, muted: !call.mic, you: true });
+
+      var controls = '<div class="lr-call-controls">' +
+        (call.mic
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-mic" aria-pressed="false">' + S.icon('mic', { size: 'sm' }) + ' Mic on</button>'
+          : '<button type="button" class="btn btn--danger btn--sm" data-act="call-mic" aria-pressed="true">' + S.icon('mic-off', { size: 'sm' }) + ' Mic off</button>') +
+        (call.cam
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-cam" aria-pressed="false">' + S.icon('video', { size: 'sm' }) + ' Camera on</button>'
+          : '<button type="button" class="btn btn--ghost btn--sm" data-act="call-cam" aria-pressed="true">' + S.icon('video-off', { size: 'sm' }) + ' Camera off</button>') +
+        (call.sharing
+          ? '<button type="button" class="btn btn--secondary btn--sm" data-act="call-share" aria-pressed="true">' + S.icon('screen-share-off', { size: 'sm' }) + ' Stop share</button>'
+          : '<button type="button" class="btn btn--ghost btn--sm" data-act="call-share" aria-pressed="false">' + S.icon('screen-share', { size: 'sm' }) + ' Share screen</button>') +
+        '<button type="button" class="btn btn--danger btn--sm" data-act="call-leave">' + S.icon('phone-off', { size: 'sm' }) + ' Leave</button>' +
+        '</div>';
+
+      function picker(kind, icon2, list) {
+        return '<label>' + S.icon(icon2, { size: 'sm' }) + '<select data-call-device="' + kind + '" aria-label="' + kind + '">' +
+          list.map(function (d) { return '<option>' + esc(d) + '</option>'; }).join('') + '</select></label>';
+      }
+      var devices = '<div class="lr-call-devices">' +
+        picker('camera', 'video', DEVICES.camera) +
+        picker('microphone', 'mic', DEVICES.mic) +
+        picker('speaker', 'volume', DEVICES.speaker) +
+        '</div>';
+
+      return '<section class="lr-call" aria-label="The call">' + head +
+        (screens ? '<div class="lr-call-screens' + twoUp + '">' + screens + '</div>' : '') +
+        '<div class="lr-call-grid">' + grid + '</div>' +
+        controls + devices +
+        '<p class="citation" style="margin-block-start:var(--space-2)">' + esc(flag) +
+        ' Mockup — the wired room runs a real call on your node’s own media server (LiveKit); nothing routes through an outside service.</p>' +
+        '</section>';
     }
     function translateHtml() {
       var blocked = st.translation.isPrivate;
@@ -396,7 +502,7 @@
         chamberHtml() +
         agendaHtml() +
         '<div class="lr-body">' +
-          '<div class="lr-stage">' + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
+          '<div class="lr-stage">' + callHtml() + floorHtml() + voteHtml() + controlsHtml() + nextStepsHtml() + '</div>' +
           '<div class="lr-rail">' + rail + '</div>' +
         '</div>' +
         galleryHtml() +
@@ -490,6 +596,15 @@
       else if (act === 'cast') cast(b.getAttribute('data-v'));
       else if (act === 'raise') raiseHand();
       else if (act === 'advance') advance();
+      else if (act === 'call-join') { call.joined = true; S.announce('You joined the call (simulated) — mic on, camera on.'); render(); }
+      else if (act === 'call-leave') { call.joined = false; call.sharing = false; S.announce('You left the call.'); render(); }
+      else if (act === 'call-mic') { call.mic = !call.mic; S.announce(call.mic ? 'Microphone on.' : 'Microphone muted.'); render(); }
+      else if (act === 'call-cam') { call.cam = !call.cam; S.announce(call.cam ? 'Camera on.' : 'Camera off.'); render(); }
+      else if (act === 'call-share') { call.sharing = !call.sharing; S.announce(call.sharing ? 'You are sharing your screen (simulated — the wired room opens the browser picker).' : 'Screen share stopped.'); render(); }
+    });
+    root.addEventListener('change', function (ev) {
+      var d = ev.target.closest ? ev.target.closest('[data-call-device]') : null;
+      if (d) S.announce('Switched ' + d.getAttribute('data-call-device') + ' to ' + d.value + ' (simulated).');
     });
     root.addEventListener('submit', function (ev) {
       var f = ev.target.closest ? ev.target.closest('[data-act="post"]') : null;

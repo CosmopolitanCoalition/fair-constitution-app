@@ -97,7 +97,7 @@
       var mine = W.candidates.filter(function (c) { return (c.endorsedBy || []).indexOf(org.id) >= 0; });
       var endorsedHtml = mine.length
         ? mine.map(function (c) {
-            return '<div class="cluster" style="justify-content:space-between"><span><a href="' + S.hrefV2('electoral/candidate-profile.html') + '">' + esc(c.name) + '</a> ' +
+            return '<div class="cluster" style="justify-content:space-between"><span><a href="' + S.hrefV2('social/profile.html?who=' + encodeURIComponent(c.id) + '&tab=candidacy') + '">' + esc(c.name) + '</a> ' +
               (c.incumbent ? S.badge('neutral', 'incumbent') : '') + '</span>' +
               '<span class="gloss">' + c.approvals.toLocaleString('en-US') + ' approvals</span></div>';
           }).join('')

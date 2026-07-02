@@ -59,6 +59,26 @@
         S.icon('users', { size: 'sm' }) + ' Open board &amp; worker seats ' + S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
         '</section>';
 
+      /* ---- 1b. elections & appointments — the nomination window dial ---- */
+      var electionsSection =
+        '<section class="card" aria-labelledby="el-h">' +
+        '<h2 id="el-h">Elections &amp; appointments</h2>' +
+        '<p>Before a board election or an appointment ranking begins, nominations stay open for a set window — ' +
+        'time for the field to form in the open. How long is <strong>this organization’s dial</strong>, and turning it ' +
+        'is role-gated to the seated board.</p>' +
+        '<div style="margin-block:var(--space-3)">' +
+        '<div class="wallet-row"><span>Nomination window — board elections</span>' +
+        '<span class="gloss">days open before ranking · set by the seated board</span>' +
+        '<span class="wallet-amt" data-no-i18n>10 days</span></div>' +
+        '<div class="wallet-row"><span>Nomination window — appointments</span>' +
+        '<span class="gloss">same dial, appointed roles</span>' +
+        '<span class="wallet-amt" data-no-i18n>7 days</span></div>' +
+        '</div>' +
+        '<p class="gloss">No constitutional value lives here — public elections run on the constitutional clocks. ' +
+        'See the window in action: <a href="' + S.hrefV1('organizations/board-elections.html') + '">board elections ' +
+        S.icon('arrow-right', { size: 'sm' }) + '</a></p>' +
+        '</section>';
+
       /* ---- 2. shares ---- */
       var classRows = stock.classes.map(function (c) {
         return '<tr><td>' + esc(c.cls) + '</td><td style="text-align:end;font-variant-numeric:tabular-nums">' + esc(c.count.toLocaleString('en-US')) + '</td>' +
@@ -150,6 +170,7 @@
         '</div></header>' +
         S.plannedBanner() +
         governanceSection +
+        electionsSection +
         sharesSection +
         duesSection +
         ledgerSection +
