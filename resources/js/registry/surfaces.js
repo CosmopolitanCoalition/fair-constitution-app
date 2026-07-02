@@ -29,8 +29,8 @@ export const PLAYER_NAV = [
     { id: 'commons-square', label: 'Live rooms', icon: 'landmark', href: '/civic/commons/square', contract: 'shared/live-room.html?variant=group', phase: 6 },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
     { id: 'market', label: 'Market', icon: 'bar-chart', href: null, contract: 'economy/economy-home.html', phase: 8 },
-    { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html', phase: 2 },
-    { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: null, contract: 'index.html#journeys-h', phase: 3 },
+    { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
+    { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
     { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
     /* 'tour' is special-cased by the menu: it enters tour mode at stop 1. */
     { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
@@ -54,8 +54,8 @@ export const SITEMAP = [
         { id: 'onboarding', label: 'Create your account', icon: 'user', href: '/register', contract: 'civic/onboarding.html' },
         { id: 'residency', label: 'Say where you live', icon: 'map-pin', href: '/civic/residency', contract: 'civic/residency.html' },
         { id: 'relocation', label: 'Move somewhere new', icon: 'map', href: '/civic/relocation', contract: 'civic/relocation.html' },
-        { id: 'my-record', label: 'My record', icon: 'file-text', href: '/civic/record', contract: 'civic/my-civic-life.html', phase: 2 },
-        { id: 'achievements', label: 'Achievements', icon: 'award', href: null, contract: 'social/achievements.html', phase: 3 },
+        { id: 'my-record', label: 'My record', icon: 'file-text', href: '/civic/record', contract: 'civic/my-civic-life.html' },
+        { id: 'achievements', label: 'Achievements', icon: 'award', href: '/civic/record?tab=achievements', contract: 'social/achievements.html' },
     ] },
     { key: 'elections', title: 'A place’s elections', items: [
         { id: 'candidacy', label: 'Stand for office', icon: 'user', href: '/elections/candidacy', contract: 'electoral/candidacy-registration.html' },
@@ -141,6 +141,7 @@ export const SITEMAP = [
 export const TOUR = [
     { act: 'Arrive', href: '/civic', title: 'Home', blurb: 'What’s happening now, and what’s yours to act on.' },
     { act: 'Arrive', href: '/civic/record', title: 'My record', blurb: 'Your civic life in one place — residency, votes cast (never how), and your public acts.' },
+    { act: 'Arrive', href: '/journeys', title: 'Journeys', blurb: 'Learn by doing — each journey walks one real process; finishing one goes on your profile.' },
     { act: 'Arrive', href: '/civic/residency', title: 'Say where you live', blurb: 'Living in a place is the only requirement for every right here.' },
     { act: 'Your place', href: '/jurisdictions', title: 'Places', blurb: 'Every place on Earth, planet to neighborhood — each governs itself.' },
     { act: 'Your place', href: '/legislatures', title: 'Legislatures', blurb: 'Every chamber, sized by population — seats follow people.' },

@@ -952,4 +952,35 @@ return [
         'citation'  => 'Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | mockups-v3-wiring Phase 3c — the journeys engine
+    |----------------------------------------------------------------------
+    | Contract data from mockups/v3/journeys/journey.html (CGA_PAGE block)
+    | + config/cga/journeys.php. Zero forms/clocks — journeys are the learn
+    | layer: they nudge, never gate, and a medal grants nothing.
+    */
+
+    'civic/journeys' => [
+        'title'     => 'Journeys',
+        'module'    => 'civic',
+        'nav'       => 'journeys',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+    ],
+
+    'civic/journey' => [
+        'title'     => 'A journey',
+        'module'    => 'civic',
+        'nav'       => 'journeys',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+    ],
+
 ];

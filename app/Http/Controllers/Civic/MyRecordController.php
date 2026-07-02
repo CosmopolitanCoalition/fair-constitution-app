@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Controller;
 use App\Models\AuditEntry;
 use App\Models\Candidacy;
+use App\Services\JourneyService;
 use App\Services\RepresentativesResolver;
 use App\Services\ResidencyService;
 use App\Support\SurfaceMeta;
@@ -57,6 +58,7 @@ class MyRecordController extends Controller
         private readonly ConstitutionalEngine $engine,
         private readonly ResidencyService $residency,
         private readonly RepresentativesResolver $representatives,
+        private readonly JourneyService $journeys,
     ) {
     }
 
@@ -144,6 +146,8 @@ class MyRecordController extends Controller
             'tab'             => $tab,
             'representatives' => $this->representatives->forUser($user),
             'candidacies'     => $candidacies,
+            // Phase 3c — earned journey medals (id, journey_id, title, earned_at).
+            'achievements'    => $this->journeys->achievementsFor($user),
             'entries'      => $entries,
             'associations' => $associations,
             'stats'        => [

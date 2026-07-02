@@ -31,9 +31,14 @@ import FilterBar from '@/Components/Ui/FilterBar.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { useAnnounce } from '@/composables/useAnnounce';
+import { useJourneyNudge } from '@/composables/useJourneyNudge';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
+
+/* Phase 3c — the soft-gate pattern-proof: nudge a first-time voter toward
+   the election journey. Dismissible, never blocking (useJourneyNudge doc). */
+const nudge = useJourneyNudge('election');
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -206,6 +211,17 @@ function switchRace(raceId) {
                 rows.
             </p>
         </template>
+
+        <!-- Phase 3c — journey nudge (soft gate: informs, never blocks) -->
+        <Banner v-if="nudge.show.value" tone="info">
+            First time voting here? The election journey walks the whole arc in five minutes.
+            <span class="cluster" style="margin-block-start: var(--space-1)">
+                <Btn :as="Link" :href="nudge.href" variant="secondary" size="sm">
+                    Take the journey
+                </Btn>
+                <Btn variant="ghost" size="sm" @click="nudge.dismiss()">Dismiss</Btn>
+            </span>
+        </Banner>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
         <Banner v-if="errors.constitution" tone="warning" title="Action rejected by the constitutional engine">

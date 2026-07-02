@@ -775,6 +775,21 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     Route::post('/matrix/voice-reach', \App\Http\Controllers\Matrix\VoiceReachController::class)->name('matrix.voice-reach');
 });
 
+// mockups-v3-wiring Phase 3c — the journeys engine: guided learn-by-doing
+// arcs with durable per-user completion + profile medals. Auth-gated (progress
+// is personal); writes validate against config/cga/journeys.php in
+// JourneyService (planned journeys reject; completed journeys freeze).
+Route::middleware('auth')->group(function () {
+    Route::get('/journeys', [\App\Http\Controllers\Civic\JourneysController::class, 'index'])
+        ->name('journeys.index');
+    Route::get('/journeys/{id}', [\App\Http\Controllers\Civic\JourneysController::class, 'show'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.show');
+    Route::post('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'step'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.step');
+    Route::delete('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'unstep'])
+        ->where('id', '[a-z0-9\-]+')->name('journeys.unstep');
+});
+
 // WI-8 — System of record: read-only audit-chain viewer (auth — the chain
 // is the shared public record of the instance) + operator-triggered verify.
 Route::middleware('auth')->prefix('system')->name('system.')->group(function () {

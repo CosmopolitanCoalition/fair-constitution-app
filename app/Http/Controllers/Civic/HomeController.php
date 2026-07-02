@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ResidencyClaim;
 use App\Services\ResidencyService;
 use App\Services\RoleService;
+use App\Services\TodayFeedService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,17 +17,21 @@ use Inertia\Response;
  * WI-8 — GET /civic: the post-login civic dashboard (civic-home contract,
  * EXPLORE_civic_electoral.md §2).
  *
- * Pure dashboard/navigation — no mutations. Renders: rights badges (from
- * shared auth.roles), residency status card (open-claim state or a
- * declare CTA), the association chip chain, elections + petitions lists
- * (HONEST empty states until Phases B/C), my-record stat counts, and a
- * dormant emergency-banner slot (scenario machinery arrives in Phase C).
+ * Pure dashboard/navigation — no mutations. Since mockups-v3-wiring
+ * Phase 3b Home is the live "today" feed (civic/today.html contract):
+ * TodayFeedService rows/calendar/record lead the page. Also renders:
+ * rights badges (from shared auth.roles), residency status card
+ * (open-claim state or a declare CTA), the association chip chain,
+ * my-record stat counts, and a dormant emergency-banner slot. The
+ * elections/petitions props stay (tests + other consumers) even though
+ * the feed now presents them.
  */
 class HomeController extends Controller
 {
     public function __construct(
         private readonly ResidencyService $residency,
         private readonly RoleService $roles,
+        private readonly TodayFeedService $feed,
     ) {
     }
 
@@ -106,6 +111,10 @@ class HomeController extends Controller
 
         return Inertia::render('Civic/Home', [
             'surface'      => SurfaceMeta::for('civic/home'),
+            // Phase 3b — the live "today" feed (civic/today.html contract):
+            // {rows, total, calendar, record}, scoped by the SAME association
+            // sweep as the lists below.
+            'feed'         => $this->feed->forUser($user, $associationIds),
             'claim'        => $claimProps,
             'machine'      => self::claimMachine(),
             'associations' => $associations,

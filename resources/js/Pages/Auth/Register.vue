@@ -85,9 +85,8 @@ function submit() {
     <main id="main" class="register-page">
         <div class="stack">
             <Banner v-if="continuationLabel" tone="info" title="You were invited" style="margin-block-end: var(--space-2)">
-                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong>. </template>
-                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong>. </template>
-                Create your account and you’ll land there right after.
+                <template v-if="inviterName">{{ inviterName }} invited you to <strong>{{ continuationLabel }}</strong> — you’ll land there right after.</template>
+                <template v-else>You’ll continue to <strong>{{ continuationLabel }}</strong> — you’ll land there right after.</template>
             </Banner>
 
             <header>
@@ -113,7 +112,15 @@ function submit() {
                 </p>
 
                 <form novalidate @submit.prevent="submit">
-                    <Field label="Full name" :error="form.errors.name" hint="Use the name you want on your public civic record." required>
+                    <!-- Invite arrival (v3 civic/join.html): the name is asked ONCE, here — the
+                         landing page deliberately carries no name input, so when an invite is in
+                         flight this field speaks the mockup's friendlier voice. -->
+                    <Field
+                        :label="invitePreview ? 'What should people call you?' : 'Full name'"
+                        :error="form.errors.name"
+                        :hint="invitePreview ? 'Any name you like — you can change it later.' : 'Use the name you want on your public civic record.'"
+                        required
+                    >
                         <template #control="{ id, invalid, describedBy }">
                             <input
                                 :id="id"

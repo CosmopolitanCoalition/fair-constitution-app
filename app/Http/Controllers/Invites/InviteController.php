@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Invites;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invite;
+use App\Models\SocialSpace;
 use App\Services\Invites\InviteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Person-to-person invites — the share-to-signup growth loop.
@@ -61,7 +63,46 @@ class InviteController extends Controller
                 'inviter' => $invite->inviter?->display_name ?? $invite->inviter?->name,
                 'path'    => $invite->path(),
             ],
+            'preview' => $this->preview($invite),
         ]);
+    }
+
+    /**
+     * A small, honest preview of where a LIVE invite leads — the guest landing's "room card"
+     * (v3 civic/join.html contract). For a `space` invite it reflects the real room (title,
+     * member count, privacy); for the open kinds the server-built label IS the destination's
+     * name. Best-effort and FAIL-SOFT: any resolution hiccup yields null and the landing still
+     * renders — the preview is decoration, the front door must never break.
+     *
+     * @return array{title:string,memberCount:?int,isPrivate:bool}|null
+     */
+    private function preview(Invite $invite): ?array
+    {
+        try {
+            if ($invite->kind === Invite::KIND_SPACE) {
+                $space = SocialSpace::query()->find((string) ($invite->destination['space_id'] ?? ''));
+                if ($space === null) {
+                    return null;
+                }
+
+                return [
+                    'title'       => (string) $space->title,
+                    'memberCount' => $space->memberships()->count(),
+                    'isPrivate'   => (bool) $space->is_private,
+                ];
+            }
+
+            // call / commons / proceeding — the label was server-built at mint from the destination.
+            $title = trim((string) $invite->label);
+
+            return $title === '' ? null : [
+                'title'       => $title,
+                'memberCount' => null,
+                'isPrivate'   => false,
+            ];
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /** POST /invites — AUTH. Mint a shareable link; the service enforces the destination rules. */

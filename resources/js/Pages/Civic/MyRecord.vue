@@ -51,6 +51,8 @@ const props = defineProps({
     representatives: { type: Array, default: () => [] },
     /** The user's candidacies; the Candidacy tab renders only when > 0. */
     candidacies: { type: Array, default: () => [] },
+    /** Earned journey medals (Phase 3c) — {id, journey_id, title, earned_at}. */
+    achievements: { type: Array, default: () => [] },
     /** Server-validated ?tab= (invalid values already fell back). */
     tab: { type: String, default: 'overview' },
 });
@@ -607,10 +609,22 @@ const associationRows = computed(() =>
             <Card as="section">
                 <div class="cluster" style="justify-content: space-between; align-items: flex-start">
                     <h3 style="margin: 0"><Icon name="award" size="sm" /> Achievements</h3>
-                    <StatusBadge tone="neutral" icon="clock">Planned · Phase 3</StatusBadge>
                 </div>
-                <p class="gloss" style="margin-block-start: var(--space-3)">
-                    Nothing here yet — finish your first journey to earn one.
+
+                <div v-if="achievements.length" class="role-grid" style="margin-block-start: var(--space-3)">
+                    <div v-for="medal in achievements" :key="medal.id" class="role-card">
+                        <Icon name="award" />
+                        <span class="role-name">{{ medal.title }}</span>
+                        <span class="cc-small">Earned {{ formatDate(medal.earned_at) }}</span>
+                        <Link :href="`/journeys/${medal.journey_id}`" class="cc-small">
+                            Revisit the journey
+                        </Link>
+                    </div>
+                </div>
+
+                <p v-else class="gloss" style="margin-block-start: var(--space-3)">
+                    Nothing here yet — finish your first
+                    <Link href="/journeys">journey</Link> to earn one.
                 </p>
                 <p class="cc-small">
                     Earned records of the journeys you complete and your civic firsts. None ever
