@@ -160,6 +160,25 @@ Five items from the operator's first hands-on session, built as slices 5e-5i:
    ⚑ Residual (flagged, not built): the backend `incomplete_scopes` flag is equally
    leaf-blind — a "clean sweep" claim from OUTSIDE a leaf stop can still miss undrawn
    leaves; wants a backend follow-up.
+5c. **Second field round (operator, 2026-07-04 evening — slices 5k-5o):**
+   (5k) GHOST-LABEL 500: the F-ELB-008 handler numbers drawn-district labels by
+   counting LIVE rows while the (map_id, label) unique index also covers
+   SOFT-DELETED rows — after a clear/undo, the next commit collides with a ghost
+   ("drawn district 1" already exists) and 500s. Fix: partial unique (WHERE
+   deleted_at IS NULL) + collision-proof numbering. (5l) REPLACE FLOW: accepting
+   an autoseed plan over an already-drawn scope only offered the Art. II §8
+   overlap refusal; preview now reports existing_districts and commit accepts
+   replace=true (retires the old rows in-transaction, same semantics as the
+   delete endpoint). (5m) DRAWN-DISTRICT VISIBILITY: drawn districts were
+   invisible to the sidebar list, the counters, and the PARENT scope's reveal
+   layer (leaf-scope reveal worked); all three now treat subdivision districts
+   as first-class, children rows show drawn-progress, and flags gains
+   undrawn_leaf_giants (retiring the leaf-blind clean-sweep residual). (5n)
+   POLYGON SNAP TOOLS: vertices snap (~12px) to the giant outline + existing
+   district edges (Alt disables). (5o) FILL REMAINDER: one click stages
+   giant-minus-drawn as the pending polygon through the normal probe/commit
+   path — the last district never needs hand-tracing.
+
 6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
    mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
    guard, but never subtree membership, and Earth passes the giant guard trivially —

@@ -67,13 +67,15 @@
                         <div class="text-xs text-gray-500">Districts</div>
                         <div class="text-sm font-semibold text-white">{{ districtsRef.length }}</div>
                     </div>
+                    <!-- Leaf-giant scope counts SEATS (drawn / budget-remaining);
+                         composite scopes count member jurisdictions as before. -->
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">Assigned</div>
-                        <div class="text-sm font-semibold text-emerald-400">{{ assignedCount }}</div>
+                        <div class="text-sm font-semibold text-emerald-400">{{ isLeafGiantScope ? leafDrawnSeats : assignedCount }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">Unassigned</div>
-                        <div class="text-sm font-semibold text-amber-400">{{ unassignedAssignable.length }}</div>
+                        <div class="text-sm font-semibold text-amber-400">{{ isLeafGiantScope ? remainingBudget : unassignedAssignable.length }}</div>
                     </div>
                 </div>
 
@@ -859,12 +861,20 @@
                                     <span class="tabular-nums text-gray-500 w-8 text-right shrink-0">{{ d.convex_hull_ratio.toFixed(2) }}</span>
                                 </div>
                             </div>
+                            <!-- Committing over live drawn districts 422s without explicit
+                                 replace — surface the retirement up front instead. -->
+                            <div v-if="(autoseedPlan.existing_districts ?? 0) > 0" class="text-amber-400/90 mt-1">
+                                Accepting retires the {{ autoseedPlan.existing_districts }} existing drawn district{{ autoseedPlan.existing_districts === 1 ? '' : 's' }} at this scope.
+                            </div>
                             <div class="flex items-center gap-2 mt-1.5">
                                 <button v-if="drawTargetIsDraft"
                                         class="flex-1 px-2 py-1 rounded text-white"
                                         :class="(autoseedCommitBusy || !canDraw) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
                                         :disabled="autoseedCommitBusy || !canDraw"
-                                        @click="acceptAutoseedPlan">{{ autoseedCommitBusy ? 'Committing…' : 'Accept plan' }}</button>
+                                        @click="acceptAutoseedPlan({ replace: (autoseedPlan.existing_districts ?? 0) > 0 })">{{
+                                            autoseedCommitBusy ? 'Committing…'
+                                            : (autoseedPlan.existing_districts ?? 0) > 0 ? `Accept & replace ${autoseedPlan.existing_districts}`
+                                            : 'Accept plan' }}</button>
                                 <button v-else
                                         class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
                                         :disabled="creatingMap || !canDraw"
@@ -923,7 +933,12 @@
 
                             <!-- Freeform polygon (secondary). -->
                             <template v-else>
-                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                                <!-- Everything not yet drawn, staged as one reviewable piece. -->
+                                <button v-if="districtsRef.length > 0"
+                                        class="w-full mb-1.5 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        :disabled="remainderBusy || drawBusy"
+                                        @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
                                 <div v-if="drawProbe" class="space-y-1">
                                     <div class="flex items-center justify-between">
                                         <span class="text-gray-400">Population</span>
@@ -959,6 +974,43 @@
                                 @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : `↩ Undo last — ${undoStack[undoStack.length - 1].label}` }}</button>
                     </div>
 
+                    <!-- Phase 5e — drawn-district list: at a leaf-giant scope the districts
+                         prop carries the DRAWN districts (there is no children table to
+                         show), so the sidebar lists them with the map layer's colors. -->
+                    <template v-if="showLeafDrawnList">
+                        <div class="flex items-center gap-1.5 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
+                            <span class="w-2.5 shrink-0"></span><!-- dot spacer -->
+                            <span class="flex-1">Drawn district</span>
+                            <span class="w-8 text-right shrink-0">Seats</span>
+                            <span class="w-16 text-right shrink-0">Population</span>
+                            <span class="w-4 shrink-0"></span><!-- delete spacer -->
+                        </div>
+                        <div v-for="d in leafDrawnDistricts" :key="d.id" class="border-b border-gray-800">
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                                <span class="shrink-0 w-2.5 h-2.5 rounded-full" :style="{ background: districtFillColor(d.colorIndex) }"></span>
+                                <span class="font-mono text-gray-100 flex-1 truncate" :title="d.label">{{ d.label }}</span>
+                                <span class="tabular-nums font-semibold w-8 text-right shrink-0" :class="seatClass(d.seats)">{{ d.seats }}</span>
+                                <span class="tabular-nums text-gray-400 w-16 text-right shrink-0">{{ d.population > 0 ? formatPop(d.population) : '—' }}</span>
+                                <button class="shrink-0 w-4 text-center text-gray-600 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                                        :disabled="deletingDrawnId !== null"
+                                        :title="`Delete ${d.label}`"
+                                        @click="deleteDrawnDistrict(d)">{{ deletingDrawnId === d.id ? '…' : '🗑' }}</button>
+                            </div>
+                            <!-- Quality strip — mirrors the composite district rows' bands -->
+                            <div class="flex items-center gap-2 px-3 py-0.5 border-t border-gray-800/40 bg-gray-900/40 text-[10px] tabular-nums flex-wrap">
+                                <span :style="{ color: devColor(d.deviation) }"
+                                      title="Population deviation from ideal quota per seat">{{ devLabel(d.deviation) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: chrColor(d.chr) }" :title="shapeLabel(d.chr)">CHR {{ chrLabel(d.chr) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: contigColor(d.contiguous) }">{{ contigLabel(d.contiguous) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: integrityColor(d.intact) }">{{ integrityLabel(d.intact) }}</span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else>
                     <!-- Sort header -->
                     <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
                         <span class="w-3 shrink-0"></span><!-- dot spacer -->
@@ -1230,6 +1282,16 @@
                                       class="text-amber-300 text-[10px]"
                                       title="Unassigned compositable children within this scope">…</span>
                             </span>
+                            <!-- Leaf-giant children carry drawn_seats (additive prop) —
+                                 compact hand-drawn progress; absent on older payloads. -->
+                            <span v-if="typeof row.giant.drawn_seats === 'number'"
+                                  class="shrink-0 text-[10px] tabular-nums px-1 rounded"
+                                  :class="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)
+                                      ? 'text-emerald-400 bg-emerald-950/60'
+                                      : 'text-amber-300 bg-amber-950/60'"
+                                  :title="`${row.giant.drawn_seats} of ${Math.round(row.giant.fractional_seats)} seats hand-drawn`">
+                                drawn {{ row.giant.drawn_seats }}/{{ Math.round(row.giant.fractional_seats) }}<template v-if="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)"> ✓</template>
+                            </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(Math.round(row.giant.fractional_seats))">{{ Math.round(row.giant.fractional_seats) }}</span><!-- Seats -->
                             <span class="text-gray-400 tabular-nums w-20 text-right shrink-0">{{ row.giant.population > 0 ? formatPop(row.giant.population) : '—' }}</span><!-- Population -->
@@ -1346,6 +1408,7 @@
                          class="px-4 py-3 text-xs text-emerald-400 text-center italic">
                         All compositable jurisdictions assigned ✓
                     </div>
+                    </template><!-- end composite-scope list (v-else of the drawn list) -->
                     </div><!-- end scrollable content area -->
                 </div><!-- end districts tab flex-col -->
 
@@ -1455,7 +1518,11 @@
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
                             </div>
-                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                            <button v-if="districtsRef.length > 0"
+                                    class="w-full min-h-[44px] px-2 rounded border border-amber-700 bg-amber-900/40 text-amber-200 mt-1.5 disabled:opacity-60"
+                                    :disabled="remainderBusy || drawBusy"
+                                    @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
                             <button v-if="drawProbe"
                                     class="w-full min-h-[44px] px-2 rounded text-white mt-1.5"
                                     :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
@@ -1726,10 +1793,12 @@ function revealedDistrictName(feat, memberCount) {
 
 // ── Local reactive copies ─────────────────────────────────────────────────────
 const childrenRef  = ref(props.children.map(c => ({ ...c })))
+// members may be absent on a leaf-giant scope's DRAWN-district rows (they have
+// no member jurisdictions) — normalize to [] so every .members.reduce() holds.
 const districtsRef = ref(props.districts.map(d => ({
     ...d,
     color_index: d.color_index ?? 0,
-    members: d.members.map(m => ({ ...m })),
+    members: (d.members ?? []).map(m => ({ ...m })),
 })))
 
 // ── UI state ──────────────────────────────────────────────────────────────────
@@ -1852,6 +1921,36 @@ const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 
 // Server-side authorship gate for the mutating draw endpoints — only an
 // explicit false locks the tools (undefined = stale payload = allowed).
 const canDraw = computed(() => props.can_draw !== false)
+// Phase 5e — drawn-district rows at a leaf-giant scope. The districts prop
+// carries the DRAWN districts here (there are no children to compose); every
+// field falls back so older member-shaped payloads render without crashing.
+const leafDrawnDistricts = computed(() => {
+    if (!isLeafGiantScope.value) return []
+    return districtsRef.value.map((d, i) => ({
+        id:         d.district_id ?? d.id,
+        label:      d.label ?? d.name ?? '',
+        seats:      d.seats ?? 0,
+        population: d.population ?? 0,
+        deviation:  d.deviation ?? d.deviation_pct
+            ?? ((d.seats > 0 && (d.fractional_seats ?? 0) > 0)
+                ? (d.fractional_seats / d.seats - 1) * 100 : null),
+        chr:        d.chr ?? d.convex_hull_ratio ?? null,
+        contiguous: d.contiguous ?? d.is_contiguous ?? null,
+        intact:     d.intact ?? d.has_integrity ?? null,
+        // Match the map layer: revealed features color by district color_index;
+        // fall back to the list position (autoseed proposal ordering).
+        colorIndex: d.color_index ?? i,
+    }))
+})
+const showLeafDrawnList = computed(() =>
+    isLeafGiantScope.value && leafDrawnDistricts.value.length > 0
+)
+// Leaf counters: Assigned = committed drawn seats. Unassigned reuses
+// remainingBudget (scope_seats − committed, clamped ≥ 0 — a childless leaf
+// has no giant children, so the giant term is always 0).
+const leafDrawnSeats = computed(() =>
+    districtsRef.value.reduce((s, d) => s + (d.seats ?? 0), 0)
+)
 // DEV-only helper strip: seats the signed-in user on the election board so
 // can_draw flips without running an election. Never part of the application.
 const page = usePage()
@@ -1897,6 +1996,14 @@ let _drawControl = null
 let _drawnItems  = null
 let _drawnLayer  = null
 let _probeSeq    = 0
+// Phase 5e — polygon vertex snapping. Rings are collected per reinit (the
+// giant's own outline + every live drawn-district ring) and tested in SCREEN
+// pixels so the feel is zoom-independent. Alt held at the cursor disables
+// snapping for that click.
+const SNAP_PX    = 12
+let _snapRings   = []     // [[L.LatLng, …], …] — leaf scope only, else empty
+let _snapMarker  = null   // amber dot shown while the cursor is in snap range
+let _snapAltHeld = false
 // Split-line interaction (two taps place the cut; panning stays enabled — a
 // drag is always a pan, only a tap places a point).
 let _splitPts      = []          // [L.latLng, L.latLng] once a cut is set
@@ -3680,10 +3787,13 @@ async function runWizardAutoActions() {
     const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
     const noCap          = !props.flags?.cap
     const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
+    // flags.undrawn_leaf_giants (additive) counts leaf giants MAP-WIDE that
+    // still lack a full drawn set — absence (older payload) reads as OK.
+    const noUndrawnLeaves = (props.flags?.undrawn_leaf_giants ?? 0) === 0
     // flags.incomplete_scopes is leaf-blind (backend residual): an undrawn
     // leaf giant never registers there. Require the CURRENT stop's leaf-aware
     // completeness too before declaring the sweep done.
-    if (isFinalStep && noIncomplete && noCap && noDeepOverages && scopeComplete.value) {
+    if (isFinalStep && noIncomplete && noCap && noDeepOverages && noUndrawnLeaves && scopeComplete.value) {
         showStatus('success', 'Map complete — every scope districted.')
         return true   // skip startAutoStepTimer() in the caller
     }
@@ -3780,6 +3890,70 @@ function teardownSplitTool() {
     resetSplit()
 }
 
+// ── Phase 5e — polygon vertex snapping helpers ───────────────────────────────
+// Every linear ring (outer + holes — both are snappable boundaries) of a
+// GeoJSON geometry, as raw [lng, lat] coordinate arrays.
+function _ringsFromGeometry(geom) {
+    if (!geom) return []
+    if (geom.type === 'Polygon')            return geom.coordinates
+    if (geom.type === 'MultiPolygon')       return geom.coordinates.flat()
+    if (geom.type === 'GeometryCollection') return (geom.geometries ?? []).flatMap(_ringsFromGeometry)
+    return []
+}
+
+// Nearest point on any snap ring within SNAP_PX of the given latlng. The
+// distance test runs in container-pixel space (latLngToContainerPoint), so a
+// GeoJSON ring closes itself (first point repeated last) — no wrap segment.
+function _snapLatLng(latlng) {
+    if (!_map || _snapRings.length === 0) return { latlng, snapped: false }
+    const p = _map.latLngToContainerPoint(latlng)
+    let best = null
+    let bestDist = SNAP_PX
+    for (const ring of _snapRings) {
+        let prev = null
+        for (const ll of ring) {
+            const pt = _map.latLngToContainerPoint(ll)
+            if (prev) {
+                const cand = L.LineUtil.closestPointOnSegment(p, prev, pt)
+                const d = p.distanceTo(cand)
+                if (d <= bestDist) { bestDist = d; best = cand }
+            }
+            prev = pt
+        }
+    }
+    return best
+        ? { latlng: _map.containerPointToLatLng(best), snapped: true }
+        : { latlng, snapped: false }
+}
+
+function _clearSnapMarker() {
+    if (_snapMarker && _map) _map.removeLayer(_snapMarker)
+    _snapMarker = null
+}
+
+function _polygonDrawHandler() {
+    return _drawControl?._toolbars?.draw?._modes?.polygon?.handler ?? null
+}
+
+// Amber feedback dot while the polygon tool is engaged: shown when the cursor
+// is within snap range (and Alt isn't held). Also keeps _snapAltHeld current
+// so the click that follows honors the escape hatch.
+function _onPolySnapCursor(e) {
+    _snapAltHeld = !!e.originalEvent?.altKey
+    const h = _polygonDrawHandler()
+    if (!h?._enabled || _snapAltHeld) { _clearSnapMarker(); return }
+    const r = _snapLatLng(e.latlng)
+    if (!r.snapped) { _clearSnapMarker(); return }
+    if (_snapMarker) {
+        _snapMarker.setLatLng(r.latlng)
+    } else {
+        _snapMarker = L.circleMarker(r.latlng, {
+            radius: 6, color: '#f59e0b', fillColor: '#fbbf24', fillOpacity: 0.9,
+            weight: 2, interactive: false,
+        }).addTo(_map)
+    }
+}
+
 // Freeform polygon — kept as a secondary method (Leaflet.draw, top-left).
 function startPolygonTool() {
     teardownSplitTool()
@@ -3796,12 +3970,36 @@ function startPolygonTool() {
         _map.addControl(_drawControl)
         _map.on(L.Draw.Event.CREATED, onDrawCreated)
         _map.on(L.Draw.Event.EDITED, onDrawEdited)
+        // Snap each placed vertex: Leaflet.draw funnels every placement
+        // through the handler's addVertex, so wrapping it once per control
+        // instance covers click AND touch. Alt (sampled at the last cursor
+        // move) disables snapping for that click.
+        const h = _polygonDrawHandler()
+        if (h && !h.__snapWrapped) {
+            const origAddVertex = h.addVertex
+            h.addVertex = function (latlng) {
+                const r = _snapAltHeld ? { latlng, snapped: false } : _snapLatLng(latlng)
+                return origAddVertex.call(this, r.latlng)
+            }
+            h.__snapWrapped = true
+        }
+    }
+    if (_map && !_map.__polySnapBound) {
+        _map.on('mousemove', _onPolySnapCursor)
+        _map.__polySnapBound = true
     }
 }
 
 function teardownPolygonTool() {
     _drawnLayer = null
     if (_drawnItems) _drawnItems.clearLayers()
+    // Snap feedback must not outlive the mode — clear the dot + cursor hook.
+    _clearSnapMarker()
+    _snapAltHeld = false
+    if (_map && _map.__polySnapBound) {
+        _map.off('mousemove', _onPolySnapCursor)
+        _map.__polySnapBound = false
+    }
     if (_drawControl && _map) {
         _map.removeControl(_drawControl)
         _map.off(L.Draw.Event.CREATED, onDrawCreated)
@@ -3886,6 +4084,46 @@ async function commitDraw() {
         drawError.value = 'Commit failed.'
     } finally {
         drawBusy.value = false
+    }
+}
+
+// Phase 5e — fill remainder: the server computes the giant minus every drawn
+// district and returns the leftover polygon; it is staged EXACTLY like a
+// hand-drawn piece (same _drawnLayer + probe readout + Commit district path),
+// so the operator still reviews band/contiguity before committing.
+const remainderBusy = ref(false)
+async function fillRemainder() {
+    if (!_map || remainderBusy.value || drawBusy.value) return
+    remainderBusy.value = true
+    drawError.value = ''
+    try {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/subdivisions/remainder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
+            signal: AbortSignal.timeout(60_000),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = apiError(resp, err, 'Fill remainder failed.')
+            return
+        }
+        const data  = await resp.json()
+        const layer = L.geoJSON(data.geometry, {
+            style: { color: '#fbbf24', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.2 },
+        }).getLayers()[0]
+        if (!layer) { drawError.value = 'Fill remainder returned no geometry.'; return }
+        // reinitMapLayers() detaches _drawnItems from the map — re-attach so
+        // the staged remainder is actually visible before its commit.
+        if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
+        else if (!_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
+        onDrawCreated({ layer })   // same staging as a hand draw → probe → Commit district
+    } catch (e) {
+        drawError.value = e?.name === 'TimeoutError'
+            ? 'Fill remainder timed out — try again.'
+            : 'Fill remainder failed.'
+    } finally {
+        remainderBusy.value = false
     }
 }
 
@@ -4138,7 +4376,10 @@ async function previewAutoseedLines() {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value }),
+            // map_id pins existing_districts (the replace offer) to the plan
+            // actually displayed — without it the server falls back to the
+            // active→newest-draft resolution, which can differ under ?map=.
+            body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value, map_id: props.active_map?.id ?? null }),
             signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
@@ -4204,7 +4445,10 @@ function discardAutoseedPlan() {
     clearAutoseedOverlay()
 }
 
-async function acceptAutoseedPlan() {
+// replace: committing over live drawn districts 422s unless the operator
+// explicitly opted in — the panel button sends it only when the preview
+// reported existing_districts > 0, the stepper only on partial rework.
+async function acceptAutoseedPlan({ replace = false } = {}) {
     if (!autoseedPlan.value || autoseedCommitBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) { autoseedError.value = 'Create a draft plan to accept into.'; return }
     autoseedCommitBusy.value = true
@@ -4220,6 +4464,7 @@ async function acceptAutoseedPlan() {
                 // The plan's template, never the picker's live value — a
                 // mismatch 422s with 'Plan changed…' by design.
                 template:  autoseedPlan.value.template,
+                ...(replace ? { replace: true } : {}),
             }),
             signal: AbortSignal.timeout(60_000),
         })
@@ -4247,6 +4492,9 @@ async function acceptAutoseedPlan() {
 // remounts with justStepped re-armed) and resume on the next mount.
 async function runLeafAutoseed() {
     if (autoseedBusy.value || autoseedCommitBusy.value || autoseedPlan.value) return
+    // Never fire on a complete leaf — mirrors the caller's wasAlreadyComplete
+    // guard so a direct call can't silently replace a finished set.
+    if (scopeComplete.value) return
     if (!canDraw.value) {
         showStatus('error', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).')
         return
@@ -4262,7 +4510,12 @@ async function runLeafAutoseed() {
         showStatus('error', autoseedError.value || 'Autoseed preview failed.')
         return
     }
-    await acceptAutoseedPlan()
+    // Partial rework: this path only runs when the leaf is INCOMPLETE, so any
+    // existing drawn districts must be retired for the plan to fit — opt in
+    // to replace. Older previews without existing_districts fall back to the
+    // local drawn-row count.
+    const hasExisting = (autoseedPlan.value.existing_districts ?? districtsRef.value.length) > 0
+    await acceptAutoseedPlan({ replace: hasExisting })
     // Failure leaves the proposal open for manual review; surface it as a
     // toast too, since the operator may be watching the stepper, not the panel.
     if (autoseedError.value) showStatus('error', autoseedError.value)
@@ -4506,6 +4759,35 @@ async function deleteDistrict(districtId) {
     }
 }
 
+// Phase 5e — delete one DRAWN district from the leaf list. Same DELETE
+// endpoint as Disband, but a drawn district has no member rows to patch
+// locally — repaint the revealed layer and partial-reload the data props.
+const deletingDrawnId = ref(null)
+async function deleteDrawnDistrict(d) {
+    if (!d?.id || deletingDrawnId.value) return
+    if (!window.confirm(`Delete drawn district ${d.label || d.id}? Its area returns to the remainder.`)) return
+    deletingDrawnId.value = d.id
+    try {
+        const resp = await fetch(
+            `/api/legislatures/${props.legislature.id}/districts/${d.id}`,
+            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+        )
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            showStatus('error', apiError(resp, err, 'Failed to delete district'))
+            return
+        }
+        showStatus('success', 'Drawn district deleted')
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        console.error('deleteDrawnDistrict:', e)
+        showStatus('error', 'Network error')
+    } finally {
+        deletingDrawnId.value = null
+    }
+}
+
 // ── Mass tools ────────────────────────────────────────────────────────────────
 function openMassTool(type) {
     massToolPanel.value = type
@@ -4692,12 +4974,18 @@ async function reinitMapLayers() {
     for (const k of Object.keys(jursLabelMarkers)) delete jursLabelMarkers[k]
     _adjacencyMap = null
 
+    // 4c. Polygon-snap targets are per scope+map — rebuilt below from the fresh
+    // fetches. The eachLayer sweep above already removed the marker from the
+    // map; drop the stale handle so it can't be re-positioned off-map.
+    _snapRings  = []
+    _snapMarker = null
+
     // 5. Sync childrenRef / districtsRef from the latest Inertia props
     childrenRef.value = props.children.map(c => ({ ...c }))
     districtsRef.value = props.districts.map(d => ({
         ...d,
         color_index: d.color_index ?? 0,
-        members: d.members.map(m => ({ ...m })),
+        members: (d.members ?? []).map(m => ({ ...m })),   // drawn rows carry none
     }))
 
     mapLoading.value   = true
@@ -4784,6 +5072,22 @@ async function reinitMapLayers() {
             brokenGiantIds.value = new Set(
                 revColoredFeats.map(f => f.properties.giant_jurisdiction_id ?? f.properties.parent_jurisdiction_id)
             )
+        }
+
+        // Phase 5e — polygon-snap targets: the giant's own outline ring(s)
+        // plus every live drawn-district ring, held as latlng arrays and
+        // projected to container pixels per cursor move. Leaf scope only.
+        if (needSelf) {
+            for (const f of (selfGj?.features ?? [])) {
+                for (const ring of _ringsFromGeometry(f.geometry)) {
+                    _snapRings.push(ring.map(c => L.latLng(c[1], c[0])))
+                }
+            }
+            for (const f of revColoredFeats) {
+                for (const ring of _ringsFromGeometry(f.geometry)) {
+                    _snapRings.push(ring.map(c => L.latLng(c[1], c[0])))
+                }
+            }
         }
 
         // Shared per-feature binding — used by the native polygon layer AND
