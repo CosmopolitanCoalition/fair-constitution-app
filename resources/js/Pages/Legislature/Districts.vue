@@ -622,7 +622,10 @@
 
                     <!-- Mass tools toolbar -->
                     <div class="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
-                        <button @click="openMassTool('reseed')"
+                        <!-- Composite autoseed only — a childless leaf giant has nothing to
+                             compose; its lines autoseeder lives in the leaf panel below. -->
+                        <button v-if="!isLeafGiantScope"
+                                @click="openMassTool('reseed')"
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
                                 :class="massToolRunning || massJobRunning
@@ -778,21 +781,47 @@
                     <!-- Phase H — manual draw panel: a childless leaf giant is subdivided by hand. -->
                     <div v-if="isLeafGiantScope"
                          class="px-3 py-2 border-b border-amber-800 bg-amber-950/40 text-xs shrink-0">
+                        <!-- Shared authorship note — one line for every disabled control below. -->
+                        <div v-if="!canDraw" class="text-amber-400/90 mb-1.5">
+                            🔒 Drawing files F-ELB-008 — requires a seated election-board member (R-08).
+                        </div>
+                        <!-- DEV — not part of the application: flips can_draw by seating
+                             the signed-in user on the board via the dev-only route. -->
+                        <div v-if="devSeatVisible"
+                             class="flex items-center gap-1.5 flex-wrap mb-1.5 px-1.5 py-1 rounded border border-fuchsia-800/60 bg-fuchsia-950/30 text-[10px] text-fuchsia-300">
+                            <span class="font-semibold shrink-0">DEV — not part of the application:</span>
+                            <button class="underline hover:text-white disabled:opacity-60"
+                                    :disabled="devSeatBusy"
+                                    @click="devSeatMe">{{ devSeatBusy ? 'Seating…' : 'Seat me on this board' }}</button>
+                            <span v-if="devSeatMsg" class="text-red-400">{{ devSeatMsg }}</span>
+                        </div>
                         <template v-if="!drawMode && !autoseedPlan">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60"
-                                            :disabled="autoseedBusy"
-                                            @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Autoseed lines' }}</button>
                                     <button v-if="drawTargetIsDraft"
-                                            class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white"
+                                            class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="!canDraw"
                                             @click="enterDrawMode">✏️ Draw</button>
                                     <button v-else
-                                            class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
-                                            :disabled="creatingMap"
-                                            @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
+                                            class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="creatingMap || !canDraw"
+                                            @click="createDraftHere()">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
                                 </div>
+                            </div>
+                            <!-- Template picker + Propose — preview is read-only, so it stays
+                                 usable even when can_draw locks the mutating controls. -->
+                            <div class="flex items-center gap-1.5 mt-1.5">
+                                <select v-model="autoseedTemplate"
+                                        title="Autoseed template"
+                                        class="flex-1 min-w-0 bg-gray-900 border border-amber-800 rounded px-1.5 py-1 text-amber-200 cursor-pointer">
+                                    <option v-for="t in AUTOSEED_TEMPLATES" :key="t.key" :value="t.key">
+                                        {{ t.label }}{{ t.hint ? ` — ${t.hint}` : '' }}
+                                    </option>
+                                </select>
+                                <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 shrink-0"
+                                        :disabled="autoseedBusy"
+                                        @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Propose' }}</button>
                             </div>
                             <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
                         </template>
@@ -801,7 +830,10 @@
                         <template v-else-if="!drawMode">
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <span class="text-amber-300 font-semibold">⚡ Autoseed proposal</span>
-                                <span class="text-gray-500 tabular-nums shrink-0">{{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</span>
+                                <!-- Labels the PLAN's template (what commit will send), not the picker's. -->
+                                <span class="text-gray-500 tabular-nums shrink-0">
+                                    {{ autoseedTemplateLabel(autoseedPlan.template) }}<template v-if="autoseedPlan.cuts.length"> · {{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</template>
+                                </span>
                             </div>
                             <div class="text-amber-300/80 mb-1">
                                 {{ autoseedPlan.districts.length }} districts · {{ autoseedSeatTotal }} seats ·
@@ -830,13 +862,13 @@
                             <div class="flex items-center gap-2 mt-1.5">
                                 <button v-if="drawTargetIsDraft"
                                         class="flex-1 px-2 py-1 rounded text-white"
-                                        :class="autoseedCommitBusy ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
-                                        :disabled="autoseedCommitBusy"
+                                        :class="(autoseedCommitBusy || !canDraw) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
+                                        :disabled="autoseedCommitBusy || !canDraw"
                                         @click="acceptAutoseedPlan">{{ autoseedCommitBusy ? 'Committing…' : 'Accept plan' }}</button>
                                 <button v-else
-                                        class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
-                                        :disabled="creatingMap"
-                                        @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft plan to accept' }}</button>
+                                        class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                        :disabled="creatingMap || !canDraw"
+                                        @click="createDraftHere()">{{ creatingMap ? 'Creating…' : '+ Draft plan to accept' }}</button>
                                 <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60"
                                         :disabled="autoseedCommitBusy"
                                         @click="discardAutoseedPlan">Discard</button>
@@ -882,8 +914,8 @@
                                             :disabled="snapBusy || drawBusy"
                                             @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                            :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                            :disabled="!splitCommitReady || drawBusy || snapBusy"
+                                            :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
                                             @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit both districts' : 'A side is out of band — move the line') }}</button>
                                 </div>
                                 <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
@@ -910,8 +942,8 @@
                                         <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
                                     </div>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                            :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                            :disabled="!drawCommitReady || drawBusy"
+                                            :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!drawCommitReady || drawBusy || !canDraw"
                                             @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
                                 </div>
                                 <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
@@ -922,8 +954,8 @@
 
                         <!-- Undo the most recent commit (split / polygon / autoseed accept). -->
                         <button v-if="undoStack.length && !showMobileDrawBar"
-                                class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60"
-                                :disabled="undoBusy"
+                                class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                                :disabled="undoBusy || !canDraw"
                                 @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : `↩ Undo last — ${undoStack[undoStack.length - 1].label}` }}</button>
                     </div>
 
@@ -1391,7 +1423,7 @@
                             </div>
                             <button v-if="undoStack.length"
                                     class="px-3 min-h-[44px] rounded border border-gray-700 bg-gray-800/80 text-gray-300 disabled:opacity-60"
-                                    :disabled="undoBusy"
+                                    :disabled="undoBusy || !canDraw"
                                     @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : '↩ Undo' }}</button>
                             <button class="ml-auto px-3 min-h-[44px] rounded bg-gray-700 text-gray-200"
                                     @click="exitDrawMode">Done</button>
@@ -1411,8 +1443,8 @@
                                         :disabled="snapBusy || drawBusy"
                                         @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
                                 <button class="flex-1 min-h-[44px] px-2 rounded text-white"
-                                        :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
-                                        :disabled="!splitCommitReady || drawBusy || snapBusy"
+                                        :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                        :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
                                         @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit' : 'Out of band') }}</button>
                             </div>
                         </template>
@@ -1426,8 +1458,8 @@
                             <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
                             <button v-if="drawProbe"
                                     class="w-full min-h-[44px] px-2 rounded text-white mt-1.5"
-                                    :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
-                                    :disabled="!drawCommitReady || drawBusy"
+                                    :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                    :disabled="!drawCommitReady || drawBusy || !canDraw"
                                     @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
                         </template>
                         <div v-if="drawError" class="mt-1 text-red-400">{{ drawError }}</div>
@@ -1547,7 +1579,7 @@
  * pre-split file. Deep full-screen integration is Phase 5, NOT this pass.
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -1581,6 +1613,10 @@ const props = defineProps({
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
     active_map: { type: Object, default: null },        // the map currently being displayed
     setup_mode: { type: Boolean, default: false },      // set when arrived via /setup/step/3?setup=1
+    // Drawing files F-ELB-008, which needs a seated election-board member
+    // (R-08). Stale payloads may omit this prop entirely — absence must read
+    // as "allowed", so no Boolean default (Vue would coerce missing → false).
+    can_draw: { type: Boolean, default: undefined },
     constitutional: {
         // Derived thresholds from the legislature's constitutional_settings.
         // With default 5/9 settings these resolve to 9.5 / 5.0 / 4.5.
@@ -1813,6 +1849,44 @@ const isLeafGiantScope = computed(() =>
 )
 // Drawing writes into a DRAFT plan (F-ELB-008 refuses a non-draft).
 const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 'draft')
+// Server-side authorship gate for the mutating draw endpoints — only an
+// explicit false locks the tools (undefined = stale payload = allowed).
+const canDraw = computed(() => props.can_draw !== false)
+// DEV-only helper strip: seats the signed-in user on the election board so
+// can_draw flips without running an election. Never part of the application.
+const page = usePage()
+const devSeatVisible = computed(() =>
+    (import.meta.env.DEV || page.props.devBar === true)
+    && props.can_draw === false
+    && !!page.props.auth?.user
+)
+const devSeatBusy = ref(false)
+const devSeatMsg  = ref('')
+async function devSeatMe() {
+    if (devSeatBusy.value) return
+    devSeatBusy.value = true
+    devSeatMsg.value  = ''
+    try {
+        const resp = await fetch('/dev/board/seat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ legislature_id: props.legislature.id }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            // Prod builds don't register the route at all — say so plainly.
+            devSeatMsg.value = resp.status === 404
+                ? (err.message ?? err.error ?? 'Dev seat route not available in this build (404).')
+                : apiError(resp, err, 'Dev seat failed.')
+            return
+        }
+        router.reload()   // can_draw is recomputed server-side now that R-08 is seated
+    } catch (e) {
+        devSeatMsg.value = 'Dev seat failed — network error.'
+    } finally {
+        devSeatBusy.value = false
+    }
+}
 const drawMode   = ref(false)
 const drawMethod = ref('split')  // 'split' (line bisection) | 'polygon' (freeform)
 const drawProbe  = ref(null)     // polygon mode: { population, implied_seats, in_band, contiguous, within_giant }
@@ -1848,11 +1922,30 @@ const showMobileDrawBar = computed(() => drawMode.value && isPortraitPhone.value
 // Autoseed-lines (Phase 5b) — a whole-plan preview from the splitline autoseeder,
 // rendered as a translucent proposal overlay until accepted (commit by plan_hash)
 // or discarded. Preview needs no draft; Accept reuses the drawTargetIsDraft guard.
-const autoseedPlan       = ref(null)   // { plan_hash, seat_sizes, quota, total_pop, cuts, districts }
+const autoseedPlan       = ref(null)   // { plan_hash, template, seat_sizes, quota, total_pop, cuts, seeds?, districts }
 const autoseedBusy       = ref(false)  // preview POST in-flight
 const autoseedCommitBusy = ref(false)  // commit POST in-flight
 const autoseedError      = ref('')
-let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines
+let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines + seed dots
+
+// Autoseed template picker — the server offers four seeding strategies; the
+// choice persists across sessions like the label toggles. The COMMIT always
+// sends the template stored on the previewed plan, never the picker's live
+// value (the picker may move while a proposal is still open).
+const AUTOSEED_TEMPLATES = [
+    { key: 'shortest',          label: 'Shortest lines',    hint: 'neutral, compact' },
+    { key: 'vertical_strips',   label: 'Vertical strips' },
+    { key: 'horizontal_strips', label: 'Horizontal strips' },
+    { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
+]
+const _autoseedTplStored = localStorage.getItem('leg_autoseed_template')
+const autoseedTemplate = ref(
+    AUTOSEED_TEMPLATES.some(t => t.key === _autoseedTplStored) ? _autoseedTplStored : 'shortest'
+)
+watch(autoseedTemplate, v => localStorage.setItem('leg_autoseed_template', v))
+function autoseedTemplateLabel(key) {
+    return AUTOSEED_TEMPLATES.find(t => t.key === key)?.label ?? (key || 'Shortest lines')
+}
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
@@ -3524,20 +3617,39 @@ function clearAutoStepTimer() {
 }
 
 // ── Auto-seed + skip-seeded — shared logic run after every step landing ──────
+// Leaf-aware completeness for the CURRENT stop. On a childless leaf giant the
+// composite probe (no unassigned assignable children) is VACUOUSLY true — no
+// children exist — so a leaf counts as complete only once drawn districts
+// consume the whole seat budget (remainingBudget arithmetic: scope_seats −
+// giant seats − committed seats; a leaf has no children, so it reduces to
+// scope_seats − drawn).
+const scopeComplete = computed(() =>
+    isLeafGiantScope.value
+        ? districtsRef.value.length > 0 && remainingBudget.value <= 0
+        : unassignedAssignable.value.length === 0
+)
+
 // Returns true if we navigated away (skip fired), false if we stayed.
 // onMounted calls this after wizard bootstrap; the scope watch calls it too.
 async function runWizardAutoActions() {
     // Capture completion state BEFORE auto-seed so skip-seeded only fires when
     // the scope was already complete on arrival — not because we just seeded it.
-    const wasAlreadyComplete = unassignedAssignable.value.length === 0
+    const wasAlreadyComplete = scopeComplete.value
 
     // Auto-seed: only run if there is actually something to seed.
     // Returns false immediately so the user can review the seeded result before
     // the auto-step timer (if on) fires and advances to the next scope.
     if (wizardAutoSeed.value && !wasAlreadyComplete) {
-        await runMassReseed('map_view_unassigned', null, /* silent */ true)
-        await nextTick()           // let Vue flush updated props into computeds
-        await reinitMapLayers()    // repaint map with the newly created districts
+        if (isLeafGiantScope.value) {
+            // Childless leaf: nothing to compose — propose + accept the lines
+            // plan instead (its own reload/repaint path). May router.visit()
+            // for a draft; the remount resumes via justStepped either way.
+            await runLeafAutoseed()
+        } else {
+            await runMassReseed('map_view_unassigned', null, /* silent */ true)
+            await nextTick()           // let Vue flush updated props into computeds
+            await reinitMapLayers()    // repaint map with the newly created districts
+        }
         return false   // seeded — stay on scope for review
     }
 
@@ -3564,7 +3676,10 @@ async function runWizardAutoActions() {
     const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
     const noCap          = !props.flags?.cap
     const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
-    if (isFinalStep && noIncomplete && noCap && noDeepOverages) {
+    // flags.incomplete_scopes is leaf-blind (backend residual): an undrawn
+    // leaf giant never registers there. Require the CURRENT stop's leaf-aware
+    // completeness too before declaring the sweep done.
+    if (isFinalStep && noIncomplete && noCap && noDeepOverages && scopeComplete.value) {
         showStatus('success', 'Map complete — every scope districted.')
         return true   // skip startAutoStepTimer() in the caller
     }
@@ -3735,7 +3850,7 @@ const drawCommitReady = computed(() =>
 )
 
 async function commitDraw() {
-    if (!_drawnLayer || !drawCommitReady.value || drawBusy.value) return
+    if (!_drawnLayer || !drawCommitReady.value || drawBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) {
         drawError.value = 'Select or create a DRAFT plan to draw into.'
         return
@@ -3947,7 +4062,7 @@ async function snapToBalance() {
 }
 
 async function commitSplit() {
-    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value) return
+    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) { drawError.value = 'Create a draft plan to draw into.'; return }
     drawBusy.value = true
     drawError.value = ''
@@ -3977,7 +4092,12 @@ async function commitSplit() {
 
 // Create a draft plan and stay on THIS scope (so the operator can draw straight
 // away), rather than submitNewMap()'s jump to the auto-seed wizard.
-async function createDraftHere() {
+// resumeWizard: router.visit() remounts and DROPS the wizard auto-action chain;
+// re-arm justStepped right before the visit so the remount resumes it (the
+// stepper's leaf branch relies on this to continue after the draft appears).
+// Template call sites must use createDraftHere() — a bare handler would pass
+// the MouseEvent as resumeWizard.
+async function createDraftHere(resumeWizard = false) {
     if (creatingMap.value) return
     creatingMap.value = true
     drawError.value = ''
@@ -3989,6 +4109,7 @@ async function createDraftHere() {
         })
         const data = await resp.json()
         if (!resp.ok) { drawError.value = data.error ?? 'Failed to create a draft plan.'; return }
+        if (resumeWizard) localStorage.setItem(_wizardLs.justStepped, '1')
         router.visit(mapUrl(props.scope.id, data.id))   // reload this scope with the draft selected
     } catch (e) {
         drawError.value = 'Network error creating the draft plan.'
@@ -4010,7 +4131,7 @@ async function previewAutoseedLines() {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body: JSON.stringify({ scope_id: props.scope.id }),
+            body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value }),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4018,7 +4139,9 @@ async function previewAutoseedLines() {
             return
         }
         const plan = await resp.json()
-        autoseedPlan.value = plan
+        // Pin the RESPONSE's template on the plan — commit must send what was
+        // previewed even if the picker moves while the proposal is open.
+        autoseedPlan.value = { ...plan, template: plan.template ?? autoseedTemplate.value }
         renderAutoseedOverlay(plan)
     } catch (e) {
         autoseedError.value = 'Autoseed preview failed.'
@@ -4047,6 +4170,15 @@ function renderAutoseedOverlay(plan) {
             style: { color: '#fbbf24', weight: 2.5, dashArray: '6 4', opacity: 0.9 },
         }).addTo(group)
     }
+    // Community-cells plans carry no cuts — the fills above show the shapes
+    // and each generator seed gets a small dot so the operator sees the anchors.
+    for (const s of plan.seeds ?? []) {
+        L.circleMarker([s.lat, s.lng], {
+            interactive: false,
+            radius: 4, color: '#111827', weight: 1.5,
+            fillColor: '#fbbf24', fillOpacity: 1,
+        }).addTo(group)
+    }
     group.addTo(_map)
     _autoseedLayers = group
 }
@@ -4063,7 +4195,7 @@ function discardAutoseedPlan() {
 }
 
 async function acceptAutoseedPlan() {
-    if (!autoseedPlan.value || autoseedCommitBusy.value) return
+    if (!autoseedPlan.value || autoseedCommitBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) { autoseedError.value = 'Create a draft plan to accept into.'; return }
     autoseedCommitBusy.value = true
     autoseedError.value = ''
@@ -4075,6 +4207,9 @@ async function acceptAutoseedPlan() {
                 scope_id:  props.scope.id,
                 map_id:    props.active_map.id,
                 plan_hash: autoseedPlan.value.plan_hash,
+                // The plan's template, never the picker's live value — a
+                // mismatch 422s with 'Plan changed…' by design.
+                template:  autoseedPlan.value.template,
             }),
         })
         if (!resp.ok) {
@@ -4093,6 +4228,33 @@ async function acceptAutoseedPlan() {
     } finally {
         autoseedCommitBusy.value = false
     }
+}
+
+// Wizard-stepper leaf branch: a childless leaf giant has nothing to compose,
+// so its auto-seed is the lines autoseeder — propose with the persisted
+// template, then accept in one pass. May navigate away (draft creation
+// remounts with justStepped re-armed) and resume on the next mount.
+async function runLeafAutoseed() {
+    if (autoseedBusy.value || autoseedCommitBusy.value || autoseedPlan.value) return
+    if (!canDraw.value) {
+        showStatus('error', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).')
+        return
+    }
+    if (!drawTargetIsDraft.value) {
+        // The accept endpoint refuses a non-draft target — create one and let
+        // the remount (justStepped set before the visit) re-enter this path.
+        await createDraftHere(true)
+        return
+    }
+    await previewAutoseedLines()
+    if (!autoseedPlan.value) {
+        showStatus('error', autoseedError.value || 'Autoseed preview failed.')
+        return
+    }
+    await acceptAutoseedPlan()
+    // Failure leaves the proposal open for manual review; surface it as a
+    // toast too, since the operator may be watching the stepper, not the panel.
+    if (autoseedError.value) showStatus('error', autoseedError.value)
 }
 
 // ── Undo last commit (split / polygon / autoseed accept) ─────────────────────
