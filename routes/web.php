@@ -260,18 +260,23 @@ Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureContro
 
 // Phase H — manual district drawing for a childless leaf giant. probe is the
 // read-only live readout behind the draw tool; draw files F-ELB-008 (audited).
+// The MUTATING endpoints (draw / split-commit / autoseed commit) require a
+// session: F-ELB-008's role gate + board provenance key on the ACTOR, and a
+// null actor is the system path (engine bypasses the role gate) — a guest
+// POST must never ride it. Probes/preview/balance stay public (read-only).
 Route::post('/api/legislatures/{legislature_id}/population-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'probe'])->name('legislatures.population-probe');
-Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'draw'])->name('legislatures.subdivisions.draw');
+Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'draw'])->name('legislatures.subdivisions.draw')->middleware('auth');
 // Split-line bisection: draw a line, see the population each side, commit both districts.
 Route::post('/api/legislatures/{legislature_id}/split-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitProbe'])->name('legislatures.split-probe');
-Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit');
-// Shortest-splitline AUTOSEED for a childless leaf giant (Phase 5 design §3):
-// preview computes the full deterministic cut plan (read-only), commit
-// recomputes it server-side and files one F-ELB-008 per leaf district, and
-// split-balance slides a hand-placed line to the nearest in-band seat
-// balance without changing its angle.
+Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit')->middleware('auth');
+// AUTOSEED for a childless leaf giant (Phase 5 design §3, template-aware):
+// preview computes the full deterministic plan (read-only) under the chosen
+// template (shortest / strips / community_cells), commit recomputes it
+// server-side and files one F-ELB-008 per leaf district, and split-balance
+// slides a hand-placed line to the nearest in-band seat balance without
+// changing its angle.
 Route::post('/api/legislatures/{legislature_id}/autoseed-lines/preview', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedPreview'])->name('legislatures.autoseed-lines.preview');
-Route::post('/api/legislatures/{legislature_id}/autoseed-lines/commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedCommit'])->name('legislatures.autoseed-lines.commit');
+Route::post('/api/legislatures/{legislature_id}/autoseed-lines/commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'autoseedCommit'])->name('legislatures.autoseed-lines.commit')->middleware('auth');
 Route::post('/api/legislatures/{legislature_id}/split-balance', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitBalance'])->name('legislatures.split-balance');
 
 // Auto-seed stepper: post-order DFS walk of giant scopes (constitutional
@@ -861,6 +866,11 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::get('/executive-kit', [ExecutiveOrgKitController::class, 'show'])->name('executive-kit');
         // FE-E1 — fixture-first harness: every Phase E judiciary component.
         Route::get('/judiciary-kit', [JudiciaryKitController::class, 'show'])->name('judiciary-kit');
+        // Phase 5 — one-click R-08 for districting walkthroughs: seat/unseat
+        // the CURRENT user on the active election board of a legislature's
+        // jurisdiction (the posture the now-auth-gated draw commits require).
+        Route::post('/board/seat', [\App\Http\Controllers\Dev\BoardSeatController::class, 'seat'])->name('board.seat');
+        Route::post('/board/unseat', [\App\Http\Controllers\Dev\BoardSeatController::class, 'unseat'])->name('board.unseat');
     });
 
     // Dev login-as: a passwordless web session for any user — the

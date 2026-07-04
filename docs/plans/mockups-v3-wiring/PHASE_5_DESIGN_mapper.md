@@ -118,6 +118,57 @@ near-impossible on touch):
 4. **5d — the stepper integration** (Autoseed-lines button per leaf-giant stop; the
    San Marino ×2 walk end-to-end is the acceptance test).
 
+## 5b. Road-test feedback wave (operator, 2026-07-02, from the field)
+
+Five items from the operator's first hands-on session, built as slices 5e-5i:
+
+1. **Shell width (5e)** — every v2 page rendered ~1555px left-pinned on a 1920 screen.
+   Root cause: `.dev-bar { grid-area: devbar }` with no `devbar` area in the v2 shell
+   grid → CSS Grid resolves the unknown name to an IMPLICIT auto-sized COLUMN that
+   steals the dev bar's max-content width from the real column. Fix: the v2 grid gets
+   its devbar row back (mirrors v1) + the dev bar lifts above the fixed command bar.
+   Companion: AppShellV2 read `page.props.impersonation` but the middleware shares
+   `auth.impersonating` — the impersonation dev-bar trigger never fired; fixed.
+2. **Template picker (5f)** — "Polygon drawing is clunky; common algorithm templates
+   to choose from would be nice." The §3b second seeder ships as part of a four-way
+   picker on the leaf panel: Shortest lines · Vertical strips · Horizontal strips
+   (both = the splitline recursion with a constrained angle set — parallel balanced
+   cuts commute) · Community cells (the density-anchored balanced power diagram:
+   deterministic density-peak seeds, Aurenhammer weight balancing over the pixel
+   grid, exact convex cells by radical-axis half-plane clipping, then the proven
+   PostGIS clip+shave). `template` joins the plan_hash, so commit fails closed on a
+   template mismatch.
+3. **Null-actor hole CLOSED (5g)** — found while diagnosing the operator's R-08
+   refusal: the mutating draw routes were public and a null actor bypasses BOTH the
+   engine role gate (ConstitutionalEngine::authorize) and the handler's board
+   provenance — an anonymous guest could file F-ELB-008 while a signed-in
+   non-board-member correctly could not. The three mutating routes now require auth;
+   probes/preview stay public (read-only). New `can_draw` prop gates the UI honestly.
+4. **Dev board-seat path (5h)** — R-08 derives only from a SEATED row on an ACTIVE
+   election board, and the handler additionally demands the actor's OWN seat on the
+   jurisdiction's board (operator posture is not enough). Dev-plane fix (same
+   double-lock as all /dev routes): POST /dev/board/seat seats the current user on
+   the active (bootstrap) board — one honest row; /dev/board/unseat reverses it. A
+   dev-only strip on the mapper surfaces it when can_draw is false.
+5. **Stepper → lines (5i)** — the wizard's Auto-seed silently no-opped on leaf-giant
+   stops (completeness was vacuously true with zero children; composite reseed is a
+   logged no-op on childless scopes). The completeness probe is now leaf-aware (drawn
+   seats vs budget), Auto-seed forks to the lines autoseed on leaf stops
+   (preview→commit with the persisted template), Skip Complete stops false-skipping
+   undrawn leaves, and the redundant composite ⚡ Autoseed button hides on leaves
+   (Clear stays — it deletes committed districts, which session undo cannot).
+   ⚑ Residual (flagged, not built): the backend `incomplete_scopes` flag is equally
+   leaf-blind — a "clean sweep" claim from OUTSIDE a leaf stop can still miss undrawn
+   leaves; wants a backend follow-up.
+6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
+   mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
+   guard, but never subtree membership, and Earth passes the giant guard trivially —
+   the page then runs Webster-share arithmetic on the whole planet ("7,677,127 seats
+   to assign"). Fix: districts() clamps any scope outside the legislature's root
+   subtree with a redirect to the root scope (map param preserved); the breadcrumb
+   stops linking ancestors above the legislature root and the ↑ control stops at
+   root.
+
 ## 6. Not doing / boundaries
 
 - No touch to the PROTECTED `DistrictingService` autoseed (whole-child-unit

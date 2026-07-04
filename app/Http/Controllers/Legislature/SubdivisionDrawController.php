@@ -236,8 +236,12 @@ class SubdivisionDrawController extends Controller
      */
     public function autoseedPreview(Request $request, string $legislature_id): JsonResponse
     {
-        $scopeId = (string) $request->input('scope_id', '');
-        $year    = (int) $request->input('population_year', 2023);
+        $validated = $request->validate([
+            'template' => ['nullable', 'string', 'in:'.implode(',', SubdivisionAutoseedService::TEMPLATES)],
+        ]);
+        $template = $validated['template'] ?? SubdivisionAutoseedService::TEMPLATE_SHORTEST;
+        $scopeId  = (string) $request->input('scope_id', '');
+        $year     = (int) $request->input('population_year', 2023);
         if ($scopeId === '') {
             return response()->json(['error' => 'scope_id is required'], 422);
         }
@@ -248,11 +252,12 @@ class SubdivisionDrawController extends Controller
         }
 
         try {
-            $plan = $this->autoseed->plan($scopeId, $ctx, $year);
+            $plan = $this->autoseed->plan($scopeId, $ctx, $year, $template);
         } catch (\RuntimeException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
+        // $plan echoes the template back (part of the hashed plan identity).
         return response()->json($plan + ['floor' => $ctx['floor'], 'ceiling' => $ctx['ceiling']]);
     }
 
@@ -270,7 +275,9 @@ class SubdivisionDrawController extends Controller
             'scope_id'  => ['required', 'uuid'],
             'map_id'    => ['required', 'uuid'],
             'plan_hash' => ['required', 'string'],
+            'template'  => ['nullable', 'string', 'in:'.implode(',', SubdivisionAutoseedService::TEMPLATES)],
         ]);
+        $template = $validated['template'] ?? SubdivisionAutoseedService::TEMPLATE_SHORTEST;
         $year = (int) $request->input('population_year', 2023);
 
         $ctx = $this->giantContext($legislature_id, $validated['scope_id']);
@@ -292,7 +299,10 @@ class SubdivisionDrawController extends Controller
         }
 
         try {
-            $plan = $this->autoseed->plan($validated['scope_id'], $ctx, $year);
+            // The recompute runs under the SAME template as the preview — the
+            // template is inside the hashed identity, so a swapped or omitted
+            // template fails the hash_equals below (fails closed).
+            $plan = $this->autoseed->plan($validated['scope_id'], $ctx, $year, $template);
         } catch (\RuntimeException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }

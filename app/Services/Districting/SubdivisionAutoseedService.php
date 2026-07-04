@@ -27,6 +27,30 @@ use RuntimeException;
  */
 class SubdivisionAutoseedService
 {
+    /**
+     * The districting TEMPLATES (Phase 5 template wave). All four emit the
+     * same plan contract and commit through the identical recompute→hash→
+     * F-ELB-008 path; the template is part of the hashed plan identity.
+     *  - shortest           : the full shortest-splitline angle sweep (default)
+     *  - vertical_strips    : one fixed north–south blade per cut (θ = 90°)
+     *  - horizontal_strips  : one fixed east–west blade per cut (θ = 0°)
+     *  - community_cells    : the balanced power diagram (SubdivisionCellSeedService)
+     */
+    public const TEMPLATE_SHORTEST = 'shortest';
+
+    public const TEMPLATE_VERTICAL_STRIPS = 'vertical_strips';
+
+    public const TEMPLATE_HORIZONTAL_STRIPS = 'horizontal_strips';
+
+    public const TEMPLATE_COMMUNITY_CELLS = 'community_cells';
+
+    public const TEMPLATES = [
+        self::TEMPLATE_SHORTEST,
+        self::TEMPLATE_VERTICAL_STRIPS,
+        self::TEMPLATE_HORIZONTAL_STRIPS,
+        self::TEMPLATE_COMMUNITY_CELLS,
+    ];
+
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
     private const EXTENSION_DEG = 2.0;
 
@@ -38,6 +62,7 @@ class SubdivisionAutoseedService
 
     public function __construct(
         private readonly PopulationRaster $raster,
+        private readonly SubdivisionCellSeedService $cells,
     ) {
     }
 
@@ -45,10 +70,23 @@ class SubdivisionAutoseedService
      * Compute the full deterministic cut plan for a leaf giant. $ctx is the
      * controller's giantContext (floor/ceiling/budget/quota). Read-only.
      *
+     * The strip templates ride the SAME recursion as shortest: parallel
+     * balanced cuts commute, so the exact prefix-sum placement needs only the
+     * one fixed angle per pass. Contiguity validation still applies and can
+     * legitimately fail on a non-convex giant — the error then points back at
+     * 'shortest'.
+     *
      * @throws RuntimeException when no in-band plan exists (with a plain reason)
      */
-    public function plan(string $scopeId, array $ctx, int $year = 2023): array
+    public function plan(string $scopeId, array $ctx, int $year = 2023, string $template = self::TEMPLATE_SHORTEST): array
     {
+        if (! in_array($template, self::TEMPLATES, true)) {
+            throw new RuntimeException("Unknown districting template '{$template}'.");
+        }
+        if ($template === self::TEMPLATE_COMMUNITY_CELLS) {
+            return $this->cells->plan($scopeId, $ctx, $year);
+        }
+
         $pixels = $this->raster->pixelGrid($scopeId, $year);
         if (count($pixels) < 2) {
             throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
@@ -77,7 +115,7 @@ class SubdivisionAutoseedService
         $cuts = [];
         $districts = [];
         $order = 0;
-        $this->subdivide($scopeId, 'root', $region->gj, $pixels, $sizes, $quota, $cuts, $districts, $order);
+        $this->subdivide($scopeId, 'root', $region->gj, $pixels, $sizes, $quota, $cuts, $districts, $order, $template);
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 
@@ -87,9 +125,10 @@ class SubdivisionAutoseedService
             'seat_budget'     => $S,
             'sizes'           => $sizes,
             'quota'           => round($quota, 1),
+            'template'        => $template,
             'cuts'            => $cuts,
             'districts'       => $districts,
-            'plan_hash'       => self::planHash($scopeId, $year, $sizes, $cuts),
+            'plan_hash'       => self::planHash($scopeId, $year, $sizes, $cuts, $template),
         ];
     }
 
@@ -333,6 +372,7 @@ class SubdivisionAutoseedService
         array &$cuts,
         array &$districts,
         int &$order,
+        string $template,
     ): void {
         if (count($sizes) === 1) {
             $pop = 0.0;
@@ -378,7 +418,7 @@ class SubdivisionAutoseedService
         }
 
         [$aSizes, $bSizes] = self::bisectSizes($sizes);
-        $cut = $this->findBlade($gj, $pixels, array_sum($aSizes), array_sum($bSizes), $quota);
+        $cut = $this->findBlade($gj, $pixels, array_sum($aSizes), array_sum($bSizes), $quota, $template);
 
         $cuts[] = [
             'order'       => $order++,
@@ -391,18 +431,21 @@ class SubdivisionAutoseedService
             ],
         ];
 
-        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $aSizes, $quota, $cuts, $districts, $order);
-        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $bSizes, $quota, $cuts, $districts, $order);
+        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $aSizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $bSizes, $quota, $cuts, $districts, $order, $template);
     }
 
     /**
-     * The shortest valid balanced blade for one tree node: sweep the fixed
-     * angle set, place each blade exactly by prefix-sum, score by IN-REGION
-     * blade length (geography meters), then validate winners shortest-first —
-     * ST_Split must leave each side a SINGLE polygon (a U-shaped region can
-     * strand a fragment) and each side within the per-seat deviation guard.
+     * The shortest valid balanced blade for one tree node: sweep the
+     * template's angle set (theta = BLADE DIRECTION: 0° = an east–west blade,
+     * 90° = a north–south blade), place each blade exactly by prefix-sum,
+     * score by IN-REGION blade length (geography meters), then validate
+     * winners shortest-first — ST_Split must leave each side a SINGLE polygon
+     * (a U-shaped region can strand a fragment) and each side within the
+     * per-seat deviation guard. The strip templates offer a single fixed
+     * angle, so "shortest" degenerates to "the one candidate".
      */
-    private function findBlade(string $regionGj, array $pixels, int $seatsA, int $seatsB, float $quota): array
+    private function findBlade(string $regionGj, array $pixels, int $seatsA, int $seatsB, float $quota, string $template): array
     {
         [$total, $lon0, $lat0, $cosLat] = self::gridFrame($pixels);
         if (count($pixels) < 2 || $total <= 0.0) {
@@ -410,10 +453,9 @@ class SubdivisionAutoseedService
         }
         $target = $seatsA / ($seatsA + $seatsB) * $total;
 
-        foreach (self::ANGLE_PASSES as $steps) {
+        foreach (self::anglePasses($template) as $pass) {
             $candidates = [];
-            for ($i = 0; $i < $steps; $i++) {
-                $angleDeg = 180.0 * $i / $steps;
+            foreach ($pass as $i => $angleDeg) {
                 $theta = deg2rad($angleDeg);
                 $nx = -sin($theta);
                 $ny = cos($theta);
@@ -484,8 +526,31 @@ class SubdivisionAutoseedService
 
         throw new RuntimeException(
             "No contiguous in-band straight cut found for a {$seatsA}:{$seatsB} split of this region "
-            .'(48 candidate angles tried) — cut it by hand.'
+            .match ($template) {
+                self::TEMPLATE_VERTICAL_STRIPS   => "(the vertical_strips template's single 90° blade tried) — try the 'shortest' template or cut it by hand.",
+                self::TEMPLATE_HORIZONTAL_STRIPS => "(the horizontal_strips template's single 0° blade tried) — try the 'shortest' template or cut it by hand.",
+                default                          => '(48 candidate angles tried) — cut it by hand.',
+            }
         );
+    }
+
+    /**
+     * The candidate blade-angle passes for a template. Shortest sweeps a
+     * coarse then a fine fan; each strip template is ONE fixed angle (the
+     * prefix-sum placement is exact, so no retry pass exists to offer).
+     *
+     * @return float[][] passes of blade-direction angles in degrees
+     */
+    private static function anglePasses(string $template): array
+    {
+        return match ($template) {
+            self::TEMPLATE_VERTICAL_STRIPS   => [[90.0]],
+            self::TEMPLATE_HORIZONTAL_STRIPS => [[0.0]],
+            default => array_map(
+                fn (int $steps) => array_map(fn (int $i) => 180.0 * $i / $steps, range(0, $steps - 1)),
+                self::ANGLE_PASSES,
+            ),
+        };
     }
 
     /**
@@ -603,8 +668,14 @@ class SubdivisionAutoseedService
         ];
     }
 
-    /** @return array{float, float, float, float} [totalPop, meanLon, meanLat, cos(meanLat)] */
-    private static function gridFrame(array $pixels): array
+    /**
+     * The scaled local frame every consumer (splitline AND the cell seeder)
+     * projects into: equirectangular about the pixel centroid, Δlon scaled by
+     * cos(meanLat) so distances are honest in meters.
+     *
+     * @return array{float, float, float, float} [totalPop, meanLon, meanLat, cos(meanLat)]
+     */
+    public static function gridFrame(array $pixels): array
     {
         $total = 0.0;
         $sumLon = 0.0;
@@ -656,10 +727,11 @@ class SubdivisionAutoseedService
 
     /**
      * The determinism receipt: sha256 over the canonical plan identity —
-     * scope, raster year, seat grouping, and every cut line's coordinates
-     * rounded to 7 decimals (~1 cm). Commit recomputes and compares.
+     * scope, raster year, TEMPLATE, seat grouping, and every cut line's
+     * coordinates rounded to 7 decimals (~1 cm). Commit recomputes and
+     * compares, so a template swap between preview and commit fails closed.
      */
-    private static function planHash(string $scopeId, int $year, array $sizes, array $cuts): string
+    private static function planHash(string $scopeId, int $year, array $sizes, array $cuts, string $template): string
     {
         $lines = array_map(
             fn (array $cut) => array_map(
@@ -673,6 +745,7 @@ class SubdivisionAutoseedService
             'scope_id'        => $scopeId,
             'population_year' => $year,
             'sizes'           => array_values($sizes),
+            'template'        => $template,
             'lines'           => $lines,
         ]));
     }

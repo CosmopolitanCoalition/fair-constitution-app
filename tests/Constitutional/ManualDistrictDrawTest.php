@@ -8,6 +8,7 @@ use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
+use Tests\Concerns\SeatsBoardUser;
 use Tests\TestCase;
 
 /**
@@ -31,6 +32,7 @@ use Tests\TestCase;
 class ManualDistrictDrawTest extends TestCase
 {
     use LivePgConnection;
+    use SeatsBoardUser;
 
     private const LIVE_CONNECTION = 'pgsql_manual_draw';
 
@@ -190,14 +192,16 @@ class ManualDistrictDrawTest extends TestCase
                 $ctx['legislature_id']
             )->getContent(), true);
 
-            $resp = $controller->splitCommit(
-                \Illuminate\Http\Request::create('/sc', 'POST', [
-                    'scope_id' => $ctx['giant_id'],
-                    'map_id'   => $ctx['map_id'],
-                    'line'     => $ctx['bisect_line'],
-                ]),
-                $ctx['legislature_id']
-            );
+            // The commit files as a SEATED board member — split-commit is
+            // auth-gated now, so the guest/null-actor posture no longer exists.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'line'     => $ctx['bisect_line'],
+            ]);
+            $commitReq->setUserResolver(fn () => $user);
+            $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
 
             if ($probe['both_in_band']) {
                 $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());

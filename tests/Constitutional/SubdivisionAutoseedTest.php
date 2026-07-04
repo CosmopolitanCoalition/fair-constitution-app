@@ -3,6 +3,7 @@
 namespace Tests\Constitutional;
 
 use App\Http\Controllers\Legislature\SubdivisionDrawController;
+use App\Models\User;
 use App\Services\ConstitutionalDefaults;
 use App\Services\Districting\SubdivisionAutoseedService;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
+use Tests\Concerns\SeatsBoardUser;
 use Tests\TestCase;
 
 /**
@@ -25,9 +27,16 @@ use Tests\TestCase;
  *     audit chain and FF&C demand reproducibility on every mesh node);
  *  3. every final district holds 5–9 seats at ≤5% per-seat deviation, and is
  *     a single contiguous polygon (Art. II §8);
- *  4. commit files one F-ELB-008 per leaf district (audited, atomic), and a
- *     stale plan_hash is refused — preview-first, never auto-commit;
- *  5. split-balance keeps the hand-placed angle and lands both sides in band.
+ *  4. commit files one F-ELB-008 per leaf district (audited, atomic, by a
+ *     SEATED board member — the actor posture the endpoints now require), and
+ *     a stale plan_hash is refused — preview-first, never auto-commit;
+ *  5. split-balance keeps the hand-placed angle and lands both sides in band;
+ *  6. TEMPLATES (Phase 5 wave): the strip templates cut at their one fixed
+ *     angle and stay in band; the template is part of the hashed plan
+ *     identity (a template swap between preview and commit fails closed);
+ *     community_cells emits a deterministic in-band plan on the same contract;
+ *  7. a GUEST cannot reach any mutating draw endpoint (auth-gated) — the
+ *     null-actor system path is never rideable from outside.
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -35,6 +44,7 @@ use Tests\TestCase;
 class SubdivisionAutoseedTest extends TestCase
 {
     use LivePgConnection;
+    use SeatsBoardUser;
 
     private const LIVE_CONNECTION = 'pgsql_autoseed';
 
@@ -173,12 +183,16 @@ class SubdivisionAutoseedTest extends TestCase
                 ->where('method', 'manual')
                 ->whereNull('deleted_at')->count();
 
+            // Commits file as a SEATED board member (the endpoints are
+            // auth-gated now; the guest/null-actor path is pinned closed below).
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
             // A stale plan_hash is refused before anything persists.
-            $stale = $controller->autoseedCommit(Request::create('/c', 'POST', [
+            $stale = $controller->autoseedCommit($this->authedRequest('/c', [
                 'scope_id'  => $ctx['giant_id'],
                 'map_id'    => $ctx['map_id'],
                 'plan_hash' => str_repeat('0', 64),
-            ]), $ctx['legislature_id']);
+            ], $user), $ctx['legislature_id']);
             $this->assertSame(422, $stale->getStatusCode());
             $this->assertStringContainsString('Plan changed', json_decode($stale->getContent(), true)['error']);
             $this->assertSame(0, $subdivisions());
@@ -186,11 +200,11 @@ class SubdivisionAutoseedTest extends TestCase
             $auditBefore = (int) DB::table('audit_log')
                 ->where('ref', 'F-ELB-008')->where('rejected', false)->count();
 
-            $ok = $controller->autoseedCommit(Request::create('/c', 'POST', [
+            $ok = $controller->autoseedCommit($this->authedRequest('/c', [
                 'scope_id'  => $ctx['giant_id'],
                 'map_id'    => $ctx['map_id'],
                 'plan_hash' => $plan['plan_hash'],
-            ]), $ctx['legislature_id']);
+            ], $user), $ctx['legislature_id']);
             $this->assertSame(200, $ok->getStatusCode(), $ok->getContent());
             $data = json_decode($ok->getContent(), true);
             $this->assertSame(2, $data['districts_created']);
@@ -234,7 +248,221 @@ class SubdivisionAutoseedTest extends TestCase
         });
     }
 
+    // ── template pins (Phase 5 template wave) ───────────────────────────────
+
+    public function test_strip_templates_cut_at_their_fixed_angle_and_land_in_band(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $floor   = ConstitutionalDefaults::floor($ctx['leg_jurisdiction_id']);
+            $ceiling = ConstitutionalDefaults::ceiling($ctx['leg_jurisdiction_id']);
+
+            foreach (['vertical_strips' => 90.0, 'horizontal_strips' => 0.0] as $template => $angle) {
+                $resp = $controller->autoseedPreview(Request::create('/a', 'POST', [
+                    'scope_id' => $ctx['giant_id'],
+                    'template' => $template,
+                ]), $ctx['legislature_id']);
+                $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+                $p = json_decode($resp->getContent(), true);
+
+                $this->assertSame($template, $p['template'], 'the preview echoes its template');
+                $this->assertCount(1, $p['cuts'], "{$template}: Serravalle is one cut");
+                $this->assertEqualsWithDelta($angle, $p['cuts'][0]['angle_deg'], 1e-9,
+                    "{$template} must cut at its one fixed blade angle");
+                $this->assertCount(2, $p['districts']);
+                foreach ($p['districts'] as $d) {
+                    $this->assertGreaterThanOrEqual($floor, $d['seats']);
+                    $this->assertLessThanOrEqual($ceiling, $d['seats']);
+                    $this->assertLessThanOrEqual(5.0, $d['per_seat_deviation_pct']);
+                }
+            }
+        });
+    }
+
+    public function test_the_template_joins_the_plan_hash_and_a_mismatched_commit_fails_closed(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $preview = fn (array $params) => json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id']] + $params),
+                $ctx['legislature_id']
+            )->getContent(), true);
+
+            $short = $preview([]);
+            $vert  = $preview(['template' => 'vertical_strips']);
+            $this->assertSame('shortest', $short['template']);
+            $this->assertNotSame($short['plan_hash'], $vert['plan_hash'],
+                'the template is part of the hashed plan identity');
+
+            // Committing the SHORTEST hash under the strips template must be
+            // refused as a changed plan — nothing persists.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $resp = $controller->autoseedCommit($this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $short['plan_hash'],
+                'template'  => 'vertical_strips',
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(422, $resp->getStatusCode());
+            $this->assertStringContainsString('Plan changed', json_decode($resp->getContent(), true)['error']);
+            $this->assertSame(0, (int) DB::table('district_subdivisions')
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count());
+        });
+    }
+
+    public function test_community_cells_produces_a_deterministic_in_band_plan_and_commits(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $preview = fn () => $controller->autoseedPreview(Request::create('/a', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'template' => 'community_cells',
+            ]), $ctx['legislature_id']);
+
+            $r1 = $preview();
+            $this->assertSame(200, $r1->getStatusCode(), $r1->getContent());
+            $p1 = json_decode($r1->getContent(), true);
+            $p2 = json_decode($preview()->getContent(), true);
+            $this->assertSame($p1['plan_hash'], $p2['plan_hash'],
+                'two cells previews must produce the identical plan');
+
+            // Serravalle: 10 seats → [5,5] → 2 cells, no cuts, 2 seeds.
+            $this->assertSame('community_cells', $p1['template']);
+            $this->assertSame([5, 5], $p1['sizes']);
+            $this->assertSame([], $p1['cuts']);
+            $this->assertCount(2, $p1['seeds']);
+            $this->assertCount(2, $p1['districts']);
+            foreach ($p1['seeds'] as $seed) {
+                $this->assertArrayHasKey('lng', $seed);
+                $this->assertArrayHasKey('lat', $seed);
+            }
+
+            $floor   = ConstitutionalDefaults::floor($ctx['leg_jurisdiction_id']);
+            $ceiling = ConstitutionalDefaults::ceiling($ctx['leg_jurisdiction_id']);
+            foreach ($p1['districts'] as $d) {
+                $this->assertSame(5, $d['seats']);
+                $this->assertGreaterThanOrEqual($floor, $d['seats']);
+                $this->assertLessThanOrEqual($ceiling, $d['seats']);
+                $this->assertLessThanOrEqual(5.0, $d['per_seat_deviation_pct'],
+                    "cell {$d['path']} deviates past the guard");
+                $parts = DB::selectOne(
+                    'SELECT ST_NumGeometries(ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?)))) AS parts',
+                    [json_encode($d['geometry'])]
+                );
+                $this->assertSame(1, (int) $parts->parts, "cell {$d['path']} is not a single polygon");
+            }
+
+            // The commit path is the identical recompute→hash→file pipeline.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $ok = $controller->autoseedCommit($this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $p1['plan_hash'],
+                'template'  => 'community_cells',
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $ok->getStatusCode(), $ok->getContent());
+            $this->assertSame(2, json_decode($ok->getContent(), true)['districts_created']);
+            $this->assertSame(2, (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])
+                ->whereNull('deleted_at')->count());
+        });
+    }
+
+    // ── access pins ─────────────────────────────────────────────────────────
+
+    public function test_guest_posts_to_the_mutating_draw_endpoints_are_refused(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // Exercise the AUTH gate specifically (CSRF would 419 first and
+            // mask it) — a guest must be turned away before the controller.
+            $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+            $rows = fn () => [
+                (int) DB::table('district_subdivisions')->whereNull('deleted_at')->count(),
+                (int) DB::table('legislature_districts')->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count(),
+                (int) DB::table('audit_log')->where('ref', 'F-ELB-008')->count(),
+            ];
+            $before = $rows();
+
+            $endpoints = [
+                route('legislatures.subdivisions.draw', ['legislature_id' => $ctx['legislature_id']]),
+                route('legislatures.split-commit', ['legislature_id' => $ctx['legislature_id']]),
+                route('legislatures.autoseed-lines.commit', ['legislature_id' => $ctx['legislature_id']]),
+            ];
+            foreach ($endpoints as $url) {
+                $resp = $this->postJson($url, [
+                    'scope_id'  => $ctx['giant_id'],
+                    'map_id'    => $ctx['map_id'],
+                    'plan_hash' => str_repeat('0', 64),
+                ]);
+                $this->assertSame(401, $resp->getStatusCode(),
+                    "guest POST {$url} must be refused, got {$resp->getStatusCode()}");
+            }
+
+            $this->assertSame($before, $rows(), 'a guest POST must persist nothing');
+        });
+    }
+
+    public function test_dev_board_seat_routes_ride_the_wi4_double_lock(): void
+    {
+        // Boot-registered only when APP_ENV=local (this container exports a
+        // real local env, so the routes exist here — the DevImpersonationTest
+        // posture); non-registration elsewhere is the routes/web.php
+        // condition. What CAN be pinned in-process is the double lock:
+        // DevToolsEnabled 404s when the toggle is off, and 'auth' bounces
+        // guests when it is on — never a guest-reachable seat grant.
+        $noCsrf = fn () => $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        config(['cga.impersonation' => false]);
+        $noCsrf()->post('/dev/board/seat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
+        $noCsrf()->post('/dev/board/unseat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
+
+        config(['cga.impersonation' => true]);
+        $noCsrf()->post('/dev/board/seat', ['legislature_id' => (string) Str::uuid()])->assertRedirect('/login');
+        $noCsrf()->post('/dev/board/unseat', ['legislature_id' => (string) Str::uuid()])->assertRedirect('/login');
+    }
+
+    public function test_can_draw_reflects_board_provenance(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\LegislatureController::class);
+            // Enter by SLUG — the canonical form, so districts() renders
+            // instead of 302ing to the pretty URL.
+            $slug = (string) DB::table('jurisdictions')
+                ->where('id', $ctx['leg_jurisdiction_id'])->value('slug');
+
+            $guest = $controller->districts(Request::create('/d', 'GET'), $slug);
+            $this->assertFalse($this->inertiaProps($guest)['can_draw'], 'a guest can never draw');
+
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $req = Request::create('/d', 'GET');
+            $req->setUserResolver(fn () => $user);
+            $seated = $controller->districts($req, $slug);
+            $this->assertTrue($this->inertiaProps($seated)['can_draw'],
+                'a seated board member holds the draw pair (R-08 + provenance)');
+        });
+    }
+
     // -------------------------------------------------------------------------
+
+    /** A POST request carrying $user, as the auth-gated endpoints receive it. */
+    private function authedRequest(string $uri, array $params, User $user): Request
+    {
+        $req = Request::create($uri, 'POST', $params);
+        $req->setUserResolver(fn () => $user);
+
+        return $req;
+    }
+
+    /** The props array of an Inertia render (no view/asset pipeline needed). */
+    private function inertiaProps(mixed $response): array
+    {
+        $this->assertInstanceOf(\Inertia\Response::class, $response);
+        $prop = new \ReflectionProperty(\Inertia\Response::class, 'props');
+
+        return $prop->getValue($response);
+    }
 
     private function onLivePg(callable $body): void
     {

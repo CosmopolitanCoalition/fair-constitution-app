@@ -414,6 +414,28 @@ class LegislatureController extends Controller
             return '/legislatures/' . $legSlug . '/districts' . (count($q) ? '?' . http_build_query($q) : '');
         };
 
+        // Guard: the scope must live INSIDE this legislature's own root subtree.
+        // Without it, breadcrumb/step-up links (or a hand-edited URL) can walk a
+        // legislature's mapper onto an ANCESTOR jurisdiction — the giant guard
+        // below can't catch that (an ancestor's fractional seats are always
+        // astronomical), and every Webster-share figure on the page becomes
+        // nonsense ("7,677,127 seats to assign" on a 32-seat legislature).
+        // Out-of-subtree scopes land back at the root scope, map param kept.
+        if ($scopeId !== $leg->jurisdiction_id) {
+            $inSubtree = false;
+            $cursor = $scope->parent_id;
+            for ($hops = 0; $cursor !== null && $hops < 32; $hops++) {
+                if ($cursor === $leg->jurisdiction_id) {
+                    $inSubtree = true;
+                    break;
+                }
+                $cursor = DB::table('jurisdictions')->where('id', $cursor)->whereNull('deleted_at')->value('parent_id');
+            }
+            if (! $inSubtree) {
+                return redirect()->to($canonicalUrl(null));
+            }
+        }
+
         // Root jurisdiction population — always the legislature's own jurisdiction (e.g. Earth).
         // Used to compute proportional entitlements consistently across all drill-down levels.
         $rootPop = (int) DB::table('jurisdictions')
@@ -502,6 +524,12 @@ class LegislatureController extends Controller
 
         // ── Ancestor chain (cheap, needed by both the render call AND the
         // heavy block's district-name labeling) ────────────────────────────────
+        // STOPS at the legislature's own root: the chain must never climb into
+        // ancestor jurisdictions ABOVE the legislature (the breadcrumb links,
+        // the wizard's ↑ control, and the ancestors[0]=root / ancestors[1]=
+        // first-child labeling convention all assume the legislature-rooted
+        // chain — an over-walk to the planetary root let the mapper step onto
+        // out-of-subtree scopes and skewed non-Earth district short codes).
         $ancestors = DB::select("
             WITH RECURSIVE anc AS (
                 SELECT id, name, slug, parent_id, iso_code, adm_level
@@ -511,9 +539,10 @@ class LegislatureController extends Controller
                 FROM jurisdictions j
                 JOIN anc ON j.id = anc.parent_id
                 WHERE j.deleted_at IS NULL
+                  AND anc.id <> :root_id
             )
             SELECT id, name, slug, iso_code, adm_level FROM anc
-        ", ['start_id' => $scopeId]);
+        ", ['start_id' => $scopeId, 'root_id' => $leg->jurisdiction_id]);
         // Reverse so we get root → current scope
         $ancestors = array_reverse($ancestors);
 
@@ -947,6 +976,22 @@ class LegislatureController extends Controller
             ? DB::table('legislature_district_maps')->where('id', $mapId)->first()
             : null;
 
+        // Whether the current user could actually FILE F-ELB-008 here: the
+        // same board-provenance pair the handler runs (their OWN seated row
+        // on this jurisdiction's active board — which is also exactly what
+        // derives R-08, so provenance passing implies the role gate passes).
+        // Calls the real helpers, so the check can never drift from filing.
+        $canDraw = false;
+        if (($drawUser = $request->user()) !== null) {
+            try {
+                $drawBoard = \App\Domain\Forms\Support\BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
+                \App\Domain\Forms\Support\BoardProvenance::resolveMemberOnBoard($drawUser, $drawBoard, 'F-ELB-008');
+                $canDraw = true;
+            } catch (\App\Domain\Engine\ConstitutionalViolation) {
+                // no active board, or no own seat on it — the draw tools stay read-only
+            }
+        }
+
         return Inertia::render('Legislature/Districts', [
             'surface' => \App\Support\SurfaceMeta::for('legislature/districts'),
             'legislature' => [
@@ -1000,6 +1045,7 @@ class LegislatureController extends Controller
             'stats'     => $loadHeavy()['stats'],
 
             'mass_tool_running' => $massToolRunning,
+            'can_draw'   => $canDraw,
             'maps'       => $allMaps,
             'active_map' => $activeMapRow ? [
                 'id'     => $activeMapRow->id,
