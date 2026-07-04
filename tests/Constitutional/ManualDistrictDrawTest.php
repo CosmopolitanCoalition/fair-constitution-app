@@ -107,6 +107,73 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_deleting_a_drawn_district_retires_its_subdivision_and_frees_the_area(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $rec = $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $firstLabel = DB::table('district_subdivisions')->where('id', $rec['subdivision_id'])->value('label');
+
+            // The delete endpoint retires the SUBDIVISION with its district.
+            // Leaving it live was the "ghost": its label collided with the next
+            // auto-numbered filing (the operator's 23505 500) and its geometry
+            // tripped the sibling-overlap gate on any redraw of the same area.
+            $resp = app(\App\Http\Controllers\LegislatureController::class)
+                ->deleteDistrict($ctx['legislature_id'], $rec['district_id']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $sub = DB::table('district_subdivisions')->where('id', $rec['subdivision_id'])->first();
+            $this->assertNotNull($sub->deleted_at, 'the subdivision must be retired with its district');
+
+            // The SAME shape draws again cleanly — never a 23505, never a
+            // phantom overlap from the retired geometry.
+            $again = $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $this->assertNotSame($rec['subdivision_id'], $again['subdivision_id']);
+
+            // The auto label never reuses the ghost's name (numbering counts
+            // soft-deleted labels too), so live-uniqueness holds by construction.
+            $newLabel = DB::table('district_subdivisions')->where('id', $again['subdivision_id'])->value('label');
+            $this->assertNotSame($firstLabel, $newLabel, 'auto labels must never reuse a ghost label');
+        });
+    }
+
+    public function test_a_duplicate_operator_label_is_refused_with_a_citation_not_a_500(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+                'label'          => 'West Serravalle',
+            ]);
+
+            // A second filing under the same live label must be refused by the
+            // handler (422 + citation through the endpoint), never surface as
+            // a raw unique-index 23505.
+            try {
+                $this->engine()->file('F-ELB-008', null, [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['tiny_geojson'],   // any shape; the label gate fires first
+                    'label'          => 'West Serravalle',
+                ]);
+                $this->fail('a duplicate live label must be refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('West Serravalle', $e->getMessage());
+            }
+        });
+    }
+
     public function test_an_out_of_band_piece_is_refused(): void
     {
         $this->onLivePg(function (array $ctx) {

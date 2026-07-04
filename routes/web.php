@@ -266,6 +266,10 @@ Route::get('/api/legislatures/{legislature_id}/districts-at', [LegislatureContro
 // POST must never ride it. Probes/preview/balance stay public (read-only).
 Route::post('/api/legislatures/{legislature_id}/population-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'probe'])->name('legislatures.population-probe');
 Route::post('/api/legislatures/{legislature_id}/subdivisions/draw', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'draw'])->name('legislatures.subdivisions.draw')->middleware('auth');
+// Remainder probe (read-only, public like the other probes): the giant minus
+// its live drawn districts. The UI's Fill-remainder stages the result like a
+// hand draw and commits through the NORMAL draw endpoint — no new filing path.
+Route::post('/api/legislatures/{legislature_id}/subdivisions/remainder', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'remainder'])->name('legislatures.subdivisions.remainder');
 // Split-line bisection: draw a line, see the population each side, commit both districts.
 Route::post('/api/legislatures/{legislature_id}/split-probe', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitProbe'])->name('legislatures.split-probe');
 Route::post('/api/legislatures/{legislature_id}/split-commit', [\App\Http\Controllers\Legislature\SubdivisionDrawController::class, 'splitCommit'])->name('legislatures.split-commit')->middleware('auth');

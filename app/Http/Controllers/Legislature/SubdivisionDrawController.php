@@ -238,6 +238,7 @@ class SubdivisionDrawController extends Controller
     {
         $validated = $request->validate([
             'template' => ['nullable', 'string', 'in:'.implode(',', SubdivisionAutoseedService::TEMPLATES)],
+            'map_id'   => ['nullable', 'uuid'],
         ]);
         $template = $validated['template'] ?? SubdivisionAutoseedService::TEMPLATE_SHORTEST;
         $scopeId  = (string) $request->input('scope_id', '');
@@ -257,8 +258,19 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
+        // How many live drawn districts the plan would displace — the accept
+        // button reads this to offer replace up front instead of letting the
+        // commit 422. Counted on the plan the UI displays (its map_id when
+        // sent; the same active→newest-draft fallback the mapper uses when not).
+        $mapId = $this->resolveMapId($legislature_id, $validated['map_id'] ?? null);
+        $existing = $mapId !== null ? $this->liveDrawnCount($scopeId, $mapId) : 0;
+
         // $plan echoes the template back (part of the hashed plan identity).
-        return response()->json($plan + ['floor' => $ctx['floor'], 'ceiling' => $ctx['ceiling']]);
+        return response()->json($plan + [
+            'floor'              => $ctx['floor'],
+            'ceiling'            => $ctx['ceiling'],
+            'existing_districts' => $existing,
+        ]);
     }
 
     /**
@@ -276,8 +288,10 @@ class SubdivisionDrawController extends Controller
             'map_id'    => ['required', 'uuid'],
             'plan_hash' => ['required', 'string'],
             'template'  => ['nullable', 'string', 'in:'.implode(',', SubdivisionAutoseedService::TEMPLATES)],
+            'replace'   => ['nullable', 'boolean'],
         ]);
         $template = $validated['template'] ?? SubdivisionAutoseedService::TEMPLATE_SHORTEST;
+        $replace  = (bool) ($validated['replace'] ?? false);
         $year = (int) $request->input('population_year', 2023);
 
         $ctx = $this->giantContext($legislature_id, $validated['scope_id']);
@@ -298,6 +312,20 @@ class SubdivisionDrawController extends Controller
             ], 422);
         }
 
+        // A whole-scope plan over live drawn districts can only end one of two
+        // ways: retire them first (replace=true), or refuse the WHOLE plan
+        // here — plainly, before the recompute is paid for — so the operator
+        // never hits the per-piece Art. II §8 overlap citation from a plan
+        // they meant to accept wholesale.
+        $liveDrawn = $this->liveDrawnCount($validated['scope_id'], $validated['map_id']);
+        if ($liveDrawn > 0 && ! $replace) {
+            return response()->json([
+                'error' => "This scope already holds {$liveDrawn} drawn district"
+                    .($liveDrawn === 1 ? '' : 's')
+                    .' — accept with replace, or clear them first.',
+            ], 422);
+        }
+
         try {
             // The recompute runs under the SAME template as the preview — the
             // template is inside the hashed identity, so a swapped or omitted
@@ -314,8 +342,15 @@ class SubdivisionDrawController extends Controller
 
         try {
             // Atomic: every leaf district files, or none do. Districts are
-            // already in deterministic (path) order from the service.
-            $districtIds = DB::transaction(function () use ($plan, $legislature_id, $jurisdictionId, $validated, $request, $year) {
+            // already in deterministic (path) order from the service. A
+            // replace retires the scope's live drawn set INSIDE the same
+            // transaction, before the first filing — so a failed plan rolls
+            // the old districts back too, never leaving the scope emptied.
+            $districtIds = DB::transaction(function () use ($plan, $legislature_id, $jurisdictionId, $validated, $request, $year, $replace) {
+                if ($replace) {
+                    $this->retireDrawnDistricts($legislature_id, $validated['scope_id'], $validated['map_id']);
+                }
+
                 $ids = [];
                 foreach ($plan['districts'] as $d) {
                     $res = $this->engine->file('F-ELB-008', $request->user(), [
@@ -339,9 +374,104 @@ class SubdivisionDrawController extends Controller
         Cache::tags(["revealed.{$legislature_id}"])->flush();
 
         return response()->json([
-            'ok'                => true,
-            'districts_created' => count($districtIds),
-            'district_ids'      => $districtIds,
+            'ok'                 => true,
+            'districts_created'  => count($districtIds),
+            'district_ids'       => $districtIds,
+            'districts_replaced' => $replace ? $liveDrawn : 0,
+        ]);
+    }
+
+    /**
+     * POST /api/legislatures/{legislature_id}/subdivisions/remainder — READ-ONLY.
+     * The giant MINUS the union of its live drawn districts (scope+map): the
+     * shape the operator still has to district. Feeds the UI's Fill-remainder,
+     * which stages the returned polygon exactly like a hand draw and commits it
+     * through the NORMAL draw endpoint — this probe never files anything.
+     */
+    public function remainder(Request $request, string $legislature_id): JsonResponse
+    {
+        $validated = $request->validate([
+            'scope_id' => ['required', 'uuid'],
+            'map_id'   => ['nullable', 'uuid'],
+        ]);
+        $year   = (int) $request->input('population_year', 2023);
+        $scopeId = $validated['scope_id'];
+
+        $ctx = $this->giantContext($legislature_id, $scopeId);
+        if ($ctx === null) {
+            return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
+        }
+
+        $mapId = $this->resolveMapId($legislature_id, $validated['map_id'] ?? null);
+        if ($mapId === null) {
+            return response()->json(['error' => 'No district plan exists for this legislature yet'], 422);
+        }
+
+        // Giant minus the drawn union, with the PROVEN posture: a 1e-8° (~1 mm)
+        // inward shave so the decimal-GeoJSON round trip through the draw
+        // endpoint's exact ST_CoveredBy gate never nudges a shared boundary
+        // vertex outside (the same epsilon defense splitSidesByLine carries).
+        $row = DB::selectOne(
+            'WITH gi AS (
+                 SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
+             ),
+             drawn AS (
+                 SELECT ST_Union(ds.geom) AS g
+                   FROM district_subdivisions ds
+                  WHERE ds.map_id = :map
+                    AND ds.parent_jurisdiction_id = :scope2
+                    AND ds.deleted_at IS NULL
+             ),
+             rem AS (
+                 SELECT CASE
+                            WHEN (SELECT g FROM drawn) IS NULL THEN (SELECT g FROM gi)
+                            ELSE ST_Difference((SELECT g FROM gi), (SELECT g FROM drawn))
+                        END AS g
+             ),
+             shaved AS (
+                 SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer((SELECT g FROM rem), -0.00000001)), 3) AS g
+             )
+             SELECT ST_IsEmpty(g)                        AS empty,
+                    ST_NumGeometries(ST_Multi(g))        AS parts,
+                    ST_AsGeoJSON(ST_Multi(g), 15)        AS gj
+               FROM shaved',
+            ['scope' => $scopeId, 'map' => $mapId, 'scope2' => $scopeId]
+        );
+
+        if ($row === null || (bool) $row->empty || $row->gj === null) {
+            return response()->json([
+                'error' => 'Nothing remains to draw — the whole area is already districted.',
+            ], 422);
+        }
+        $parts = (int) $row->parts;
+        if ($parts !== 1) {
+            return response()->json([
+                'error' => "The remainder is split into {$parts} pieces — draw those separately.",
+            ], 422);
+        }
+
+        $pop        = $this->raster->populationWithinMulti($row->gj, $year);
+        $fractional = $this->raster->impliedSeats($pop, $ctx['quota']);
+        $seats      = (int) round($fractional);
+
+        // Seats left in the giant's budget after the live drawn set — what the
+        // remainder SHOULD hold if the operator is closing the scope out.
+        $drawnSeats = (int) DB::table('district_subdivisions')
+            ->where('map_id', $mapId)
+            ->where('parent_jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->sum('seats');
+
+        return response()->json([
+            'geometry'                 => json_decode($row->gj),
+            'population'               => $pop,
+            'implied_fractional_seats' => round($fractional, 3),
+            'implied_seats'            => $seats,
+            'in_band'                  => $seats >= $ctx['floor'] && $seats <= $ctx['ceiling'],
+            'remaining_seats'          => $ctx['budget'] - $drawnSeats,
+            'floor'                    => $ctx['floor'],
+            'ceiling'                  => $ctx['ceiling'],
+            'giant_seat_budget'        => $ctx['budget'],
         ]);
     }
 
@@ -507,6 +637,84 @@ class SubdivisionDrawController extends Controller
         }
 
         return $out;
+    }
+
+    /** Live drawn districts at a scope+plan — the set a whole-scope autoseed would displace. */
+    private function liveDrawnCount(string $scopeId, string $mapId): int
+    {
+        return (int) DB::table('district_subdivisions')
+            ->where('map_id', $mapId)
+            ->where('parent_jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->count();
+    }
+
+    /**
+     * The map a request means when it names none — the same resolution the
+     * mapper page uses (LegislatureController::getMapId): a valid explicit id
+     * wins, else the active map, else the newest non-archived one.
+     */
+    private function resolveMapId(string $legislatureId, ?string $requestedMapId): ?string
+    {
+        if ($requestedMapId !== null) {
+            $valid = DB::table('legislature_district_maps')
+                ->where('id', $requestedMapId)
+                ->where('legislature_id', $legislatureId)
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($valid) {
+                return $requestedMapId;
+            }
+        }
+
+        return DB::table('legislature_district_maps')
+                ->where('legislature_id', $legislatureId)
+                ->where('status', 'active')
+                ->whereNull('deleted_at')
+                ->value('id')
+            ?? DB::table('legislature_district_maps')
+                ->where('legislature_id', $legislatureId)
+                ->where('status', '!=', 'archived')
+                ->whereNull('deleted_at')
+                ->orderByDesc('created_at')
+                ->value('id');
+    }
+
+    /**
+     * Retire every live DRAWN district at a scope+plan — the delete-endpoint
+     * semantics (LegislatureController::deleteDistrict), applied to the whole
+     * drawn set: soft-delete the subdivisions AND their legislature_districts,
+     * hard-delete the membership rows. Same audit posture as the delete
+     * endpoint (a plan-editing operation on a draft, not an engine filing) —
+     * the replacement districts each file an audited F-ELB-008 right after.
+     * Caller supplies the transaction.
+     */
+    private function retireDrawnDistricts(string $legislatureId, string $scopeId, string $mapId): int
+    {
+        $rows = DB::table('district_subdivisions AS ds')
+            ->join('legislature_district_jurisdictions AS ldj', 'ldj.subdivision_id', '=', 'ds.id')
+            ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
+            ->where('ds.map_id', $mapId)
+            ->where('ds.parent_jurisdiction_id', $scopeId)
+            ->whereNull('ds.deleted_at')
+            ->where('ld.legislature_id', $legislatureId)
+            ->whereNull('ld.deleted_at')
+            ->get(['ds.id AS subdivision_id', 'ld.id AS district_id']);
+
+        if ($rows->isEmpty()) {
+            return 0;
+        }
+
+        $districtIds    = $rows->pluck('district_id')->unique()->values()->all();
+        $subdivisionIds = $rows->pluck('subdivision_id')->unique()->values()->all();
+
+        DB::table('legislature_district_jurisdictions')->whereIn('district_id', $districtIds)->delete();
+        DB::table('legislature_districts')->whereIn('id', $districtIds)
+            ->update(['deleted_at' => now(), 'updated_at' => now()]);
+        DB::table('district_subdivisions')->whereIn('id', $subdivisionIds)
+            ->update(['deleted_at' => now(), 'updated_at' => now()]);
+
+        return count($districtIds);
     }
 
     /**

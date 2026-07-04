@@ -217,6 +217,327 @@ class SubdivisionAutoseedTest extends TestCase
         });
     }
 
+    public function test_commit_after_clearing_the_drawn_set_never_ghost_collides(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $commit = function () use ($controller, $ctx, $user) {
+                $plan = json_decode($controller->autoseedPreview(
+                    Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                    $ctx['legislature_id']
+                )->getContent(), true);
+
+                return $controller->autoseedCommit($this->authedRequest('/c', [
+                    'scope_id'  => $ctx['giant_id'],
+                    'map_id'    => $ctx['map_id'],
+                    'plan_hash' => $plan['plan_hash'],
+                ], $user), $ctx['legislature_id']);
+            };
+
+            $first = $commit();
+            $this->assertSame(200, $first->getStatusCode(), $first->getContent());
+
+            // Clear the set through the SAME delete endpoint the sidebar uses —
+            // subdivisions retire with their districts (soft-delete, labels kept).
+            $leg = app(\App\Http\Controllers\LegislatureController::class);
+            foreach (json_decode($first->getContent(), true)['district_ids'] as $id) {
+                $this->assertSame(200, $leg->deleteDistrict($ctx['legislature_id'], $id)->getStatusCode());
+            }
+            $live = fn () => (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count();
+            $this->assertSame(0, $live(), 'the delete endpoint retires the subdivisions too');
+
+            // The operator's 500: recommitting the (deterministic, identical)
+            // plan collided with the soft-deleted ghosts' labels — 23505.
+            // Now: 200, fresh rows, labels never reused.
+            $second = $commit();
+            $this->assertSame(200, $second->getStatusCode(), $second->getContent());
+            $this->assertSame(2, json_decode($second->getContent(), true)['districts_created']);
+            $this->assertSame(2, $live());
+
+            $labels = DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])
+                ->pluck('label');
+            $this->assertSame($labels->count(), $labels->unique()->count(),
+                'every label ever issued on the plan stays distinct — live AND ghost');
+        });
+    }
+
+    public function test_replace_retires_the_live_set_and_a_plain_commit_refuses_early(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $plan = json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $this->assertSame(0, $plan['existing_districts'], 'a fresh plan reports nothing to displace');
+
+            $body = [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $plan['plan_hash'],
+            ];
+            $first = $controller->autoseedCommit($this->authedRequest('/c', $body, $user), $ctx['legislature_id']);
+            $this->assertSame(200, $first->getStatusCode(), $first->getContent());
+            $firstIds = json_decode($first->getContent(), true)['district_ids'];
+
+            // The preview now reports the displacement the accept button offers.
+            $again = json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $this->assertSame(2, $again['existing_districts']);
+
+            // Without replace: the EARLY whole-plan refusal — the operator must
+            // never reach the per-piece Art. II §8 overlap citation from here.
+            $plain = $controller->autoseedCommit($this->authedRequest('/c', $body, $user), $ctx['legislature_id']);
+            $this->assertSame(422, $plain->getStatusCode());
+            $this->assertSame(
+                'This scope already holds 2 drawn districts — accept with replace, or clear them first.',
+                json_decode($plain->getContent(), true)['error']
+            );
+
+            // With replace: old rows retired, new rows filed, counts right.
+            $replace = $controller->autoseedCommit($this->authedRequest('/c', $body + ['replace' => true], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $replace->getStatusCode(), $replace->getContent());
+            $data = json_decode($replace->getContent(), true);
+            $this->assertSame(2, $data['districts_created']);
+            $this->assertSame(2, $data['districts_replaced']);
+
+            foreach ($firstIds as $id) {
+                $this->assertNotNull(DB::table('legislature_districts')->where('id', $id)->value('deleted_at'),
+                    'a replaced district is soft-deleted, not destroyed');
+            }
+            $this->assertSame(2, (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count());
+            $this->assertSame(2, (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNotNull('deleted_at')->count());
+        });
+    }
+
+    public function test_remainder_probe_returns_the_undrawn_side_and_it_commits_through_the_draw_path(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $plan = json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+
+            // Draw ONE side of the Serravalle bisect (the plan's first leaf).
+            $engine = app(\App\Domain\Engine\ConstitutionalEngine::class);
+            $side = $engine->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => json_encode($plan['districts'][0]['geometry']),
+            ])->recorded;
+
+            $probe = fn () => $controller->remainder(Request::create('/rm', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+            ]), $ctx['legislature_id']);
+
+            $resp = $probe();
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+
+            // Single polygon, the leftover seats, in band ([5,5] plan → 5 left).
+            $parts = DB::selectOne(
+                'SELECT ST_NumGeometries(ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?)))) AS parts',
+                [json_encode($data['geometry'])]
+            );
+            $this->assertSame(1, (int) $parts->parts, 'the remainder is a single polygon');
+            $this->assertSame(10 - $side['seats'], $data['remaining_seats']);
+            $this->assertSame(5, $data['implied_seats']);
+            $this->assertTrue($data['in_band'], json_encode($data));
+
+            // Fill-remainder is NOT a new filing path: the returned polygon
+            // commits through the normal F-ELB-008 draw pipeline.
+            $filled = $engine->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => json_encode($data['geometry']),
+            ])->recorded;
+            $this->assertSame(5, $filled['seats']);
+
+            // Fully drawn: the probe now refuses plainly (empty or sliver-split
+            // residue — either way a 422, never a fake district).
+            $this->assertSame(422, $probe()->getStatusCode());
+        });
+    }
+
+    public function test_committed_subdivisions_reveal_at_the_root_scope(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $plan = json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $ok = $controller->autoseedCommit($this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $plan['plan_hash'],
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $ok->getStatusCode(), $ok->getContent());
+            $ids = json_decode($ok->getContent(), true)['district_ids'];
+
+            // The ANCESTOR view: at the legislature's ROOT scope (the giant's
+            // parent) the drawn districts must paint exactly like composite
+            // sub-districts — same feature type, same tooltip props, the drawn
+            // geometry attached. (The leaf-scope path was already pinned.)
+            $resp = app(\App\Http\Controllers\LegislatureController::class)->revealedGeoJson(
+                \Illuminate\Http\Request::create('/r', 'GET', [
+                    'scope' => $ctx['leg_jurisdiction_id'],
+                    'map'   => $ctx['map_id'],
+                    'zoom'  => 10,
+                ]),
+                $ctx['legislature_id']
+            );
+            $fc = json_decode($resp->getContent(), true);
+            $drawn = collect($fc['features'] ?? [])
+                ->filter(fn ($f) => in_array($f['properties']['district_id'] ?? null, $ids, true))
+                ->values();
+
+            $this->assertCount(2, $drawn, 'both drawn districts render at the root scope');
+            foreach ($drawn as $f) {
+                $this->assertSame('sub_district', $f['properties']['type']);
+                $this->assertNotNull($f['geometry'] ?? null);
+                $this->assertSame('Serravalle', $f['properties']['parent_name']);
+                $this->assertNotEmpty($f['properties']['member_name'], 'the tooltip label is the drawn label');
+                $this->assertArrayHasKey('seats', $f['properties']);
+                $this->assertArrayHasKey('district_population', $f['properties']);
+            }
+
+            // The giant's own outline rides along, like a composite giant's.
+            $outline = collect($fc['features'] ?? [])->first(fn ($f) => ($f['properties']['type'] ?? null) === 'parent_outline'
+                && ($f['properties']['jurisdiction_id'] ?? null) === $ctx['giant_id']);
+            $this->assertNotNull($outline, 'the drawn giant gets its parent outline at the root scope');
+        });
+    }
+
+    public function test_undrawn_leaf_giants_flag_and_the_leaf_scope_sidebar_props(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // Build the "all-done candidate" state incomplete_scopes can see:
+            // ONE composite district over the 8 non-giant castelli (22 of 32
+            // seats) + the Serravalle ceiling clamp. incomplete_scopes reads
+            // empty — it is leaf-blind — while the giant still lacks its drawn
+            // set. Exactly the state the lazy undrawn_leaf_giants gate serves.
+            $castelli = DB::table('jurisdictions')
+                ->where('parent_id', $ctx['leg_jurisdiction_id'])
+                ->whereNull('deleted_at')
+                ->where('id', '!=', $ctx['giant_id'])
+                ->get(['id', 'population']);
+            $this->assertGreaterThan(0, $castelli->count());
+
+            $compositeId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id'               => $compositeId,
+                'legislature_id'   => $ctx['legislature_id'],
+                'map_id'           => $ctx['map_id'],
+                'jurisdiction_id'  => $ctx['leg_jurisdiction_id'],
+                'district_number'  => 1,
+                'seats'            => 22,
+                'target_population' => (int) $castelli->sum('population'),
+                'actual_population' => (int) $castelli->sum('population'),
+                'fractional_seats' => 21.6,
+                'floor_override'   => false,
+                'status'           => 'active',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+            foreach ($castelli as $c) {
+                DB::table('legislature_district_jurisdictions')->insert([
+                    'id' => (string) Str::uuid(), 'district_id' => $compositeId, 'jurisdiction_id' => $c->id,
+                ]);
+            }
+            $clampId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id'               => $clampId,
+                'legislature_id'   => $ctx['legislature_id'],
+                'map_id'           => $ctx['map_id'],
+                'jurisdiction_id'  => $ctx['giant_id'],
+                'district_number'  => 1,
+                'seats'            => 9,
+                'target_population' => 10825,
+                'actual_population' => 10825,
+                'fractional_seats' => 10.398343,
+                'floor_override'   => false,
+                'status'           => 'active',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id' => (string) Str::uuid(), 'district_id' => $clampId, 'jurisdiction_id' => $ctx['giant_id'],
+            ]);
+
+            $leg      = app(\App\Http\Controllers\LegislatureController::class);
+            $rootSlug = (string) DB::table('jurisdictions')->where('id', $ctx['leg_jurisdiction_id'])->value('slug');
+            $leafSlug = (string) DB::table('jurisdictions')->where('id', $ctx['giant_id'])->value('slug');
+            $render   = fn (array $q) => $this->inertiaProps(
+                $leg->districts(Request::create('/d', 'GET', $q + ['map' => $ctx['map_id']]), $rootSlug)
+            );
+
+            $props = $render([]);
+            $this->assertSame(1, $props['flags']['undrawn_leaf_giants'],
+                'the undrawn giant is counted the moment incomplete_scopes goes quiet');
+            $giantRow = collect($props['children'])->firstWhere('id', $ctx['giant_id']);
+            $this->assertSame(0, $giantRow['drawn_seats'], 'no drawn progress before drawing');
+
+            // Draw the leaf (preview → commit).
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $plan = json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $ok = $controller->autoseedCommit($this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $plan['plan_hash'],
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $ok->getStatusCode(), $ok->getContent());
+
+            $props = $render([]);
+            $this->assertSame(0, $props['flags']['undrawn_leaf_giants'], 'drawn to budget → no longer counted');
+            $giantRow = collect($props['children'])->firstWhere('id', $ctx['giant_id']);
+            $this->assertSame(10, $giantRow['drawn_seats'], 'the child row shows the full drawn budget');
+            // The root counter counts the drawn seats: 22 composite + 10 drawn = 32.
+            $this->assertNull($props['flags']['cap'], 'drawn seats close the seat-cap gap at the root');
+
+            // LEAF scope: the sidebar data — drawn districts ARE the districts
+            // prop, with the fields the list needs (ADDITIVE shape).
+            $props = $render(['scope' => $leafSlug]);
+            $this->assertCount(2, $props['districts']);
+            $seatSum = 0;
+            foreach ($props['districts'] as $d) {
+                $seatSum += $d['seats'];
+                $this->assertSame('drawn', $d['method']);
+                $this->assertNotEmpty($d['label']);
+                $this->assertSame($d['label'], $d['name']);
+                $this->assertNotEmpty($d['subdivision_id'], 'paired with the district id for deletion');
+                $this->assertNotEmpty($d['id']);
+                $this->assertGreaterThan(0, $d['population']);
+                $this->assertArrayHasKey('deviation_pct', $d);
+                $this->assertArrayHasKey('convex_hull_ratio', $d);
+                $this->assertArrayHasKey('is_contiguous', $d);
+                $this->assertArrayHasKey('has_integrity', $d);
+            }
+            $this->assertSame(10, $seatSum, 'assigned-seats counter sums the drawn districts');
+        });
+    }
+
     public function test_split_balance_preserves_the_angle_and_lands_both_sides_in_band(): void
     {
         $this->onLivePg(function (array $ctx) {

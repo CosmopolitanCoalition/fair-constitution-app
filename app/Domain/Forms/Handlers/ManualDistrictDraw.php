@@ -98,6 +98,24 @@ class ManualDistrictDraw implements FormHandler
             );
         }
 
+        // An operator-chosen label must be unique per plan among LIVE rows (the
+        // partial unique index) — refuse a duplicate up front, with the other
+        // cheap input gates, so the filing fails with a citation before any
+        // raster work and never as a raw 23505 out of the database.
+        if ($label !== '') {
+            $labelTaken = DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('label', $label)
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($labelTaken) {
+                throw new ConstitutionalViolation(
+                    "A drawn district named \"{$label}\" already exists in this plan — choose another label.",
+                    'CGA Forms Catalog (F-ELB-008)'
+                );
+            }
+        }
+
         // SCOPE (R-08): a HUMAN board member may only draw districts for a legislature whose jurisdiction's
         // board they sit on — the role gate proves a seat on SOME board, board-blind. The system path (null
         // actor) bypasses (the engine bypasses the role gate for a system filing).
@@ -228,7 +246,31 @@ class ManualDistrictDraw implements FormHandler
         $nextNumber++;
 
         if ($label === '') {
-            $label = "{$giant->name} — drawn district {$nextNumber}";
+            // Auto-label numbering is collision-proof by construction: the live
+            // district_number sequence resets when districts are cleared, but a
+            // label may survive as a soft-deleted ghost (or a live row from an
+            // operator's own naming) — so start from the HIGHEST number any
+            // label on this map+scope has ever carried (soft-deleted rows
+            // included; DB::table applies no soft-delete scope), then bump
+            // until the label is free among live rows. A 23505 out of the
+            // partial unique index must be unreachable from this path.
+            $labelBase = "{$giant->name} — drawn district ";
+            $maxLabelNumber = (int) DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('parent_jurisdiction_id', $scopeId)
+                ->where('label', 'like', $labelBase.'%')
+                ->selectRaw("MAX(NULLIF(substring(label from '[0-9]+$'), '')::int) AS n")
+                ->value('n');
+
+            $n = max($nextNumber, $maxLabelNumber + 1);
+            $label = $labelBase.$n;
+            while (DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('label', $label)
+                ->whereNull('deleted_at')
+                ->exists()) {
+                $label = $labelBase.(++$n);
+            }
         }
 
         $subdivisionId = (string) Str::uuid();
