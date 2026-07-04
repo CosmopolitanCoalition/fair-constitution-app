@@ -463,11 +463,24 @@ class SubdivisionDrawController extends Controller
                                       - :diry * (ST_X(ST_PointOnSurface(piece)) - :ax)) >= 0
                                   THEN 'a' ELSE 'b' END AS side
                         FROM parts
+                  ),
+                  -- Each side is INSIDE the giant by construction (pieces of an
+                  -- ST_Split of the giant itself), but the F-ELB-008 handler
+                  -- proves EXACT ST_CoveredBy after a decimal-GeoJSON round
+                  -- trip, whose serialization epsilon can nudge a boundary
+                  -- vertex just outside — a diagonal cut then refuses with the
+                  -- Art. II §8 outside-the-boundary citation. Shave 1e-8°
+                  -- (~1 mm) inward so the interior margin dwarfs the round-trip
+                  -- error — the same proven posture as the autoseed leaves.
+                  merged AS (
+                      SELECT side,
+                             ST_CollectionExtract(ST_MakeValid(ST_Buffer(ST_Union(piece), -0.00000001)), 3) AS geom
+                        FROM sided GROUP BY side
                   )
              SELECT side,
-                    ST_AsGeoJSON(ST_Multi(ST_Union(piece))) AS gj,
-                    ST_NumGeometries(ST_Multi(ST_Union(piece))) AS parts
-               FROM sided GROUP BY side ORDER BY side",
+                    ST_AsGeoJSON(ST_Multi(geom), 15) AS gj,
+                    ST_NumGeometries(ST_Multi(geom)) AS parts
+               FROM merged ORDER BY side",
             ['id' => $scopeId, 'blade' => $bladeWkt, 'dirx' => $dirx, 'diry' => $diry, 'ax' => $ax, 'ay' => $ay]
         );
 

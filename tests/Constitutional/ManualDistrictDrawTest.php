@@ -220,6 +220,40 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_a_snap_balanced_diagonal_cut_commits_without_boundary_epsilon_refusal(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+
+            // The operator's exact field gesture: a slanted hand cut, slid to
+            // balance by the assist, then committed. Both sides are inside the
+            // giant BY CONSTRUCTION (pieces of an ST_Split of the giant), so a
+            // refusal citing Art. II §8 "extends outside the boundary" can only
+            // be the decimal-GeoJSON round-trip epsilon — the bug this pins.
+            $balanced = json_decode($controller->splitBalance(
+                \Illuminate\Http\Request::create('/sb', 'POST', [
+                    'scope_id' => $ctx['giant_id'],
+                    'line'     => $ctx['diagonal_line'],
+                ]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $this->assertTrue($balanced['both_in_band'] ?? false, 'the assist lands the diagonal in band');
+
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'line'     => json_encode($balanced['line']),
+            ]);
+            $commitReq->setUserResolver(fn () => $user);
+            $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
+
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+            $this->assertCount(2, $data['districts']);
+        });
+    }
+
     // -------------------------------------------------------------------------
 
     private function engine(): ConstitutionalEngine
@@ -359,6 +393,17 @@ class ManualDistrictDrawTest extends TestCase
             'coordinates' => [[$cx, $giant->ymin - 0.001], [$cx, $giant->ymax + 0.001]],
         ]);
 
+        // A SLANTED cut (the operator's real gesture): its ST_Split pieces
+        // carry non-terminating decimal vertices, so the GeoJSON round-trip
+        // epsilon actually bites — an axis-aligned line can pass by luck.
+        $diagonalLine = json_encode([
+            'type' => 'LineString',
+            'coordinates' => [
+                [$cx - 0.3 * ($giant->xmax - $giant->xmin), $giant->ymin - 0.001],
+                [$cx + 0.3 * ($giant->xmax - $giant->xmin), $giant->ymax + 0.001],
+            ],
+        ]);
+
         return [
             'legislature_id'      => $leg->id,
             'leg_jurisdiction_id' => $leg->jurisdiction_id,
@@ -370,6 +415,7 @@ class ManualDistrictDrawTest extends TestCase
             'multipart_geojson'   => $multipart,
             'offshore_geojson'    => $offshore,
             'bisect_line'         => $bisectLine,
+            'diagonal_line'       => $diagonalLine,
         ];
     }
 }

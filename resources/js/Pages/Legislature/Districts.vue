@@ -3044,6 +3044,10 @@ function seatClass(seats) {
     return 'text-amber-400'
 }
 function formatPop(n) {
+    // Null-safe: a missing field must render as a dash, never throw —
+    // a TypeError inside a template aborts Vue's patch and freezes the
+    // whole panel at its last paint (the "stuck at Proposing…" bug).
+    if (n == null || Number.isNaN(n)) return '—'
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
     if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M'
     if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K'
@@ -4128,10 +4132,14 @@ async function previewAutoseedLines() {
     autoseedBusy.value = true
     autoseedError.value = ''
     try {
+        // A fetch has NO default timeout: a request that lands while the
+        // stack is mid-restart can pend forever, freezing the button at
+        // "Proposing…" with no error. Degrade honestly instead.
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4144,7 +4152,9 @@ async function previewAutoseedLines() {
         autoseedPlan.value = { ...plan, template: plan.template ?? autoseedTemplate.value }
         renderAutoseedOverlay(plan)
     } catch (e) {
-        autoseedError.value = 'Autoseed preview failed.'
+        autoseedError.value = e?.name === 'TimeoutError'
+            ? 'The proposal timed out — the server may still be starting. Try again.'
+            : 'Autoseed preview failed.'
     } finally {
         autoseedBusy.value = false
     }
@@ -4211,6 +4221,7 @@ async function acceptAutoseedPlan() {
                 // mismatch 422s with 'Plan changed…' by design.
                 template:  autoseedPlan.value.template,
             }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))

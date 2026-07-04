@@ -210,6 +210,7 @@ class SubdivisionCellSeedService
             'population_year' => $year,
             'seat_budget'     => $S,
             'sizes'           => $sizes,
+            'total_pop'       => (int) round($total),
             'quota'           => round($quota, 1),
             'template'        => SubdivisionAutoseedService::TEMPLATE_COMMUNITY_CELLS,
             'cuts'            => [],
