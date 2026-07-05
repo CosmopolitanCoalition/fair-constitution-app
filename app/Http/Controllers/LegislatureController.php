@@ -1219,18 +1219,24 @@ class LegislatureController extends Controller
             : null;
 
         // Whether the current user could actually FILE F-ELB-008 here: the
-        // same board-provenance pair the handler runs (their OWN seated row
-        // on this jurisdiction's active board — which is also exactly what
-        // derives R-08, so provenance passing implies the role gate passes).
-        // Calls the real helpers, so the check can never drift from filing.
+        // same gate pair the handler runs — the SETUP-context founder exception
+        // (an operator drawing map v1 while the jurisdiction has no human-seated
+        // active board; Art. II bootstrap posture), else their OWN seated row on
+        // this jurisdiction's active board (which is also exactly what derives
+        // R-08, so provenance passing implies the role gate passes). Calls the
+        // real helpers, so the check can never drift from filing.
         $canDraw = false;
         if (($drawUser = $request->user()) !== null) {
-            try {
-                $drawBoard = \App\Domain\Forms\Support\BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
-                \App\Domain\Forms\Support\BoardProvenance::resolveMemberOnBoard($drawUser, $drawBoard, 'F-ELB-008');
+            if (\App\Domain\Forms\Support\BoardProvenance::isFounderInSetupContext($drawUser, (string) $leg->jurisdiction_id)) {
                 $canDraw = true;
-            } catch (\App\Domain\Engine\ConstitutionalViolation) {
-                // no active board, or no own seat on it — the draw tools stay read-only
+            } else {
+                try {
+                    $drawBoard = \App\Domain\Forms\Support\BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
+                    \App\Domain\Forms\Support\BoardProvenance::resolveMemberOnBoard($drawUser, $drawBoard, 'F-ELB-008');
+                    $canDraw = true;
+                } catch (\App\Domain\Engine\ConstitutionalViolation) {
+                    // no active board, or no own seat on it — the draw tools stay read-only
+                }
             }
         }
 

@@ -4,6 +4,8 @@ namespace Tests\Constitutional;
 
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Domain\Forms\Support\BoardProvenance;
+use App\Models\User;
 use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,7 +26,18 @@ use Tests\TestCase;
  *  3. a non-contiguous piece is refused (Art. II §8);
  *  4. a piece outside the giant's boundary is refused (Art. II §8);
  *  5. drawing into a NON-giant scope is refused (manual draw is only for the
- *     case composite cannot handle).
+ *     case composite cannot handle);
+ *  6. SETUP context (operator ruling, map v1/map v2 — Art. II bootstrap
+ *     posture): while the jurisdiction has NO human-seated active board, the
+ *     OPERATOR (the founder) files F-ELB-008 without a board seat — the
+ *     founding map precedes the government that would hold provenance;
+ *  7. a NON-operator in the setup context is still refused with a citation —
+ *     players don't draw the founding map;
+ *  8. the FIRST human seated on an active board ends the setup context: the
+ *     seatless operator is refused (the governed provenance rule binds) and
+ *     the seated member files exactly as before;
+ *  9. can_draw on the mapper page mirrors the full rule (founder-in-setup OR
+ *     own-seat provenance).
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -224,6 +237,102 @@ class ManualDistrictDrawTest extends TestCase
                 'map_id'         => $ctx['map_id'],
                 'geojson'        => $ctx['inband_geojson'],
             ]);
+        });
+    }
+
+    public function test_setup_context_lets_the_operator_draw_the_founding_map_without_a_seat(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            // Map v1: no government exists yet, so the founder files F-ELB-008
+            // with NO board seat — the whole point of the setup context.
+            $rec = $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                'legislature_id'  => $ctx['legislature_id'],
+                'scope_id'        => $ctx['giant_id'],
+                'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                'map_id'          => $ctx['map_id'],
+                'geojson'         => $ctx['inband_geojson'],
+            ])->recorded;
+
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'method' => 'manual',
+            ]);
+        });
+    }
+
+    public function test_setup_context_still_refuses_a_non_operator_with_a_citation(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            try {
+                $this->engine()->file('F-ELB-008', $this->plainUser(), [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['inband_geojson'],
+                ]);
+                $this->fail('players do not draw the founding map — a non-operator must be refused');
+            } catch (ConstitutionalViolation $e) {
+                // The existing refusal posture, untouched by the founder
+                // exception: the R-08 role gate / own-seat provenance, cited.
+                $this->assertStringContainsString('R-08', $e->getMessage().' '.$e->citation);
+            }
+
+            $this->assertSame(0, (int) DB::table('district_subdivisions')
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count(),
+                'a refused filing persists nothing');
+        });
+    }
+
+    public function test_the_first_human_seat_ends_the_setup_context_and_binds_provenance(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+            // Map v2: the standing government takes over the function.
+            $member = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
+            try {
+                $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['inband_geojson'],
+                ]);
+                $this->fail('once a human-seated board exists, the seatless operator is refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('seated member', $e->getMessage());
+            }
+
+            // The governed path is byte-identical to before: the seated member files.
+            $rec = $this->engine()->file('F-ELB-008', $member, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'method' => 'manual',
+            ]);
+        });
+    }
+
+    public function test_can_draw_mirrors_the_setup_context_founder_rule(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            $this->assertTrue(
+                $this->districtsPageProps($ctx, $this->operatorUser())['can_draw'],
+                'the founder sees live draw tools while no government exists'
+            );
+            $this->assertFalse(
+                $this->districtsPageProps($ctx, $this->plainUser())['can_draw'],
+                'a non-operator never draws the founding map'
+            );
         });
     }
 
@@ -545,16 +654,74 @@ class ManualDistrictDrawTest extends TestCase
     }
 
     /**
-     * GET the mapper page at the legislature's ROOT scope (by slug, on the
-     * test's draft map) and return the raw Inertia props.
+     * Force the SETUP context on the fixture jurisdiction inside the test
+     * transaction: soft-delete every HUMAN-seated member row on its active
+     * boards (the live box may carry dev-seated humans). The bootstrap
+     * board's synthetic user_id-NULL row stays — it is the system, not a
+     * government, and must not end the context.
      */
-    private function districtsPageProps(array $ctx): array
+    private function enterSetupContext(string $jurisdictionId): void
+    {
+        $activeBoardIds = DB::table('election_boards')
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        DB::table('election_board_members')
+            ->whereIn('election_board_id', $activeBoardIds)
+            ->whereNotNull('user_id')
+            ->where('status', 'seated')
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]);
+
+        $this->assertTrue(
+            BoardProvenance::inSetupContext($jurisdictionId),
+            'the fixture jurisdiction is in the setup context once no human seat remains'
+        );
+    }
+
+    /** A fresh user row inside the live-pg transaction; operator = the founder. */
+    private function liveUser(bool $isOperator): User
+    {
+        $userId = (string) Str::uuid();
+        DB::table('users')->insert([
+            'id'                => $userId,
+            'name'              => $isOperator ? 'Founder Pin User' : 'Player Pin User',
+            'email'             => "draw-pin-{$userId}@example.test",
+            'password'          => password_hash('draw-pin-password', PASSWORD_BCRYPT),
+            'is_operator'       => $isOperator,
+            'terms_accepted_at' => now(),
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        return User::query()->findOrFail($userId);
+    }
+
+    private function operatorUser(): User
+    {
+        return $this->liveUser(true);
+    }
+
+    private function plainUser(): User
+    {
+        return $this->liveUser(false);
+    }
+
+    /**
+     * GET the mapper page at the legislature's ROOT scope (by slug, on the
+     * test's draft map) and return the raw Inertia props — as a guest, or
+     * authenticated as $as.
+     */
+    private function districtsPageProps(array $ctx, ?User $as = null): array
     {
         $slug = DB::table('jurisdictions')->where('id', $ctx['leg_jurisdiction_id'])->value('slug');
         $this->assertNotNull($slug, 'the root jurisdiction carries a slug');
 
         $props = null;
-        $this->get("/legislatures/{$slug}/districts?map={$ctx['map_id']}")
+        ($as !== null ? $this->actingAs($as) : $this)
+            ->get("/legislatures/{$slug}/districts?map={$ctx['map_id']}")
             ->assertOk()
             ->assertInertia(function (\Inertia\Testing\AssertableInertia $page) use (&$props) {
                 $props = $page->toArray()['props'];

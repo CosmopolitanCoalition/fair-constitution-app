@@ -23,6 +23,44 @@ use App\Models\User;
 class BoardProvenance
 {
     /**
+     * SETUP context (Art. II bootstrap posture) — TRUE while the jurisdiction
+     * has NO human-seated ACTIVE election board: no election_board_members row
+     * with a real user_id, seated and live, on a live active board. The
+     * bootstrap board's synthetic user_id-NULL member is the system, not a
+     * government — its presence does NOT end the setup context.
+     *
+     * Operator ruling (map v1 / map v2): the FOUNDING district map is drawn
+     * during Initial Setup, before any government exists, so it carries no
+     * election-board requirements — there is no board of humans to hold them.
+     * From the first human seated on an active board onward (map version 2 is
+     * when standing governments take over the function), the governed
+     * board-provenance rule binds. A principled context distinction, never a
+     * dev flag.
+     */
+    public static function inSetupContext(string $jurisdictionId): bool
+    {
+        return ! ElectionBoardMember::query()
+            ->whereNotNull('user_id')
+            ->seated()
+            ->whereHas('board', fn ($q) => $q->where('jurisdiction_id', $jurisdictionId)->active())
+            ->exists();
+    }
+
+    /**
+     * The founder drawing map v1: an OPERATOR acting while the jurisdiction is
+     * still in the setup context. Shared by the F-ELB-008 handler's provenance
+     * gate and the mapper's can_draw so the two can never drift. Non-operator
+     * humans get no exception in any context — players don't draw the
+     * founding map.
+     */
+    public static function isFounderInSetupContext(?User $actor, string $jurisdictionId): bool
+    {
+        return $actor !== null
+            && (bool) $actor->is_operator
+            && self::inSetupContext($jurisdictionId);
+    }
+
+    /**
      * Resolve the election's board: the row it points at, else the active
      * board on the election's jurisdiction.
      */

@@ -119,7 +119,18 @@ class ManualDistrictDraw implements FormHandler
         // SCOPE (R-08): a HUMAN board member may only draw districts for a legislature whose jurisdiction's
         // board they sit on — the role gate proves a seat on SOME board, board-blind. The system path (null
         // actor) bypasses (the engine bypasses the role gate for a system filing).
-        if ($actor !== null) {
+        //
+        // SETUP-context exception (Art. II bootstrap posture — operator ruling, map v1/map v2):
+        // the FOUNDING map is drawn during Initial Setup, before any government exists, so it
+        // carries no election-board requirement — the institution that would hold provenance
+        // has not been stood up yet (the bootstrap board's synthetic user_id-NULL member is
+        // the system, not a government). While the legislature's jurisdiction has no
+        // human-seated active board, the OPERATOR (the founder building the world) files
+        // without a seat. The first human seated on an active board ends the context — map
+        // version 2 onward is drafted by the standing government, and own-seat provenance
+        // binds exactly as before. Non-operator humans get no exception in any context: they
+        // fail the R-08 role gate or the own-seat resolution below, citation intact.
+        if ($actor !== null && ! BoardProvenance::isFounderInSetupContext($actor, (string) $leg->jurisdiction_id)) {
             $board = BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
             BoardProvenance::resolveMemberOnBoard($actor, $board, 'F-ELB-008');
         }
