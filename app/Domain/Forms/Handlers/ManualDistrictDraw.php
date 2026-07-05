@@ -92,16 +92,55 @@ class ManualDistrictDraw implements FormHandler
             throw new ConstitutionalViolation('F-ELB-008 targets an unknown district map.', 'CGA Forms Catalog (F-ELB-008)');
         }
         if ($map->status !== 'draft') {
-            throw new ConstitutionalViolation(
-                "District map [{$map->id}] is not a draft (status: {$map->status}) — draw into a draft plan.",
-                'CGA Forms Catalog (F-ELB-008)'
-            );
+            // SETUP-context exception, same posture as the provenance skip below:
+            // during Initial Setup the FOUNDING map IS the active map — there is no
+            // standing government to run the draft → approval → vote procedure
+            // (that begins at map v2), so the founder/system draws v1 directly.
+            // Governed context keeps drafts-only.
+            $activeFoundingMap = $map->status === 'active'
+                && BoardProvenance::inSetupContext((string) $leg->jurisdiction_id);
+            if (! $activeFoundingMap) {
+                throw new ConstitutionalViolation(
+                    "District map [{$map->id}] is not a draft (status: {$map->status}) — "
+                    .'a standing government drafts new plans and votes them active.',
+                    'CGA Forms Catalog (F-ELB-008)'
+                );
+            }
+        }
+
+        // An operator-chosen label must be unique per plan among LIVE rows (the
+        // partial unique index) — refuse a duplicate up front, with the other
+        // cheap input gates, so the filing fails with a citation before any
+        // raster work and never as a raw 23505 out of the database.
+        if ($label !== '') {
+            $labelTaken = DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('label', $label)
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($labelTaken) {
+                throw new ConstitutionalViolation(
+                    "A drawn district named \"{$label}\" already exists in this plan — choose another label.",
+                    'CGA Forms Catalog (F-ELB-008)'
+                );
+            }
         }
 
         // SCOPE (R-08): a HUMAN board member may only draw districts for a legislature whose jurisdiction's
         // board they sit on — the role gate proves a seat on SOME board, board-blind. The system path (null
         // actor) bypasses (the engine bypasses the role gate for a system filing).
-        if ($actor !== null) {
+        //
+        // SETUP-context exception (Art. II bootstrap posture — operator ruling, map v1/map v2):
+        // the FOUNDING map is drawn during Initial Setup, before any government exists, so it
+        // carries no election-board requirement — the institution that would hold provenance
+        // has not been stood up yet (the bootstrap board's synthetic user_id-NULL member is
+        // the system, not a government). While the legislature's jurisdiction has no
+        // human-seated active board, the OPERATOR (the founder building the world) files
+        // without a seat. The first human seated on an active board ends the context — map
+        // version 2 onward is drafted by the standing government, and own-seat provenance
+        // binds exactly as before. Non-operator humans get no exception in any context: they
+        // fail the R-08 role gate or the own-seat resolution below, citation intact.
+        if ($actor !== null && ! BoardProvenance::isFounderInSetupContext($actor, (string) $leg->jurisdiction_id)) {
             $board = BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
             BoardProvenance::resolveMemberOnBoard($actor, $board, 'F-ELB-008');
         }
@@ -228,7 +267,31 @@ class ManualDistrictDraw implements FormHandler
         $nextNumber++;
 
         if ($label === '') {
-            $label = "{$giant->name} — drawn district {$nextNumber}";
+            // Auto-label numbering is collision-proof by construction: the live
+            // district_number sequence resets when districts are cleared, but a
+            // label may survive as a soft-deleted ghost (or a live row from an
+            // operator's own naming) — so start from the HIGHEST number any
+            // label on this map+scope has ever carried (soft-deleted rows
+            // included; DB::table applies no soft-delete scope), then bump
+            // until the label is free among live rows. A 23505 out of the
+            // partial unique index must be unreachable from this path.
+            $labelBase = "{$giant->name} — drawn district ";
+            $maxLabelNumber = (int) DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('parent_jurisdiction_id', $scopeId)
+                ->where('label', 'like', $labelBase.'%')
+                ->selectRaw("MAX(NULLIF(substring(label from '[0-9]+$'), '')::int) AS n")
+                ->value('n');
+
+            $n = max($nextNumber, $maxLabelNumber + 1);
+            $label = $labelBase.$n;
+            while (DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('label', $label)
+                ->whereNull('deleted_at')
+                ->exists()) {
+                $label = $labelBase.(++$n);
+            }
         }
 
         $subdivisionId = (string) Str::uuid();

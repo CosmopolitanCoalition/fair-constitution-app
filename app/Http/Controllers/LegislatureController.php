@@ -414,6 +414,44 @@ class LegislatureController extends Controller
             return '/legislatures/' . $legSlug . '/districts' . (count($q) ? '?' . http_build_query($q) : '');
         };
 
+        // A ?map= that no longer resolves (a deleted draft, a foreign id) must
+        // not linger in the address bar while the page silently renders the
+        // fallback — the URL and the MAP selector would disagree, and every
+        // canonicalUrl-built link would carry the stale param forward forever.
+        // Redirect once onto the RESOLVED map (or bare, if none). Runs before
+        // the guards below so their redirects never re-embed the dead param.
+        $mapParam = $request->query('map');
+        if ($mapParam !== null && $mapParam !== '' && $mapParam !== $mapId) {
+            $q = $request->query();
+            unset($q['map']);
+            if ($mapId !== null) {
+                $q['map'] = $mapId;
+            }
+            return redirect()->to($request->url() . (count($q) ? '?' . http_build_query($q) : ''));
+        }
+
+        // Guard: the scope must live INSIDE this legislature's own root subtree.
+        // Without it, breadcrumb/step-up links (or a hand-edited URL) can walk a
+        // legislature's mapper onto an ANCESTOR jurisdiction — the giant guard
+        // below can't catch that (an ancestor's fractional seats are always
+        // astronomical), and every Webster-share figure on the page becomes
+        // nonsense ("7,677,127 seats to assign" on a 32-seat legislature).
+        // Out-of-subtree scopes land back at the root scope, map param kept.
+        if ($scopeId !== $leg->jurisdiction_id) {
+            $inSubtree = false;
+            $cursor = $scope->parent_id;
+            for ($hops = 0; $cursor !== null && $hops < 32; $hops++) {
+                if ($cursor === $leg->jurisdiction_id) {
+                    $inSubtree = true;
+                    break;
+                }
+                $cursor = DB::table('jurisdictions')->where('id', $cursor)->whereNull('deleted_at')->value('parent_id');
+            }
+            if (! $inSubtree) {
+                return redirect()->to($canonicalUrl(null));
+            }
+        }
+
         // Root jurisdiction population — always the legislature's own jurisdiction (e.g. Earth).
         // Used to compute proportional entitlements consistently across all drill-down levels.
         $rootPop = (int) DB::table('jurisdictions')
@@ -502,6 +540,12 @@ class LegislatureController extends Controller
 
         // ── Ancestor chain (cheap, needed by both the render call AND the
         // heavy block's district-name labeling) ────────────────────────────────
+        // STOPS at the legislature's own root: the chain must never climb into
+        // ancestor jurisdictions ABOVE the legislature (the breadcrumb links,
+        // the wizard's ↑ control, and the ancestors[0]=root / ancestors[1]=
+        // first-child labeling convention all assume the legislature-rooted
+        // chain — an over-walk to the planetary root let the mapper step onto
+        // out-of-subtree scopes and skewed non-Earth district short codes).
         $ancestors = DB::select("
             WITH RECURSIVE anc AS (
                 SELECT id, name, slug, parent_id, iso_code, adm_level
@@ -511,9 +555,10 @@ class LegislatureController extends Controller
                 FROM jurisdictions j
                 JOIN anc ON j.id = anc.parent_id
                 WHERE j.deleted_at IS NULL
+                  AND anc.id <> :root_id
             )
             SELECT id, name, slug, iso_code, adm_level FROM anc
-        ", ['start_id' => $scopeId]);
+        ", ['start_id' => $scopeId, 'root_id' => $leg->jurisdiction_id]);
         // Reverse so we get root → current scope
         $ancestors = array_reverse($ancestors);
 
@@ -548,7 +593,8 @@ class LegislatureController extends Controller
         // PDO does not allow reusing named parameters — scope_id_r / leg_id2 / map_id2 are
         // distinct aliases for the same values used in the outer query.
         $childMapFilter2 = $mapId !== null ? 'AND ld2.map_id = :map_id2' : '';
-        $childMapBindings = $mapId !== null ? ['map_id2' => $mapId] : [];
+        $childMapFilter3 = $mapId !== null ? 'AND ld3.map_id = :map_id3' : '';
+        $childMapBindings = $mapId !== null ? ['map_id2' => $mapId, 'map_id3' => $mapId] : [];
 
         $children = DB::select("
             WITH RECURSIVE giant_children AS (
@@ -581,6 +627,11 @@ class LegislatureController extends Controller
                 -- For each scope child, sum the seats of DISTINCT districts whose members
                 -- appear anywhere in that child's subtree.  DISTINCT on (district id,
                 -- root_child_id) prevents counting a district's seats once per member.
+                -- The second branch adds DRAWN districts (leaf-giant subdivisions):
+                -- their memberships carry a subdivision_id and no jurisdiction, so
+                -- the jurisdiction-side join alone leaves every drawn seat invisible
+                -- to the parent scope's counters. The UNION dedupes by district id
+                -- (a district is never reachable both ways).
                 SELECT distinct_d.root_child_id,
                        SUM(distinct_d.seats) AS child_assigned_seats
                 FROM (
@@ -593,6 +644,19 @@ class LegislatureController extends Controller
                               AND ld2.legislature_id = :leg_id2
                               AND ld2.deleted_at IS NULL
                               {$childMapFilter2}
+                    UNION
+                    SELECT DISTINCT ld3.id, ld3.seats, dt3.root_child_id
+                    FROM   desc_tree dt3
+                    JOIN   district_subdivisions ds3
+                               ON ds3.parent_jurisdiction_id = dt3.id
+                              AND ds3.deleted_at IS NULL
+                    JOIN   legislature_district_jurisdictions ldj3
+                               ON ldj3.subdivision_id = ds3.id
+                    JOIN   legislature_districts ld3
+                               ON ld3.id = ldj3.district_id
+                              AND ld3.legislature_id = :leg_id3
+                              AND ld3.deleted_at IS NULL
+                              {$childMapFilter3}
                 ) distinct_d
                 GROUP BY distinct_d.root_child_id
             )
@@ -628,6 +692,7 @@ class LegislatureController extends Controller
             'quota'              => $quota,
             'leg_id'             => $legislature_id,
             'leg_id2'            => $legislature_id,
+            'leg_id3'            => $legislature_id,
             'scope_id'           => $scopeId,
             'scope_id_r'         => $scopeId,
             'total_seats_c'      => (int) $leg->type_a_seats,
@@ -646,6 +711,28 @@ class LegislatureController extends Controller
         // recursion actually fires.
         foreach ($children as $c) {
             $c->type_a_apportioned = $this->computeSeatBudget($c->id, $legislature_id);
+        }
+
+        // Drawn-district seats per DIRECT child (Phase 5e): a childless leaf
+        // giant holds its seats on district_subdivisions rows, keyed by
+        // parent_jurisdiction_id — one grouped sum over the (tiny, indexed)
+        // subdivisions table gives every leaf-giant child its progress figure.
+        // Joined through live legislature_districts so a retired plan's rows
+        // never count. Emitted as the ADDITIVE `drawn_seats` children prop.
+        $drawnSeatsByChild = [];
+        if (count($children) > 0) {
+            $drawnSeatsByChild = DB::table('district_subdivisions as ds')
+                ->join('legislature_district_jurisdictions as ldj', 'ldj.subdivision_id', '=', 'ds.id')
+                ->join('legislature_districts as ld', 'ld.id', '=', 'ldj.district_id')
+                ->whereIn('ds.parent_jurisdiction_id', array_map(fn ($c) => $c->id, $children))
+                ->whereNull('ds.deleted_at')
+                ->whereNull('ld.deleted_at')
+                ->where('ld.legislature_id', $legislature_id)
+                ->when($mapId !== null, fn ($q) => $q->where('ld.map_id', $mapId))
+                ->groupBy('ds.parent_jurisdiction_id')
+                ->selectRaw('ds.parent_jurisdiction_id AS cid, SUM(ld.seats)::int AS s')
+                ->pluck('s', 'cid')
+                ->all();
         }
 
         // ── Non-giant quota adjustment ────────────────────────────────────────
@@ -846,6 +933,94 @@ class LegislatureController extends Controller
             }
         }
 
+        // ── Drawn (subdivision) districts at THIS scope — Phase 5e ────────────
+        // A childless leaf giant's districts carry their members as
+        // district_subdivisions (subdivision_id memberships, no jurisdiction
+        // rows), so the member-joined $dmRows above never sees them and the
+        // sidebar/counters went blind at the leaf scope. Fetch them here and
+        // merge into the same district list — ADDITIVE prop shape (extra
+        // label/subdivision_id/method/deviation_pct keys; everything the
+        // composite rows carry is present too), pinned by MonolithSplitTest.
+        // Appended AFTER the composite fractional recompute above so that
+        // local re-quota never mangles a drawn district's own raster-derived
+        // share. Empty everywhere except a leaf-giant scope by construction.
+        $drawnMapFilter = $mapId !== null ? 'AND ld.map_id = :map_id_dr' : '';
+        $drawnBindings  = $mapId !== null ? ['map_id_dr' => $mapId] : [];
+        $drawnRows = DB::select("
+            SELECT
+                ld.id                AS district_id,
+                ld.seats,
+                ld.floor_override,
+                ld.status,
+                ld.district_number   AS dnum,
+                ld.convex_hull_ratio,
+                ld.is_contiguous,
+                ds.id                AS subdivision_id,
+                ds.label,
+                ds.population        AS ds_pop,
+                j_g.name             AS giant_name,
+                j_g.iso_code         AS giant_iso,
+                j_g.adm_level        AS giant_adm,
+                j_gp.name            AS gpar_name,
+                j_gp.iso_code        AS gpar_iso,
+                j_gp.adm_level       AS gpar_adm,
+                (j_gp.parent_id IS NULL) AS gp_is_root
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+            JOIN jurisdictions j_g ON j_g.id = ld.jurisdiction_id
+            LEFT JOIN jurisdictions j_gp ON j_gp.id = j_g.parent_id
+            WHERE ld.legislature_id = :leg_id_dr
+              AND ld.jurisdiction_id = :scope_id_dr
+              AND ld.deleted_at IS NULL
+              {$drawnMapFilter}
+            ORDER BY ld.district_number
+        ", array_merge([
+            'leg_id_dr'  => $legislature_id,
+            'scope_id_dr' => $scopeId,
+        ], $drawnBindings));
+
+        foreach ($drawnRows as $row) {
+            $pop  = (int) $row->ds_pop;
+            $seats = (int) $row->seats;
+            $frac = $quota > 0 ? round($pop / $quota, 4) : 0.0;
+            $districtMap[$row->district_id] = [
+                'id'                => $row->district_id,
+                'seats'             => $seats,
+                'floor_override'    => (bool) $row->floor_override,
+                'status'            => $row->status,
+                'color_index'       => 0,   // overlaid below, same as composites
+                'district_number'   => (int) $row->dnum,
+                'population'        => $pop,
+                'fractional_seats'  => $frac,
+                'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
+                'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : true,
+                // A drawn piece IS the in-band answer for the leaf giant — the
+                // same posture the revealed layer's Branch 3 emits.
+                'has_integrity'     => true,
+                'scope_iso'         => $row->giant_iso,
+                'scope_adm'         => (int) $row->giant_adm,
+                'scope_name'        => $row->giant_name,
+                'parent_iso'        => $row->gpar_iso,
+                'parent_adm'        => $row->gpar_adm !== null ? (int) $row->gpar_adm : null,
+                'parent_name'       => $row->gpar_name,
+                'gp_is_root'        => (bool) $row->gp_is_root,
+                'name'              => $row->label,
+                // Additive keys for the leaf sidebar: the human label, the
+                // subdivision id paired with the district id for deletion, the
+                // method marker, and per-seat deviation off the local quota.
+                'label'             => $row->label,
+                'subdivision_id'    => $row->subdivision_id,
+                'method'            => 'drawn',
+                'deviation_pct'     => ($seats > 0 && $quota > 0)
+                    ? round(($pop / $seats - $quota) / $quota * 100, 2)
+                    : null,
+                'members'           => [],
+            ];
+        }
+
         // Overlay adjacency-aware colors from the legislature-wide coloring.
         // Using legislatureColorMap (not just this scope's districts) lets
         // sidebar dot colors stay consistent with revealedGeoJson's map fills
@@ -867,6 +1042,114 @@ class LegislatureController extends Controller
 
         $flags = $this->computeValidationFlags($legislature_id, $leg, $scopeId, $children, $districts, $mapId);
         $stats = $this->computeConstitutionalStats($legislature_id, $scopeId, $districts, $ngQuota, $mapId);
+
+        // ── Drawn districts of DESCENDANT leaf giants — the ANCESTOR rows ────
+        // The revealed layer already PAINTS a descendant giant's drawn pieces
+        // at this scope (Branches 4/5 of revealedGeoJson) — without list rows
+        // the operator saw color with no name. Reach is the exact Branch 4/5
+        // parity: giants ONE and TWO levels below the scope, behind the same
+        // giant-threshold gate; never deeper. Same additive row shape as the
+        // leaf merge above.
+        //
+        // Appended AFTER flags/stats ON PURPOSE: a drawn district's seats
+        // already reach this scope's counters through the child_committed
+        // subdivision branch (child_assigned_seats / drawn_seats), so letting
+        // these rows into the flag math would count each giant's budget twice.
+        // fractional_seats / deviation_pct read the district's STORED
+        // local-quota entitlement (its own giant's quota) — pricing a deeper
+        // giant's piece against the viewed scope's quota would be meaningless.
+        $ancDrawnFilter   = $mapId !== null ? 'AND ld.map_id = :map_id_anc' : '';
+        $ancDrawnBindings = $mapId !== null ? ['map_id_anc' => $mapId] : [];
+        $ancDrawnRows = DB::select("
+            SELECT
+                ld.id                AS district_id,
+                ld.seats,
+                ld.floor_override,
+                ld.status,
+                ld.district_number   AS dnum,
+                ld.fractional_seats  AS ld_frac,
+                ld.convex_hull_ratio,
+                ld.is_contiguous,
+                ds.id                AS subdivision_id,
+                ds.label,
+                ds.population        AS ds_pop,
+                j_g.name             AS giant_name,
+                j_g.iso_code         AS giant_iso,
+                j_g.adm_level        AS giant_adm,
+                j_gp.name            AS gpar_name,
+                j_gp.iso_code        AS gpar_iso,
+                j_gp.adm_level       AS gpar_adm,
+                (j_gp.parent_id IS NULL) AS gp_is_root
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+            JOIN jurisdictions j_g ON j_g.id = ld.jurisdiction_id
+                AND j_g.deleted_at IS NULL
+            LEFT JOIN jurisdictions j_gp ON j_gp.id = j_g.parent_id
+            WHERE ld.legislature_id = :leg_id_anc
+              AND ld.deleted_at IS NULL
+              {$ancDrawnFilter}
+              AND (
+                    -- giant ONE level below the scope (reveal Branch 4 reach)
+                    (j_g.parent_id = :scope_anc1
+                     AND (CAST(j_g.population AS numeric) * :seats_anc1 / :pop_anc1) >= :thr_anc1)
+                    -- giant TWO levels below (reveal Branch 5 reach)
+                    OR EXISTS (
+                        SELECT 1 FROM jurisdictions j_mid
+                         WHERE j_mid.id = j_g.parent_id
+                           AND j_mid.parent_id = :scope_anc2
+                           AND j_mid.deleted_at IS NULL
+                           AND (CAST(j_g.population AS numeric) * :seats_anc2 / :pop_anc2) >= :thr_anc2
+                    )
+              )
+            ORDER BY j_g.name, ld.district_number
+        ", array_merge([
+            'leg_id_anc' => $legislature_id,
+            'scope_anc1' => $scopeId,
+            'seats_anc1' => (int) $leg->type_a_seats,
+            'pop_anc1'   => $rootPop,
+            'thr_anc1'   => $giantThreshold,
+            'scope_anc2' => $scopeId,
+            'seats_anc2' => (int) $leg->type_a_seats,
+            'pop_anc2'   => $rootPop,
+            'thr_anc2'   => $giantThreshold,
+        ], $ancDrawnBindings));
+
+        foreach ($ancDrawnRows as $row) {
+            $seats = (int) $row->seats;
+            $frac  = round((float) $row->ld_frac, 4);
+            $districts[] = [
+                'id'                => $row->district_id,
+                'seats'             => $seats,
+                'floor_override'    => (bool) $row->floor_override,
+                'status'            => $row->status,
+                'color_index'       => $colorMap[$row->district_id] ?? 0,
+                'district_number'   => (int) $row->dnum,
+                'population'        => (int) $row->ds_pop,
+                'fractional_seats'  => $frac,
+                'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
+                'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : true,
+                'has_integrity'     => true,
+                'scope_iso'         => $row->giant_iso,
+                'scope_adm'         => (int) $row->giant_adm,
+                'scope_name'        => $row->giant_name,
+                'parent_iso'        => $row->gpar_iso,
+                'parent_adm'        => $row->gpar_adm !== null ? (int) $row->gpar_adm : null,
+                'parent_name'       => $row->gpar_name,
+                'gp_is_root'        => (bool) $row->gp_is_root,
+                'name'              => $row->label,
+                'label'             => $row->label,
+                'subdivision_id'    => $row->subdivision_id,
+                'method'            => 'drawn',
+                'deviation_pct'     => ($seats > 0 && $frac > 0)
+                    ? round(($frac / $seats - 1) * 100, 2)
+                    : null,
+                'members'           => [],
+                'centroid'          => null,
+            ];
+        }
 
             // ── End of deferred heavy block ───────────────────────────────────────
             // Package the heavy results into the shared cache. The 5 defer
@@ -892,6 +1175,10 @@ class LegislatureController extends Controller
                     'child_count'          => (int) $c->child_count,
                     'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
                     'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
+                    // Seats committed as DRAWN districts inside this child (a
+                    // childless leaf giant) — lets the sidebar show the giant's
+                    // progress toward its budget without drilling in.
+                    'drawn_seats'          => (int) ($drawnSeatsByChild[$c->id] ?? 0),
                 ], $children),
                 'districts' => $districts,
                 'flags'     => $flags,
@@ -947,6 +1234,28 @@ class LegislatureController extends Controller
             ? DB::table('legislature_district_maps')->where('id', $mapId)->first()
             : null;
 
+        // Whether the current user could actually FILE F-ELB-008 here: the
+        // same gate pair the handler runs — the SETUP-context founder exception
+        // (an operator drawing map v1 while the jurisdiction has no human-seated
+        // active board; Art. II bootstrap posture), else their OWN seated row on
+        // this jurisdiction's active board (which is also exactly what derives
+        // R-08, so provenance passing implies the role gate passes). Calls the
+        // real helpers, so the check can never drift from filing.
+        $canDraw = false;
+        if (($drawUser = $request->user()) !== null) {
+            if (\App\Domain\Forms\Support\BoardProvenance::isFounderInSetupContext($drawUser, (string) $leg->jurisdiction_id)) {
+                $canDraw = true;
+            } else {
+                try {
+                    $drawBoard = \App\Domain\Forms\Support\BoardProvenance::boardForJurisdiction((string) $leg->jurisdiction_id, 'F-ELB-008');
+                    \App\Domain\Forms\Support\BoardProvenance::resolveMemberOnBoard($drawUser, $drawBoard, 'F-ELB-008');
+                    $canDraw = true;
+                } catch (\App\Domain\Engine\ConstitutionalViolation) {
+                    // no active board, or no own seat on it — the draw tools stay read-only
+                }
+            }
+        }
+
         return Inertia::render('Legislature/Districts', [
             'surface' => \App\Support\SurfaceMeta::for('legislature/districts'),
             'legislature' => [
@@ -1000,6 +1309,17 @@ class LegislatureController extends Controller
             'stats'     => $loadHeavy()['stats'],
 
             'mass_tool_running' => $massToolRunning,
+            'can_draw'   => $canDraw,
+            // WHETHER the displayed map may be drawn into (can_draw is WHO):
+            // drafts always; the ACTIVE map only during the SETUP context —
+            // the founding (v1) map is drawn directly because no standing
+            // government exists yet to run draft → approval → vote (map v2+).
+            // Shares the exact rule the F-ELB-008 handler enforces.
+            'map_drawable' => $activeMapRow !== null && (
+                $activeMapRow->status === 'draft'
+                || ($activeMapRow->status === 'active'
+                    && \App\Domain\Forms\Support\BoardProvenance::inSetupContext((string) $leg->jurisdiction_id))
+            ),
             'maps'       => $allMaps,
             'active_map' => $activeMapRow ? [
                 'id'     => $activeMapRow->id,
@@ -1579,6 +1899,24 @@ class LegislatureController extends Controller
         $scopeId = $district->jurisdiction_id ?? ($leg ? $leg->jurisdiction_id : null);
         $distMapId = $this->getMapId($legislature_id, $district->map_id ?? null);
 
+        // A DRAWN district (leaf-giant subdivision) carries its geometry on a
+        // district_subdivisions row reached through a subdivision_id membership.
+        // Retire that row WITH the district: leaving it live is the "ghost"
+        // that blocked every later draw at the scope — its label collided with
+        // the next auto-numbered filing (23505) and its geometry tripped the
+        // sibling-overlap gate. Composite districts have no subdivision rows,
+        // so this is a no-op for them.
+        $subdivisionIds = DB::table('legislature_district_jurisdictions')
+            ->where('district_id', $district_id)
+            ->whereNotNull('subdivision_id')
+            ->pluck('subdivision_id');
+        if ($subdivisionIds->isNotEmpty()) {
+            DB::table('district_subdivisions')
+                ->whereIn('id', $subdivisionIds)
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now(), 'updated_at' => now()]);
+        }
+
         DB::table('legislature_district_jurisdictions')->where('district_id', $district_id)->delete();
         DB::table('legislature_districts')->where('id', $district_id)->update(['deleted_at' => now()]);
 
@@ -1640,8 +1978,11 @@ class LegislatureController extends Controller
         $revMapFilt = $revMapId !== null ? 'AND ld.map_id = :map_id'  : '';
         $revMapFil2 = $revMapId !== null ? 'AND ld.map_id = :map_id2' : '';
         $revMapFil3 = $revMapId !== null ? 'AND ld.map_id = :map_id3' : '';
+        $revMapFil4 = $revMapId !== null ? 'AND ld.map_id = :map_id4' : '';
+        $revMapFil5 = $revMapId !== null ? 'AND ld.map_id = :map_id5' : '';
         $revMapBind = $revMapId !== null
-            ? ['map_id' => $revMapId, 'map_id2' => $revMapId, 'map_id3' => $revMapId]
+            ? ['map_id' => $revMapId, 'map_id2' => $revMapId, 'map_id3' => $revMapId,
+               'map_id4' => $revMapId, 'map_id5' => $revMapId]
             : [];
 
         // Root pop + total seats — used to enforce the giant threshold
@@ -1676,7 +2017,7 @@ class LegislatureController extends Controller
         // (flushRevealedCache) or a giants-reconfig / ETL flush fires. The heavy
         // cold build (~90s at Earth scope) is then paid once, by the prewarm job.
         $payload = Cache::tags([$cacheTag, "revealed.{$legislature_id}"])->rememberForever($cacheKey, function () use (
-            $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapFil3, $revMapBind,
+            $legislature_id, $scopeId, $revMapId, $revMapFilt, $revMapFil2, $revMapFil3, $revMapFil4, $revMapFil5, $revMapBind,
             $revRootPop, $revTotalSeats, $giantThreshold, $tol
         ) {
 
@@ -1853,6 +2194,102 @@ class LegislatureController extends Controller
               AND ld.deleted_at IS NULL
               AND ld.jurisdiction_id = :scope_id3
               {$revMapFil3}
+
+            UNION ALL
+
+            -- Branch 4 (Phase 5e): drawn subdivisions of a childless leaf giant
+            -- ONE level below the scope — the ANCESTOR view of Branch 3. A
+            -- drawn district's membership carries only a subdivision_id (no
+            -- jurisdiction rows), so Branch 1/2's member→giant ancestry walk
+            -- can never surface it; this branch reaches it from the giant side
+            -- (ld.jurisdiction_id IS the giant) with the same giant-threshold
+            -- gate Branch 1 applies, and emits the exact Branch 3 prop shape
+            -- so tooltips read identically at every scope.
+            SELECT
+                ld.id,
+                ld.seats,
+                ld.floor_override,
+                j_giant.id,
+                j_giant.name,
+                ld.district_number,
+                j_giant.iso_code,
+                j_giant.adm_level,
+                j_gp4.iso_code,
+                j_gp4.adm_level,
+                j_gp4.name,
+                (j_gp4.parent_id IS NULL),
+                j_giant.id,
+                ld.actual_population,
+                ld.fractional_seats,
+                ld.convex_hull_ratio,
+                ld.is_contiguous,
+                ds.id,
+                ds.label,
+                j_giant.iso_code,
+                (j_giant.adm_level + 1),
+                ST_AsGeoJSON(ST_Simplify(ds.geom, {$tol})),
+                ds.population,
+                0
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+                AND ds.geom IS NOT NULL
+            JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
+                AND j_giant.parent_id = :scope_id4
+                AND j_giant.deleted_at IS NULL
+                AND (CAST(j_giant.population AS numeric) * :total_seats4 / :root_pop4) >= :giant_threshold4
+            LEFT JOIN jurisdictions j_gp4 ON j_gp4.id = j_giant.parent_id
+            WHERE ld.legislature_id = :leg_id4
+              AND ld.deleted_at IS NULL
+              {$revMapFil4}
+
+            UNION ALL
+
+            -- Branch 5: same as Branch 4 for a giant TWO levels below the scope
+            -- — parity with Branch 2's deeper ancestry (scope → mid → giant).
+            SELECT
+                ld.id,
+                ld.seats,
+                ld.floor_override,
+                j_giant.id,
+                j_giant.name,
+                ld.district_number,
+                j_giant.iso_code,
+                j_giant.adm_level,
+                j_gp5.iso_code,
+                j_gp5.adm_level,
+                j_gp5.name,
+                (j_gp5.parent_id IS NULL),
+                j_giant.id,
+                ld.actual_population,
+                ld.fractional_seats,
+                ld.convex_hull_ratio,
+                ld.is_contiguous,
+                ds.id,
+                ds.label,
+                j_giant.iso_code,
+                (j_giant.adm_level + 1),
+                ST_AsGeoJSON(ST_Simplify(ds.geom, {$tol})),
+                ds.population,
+                0
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+                AND ds.geom IS NOT NULL
+            JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
+                AND j_giant.deleted_at IS NULL
+                AND (CAST(j_giant.population AS numeric) * :total_seats5 / :root_pop5) >= :giant_threshold5
+            JOIN jurisdictions j_mid5 ON j_mid5.id = j_giant.parent_id
+                AND j_mid5.parent_id = :scope_id5
+                AND j_mid5.deleted_at IS NULL
+            LEFT JOIN jurisdictions j_gp5 ON j_gp5.id = j_giant.parent_id
+            WHERE ld.legislature_id = :leg_id5
+              AND ld.deleted_at IS NULL
+              {$revMapFil5}
         ", array_merge([
             'leg_id'           => $legislature_id,
             'scope_id'         => $scopeId,
@@ -1866,6 +2303,16 @@ class LegislatureController extends Controller
             'giant_threshold2' => $giantThreshold,
             'leg_id3'          => $legislature_id,
             'scope_id3'        => $scopeId,
+            'leg_id4'          => $legislature_id,
+            'scope_id4'        => $scopeId,
+            'total_seats4'     => $revTotalSeats,
+            'root_pop4'        => $revRootPop,
+            'giant_threshold4' => $giantThreshold,
+            'leg_id5'          => $legislature_id,
+            'scope_id5'        => $scopeId,
+            'total_seats5'     => $revTotalSeats,
+            'root_pop5'        => $revRootPop,
+            'giant_threshold5' => $giantThreshold,
         ], $revMapBind));
 
         // Adjacency-aware greedy 7-coloring over the WHOLE legislature/map.
@@ -1984,6 +2431,27 @@ class LegislatureController extends Controller
                 AND (CAST(j_giant.population AS numeric) * :total_seats_o3 / :root_pop_o3) >= :giant_threshold_o3
             WHERE ld.legislature_id = :leg_id_o3
               AND ld.deleted_at IS NULL
+
+            UNION
+
+            -- Branch D (Phase 5e): depth-1 outlines for childless leaf giants
+            -- revealed through DRAWN subdivisions (rows Branch 4 paints) —
+            -- their memberships carry no jurisdictions, so A/B never find them.
+            SELECT DISTINCT
+                j_giant.id,
+                j_giant.name,
+                ST_AsGeoJSON(ST_Simplify(j_giant.geom, {$tol})),
+                1
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
+                AND j_giant.parent_id = :scope_id_o4
+                AND j_giant.deleted_at IS NULL
+                AND j_giant.geom IS NOT NULL
+                AND (CAST(j_giant.population AS numeric) * :total_seats_o4 / :root_pop_o4) >= :giant_threshold_o4
+            WHERE ld.legislature_id = :leg_id_o4
+              AND ld.deleted_at IS NULL
         ", [
             'leg_id_o'           => $legislature_id,
             'scope_id_o'         => $scopeId,
@@ -2000,6 +2468,11 @@ class LegislatureController extends Controller
             'total_seats_o3'     => $revTotalSeats,
             'root_pop_o3'        => $revRootPop,
             'giant_threshold_o3' => $giantThreshold,
+            'leg_id_o4'          => $legislature_id,
+            'scope_id_o4'        => $scopeId,
+            'total_seats_o4'     => $revTotalSeats,
+            'root_pop_o4'        => $revRootPop,
+            'giant_threshold_o4' => $giantThreshold,
         ]);
 
         $outlineFeatures = [];
@@ -2621,6 +3094,30 @@ class LegislatureController extends Controller
 
                 $scopesProcessed++;
             }
+
+            // Drawn (subdivision-backed) districts were hard-deleted above WITH
+            // their membership rows — retire their district_subdivisions rows
+            // too (the deleteDistrict idiom), or each survives as a ghost:
+            // invisible on the map, but solid to the Art. II §8 overlap gate,
+            // which reads live subdivisions directly. The NOT EXISTS sweep is
+            // membership-blind on purpose: it also heals any PRE-EXISTING ghost
+            // at these scopes (a live subdivision none of whose memberships
+            // lead to a live district — e.g. one orphaned by an earlier clear
+            // that predates this retirement).
+            $ghostSweep = DB::table('district_subdivisions AS ds')
+                ->whereIn('ds.parent_jurisdiction_id', $scopeIds)
+                ->whereNull('ds.deleted_at')
+                ->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('legislature_district_jurisdictions AS ldj')
+                        ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
+                        ->whereColumn('ldj.subdivision_id', 'ds.id')
+                        ->whereNull('ld.deleted_at');
+                });
+            if ($mapId !== null) {
+                $ghostSweep->where('ds.map_id', $mapId);
+            }
+            $ghostSweep->update(['deleted_at' => now(), 'updated_at' => now()]);
 
             // For legislature_* scopes: explicitly delete all null-jurisdiction composites
             // in this map so they don't silently survive a "Clear — entire legislature" operation.
@@ -3501,6 +3998,11 @@ class LegislatureController extends Controller
             'floor_exceptions'  => [],
             'deep_overages'     => [],   // over budget (delta = actual − budget)
             'incomplete_scopes' => [],   // scopes with unassigned compositable children
+            // Childless leaf giants MAP-WIDE whose drawn seats < budget.
+            // null = not computed (see the lazy gate at the bottom); the Vue
+            // treats null/absent as OK, a positive count blocks the wizard's
+            // "map complete" declaration.
+            'undrawn_leaf_giants' => null,
         ];
 
         // Constitutional thresholds (substituted for the legacy 9.5 / 4.5 literals).
@@ -3797,6 +4299,71 @@ class LegislatureController extends Controller
                 'scope_name'       => $row->scope_name,
                 'unassigned_count' => (int) $row->unassigned_count,
             ];
+        }
+
+        // ── Flag 7 (Phase 5e): undrawn childless leaf giants — MAP-WIDE ──────
+        // incomplete_scopes is leaf-blind: a childless giant has no children to
+        // leave unassigned, so a map can read "complete" while a giant still
+        // sits clamped with no drawn set. This counts every childless giant in
+        // the legislature's tree whose live drawn seats fall short of its
+        // budget (max(floor, round(fractional))).
+        //
+        // LAZY by measurement: the giant-tree walk (the wizardSteps CTE
+        // pattern) benchmarked ~465 ms at Earth scope on the 951k-jurisdiction
+        // box — too heavy for every mapper render. It runs ONLY when
+        // incomplete_scopes came back empty: the all-done candidate path,
+        // exactly the moment the wizard needs a leaf-aware veto. Otherwise the
+        // flag stays null (= not computed), which readers treat as OK.
+        if (count($flags['incomplete_scopes']) === 0) {
+            $rootId     = (string) $leg->jurisdiction_id;
+            $totalSeats = max((int) $leg->type_a_seats, 1);
+            $rootPop    = max((int) DB::table('jurisdictions')->where('id', $rootId)->value('population'), 1);
+            $floor      = ConstitutionalDefaults::floor($rootId);
+
+            $undrawnMapClause = $mapId !== null ? 'AND ds.map_id = :ds_map' : '';
+            $undrawnMapBind   = $mapId !== null ? ['ds_map' => $mapId] : [];
+
+            $flags['undrawn_leaf_giants'] = (int) DB::selectOne("
+                WITH RECURSIVE giant_tree AS (
+                    SELECT j.id,
+                           ROUND(CAST(j.population AS numeric) * :ts1 / :rp1, 4) AS frac
+                      FROM jurisdictions j
+                     WHERE j.parent_id = :root
+                       AND j.deleted_at IS NULL
+                       AND CAST(j.population AS numeric) * :ts2 / :rp2 >= :gt1
+                    UNION ALL
+                    SELECT j.id,
+                           ROUND(CAST(j.population AS numeric) * :ts3 / :rp3, 4) AS frac
+                      FROM jurisdictions j
+                      JOIN giant_tree gt ON j.parent_id = gt.id
+                     WHERE j.deleted_at IS NULL
+                       AND CAST(j.population AS numeric) * :ts4 / :rp4 >= :gt2
+                ),
+                childless AS (
+                    SELECT gt.id, GREATEST(:floor_s, ROUND(gt.frac)) AS budget
+                      FROM giant_tree gt
+                     WHERE NOT EXISTS (
+                           SELECT 1 FROM jurisdictions c
+                            WHERE c.parent_id = gt.id AND c.deleted_at IS NULL)
+                ),
+                drawn AS (
+                    SELECT ds.parent_jurisdiction_id, SUM(ds.seats) AS s
+                      FROM district_subdivisions ds
+                     WHERE ds.deleted_at IS NULL
+                       {$undrawnMapClause}
+                     GROUP BY ds.parent_jurisdiction_id
+                )
+                SELECT count(*) AS n
+                  FROM childless c
+                  LEFT JOIN drawn d ON d.parent_jurisdiction_id = c.id
+                 WHERE COALESCE(d.s, 0) < c.budget
+            ", array_merge([
+                'ts1' => $totalSeats, 'rp1' => $rootPop, 'root' => $rootId,
+                'ts2' => $totalSeats, 'rp2' => $rootPop, 'gt1' => $giantThreshold,
+                'ts3' => $totalSeats, 'rp3' => $rootPop,
+                'ts4' => $totalSeats, 'rp4' => $rootPop, 'gt2' => $giantThreshold,
+                'floor_s' => $floor,
+            ], $undrawnMapBind))->n;
         }
 
         return $flags;
@@ -4169,18 +4736,30 @@ class LegislatureController extends Controller
         //   Step 3 (PHP): translate jurisdiction pairs into district pairs.
         $placeholders = implode(',', array_fill(0, count($districtIds), '?'));
         $memberships = DB::select(
-            "SELECT jurisdiction_id, district_id
+            "SELECT jurisdiction_id, subdivision_id, district_id
              FROM legislature_district_jurisdictions
              WHERE district_id IN ($placeholders)",
             $districtIds
         );
 
-        // jurisdiction_id → district_id (each member is in exactly one district per scope+map)
+        // jurisdiction_id → district_id (each member is in exactly one district per scope+map).
+        // DRAWN districts' memberships carry a subdivision_id and a NULL
+        // jurisdiction_id — they must never enter the uuid IN-list below (a
+        // NULL key would collapse to '' and poison it, 22P02). They join the
+        // SAME coloring graph through their own geometry instead (the two
+        // drawn-adjacency queries below), so a drawn piece and the composite
+        // district touching its giant's edge can never share a color.
         $jurToDistrict = [];
+        $subToDistrict = [];
         foreach ($memberships as $m) {
-            $jurToDistrict[$m->jurisdiction_id] = $m->district_id;
+            if ($m->jurisdiction_id !== null) {
+                $jurToDistrict[$m->jurisdiction_id] = $m->district_id;
+            } elseif ($m->subdivision_id !== null) {
+                $subToDistrict[$m->subdivision_id] = $m->district_id;
+            }
         }
         $jurIds = array_keys($jurToDistrict);
+        $subIds = array_keys($subToDistrict);
 
         // Step 2: which member jurisdictions are visually neighbors? We use
         // bbox overlap (`&&`) instead of full ST_Intersects/ST_Touches:
@@ -4210,11 +4789,75 @@ class LegislatureController extends Controller
             );
         }
 
+        // DRAWN (subdivision) districts join the same graph. Two edge kinds:
+        //   drawn ↔ drawn siblings — the two sides of a cut share the cut line,
+        //     but each side is shaved 1e-8° inward at commit (the CoveredBy
+        //     epsilon defense), so exact ST_Touches misses BY CONSTRUCTION;
+        //     ST_DWithin at 1e-6° (~0.1 m) absorbs the shave while staying far
+        //     below any real inter-district spacing.
+        //   drawn ↔ composite — a drawn piece on its giant's edge borders
+        //     whatever composite member jurisdiction touches the giant there.
+        // Both queries are bounded to the giant's own bbox neighborhood (the
+        // sibling join is same-parent; the composite join prefilters with
+        // `&& g.geom`) — never a map-wide scan. Subdivision sets are tiny.
+        $drawnSiblingPairs = [];
+        $drawnJurPairs     = [];
+        if (count($subIds) > 0) {
+            $subPh = implode(',', array_fill(0, count($subIds), '?'));
+            if (count($subIds) >= 2) {
+                $drawnSiblingPairs = DB::select(
+                    "SELECT s_a.id AS a, s_b.id AS b
+                     FROM district_subdivisions s_a
+                     JOIN district_subdivisions s_b ON s_a.id < s_b.id
+                       AND s_b.parent_jurisdiction_id = s_a.parent_jurisdiction_id
+                       AND ST_DWithin(s_a.geom, s_b.geom, 0.000001)
+                     WHERE s_a.id IN ($subPh)
+                       AND s_b.id IN ($subPh)
+                       AND s_a.deleted_at IS NULL AND s_b.deleted_at IS NULL
+                       AND s_a.geom IS NOT NULL AND s_b.geom IS NOT NULL",
+                    array_merge($subIds, $subIds)
+                );
+            }
+            if (count($jurIds) > 0) {
+                $jurPh2 = implode(',', array_fill(0, count($jurIds), '?'));
+                $drawnJurPairs = DB::select(
+                    "SELECT s.id AS sub_id, j.id AS jur_id
+                     FROM district_subdivisions s
+                     JOIN jurisdictions g ON g.id = s.parent_jurisdiction_id
+                     JOIN jurisdictions j ON j.id IN ($jurPh2)
+                       AND j.deleted_at IS NULL
+                       AND j.geom IS NOT NULL
+                       AND j.geom && g.geom
+                       AND ST_DWithin(s.geom, j.geom, 0.000001)
+                     WHERE s.id IN ($subPh)
+                       AND s.deleted_at IS NULL
+                       AND s.geom IS NOT NULL",
+                    array_merge($jurIds, $subIds)
+                );
+            }
+        }
+
         // Step 3: translate jurisdiction adjacency → district adjacency.
         $adj = array_fill_keys($districtIds, []);
         foreach ($touchingPairs as $p) {
             $dA = $jurToDistrict[$p->j_a] ?? null;
             $dB = $jurToDistrict[$p->j_b] ?? null;
+            if ($dA && $dB && $dA !== $dB) {
+                $adj[$dA][] = $dB;
+                $adj[$dB][] = $dA;
+            }
+        }
+        foreach ($drawnSiblingPairs as $p) {
+            $dA = $subToDistrict[$p->a] ?? null;
+            $dB = $subToDistrict[$p->b] ?? null;
+            if ($dA && $dB && $dA !== $dB) {
+                $adj[$dA][] = $dB;
+                $adj[$dB][] = $dA;
+            }
+        }
+        foreach ($drawnJurPairs as $p) {
+            $dA = $subToDistrict[$p->sub_id] ?? null;
+            $dB = $jurToDistrict[$p->jur_id] ?? null;
             if ($dA && $dB && $dA !== $dB) {
                 $adj[$dA][] = $dB;
                 $adj[$dB][] = $dA;
@@ -4334,6 +4977,32 @@ class LegislatureController extends Controller
               {$mapClause}
               AND nbr_ldj.district_id <> ?
         ", $bindings);
+
+        // DRAWN neighbors too: a new composite touching a giant with hand-drawn
+        // districts must avoid their colors. Same edge rule + epsilon posture
+        // as the full colorIndicesForDistricts() (the 1e-8° commit shave
+        // defeats exact predicates; ST_DWithin at 1e-6° absorbs it), bounded
+        // by the bbox prefilter against this district's own members.
+        $mapClauseD = $mapId !== null ? 'AND nbr.map_id = ?' : 'AND nbr.map_id IS NULL';
+        $bindingsD  = $mapId !== null
+            ? [$districtId, $legislatureId, $mapId, $districtId]
+            : [$districtId, $legislatureId, $districtId];
+        $drawnNeighbors = DB::select("
+            SELECT DISTINCT nbr_ldj.district_id AS nid
+            FROM legislature_district_jurisdictions self_ldj
+            JOIN jurisdictions self_j ON self_j.id = self_ldj.jurisdiction_id
+                AND self_j.deleted_at IS NULL AND self_j.geom IS NOT NULL
+            JOIN district_subdivisions ds ON ds.deleted_at IS NULL AND ds.geom IS NOT NULL
+                AND ds.geom && self_j.geom
+                AND ST_DWithin(ds.geom, self_j.geom, 0.000001)
+            JOIN legislature_district_jurisdictions nbr_ldj ON nbr_ldj.subdivision_id = ds.id
+            JOIN legislature_districts nbr ON nbr.id = nbr_ldj.district_id AND nbr.deleted_at IS NULL
+            WHERE self_ldj.district_id = ?
+              AND nbr.legislature_id = ?
+              {$mapClauseD}
+              AND nbr_ldj.district_id <> ?
+        ", $bindingsD);
+        $neighbors = array_merge($neighbors, $drawnNeighbors);
 
         $taken = [];
         foreach ($neighbors as $n) {

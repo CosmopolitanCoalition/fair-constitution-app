@@ -51,7 +51,8 @@ const user = computed(() => auth.value.user ?? null);
 const roles = computed(() => auth.value.roles ?? ['R-00']);
 const instance = computed(() => page.props.instance ?? {});
 const jurisdiction = computed(() => page.props.jurisdiction ?? null);
-const impersonation = computed(() => page.props.impersonation ?? null);
+// Shared by HandleInertiaRequests as auth.impersonating (not a top-level prop).
+const impersonation = computed(() => auth.value.impersonating ?? null);
 const surface = computed(() => page.props.surface ?? null);
 const activeEmergencies = computed(() => page.props.app?.activeEmergencies ?? []);
 

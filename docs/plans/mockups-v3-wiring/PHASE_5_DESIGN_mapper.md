@@ -118,6 +118,129 @@ near-impossible on touch):
 4. **5d — the stepper integration** (Autoseed-lines button per leaf-giant stop; the
    San Marino ×2 walk end-to-end is the acceptance test).
 
+## 5b. Road-test feedback wave (operator, 2026-07-02, from the field)
+
+Five items from the operator's first hands-on session, built as slices 5e-5i:
+
+1. **Shell width (5e)** — every v2 page rendered ~1555px left-pinned on a 1920 screen.
+   Root cause: `.dev-bar { grid-area: devbar }` with no `devbar` area in the v2 shell
+   grid → CSS Grid resolves the unknown name to an IMPLICIT auto-sized COLUMN that
+   steals the dev bar's max-content width from the real column. Fix: the v2 grid gets
+   its devbar row back (mirrors v1) + the dev bar lifts above the fixed command bar.
+   Companion: AppShellV2 read `page.props.impersonation` but the middleware shares
+   `auth.impersonating` — the impersonation dev-bar trigger never fired; fixed.
+2. **Template picker (5f)** — "Polygon drawing is clunky; common algorithm templates
+   to choose from would be nice." The §3b second seeder ships as part of a four-way
+   picker on the leaf panel: Shortest lines · Vertical strips · Horizontal strips
+   (both = the splitline recursion with a constrained angle set — parallel balanced
+   cuts commute) · Community cells (the density-anchored balanced power diagram:
+   deterministic density-peak seeds, Aurenhammer weight balancing over the pixel
+   grid, exact convex cells by radical-axis half-plane clipping, then the proven
+   PostGIS clip+shave). `template` joins the plan_hash, so commit fails closed on a
+   template mismatch.
+3. **Null-actor hole CLOSED (5g)** — found while diagnosing the operator's R-08
+   refusal: the mutating draw routes were public and a null actor bypasses BOTH the
+   engine role gate (ConstitutionalEngine::authorize) and the handler's board
+   provenance — an anonymous guest could file F-ELB-008 while a signed-in
+   non-board-member correctly could not. The three mutating routes now require auth;
+   probes/preview stay public (read-only). New `can_draw` prop gates the UI honestly.
+4. **Dev board-seat path (5h)** — R-08 derives only from a SEATED row on an ACTIVE
+   election board, and the handler additionally demands the actor's OWN seat on the
+   jurisdiction's board (operator posture is not enough). Dev-plane fix (same
+   double-lock as all /dev routes): POST /dev/board/seat seats the current user on
+   the active (bootstrap) board — one honest row; /dev/board/unseat reverses it. A
+   dev-only strip on the mapper surfaces it when can_draw is false.
+5. **Stepper → lines (5i)** — the wizard's Auto-seed silently no-opped on leaf-giant
+   stops (completeness was vacuously true with zero children; composite reseed is a
+   logged no-op on childless scopes). The completeness probe is now leaf-aware (drawn
+   seats vs budget), Auto-seed forks to the lines autoseed on leaf stops
+   (preview→commit with the persisted template), Skip Complete stops false-skipping
+   undrawn leaves, and the redundant composite ⚡ Autoseed button hides on leaves
+   (Clear stays — it deletes committed districts, which session undo cannot).
+   ⚑ Residual (flagged, not built): the backend `incomplete_scopes` flag is equally
+   leaf-blind — a "clean sweep" claim from OUTSIDE a leaf stop can still miss undrawn
+   leaves; wants a backend follow-up.
+5c. **Second field round (operator, 2026-07-04 evening — slices 5k-5o):**
+   (5k) GHOST-LABEL 500: the F-ELB-008 handler numbers drawn-district labels by
+   counting LIVE rows while the (map_id, label) unique index also covers
+   SOFT-DELETED rows — after a clear/undo, the next commit collides with a ghost
+   ("drawn district 1" already exists) and 500s. Fix: partial unique (WHERE
+   deleted_at IS NULL) + collision-proof numbering. (5l) REPLACE FLOW: accepting
+   an autoseed plan over an already-drawn scope only offered the Art. II §8
+   overlap refusal; preview now reports existing_districts and commit accepts
+   replace=true (retires the old rows in-transaction, same semantics as the
+   delete endpoint). (5m) DRAWN-DISTRICT VISIBILITY: drawn districts were
+   invisible to the sidebar list, the counters, and the PARENT scope's reveal
+   layer (leaf-scope reveal worked); all three now treat subdivision districts
+   as first-class, children rows show drawn-progress, and flags gains
+   undrawn_leaf_giants (retiring the leaf-blind clean-sweep residual). (5n)
+   POLYGON SNAP TOOLS: vertices snap (~12px) to the giant outline + existing
+   district edges (Alt disables). (5o) FILL REMAINDER: one click stages
+   giant-minus-drawn as the pending polygon through the normal probe/commit
+   path — the last district never needs hand-tracing.
+
+5d. **Third field round (operator, 2026-07-04 night — slices 5p-5s, parity with
+   the composite system):** (5p) the drawn-district sidebar didn't refresh on
+   commit until a full reload (a once-seeded ref not re-synced on Inertia partial
+   reloads); (5q) drawn districts appear in ANCESTOR sidebar lists like composite
+   children's districts do (same descendant reach as the reveal branches);
+   (5r) drawn districts join the composite ADJACENCY-COLORING graph — operator's
+   screenshot showed both Serravalle drawn districts wearing the neighboring
+   composite district's orange (adjacency = geometry touching: drawn↔drawn share
+   the cut, drawn↔composite share the giant's edge); (5s) polygon AUTO-CLIP —
+   probes and filings trim the drawn polygon to the giant (proven clip+shave), so
+   ✗outside becomes impossible by construction and the pending shape redraws
+   trimmed; plus a diagnosis pass on why vertex snapping didn't engage on the
+   operator's rig (leaflet-draw private-API wrap).
+
+5e. **Fourth field round (operator, 2026-07-04 late — slices 5t-5v, the ghost's
+   other doors):** snapping confirmed working after 5s. (5t) the ✕ Clear button
+   (massDisband) hard-deletes districts but never touched district_subdivisions —
+   the SAME ghost deleteDistrict had, through a different door: the map looks
+   empty while every tool hits the overlap gate. Fix: massDisband retires
+   subdivisions + sweeps orphans (healing ghosts already minted). (5u) worse,
+   Accept & replace couldn't cure it either — retireDrawnDistricts reached
+   subdivisions THROUGH live district joins, unreachable for a ghost whose
+   district Clear already destroyed; the retirement (and existing_districts)
+   now key off live subdivisions directly, the same basis the overlap gate
+   reads. (5v) Fill remainder 422'd "split into 80 pieces": a snapped polygon's
+   straight edges weave across the giant's jagged outline, so giant−district =
+   one real remainder + ~79 hair-thin border slivers; the remainder now drops
+   de-minimis pieces (< 1 ha geography area) and returns the substantive one
+   (slivers_dropped reported).
+
+5f. **Fifth field round (operator, 2026-07-05 — slices 5w-5y + the STEP-BACK ruling):**
+   (5w) composite create "stuck until refresh": nginx shows 499s (client closed —
+   the refresh — while the server finished); the endpoint itself replays at 0.66 s,
+   so the hang was the documented Redis-RDB-reload blocking window. Redis is now
+   BOUNDED in compose (maxmemory 768mb + allkeys-lru — the reload window goes
+   sub-second) and the create/assign fetches carry the same 60 s timeout + honest
+   message the autoseed paths have. (5x) DRAFT-MINT INSANITY: the drawer's
+   "+ Draft & draw"/Accept-fallback/wizard-leaf paths silently created NEW draft
+   maps whenever the selection wasn't a draft, and in-page navigation dropped the
+   ?map= param back to the active map — a junk-draft factory. Drawer-side minting
+   is dead (the map controls' [+] is THE creation point); map selection is sticky
+   across drill/step/breadcrumb navigation. (5y) THE STEP-BACK RULING (see memory
+   project_setup_sequence_and_game_modes): the mapper has TWO constitutional
+   contexts — Initial Setup by the founder (NO board requirements: no government
+   exists yet; map v1) vs ongoing drafting (map v2+: board roles, and activation
+   happens by approval + a voting round). Implemented as the SETUP-CONTEXT rule:
+   while a jurisdiction has no HUMAN-seated active election board, an is_operator
+   actor files F-ELB-008 without R-08/provenance; the first human-seated board
+   flips the jurisdiction to the governed context permanently. Dev-mode exceptions
+   are FORBIDDEN as a mechanism (operator: "psychotic") — the future SANDBOX game
+   mode, chosen at setup, is the sanctioned everything-bypass. After districting
+   settles: blow ALL containers, fresh from GitHub, run setup→sandbox, unify.
+
+6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
+   mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
+   guard, but never subtree membership, and Earth passes the giant guard trivially —
+   the page then runs Webster-share arithmetic on the whole planet ("7,677,127 seats
+   to assign"). Fix: districts() clamps any scope outside the legislature's root
+   subtree with a redirect to the root scope (map param preserved); the breadcrumb
+   stops linking ancestors above the legislature root and the ↑ control stops at
+   root.
+
 ## 6. Not doing / boundaries
 
 - No touch to the PROTECTED `DistrictingService` autoseed (whole-child-unit

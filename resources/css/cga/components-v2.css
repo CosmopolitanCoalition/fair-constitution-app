@@ -1142,9 +1142,20 @@ a.cal-row:hover { border-color: var(--gov-link); }
 .app-shell.app-shell--v2 {
   --cmdbar-h: 3.5rem;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas: "header" "main" "footer";
+  /* The "devbar" area is load-bearing even though the dev bar rarely shows:
+     .dev-bar declares `grid-area: devbar`, and if no such area exists CSS
+     Grid resolves the name to an IMPLICIT track — an auto-sized phantom
+     COLUMN that stole ~365px of viewport from every v2 page (the dev bar's
+     max-content width), left-pinning the whole app. Mirrors the v1 grid. */
+  grid-template-rows: auto 1fr auto auto;
+  grid-template-areas: "header" "main" "footer" "devbar";
   padding-block-end: calc(var(--cmdbar-h) + var(--space-2));
+}
+
+/* The dev bar is sticky to the viewport bottom, where the v2 fixed command
+   bar lives — lift it just above so neither covers the other. */
+.app-shell--v2 .dev-bar {
+  inset-block-end: calc(var(--cmdbar-h) + var(--space-2));
 }
 
 .cmdbar {

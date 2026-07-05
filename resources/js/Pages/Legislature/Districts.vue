@@ -67,13 +67,15 @@
                         <div class="text-xs text-gray-500">Districts</div>
                         <div class="text-sm font-semibold text-white">{{ districtsRef.length }}</div>
                     </div>
+                    <!-- Leaf-giant scope counts SEATS (drawn / budget-remaining);
+                         composite scopes count member jurisdictions as before. -->
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">Assigned</div>
-                        <div class="text-sm font-semibold text-emerald-400">{{ assignedCount }}</div>
+                        <div class="text-sm font-semibold text-emerald-400">{{ isLeafGiantScope ? leafDrawnSeats : assignedCount }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">Unassigned</div>
-                        <div class="text-sm font-semibold text-amber-400">{{ unassignedAssignable.length }}</div>
+                        <div class="text-sm font-semibold text-amber-400">{{ isLeafGiantScope ? remainingBudget : unassignedAssignable.length }}</div>
                     </div>
                 </div>
 
@@ -622,7 +624,10 @@
 
                     <!-- Mass tools toolbar -->
                     <div class="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
-                        <button @click="openMassTool('reseed')"
+                        <!-- Composite autoseed only — a childless leaf giant has nothing to
+                             compose; its lines autoseeder lives in the leaf panel below. -->
+                        <button v-if="!isLeafGiantScope"
+                                @click="openMassTool('reseed')"
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
                                 :class="massToolRunning || massJobRunning
@@ -778,21 +783,48 @@
                     <!-- Phase H — manual draw panel: a childless leaf giant is subdivided by hand. -->
                     <div v-if="isLeafGiantScope"
                          class="px-3 py-2 border-b border-amber-800 bg-amber-950/40 text-xs shrink-0">
+                        <!-- Shared authorship note — one line for every disabled control below. -->
+                        <div v-if="!canDraw" class="text-amber-400/90 mb-1.5">
+                            🔒 Drawing files F-ELB-008 — requires a seated election-board member (R-08).
+                        </div>
+                        <!-- DEV — not part of the application: flips can_draw by seating
+                             the signed-in user on the board via the dev-only route. -->
+                        <div v-if="devSeatVisible"
+                             class="flex items-center gap-1.5 flex-wrap mb-1.5 px-1.5 py-1 rounded border border-fuchsia-800/60 bg-fuchsia-950/30 text-[10px] text-fuchsia-300">
+                            <span class="font-semibold shrink-0">DEV — not part of the application:</span>
+                            <button class="underline hover:text-white disabled:opacity-60"
+                                    :disabled="devSeatBusy"
+                                    @click="devSeatMe">{{ devSeatBusy ? 'Seating…' : 'Seat me on this board' }}</button>
+                            <span v-if="devSeatMsg" class="text-red-400">{{ devSeatMsg }}</span>
+                        </div>
                         <template v-if="!drawMode && !autoseedPlan">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60"
-                                            :disabled="autoseedBusy"
-                                            @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Autoseed lines' }}</button>
-                                    <button v-if="drawTargetIsDraft"
-                                            class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white"
+                                    <button class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="!canDraw || !drawTargetIsDraft"
                                             @click="enterDrawMode">✏️ Draw</button>
-                                    <button v-else
-                                            class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
-                                            :disabled="creatingMap"
-                                            @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
                                 </div>
+                            </div>
+                            <!-- Drawing NEVER mints a plan from this panel — draft creation lives
+                                 only at the map controls (operator ruling: no silent drafts). -->
+                            <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
+                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
+                            </div>
+                            <!-- Template picker + Propose — preview is read-only, so can_draw never
+                                 locks it, but it targets the SELECTED plan: disabled until that plan
+                                 is a draft (this panel never mints one on the operator's behalf). -->
+                            <div class="flex items-center gap-1.5 mt-1.5">
+                                <select v-model="autoseedTemplate"
+                                        title="Autoseed template"
+                                        class="flex-1 min-w-0 bg-gray-900 border border-amber-800 rounded px-1.5 py-1 text-amber-200 cursor-pointer">
+                                    <option v-for="t in AUTOSEED_TEMPLATES" :key="t.key" :value="t.key">
+                                        {{ t.label }}{{ t.hint ? ` — ${t.hint}` : '' }}
+                                    </option>
+                                </select>
+                                <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 shrink-0"
+                                        :disabled="autoseedBusy || !drawTargetIsDraft"
+                                        @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Propose' }}</button>
                             </div>
                             <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
                         </template>
@@ -801,7 +833,10 @@
                         <template v-else-if="!drawMode">
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <span class="text-amber-300 font-semibold">⚡ Autoseed proposal</span>
-                                <span class="text-gray-500 tabular-nums shrink-0">{{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</span>
+                                <!-- Labels the PLAN's template (what commit will send), not the picker's. -->
+                                <span class="text-gray-500 tabular-nums shrink-0">
+                                    {{ autoseedTemplateLabel(autoseedPlan.template) }}<template v-if="autoseedPlan.cuts.length"> · {{ autoseedPlan.cuts.length }} cut{{ autoseedPlan.cuts.length === 1 ? '' : 's' }}</template>
+                                </span>
                             </div>
                             <div class="text-amber-300/80 mb-1">
                                 {{ autoseedPlan.districts.length }} districts · {{ autoseedSeatTotal }} seats ·
@@ -827,19 +862,27 @@
                                     <span class="tabular-nums text-gray-500 w-8 text-right shrink-0">{{ d.convex_hull_ratio.toFixed(2) }}</span>
                                 </div>
                             </div>
+                            <!-- Committing over live drawn districts 422s without explicit
+                                 replace — surface the retirement up front instead. -->
+                            <div v-if="(autoseedPlan.existing_districts ?? 0) > 0" class="text-amber-400/90 mt-1">
+                                Accepting retires the {{ autoseedPlan.existing_districts }} existing drawn district{{ autoseedPlan.existing_districts === 1 ? '' : 's' }} at this scope.
+                            </div>
                             <div class="flex items-center gap-2 mt-1.5">
-                                <button v-if="drawTargetIsDraft"
-                                        class="flex-1 px-2 py-1 rounded text-white"
-                                        :class="autoseedCommitBusy ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
-                                        :disabled="autoseedCommitBusy"
-                                        @click="acceptAutoseedPlan">{{ autoseedCommitBusy ? 'Committing…' : 'Accept plan' }}</button>
-                                <button v-else
-                                        class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60"
-                                        :disabled="creatingMap"
-                                        @click="createDraftHere">{{ creatingMap ? 'Creating…' : '+ Draft plan to accept' }}</button>
+                                <button class="flex-1 px-2 py-1 rounded text-white"
+                                        :class="(autoseedCommitBusy || !canDraw || !drawTargetIsDraft) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
+                                        :disabled="autoseedCommitBusy || !canDraw || !drawTargetIsDraft"
+                                        @click="acceptAutoseedPlan({ replace: (autoseedPlan.existing_districts ?? 0) > 0 })">{{
+                                            autoseedCommitBusy ? 'Committing…'
+                                            : (autoseedPlan.existing_districts ?? 0) > 0 ? `Accept & replace ${autoseedPlan.existing_districts}`
+                                            : 'Accept plan' }}</button>
                                 <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60"
                                         :disabled="autoseedCommitBusy"
                                         @click="discardAutoseedPlan">Discard</button>
+                            </div>
+                            <!-- Accept commits into the SELECTED plan — never a freshly minted one
+                                 (operator ruling: draft creation lives at the map controls only). -->
+                            <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
+                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
                             </div>
                             <div v-if="autoseedError || drawError" class="text-red-400 mt-1">{{ autoseedError || drawError }}</div>
                         </template>
@@ -882,8 +925,8 @@
                                             :disabled="snapBusy || drawBusy"
                                             @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                            :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                            :disabled="!splitCommitReady || drawBusy || snapBusy"
+                                            :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
                                             @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit both districts' : 'A side is out of band — move the line') }}</button>
                                 </div>
                                 <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
@@ -891,7 +934,12 @@
 
                             <!-- Freeform polygon (secondary). -->
                             <template v-else>
-                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                                <div class="text-amber-300/80 mb-1">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                                <!-- Everything not yet drawn, staged as one reviewable piece. -->
+                                <button v-if="districtsRef.length > 0"
+                                        class="w-full mb-1.5 px-2 py-1 rounded border border-amber-700 bg-amber-900/40 text-amber-200 hover:bg-amber-800/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                                        :disabled="remainderBusy || drawBusy"
+                                        @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
                                 <div v-if="drawProbe" class="space-y-1">
                                     <div class="flex items-center justify-between">
                                         <span class="text-gray-400">Population</span>
@@ -909,9 +957,10 @@
                                         <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
                                         <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
                                     </div>
+                                    <div v-if="drawProbe.clipped" class="text-amber-400/80">✂ Trimmed to {{ scope.name }}'s boundary.</div>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
-                                            :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
-                                            :disabled="!drawCommitReady || drawBusy"
+                                            :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
+                                            :disabled="!drawCommitReady || drawBusy || !canDraw"
                                             @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
                                 </div>
                                 <div v-else-if="drawBusy" class="text-gray-500">Measuring…</div>
@@ -922,11 +971,48 @@
 
                         <!-- Undo the most recent commit (split / polygon / autoseed accept). -->
                         <button v-if="undoStack.length && !showMobileDrawBar"
-                                class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60"
-                                :disabled="undoBusy"
+                                class="w-full mt-1.5 px-2 py-1 rounded border border-gray-700 bg-gray-800/60 text-gray-300 hover:text-red-300 hover:border-red-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                                :disabled="undoBusy || !canDraw"
                                 @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : `↩ Undo last — ${undoStack[undoStack.length - 1].label}` }}</button>
                     </div>
 
+                    <!-- Phase 5e — drawn-district list: at a leaf-giant scope the districts
+                         prop carries the DRAWN districts (there is no children table to
+                         show), so the sidebar lists them with the map layer's colors. -->
+                    <template v-if="showLeafDrawnList">
+                        <div class="flex items-center gap-1.5 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
+                            <span class="w-2.5 shrink-0"></span><!-- dot spacer -->
+                            <span class="flex-1">Drawn district</span>
+                            <span class="w-8 text-right shrink-0">Seats</span>
+                            <span class="w-16 text-right shrink-0">Population</span>
+                            <span class="w-4 shrink-0"></span><!-- delete spacer -->
+                        </div>
+                        <div v-for="d in leafDrawnDistricts" :key="d.id" class="border-b border-gray-800">
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs">
+                                <span class="shrink-0 w-2.5 h-2.5 rounded-full" :style="{ background: districtFillColor(d.colorIndex) }"></span>
+                                <span class="font-mono text-gray-100 flex-1 truncate" :title="d.label">{{ d.label }}</span>
+                                <span class="tabular-nums font-semibold w-8 text-right shrink-0" :class="seatClass(d.seats)">{{ d.seats }}</span>
+                                <span class="tabular-nums text-gray-400 w-16 text-right shrink-0">{{ d.population > 0 ? formatPop(d.population) : '—' }}</span>
+                                <button class="shrink-0 w-4 text-center text-gray-600 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                                        :disabled="deletingDrawnId !== null"
+                                        :title="`Delete ${d.label}`"
+                                        @click="deleteDrawnDistrict(d)">{{ deletingDrawnId === d.id ? '…' : '🗑' }}</button>
+                            </div>
+                            <!-- Quality strip — mirrors the composite district rows' bands -->
+                            <div class="flex items-center gap-2 px-3 py-0.5 border-t border-gray-800/40 bg-gray-900/40 text-[10px] tabular-nums flex-wrap">
+                                <span :style="{ color: devColor(d.deviation) }"
+                                      title="Population deviation from ideal quota per seat">{{ devLabel(d.deviation) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: chrColor(d.chr) }" :title="shapeLabel(d.chr)">CHR {{ chrLabel(d.chr) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: contigColor(d.contiguous) }">{{ contigLabel(d.contiguous) }}</span>
+                                <span class="text-gray-700">·</span>
+                                <span :style="{ color: integrityColor(d.intact) }">{{ integrityLabel(d.intact) }}</span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else>
                     <!-- Sort header -->
                     <div class="flex items-center gap-1 px-3 py-1 bg-gray-900/80 border-b border-gray-700 text-xs text-gray-500 shrink-0 sticky top-0 z-10">
                         <span class="w-3 shrink-0"></span><!-- dot spacer -->
@@ -1049,6 +1135,12 @@
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
                                             Cancel
                                         </button>
+                                    </template>
+                                    <!-- Drawn (geometry) district surfaced from a descendant leaf
+                                         giant: member edit / disband live where the draw tools are —
+                                         its own scope — so no affordances here, same as the map. -->
+                                    <template v-else-if="row.district.method === 'drawn'">
+                                        <span class="text-xs text-gray-500">Drawn district — manage it at its own scope.</span>
                                     </template>
                                     <template v-else>
                                         <button @click.stop="startEdit(row.district.id)"
@@ -1198,6 +1290,16 @@
                                       class="text-amber-300 text-[10px]"
                                       title="Unassigned compositable children within this scope">…</span>
                             </span>
+                            <!-- Leaf-giant children carry drawn_seats (additive prop) —
+                                 compact hand-drawn progress; absent on older payloads. -->
+                            <span v-if="typeof row.giant.drawn_seats === 'number'"
+                                  class="shrink-0 text-[10px] tabular-nums px-1 rounded"
+                                  :class="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)
+                                      ? 'text-emerald-400 bg-emerald-950/60'
+                                      : 'text-amber-300 bg-amber-950/60'"
+                                  :title="`${row.giant.drawn_seats} of ${Math.round(row.giant.fractional_seats)} seats hand-drawn`">
+                                drawn {{ row.giant.drawn_seats }}/{{ Math.round(row.giant.fractional_seats) }}<template v-if="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)"> ✓</template>
+                            </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(Math.round(row.giant.fractional_seats))">{{ Math.round(row.giant.fractional_seats) }}</span><!-- Seats -->
                             <span class="text-gray-400 tabular-nums w-20 text-right shrink-0">{{ row.giant.population > 0 ? formatPop(row.giant.population) : '—' }}</span><!-- Population -->
@@ -1314,6 +1416,7 @@
                          class="px-4 py-3 text-xs text-emerald-400 text-center italic">
                         All compositable jurisdictions assigned ✓
                     </div>
+                    </template><!-- end composite-scope list (v-else of the drawn list) -->
                     </div><!-- end scrollable content area -->
                 </div><!-- end districts tab flex-col -->
 
@@ -1391,7 +1494,7 @@
                             </div>
                             <button v-if="undoStack.length"
                                     class="px-3 min-h-[44px] rounded border border-gray-700 bg-gray-800/80 text-gray-300 disabled:opacity-60"
-                                    :disabled="undoBusy"
+                                    :disabled="undoBusy || !canDraw"
                                     @click="undoLastCommit">{{ undoBusy ? 'Undoing…' : '↩ Undo' }}</button>
                             <button class="ml-auto px-3 min-h-[44px] rounded bg-gray-700 text-gray-200"
                                     @click="exitDrawMode">Done</button>
@@ -1411,8 +1514,8 @@
                                         :disabled="snapBusy || drawBusy"
                                         @click="snapToBalance">{{ snapBusy ? 'Balancing…' : '⚖ Snap to balance' }}</button>
                                 <button class="flex-1 min-h-[44px] px-2 rounded text-white"
-                                        :class="(splitCommitReady && !drawBusy && !snapBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
-                                        :disabled="!splitCommitReady || drawBusy || snapBusy"
+                                        :class="(splitCommitReady && !drawBusy && !snapBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                        :disabled="!splitCommitReady || drawBusy || snapBusy || !canDraw"
                                         @click="commitSplit">{{ drawBusy ? 'Saving…' : (splitCommitReady ? 'Commit' : 'Out of band') }}</button>
                             </div>
                         </template>
@@ -1422,12 +1525,17 @@
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.in_band ? '✓ band' : '✕ band' }}</span>
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                                <span v-if="drawProbe.clipped" class="px-2 py-1 rounded bg-amber-950/70 text-amber-300 whitespace-nowrap">✂ trimmed to boundary</span>
                             </div>
-                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom).</div>
+                            <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
+                            <button v-if="districtsRef.length > 0"
+                                    class="w-full min-h-[44px] px-2 rounded border border-amber-700 bg-amber-900/40 text-amber-200 mt-1.5 disabled:opacity-60"
+                                    :disabled="remainderBusy || drawBusy"
+                                    @click="fillRemainder">{{ remainderBusy ? 'Filling…' : '▣ Fill remainder' }}</button>
                             <button v-if="drawProbe"
                                     class="w-full min-h-[44px] px-2 rounded text-white mt-1.5"
-                                    :class="(drawCommitReady && !drawBusy) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
-                                    :disabled="!drawCommitReady || drawBusy"
+                                    :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600' : 'bg-gray-700 opacity-70'"
+                                    :disabled="!drawCommitReady || drawBusy || !canDraw"
                                     @click="commitDraw">{{ drawBusy ? 'Saving…' : 'Commit district' }}</button>
                         </template>
                         <div v-if="drawError" class="mt-1 text-red-400">{{ drawError }}</div>
@@ -1547,7 +1655,7 @@
  * pre-split file. Deep full-screen integration is Phase 5, NOT this pass.
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -1581,6 +1689,16 @@ const props = defineProps({
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
     active_map: { type: Object, default: null },        // the map currently being displayed
     setup_mode: { type: Boolean, default: false },      // set when arrived via /setup/step/3?setup=1
+    // Drawing files F-ELB-008, which needs a seated election-board member
+    // (R-08). Stale payloads may omit this prop entirely — absence must read
+    // as "allowed", so no Boolean default (Vue would coerce missing → false).
+    can_draw: { type: Boolean, default: undefined },
+    // WHETHER the displayed map may be drawn into (can_draw is WHO): drafts
+    // always; the ACTIVE map only during the SETUP context (the founding v1
+    // map is drawn directly — no government exists yet to vote drafts
+    // active). Server-computed with the same rule the F-ELB-008 handler
+    // enforces; absence (stale payload) falls back to the draft-only check.
+    map_drawable: { type: Boolean, default: undefined },
     constitutional: {
         // Derived thresholds from the legislature's constitutional_settings.
         // With default 5/9 settings these resolve to 9.5 / 5.0 / 4.5.
@@ -1689,12 +1807,55 @@ function revealedDistrictName(feat, memberCount) {
 }
 
 // ── Local reactive copies ─────────────────────────────────────────────────────
+// THE one districts-prop → districtsRef normalizer (setup seed, prop watcher,
+// reinitMapLayers all go through it). DRAWN rows (method:'drawn' — the leaf
+// giant's own scope, and composite ancestors since the descendant surfacing)
+// carry no member jurisdictions and may use the leaf field names
+// (label/chr/contiguous/intact/deviation), so alias them onto the composite
+// row shape every sidebar template reads.
+function districtRowFromProp(d) {
+    const dev = d.deviation ?? d.deviation_pct
+    return {
+        ...d,
+        id:                d.id ?? d.district_id,
+        name:              d.name ?? d.label ?? '',
+        // The backend's adjacency-aware index — never a list position.
+        color_index:       d.color_index ?? 0,
+        population:        d.population ?? 0,
+        // Drawn rows may report a deviation % instead of fractional seats —
+        // invert dev = (frac/seats − 1)·100 so the quality strip agrees.
+        fractional_seats:  d.fractional_seats
+            ?? ((d.seats > 0 && dev != null) ? d.seats * (1 + dev / 100) : 0),
+        convex_hull_ratio: d.convex_hull_ratio ?? d.chr        ?? null,
+        is_contiguous:     d.is_contiguous     ?? d.contiguous ?? null,
+        has_integrity:     d.has_integrity     ?? d.intact     ?? null,
+        members:           (d.members ?? []).map(m => ({ ...m })),   // drawn rows carry none
+    }
+}
 const childrenRef  = ref(props.children.map(c => ({ ...c })))
-const districtsRef = ref(props.districts.map(d => ({
-    ...d,
-    color_index: d.color_index ?? 0,
-    members: d.members.map(m => ({ ...m })),
-})))
+const districtsRef = ref(props.districts.map(districtRowFromProp))
+
+// Partial reloads (draw/split/autoseed commits, undo, drawn deletes — and the
+// deferred props' first delivery after mount) hand us FRESH prop references;
+// the local copies above were otherwise seeded once and went stale until a
+// hard refresh. Shallow watches: Inertia's partial-reload merge keeps
+// untouched keys by reference (`{ ...current, ...response }`), so these fire
+// exactly when the prop was actually in a reload's only-list — and they never
+// reload in turn, so no request loop is possible. They also must NOT clobber
+// the optimistic local patches of the member-CRUD paths, which reload only
+// ['flags','stats'] (districts keeps its reference → no trigger).
+watch(() => props.districts, () => {
+    districtsRef.value = props.districts.map(districtRowFromProp)
+    // Selection/expansion may point at a district the reload removed.
+    if (selectedDistrictId.value && !districtsRef.value.some(d => d.id === selectedDistrictId.value)) {
+        selectedDistrictId.value = null
+    }
+    restyleAll()   // no-op until the map layers exist
+})
+watch(() => props.children, () => {
+    childrenRef.value = props.children.map(c => ({ ...c }))
+    restyleAll()
+})
 
 // ── UI state ──────────────────────────────────────────────────────────────────
 const mapLoading          = ref(true)
@@ -1811,8 +1972,93 @@ const isLeafGiantScope = computed(() =>
     && props.scope.id !== props.legislature?.root_jurisdiction_id
     && (props.children?.length ?? 0) === 0
 )
-// Drawing writes into a DRAFT plan (F-ELB-008 refuses a non-draft).
-const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 'draft')
+// Drawing writes into a DRAFT plan — or the ACTIVE founding (v1) map while
+// the jurisdiction is in the SETUP context (server-computed map_drawable
+// carries that rule; the name predates it — read "draw target is editable").
+const drawTargetIsDraft = computed(() =>
+    props.map_drawable !== undefined
+        ? props.map_drawable === true
+        : (props.active_map?.status ?? null) === 'draft'
+)
+// Server-side authorship gate for the mutating draw endpoints — only an
+// explicit false locks the tools (undefined = stale payload = allowed).
+const canDraw = computed(() => props.can_draw !== false)
+// Phase 5e — drawn-district rows at a leaf-giant scope. The districts prop
+// carries the DRAWN districts here (there are no children to compose); every
+// field falls back so older member-shaped payloads render without crashing.
+const leafDrawnDistricts = computed(() => {
+    if (!isLeafGiantScope.value) return []
+    return districtsRef.value.map((d, i) => ({
+        id:         d.district_id ?? d.id,
+        label:      d.label ?? d.name ?? '',
+        seats:      d.seats ?? 0,
+        population: d.population ?? 0,
+        deviation:  d.deviation ?? d.deviation_pct
+            ?? ((d.seats > 0 && (d.fractional_seats ?? 0) > 0)
+                ? (d.fractional_seats / d.seats - 1) * 100 : null),
+        chr:        d.chr ?? d.convex_hull_ratio ?? null,
+        contiguous: d.contiguous ?? d.is_contiguous ?? null,
+        intact:     d.intact ?? d.has_integrity ?? null,
+        // Match the map layer: revealed features color by the backend's
+        // adjacency-aware color_index (districtRowFromProp guarantees it);
+        // list position remains only as a last-resort fallback.
+        colorIndex: d.color_index ?? i,
+    }))
+})
+const showLeafDrawnList = computed(() =>
+    isLeafGiantScope.value && leafDrawnDistricts.value.length > 0
+)
+// Leaf counters: Assigned = committed drawn seats. Unassigned reuses
+// remainingBudget (scope_seats − committed, clamped ≥ 0 — a childless leaf
+// has no giant children, so the giant term is always 0).
+const leafDrawnSeats = computed(() =>
+    districtsRef.value.reduce((s, d) => s + (d.seats ?? 0), 0)
+)
+// Seat-budget arithmetic must not count DRAWN rows at COMPOSITE scopes: those
+// districts live inside descendant leaf giants, whose whole budget is already
+// in the giant term (child_assigned_seats / Math.round(fractional_seats)) —
+// counting them again would double-book the giant's seats. At the leaf scope
+// itself the drawn rows ARE the committed seats, so all rows count there.
+const seatCountableDistricts = computed(() =>
+    isLeafGiantScope.value
+        ? districtsRef.value
+        : districtsRef.value.filter(d => d.method !== 'drawn')
+)
+// DEV-only helper strip: seats the signed-in user on the election board so
+// can_draw flips without running an election. Never part of the application.
+const page = usePage()
+const devSeatVisible = computed(() =>
+    (import.meta.env.DEV || page.props.devBar === true)
+    && props.can_draw === false
+    && !!page.props.auth?.user
+)
+const devSeatBusy = ref(false)
+const devSeatMsg  = ref('')
+async function devSeatMe() {
+    if (devSeatBusy.value) return
+    devSeatBusy.value = true
+    devSeatMsg.value  = ''
+    try {
+        const resp = await fetch('/dev/board/seat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ legislature_id: props.legislature.id }),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            // Prod builds don't register the route at all — say so plainly.
+            devSeatMsg.value = resp.status === 404
+                ? (err.message ?? err.error ?? 'Dev seat route not available in this build (404).')
+                : apiError(resp, err, 'Dev seat failed.')
+            return
+        }
+        router.reload()   // can_draw is recomputed server-side now that R-08 is seated
+    } catch (e) {
+        devSeatMsg.value = 'Dev seat failed — network error.'
+    } finally {
+        devSeatBusy.value = false
+    }
+}
 const drawMode   = ref(false)
 const drawMethod = ref('split')  // 'split' (line bisection) | 'polygon' (freeform)
 const drawProbe  = ref(null)     // polygon mode: { population, implied_seats, in_band, contiguous, within_giant }
@@ -1823,6 +2069,14 @@ let _drawControl = null
 let _drawnItems  = null
 let _drawnLayer  = null
 let _probeSeq    = 0
+// Phase 5e — polygon vertex snapping. Rings are collected per reinit (the
+// giant's own outline + every live drawn-district ring) and tested in SCREEN
+// pixels so the feel is zoom-independent. Alt held at the cursor disables
+// snapping for that click.
+const SNAP_PX    = 12
+let _snapRings   = []     // [[L.LatLng, …], …] — leaf scope only, else empty
+let _snapMarker  = null   // amber dot shown while the cursor is in snap range
+let _snapAltHeld = false
 // Split-line interaction (two taps place the cut; panning stays enabled — a
 // drag is always a pan, only a tap places a point).
 let _splitPts      = []          // [L.latLng, L.latLng] once a cut is set
@@ -1847,12 +2101,32 @@ const showMobileDrawBar = computed(() => drawMode.value && isPortraitPhone.value
 
 // Autoseed-lines (Phase 5b) — a whole-plan preview from the splitline autoseeder,
 // rendered as a translucent proposal overlay until accepted (commit by plan_hash)
-// or discarded. Preview needs no draft; Accept reuses the drawTargetIsDraft guard.
-const autoseedPlan       = ref(null)   // { plan_hash, seat_sizes, quota, total_pop, cuts, districts }
+// or discarded. Propose AND Accept are gated on drawTargetIsDraft: the panel
+// never mints a draft, so proposing against a non-draft plan is a dead end.
+const autoseedPlan       = ref(null)   // { plan_hash, template, seat_sizes, quota, total_pop, cuts, seeds?, districts }
 const autoseedBusy       = ref(false)  // preview POST in-flight
 const autoseedCommitBusy = ref(false)  // commit POST in-flight
 const autoseedError      = ref('')
-let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines
+let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines + seed dots
+
+// Autoseed template picker — the server offers four seeding strategies; the
+// choice persists across sessions like the label toggles. The COMMIT always
+// sends the template stored on the previewed plan, never the picker's live
+// value (the picker may move while a proposal is still open).
+const AUTOSEED_TEMPLATES = [
+    { key: 'shortest',          label: 'Shortest lines',    hint: 'neutral, compact' },
+    { key: 'vertical_strips',   label: 'Vertical strips' },
+    { key: 'horizontal_strips', label: 'Horizontal strips' },
+    { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
+]
+const _autoseedTplStored = localStorage.getItem('leg_autoseed_template')
+const autoseedTemplate = ref(
+    AUTOSEED_TEMPLATES.some(t => t.key === _autoseedTplStored) ? _autoseedTplStored : 'shortest'
+)
+watch(autoseedTemplate, v => localStorage.setItem('leg_autoseed_template', v))
+function autoseedTemplateLabel(key) {
+    return AUTOSEED_TEMPLATES.find(t => t.key === key)?.label ?? (key || 'Shortest lines')
+}
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
 const massToolScope   = ref(null)   // selected operation_scope key
@@ -1909,7 +2183,10 @@ function startMassStatusPolling() {
     elapsedTimer = setInterval(updateElapsed, 1000)
     massStatusTimer = setInterval(async () => {
         try {
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            // Per-poll timeout — a hung fetch piles up silently; fail the tick
+            // and let the next interval retry instead.
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+                { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) {
                 massProgress.value = data.mass_progress
@@ -2451,7 +2728,7 @@ const suboptimalConfig = computed(() => {
     const pool = childrenRef.value.filter(c =>
         c.fractional_seats < GIANT_THRESHOLD && !c.district_id
     )
-    const assignedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    const assignedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     // Giant seats must always be excluded — they're never compositable at this scope.
     // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
     const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
@@ -2604,7 +2881,7 @@ const suboptimalLabel = computed(() => {
     // Already-committed districts shown in parens alongside expansion singles —
     // NOT lumped into the bare-number pile (which would make them look like giants)
     const allExpansion = { ...(expansionGroups ?? {}) }
-    for (const dist of districtsRef.value) {
+    for (const dist of seatCountableDistricts.value) {
         allExpansion[dist.seats] = (allExpansion[dist.seats] ?? 0) + 1
     }
 
@@ -2646,14 +2923,14 @@ const currentConfigLabel = computed(() => {
         return d.seats
     }
 
-    const createdSeats = districtsRef.value.reduce((s, d) => s + effectiveSeats(d), 0)
+    const createdSeats = seatCountableDistricts.value.reduce((s, d) => s + effectiveSeats(d), 0)
     const total = createdSeats + committedGiantSeats
 
     if (total === 0) return '0 = 0'
 
     // Build seat-count groups using the effective (mathematical) seat count
     const countMap = {}
-    for (const d of districtsRef.value) {
+    for (const d of seatCountableDistricts.value) {
         const s = effectiveSeats(d)
         countMap[s] = (countMap[s] || 0) + 1
     }
@@ -2896,7 +3173,7 @@ const pendingFractionalTotal = computed(() => {
 // Remaining seat budget for non-giant compositable pool (quota cap takes precedence over floor)
 const remainingBudget = computed(() => {
     const giantSeats     = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
-    const committedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    const committedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
 const pendingSeats = computed(() => {
@@ -2924,9 +3201,11 @@ const pendingFloor = computed(() =>
 // True when all compositable jurisdictions are assigned AND all districts have valid fracs.
 // Signals the user they can now drill into giants.
 const roundingReady = computed(() =>
+    // seatCountableDistricts: drawn descendant rows have no members — they would
+    // read as frac 0 and wrongly veto readiness at composite scopes.
     unassignedAssignable.value.length === 0 &&
-    districtsRef.value.length > 0 &&
-    districtsRef.value.every(d =>
+    seatCountableDistricts.value.length > 0 &&
+    seatCountableDistricts.value.every(d =>
         d.members.reduce((s, m) => s + m.fractional_seats, 0) >= FLOOR_BOUNDARY
     )
 )
@@ -2951,6 +3230,10 @@ function seatClass(seats) {
     return 'text-amber-400'
 }
 function formatPop(n) {
+    // Null-safe: a missing field must render as a dash, never throw —
+    // a TypeError inside a template aborts Vue's patch and freezes the
+    // whole panel at its last paint (the "stuck at Proposing…" bug).
+    if (n == null || Number.isNaN(n)) return '—'
     if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
     if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M'
     if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K'
@@ -3019,8 +3302,19 @@ function slugForScope(scopeId) {
 // jurisdiction slug); scope uses the target's slug when known. Root scope omits
 // ?scope entirely for the clean canonical form. Preserves map + setup params so
 // wizard mode (?setup=1) and a non-active map survive drill-down navigation.
+//
+// STICKY MAP SELECTION: every in-page navigation (drillTo, wizard steps,
+// breadcrumbs, drill arrows, post-mutation reloads) funnels through here. An
+// explicit mapId wins; otherwise stay on the map this page is displaying
+// (props.active_map echoes the server's resolution of ?map=); as a last
+// resort re-read ?map= straight off the URL (covers a momentarily null/stale
+// active_map prop, e.g. mid partial-reload). Dropping the param would make
+// the server fall back to the ACTIVE map — the silent map-switch that caused
+// the draft re-mint loop. Only confirmDeleteMap intentionally drops it (the
+// displayed map itself was deleted), via a hand-built URL, not this helper.
 function mapUrl(scopeId, mapId) {
-    const mid     = mapId !== undefined ? mapId : props.active_map?.id
+    const urlMap  = new URLSearchParams(window.location.search).get('map')
+    const mid     = mapId !== undefined ? mapId : (props.active_map?.id ?? urlMap)
     const legPath = props.legislature.slug ?? props.legislature.id
     const isRoot  = scopeId === props.legislature.root_jurisdiction_id
     const q = []
@@ -3053,6 +3347,7 @@ async function submitNewMap() {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body:    JSON.stringify({ name }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) {
@@ -3071,7 +3366,9 @@ async function submitNewMap() {
         try {
             const stepsUrl = `/api/legislatures/${props.legislature.id}/wizard-steps`
                            + `?scope_id=${rootScopeId}&map_id=${data.id}`
-            const stepsData = await fetch(stepsUrl).then(r => r.json())
+            // Timeout: the map already exists at this point — a hung prefetch
+            // must not wedge the "Creating…" chip; fall back to root instead.
+            const stepsData = await fetch(stepsUrl, { signal: AbortSignal.timeout(15_000) }).then(r => r.json())
             if (stepsData.steps?.length > 0) {
                 firstStepScopeId = stepsData.steps[0].scope_id
             }
@@ -3085,7 +3382,9 @@ async function submitNewMap() {
         router.visit(mapUrl(firstStepScopeId, data.id))
     } catch (e) {
         console.error('createMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
         creatingMap.value = false
     }
 }
@@ -3524,20 +3823,39 @@ function clearAutoStepTimer() {
 }
 
 // ── Auto-seed + skip-seeded — shared logic run after every step landing ──────
+// Leaf-aware completeness for the CURRENT stop. On a childless leaf giant the
+// composite probe (no unassigned assignable children) is VACUOUSLY true — no
+// children exist — so a leaf counts as complete only once drawn districts
+// consume the whole seat budget (remainingBudget arithmetic: scope_seats −
+// giant seats − committed seats; a leaf has no children, so it reduces to
+// scope_seats − drawn).
+const scopeComplete = computed(() =>
+    isLeafGiantScope.value
+        ? districtsRef.value.length > 0 && remainingBudget.value <= 0
+        : unassignedAssignable.value.length === 0
+)
+
 // Returns true if we navigated away (skip fired), false if we stayed.
 // onMounted calls this after wizard bootstrap; the scope watch calls it too.
 async function runWizardAutoActions() {
     // Capture completion state BEFORE auto-seed so skip-seeded only fires when
     // the scope was already complete on arrival — not because we just seeded it.
-    const wasAlreadyComplete = unassignedAssignable.value.length === 0
+    const wasAlreadyComplete = scopeComplete.value
 
     // Auto-seed: only run if there is actually something to seed.
     // Returns false immediately so the user can review the seeded result before
     // the auto-step timer (if on) fires and advances to the next scope.
     if (wizardAutoSeed.value && !wasAlreadyComplete) {
-        await runMassReseed('map_view_unassigned', null, /* silent */ true)
-        await nextTick()           // let Vue flush updated props into computeds
-        await reinitMapLayers()    // repaint map with the newly created districts
+        if (isLeafGiantScope.value) {
+            // Childless leaf: nothing to compose — propose + accept the lines
+            // plan instead (its own reload/repaint path). On a non-draft map
+            // it reports an error and stays put — it never mints a draft.
+            await runLeafAutoseed()
+        } else {
+            await runMassReseed('map_view_unassigned', null, /* silent */ true)
+            await nextTick()           // let Vue flush updated props into computeds
+            await reinitMapLayers()    // repaint map with the newly created districts
+        }
         return false   // seeded — stay on scope for review
     }
 
@@ -3564,7 +3882,13 @@ async function runWizardAutoActions() {
     const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
     const noCap          = !props.flags?.cap
     const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
-    if (isFinalStep && noIncomplete && noCap && noDeepOverages) {
+    // flags.undrawn_leaf_giants (additive) counts leaf giants MAP-WIDE that
+    // still lack a full drawn set — absence (older payload) reads as OK.
+    const noUndrawnLeaves = (props.flags?.undrawn_leaf_giants ?? 0) === 0
+    // flags.incomplete_scopes is leaf-blind (backend residual): an undrawn
+    // leaf giant never registers there. Require the CURRENT stop's leaf-aware
+    // completeness too before declaring the sweep done.
+    if (isFinalStep && noIncomplete && noCap && noDeepOverages && noUndrawnLeaves && scopeComplete.value) {
         showStatus('success', 'Map complete — every scope districted.')
         return true   // skip startAutoStepTimer() in the caller
     }
@@ -3661,10 +3985,78 @@ function teardownSplitTool() {
     resetSplit()
 }
 
+// ── Phase 5e — polygon vertex snapping helpers ───────────────────────────────
+// Every linear ring (outer + holes — both are snappable boundaries) of a
+// GeoJSON geometry, as raw [lng, lat] coordinate arrays.
+function _ringsFromGeometry(geom) {
+    if (!geom) return []
+    if (geom.type === 'Polygon')            return geom.coordinates
+    if (geom.type === 'MultiPolygon')       return geom.coordinates.flat()
+    if (geom.type === 'GeometryCollection') return (geom.geometries ?? []).flatMap(_ringsFromGeometry)
+    return []
+}
+
+// Nearest point on any snap ring within SNAP_PX of the given latlng. The
+// distance test runs in container-pixel space (latLngToContainerPoint), so a
+// GeoJSON ring closes itself (first point repeated last) — no wrap segment.
+function _snapLatLng(latlng) {
+    if (!_map || _snapRings.length === 0) return { latlng, snapped: false }
+    const p = _map.latLngToContainerPoint(latlng)
+    let best = null
+    let bestDist = SNAP_PX
+    for (const ring of _snapRings) {
+        let prev = null
+        for (const ll of ring) {
+            const pt = _map.latLngToContainerPoint(ll)
+            if (prev) {
+                const cand = L.LineUtil.closestPointOnSegment(p, prev, pt)
+                const d = p.distanceTo(cand)
+                if (d <= bestDist) { bestDist = d; best = cand }
+            }
+            prev = pt
+        }
+    }
+    return best
+        ? { latlng: _map.containerPointToLatLng(best), snapped: true }
+        : { latlng, snapped: false }
+}
+
+function _clearSnapMarker() {
+    if (_snapMarker && _map) _map.removeLayer(_snapMarker)
+    _snapMarker = null
+}
+
+function _polygonDrawHandler() {
+    return _drawControl?._toolbars?.draw?._modes?.polygon?.handler ?? null
+}
+
+// Amber feedback dot while the polygon tool is engaged: shown when the cursor
+// is within snap range (and Alt isn't held). Also keeps _snapAltHeld current
+// so the click that follows honors the escape hatch.
+function _onPolySnapCursor(e) {
+    _snapAltHeld = !!e.originalEvent?.altKey
+    const h = _polygonDrawHandler()
+    if (!h?._enabled || _snapAltHeld) { _clearSnapMarker(); return }
+    const r = _snapLatLng(e.latlng)
+    if (!r.snapped) { _clearSnapMarker(); return }
+    if (_snapMarker) {
+        _snapMarker.setLatLng(r.latlng)
+    } else {
+        _snapMarker = L.circleMarker(r.latlng, {
+            radius: 6, color: '#f59e0b', fillColor: '#fbbf24', fillOpacity: 0.9,
+            weight: 2, interactive: false,
+        }).addTo(_map)
+    }
+}
+
 // Freeform polygon — kept as a secondary method (Leaflet.draw, top-left).
 function startPolygonTool() {
     teardownSplitTool()
     if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
+    // reinitMapLayers()'s layer sweep detaches _drawnItems (post-commit
+    // repaint) without nulling the handle — re-attach or every shape staged
+    // after a commit lands in a detached group and never shows.
+    else if (!_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
     if (!_drawControl) {
         _drawControl = new L.Control.Draw({
             position: 'topleft',   // top-right is the legend toggles
@@ -3677,12 +4069,51 @@ function startPolygonTool() {
         _map.addControl(_drawControl)
         _map.on(L.Draw.Event.CREATED, onDrawCreated)
         _map.on(L.Draw.Event.EDITED, onDrawEdited)
+        // Snap each placed vertex: leaflet-draw 1.0.4 funnels EVERY placement
+        // — mouse (_endPoint) and touch (_onTouch) — through the handler's
+        // addVertex, so wrapping it once per control instance covers both.
+        // Alt (sampled at the last cursor move) disables snapping per click.
+        // Throw-or-work: the toolbar path is private API — if a library bump
+        // ever moves it, say so in the panel instead of silently not snapping.
+        const h = _polygonDrawHandler()
+        if (!h || typeof h.addVertex !== 'function') {
+            drawError.value = 'Vertex snapping unavailable — the drawing library changed underneath this tool.'
+            console.error('polygon snap: _toolbars.draw._modes.polygon.handler.addVertex missing (leaflet-draw', L.drawVersion, ')')
+        } else if (!h.__snapWrapped) {
+            const origAddVertex = h.addVertex
+            h.addVertex = function (latlng) {
+                const r = _snapAltHeld ? { latlng, snapped: false } : _snapLatLng(latlng)
+                return origAddVertex.call(this, r.latlng)
+            }
+            h.__snapWrapped = true
+        }
+    }
+    // Zero rings = zero snapping with no other symptom. Legitimate while the
+    // outline fetch is still in flight on a fresh scope, but if it persists
+    // the giant-outline fetch failed — leave a trace for that diagnosis.
+    if (_snapRings.length === 0) {
+        console.warn('polygon snap: 0 snap rings at tool start (giant outline still loading, or its fetch failed)')
+    }
+    if (_map && !_map.__polySnapBound) {
+        _map.on('mousemove', _onPolySnapCursor)
+        _map.__polySnapBound = true
     }
 }
 
 function teardownPolygonTool() {
+    // Invalidate in-flight probes — a late response must not repaint the
+    // readout or restage a clipped layer after the tool is gone (method
+    // switch, exit, or scope change all land here).
+    _probeSeq++
     _drawnLayer = null
     if (_drawnItems) _drawnItems.clearLayers()
+    // Snap feedback must not outlive the mode — clear the dot + cursor hook.
+    _clearSnapMarker()
+    _snapAltHeld = false
+    if (_map && _map.__polySnapBound) {
+        _map.off('mousemove', _onPolySnapCursor)
+        _map.__polySnapBound = false
+    }
     if (_drawControl && _map) {
         _map.removeControl(_drawControl)
         _map.off(L.Draw.Event.CREATED, onDrawCreated)
@@ -3693,7 +4124,13 @@ function teardownPolygonTool() {
 
 function onDrawCreated(e) {
     // One pending piece at a time — a new draw replaces the previous.
-    if (_drawnItems) { _drawnItems.clearLayers() }
+    if (_drawnItems) {
+        _drawnItems.clearLayers()
+        // Guard against reinitMapLayers()'s detach here too — the draw
+        // control (and its wrapped handler) survives a repaint, so a shape
+        // can arrive while the group is off the map.
+        if (_map && !_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
+    }
     _drawnLayer = e.layer
     _drawnItems.addLayer(_drawnLayer)
     probeDrawnLayer()
@@ -3722,7 +4159,24 @@ async function probeDrawnLayer() {
             drawProbe.value = null
             return
         }
-        drawProbe.value = await resp.json()
+        const data = await resp.json()
+        if (seq !== _probeSeq) return   // superseded while the body streamed
+        drawProbe.value = data
+        // The server clips a partially-outside polygon to the giant and echoes
+        // the clipped geometry — restage it so the shape on screen, the
+        // readout, and the eventual commit are all the SAME polygon (draw()
+        // clips identically server-side; this is belt and braces). No
+        // re-probe: the echoed stats already describe the clipped shape.
+        if (data.clipped && data.geometry && _drawnItems) {
+            const clipped = L.geoJSON(data.geometry, {
+                style: { color: '#fbbf24', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.2 },
+            }).getLayers()[0]
+            if (clipped) {
+                _drawnItems.clearLayers()
+                _drawnLayer = clipped
+                _drawnItems.addLayer(_drawnLayer)
+            }
+        }
     } catch (e) {
         if (seq === _probeSeq) { drawError.value = 'Probe failed.'; drawProbe.value = null }
     } finally {
@@ -3735,9 +4189,9 @@ const drawCommitReady = computed(() =>
 )
 
 async function commitDraw() {
-    if (!_drawnLayer || !drawCommitReady.value || drawBusy.value) return
+    if (!_drawnLayer || !drawCommitReady.value || drawBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) {
-        drawError.value = 'Select or create a DRAFT plan to draw into.'
+        drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'
         return
     }
     drawBusy.value = true
@@ -3748,6 +4202,7 @@ async function commitDraw() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, geojson: geom }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -3767,6 +4222,46 @@ async function commitDraw() {
         drawError.value = 'Commit failed.'
     } finally {
         drawBusy.value = false
+    }
+}
+
+// Phase 5e — fill remainder: the server computes the giant minus every drawn
+// district and returns the leftover polygon; it is staged EXACTLY like a
+// hand-drawn piece (same _drawnLayer + probe readout + Commit district path),
+// so the operator still reviews band/contiguity before committing.
+const remainderBusy = ref(false)
+async function fillRemainder() {
+    if (!_map || remainderBusy.value || drawBusy.value) return
+    remainderBusy.value = true
+    drawError.value = ''
+    try {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/subdivisions/remainder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
+            signal: AbortSignal.timeout(60_000),
+        })
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            drawError.value = apiError(resp, err, 'Fill remainder failed.')
+            return
+        }
+        const data  = await resp.json()
+        const layer = L.geoJSON(data.geometry, {
+            style: { color: '#fbbf24', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.2 },
+        }).getLayers()[0]
+        if (!layer) { drawError.value = 'Fill remainder returned no geometry.'; return }
+        // reinitMapLayers() detaches _drawnItems from the map — re-attach so
+        // the staged remainder is actually visible before its commit.
+        if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
+        else if (!_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
+        onDrawCreated({ layer })   // same staging as a hand draw → probe → Commit district
+    } catch (e) {
+        drawError.value = e?.name === 'TimeoutError'
+            ? 'Fill remainder timed out — try again.'
+            : 'Fill remainder failed.'
+    } finally {
+        remainderBusy.value = false
     }
 }
 
@@ -3947,8 +4442,8 @@ async function snapToBalance() {
 }
 
 async function commitSplit() {
-    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value) return
-    if (!drawTargetIsDraft.value) { drawError.value = 'Create a draft plan to draw into.'; return }
+    if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value || !canDraw.value) return
+    if (!drawTargetIsDraft.value) { drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
     drawBusy.value = true
     drawError.value = ''
     try {
@@ -3957,6 +4452,7 @@ async function commitSplit() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, line }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -3975,27 +4471,9 @@ async function commitSplit() {
     }
 }
 
-// Create a draft plan and stay on THIS scope (so the operator can draw straight
-// away), rather than submitNewMap()'s jump to the auto-seed wizard.
-async function createDraftHere() {
-    if (creatingMap.value) return
-    creatingMap.value = true
-    drawError.value = ''
-    try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body:    JSON.stringify({ name: 'Manual draft' }),
-        })
-        const data = await resp.json()
-        if (!resp.ok) { drawError.value = data.error ?? 'Failed to create a draft plan.'; return }
-        router.visit(mapUrl(props.scope.id, data.id))   // reload this scope with the draft selected
-    } catch (e) {
-        drawError.value = 'Network error creating the draft plan.'
-    } finally {
-        creatingMap.value = false
-    }
-}
+// NOTE (operator ruling): the drawer NEVER creates maps. Draft creation lives
+// only at the map controls — the [+] beside the MAP selector (submitNewMap).
+// The old createDraftHere() silent-minting affordance was removed.
 
 // ── Autoseed-lines proposal (Phase 5b) ───────────────────────────────────────
 const autoseedSeatTotal = computed(() =>
@@ -4007,10 +4485,17 @@ async function previewAutoseedLines() {
     autoseedBusy.value = true
     autoseedError.value = ''
     try {
+        // A fetch has NO default timeout: a request that lands while the
+        // stack is mid-restart can pend forever, freezing the button at
+        // "Proposing…" with no error. Degrade honestly instead.
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body: JSON.stringify({ scope_id: props.scope.id }),
+            // map_id pins existing_districts (the replace offer) to the plan
+            // actually displayed — without it the server falls back to the
+            // active→newest-draft resolution, which can differ under ?map=.
+            body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value, map_id: props.active_map?.id ?? null }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4018,10 +4503,14 @@ async function previewAutoseedLines() {
             return
         }
         const plan = await resp.json()
-        autoseedPlan.value = plan
+        // Pin the RESPONSE's template on the plan — commit must send what was
+        // previewed even if the picker moves while the proposal is open.
+        autoseedPlan.value = { ...plan, template: plan.template ?? autoseedTemplate.value }
         renderAutoseedOverlay(plan)
     } catch (e) {
-        autoseedError.value = 'Autoseed preview failed.'
+        autoseedError.value = e?.name === 'TimeoutError'
+            ? 'The proposal timed out — the server may still be starting. Try again.'
+            : 'Autoseed preview failed.'
     } finally {
         autoseedBusy.value = false
     }
@@ -4029,6 +4518,8 @@ async function previewAutoseedLines() {
 
 // Proposal overlay: one translucent fill per proposed district (same palette +
 // opacity as the revealed sub-district layer) plus each cut as a dashed blade.
+// Colors are POSITIONAL by design — a pre-commit proposal has no committed
+// color_index yet; the adjacency-aware indices arrive with the commit reload.
 // Non-interactive so map clicks pass through, like the leaf-giant outline.
 function renderAutoseedOverlay(plan) {
     if (!_map) return
@@ -4047,6 +4538,15 @@ function renderAutoseedOverlay(plan) {
             style: { color: '#fbbf24', weight: 2.5, dashArray: '6 4', opacity: 0.9 },
         }).addTo(group)
     }
+    // Community-cells plans carry no cuts — the fills above show the shapes
+    // and each generator seed gets a small dot so the operator sees the anchors.
+    for (const s of plan.seeds ?? []) {
+        L.circleMarker([s.lat, s.lng], {
+            interactive: false,
+            radius: 4, color: '#111827', weight: 1.5,
+            fillColor: '#fbbf24', fillOpacity: 1,
+        }).addTo(group)
+    }
     group.addTo(_map)
     _autoseedLayers = group
 }
@@ -4062,9 +4562,12 @@ function discardAutoseedPlan() {
     clearAutoseedOverlay()
 }
 
-async function acceptAutoseedPlan() {
-    if (!autoseedPlan.value || autoseedCommitBusy.value) return
-    if (!drawTargetIsDraft.value) { autoseedError.value = 'Create a draft plan to accept into.'; return }
+// replace: committing over live drawn districts 422s unless the operator
+// explicitly opted in — the panel button sends it only when the preview
+// reported existing_districts > 0, the stepper only on partial rework.
+async function acceptAutoseedPlan({ replace = false } = {}) {
+    if (!autoseedPlan.value || autoseedCommitBusy.value || !canDraw.value) return
+    if (!drawTargetIsDraft.value) { autoseedError.value = 'Accepting edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
     autoseedCommitBusy.value = true
     autoseedError.value = ''
     try {
@@ -4075,7 +4578,12 @@ async function acceptAutoseedPlan() {
                 scope_id:  props.scope.id,
                 map_id:    props.active_map.id,
                 plan_hash: autoseedPlan.value.plan_hash,
+                // The plan's template, never the picker's live value — a
+                // mismatch 422s with 'Plan changed…' by design.
+                template:  autoseedPlan.value.template,
+                ...(replace ? { replace: true } : {}),
             }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4093,6 +4601,43 @@ async function acceptAutoseedPlan() {
     } finally {
         autoseedCommitBusy.value = false
     }
+}
+
+// Wizard-stepper leaf branch: a childless leaf giant has nothing to compose,
+// so its auto-seed is the lines autoseeder — propose with the persisted
+// template, then accept in one pass. Requires the SELECTED map to already be
+// a draft: it never creates one and never navigates (draft creation lives at
+// the map controls only — operator ruling: no silent drafts).
+async function runLeafAutoseed() {
+    if (autoseedBusy.value || autoseedCommitBusy.value || autoseedPlan.value) return
+    // Never fire on a complete leaf — mirrors the caller's wasAlreadyComplete
+    // guard so a direct call can't silently replace a finished set.
+    if (scopeComplete.value) return
+    if (!canDraw.value) {
+        showStatus('error', 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).')
+        return
+    }
+    if (!drawTargetIsDraft.value) {
+        // The accept endpoint refuses a non-draft target. Do NOT mint a draft
+        // here — report and stay put; the operator picks or creates one via
+        // the [+] beside the MAP selector.
+        showStatus('error', 'Autoseed skipped — the selected map is not a draft. Pick or create one with the [+] beside the MAP selector.')
+        return
+    }
+    await previewAutoseedLines()
+    if (!autoseedPlan.value) {
+        showStatus('error', autoseedError.value || 'Autoseed preview failed.')
+        return
+    }
+    // Partial rework: this path only runs when the leaf is INCOMPLETE, so any
+    // existing drawn districts must be retired for the plan to fit — opt in
+    // to replace. Older previews without existing_districts fall back to the
+    // local drawn-row count.
+    const hasExisting = (autoseedPlan.value.existing_districts ?? districtsRef.value.length) > 0
+    await acceptAutoseedPlan({ replace: hasExisting })
+    // Failure leaves the proposal open for manual review; surface it as a
+    // toast too, since the operator may be watching the stepper, not the panel.
+    if (autoseedError.value) showStatus('error', autoseedError.value)
 }
 
 // ── Undo last commit (split / polygon / autoseed accept) ─────────────────────
@@ -4115,7 +4660,8 @@ async function undoLastCommit() {
             const id   = entry.ids[entry.ids.length - 1]
             const resp = await fetch(
                 `/api/legislatures/${props.legislature.id}/districts/${id}`,
-                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+                  signal: AbortSignal.timeout(60_000) }
             )
             if (!resp.ok) {
                 const err = await resp.json().catch(() => ({}))
@@ -4132,7 +4678,9 @@ async function undoLastCommit() {
         router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
     } catch (e) {
         console.error('undoLastCommit:', e)
-        showStatus('error', 'Network error during undo')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error during undo')
     } finally {
         undoBusy.value = false
     }
@@ -4152,6 +4700,9 @@ async function createDistrictFromPending() {
                 label_scope_id:  effectiveScopeId.value, // first child of root (naming)
                 map_id:          props.active_map?.id ?? null,
             }),
+            // A fetch has NO default timeout — a server hiccup (e.g. Redis
+            // reload) would wedge the "Creating…" chip forever. Degrade honestly.
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Failed to create district'); return }
@@ -4212,7 +4763,9 @@ async function createDistrictFromPending() {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('createDistrict:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         savingEdit.value = false
     }
@@ -4232,6 +4785,7 @@ async function saveDistrictEdit(districtId) {
                 method:  'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
                 body:    JSON.stringify({ add, remove, label_scope_id: effectiveScopeId.value, map_id: props.active_map?.id ?? null }),
+                signal:  AbortSignal.timeout(60_000),
             }
         )
         const data = await resp.json()
@@ -4289,7 +4843,9 @@ async function saveDistrictEdit(districtId) {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('saveDistrictEdit:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         savingEdit.value = false
     }
@@ -4299,7 +4855,8 @@ async function deleteDistrict(districtId) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/districts/${districtId}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+              signal: AbortSignal.timeout(60_000) }
         )
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
@@ -4329,7 +4886,41 @@ async function deleteDistrict(districtId) {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('deleteDistrict:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
+    }
+}
+
+// Phase 5e — delete one DRAWN district from the leaf list. Same DELETE
+// endpoint as Disband, but a drawn district has no member rows to patch
+// locally — repaint the revealed layer and partial-reload the data props.
+const deletingDrawnId = ref(null)
+async function deleteDrawnDistrict(d) {
+    if (!d?.id || deletingDrawnId.value) return
+    if (!window.confirm(`Delete drawn district ${d.label || d.id}? Its area returns to the remainder.`)) return
+    deletingDrawnId.value = d.id
+    try {
+        const resp = await fetch(
+            `/api/legislatures/${props.legislature.id}/districts/${d.id}`,
+            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+              signal: AbortSignal.timeout(60_000) }
+        )
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}))
+            showStatus('error', apiError(resp, err, 'Failed to delete district'))
+            return
+        }
+        showStatus('success', 'Drawn district deleted')
+        await reinitMapLayers()
+        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+    } catch (e) {
+        console.error('deleteDrawnDistrict:', e)
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
+    } finally {
+        deletingDrawnId.value = null
     }
 }
 
@@ -4364,7 +4955,11 @@ function runMassTool() {
 async function waitForMassJob({ pollMs = 2500 } = {}) {
     while (true) {
         try {
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            // Per-poll timeout: a hung status fetch would wedge this awaited
+            // loop (and the wizard's busy chip) forever — time out and let the
+            // catch below fall through to the next poll instead.
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+                { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) massProgress.value = data.mass_progress
             if (!data.running) {
@@ -4392,6 +4987,7 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
                 scope_id: overrideScopeId ?? props.scope.id,
                 map_id:   props.active_map?.id ?? null,
             }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
@@ -4418,7 +5014,11 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
         showStatus('success', 'Auto-seed complete')
     } catch (e) {
         console.error('massReseed:', e)
-        showStatus('error', 'Network error')
+        // Timeout ≠ failure: the job may still have been dispatched — the
+        // mass-status poller (manual path) keeps tracking and reloads honestly.
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         massToolRunning.value = false
     }
@@ -4434,6 +5034,7 @@ async function runMassDisband(scope) {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body:    JSON.stringify({ operation_scope: scope, scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Clear failed'); return }
@@ -4445,7 +5046,11 @@ async function runMassDisband(scope) {
         router.visit(mapUrl(props.scope.id))
     } catch (e) {
         console.error('massDisband:', e)
-        showStatus('error', 'Network error')
+        // Timeout ≠ failure: the clear may still have landed — the mass-status
+        // poller keeps running and reloads to the honest current state.
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         massToolRunning.value = false
     }
@@ -4519,13 +5124,15 @@ async function reinitMapLayers() {
     for (const k of Object.keys(jursLabelMarkers)) delete jursLabelMarkers[k]
     _adjacencyMap = null
 
+    // 4c. Polygon-snap targets are per scope+map — rebuilt below from the fresh
+    // fetches. The eachLayer sweep above already removed the marker from the
+    // map; drop the stale handle so it can't be re-positioned off-map.
+    _snapRings  = []
+    _snapMarker = null
+
     // 5. Sync childrenRef / districtsRef from the latest Inertia props
-    childrenRef.value = props.children.map(c => ({ ...c }))
-    districtsRef.value = props.districts.map(d => ({
-        ...d,
-        color_index: d.color_index ?? 0,
-        members: d.members.map(m => ({ ...m })),
-    }))
+    childrenRef.value  = props.children.map(c => ({ ...c }))
+    districtsRef.value = props.districts.map(districtRowFromProp)
 
     mapLoading.value   = true
     mapLoadBytes.value = 0
@@ -4587,7 +5194,12 @@ async function reinitMapLayers() {
                 0   // no client timeout — cold PostGIS query can take >45s; nginx allows 300s
             ).catch(() => ({ features: [] })),
             needSelf
-                ? fetchJsonXhr(`/api/jurisdictions/${props.scope.id}/self.geojson?zoom=${z}`, () => {}).catch(() => null)
+                // timeout 0 (like revealed.geojson): a cold PostGIS
+                // ST_Simplify over a giant's full geometry can exceed the
+                // default 45s — a timed-out fetch silently killed BOTH the
+                // draw canvas and every polygon-snap target. Fail loudly.
+                ? fetchJsonXhr(`/api/jurisdictions/${props.scope.id}/self.geojson?zoom=${z}`, () => {}, 0)
+                    .catch(e => { console.error('self.geojson failed — no draw canvas or snap outline:', e); return null })
                 : Promise.resolve(null),
         ])
 
@@ -4611,6 +5223,22 @@ async function reinitMapLayers() {
             brokenGiantIds.value = new Set(
                 revColoredFeats.map(f => f.properties.giant_jurisdiction_id ?? f.properties.parent_jurisdiction_id)
             )
+        }
+
+        // Phase 5e — polygon-snap targets: the giant's own outline ring(s)
+        // plus every live drawn-district ring, held as latlng arrays and
+        // projected to container pixels per cursor move. Leaf scope only.
+        if (needSelf) {
+            for (const f of (selfGj?.features ?? [])) {
+                for (const ring of _ringsFromGeometry(f.geometry)) {
+                    _snapRings.push(ring.map(c => L.latLng(c[1], c[0])))
+                }
+            }
+            for (const f of revColoredFeats) {
+                for (const ring of _ringsFromGeometry(f.geometry)) {
+                    _snapRings.push(ring.map(c => L.latLng(c[1], c[0])))
+                }
+            }
         }
 
         // Shared per-feature binding — used by the native polygon layer AND

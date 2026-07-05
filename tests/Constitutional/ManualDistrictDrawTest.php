@@ -4,10 +4,13 @@ namespace Tests\Constitutional;
 
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Domain\Forms\Support\BoardProvenance;
+use App\Models\User;
 use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
+use Tests\Concerns\SeatsBoardUser;
 use Tests\TestCase;
 
 /**
@@ -23,7 +26,18 @@ use Tests\TestCase;
  *  3. a non-contiguous piece is refused (Art. II §8);
  *  4. a piece outside the giant's boundary is refused (Art. II §8);
  *  5. drawing into a NON-giant scope is refused (manual draw is only for the
- *     case composite cannot handle).
+ *     case composite cannot handle);
+ *  6. SETUP context (operator ruling, map v1/map v2 — Art. II bootstrap
+ *     posture): while the jurisdiction has NO human-seated active board, the
+ *     OPERATOR (the founder) files F-ELB-008 without a board seat — the
+ *     founding map precedes the government that would hold provenance;
+ *  7. a NON-operator in the setup context is still refused with a citation —
+ *     players don't draw the founding map;
+ *  8. the FIRST human seated on an active board ends the setup context: the
+ *     seatless operator is refused (the governed provenance rule binds) and
+ *     the seated member files exactly as before;
+ *  9. can_draw on the mapper page mirrors the full rule (founder-in-setup OR
+ *     own-seat provenance).
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -31,6 +45,7 @@ use Tests\TestCase;
 class ManualDistrictDrawTest extends TestCase
 {
     use LivePgConnection;
+    use SeatsBoardUser;
 
     private const LIVE_CONNECTION = 'pgsql_manual_draw';
 
@@ -105,6 +120,73 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_deleting_a_drawn_district_retires_its_subdivision_and_frees_the_area(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $rec = $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $firstLabel = DB::table('district_subdivisions')->where('id', $rec['subdivision_id'])->value('label');
+
+            // The delete endpoint retires the SUBDIVISION with its district.
+            // Leaving it live was the "ghost": its label collided with the next
+            // auto-numbered filing (the operator's 23505 500) and its geometry
+            // tripped the sibling-overlap gate on any redraw of the same area.
+            $resp = app(\App\Http\Controllers\LegislatureController::class)
+                ->deleteDistrict($ctx['legislature_id'], $rec['district_id']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $sub = DB::table('district_subdivisions')->where('id', $rec['subdivision_id'])->first();
+            $this->assertNotNull($sub->deleted_at, 'the subdivision must be retired with its district');
+
+            // The SAME shape draws again cleanly — never a 23505, never a
+            // phantom overlap from the retired geometry.
+            $again = $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $this->assertNotSame($rec['subdivision_id'], $again['subdivision_id']);
+
+            // The auto label never reuses the ghost's name (numbering counts
+            // soft-deleted labels too), so live-uniqueness holds by construction.
+            $newLabel = DB::table('district_subdivisions')->where('id', $again['subdivision_id'])->value('label');
+            $this->assertNotSame($firstLabel, $newLabel, 'auto labels must never reuse a ghost label');
+        });
+    }
+
+    public function test_a_duplicate_operator_label_is_refused_with_a_citation_not_a_500(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->engine()->file('F-ELB-008', null, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+                'label'          => 'West Serravalle',
+            ]);
+
+            // A second filing under the same live label must be refused by the
+            // handler (422 + citation through the endpoint), never surface as
+            // a raw unique-index 23505.
+            try {
+                $this->engine()->file('F-ELB-008', null, [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['tiny_geojson'],   // any shape; the label gate fires first
+                    'label'          => 'West Serravalle',
+                ]);
+                $this->fail('a duplicate live label must be refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('West Serravalle', $e->getMessage());
+            }
+        });
+    }
+
     public function test_an_out_of_band_piece_is_refused(): void
     {
         $this->onLivePg(function (array $ctx) {
@@ -158,6 +240,161 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_setup_context_lets_the_operator_draw_the_founding_map_without_a_seat(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            // Map v1: no government exists yet, so the founder files F-ELB-008
+            // with NO board seat — the whole point of the setup context.
+            $rec = $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                'legislature_id'  => $ctx['legislature_id'],
+                'scope_id'        => $ctx['giant_id'],
+                'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                'map_id'          => $ctx['map_id'],
+                'geojson'         => $ctx['inband_geojson'],
+            ])->recorded;
+
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'method' => 'manual',
+            ]);
+        });
+    }
+
+    public function test_the_map_on_screen_is_the_map_the_tools_draw_into(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            $activeMapId = (string) DB::table('legislature_district_maps')
+                ->where('legislature_id', $ctx['legislature_id'])
+                ->where('status', 'active')->whereNull('deleted_at')
+                ->value('id');
+            $this->assertNotSame('', $activeMapId, 'the legislature carries an active (founding) map');
+
+            // The operator's rule, verbatim intent: "If I'm on a map I'm on a
+            // map." During Initial Setup the displayed map IS the founding
+            // (v1, active) map and the founder draws into it directly — no
+            // draft ceremony. Drafts-only begins at map v2, with the standing
+            // government that votes plans active.
+            $rec = $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                'legislature_id'  => $ctx['legislature_id'],
+                'scope_id'        => $ctx['giant_id'],
+                'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                'map_id'          => $activeMapId,
+                'geojson'         => $ctx['inband_geojson'],
+            ])->recorded;
+
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'map_id' => $activeMapId,
+            ]);
+        });
+    }
+
+    public function test_governed_context_keeps_the_active_map_drafts_only(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // A human-seated board = a standing government: map changes now run
+            // draft → approval → vote, so direct draws into the ACTIVE map are
+            // refused even for a seated member — only drafts accept filings.
+            $member = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
+            $activeMapId = (string) DB::table('legislature_district_maps')
+                ->where('legislature_id', $ctx['legislature_id'])
+                ->where('status', 'active')->whereNull('deleted_at')
+                ->value('id');
+
+            try {
+                $this->engine()->file('F-ELB-008', $member, [
+                    'legislature_id'  => $ctx['legislature_id'],
+                    'scope_id'        => $ctx['giant_id'],
+                    'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                    'map_id'          => $activeMapId,
+                    'geojson'         => $ctx['inband_geojson'],
+                ]);
+                $this->fail('a governed-context draw into the ACTIVE map must be refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('standing government', $e->getMessage());
+            }
+        });
+    }
+
+    public function test_setup_context_still_refuses_a_non_operator_with_a_citation(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            try {
+                $this->engine()->file('F-ELB-008', $this->plainUser(), [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['inband_geojson'],
+                ]);
+                $this->fail('players do not draw the founding map — a non-operator must be refused');
+            } catch (ConstitutionalViolation $e) {
+                // The existing refusal posture, untouched by the founder
+                // exception: the R-08 role gate / own-seat provenance, cited.
+                $this->assertStringContainsString('R-08', $e->getMessage().' '.$e->citation);
+            }
+
+            $this->assertSame(0, (int) DB::table('district_subdivisions')
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count(),
+                'a refused filing persists nothing');
+        });
+    }
+
+    public function test_the_first_human_seat_ends_the_setup_context_and_binds_provenance(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+            // Map v2: the standing government takes over the function.
+            $member = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
+            try {
+                $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                    'legislature_id' => $ctx['legislature_id'],
+                    'scope_id'       => $ctx['giant_id'],
+                    'map_id'         => $ctx['map_id'],
+                    'geojson'        => $ctx['inband_geojson'],
+                ]);
+                $this->fail('once a human-seated board exists, the seatless operator is refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('seated member', $e->getMessage());
+            }
+
+            // The governed path is byte-identical to before: the seated member files.
+            $rec = $this->engine()->file('F-ELB-008', $member, [
+                'legislature_id' => $ctx['legislature_id'],
+                'scope_id'       => $ctx['giant_id'],
+                'map_id'         => $ctx['map_id'],
+                'geojson'        => $ctx['inband_geojson'],
+            ])->recorded;
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'method' => 'manual',
+            ]);
+        });
+    }
+
+    public function test_can_draw_mirrors_the_setup_context_founder_rule(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            $this->assertTrue(
+                $this->districtsPageProps($ctx, $this->operatorUser())['can_draw'],
+                'the founder sees live draw tools while no government exists'
+            );
+            $this->assertFalse(
+                $this->districtsPageProps($ctx, $this->plainUser())['can_draw'],
+                'a non-operator never draws the founding map'
+            );
+        });
+    }
+
     public function test_split_probe_partitions_the_giant_population_into_two_sides(): void
     {
         $this->onLivePg(function (array $ctx) {
@@ -190,14 +427,16 @@ class ManualDistrictDrawTest extends TestCase
                 $ctx['legislature_id']
             )->getContent(), true);
 
-            $resp = $controller->splitCommit(
-                \Illuminate\Http\Request::create('/sc', 'POST', [
-                    'scope_id' => $ctx['giant_id'],
-                    'map_id'   => $ctx['map_id'],
-                    'line'     => $ctx['bisect_line'],
-                ]),
-                $ctx['legislature_id']
-            );
+            // The commit files as a SEATED board member — split-commit is
+            // auth-gated now, so the guest/null-actor posture no longer exists.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'line'     => $ctx['bisect_line'],
+            ]);
+            $commitReq->setUserResolver(fn () => $user);
+            $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
 
             if ($probe['both_in_band']) {
                 $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
@@ -216,7 +455,341 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_a_snap_balanced_diagonal_cut_commits_without_boundary_epsilon_refusal(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+
+            // The operator's exact field gesture: a slanted hand cut, slid to
+            // balance by the assist, then committed. Both sides are inside the
+            // giant BY CONSTRUCTION (pieces of an ST_Split of the giant), so a
+            // refusal citing Art. II §8 "extends outside the boundary" can only
+            // be the decimal-GeoJSON round-trip epsilon — the bug this pins.
+            $balanced = json_decode($controller->splitBalance(
+                \Illuminate\Http\Request::create('/sb', 'POST', [
+                    'scope_id' => $ctx['giant_id'],
+                    'line'     => $ctx['diagonal_line'],
+                ]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $this->assertTrue($balanced['both_in_band'] ?? false, 'the assist lands the diagonal in band');
+
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'line'     => json_encode($balanced['line']),
+            ]);
+            $commitReq->setUserResolver(fn () => $user);
+            $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
+
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+            $this->assertCount(2, $data['districts']);
+        });
+    }
+
+    public function test_drawn_districts_list_at_the_ancestor_scope_without_double_counting(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $drawn = $this->commitBalancedDiagonalSplit($ctx);
+
+            // The ANCESTOR scope (the San Marino root) lists the drawn rows —
+            // the reveal layer already painted them there (Branches 4/5); the
+            // sidebar list must carry the same districts.
+            $props = $this->districtsPageProps($ctx);
+
+            $rows = array_values(array_filter(
+                $props['districts'],
+                fn ($d) => ($d['method'] ?? null) === 'drawn'
+            ));
+            $this->assertCount(2, $rows, 'both drawn districts list at the root scope');
+            foreach ($rows as $d) {
+                $this->assertSame('Serravalle', $d['scope_name']);
+                $this->assertNotEmpty($d['label']);
+                $this->assertNotEmpty($d['subdivision_id']);
+                $this->assertArrayHasKey('color_index', $d);
+                $this->assertArrayHasKey('deviation_pct', $d);
+                $this->assertArrayHasKey('fractional_seats', $d, 'every composite row key is present');
+            }
+
+            // Counters stay honest: the giant's child row ALREADY carries the
+            // drawn seats (child_committed subdivision branch) — the new list
+            // rows must never add them a second time anywhere.
+            $drawnSeats = array_sum(array_column($rows, 'seats'));
+            $this->assertSame(count($drawn['district_ids']), count($rows));
+            $giantRow = collect($props['children'])->firstWhere('id', $ctx['giant_id']);
+            $this->assertNotNull($giantRow, 'Serravalle appears as a child at the root scope');
+            $this->assertSame($drawnSeats, $giantRow['drawn_seats']);
+            $this->assertSame($drawnSeats, $giantRow['child_assigned_seats']);
+            if (($props['flags']['cap'] ?? null) !== null) {
+                $this->assertSame($drawnSeats, $props['flags']['cap']['total'],
+                    'the cap flag counts each drawn seat exactly once');
+            }
+        });
+    }
+
+    public function test_drawn_siblings_and_their_touching_composite_neighbor_color_pairwise_distinctly(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $drawn = $this->commitBalancedDiagonalSplit($ctx);
+
+            // A composite neighbor TOUCHING BOTH drawn pieces, resolved from
+            // live geometry (San Marino's castelli are small — the giant's
+            // southern neighbors usually span both sides of a diagonal cut).
+            $neighbor = DB::selectOne('
+                SELECT j.id, j.population
+                  FROM jurisdictions j
+                 WHERE j.parent_id = ?
+                   AND j.id <> ?
+                   AND j.deleted_at IS NULL
+                   AND j.geom IS NOT NULL
+                   AND NOT EXISTS (
+                       SELECT 1 FROM district_subdivisions ds
+                        WHERE ds.map_id = ?
+                          AND ds.parent_jurisdiction_id = ?
+                          AND ds.deleted_at IS NULL
+                          AND NOT ST_DWithin(ds.geom, j.geom, 0.000001)
+                   )
+                 LIMIT 1
+            ', [$ctx['leg_jurisdiction_id'], $ctx['giant_id'], $ctx['map_id'], $ctx['giant_id']]);
+            if ($neighbor === null) {
+                $this->markTestSkipped('No castello touches both drawn pieces under this cut — geometry-dependent pin.');
+            }
+
+            $compositeId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id'                => $compositeId,
+                'legislature_id'    => $ctx['legislature_id'],
+                'map_id'            => $ctx['map_id'],
+                'jurisdiction_id'   => $ctx['leg_jurisdiction_id'],
+                'district_number'   => 99,
+                'seats'             => 5,
+                'target_population' => (int) $neighbor->population,
+                'actual_population' => (int) $neighbor->population,
+                'fractional_seats'  => 5.0,
+                'floor_override'    => false,
+                'status'            => 'active',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id'              => (string) Str::uuid(),
+                'district_id'     => $compositeId,
+                'jurisdiction_id' => $neighbor->id,
+            ]);
+
+            // Colors recompute on the next read (the split-commit flushed the
+            // revealed tag and nothing has re-primed it since).
+            $props = $this->districtsPageProps($ctx);
+            $byId  = collect($props['districts'])->keyBy('id');
+
+            $colors = [];
+            foreach ([...$drawn['district_ids'], $compositeId] as $did) {
+                $this->assertTrue($byId->has($did), "district {$did} lists at the root scope");
+                $colors[$did] = $byId[$did]['color_index'];
+            }
+            $this->assertCount(3, array_unique($colors),
+                'two drawn siblings + their touching composite neighbor wear pairwise-distinct colors');
+
+            // One source of truth: revealedGeoJson paints the SAME color the
+            // sidebar row carries.
+            $fc = json_decode(app(\App\Http\Controllers\LegislatureController::class)->revealedGeoJson(
+                \Illuminate\Http\Request::create('/r', 'GET', [
+                    'scope' => $ctx['leg_jurisdiction_id'],
+                    'map'   => $ctx['map_id'],
+                    'zoom'  => 12,
+                ]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            foreach ($fc['features'] as $f) {
+                $did = $f['properties']['district_id'] ?? null;
+                if ($did !== null && isset($colors[$did])) {
+                    $this->assertSame($colors[$did], $f['properties']['color_index'],
+                        'map fill and sidebar dot read the same color map');
+                }
+            }
+        });
+    }
+
+    public function test_probe_and_draw_auto_clip_an_over_the_boundary_rectangle(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+            $probe = function (string $geojson) use ($controller, $ctx) {
+                return $controller->probe(
+                    \Illuminate\Http\Request::create('/pp', 'POST', [
+                        'scope_id' => $ctx['giant_id'],
+                        'geojson'  => $geojson,
+                    ]),
+                    $ctx['legislature_id']
+                );
+            };
+
+            // Reference: the pre-clipped western 60% — never trimmed.
+            $refResp = $probe($ctx['inband_geojson']);
+            $this->assertSame(200, $refResp->getStatusCode(), $refResp->getContent());
+            $reference = json_decode($refResp->getContent(), true);
+            $this->assertFalse($reference['clipped'], 'a fully-inside shape passes through untrimmed');
+            $this->assertNotNull($reference['geometry'], 'the measured geometry is always echoed');
+
+            // The raw over-the-boundary rectangle probes to the SAME region:
+            // clipped, echoed, measured — never refused with ✗outside.
+            $resp = $probe($ctx['overdraw_geojson']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+            $this->assertTrue($data['clipped'], 'the crossing rectangle is trimmed, not refused');
+            $this->assertTrue($data['within_giant'], 'the compatibility key holds on every 200');
+            $this->assertNotNull($data['geometry'], 'the clipped geometry is echoed for the pending layer');
+            $this->assertEqualsWithDelta($reference['population'], $data['population'],
+                max(1, $reference['population'] * 0.02),
+                'the readout prices the clipped shape, not the raw rectangle');
+
+            // The SAME raw rectangle COMMITS through draw() — clipped before
+            // filing, so the handler's exact CoveredBy proof passes by
+            // construction. The operator label passes through unchanged.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $drawReq = \Illuminate\Http\Request::create('/dd', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'geojson'  => $ctx['overdraw_geojson'],
+                'label'    => 'Clipped West',
+            ]);
+            $drawReq->setUserResolver(fn () => $user);
+            $drawResp = $controller->draw($drawReq, $ctx['legislature_id']);
+            $this->assertSame(200, $drawResp->getStatusCode(), $drawResp->getContent());
+            $this->assertTrue(
+                DB::table('district_subdivisions')
+                    ->where('map_id', $ctx['map_id'])
+                    ->where('label', 'Clipped West')
+                    ->whereNull('deleted_at')
+                    ->exists(),
+                'the clipped rectangle filed under its manual label'
+            );
+
+            // A polygon entirely outside the giant still refuses — plainly.
+            $off = $probe($ctx['offshore_geojson']);
+            $this->assertSame(422, $off->getStatusCode());
+            $this->assertStringContainsString(
+                'entirely outside',
+                json_decode($off->getContent(), true)['error'] ?? ''
+            );
+        });
+    }
+
     // -------------------------------------------------------------------------
+
+    /**
+     * The proven field gesture shared by the new pins: a hand-drawn diagonal,
+     * slid to seat balance by the assist, committed into TWO drawn siblings.
+     *
+     * @return array{district_ids: string[]}
+     */
+    private function commitBalancedDiagonalSplit(array $ctx): array
+    {
+        $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+
+        $balanced = json_decode($controller->splitBalance(
+            \Illuminate\Http\Request::create('/sb', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'line'     => $ctx['diagonal_line'],
+            ]),
+            $ctx['legislature_id']
+        )->getContent(), true);
+        $this->assertTrue($balanced['both_in_band'] ?? false, 'the assist lands the diagonal in band');
+
+        $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+        $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+            'scope_id' => $ctx['giant_id'],
+            'map_id'   => $ctx['map_id'],
+            'line'     => json_encode($balanced['line']),
+        ]);
+        $commitReq->setUserResolver(fn () => $user);
+        $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
+        $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+        $districts = json_decode($resp->getContent(), true)['districts'];
+
+        return ['district_ids' => array_column($districts, 'district_id')];
+    }
+
+    /**
+     * Force the SETUP context on the fixture jurisdiction inside the test
+     * transaction: soft-delete every HUMAN-seated member row on its active
+     * boards (the live box may carry dev-seated humans). The bootstrap
+     * board's synthetic user_id-NULL row stays — it is the system, not a
+     * government, and must not end the context.
+     */
+    private function enterSetupContext(string $jurisdictionId): void
+    {
+        $activeBoardIds = DB::table('election_boards')
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->pluck('id');
+
+        DB::table('election_board_members')
+            ->whereIn('election_board_id', $activeBoardIds)
+            ->whereNotNull('user_id')
+            ->where('status', 'seated')
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]);
+
+        $this->assertTrue(
+            BoardProvenance::inSetupContext($jurisdictionId),
+            'the fixture jurisdiction is in the setup context once no human seat remains'
+        );
+    }
+
+    /** A fresh user row inside the live-pg transaction; operator = the founder. */
+    private function liveUser(bool $isOperator): User
+    {
+        $userId = (string) Str::uuid();
+        DB::table('users')->insert([
+            'id'                => $userId,
+            'name'              => $isOperator ? 'Founder Pin User' : 'Player Pin User',
+            'email'             => "draw-pin-{$userId}@example.test",
+            'password'          => password_hash('draw-pin-password', PASSWORD_BCRYPT),
+            'is_operator'       => $isOperator,
+            'terms_accepted_at' => now(),
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+
+        return User::query()->findOrFail($userId);
+    }
+
+    private function operatorUser(): User
+    {
+        return $this->liveUser(true);
+    }
+
+    private function plainUser(): User
+    {
+        return $this->liveUser(false);
+    }
+
+    /**
+     * GET the mapper page at the legislature's ROOT scope (by slug, on the
+     * test's draft map) and return the raw Inertia props — as a guest, or
+     * authenticated as $as.
+     */
+    private function districtsPageProps(array $ctx, ?User $as = null): array
+    {
+        $slug = DB::table('jurisdictions')->where('id', $ctx['leg_jurisdiction_id'])->value('slug');
+        $this->assertNotNull($slug, 'the root jurisdiction carries a slug');
+
+        $props = null;
+        ($as !== null ? $this->actingAs($as) : $this)
+            ->get("/legislatures/{$slug}/districts?map={$ctx['map_id']}")
+            ->assertOk()
+            ->assertInertia(function (\Inertia\Testing\AssertableInertia $page) use (&$props) {
+                $props = $page->toArray()['props'];
+                return $page->component('Legislature/Districts');
+            });
+        $this->assertIsArray($props);
+
+        return $props;
+    }
 
     private function engine(): ConstitutionalEngine
     {
@@ -321,6 +894,21 @@ class ManualDistrictDrawTest extends TestCase
             [$giant->xmin - 0.001, $giant->ymin - 0.001, $xCut, $giant->ymax + 0.001, $giant->id]
         );
 
+        // The SAME western 60% cut as $inband, but drawn the way the operator
+        // really draws it: a raw rectangle with fat margins hanging outside the
+        // giant on three sides. The auto-clip must trim this to the giant and
+        // measure/file the identical region $inband covers.
+        $overdraw = json_encode([
+            'type' => 'Polygon',
+            'coordinates' => [[
+                [$giant->xmin - 0.05, $giant->ymin - 0.05],
+                [$xCut,               $giant->ymin - 0.05],
+                [$xCut,               $giant->ymax + 0.05],
+                [$giant->xmin - 0.05, $giant->ymax + 0.05],
+                [$giant->xmin - 0.05, $giant->ymin - 0.05],
+            ]],
+        ]);
+
         // Tiny box ~ centre of the giant (≈ 0 people → below floor).
         $cx = ($giant->xmin + $giant->xmax) / 2;
         $cy = ($giant->ymin + $giant->ymax) / 2;
@@ -355,6 +943,17 @@ class ManualDistrictDrawTest extends TestCase
             'coordinates' => [[$cx, $giant->ymin - 0.001], [$cx, $giant->ymax + 0.001]],
         ]);
 
+        // A SLANTED cut (the operator's real gesture): its ST_Split pieces
+        // carry non-terminating decimal vertices, so the GeoJSON round-trip
+        // epsilon actually bites — an axis-aligned line can pass by luck.
+        $diagonalLine = json_encode([
+            'type' => 'LineString',
+            'coordinates' => [
+                [$cx - 0.3 * ($giant->xmax - $giant->xmin), $giant->ymin - 0.001],
+                [$cx + 0.3 * ($giant->xmax - $giant->xmin), $giant->ymax + 0.001],
+            ],
+        ]);
+
         return [
             'legislature_id'      => $leg->id,
             'leg_jurisdiction_id' => $leg->jurisdiction_id,
@@ -362,10 +961,12 @@ class ManualDistrictDrawTest extends TestCase
             'giant_population'    => (int) $giant->population,
             'map_id'              => $mapId,
             'inband_geojson'      => $inband->gj,
+            'overdraw_geojson'    => $overdraw,
             'tiny_geojson'        => $tiny,
             'multipart_geojson'   => $multipart,
             'offshore_geojson'    => $offshore,
             'bisect_line'         => $bisectLine,
+            'diagonal_line'       => $diagonalLine,
         ];
     }
 }
