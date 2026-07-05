@@ -699,6 +699,13 @@ def _insert_raster_batch(
     PostGIS decodes it via its GDAL GeoTIFF driver and stores it as a raster.
     """
     with get_cursor(conn) as cur:
+        # Belt-and-braces: the GTiff GDAL driver is enabled at the DATABASE level
+        # by docker/postgres/init.sql (ALTER DATABASE ... SET postgis.gdal_enabled_drivers).
+        # That setting is lost if the database is ever dropped + recreated (init.sql
+        # only runs on a virgin data volume), which silently breaks EVERY
+        # ST_FromGDALRaster with "Could not open bytea with GDAL". Re-assert it on
+        # this session so the raster load is self-sufficient regardless of DB config.
+        cur.execute("SET postgis.gdal_enabled_drivers = 'GTiff'")
         psycopg2.extras.execute_values(
             cur,
             """

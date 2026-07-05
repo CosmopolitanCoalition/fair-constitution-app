@@ -186,8 +186,12 @@ function onLocaleChange(event) {
 watch(locale, (code) => applyDir(code));
 
 /* ---------------------------------------------------------------- dev bar */
+// DevBar shows only when the WORLD is in sandbox game mode (or an
+// impersonation is already active / an explicit devBar prop). No longer keyed
+// on import.meta.env.DEV — that leaked the bar into every dev-server boot
+// before the operator had chosen a mode.
 const devBarOn = computed(
-    () => page.props.devBar === true || impersonation.value?.active === true || import.meta.env.DEV,
+    () => page.props.devBar === true || impersonation.value?.active === true || instance.value.sandbox === true,
 );
 const impersonatingUser = computed(() =>
     impersonation.value?.active ? (user.value ? { name: user.value.display_name || user.value.name } : null) : null,
@@ -336,6 +340,7 @@ onBeforeUnmount(() => {
             :roles="roles"
             :current-nav-id="currentNavId"
             :phases-live="phasesLive"
+            :sandbox="instance.sandbox === true"
         />
 
         <main id="main" class="main-content" :class="mainClass">

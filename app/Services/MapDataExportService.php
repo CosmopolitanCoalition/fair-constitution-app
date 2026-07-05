@@ -33,31 +33,33 @@ use Symfony\Component\Process\Process;
 class MapDataExportService
 {
     /**
-     * Tables included in the export — the full FK-downstream graph of
-     * jurisdictions plus the two settings tables and the raster store.
+     * The CURATED default-export order (the historical, hand-verified,
+     * acyclic parent → child chain that makes a jurisdiction hierarchy
+     * queryable). This is what a plain export ships and what the import
+     * service reverses for its child-first DELETE pass — its order is
+     * proven safe and is NOT derived at runtime, so the common path never
+     * depends on live introspection.
+     *
+     * Since Workstream C the CHOOSER (what the picker offers) and the
+     * allowlist that gates an operator's explicit `tables[]` selection are
+     * fed by {@see deriveExportableTables()} — a schema-derived, self-
+     * maintaining list. TABLES stays the *default export order* and the
+     * *curated priority prefix* of the derived order, so:
+     *   - a plain export (no `tables[]`) is byte-for-byte the historical set,
+     *   - the derived list is always a SUPERSET of TABLES, in the same
+     *     relative order at the front (the curated chain is pinned), and
+     *   - newly-added portable tables appear in the picker automatically.
+     *
      * Order is parent → child so pg_restore can replay the rows without
      * deferred-constraint gymnastics; the import service reverses this
      * list for the truncation pass so child rows clear before parents.
      *
-     * The set was derived from `pg_constraint` rather than written by
-     * hand: TRUNCATE jurisdictions CASCADE wipes every table that has a
-     * foreign key targeting jurisdictions (directly or via a chain), and
-     * those are exactly the tables that have to round-trip with it so
-     * the restored instance isn't left with phantom-empty children.
-     *
-     * Skipped on purpose:
+     * Skipped on purpose (also enforced by the derive denylist):
      *   - users        — operator-account credentials; not portable across
-     *                     instances. legislature_members and
-     *                     residency_confirmations FK to users, so those
-     *                     tables are included but rows referencing user
-     *                     ids the receiver doesn't have will fail
-     *                     pg_restore (an intentional clean fault rather
-     *                     than a silent FK-deferred mismatch).
-     *   - location_pings — privacy-sensitive GPS history; doesn't FK to
-     *                     anything in the jurisdictions graph anyway, so
-     *                     omitting it doesn't corrupt CASCADE invariants.
+     *                     instances.
+     *   - location_pings — privacy-sensitive GPS history.
      *   - cache / jobs / sessions / migrations — runtime / infra tables.
-     *   - postgis system tables (layer / topology) — managed by the
+     *   - postgis system tables (spatial_ref_sys) — managed by the
      *                     PostGIS extension; we don't own their lifecycle.
      *
      * @var list<string>
@@ -95,6 +97,44 @@ class MapDataExportService
         // identify in the picker by the "heavy" badge, slowest to dump)
         'worldpop_rasters',
     ];
+
+    /**
+     * Exact-name denylist for {@see deriveExportableTables()}: framework /
+     * infra tables, PostGIS system tables, and privacy / credential /
+     * key-material tables that must never leave the instance. Any table
+     * whose name matches {@see DENY_PATTERNS} (e.g. `*_private_key`,
+     * `*signing_key*`) is also excluded, so key material added later is
+     * kept out without touching this list.
+     *
+     * @var list<string>
+     */
+    public const DERIVE_DENYLIST = [
+        // framework / infra
+        'migrations', 'cache', 'cache_locks', 'jobs', 'job_batches',
+        'failed_jobs', 'sessions', 'password_reset_tokens',
+        // PostGIS system
+        'spatial_ref_sys',
+        // privacy / credentials / device + key material — never portable
+        'users', 'location_pings', 'operator_accounts', 'operator_devices',
+        'mesh_operator_keys', 'oidc_signing_keys',
+        // additional dedicated credential / device / key-material tables
+        // that fall under the same "never portable" intent as the list above
+        'mesh_operator_identities', 'mesh_operator_local_links',
+        'oidc_authorization_codes', 'oidc_signing_keys',
+        'actor_devices', 'cluster_join_keys', 'election_ballot_key_rewraps',
+    ];
+
+    /**
+     * Substring/regex denials layered on top of DERIVE_DENYLIST so any
+     * table carrying key material (now or added later) is excluded from
+     * the schema-derived set automatically.
+     *
+     * @var list<string>
+     */
+    public const DERIVE_DENY_PATTERNS = ['/_private_key/', '/signing_key/'];
+
+    /** In-request memo for the derived list (schema introspection is cheap but not free). */
+    private ?array $derivedTablesCache = null;
 
     /**
      * Tables that get filtered out when skip_rasters=true. The receiving
@@ -219,15 +259,20 @@ class MapDataExportService
      * Resolve the effective table selection for an export run.
      *
      * Precedence:
-     *   1. If $explicit is non-null, intersect it with self::TABLES and
-     *      preserve TABLES order (so parents stay before children for the
-     *      restore-side replay).
-     *   2. Otherwise, fall back to the legacy skip_rasters flag — full
-     *      TABLES minus RASTER_TABLES, or the full TABLES list.
+     *   1. If $explicit is non-null, intersect it with the schema-derived
+     *      exportable allowlist ({@see deriveExportableTables()}) and
+     *      preserve that list's order (parent → child, with the curated
+     *      chain pinned at the front) so the restore-side replay stays FK-
+     *      aware. Widened from the curated 20 to the full portable suite so
+     *      the picker's checkboxes are all actually exportable.
+     *   2. Otherwise (no explicit selection) fall back to the legacy
+     *      skip_rasters flag over the CURATED default order — full TABLES,
+     *      or TABLES minus RASTER_TABLES. The default export is unchanged:
+     *      it never depends on live introspection.
      *
-     * Filtering values outside TABLES prevents callers from dumping
-     * arbitrary tables via the API; only the curated bundle members
-     * are ever shipped.
+     * Intersecting against the derived allowlist (rather than accepting the
+     * raw $explicit) still prevents callers from dumping arbitrary tables:
+     * only tables the derive step vetted as portable are ever shipped.
      *
      * @param  ?list<string>  $explicit
      * @return list<string>
@@ -235,14 +280,311 @@ class MapDataExportService
     public function resolveTables(?array $explicit, bool $skipRasters): array
     {
         if ($explicit !== null) {
+            $allow = $this->deriveExportableTables();
+
             return array_values(array_filter(
-                self::TABLES,
+                $allow,
                 fn ($t) => in_array($t, $explicit, true),
             ));
         }
         return $skipRasters
             ? array_values(array_diff(self::TABLES, self::RASTER_TABLES))
             : self::TABLES;
+    }
+
+    /**
+     * Schema-derived, self-maintaining list of every portable BASE table in
+     * the public schema, ordered parent → child, with the curated {@see
+     * TABLES} chain pinned as the leading prefix. This is the source of
+     * truth for the export CHOOSER and the allowlist that gates an
+     * operator's explicit `tables[]` selection — as tables are added to the
+     * schema they appear here automatically (minus the denylist), so the
+     * picker never drifts from a hand-maintained constant again.
+     *
+     * Derivation:
+     *   1. Enumerate `information_schema.tables` (public, BASE TABLE).
+     *   2. Drop {@see DERIVE_DENYLIST} exact names and any name matching
+     *      {@see DERIVE_DENY_PATTERNS} (framework/infra, PostGIS system,
+     *      privacy/credential/key-material tables).
+     *   3. Read FK edges from `pg_constraint` (child → parent, excluding
+     *      self-references and edges to denied tables) and topologically
+     *      sort so every table lands after all tables it FK-references
+     *      *within the exported set*. The curated TABLES chain is emitted
+     *      first (in its proven order) as the topo seed, guaranteeing the
+     *      derived list is a strict superset of TABLES with the same
+     *      relative order at the front.
+     *
+     * Cycle handling: the live schema has genuine FK cycles among the
+     * institutional tables (e.g. bills ↔ laws, boards ↔ board_seats,
+     * elections ↔ vacancies, terms ↔ appointments), and every FK is NOT
+     * DEFERRABLE — so NO linear order can satisfy all of them. When the topo
+     * pass stalls, {@see remainingCycleNodes()} isolates the tables that
+     * actually sit on a cycle in the remaining subgraph, and the break fires
+     * only on one of those (deterministically: fewest unmet parents, then
+     * most children unblocked, then name). An acyclic table whose sole
+     * blocker is a cyclic parent is never front-run — it is emitted normally
+     * once the cycle is broken. The result is therefore a valid topological
+     * order EXCEPT for the irreducible cycle arcs (and the curated pin, which
+     * front-loads the curated chain). This is why this list drives the
+     * CHOOSER and an opt-in "full" selection, while the DEFAULT export/restore
+     * order stays the curated, cycle-free {@see TABLES}. pg_restore
+     * --data-only performs its own dependency ordering for the load direction
+     * regardless; only the import service's DELETE pass consumes this order,
+     * and only for a full opt-in selection.
+     *
+     * Falls back to {@see TABLES} on any introspection failure so a broken
+     * information_schema query can never leave the picker empty.
+     *
+     * @return list<string>
+     */
+    public function deriveExportableTables(): array
+    {
+        if ($this->derivedTablesCache !== null) {
+            return $this->derivedTablesCache;
+        }
+
+        try {
+            // 1. All public BASE tables, minus the denylist / key-material patterns.
+            $all = DB::table('information_schema.tables')
+                ->where('table_schema', 'public')
+                ->where('table_type', 'BASE TABLE')
+                ->pluck('table_name')
+                ->all();
+
+            $nodes = [];
+            foreach ($all as $t) {
+                if ($this->isDeniedFromExport($t)) {
+                    continue;
+                }
+                $nodes[$t] = true;
+            }
+            if ($nodes === []) {
+                return $this->derivedTablesCache = self::TABLES;
+            }
+
+            // 2. FK edges (child → parent) restricted to the node set.
+            $edges = DB::select(
+                "SELECT DISTINCT c.conrelid::regclass::text AS child,
+                        c.confrelid::regclass::text AS parent
+                   FROM pg_constraint c
+                   JOIN pg_namespace n ON n.oid = c.connamespace
+                  WHERE c.contype = 'f'
+                    AND n.nspname = 'public'
+                    AND c.conrelid <> c.confrelid"
+            );
+
+            $parents  = [];
+            $children = [];
+            foreach ($nodes as $t => $_) {
+                $parents[$t]  = [];
+                $children[$t] = [];
+            }
+            foreach ($edges as $e) {
+                // regclass may schema-qualify (public.foo) or quote reserved
+                // names; normalise to a bare table name before matching.
+                $child  = $this->bareTableName($e->child);
+                $parent = $this->bareTableName($e->parent);
+                if ($child === $parent) {
+                    continue;
+                }
+                if (! isset($nodes[$child]) || ! isset($nodes[$parent])) {
+                    continue;
+                }
+                $parents[$child][$parent] = true;
+                $children[$parent][$child] = true;
+            }
+
+            // 3. Topological sort, curated TABLES pinned as the seed prefix.
+            $emitted    = [];
+            $emittedSet = [];
+            foreach (self::TABLES as $t) {
+                if (isset($nodes[$t]) && ! isset($emittedSet[$t])) {
+                    $emitted[]        = $t;
+                    $emittedSet[$t]   = true;
+                }
+            }
+            $remaining = [];
+            foreach ($nodes as $t => $_) {
+                if (! isset($emittedSet[$t])) {
+                    $remaining[$t] = true;
+                }
+            }
+
+            $unmetParents = static function (string $t) use (&$parents, &$emittedSet): int {
+                $n = 0;
+                foreach (array_keys($parents[$t]) as $p) {
+                    if (! isset($emittedSet[$p])) {
+                        $n++;
+                    }
+                }
+                return $n;
+            };
+
+            while ($remaining !== []) {
+                // Kahn: emit every currently-ready table (all parents already
+                // out), alphabetically, repeating until nothing is ready.
+                do {
+                    $ready = [];
+                    foreach (array_keys($remaining) as $t) {
+                        if ($unmetParents($t) === 0) {
+                            $ready[] = $t;
+                        }
+                    }
+                    sort($ready);
+                    foreach ($ready as $t) {
+                        $emitted[]      = $t;
+                        $emittedSet[$t] = true;
+                        unset($remaining[$t]);
+                    }
+                } while ($ready !== []);
+
+                if ($remaining === []) {
+                    break;
+                }
+
+                // Stall = FK cycle. Only ever break a node that actually SITS ON a
+                // cycle within the remaining subgraph — never an acyclic dependent
+                // whose sole blocker happens to be a cyclic parent (breaking such a
+                // node would front-run it ahead of its parent for no reason; the
+                // Kahn pass will emit it cleanly once the cycle is broken). Among
+                // the on-cycle candidates, break deterministically: fewest unmet
+                // parents, then unblocks the most children, then name.
+                $cycleNodes = $this->remainingCycleNodes($remaining, $parents, $children, $emittedSet);
+                $candidates = $cycleNodes !== [] ? $cycleNodes : array_keys($remaining);
+
+                $best    = null;
+                $bestKey = null;
+                foreach ($candidates as $t) {
+                    $up = $unmetParents($t);
+                    $cc = 0;
+                    foreach (array_keys($children[$t]) as $c) {
+                        if (isset($remaining[$c])) {
+                            $cc++;
+                        }
+                    }
+                    $key = [$up, -$cc, $t];
+                    if ($bestKey === null || $key < $bestKey) {
+                        $bestKey = $key;
+                        $best    = $t;
+                    }
+                }
+                $emitted[]         = $best;
+                $emittedSet[$best] = true;
+                unset($remaining[$best]);
+            }
+
+            return $this->derivedTablesCache = array_values($emitted);
+        } catch (\Throwable $e) {
+            Log::warning('deriveExportableTables introspection failed; falling back to curated TABLES', [
+                'error' => $e->getMessage(),
+            ]);
+            return $this->derivedTablesCache = self::TABLES;
+        }
+    }
+
+    /**
+     * Identify which still-unemitted tables actually sit on an FK cycle within
+     * the remaining subgraph, so the topo cycle-break only ever fires on a
+     * genuine cycle member (never on an acyclic table that is merely blocked by
+     * a cyclic parent). Peels the DAG fringe: repeatedly drop any remaining node
+     * with no remaining unmet parent (a source) or no remaining child (a sink)
+     * — restricted to remaining nodes — until only cycle members survive.
+     *
+     * @param  array<string, true>                  $remaining
+     * @param  array<string, array<string, true>>   $parents     child → {parent:true}
+     * @param  array<string, array<string, true>>   $children    parent → {child:true}
+     * @param  array<string, true>                  $emittedSet
+     * @return list<string>  remaining tables that lie on a cycle
+     */
+    private function remainingCycleNodes(array $remaining, array $parents, array $children, array $emittedSet): array
+    {
+        // Work over the remaining-only subgraph.
+        $inDeg  = [];   // # of remaining children pointing at me (I am their parent)
+        $outDeg = [];   // # of remaining unmet parents I point at
+        foreach (array_keys($remaining) as $t) {
+            $out = 0;
+            foreach (array_keys($parents[$t]) as $p) {
+                if (isset($remaining[$p]) && ! isset($emittedSet[$p])) {
+                    $out++;
+                }
+            }
+            $in = 0;
+            foreach (array_keys($children[$t] ?? []) as $c) {
+                if (isset($remaining[$c])) {
+                    $in++;
+                }
+            }
+            $outDeg[$t] = $out;
+            $inDeg[$t]  = $in;
+        }
+
+        $alive = $remaining;   // copy; we peel from this
+        $queue = [];
+        foreach (array_keys($alive) as $t) {
+            if ($outDeg[$t] === 0 || $inDeg[$t] === 0) {
+                $queue[] = $t;
+            }
+        }
+
+        while ($queue !== []) {
+            $t = array_pop($queue);
+            if (! isset($alive[$t])) {
+                continue;
+            }
+            unset($alive[$t]);
+
+            // Removing a source (no unmet parents) relieves its remaining children's
+            // out-degree; removing a sink (no children) relieves its parents' in-degree.
+            foreach (array_keys($children[$t] ?? []) as $c) {
+                if (isset($alive[$c]) && $outDeg[$c] > 0) {
+                    $outDeg[$c]--;
+                    if ($outDeg[$c] === 0 || $inDeg[$c] === 0) {
+                        $queue[] = $c;
+                    }
+                }
+            }
+            foreach (array_keys($parents[$t]) as $p) {
+                if (isset($alive[$p]) && $inDeg[$p] > 0) {
+                    $inDeg[$p]--;
+                    if ($inDeg[$p] === 0 || $outDeg[$p] === 0) {
+                        $queue[] = $p;
+                    }
+                }
+            }
+        }
+
+        return array_keys($alive);
+    }
+
+    /**
+     * True when a table must never appear in the schema-derived export set:
+     * it is on {@see DERIVE_DENYLIST} or its name matches a key-material
+     * pattern in {@see DERIVE_DENY_PATTERNS}.
+     */
+    public function isDeniedFromExport(string $table): bool
+    {
+        if (in_array($table, self::DERIVE_DENYLIST, true)) {
+            return true;
+        }
+        foreach (self::DERIVE_DENY_PATTERNS as $pattern) {
+            if (preg_match($pattern, $table) === 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Strip a schema qualifier and quoting from a `regclass::text` value so
+     * `public.foo` and `"foo"` both normalise to `foo`.
+     */
+    private function bareTableName(string $regclass): string
+    {
+        $name = $regclass;
+        if (($dot = strrpos($name, '.')) !== false) {
+            $name = substr($name, $dot + 1);
+        }
+        return trim($name, '"');
     }
 
     private function currentSchemaVersion(): string

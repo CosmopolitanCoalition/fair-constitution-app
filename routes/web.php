@@ -94,11 +94,28 @@ Route::post('/api/setup/bootstrap/create-founder', [SetupController::class, 'cre
 Route::get('/api/setup/state', [SetupController::class, 'state'])->name('api.setup.state');
 Route::post('/api/setup/cosmic-address', [SetupController::class, 'saveCosmicAddress'])->name('api.setup.cosmic-address');
 Route::post('/api/setup/constants', [SetupController::class, 'saveConstants'])->name('api.setup.constants');
+// Setup v2 — world game mode (production | sandbox) chosen at the defaults step.
+// AUTH-gated: flipping to sandbox unlocks the dev toolbox, so it must never be a
+// guest trigger (the founder is logged in from createFounder onward); the handler
+// additionally requires is_operator + refuses once setup is complete.
+Route::post('/api/setup/game-mode', [SetupController::class, 'saveGameMode'])
+    ->middleware('auth')->name('api.setup.game-mode');
+// Setup v2 — operator profile (instance name + peer-reachable self-URL) writes .env; auth + is_operator gated.
+Route::post('/api/setup/operator/profile', [SetupController::class, 'saveOperatorProfile'])
+    ->middleware('auth')->name('api.setup.operator.profile');
 Route::post('/api/setup/wizard/step1/detect', [SetupController::class, 'detectStep1'])->name('api.setup.step1.detect');
 Route::post('/api/setup/wizard/step1/activate', [SetupController::class, 'activateStep1'])->name('api.setup.step1.activate');
+// Setup v2 — detect which map datasets are staged, and point the ETL at a local folder.
+Route::get('/api/setup/wizard/step2/sources', [SetupController::class, 'mapDataSources'])->name('api.setup.step2.sources');
+// AUTH-gated: writes .env (ARCHIVE_PATH / PROTOMAPS_DIR); handler requires is_operator.
+Route::post('/api/setup/wizard/step2/archive-path', [SetupController::class, 'saveArchivePath'])
+    ->middleware('auth')->name('api.setup.step2.archive-path');
 Route::post('/api/setup/wizard/step2/start', [SetupController::class, 'startMapData'])->name('api.setup.step2.start');
 Route::get('/api/setup/wizard/step2/progress', [SetupController::class, 'mapDataProgress'])->name('api.setup.step2.progress');
 Route::post('/api/setup/wizard/step2/control', [SetupController::class, 'controlMapData'])->name('api.setup.step2.control');
+// Setup v2 — download the pre-baked deployment script package (per OS × solo/join).
+Route::get('/api/setup/deploy-package', [SetupController::class, 'deployPackage'])
+    ->middleware('auth')->name('api.setup.deploy-package');
 Route::get('/api/setup/wizard/step3/summary', [SetupController::class, 'step3Summary'])->name('api.setup.step3.summary');
 Route::post('/api/setup/wizard/step3/complete', [SetupController::class, 'completeStep3'])->name('api.setup.step3.complete');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])->name('api.setup.step4.complete');

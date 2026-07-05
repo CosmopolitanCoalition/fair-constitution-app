@@ -108,15 +108,19 @@ class MapDataImportService
         }
 
         // ── Resolve effective table set ────────────────────────────────────
-        // Intersect (a) the curated export bundle list, (b) what's actually
-        // in this archive's manifest, and (c) the operator's selection if
-        // they passed one. The result is preserved in TABLES order so the
-        // FK-aware truncate-children-first / restore-parents-first replay
-        // still works on the partial set.
+        // Intersect (a) the schema-derived exportable allowlist, (b) what's
+        // actually in this archive's manifest, and (c) the operator's
+        // selection if they passed one. The allowlist is derived (not the
+        // curated 20) so a FULL-suite export bundle round-trips instead of
+        // silently restoring only the curated subset. The result is ordered
+        // by the derived list (parent → child, curated chain pinned front)
+        // so the FK-aware truncate-children-first / restore-parents-first
+        // replay still works on the partial set.
+        $orderBasis = app(MapDataExportService::class)->deriveExportableTables();
         $included = is_array($manifest['included_tables'] ?? null)
             ? $manifest['included_tables']
-            : MapDataExportService::TABLES;
-        $effective = array_values(array_filter(MapDataExportService::TABLES, function ($t) use ($tables, $included) {
+            : $orderBasis;
+        $effective = array_values(array_filter($orderBasis, function ($t) use ($tables, $included) {
             if (! in_array($t, $included, true)) return false;
             if ($tables !== null && ! in_array($t, $tables, true)) return false;
             return true;
@@ -248,12 +252,14 @@ class MapDataImportService
                 Log::info("importSeedFromFile: seed schema ({$manifestSchema}) is newer than local ({$localLatest}) — proceeding.");
             }
 
-            // Effective set = the curated foundation tables actually present in this seed, in
-            // TABLES (parent→child) order. instance_settings can never appear (it is not in TABLES'
-            // exportable-by-seed set here — the donor excludes it).
-            $included = is_array($manifest['included_tables'] ?? null) ? $manifest['included_tables'] : MapDataExportService::TABLES;
+            // Effective set = the foundation tables actually present in this seed, ordered by the
+            // schema-derived exportable list (parent→child, curated chain pinned front — a superset
+            // of TABLES, so foundation subsets order identically). instance_settings can never appear
+            // (donor identity; the donor excludes it) and is defended against here regardless.
+            $orderBasis = app(MapDataExportService::class)->deriveExportableTables();
+            $included = is_array($manifest['included_tables'] ?? null) ? $manifest['included_tables'] : $orderBasis;
             $effective = array_values(array_filter(
-                MapDataExportService::TABLES,
+                $orderBasis,
                 fn ($t) => in_array($t, $included, true) && $t !== 'instance_settings',
             ));
             if ($effective === []) {
@@ -375,8 +381,39 @@ class MapDataImportService
     private function clearFoundationTables(array $tables): void
     {
         DB::statement('SET CONSTRAINTS ALL DEFERRED');
-        foreach (array_reverse($tables) as $t) {
-            DB::statement("DELETE FROM {$t}");
+
+        // Fixpoint deletion. array_reverse(derived order) is child→parent for the
+        // acyclic majority, but the full derived set contains NON-deferrable
+        // RESTRICT edges and genuine FK cycles (bills↔laws, elections→boards,
+        // organizations→laws, referendum_questions→petitions) that no single
+        // linear order can satisfy — so a naive reversed DELETE can hit a parent
+        // while a RESTRICT child still references it and abort the whole restore.
+        // Instead: each pass, try to DELETE every remaining table inside a nested
+        // transaction (a savepoint) so a RESTRICT rejection rolls back only that
+        // one attempt, not the outer restore; carry the rejected tables to the
+        // next pass. Terminates when all are cleared, or raises if a full pass
+        // makes zero progress (a truly unresolvable order / a protected ledger).
+        $remaining = array_values(array_reverse($tables));
+        while (! empty($remaining)) {
+            $stuck = [];
+            $progressed = false;
+            foreach ($remaining as $t) {
+                try {
+                    DB::transaction(function () use ($t) {
+                        DB::statement("DELETE FROM {$t}");
+                    });
+                    $progressed = true;
+                } catch (\Throwable $e) {
+                    $stuck[] = $t;
+                }
+            }
+            if (! $progressed) {
+                throw new \RuntimeException(
+                    'Could not clear foundation tables (unresolvable foreign-key order or protected ledger): '
+                    .implode(', ', $stuck)
+                );
+            }
+            $remaining = $stuck;
         }
     }
 

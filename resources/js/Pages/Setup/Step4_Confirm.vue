@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import ExportBackupPanel from '@/Components/Setup/ExportBackupPanel.vue'
+import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -21,21 +22,14 @@ const finished  = ref(false)
 const error     = ref('')
 const result    = ref(null)
 
-function csrf() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? ''
-}
-
 async function finishSetup() {
     finishing.value = true
     error.value = ''
     try {
-        const res = await fetch('/api/setup/wizard/step4/complete', {
+        const res = await csrfFetch('/api/setup/wizard/step4/complete', {
             method: 'POST',
-            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': csrf(),
             },
             body: JSON.stringify({}),
         })

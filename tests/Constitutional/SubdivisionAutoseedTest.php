@@ -910,13 +910,25 @@ class SubdivisionAutoseedTest extends TestCase
         // guests when it is on — never a guest-reachable seat grant.
         $noCsrf = fn () => $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
+        // Toggle off → 404 regardless of world mode.
         config(['cga.impersonation' => false]);
+        \App\Support\GameMode::override(\App\Support\GameMode::SANDBOX);
         $noCsrf()->post('/dev/board/seat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
         $noCsrf()->post('/dev/board/unseat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
 
+        // Toggle on but a PRODUCTION world → still 404 (the game-mode lock, the
+        // third bolt beyond the WI-4 double-lock).
         config(['cga.impersonation' => true]);
+        \App\Support\GameMode::override(\App\Support\GameMode::PRODUCTION);
+        $noCsrf()->post('/dev/board/seat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
+        $noCsrf()->post('/dev/board/unseat', ['legislature_id' => (string) Str::uuid()])->assertNotFound();
+
+        // Toggle on AND a SANDBOX world → routes reachable, 'auth' bounces guests to /login.
+        \App\Support\GameMode::override(\App\Support\GameMode::SANDBOX);
         $noCsrf()->post('/dev/board/seat', ['legislature_id' => (string) Str::uuid()])->assertRedirect('/login');
         $noCsrf()->post('/dev/board/unseat', ['legislature_id' => (string) Str::uuid()])->assertRedirect('/login');
+
+        \App\Support\GameMode::flush();
     }
 
     public function test_can_draw_reflects_board_provenance(): void

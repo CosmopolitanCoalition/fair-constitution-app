@@ -15,3 +15,29 @@ export function csrfHeaders() {
     }
     return { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' }
 }
+
+// Drop-in fetch() for wizard mutations. Injects fresh CSRF headers per attempt
+// and absorbs the one legitimate 419: a request racing the session rotation.
+// The 419 response itself carries a NEW XSRF cookie, so a single retry with
+// re-read headers succeeds; a second 419 means the session is truly gone, and
+// callers get an honest, human error instead of "token mismatch".
+export async function csrfFetch(url, options = {}) {
+    const attempt = () => fetch(url, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+            'Accept': 'application/json',
+            ...(options.headers || {}),
+            ...csrfHeaders(),
+        },
+    })
+
+    let res = await attempt()
+    if (res.status === 419) {
+        res = await attempt()
+        if (res.status === 419) {
+            throw new Error('Your session refreshed mid-step. Reload the page and try again — nothing was lost.')
+        }
+    }
+    return res
+}

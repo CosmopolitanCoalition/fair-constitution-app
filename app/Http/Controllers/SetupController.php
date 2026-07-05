@@ -603,6 +603,13 @@ class SetupController extends Controller
         // gates this. has_founder is reported separately for diagnostics.
         $ready = $schemaState === 'up_to_date';
 
+        // Operator-profile pre-fill (so the "Name this node" card isn't blank on
+        // revisit). Only meaningful once the schema exists.
+        $instanceName = null;
+        if (Schema::hasTable('instance_settings')) {
+            $instanceName = optional(InstanceSettings::query()->first())->instance_name;
+        }
+
         return [
             'schema_state'       => $schemaState,
             'pending_migrations' => $pending,
@@ -614,6 +621,12 @@ class SetupController extends Controller
             'has_founder'        => $hasFounder,
             'etl_running'        => $etlRunning,
             'ready'              => $ready,
+            // Operator onboarding pre-fill.
+            'instance_name'      => $instanceName === 'Unnamed Instance' ? null : $instanceName,
+            'self_url'           => config('cga.federation_self_url'),
+            'game_mode'          => (Schema::hasTable('instance_settings') && Schema::hasColumn('instance_settings', 'game_mode'))
+                ? optional(InstanceSettings::query()->first())->game_mode
+                : null,
         ];
     }
 
@@ -766,6 +779,18 @@ class SetupController extends Controller
             'worker_rep_parity_employees'       => ['required', 'integer', 'min:1'],
             'residency_confirmation_days'       => ['required', 'integer', 'min:1'],
             'initiative_petition_threshold_pct' => ['required', 'numeric', 'min:0.01', 'max:100'],
+            // Economy defaults (v3 mockup — Constitution & Economy). The
+            // currency's existence is root-reserved (Art. V §5); these founding
+            // defaults are amendable, so they live in constitutional_settings.
+            'currency_name'                     => ['required', 'string', 'max:64'],
+            'currency_code'                     => ['required', 'string', 'max:8'],
+            'currency_symbol'                   => ['required', 'string', 'max:8'],
+            'civic_stipend_floor'               => ['required', 'integer', 'min:0'],
+            'stipend_bump_cap'                  => ['required', 'integer', 'min:0'],
+            'pay_node_operator'                 => ['required', 'integer', 'min:0'],
+            'pay_social_moderator'              => ['required', 'integer', 'min:0'],
+            'pay_office_holder'                 => ['required', 'integer', 'min:0'],
+            'stipend_interval'                  => ['required', Rule::in(['monthly', 'quarterly', 'per_cycle'])],
         ]);
 
         // Logical invariants that aren't amendable by any legislative act.
@@ -840,6 +865,16 @@ class SetupController extends Controller
             'worker_rep_parity_employees'       => 2000,
             'residency_confirmation_days'       => 30,
             'initiative_petition_threshold_pct' => 5.00,
+            // Economy defaults (v3 mockup).
+            'currency_name'                     => 'Civic Value Unit',
+            'currency_code'                     => 'CVU',
+            'currency_symbol'                   => 'ç',
+            'civic_stipend_floor'               => 50,
+            'stipend_bump_cap'                  => 20,
+            'pay_node_operator'                 => 8,
+            'pay_social_moderator'              => 5,
+            'pay_office_holder'                 => 12,
+            'stipend_interval'                  => 'monthly',
         ];
 
         $root = $this->resolveRootJurisdiction();
@@ -857,7 +892,11 @@ class SetupController extends Controller
                             'judiciary_is_elected'              => (bool) $row->$k,
                             'initiative_petition_threshold_pct' => (float) $row->$k,
                             'legislature_sizing_law',
-                            'voting_method'                     => (string) $row->$k,
+                            'voting_method',
+                            'currency_name',
+                            'currency_code',
+                            'currency_symbol',
+                            'stipend_interval'                  => (string) $row->$k,
                             default                             => (int) $row->$k,
                         };
                     }
@@ -953,6 +992,9 @@ class SetupController extends Controller
             //   'upload'   — placeholder for browser-upload (not wired yet).
             'source'              => ['required', Rule::in(['archive', 'folder', 'download', 'upload'])],
             'data_root'           => ['nullable', 'string', 'max:512'],
+            // For source=download: which official datasets to fetch first.
+            'download_datasets'   => ['nullable', 'array'],
+            'download_datasets.*' => [Rule::in(['geoboundaries', 'worldpop'])],
             'skip_population'     => ['nullable', 'boolean'],
             'fresh'               => ['nullable', 'boolean'],
             // Both names accepted: pause_on_exception is the new wizard label,
@@ -972,18 +1014,28 @@ class SetupController extends Controller
         $pauseOnException = (bool) (($data['pause_on_exception'] ?? false)
             || ($data['stop_on_exception'] ?? false));
 
-        // P.8 — only `archive` and `folder` are wired today. URL download and
-        // browser upload remain placeholders the picker exposes for forward
-        // compatibility but the backend rejects until pre-fetch / upload
-        // handlers ship.
+        // `download` fetches the official open datasets into the etl volume
+        // first, then ingests (the supervisor runs download_datasets.py, then
+        // seed_database.py against the freshly-downloaded /data). At least one
+        // dataset must be selected. `upload` (browser multipart) is still a
+        // forward-compat placeholder.
+        $downloadDatasets = [];
         if ($data['source'] === 'download') {
-            return response()->json([
-                'error' => 'Fresh download is not yet wired. Use the local archive or a custom folder for now.',
-            ], 422);
+            $downloadDatasets = array_values(array_unique($data['download_datasets'] ?? []));
+            if (empty($downloadDatasets)) {
+                return response()->json([
+                    'error' => 'Choose at least one dataset to download (jurisdiction boundaries and/or population).',
+                ], 422);
+            }
+            // WorldPop population requires the boundaries to attribute to — if
+            // population is requested, boundaries must come along.
+            if (in_array('worldpop', $downloadDatasets, true) && ! in_array('geoboundaries', $downloadDatasets, true)) {
+                $downloadDatasets[] = 'geoboundaries';
+            }
         }
         if ($data['source'] === 'upload') {
             return response()->json([
-                'error' => 'Browser upload is not yet wired. Use the local archive or a custom folder for now.',
+                'error' => 'Browser upload is not yet wired. Use the local archive, a custom folder, or a fresh download for now.',
             ], 422);
         }
 
@@ -1035,6 +1087,9 @@ class SetupController extends Controller
                 // seed_database.py. Null when source=archive (the default
                 // /archive bind mount stays in effect).
                 'data_root'          => $dataRoot,
+                // source=download: the supervisor runs download_datasets.py for
+                // these before seeding. Empty for archive/folder.
+                'download_datasets'  => $downloadDatasets,
             ],
         ];
 
@@ -2187,6 +2242,286 @@ class SetupController extends Controller
      * Shared serializer — embeds the cosmic-address chain so the frontend can
      * render "Multiverse ▸ Observable Universe ▸ ... ▸ Earth" without extra fetches.
      */
+    // ─── Setup v2 — game mode, map-data source detection, operator profile ────
+
+    /**
+     * POST /api/setup/game-mode — record the WORLD game mode (production | sandbox).
+     *
+     * Sandbox unlocks the dev toolbox (assume-any-role, manufacture
+     * qualifications) as a WORLD property — the principled replacement for
+     * ambient dev flags. Re-settable during setup (the operator can flip it
+     * before finishing); locked once setup completes is enforced by the wizard
+     * gating, not here. flush() clears the per-request GameMode cache so the
+     * dev-tool gate reflects the choice on the very next request.
+     */
+    public function saveGameMode(Request $request): JsonResponse
+    {
+        // Operator-only (the route is auth-gated; require the operator flag so a
+        // self-registered citizen can't flip the world's mode).
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $settings = InstanceSettings::current();
+        // Founding property: LOCK once setup completes. A live production world
+        // must never be flippable to sandbox afterwards — that would re-open the
+        // dev toolbox (impersonation, board-seat) on a hardened world.
+        if ($settings->isSetupComplete()) {
+            return response()->json(['error' => 'Game mode is set at founding and locked once setup is complete.'], 409);
+        }
+
+        $data = $request->validate([
+            'game_mode' => ['required', Rule::in([\App\Support\GameMode::PRODUCTION, \App\Support\GameMode::SANDBOX])],
+        ]);
+
+        $settings->game_mode = $data['game_mode'];
+        $settings->save();
+        \App\Support\GameMode::flush();
+
+        return response()->json([
+            'settings' => $this->serializeSettings($settings->fresh()),
+        ]);
+    }
+
+    /**
+     * GET /api/setup/wizard/step2/sources — report which map datasets are
+     * actually staged where the ETL will read them.
+     *
+     * The app container now bind-mounts the same read-only /archive the etl
+     * container sees (docker-compose), so we can stat it directly and tell the
+     * operator the truth instead of a hardcoded "reads from D:\…" label that
+     * was often wrong. A correctly-staged archive that the ETL simply wasn't
+     * pointed at now shows as present/absent honestly.
+     */
+    public function mapDataSources(): JsonResponse
+    {
+        $countIso3Dirs = static function (string $path): int {
+            if (! is_dir($path)) {
+                return 0;
+            }
+            $n = 0;
+            foreach (scandir($path) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                if (preg_match('/^[A-Za-z]{3}$/', $entry) && is_dir($path.'/'.$entry)) {
+                    $n++;
+                }
+            }
+            return $n;
+        };
+
+        // Canonical container layout (matches D:\fair-constitution-map-files):
+        //   /archive/geoBoundaries_repo/releaseData/gbOpen/<ISO3>/
+        //   /archive/worldpop_100m_latest/<ISO3>/
+        $gbDir = '/archive/geoBoundaries_repo/releaseData/gbOpen';
+        $wpDir = '/archive/worldpop_100m_latest';
+        $pmDir = '/var/www/html/public/maps/protomaps';
+
+        $gbCount = $countIso3Dirs($gbDir);
+        $wpCount = $countIso3Dirs($wpDir);
+        $pmFiles = is_dir($pmDir) ? array_map('basename', glob($pmDir.'/*.pmtiles') ?: []) : [];
+
+        return response()->json([
+            // The container-visible mount points (constant); the HOST folder is
+            // set via ARCHIVE_PATH / PROTOMAPS_DIR in .env and can't be read from
+            // inside the container — the UI explains the mapping.
+            'archive_mount'   => '/archive',
+            'protomaps_mount' => $pmDir,
+            'archive_present' => is_dir('/archive'),
+            'datasets' => [
+                'geoboundaries' => [
+                    'present'   => $gbCount > 0,
+                    'countries' => $gbCount,
+                    'path'      => $gbDir,
+                    'label'     => 'Jurisdiction boundaries (geoBoundaries)',
+                ],
+                'worldpop' => [
+                    'present'   => $wpCount > 0,
+                    'countries' => $wpCount,
+                    'path'      => $wpDir,
+                    'label'     => 'Population (WorldPop)',
+                ],
+                'protomaps' => [
+                    'present' => count($pmFiles) > 0,
+                    'files'   => $pmFiles,
+                    'path'    => $pmDir,
+                    'label'   => 'Basemap tiles (Protomaps)',
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step2/archive-path — point the ETL at the
+     * operator's local map folder by writing ARCHIVE_PATH / PROTOMAPS_DIR into
+     * .env. Applying it needs a `docker compose up -d` to remount /archive, so
+     * we report restart_required rather than pretending it took effect live.
+     */
+    public function saveArchivePath(Request $request): JsonResponse
+    {
+        // Operator-only: this writes .env (route is auth-gated). The value is
+        // additionally CR/LF/quote-rejected in writeEnvValues to stop .env
+        // injection through a crafted path.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $data = $request->validate([
+            'archive_path'   => ['nullable', 'string', 'max:512'],
+            'protomaps_path' => ['nullable', 'string', 'max:512'],
+        ]);
+
+        $kv = [];
+        if (! empty($data['archive_path'])) {
+            $kv['ARCHIVE_PATH'] = $this->normalizePath($data['archive_path']);
+        }
+        if (! empty($data['protomaps_path'])) {
+            $kv['PROTOMAPS_DIR'] = $this->normalizePath($data['protomaps_path']);
+        }
+        if (empty($kv)) {
+            return response()->json(['error' => 'Provide at least one folder path.'], 422);
+        }
+
+        try {
+            $this->writeEnvValues($kv);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Could not write .env: '.$e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'saved'            => $kv,
+            'restart_required' => true,
+            'message'          => 'Saved. Apply it by re-running the start command (docker compose up -d) so the containers remount your map folder, then reload this page.',
+        ]);
+    }
+
+    /**
+     * POST /api/setup/operator/profile — name this node and set the address
+     * peers reach it at (operator onboarding, folded into bootstrap). The
+     * operator account itself is created with the founder; this fills in the
+     * instance identity the mesh needs. FEDERATION_SELF_URL lands in .env
+     * (peers read it at handshake); a change needs a container restart to take
+     * effect, so restart_required is reported when the self-URL changed.
+     */
+    public function saveOperatorProfile(Request $request): JsonResponse
+    {
+        // Operator-only: writes instance_name + FEDERATION_SELF_URL into .env
+        // (route is auth-gated). self_url is url-validated and the .env write
+        // rejects any CR/LF/quote.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $data = $request->validate([
+            'instance_name' => ['nullable', 'string', 'max:120'],
+            'self_url'      => ['nullable', 'url', 'max:255'],
+        ]);
+
+        $settings = InstanceSettings::current();
+        if (! empty($data['instance_name'])) {
+            $settings->instance_name = trim($data['instance_name']);
+            $settings->save();
+        }
+
+        $restart = false;
+        if (! empty($data['self_url'])) {
+            $current = (string) config('cga.federation_self_url');
+            if ($current !== $data['self_url']) {
+                try {
+                    $this->writeEnvValues(['FEDERATION_SELF_URL' => $data['self_url']]);
+                    $restart = true;
+                } catch (\Throwable $e) {
+                    return response()->json(['error' => 'Could not write .env: '.$e->getMessage()], 500);
+                }
+            }
+        }
+
+        return response()->json([
+            'settings'         => $this->serializeSettings($settings->fresh()),
+            'restart_required' => $restart,
+        ]);
+    }
+
+    /**
+     * GET /api/setup/deploy-package?os=windows|unix&kind=solo|join — download a
+     * pre-baked start script so the founding operator can hand a colleague a
+     * one-file quick deploy that lands where they need to be.
+     *
+     *   kind=solo — founds a fresh world, .env pre-seeded with this box's ports
+     *               + game mode (a colleague founds their own world of the same
+     *               shape).
+     *   kind=join — mirrors THIS world: pre-baked with this box's self-URL as
+     *               the host and a freshly-minted join key, so a fresh run
+     *               joins the mesh and the whole game replicates in.
+     *
+     * The heavy lifting (template render + join-key mint) lives in
+     * DeployPackageService so this controller stays the HTTP seam.
+     */
+    public function deployPackage(Request $request, \App\Services\Setup\DeployPackageService $packages): Response|JsonResponse
+    {
+        $data = $request->validate([
+            'os'   => ['required', Rule::in(['windows', 'unix'])],
+            'kind' => ['required', Rule::in(['solo', 'join'])],
+        ]);
+
+        try {
+            $script = $packages->render($data['os'], $data['kind']);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        return response($script['body'], 200, [
+            'Content-Type'        => 'text/plain; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$script['filename'].'"',
+        ]);
+    }
+
+    /** Normalize a host path for .env: Windows backslashes → forward slashes (docker-compose accepts them cross-platform). */
+    private function normalizePath(string $path): string
+    {
+        return str_replace('\\', '/', trim($path));
+    }
+
+    /**
+     * Upsert KEY=value pairs into the repo-root .env, preserving all other
+     * lines. Values with whitespace are double-quoted. Creates .env from
+     * .env.example if it is somehow missing. The whole repo is bind-mounted
+     * into the container, so .env is writable here.
+     */
+    private function writeEnvValues(array $kv): void
+    {
+        $envPath = base_path('.env');
+        if (! is_file($envPath) && is_file(base_path('.env.example'))) {
+            @copy(base_path('.env.example'), $envPath);
+        }
+        $contents = is_file($envPath) ? (string) file_get_contents($envPath) : '';
+        $lines    = preg_split('/\r\n|\r|\n/', $contents) ?: [];
+
+        foreach ($kv as $key => $value) {
+            // .env-injection guard: a value is written on ONE physical line, so a
+            // CR/LF would let a caller-supplied path/URL forge additional .env
+            // lines (e.g. DB_HOST=attacker) that Laravel reads on the next boot.
+            // A double-quote would break out of the wrapper the same way. A real
+            // filesystem path or URL never contains any of these — reject hard.
+            if (preg_match('/[\r\n"]/', $value)) {
+                throw new \RuntimeException('value for '.$key.' contains an illegal character (newline or quote)');
+            }
+            $render = (preg_match('/\s/', $value) ? '"'.$value.'"' : $value);
+            $line   = $key.'='.$render;
+            $found  = false;
+            foreach ($lines as $i => $existing) {
+                if (preg_match('/^\s*'.preg_quote($key, '/').'\s*=/', $existing)) {
+                    $lines[$i] = $line;
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $lines[] = $line;
+            }
+        }
+
+        $out = rtrim(implode("\n", $lines), "\n")."\n";
+        if (@file_put_contents($envPath, $out) === false) {
+            throw new \RuntimeException('write failed (permission?)');
+        }
+    }
+
     private function serializeSettings(InstanceSettings $settings): array
     {
         $addressPath = [];
@@ -2210,8 +2545,10 @@ class SetupController extends Controller
             'apportionment_completed_at'    => optional($settings->apportionment_completed_at)->toIso8601String(),
             'setup_districts_confirmed_at'  => optional($settings->setup_districts_confirmed_at)->toIso8601String(),
             'setup_mode'                    => $settings->setup_mode,
+            'game_mode'                     => $settings->game_mode, // production | sandbox | null (not yet chosen)
             'is_mirror'                     => $settings->isMirror(),
             'server_id'                     => $settings->server_id, // public mesh id (never the private key — that is $hidden)
+            'self_url'                      => config('cga.federation_self_url'),
         ];
     }
 

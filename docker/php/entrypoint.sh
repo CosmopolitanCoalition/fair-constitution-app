@@ -168,17 +168,19 @@ mkdir -p /var/www/html/scripts/etl/control 2>/dev/null || true
 chgrp -R www-data /var/www/html/scripts/etl/control 2>/dev/null || true
 chmod -R 0775     /var/www/html/scripts/etl/control 2>/dev/null || true
 
-# .env must also be readable by the FPM user. On a host with a restrictive
-# umask (e.g. 077) deploy.sh's `cp .env.example .env` yields mode 600 owned by
-# the host uid, so www-data can't read it → MissingAppKeyException + a silent
-# fallback to the sqlite default → 500 on every web route. (Latent until the
-# worker restart forces FPM to re-read .env on a fresh deploy.) Group-read it
-# for www-data while keeping the host uid as owner+writer, so deploy.sh's
-# idempotent set_env can still edit it; never world-readable — it holds the
-# APP_KEY + DB credentials.
+# .env must be readable AND writable by the FPM user. On a host with a
+# restrictive umask (e.g. 077) deploy.sh's `cp .env.example .env` yields mode
+# 600 owned by the host uid, so www-data can't read it → MissingAppKeyException
+# + a silent fallback to the sqlite default → 500 on every web route. (Latent
+# until the worker restart forces FPM to re-read .env on a fresh deploy.)
+# GROUP-WRITE (660) it for www-data — the setup wizard SELF-CONFIGURES .env
+# (operator self-URL, ARCHIVE_PATH / PROTOMAPS_DIR for the map folder) from the
+# UI, and the php-fpm pool runs as www-data, so a read-only .env made those
+# saves fail with "Could not write .env: permission". Never world-readable — it
+# holds the APP_KEY + DB credentials.
 if [ -f /var/www/html/.env ]; then
     chgrp www-data /var/www/html/.env 2>/dev/null || true
-    chmod 640      /var/www/html/.env 2>/dev/null || true
+    chmod 660      /var/www/html/.env 2>/dev/null || true
 fi
 
 # Hand off to the upstream php image's entrypoint, which exec's CMD.

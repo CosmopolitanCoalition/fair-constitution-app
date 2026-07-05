@@ -143,8 +143,10 @@ function onScroll() {
 }
 
 /* ---------------------------------------------------------------- dev bar */
+// DevBar shows only when the WORLD is in sandbox game mode (or impersonation is
+// already active / an explicit devBar prop) — not keyed on import.meta.env.DEV.
 const devBarOn = computed(
-    () => page.props.devBar === true || impersonation.value?.active === true || import.meta.env.DEV,
+    () => page.props.devBar === true || impersonation.value?.active === true || instance.value.sandbox === true,
 );
 const impersonatingUser = computed(() =>
     impersonation.value?.active ? (user.value ? { name: user.value.display_name || user.value.name } : null) : null,

@@ -257,14 +257,23 @@ class HandleInertiaRequests extends Middleware
             return [
                 'name' => config('app.name'),
                 'setupComplete' => false,
+                'sandbox' => false,
+                'gameMode' => null,
             ];
         }
 
         $settings = InstanceSettings::query()->first();
+        $gameMode = Schema::hasColumn('instance_settings', 'game_mode') ? $settings?->game_mode : null;
 
         return [
             'name' => $settings?->instance_name ?: config('app.name'),
             'setupComplete' => $settings?->isSetupComplete() ?? false,
+            // The WORLD game mode drives dev-tool visibility everywhere (nav dev
+            // group + DevBar) — a runtime property, NOT the build-time
+            // import.meta.env.DEV flag that used to leak dev tooling into every
+            // `docker compose up` before a mode was chosen.
+            'sandbox' => $gameMode === \App\Support\GameMode::SANDBOX,
+            'gameMode' => $gameMode,
         ];
     }
 }

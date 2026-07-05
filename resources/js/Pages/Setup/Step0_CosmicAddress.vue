@@ -5,6 +5,7 @@ import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import CosmicAddressPicker from '@/Components/CosmicAddressPicker.vue'
 import ImportBackupPanel from '@/Components/Setup/ImportBackupPanel.vue'
+import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -57,13 +58,10 @@ async function onSubmit() {
     submitting.value = true
     submitError.value = null
     try {
-        const res = await fetch('/api/setup/cosmic-address', {
+        const res = await csrfFetch('/api/setup/cosmic-address', {
             method: 'POST',
-            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
             },
             body: JSON.stringify({
                 instance_name: instanceName.value.trim(),

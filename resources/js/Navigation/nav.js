@@ -141,20 +141,19 @@ export const NAV = [
         { id: 'term-sync', labelKey: 'nav.termSync', icon: 'refresh-cw', href: '/system/term-sync', phase: 'C' },
         { id: 'amendments', labelKey: 'nav.amendments', icon: 'file-text', href: '/system/amendments', phase: 'E' },
     ] },
-    /* Dev tooling — client-gated on import.meta.env.DEV, the same signal the
-       DevBar uses (AppShell devBarOn). The /dev/* routes are additionally
-       registered ONLY in the local environment + DevToolsEnabled-gated
-       (routes/web.php WI-4 group), so a production build that somehow shipped
-       with DEV true would still 404. The dev residency bypass is a button on
-       /civic/residency (not a page), so the kit is the only item here. */
-    ...(import.meta.env.DEV
-        ? [{ key: 'dev', titleKey: 'nav.dev', visibility: 'all', items: [
-            { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
-            { id: 'dev-legislature-kit', labelKey: 'nav.legislatureKit', icon: 'sliders', href: '/dev/legislature-kit', phase: 'A' },
-            { id: 'dev-executive-kit', labelKey: 'nav.executiveOrgKit', icon: 'sliders', href: '/dev/executive-kit', phase: 'A' },
-            { id: 'dev-judiciary-kit', labelKey: 'nav.judiciaryKit', icon: 'sliders', href: '/dev/judiciary-kit', phase: 'A' },
-        ] }]
-        : []),
+    /* Dev tooling — gated on the WORLD being in SANDBOX game mode (the runtime
+       shared prop instance.sandbox), which AppSidebar honors via
+       section.requiresSandbox, and which the DevBar uses too. This REPLACES the
+       old build-time import.meta.env.DEV gate that leaked dev tooling into every
+       `docker compose up` before the operator had chosen a mode. The /dev/*
+       routes are backend-gated on sandbox as well (DevToolsEnabled, WI-4), so a
+       production world never reaches them even on a dev build. */
+    { key: 'dev', titleKey: 'nav.dev', visibility: 'all', requiresSandbox: true, items: [
+        { id: 'dev-electoral-kit', labelKey: 'nav.electoralKit', icon: 'sliders', href: '/dev/electoral-kit', phase: 'A' },
+        { id: 'dev-legislature-kit', labelKey: 'nav.legislatureKit', icon: 'sliders', href: '/dev/legislature-kit', phase: 'A' },
+        { id: 'dev-executive-kit', labelKey: 'nav.executiveOrgKit', icon: 'sliders', href: '/dev/executive-kit', phase: 'A' },
+        { id: 'dev-judiciary-kit', labelKey: 'nav.judiciaryKit', icon: 'sliders', href: '/dev/judiciary-kit', phase: 'A' },
+    ] },
 ];
 
 export default NAV;

@@ -5,6 +5,7 @@ import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import LiveProgress from '@/Components/Setup/LiveProgress.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
+import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -54,7 +55,7 @@ const counts              = ref({ adm0: 0, adm1: 0, adm2: 0, total: 0, by_level:
 const pendingControl      = ref({ halt: false, pause: false, resume: false })
 
 const source              = ref('archive')  // archive | folder | download | upload
-const customDataRoot       = ref('')         // P.8 — operator-supplied path when source='folder'
+const customDataRoot       = ref('')         // P.8 — operator-supplied container path when source='folder'
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
 // Renamed from optStopOnException — the new pause-and-ask behaviour replaces
@@ -64,16 +65,32 @@ const optCountries        = ref('')         // comma-separated ISO3, empty = all
 const includeDebug        = ref(false)
 const advancing           = ref(false)
 const apportioning        = ref(false)
+const advanceError        = ref('')
 const submitting          = ref(false)
 const submitError         = ref('')
+
+// ─── Detected sources (GET step2/sources) ───────────────────────────────────
+// The REAL container-path inventory, so the operator sees what the ETL will
+// actually read — not a hardcoded host-path label that lies when the mount
+// differs.
+const sourcesLoading   = ref(true)
+const sourcesError     = ref('')
+const sources          = ref(null)   // full response from step2/sources
+
+// ─── Local-folder override (POST step2/archive-path) ─────────────────────────
+const archivePathInput   = ref('')   // host folder, e.g. D:\fair-constitution-map-files
+const protomapsPathInput = ref('')   // optional host folder for basemap tiles
+const savingArchivePath  = ref(false)
+const archivePathError   = ref('')
+const archivePathMessage = ref('')   // success message from the backend
+
+// ─── Download picker (source='download') ─────────────────────────────────────
+const downloadGeoboundaries = ref(true)
+const downloadWorldpop      = ref(false)
 
 let pollTimer = null
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
-function csrf() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? ''
-}
 
 function clearLogBuffer() {
     logBuffer.value = []
@@ -105,6 +122,34 @@ const displayLines = computed(() => {
     if (includeDebug.value) return logBuffer.value
     return logBuffer.value.filter(l => !/\[DEBUG\s*\]/.test(l))
 })
+
+// Parse the comma/space-separated ISO3 box into a clean, validated list.
+const parsedCountries = computed(() =>
+    optCountries.value
+        .split(/[\s,]+/)
+        .map(s => s.trim().toUpperCase())
+        .filter(s => /^[A-Z]{3}$/.test(s))
+)
+
+async function fetchSources() {
+    sourcesLoading.value = true
+    sourcesError.value = ''
+    try {
+        const res = await fetch('/api/setup/wizard/step2/sources', {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+        })
+        if (!res.ok) {
+            sourcesError.value = `Could not read your map data (HTTP ${res.status}).`
+            return
+        }
+        sources.value = await res.json()
+    } catch (e) {
+        sourcesError.value = 'Could not read your map data. ' + String(e)
+    } finally {
+        sourcesLoading.value = false
+    }
+}
 
 async function fetchProgress() {
     try {
@@ -152,6 +197,9 @@ async function fetchProgress() {
         // steady state — re-polling adds no value.
         if (lifecycle.value === 'done' || lifecycle.value === 'failed') {
             stopPolling()
+            // A finished run may have changed what's on disk (a download run
+            // populated /archive). Refresh the detected-data panel once.
+            fetchSources()
         }
     } catch (e) {
         // swallow — poll will retry
@@ -175,32 +223,83 @@ function stopPolling() {
     pollTimer = null
 }
 
+// Save the local host folder(s) into .env via the backend. Needs a
+// container restart (docker compose up -d) to take effect, which the
+// backend tells us via the returned message.
+async function saveArchivePath() {
+    archivePathError.value = ''
+    archivePathMessage.value = ''
+    const archive = archivePathInput.value.trim()
+    const protomaps = protomapsPathInput.value.trim()
+    if (archive === '' && protomaps === '') {
+        archivePathError.value = 'Enter at least one folder path.'
+        return
+    }
+    savingArchivePath.value = true
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step2/archive-path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                archive_path:   archive || null,
+                protomaps_path: protomaps || null,
+            }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            archivePathError.value = data.error || `Could not save the folder (HTTP ${res.status}).`
+            return
+        }
+        archivePathMessage.value = data.message
+            || 'Saved. Re-run docker compose up -d, then reload this page.'
+    } catch (e) {
+        archivePathError.value = e.message || String(e)
+    } finally {
+        savingArchivePath.value = false
+    }
+}
+
 async function submitRun() {
     submitError.value = ''
+
+    // Guard the two source-specific requirements client-side so the operator
+    // gets an immediate, plain message rather than a round-trip 422.
+    if (source.value === 'download') {
+        if (!downloadGeoboundaries.value && !downloadWorldpop.value) {
+            submitError.value = 'Choose at least one dataset to download (boundaries and/or population).'
+            return
+        }
+        if (parsedCountries.value.length === 0) {
+            submitError.value = 'A download needs a country scope. Enter one or more ISO3 codes below (e.g. NZL,USA).'
+            return
+        }
+    }
+    if (source.value === 'folder' && customDataRoot.value.trim() === '') {
+        submitError.value = 'Enter the container path to ingest (e.g. /archive/snapshots/2026-05).'
+        return
+    }
+
     submitting.value = true
     try {
-        const parsedCountries = optCountries.value
-            .split(/[\s,]+/)
-            .map(s => s.trim().toUpperCase())
-            .filter(s => /^[A-Z]{3}$/.test(s))
+        const downloadDatasets = []
+        if (source.value === 'download') {
+            if (downloadGeoboundaries.value) downloadDatasets.push('geoboundaries')
+            if (downloadWorldpop.value)      downloadDatasets.push('worldpop')
+        }
 
         const body = {
             source:              source.value,
             data_root:           source.value === 'folder' ? customDataRoot.value.trim() : null,
+            download_datasets:   downloadDatasets,
             fresh:               optFresh.value,
             skip_population:     optSkipPopulation.value,
             pause_on_exception:  optPauseOnException.value,
-            countries:           parsedCountries,
+            countries:           parsedCountries.value,
         }
 
-        const res = await fetch('/api/setup/wizard/step2/start', {
+        const res = await csrfFetch('/api/setup/wizard/step2/start', {
             method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': csrf(),
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         })
         const data = await res.json().catch(() => ({}))
@@ -213,7 +312,7 @@ async function submitRun() {
         // the interval if the previous lifecycle was terminal.
         await startPolling()
     } catch (e) {
-        submitError.value = String(e)
+        submitError.value = e.message || String(e)
     } finally {
         submitting.value = false
     }
@@ -221,14 +320,9 @@ async function submitRun() {
 
 async function sendControl(action) {
     try {
-        const res = await fetch('/api/setup/wizard/step2/control', {
+        const res = await csrfFetch('/api/setup/wizard/step2/control', {
             method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': csrf(),
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action }),
         })
         if (!res.ok) {
@@ -238,7 +332,7 @@ async function sendControl(action) {
         // Refresh so pendingControl/paused flip quickly.
         await fetchProgress()
     } catch (e) {
-        submitError.value = String(e)
+        submitError.value = e.message || String(e)
     }
 }
 
@@ -257,20 +351,21 @@ async function advance() {
     advancing.value = true
     apportioning.value = true
     try {
-        const res = await fetch('/api/setup/wizard/step1/activate', {
+        const res = await csrfFetch('/api/setup/wizard/step1/activate', {
             method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': csrf(),
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({}),
         })
         const data = await res.json().catch(() => ({}))
-        if (res.ok) router.visit(data.next || '/setup/step/3')
+        if (res.ok) {
+            router.visit(data.next || '/setup/step/3')
+        } else {
+            // Surface the real failure (apportionment 422/500, or csrfFetch's
+            // honest 419 message) instead of a silent dead button.
+            advanceError.value = data.error || data.message || `Could not continue (HTTP ${res.status}).`
+        }
     } catch (e) {
-        // no-op
+        advanceError.value = e.message || 'Network error while continuing to districting.'
     } finally {
         advancing.value = false
         apportioning.value = false
@@ -283,9 +378,20 @@ const canAdvance = computed(() => counts.value.adm0 > 0 && counts.value.adm1 > 0
 const isRunning  = computed(() => lifecycle.value === 'running')
 const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 
+// Label for the primary "Start" button — download runs read differently.
+const startButtonLabel = computed(() => {
+    if (submitting.value) return 'Submitting…'
+    if (isRunning.value)  return 'Run in progress…'
+    if (source.value === 'download') return 'Download + Ingest'
+    return 'Start ETL Run'
+})
+
 // ─── Lifecycle ──────────────────────────────────────────────────────────────
 
-onMounted(startPolling)
+onMounted(() => {
+    fetchSources()
+    startPolling()
+})
 onBeforeUnmount(stopPolling)
 </script>
 
@@ -298,11 +404,172 @@ onBeforeUnmount(stopPolling)
                     Load Boundaries + Population Data
                 </h1>
                 <p class="text-gray-400 text-sm">
-                    Pick a data source and run the ETL pipeline. Progress streams live from the
+                    Point at your map data, then run the ETL pipeline. Progress streams live from the
                     ETL container. Once the run completes, review any flagged discrepancies before
                     continuing to districting.
                 </p>
             </header>
+
+            <!-- Your map data (detected inventory at the REAL container path) -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h2 class="text-white font-semibold">Your map data</h2>
+                    <button
+                        type="button"
+                        @click="fetchSources"
+                        :disabled="sourcesLoading"
+                        class="text-xs text-gray-400 hover:text-gray-200 disabled:opacity-50"
+                    >
+                        {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                    </button>
+                </div>
+                <p class="text-gray-500 text-xs mb-4">
+                    The ETL reads from the container path
+                    <code class="text-emerald-300">{{ sources?.archive_mount || '/archive' }}</code>,
+                    which your <code>.env</code> maps from a folder on your computer
+                    (<code class="text-sky-300">ARCHIVE_PATH</code>). If nothing is detected below,
+                    the mount is empty or pointed at the wrong folder — set your local folder
+                    or download the data further down.
+                </p>
+
+                <div v-if="sourcesError" class="mb-3 text-sm text-red-400">{{ sourcesError }}</div>
+
+                <div v-if="sourcesLoading && !sources" class="text-gray-500 text-sm italic">
+                    Reading the archive mount…
+                </div>
+
+                <template v-else-if="sources">
+                    <div
+                        v-if="!sources.archive_present"
+                        class="mb-4 rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-amber-200 text-xs"
+                    >
+                        The archive mount <code>{{ sources.archive_mount }}</code> is not present in
+                        the ETL container. Set your local folder below (then restart), or download the
+                        data from the official sources.
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- geoBoundaries -->
+                        <div class="rounded-md border border-gray-800 bg-gray-950/60 p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="inline-block w-2 h-2 rounded-full"
+                                    :class="sources.datasets.geoboundaries.present ? 'bg-emerald-400' : 'bg-gray-600'"
+                                ></span>
+                                <span class="text-white text-sm font-semibold">
+                                    {{ sources.datasets.geoboundaries.label }}
+                                </span>
+                            </div>
+                            <div class="text-xs" :class="sources.datasets.geoboundaries.present ? 'text-emerald-300' : 'text-gray-500'">
+                                <template v-if="sources.datasets.geoboundaries.present">
+                                    {{ sources.datasets.geoboundaries.countries }} countries detected
+                                </template>
+                                <template v-else>Not detected</template>
+                            </div>
+                            <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
+                                {{ sources.datasets.geoboundaries.path }}
+                            </div>
+                        </div>
+
+                        <!-- WorldPop -->
+                        <div class="rounded-md border border-gray-800 bg-gray-950/60 p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="inline-block w-2 h-2 rounded-full"
+                                    :class="sources.datasets.worldpop.present ? 'bg-emerald-400' : 'bg-gray-600'"
+                                ></span>
+                                <span class="text-white text-sm font-semibold">
+                                    {{ sources.datasets.worldpop.label }}
+                                </span>
+                            </div>
+                            <div class="text-xs" :class="sources.datasets.worldpop.present ? 'text-emerald-300' : 'text-gray-500'">
+                                <template v-if="sources.datasets.worldpop.present">
+                                    {{ sources.datasets.worldpop.countries }} countries detected
+                                </template>
+                                <template v-else>Not detected</template>
+                            </div>
+                            <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
+                                {{ sources.datasets.worldpop.path }}
+                            </div>
+                        </div>
+
+                        <!-- Protomaps -->
+                        <div class="rounded-md border border-gray-800 bg-gray-950/60 p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="inline-block w-2 h-2 rounded-full"
+                                    :class="sources.datasets.protomaps.present ? 'bg-emerald-400' : 'bg-gray-600'"
+                                ></span>
+                                <span class="text-white text-sm font-semibold">
+                                    {{ sources.datasets.protomaps.label }}
+                                </span>
+                            </div>
+                            <div class="text-xs" :class="sources.datasets.protomaps.present ? 'text-emerald-300' : 'text-gray-500'">
+                                <template v-if="sources.datasets.protomaps.present">
+                                    {{ sources.datasets.protomaps.files.length }} basemap file(s)
+                                </template>
+                                <template v-else>Not detected (optional)</template>
+                            </div>
+                            <div class="text-gray-600 text-[11px] font-mono mt-1 break-all">
+                                {{ sources.datasets.protomaps.path }}
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- LOCAL FOLDER override -->
+                <div class="mt-5 pt-5 border-t border-gray-800">
+                    <h3 class="text-white text-sm font-semibold mb-1">Point at a local folder</h3>
+                    <p class="text-gray-500 text-xs mb-3">
+                        If your map files live somewhere else on this computer, enter that folder here.
+                        It's written to <code class="text-sky-300">ARCHIVE_PATH</code> in your
+                        <code>.env</code> so the container remounts <code>/archive</code> from it.
+                        On Windows, use your host path (e.g.
+                        <code class="text-emerald-300">D:\fair-constitution-map-files</code>).
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="block">
+                            <span class="text-gray-300 text-xs">Map data folder (ARCHIVE_PATH)</span>
+                            <input
+                                type="text"
+                                v-model="archivePathInput"
+                                placeholder="D:\fair-constitution-map-files"
+                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
+                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"
+                            />
+                        </label>
+                        <label class="block">
+                            <span class="text-gray-300 text-xs">Basemap tiles folder (PROTOMAPS_DIR, optional)</span>
+                            <input
+                                type="text"
+                                v-model="protomapsPathInput"
+                                placeholder="D:\fair-constitution-map-files\protomaps"
+                                class="mt-1 w-full px-2 py-1.5 rounded bg-gray-950 border border-gray-700
+                                       text-gray-200 text-xs font-mono focus:border-blue-500 focus:outline-none"
+                            />
+                        </label>
+                    </div>
+
+                    <div class="mt-3 flex items-center gap-3">
+                        <button
+                            type="button"
+                            @click="saveArchivePath"
+                            :disabled="savingArchivePath"
+                            class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-4 py-1.5 rounded-md text-sm font-semibold transition-colors"
+                        >
+                            {{ savingArchivePath ? 'Saving…' : 'Save folder path' }}
+                        </button>
+                        <span v-if="archivePathError" class="text-red-400 text-xs">{{ archivePathError }}</span>
+                    </div>
+                    <div
+                        v-if="archivePathMessage"
+                        class="mt-3 rounded-md border border-emerald-800/70 bg-emerald-900/20 px-3 py-2 text-emerald-200 text-xs"
+                    >
+                        {{ archivePathMessage }}
+                    </div>
+                </div>
+            </section>
 
             <!-- Source Picker -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
@@ -319,8 +586,9 @@ onBeforeUnmount(stopPolling)
                         <div class="flex-1">
                             <div class="text-white font-semibold text-sm">Local Archive (default)</div>
                             <div class="text-gray-400 text-xs mt-1">
-                                Reads from <code class="text-emerald-300">D:\fair-constitution-map-files</code>
-                                (bind-mounted into the ETL container at <code>/archive</code>).
+                                Ingest whatever is detected above at the container path
+                                <code class="text-emerald-300">{{ sources?.archive_mount || '/archive' }}</code>
+                                (mapped from your <code class="text-sky-300">ARCHIVE_PATH</code> folder).
                                 Fastest path — no network.
                             </div>
                         </div>
@@ -336,9 +604,9 @@ onBeforeUnmount(stopPolling)
                         <div class="flex-1">
                             <div class="text-white font-semibold text-sm">Custom Folder</div>
                             <div class="text-gray-400 text-xs mt-1">
-                                Use a different folder visible to the ETL container
-                                (e.g. an alternate snapshot or a sub-directory of
-                                <code>/archive</code>).
+                                Ingest a specific <em>container</em> path — an alternate snapshot or a
+                                sub-directory of <code>/archive</code>. (To point at a different folder
+                                on your computer, use "Point at a local folder" above instead.)
                             </div>
                             <input v-if="source === 'folder'"
                                    type="text"
@@ -350,21 +618,43 @@ onBeforeUnmount(stopPolling)
                         </div>
                     </label>
 
-                    <!-- URL Download (placeholder for future) -->
+                    <!-- Download from official sources (now wired) -->
                     <label
-                        class="flex items-start gap-3 p-4 rounded-md border cursor-not-allowed opacity-60"
-                        :class="source === 'download' ? 'border-blue-500 bg-blue-900/20' : 'border-gray-800'"
+                        class="flex items-start gap-3 p-4 rounded-md border cursor-pointer transition-colors"
+                        :class="source === 'download' ? 'border-blue-500 bg-blue-900/20' : 'border-gray-800 hover:border-gray-700'"
                     >
                         <input type="radio" value="download" v-model="source"
-                               class="mt-1" disabled />
+                               class="mt-1" :disabled="runOptionsDisabled" />
                         <div class="flex-1">
-                            <div class="text-white font-semibold text-sm">Custom URL (planned)</div>
+                            <div class="text-white font-semibold text-sm">Download from official sources</div>
                             <div class="text-gray-400 text-xs mt-1">
-                                Fetch a geoBoundaries / WorldPop archive from a URL
-                                (e.g. the official repos at
-                                <code>github.com/wmgeolab/geoBoundaries</code> /
-                                <code>data.worldpop.org</code>). Backend pre-fetch
-                                handler not yet wired.
+                                Fetch the open datasets straight from their official repos, country by
+                                country, then ingest. Requires a country scope below.
+                            </div>
+
+                            <div v-if="source === 'download'" class="mt-3 space-y-2">
+                                <label class="flex items-start gap-2 text-gray-200 text-xs">
+                                    <input type="checkbox" v-model="downloadGeoboundaries"
+                                           :disabled="runOptionsDisabled" class="mt-0.5" />
+                                    <span>
+                                        Jurisdiction boundaries — <strong>geoBoundaries</strong>
+                                        <span class="block text-gray-500">github.com/wmgeolab/geoBoundaries (CC BY 4.0)</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-2 text-gray-200 text-xs">
+                                    <input type="checkbox" v-model="downloadWorldpop"
+                                           :disabled="runOptionsDisabled" class="mt-0.5" />
+                                    <span>
+                                        Population — <strong>WorldPop</strong>
+                                        <span class="block text-gray-500">
+                                            data.worldpop.org (CC BY 4.0) · pulls boundaries too (needed to attribute population)
+                                        </span>
+                                    </span>
+                                </label>
+                                <p class="text-amber-300/80 text-[11px] italic">
+                                    Country scope is required for a download — set the ISO3 list in Run Options below.
+                                    Basemap tiles (Protomaps) are supplied separately, not via this download.
+                                </p>
                             </div>
                         </div>
                     </label>
@@ -411,12 +701,15 @@ onBeforeUnmount(stopPolling)
                         </span>
                     </label>
                     <label class="flex items-center gap-2 text-gray-200">
-                        <span>Only countries (ISO3, comma-separated; empty = all):</span>
+                        <span>
+                            Countries (ISO3, comma-separated<template v-if="source === 'download'">, required for download</template><template v-else>; empty = all</template>):
+                        </span>
                         <input
                             type="text"
                             v-model="optCountries"
                             placeholder="NZL,USA"
-                            class="flex-1 bg-gray-950 border border-gray-800 rounded px-2 py-1 font-mono text-xs text-gray-100"
+                            class="flex-1 bg-gray-950 border rounded px-2 py-1 font-mono text-xs text-gray-100"
+                            :class="source === 'download' && parsedCountries.length === 0 ? 'border-amber-600' : 'border-gray-800'"
                             :disabled="runOptionsDisabled"
                         />
                     </label>
@@ -429,7 +722,7 @@ onBeforeUnmount(stopPolling)
                         :disabled="runOptionsDisabled"
                         class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                     >
-                        {{ submitting ? 'Submitting…' : (isRunning ? 'Run in progress…' : 'Start ETL Run') }}
+                        {{ startButtonLabel }}
                     </button>
                     <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
                 </div>
@@ -491,6 +784,9 @@ onBeforeUnmount(stopPolling)
                     </button>
                     <span v-if="apportioning" class="text-xs text-gray-500 italic">
                         Running cube-root apportionment across the jurisdiction tree…
+                    </span>
+                    <span v-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">
+                        {{ advanceError }}
                     </span>
                 </div>
             </div>

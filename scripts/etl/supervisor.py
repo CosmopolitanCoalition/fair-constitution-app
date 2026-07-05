@@ -31,6 +31,12 @@ from pathlib import Path
 CONTROL_DIR = Path("/etl/control")
 LOG_FILE    = Path("/etl/etl.log")
 
+# Where download_datasets.py writes fetched geodata. This is the etl service's
+# writable named volume (etl_geodata → /data in docker-compose.yml). When a job
+# has source == 'download', the download step lands files here and the seed step
+# is pointed at it via --data-root. Archive / folder sources are untouched.
+DOWNLOAD_DATA_ROOT = "/data"
+
 REQUEST = CONTROL_DIR / "request.json"
 RUNNING = CONTROL_DIR / "running.json"
 DONE    = CONTROL_DIR / "done.json"
@@ -189,6 +195,53 @@ def build_argv(options: dict) -> list[str]:
     return argv
 
 
+def build_download_argv(options: dict) -> list[str]:
+    """Translate request JSON options into a download_datasets.py argv list.
+
+    Reads options.download_datasets (['geoboundaries','worldpop']) and
+    options.countries. The download target is always DOWNLOAD_DATA_ROOT (/data);
+    the seed step is later pointed at the same path via --data-root."""
+    argv = ["python3", "-u", "/etl/download_datasets.py"]
+
+    countries = options.get("countries") or []
+    # download_datasets.py REQUIRES a country filter (it refuses a full-world
+    # download). If the wizard somehow sent none, we still pass the flag empty
+    # and let download_datasets emit its clear "scope to countries" error.
+    argv.append("--countries")
+    argv.extend(countries)
+
+    datasets = options.get("download_datasets") or []
+    if datasets:
+        argv.append("--datasets")
+        argv.extend(datasets)
+
+    argv.extend(["--data-root", DOWNLOAD_DATA_ROOT])
+    return argv
+
+
+def run_download_step(request_payload: dict, log_fh) -> int:
+    """Run download_datasets.py as a child process, streaming its output into the
+    same run log the seed uses. Returns the child's exit code (0 == success).
+
+    The download is a plain blocking subprocess.run — it doesn't participate in
+    the pause/halt control-signal loop the seed does. Halting mid-download is a
+    future refinement; today an operator halt during the download is honored at
+    the next phase boundary (the seed step checks the control files)."""
+    options = request_payload.get("options") or {}
+    argv = build_download_argv(options)
+
+    log_fh.write(f"[supervisor] download step: {' '.join(argv)}\n")
+    log_fh.flush()
+
+    proc = subprocess.run(
+        argv,
+        stdout=log_fh,
+        stderr=subprocess.STDOUT,
+        cwd="/etl",
+    )
+    return proc.returncode
+
+
 def clear_stale_pause_markers() -> None:
     """At the start of a new run, drop `_paused_at` / per-bar `paused_at`
     markers left over from a previous halted run. We can't call
@@ -216,7 +269,21 @@ def clear_stale_pause_markers() -> None:
 
 
 def run_job(request_payload: dict) -> int:
-    argv = build_argv(request_payload.get("options") or {})
+    options = request_payload.get("options") or {}
+    source  = request_payload.get("source")
+
+    # Source 'download' fetches geodata from the official hosts into
+    # DOWNLOAD_DATA_ROOT (/data) FIRST, then seeds from there. Force the seed's
+    # --data-root to that path so the importers read the just-downloaded tree
+    # rather than the (possibly empty) /archive mount. Archive / folder sources
+    # keep whatever data_root the wizard already put in options (or the module
+    # default), so their behavior is unchanged.
+    is_download = (source == "download")
+    if is_download:
+        options = dict(options)  # don't mutate the caller's dict in place
+        options["data_root"] = DOWNLOAD_DATA_ROOT
+
+    argv = build_argv(options)
     started_at = now_iso()
 
     # Wipe stale pause markers from a prior halted run before launching —
@@ -227,6 +294,40 @@ def run_job(request_payload: dict) -> int:
     # Open the log file fresh for this run.
     log_fh = LOG_FILE.open("a", buffering=1)  # line-buffered
     log_fh.write(f"\n==== ETL run started at {started_at} ====\n")
+
+    # ── Download phase (source == 'download' only) ──
+    # Runs before the seed subprocess. On failure, we record FAILED and bail so
+    # the seed never runs against an incomplete/empty download tree.
+    if is_download:
+        write_atomic(RUNNING, {
+            "pid":        None,           # no seed pid yet — download in flight
+            "started_at": started_at,
+            "request":    request_payload,
+            "phase":      "download",
+            "paused":     False,
+        })
+        dl_rc = run_download_step(request_payload, log_fh)
+        if dl_rc != 0:
+            finished_at = now_iso()
+            log_fh.write(f"[supervisor] download step failed (exit {dl_rc}) — "
+                         f"aborting before seed.\n")
+            log_fh.write(f"==== ETL run finished at {finished_at} (exit {dl_rc}) ====\n")
+            log_fh.close()
+            write_atomic(FAILED, {
+                "pid":         None,
+                "started_at":  started_at,
+                "finished_at": finished_at,
+                "exit_code":   dl_rc,
+                "error":       "download step failed",
+                "request":     request_payload,
+            })
+            for p in (RUNNING, CURRENT, HALT, PAUSE, RESUME):
+                try:
+                    p.unlink(missing_ok=True)
+                except OSError:
+                    pass
+            return dl_rc
+
     log_fh.write(f"argv: {' '.join(argv)}\n")
     log_fh.flush()
 

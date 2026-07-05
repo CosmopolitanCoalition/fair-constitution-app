@@ -41,10 +41,18 @@ class DevImpersonationTest extends TestCase
 
     public function test_dev_routes_require_authentication_when_enabled(): void
     {
-        // Default config: toggle on. DevToolsEnabled passes, then the
-        // 'auth' middleware bounces guests to /login — proving the gate
-        // order (404 gate first, auth second).
+        // Triple lock (WI-4 + game mode): local + SANDBOX world + toggle on.
+        // A PRODUCTION world 404s even with the toggle on — dev tooling is a
+        // sandbox-world property, not an ambient dev flag.
+        \App\Support\GameMode::override(\App\Support\GameMode::PRODUCTION);
+        $this->get('/dev/users')->assertNotFound();
+
+        // In a SANDBOX world DevToolsEnabled passes, then the 'auth' middleware
+        // bounces guests to /login — proving the gate order (404 gate, auth second).
+        \App\Support\GameMode::override(\App\Support\GameMode::SANDBOX);
         $this->get('/dev/users')->assertRedirect('/login');
+
+        \App\Support\GameMode::flush();
     }
 
     public function test_civic_routes_redirect_guests_to_login(): void

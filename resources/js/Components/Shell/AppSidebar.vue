@@ -23,6 +23,8 @@ const props = defineProps({
     currentNavId: { type: String, default: null },
     /** Phases shipped on this instance (shared prop app.phasesLive). */
     phasesLive: { type: Array, default: () => ['A'] },
+    /** Whether the world is in SANDBOX game mode (shared prop instance.sandbox) — gates dev sections. */
+    sandbox: { type: Boolean, default: false },
 });
 
 const { t } = useI18n({ useScope: 'global' });
@@ -30,7 +32,8 @@ const { t } = useI18n({ useScope: 'global' });
 const intersects = (a, b) => a.some((x) => b.includes(x));
 
 const sectionVisible = (section) =>
-    section.visibility === 'all' || intersects(props.roles, section.roles ?? []);
+    (!section.requiresSandbox || props.sandbox)
+    && (section.visibility === 'all' || intersects(props.roles, section.roles ?? []));
 
 const itemPlanned = (item) => Boolean(item.phase) && !props.phasesLive.includes(item.phase);
 

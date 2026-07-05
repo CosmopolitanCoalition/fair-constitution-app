@@ -35,6 +35,13 @@ services:
       # Matches the nginx mount so the same files are reachable via both
       # the Laravel API (scan) and the HTTP /maps/protomaps/ path (serve).
       - ${PROTOMAPS_DIR:-./data/protomaps}:/var/www/html/public/maps/protomaps:ro
+      # geoBoundaries + WorldPop archive, read-only, at the SAME container path
+      # the etl service sees it (/archive). Lets the setup wizard DETECT which
+      # datasets are staged (geoBoundaries_repo / worldpop_100m_latest) and show
+      # the operator what's present before an ETL run — the app container could
+      # not see /archive before, so a correctly-staged D:\ archive read as
+      # "missing." Same ${ARCHIVE_PATH} the etl container binds.
+      - ${ARCHIVE_PATH:-./data/archive}:/archive:ro
     environment:
       # Default to dev (local + debug) so Box A's `docker compose up` is unchanged;
       # deploy.sh sets APP_ENV=production / APP_DEBUG=false in .env for a deployed box.

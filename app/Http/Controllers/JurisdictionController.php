@@ -289,16 +289,107 @@ class JurisdictionController extends Controller
     }
 
     /**
-     * Phase P.9 — return the curated list of bundle tables so the UI knows
-     * which checkboxes to render. Lightweight (no DB query) — the values
-     * live on MapDataExportService::TABLES.
+     * Phase P.9 / Workstream C — return the FULL portable-table suite so the
+     * UI can render an accurate, self-maintaining chooser. The list is
+     * schema-derived (every public BASE table minus the framework / infra /
+     * privacy / key-material denylist) and topologically ordered parent →
+     * child, so it stays correct as tables are added instead of drifting
+     * from a hand-maintained constant.
+     *
+     * Response shape (backward compatible — `tables` is still a flat ordered
+     * array and `raster_tables` still lists the heavy raster store):
+     *   - tables         : full derived export order (flat, parent → child)
+     *   - default_tables : the curated default-export subset (what a plain
+     *                       export ships when no selection is made)
+     *   - raster_tables  : heavy raster tables (skip_rasters target)
+     *   - groups         : { domainPrefix: [tables…] } for categorized UI,
+     *                       preserving the derived order within each group
      */
     public function exportMapsTables(Request $request): JsonResponse
     {
+        $svc     = app(\App\Services\MapDataExportService::class);
+        $derived = $svc->deriveExportableTables();
+
+        // Cheap categorization for the UI: group by a leading domain token.
+        // Purely cosmetic — the flat `tables` list is authoritative for order.
+        $groups = [];
+        foreach ($derived as $t) {
+            $groups[$this->tableDomain($t)][] = $t;
+        }
+
         return response()->json([
-            'tables' => \App\Services\MapDataExportService::TABLES,
-            'raster_tables' => \App\Services\MapDataExportService::RASTER_TABLES,
+            'tables'         => $derived,
+            'default_tables' => \App\Services\MapDataExportService::TABLES,
+            'raster_tables'  => \App\Services\MapDataExportService::RASTER_TABLES,
+            'groups'         => $groups,
         ]);
+    }
+
+    /**
+     * Map a table name to a coarse UI domain bucket for the export chooser.
+     * Best-effort prefix matching — grouping only affects presentation.
+     */
+    private function tableDomain(string $table): string
+    {
+        static $prefixMap = [
+            'cosmic'      => 'cosmos',
+            'instance'    => 'cosmos',
+            'jurisdiction'=> 'geography',
+            'geoboundary' => 'geography',
+            'worldpop'    => 'geography',
+            'data_review' => 'geography',
+            'legislature' => 'legislature',
+            'chamber'     => 'legislature',
+            'committee'   => 'legislature',
+            'bill'        => 'legislature',
+            'motion'      => 'legislature',
+            'law'         => 'legislature',
+            'executive'   => 'executive',
+            'department'  => 'executive',
+            'board'       => 'executive',
+            'appropriation'=> 'executive',
+            'grant'       => 'executive',
+            'judicial'    => 'judiciary',
+            'judiciar'    => 'judiciary',
+            'case'        => 'judiciary',
+            'panel'       => 'judiciary',
+            'jury'        => 'judiciary',
+            'juries'      => 'judiciary',
+            'opinion'     => 'judiciary',
+            'verdict'     => 'judiciary',
+            'warrant'     => 'judiciary',
+            'sentencing'  => 'judiciary',
+            'constitutional'=> 'judiciary',
+            'election'    => 'elections',
+            'ballot'      => 'elections',
+            'candidac'    => 'elections',
+            'endorsement' => 'elections',
+            'tabulation'  => 'elections',
+            'vacanc'      => 'elections',
+            'referendum'  => 'elections',
+            'petition'    => 'elections',
+            'vote'        => 'elections',
+            'approval'    => 'elections',
+            'org'         => 'organizations',
+            'residency'   => 'civic',
+            'social'      => 'social',
+            'matrix'      => 'social',
+            'cluster'     => 'federation',
+            'federation'  => 'federation',
+            'peer'        => 'federation',
+            'sync'        => 'federation',
+            'partition'   => 'federation',
+            'mesh'        => 'federation',
+            'audit'       => 'audit',
+            'public_records'=> 'audit',
+        ];
+
+        foreach ($prefixMap as $prefix => $domain) {
+            if (str_starts_with($table, $prefix)) {
+                return $domain;
+            }
+        }
+        return 'other';
     }
 
     /**
