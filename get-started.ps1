@@ -70,8 +70,16 @@ if (-not (Test-Path '.env')) {
 Say '[4/4] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds...'
 docker compose up -d
 if ($LASTEXITCODE -ne 0) {
-    throw ('Docker could not start the app. Scroll up for the error. The most common fix is ' +
-        'opening Docker Desktop and waiting for "Engine running", then running this again.')
+    # A first boot occasionally trips over itself (a container loses a race and
+    # restarts) - re-issuing the same command resumes and finishes the job.
+    Say 'The first start reported a problem - giving it one more push (this is usually enough)...'
+    Start-Sleep -Seconds 20
+    docker compose up -d
+}
+if ($LASTEXITCODE -ne 0) {
+    throw ('The app containers had trouble starting. This script is safe to run again and ' +
+        'resumes where it left off - try that first. If it keeps failing, run ' +
+        '"docker compose logs app --tail 50" in this folder and report what it says.')
 }
 
 # Wait for the web page to answer, then open the browser.

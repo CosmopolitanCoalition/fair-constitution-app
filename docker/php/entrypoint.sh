@@ -39,6 +39,19 @@ if [ -f /var/www/html/composer.json ]; then
         cd /var/www/html
         STAMP="vendor/.installed-hash"
         WANT="$(cat composer.json composer.lock 2>/dev/null | sha256sum | cut -d' ' -f1)"
+
+        # Serialize across app/horizon/scheduler: all three containers run this
+        # entrypoint AND share the vendor named volume, and a FRESH volume boots
+        # them simultaneously — three concurrent `composer install`s into one
+        # tree corrupt each other's extractions (vanishing temp zips, partial
+        # package dirs → "does not appear to be a file nor a folder"). One
+        # installer at a time; the others block here, then re-check the stamp
+        # under the lock and find the work already done.
+        if command -v flock >/dev/null 2>&1; then
+            exec 9>"vendor/.install.lock"
+            flock 9
+        fi
+
         HAVE="$([ -f "$STAMP" ] && cat "$STAMP" || echo '')"
         # Mirror the vite entrypoint's paranoia probe: if the volume is corrupted
         # such that the autoloader file is missing, force a reinstall even if the
@@ -51,7 +64,24 @@ if [ -f /var/www/html/composer.json ]; then
             echo "[entrypoint] composer.json drift — running composer install" >&2
             echo "[entrypoint]   stamped: ${HAVE:-<missing>}" >&2
             echo "[entrypoint]   desired: $WANT" >&2
-            composer install --no-interaction --prefer-dist --no-progress
+            # Retry in-process: first-boot installs over Docker Desktop's volume
+            # layer can fail transiently mid-extraction. Composer resumes cleanly
+            # from a partial tree, and retrying here beats dying under set -e —
+            # a container exit makes `docker compose up` declare the dependency
+            # failed and abandon nginx, even though a restart would have healed.
+            ok=0
+            for attempt in 1 2 3; do
+                if composer install --no-interaction --prefer-dist --no-progress; then
+                    ok=1
+                    break
+                fi
+                echo "[entrypoint] composer install attempt ${attempt}/3 failed — retrying in 10s" >&2
+                sleep 10
+            done
+            if [ "$ok" != "1" ]; then
+                echo "[entrypoint] composer install failed after 3 attempts — exiting for a container restart" >&2
+                exit 1
+            fi
             echo "$WANT" > "$STAMP"
             echo "[entrypoint] composer install complete — stamp updated" >&2
         else

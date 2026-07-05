@@ -76,7 +76,13 @@ fi
 
 # -- 4. Start the app --------------------------------------------------------
 say "[4/4] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds..."
-docker compose up -d
+if ! docker compose up -d; then
+  # A first boot occasionally trips over itself (a container loses a race and
+  # restarts) - re-issuing the same command resumes and finishes the job.
+  say "The first start reported a problem - giving it one more push (this is usually enough)..."
+  sleep 20
+  docker compose up -d || fail "The app containers had trouble starting. This script is safe to run again and resumes where it left off - try that first. If it keeps failing, run:  docker compose logs app --tail 50   in this folder and report what it says."
+fi
 
 PORT="$(grep -E '^[[:space:]]*NGINX_HOST_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
 [ -n "${PORT:-}" ] || PORT=8080
