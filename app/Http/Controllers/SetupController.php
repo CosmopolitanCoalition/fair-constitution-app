@@ -57,27 +57,28 @@ class SetupController extends Controller
             return redirect('/setup/bootstrap');
         }
 
-        // Roles-campaign Phase 1 — operator account FIRST. needsBootstrap gates only on schema readiness,
-        // so the founder/operator account is created on the bootstrap page (after migrations) BEFORE the
-        // fork. Until it exists, route back there. (This intentionally overrides the older founder-at-end
-        // model: the operator's physical credentials are the first thing set up, then the SOLO/JOIN fork.)
-        if (User::query()->doesntExist()) {
-            return redirect('/setup/bootstrap');
-        }
-
         $settings = InstanceSettings::current();
 
         if ($settings->isSetupComplete()) {
             return redirect('/');
         }
 
-        // The SOLO/JOIN fork is the first question after the operator account. SOLO walks the build steps;
-        // JOIN connects to an existing mesh and syncs everything (skipping institution-building).
+        // ORDER (operator ruling 2026-07-05): JOIN-or-START is the FIRST question
+        // after schema — before the operator account, before the cosmic address.
+        // Joining means the mesh already constrains most settings, so the fork
+        // gates everything downstream.
         if ($settings->setup_mode === null) {
             return redirect('/setup/mode');
         }
         if ($settings->setup_mode === 'join') {
             return redirect('/setup/join');
+        }
+
+        // START (solo): the operator account + node identity + roles is the FIRST
+        // build step (the "operator console at bootstrap"). Until it exists, land
+        // there. THEN the cosmic address and the rest.
+        if (User::query()->doesntExist()) {
+            return redirect('/setup/operator');
         }
 
         // SOLO. Convention: setup_step_completed = n  →  steps 0..n-1 done, next is step n.
@@ -182,13 +183,15 @@ class SetupController extends Controller
     // ─── Roles-campaign Phase 1 — SOLO/JOIN fork ──────────────────────────────
 
     /**
-     * Render the SOLO/JOIN fork — the first question after the operator account. SOLO starts a new
-     * world (you ARE the canonical game, federating to yourself); JOIN connects to an existing mesh.
+     * Render the SOLO/JOIN fork — the FIRST question after schema (before the
+     * operator account). SOLO starts a new world (you ARE the canonical game,
+     * federating to yourself); JOIN connects to an existing mesh, which already
+     * constrains most settings.
      */
     public function mode(): Response|RedirectResponse
     {
-        if ($this->needsBootstrap() || User::query()->doesntExist()) {
-            return redirect('/setup/bootstrap'); // operator account is created there, before the fork
+        if ($this->needsBootstrap()) {
+            return redirect('/setup/bootstrap'); // schema first
         }
         $settings = InstanceSettings::current();
         if ($settings->isSetupComplete()) {
@@ -204,15 +207,72 @@ class SetupController extends Controller
     }
 
     /**
+     * GET /setup/operator — the START-path operator bootstrap step: create the
+     * operator/founder account, name the node + set its address, and establish
+     * the founding operator roles (all self-asserted). This is the "operator
+     * console at bootstrap." Comes AFTER the fork, BEFORE the cosmic address.
+     */
+    public function operatorSetupPage(): Response|RedirectResponse
+    {
+        if ($this->needsBootstrap()) {
+            return redirect('/setup/bootstrap');
+        }
+        $settings = InstanceSettings::current();
+        if ($settings->isSetupComplete()) {
+            return redirect('/');
+        }
+        // The fork must be settled first (both paths need the operator account,
+        // but the fork decides what comes AFTER this step).
+        if ($settings->setup_mode === null) {
+            return redirect('/setup/mode');
+        }
+        // Once the account exists, a JOIN instance belongs on the join screen.
+        if ($settings->setup_mode === 'join' && User::query()->exists()) {
+            return redirect('/setup/join');
+        }
+
+        $hasFounder = User::query()->exists();
+
+        // The nine capability channels + their live state (only meaningful once an
+        // operator exists to hold them). Founding → every one is self-assertable.
+        $channels = [];
+        if ($hasFounder) {
+            try {
+                $gate = app(\App\Services\Federation\MeshGateService::class);
+                foreach ($gate->channels() as $c) {
+                    $channels[] = [
+                        'capability' => $c['capability'],
+                        'label'      => $c['label'] ?? $c['capability'],
+                        'what'       => $c['what'] ?? '',
+                        'established' => ($c['state'] ?? null) === 'established',
+                    ];
+                }
+            } catch (\Throwable $e) {
+                $channels = [];
+            }
+        }
+
+        return Inertia::render('Setup/OperatorSetup', [
+            'settings'    => $this->serializeSettings($settings),
+            'has_founder' => $hasFounder,
+            'channels'    => $channels,
+            'founding'    => \App\Support\FoundingContext::isFounding(),
+            // A sensible default address suggestion the browser fills client-side
+            // (window.location) — the peer address is optional for a solo node.
+            'self_url'    => config('cga.federation_self_url'),
+        ]);
+    }
+
+    /**
      * POST /api/setup/mode — record the SOLO/JOIN choice. One-way: the fork is settled once chosen
      * (re-running setup from scratch is `down -v`). JOIN mints the federation identity now so the
      * operator can read their server_id and a host can pin it during adoption.
      */
     public function setMode(Request $request): JsonResponse
     {
-        if (User::query()->doesntExist()) {
-            return response()->json(['error' => 'Create the operator account first.'], 409);
-        }
+        // The fork is the FIRST question after schema — no operator account is
+        // required yet (that's the next step on the START path). A fresh box's
+        // first visitor settles the fork.
         $data = $request->validate([
             'setup_mode' => ['required', Rule::in(['solo', 'join'])],
         ]);
@@ -234,7 +294,9 @@ class SetupController extends Controller
 
         return response()->json([
             'settings' => $this->serializeSettings(InstanceSettings::current()->fresh()),
-            'next'     => $data['setup_mode'] === 'join' ? '/setup/join' : '/setup/step/0',
+            // START → the operator-setup step (account + node + roles). JOIN → the
+            // mirror-onboarding screen.
+            'next'     => $data['setup_mode'] === 'join' ? '/setup/join' : '/setup/operator',
         ]);
     }
 
@@ -244,7 +306,7 @@ class SetupController extends Controller
      */
     public function join(): Response|RedirectResponse
     {
-        if ($this->needsBootstrap() || User::query()->doesntExist()) {
+        if ($this->needsBootstrap()) {
             return redirect('/setup/bootstrap');
         }
         $settings = InstanceSettings::current();
@@ -253,6 +315,11 @@ class SetupController extends Controller
         }
         if ($settings->setup_mode !== 'join') {
             return redirect('/setup');
+        }
+        // The operator account is created at the operator-setup step (post-fork),
+        // for the join path too — a node still needs a local operator to run it.
+        if (User::query()->doesntExist()) {
+            return redirect('/setup/operator');
         }
 
         return Inertia::render('Setup/JoinHost', [

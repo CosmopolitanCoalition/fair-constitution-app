@@ -327,7 +327,9 @@ onBeforeUnmount(() => {
                         </Btn>
                     </div>
                 </details>
-                <span v-else class="cluster" style="gap: var(--space-2)">
+                <!-- Login/Register only once setup is complete — during founding
+                     there is no world to log into yet, so they'd be premature. -->
+                <span v-else-if="instance.setupComplete !== false" class="cluster" style="gap: var(--space-2)">
                     <Btn as="a" href="/login" variant="ghost" size="sm">Log in</Btn>
                     <Btn as="a" href="/register" variant="primary" size="sm">Register</Btn>
                 </span>

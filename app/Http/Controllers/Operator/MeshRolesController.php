@@ -45,6 +45,14 @@ class MeshRolesController extends Controller
         ]);
 
         $identity->ensureIdentity();
+
+        // Founding: every role is self-assertable, so qualification is moot —
+        // report it qualified rather than probing against a jurisdiction that
+        // may not exist yet.
+        if (\App\Support\FoundingContext::isFounding()) {
+            return back()->with('status', "[QUALIFIED] {$validated['capability']} — founding node self-asserts every role.");
+        }
+
         $result = $prober->probe($validated['capability'], $this->scope($validated));
 
         if ($result['ok']) {
@@ -74,13 +82,37 @@ class MeshRolesController extends Controller
         $identity->ensureIdentity();
 
         try {
+            // FOUNDING context: the operator is the sole constitutional authority
+            // during setup — no seated government, no peer zones, often no
+            // jurisdiction yet — so EVERY role is established directly (governed
+            // included). Self-asserted channels register plainly; governed
+            // channels get a SELF-SIGNED grant (Meter A with one operator =
+            // self-attestation). This parallels the district-mapper's setup
+            // context — "self-asserted like all other roles" (operator, 2026-07-05).
+            if (\App\Support\FoundingContext::isFounding()) {
+                if (InstanceCapability::isGoverned($capability)) {
+                    $grants->selfGrantFounding($capability);
+                } else {
+                    $caps->registerSelf($capability);
+                }
+
+                return back()->with('status', "[ESTABLISHED] {$capability} (self-asserted — founding node).");
+            }
+
             if (! InstanceCapability::isGoverned($capability)) {
                 $caps->registerSelf($capability);
 
                 return back()->with('status', "[ESTABLISHED] {$capability} (self-asserted — no consent needed).");
             }
 
-            $proposal = $grants->request($capability, $this->scope($validated));
+            // Governed, post-founding: a grant attaches to a PLACE. If none
+            // exists we say so plainly rather than crash on an empty-uuid lookup.
+            $scope = $this->scope($validated);
+            if ($scope === null) {
+                return back()->withErrors(['roles' => 'A governed role attaches to a jurisdiction, and none exists yet. Finish founding first, or pass an explicit scope.']);
+            }
+
+            $proposal = $grants->request($capability, $scope);
 
             return back()->with('status', "[REQUESTED] {$capability} — proposal ".substr((string) $proposal->id, 0, 8).'…. The dual-meter consent decides; approve it from the pending list.');
         } catch (Throwable $e) {
@@ -136,14 +168,21 @@ class MeshRolesController extends Controller
             : "No enabled channel {$validated['capability']} to drop.");
     }
 
-    /** The scope jurisdiction: the request's, else the root — the MeshRoleCommand::scope() default. */
-    private function scope(array $validated): string
+    /**
+     * The scope jurisdiction: the request's, else the root. Returns NULL when no
+     * root jurisdiction exists yet (a founding node before map data) — callers
+     * handle null instead of feeding an empty string into a uuid lookup, which
+     * was the "invalid input syntax for type uuid" crash on Request.
+     */
+    private function scope(array $validated): ?string
     {
         $scope = (string) ($validated['scope'] ?? '');
         if ($scope !== '') {
             return $scope;
         }
 
-        return (string) DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+        $root = DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+
+        return $root !== null ? (string) $root : null;
     }
 }

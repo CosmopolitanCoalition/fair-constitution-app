@@ -46,6 +46,8 @@ const props = defineProps({
     roles: { type: Object, default: null },
     /** The last qualify probe, flashed by POST /operator/roles/qualify. */
     probe: { type: Object, default: null },
+    /** Founding node — every role self-asserts (no dual-meter, no scope). */
+    founding: { type: Boolean, default: false },
 });
 
 const page = usePage();
@@ -304,9 +306,19 @@ const METERS = [
                     name under a peer’s zone.
                 </p>
 
+                <div v-if="founding" class="plane-wall" style="margin-bottom: var(--space-4)">
+                    <span><Icon name="info" size="sm" /></span>
+                    <span>
+                        <strong>You are the founding operator.</strong> There is no mesh to answer to and
+                        no government seated yet, so every role is yours to switch on directly — governed
+                        channels included. Once your world is founded and a government seats, governed
+                        channels return to the dual-meter consent path for any later change.
+                    </span>
+                </div>
+
                 <div class="cluster" style="gap: var(--space-6)">
                     <Stat :value="`${activeCount} / ${channels.length}`" label="channels active on this box" />
-                    <Stat :value="governedCount" label="governed channels (dual-meter)" />
+                    <Stat :value="founding ? 0 : governedCount" :label="founding ? 'awaiting consent (none — you are founding)' : 'governed channels (dual-meter)'" />
                     <Stat :value="pending.length" label="open role-grant requests" :accent="pending.length > 0" />
                 </div>
 
@@ -357,6 +369,15 @@ const METERS = [
                             </template>
                             <template v-else-if="row.state === 'requested'">
                                 <span class="gloss">Waiting on the dual-meter — see the pending list below.</span>
+                            </template>
+                            <template v-else-if="founding">
+                                <!-- Founding node: every role is yours to switch on directly. -->
+                                <Btn
+                                    variant="primary"
+                                    size="sm"
+                                    :disabled="busy !== null"
+                                    @click="requestRow(row.capability)"
+                                >{{ busy === `${row.capability}:request` ? 'Turning on…' : 'Turn on' }}</Btn>
                             </template>
                             <template v-else>
                                 <Btn

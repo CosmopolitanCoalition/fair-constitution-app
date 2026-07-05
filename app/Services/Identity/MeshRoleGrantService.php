@@ -104,6 +104,57 @@ class MeshRoleGrantService
         });
     }
 
+    /**
+     * FOUNDING self-grant — enable a GOVERNED channel during founding by minting a
+     * SELF-SIGNED grant. Legitimate because on a founding node the operator is the
+     * sole constitutional authority: no seated government, no mesh peers whose zones
+     * the role could touch, so Meter A/B/C are all trivially satisfied (Meter A with
+     * one operator = self-attestation, Meter C N/A with no peers). The grant is
+     * authored and signed by THIS server (authority == grantee == self), which is
+     * exactly what ratify() does for a same-box grantee — minus the jurisdiction
+     * scope, which has no place to attach to yet during founding.
+     *
+     * Once setup completes and a government seats, governed channels go back through
+     * the normal request → dual-meter → ratify path for any later change.
+     */
+    public function selfGrantFounding(string $capability): InstanceCapability
+    {
+        if (! in_array($capability, InstanceCapability::CHANNELS, true)) {
+            throw new ConstitutionalViolation("Unknown capability channel [{$capability}].", 'Mesh Roles & Channels of Trust');
+        }
+        if (! \App\Support\FoundingContext::isFounding()) {
+            throw new ConstitutionalViolation(
+                'A governed channel self-grants only while the node is being founded; after setup it needs the dual-meter consent.',
+                'Mesh Roles & Channels of Trust · §5',
+            );
+        }
+        // A self-asserted channel needs no grant at all.
+        if (! InstanceCapability::isGoverned($capability)) {
+            return $this->capabilities->registerSelf($capability);
+        }
+
+        $this->identity->ensureIdentity();
+        $server = $this->identity->serverId();
+        $envelope = [
+            'capability'          => $capability,
+            'authority_server_id' => $server,
+            'grantee_server_id'   => $server,
+            'scope'               => null,     // founding — no jurisdiction to attach to yet
+            'founding'            => true,
+            'expires_at'          => null,     // does not expire; superseded when governed consent later applies
+        ];
+        $signature = $this->identity->sign(AuditService::canonicalJson($envelope));
+
+        $cap = $this->capabilities->grantSelf($capability, $server, $signature, null);
+
+        $this->audit->append('federation', 'role.self_granted_founding', [
+            'capability'          => $capability,
+            'authority_server_id' => $server,
+        ], 'MESH-ROLES', null, null);
+
+        return $cap;
+    }
+
     // -- APPROVE + JOIN (ratify) ------------------------------------------------------------------------
 
     /**

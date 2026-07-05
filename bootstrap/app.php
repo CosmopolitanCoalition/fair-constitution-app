@@ -51,6 +51,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ],
             append: [
                 \App\Http\Middleware\HandleInertiaRequests::class,
+                // Setup lock — pins every web navigation to the wizard until
+                // setup_completed_at is set (allow-listing the setup/operator/auth
+                // surfaces). Runs after HandleInertiaRequests so an Inertia visit
+                // that gets redirected still carries shared props.
+                \App\Http\Middleware\RedirectIfSetupIncomplete::class,
             ],
         );
 
@@ -77,6 +82,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(
             before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
             prepend: \App\Http\Middleware\DevToolsEnabled::class,
+        );
+
+        // The setup lock must run BEFORE 'auth' too: on an auth-gated page (e.g.
+        // /civic) the priority list otherwise sorts Authenticate ahead of an
+        // unprioritized appended middleware, so a guest would bounce to /login
+        // instead of into the wizard. Prepending it here keeps the lock ahead of
+        // auth for every route, so setup-incomplete always wins.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            prepend: \App\Http\Middleware\RedirectIfSetupIncomplete::class,
         );
 
         // WI-3 session auth: unauthenticated → /login; already-authenticated

@@ -68,6 +68,8 @@ Route::get('/setup/step/{n}', [SetupController::class, 'step'])
 // Roles-campaign Phase 1 — the SOLO/JOIN fork (first question after the operator account) + the
 // JOIN (mirror-onboarding) screen. SOLO falls through to the build steps above; JOIN connects to a host.
 Route::get('/setup/mode', [SetupController::class, 'mode'])->name('setup.mode');
+// START-path operator bootstrap (operator account + node address + founding roles) — after the fork, before cosmic.
+Route::get('/setup/operator', [SetupController::class, 'operatorSetupPage'])->name('setup.operator');
 Route::get('/setup/join', [SetupController::class, 'join'])->name('setup.join');
 Route::post('/api/setup/mode', [SetupController::class, 'setMode'])->name('api.setup.mode');
 Route::post('/api/setup/join', [SetupController::class, 'joinFromSetup'])->name('api.setup.join');

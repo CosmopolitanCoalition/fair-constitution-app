@@ -81,6 +81,9 @@ class MeshConsoleController extends Controller
             'roles' => $authed ? $this->rolesData($gates, $upgrades) : null,
             // The last qualify probe, flashed back by POST /operator/roles/qualify.
             'probe' => $authed ? session('roles_probe') : null,
+            // Founding node: every role self-asserts (no dual-meter, no scope) —
+            // the UI drops the qualify/request dance and offers a single "Turn on".
+            'founding' => \App\Support\FoundingContext::isFounding(),
         ]);
     }
 
