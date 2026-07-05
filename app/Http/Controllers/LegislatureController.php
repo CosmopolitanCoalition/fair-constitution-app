@@ -3063,6 +3063,30 @@ class LegislatureController extends Controller
                 $scopesProcessed++;
             }
 
+            // Drawn (subdivision-backed) districts were hard-deleted above WITH
+            // their membership rows — retire their district_subdivisions rows
+            // too (the deleteDistrict idiom), or each survives as a ghost:
+            // invisible on the map, but solid to the Art. II §8 overlap gate,
+            // which reads live subdivisions directly. The NOT EXISTS sweep is
+            // membership-blind on purpose: it also heals any PRE-EXISTING ghost
+            // at these scopes (a live subdivision none of whose memberships
+            // lead to a live district — e.g. one orphaned by an earlier clear
+            // that predates this retirement).
+            $ghostSweep = DB::table('district_subdivisions AS ds')
+                ->whereIn('ds.parent_jurisdiction_id', $scopeIds)
+                ->whereNull('ds.deleted_at')
+                ->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('legislature_district_jurisdictions AS ldj')
+                        ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
+                        ->whereColumn('ldj.subdivision_id', 'ds.id')
+                        ->whereNull('ld.deleted_at');
+                });
+            if ($mapId !== null) {
+                $ghostSweep->where('ds.map_id', $mapId);
+            }
+            $ghostSweep->update(['deleted_at' => now(), 'updated_at' => now()]);
+
             // For legislature_* scopes: explicitly delete all null-jurisdiction composites
             // in this map so they don't silently survive a "Clear — entire legislature" operation.
             if (str_starts_with($operationScope, 'legislature_')) {

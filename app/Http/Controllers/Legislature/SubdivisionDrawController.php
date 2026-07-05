@@ -445,23 +445,36 @@ class SubdivisionDrawController extends Controller
              ),
              shaved AS (
                  SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer((SELECT g FROM rem), -0.00000001)), 3) AS g
+             ),
+             -- A committed shape whose straight edges weave across the jagged
+             -- giant outline leaves hair-thin slivers along the shared border
+             -- when differenced — a real district piece is km²-scale. Classify
+             -- each dumped piece by geography area and keep only substantive
+             -- ones (>= 1 hectare); the shreds are counted, never returned.
+             pieces AS (
+                 SELECT (ST_Dump((SELECT g FROM shaved))).geom AS p
+             ),
+             classed AS (
+                 SELECT p, ST_Area(p::geography) AS area_m2 FROM pieces
              )
-             SELECT ST_IsEmpty(g)                        AS empty,
-                    ST_NumGeometries(ST_Multi(g))        AS parts,
-                    ST_AsGeoJSON(ST_Multi(g), 15)        AS gj
-               FROM shaved',
+             SELECT COUNT(*) FILTER (WHERE area_m2 >= 10000)  AS parts,
+                    COUNT(*) FILTER (WHERE area_m2 < 10000)   AS slivers_dropped,
+                    ST_AsGeoJSON(ST_Multi(ST_Union(p) FILTER (WHERE area_m2 >= 10000)), 15) AS gj
+               FROM classed',
             ['scope' => $scopeId, 'map' => $mapId, 'scope2' => $scopeId]
         );
 
-        if ($row === null || (bool) $row->empty || $row->gj === null) {
+        $parts   = $row === null ? 0 : (int) $row->parts;
+        $slivers = $row === null ? 0 : (int) $row->slivers_dropped;
+        if ($parts === 0 || $row->gj === null) {
             return response()->json([
                 'error' => 'Nothing remains to draw — the whole area is already districted.',
             ], 422);
         }
-        $parts = (int) $row->parts;
         if ($parts !== 1) {
             return response()->json([
                 'error' => "The remainder is split into {$parts} pieces — draw those separately.",
+                'slivers_dropped' => $slivers,
             ], 422);
         }
 
@@ -484,6 +497,7 @@ class SubdivisionDrawController extends Controller
             'implied_seats'            => $seats,
             'in_band'                  => $seats >= $ctx['floor'] && $seats <= $ctx['ceiling'],
             'remaining_seats'          => $ctx['budget'] - $drawnSeats,
+            'slivers_dropped'          => $slivers,
             'floor'                    => $ctx['floor'],
             'ceiling'                  => $ctx['ceiling'],
             'giant_seat_budget'        => $ctx['budget'],
@@ -706,30 +720,41 @@ class SubdivisionDrawController extends Controller
      */
     private function retireDrawnDistricts(string $legislatureId, string $scopeId, string $mapId): int
     {
-        $rows = DB::table('district_subdivisions AS ds')
-            ->join('legislature_district_jurisdictions AS ldj', 'ldj.subdivision_id', '=', 'ds.id')
-            ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
-            ->where('ds.map_id', $mapId)
-            ->where('ds.parent_jurisdiction_id', $scopeId)
-            ->whereNull('ds.deleted_at')
-            ->where('ld.legislature_id', $legislatureId)
-            ->whereNull('ld.deleted_at')
-            ->get(['ds.id AS subdivision_id', 'ld.id AS district_id']);
+        // Keyed off the SUBDIVISIONS — the exact basis the Art. II §8 overlap
+        // gate reads — never through live-district joins: a ghost subdivision
+        // whose district was already hard-deleted (the old Clear path) has no
+        // join row, and a replace that cannot reach it can never clear the
+        // gate. Each subdivision retires WITH its live district/memberships
+        // when they exist; a districtless ghost still retires.
+        $subdivisionIds = DB::table('district_subdivisions')
+            ->where('map_id', $mapId)
+            ->where('parent_jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->pluck('id')
+            ->all();
 
-        if ($rows->isEmpty()) {
+        if (empty($subdivisionIds)) {
             return 0;
         }
 
-        $districtIds    = $rows->pluck('district_id')->unique()->values()->all();
-        $subdivisionIds = $rows->pluck('subdivision_id')->unique()->values()->all();
+        $districtIds = DB::table('legislature_district_jurisdictions AS ldj')
+            ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
+            ->whereIn('ldj.subdivision_id', $subdivisionIds)
+            ->where('ld.legislature_id', $legislatureId)
+            ->whereNull('ld.deleted_at')
+            ->distinct()
+            ->pluck('ld.id')
+            ->all();
 
-        DB::table('legislature_district_jurisdictions')->whereIn('district_id', $districtIds)->delete();
-        DB::table('legislature_districts')->whereIn('id', $districtIds)
-            ->update(['deleted_at' => now(), 'updated_at' => now()]);
+        if (! empty($districtIds)) {
+            DB::table('legislature_district_jurisdictions')->whereIn('district_id', $districtIds)->delete();
+            DB::table('legislature_districts')->whereIn('id', $districtIds)
+                ->update(['deleted_at' => now(), 'updated_at' => now()]);
+        }
         DB::table('district_subdivisions')->whereIn('id', $subdivisionIds)
             ->update(['deleted_at' => now(), 'updated_at' => now()]);
 
-        return count($districtIds);
+        return count($subdivisionIds);
     }
 
     /**

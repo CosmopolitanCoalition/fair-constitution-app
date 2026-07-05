@@ -36,7 +36,15 @@ use Tests\TestCase;
  *     identity (a template swap between preview and commit fails closed);
  *     community_cells emits a deterministic in-band plan on the same contract;
  *  7. a GUEST cannot reach any mutating draw endpoint (auth-gated) — the
- *     null-actor system path is never rideable from outside.
+ *     null-actor system path is never rideable from outside;
+ *  8. NO GHOSTS through any door: mass-disband (the ✕ Clear button) retires
+ *     the drawn subdivisions with their districts, and replace retires a
+ *     subdivision even when its district was already hard-deleted — the
+ *     overlap gate, existing_districts, and replace all read the SAME live
+ *     subdivision basis;
+ *  9. the remainder probe drops de-minimis slivers (< 1 ha) left where a
+ *     committed edge hugs the jagged giant outline — one substantive piece
+ *     returns (slivers_dropped counted), never an 80-piece refusal.
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -319,6 +327,173 @@ class SubdivisionAutoseedTest extends TestCase
             $this->assertSame(2, (int) DB::table('district_subdivisions')
                 ->where('parent_jurisdiction_id', $ctx['giant_id'])
                 ->where('map_id', $ctx['map_id'])->whereNotNull('deleted_at')->count());
+        });
+    }
+
+    public function test_mass_disband_retires_the_drawn_subdivisions_and_frees_the_scope(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $preview = fn () => json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $commit = fn (array $p) => $controller->autoseedCommit($this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $p['plan_hash'],
+            ], $user), $ctx['legislature_id']);
+
+            $first = $commit($preview());
+            $this->assertSame(200, $first->getStatusCode(), $first->getContent());
+
+            // The ✕ Clear button — mass-disband at the giant scope. It
+            // hard-deletes the districts; the subdivisions must retire WITH
+            // them, or every later tool 422s on an invisible ghost.
+            $resp = app(\App\Http\Controllers\LegislatureController::class)->massDisband(
+                Request::create('/md', 'POST', [
+                    'operation_scope' => 'map_view_all',
+                    'scope_id'        => $ctx['giant_id'],
+                    'map_id'          => $ctx['map_id'],
+                ]),
+                $ctx['legislature_id']
+            );
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+
+            $live = fn () => (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count();
+            $this->assertSame(0, $live(), 'mass-disband retires the drawn subdivisions with their districts');
+
+            // The preview agrees with the (now clear) overlap gate.
+            $again = $preview();
+            $this->assertSame(0, $again['existing_districts'],
+                'after a Clear the plan reports nothing to displace');
+
+            // A fresh PLAIN commit succeeds — no Art. II §8 overlap 422, no
+            // early already-holds refusal.
+            $second = $commit($again);
+            $this->assertSame(200, $second->getStatusCode(), $second->getContent());
+            $this->assertSame(2, json_decode($second->getContent(), true)['districts_created']);
+            $this->assertSame(2, $live());
+        });
+    }
+
+    public function test_replace_retires_a_ghost_subdivision_whose_district_was_hard_deleted(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $preview = fn () => json_decode($controller->autoseedPreview(
+                Request::create('/a', 'POST', ['scope_id' => $ctx['giant_id'], 'map_id' => $ctx['map_id']]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            $body = fn (array $p, array $extra = []) => $this->authedRequest('/c', [
+                'scope_id'  => $ctx['giant_id'],
+                'map_id'    => $ctx['map_id'],
+                'plan_hash' => $p['plan_hash'],
+            ] + $extra, $user);
+
+            $first = $controller->autoseedCommit($body($preview()), $ctx['legislature_id']);
+            $this->assertSame(200, $first->getStatusCode(), $first->getContent());
+            $firstIds = json_decode($first->getContent(), true)['district_ids'];
+
+            // Manufacture the operator's ghost THE OLD WAY: hard-delete the
+            // district rows + memberships, leaving the live subdivisions with
+            // no district behind them (what the pre-fix Clear left behind).
+            DB::table('legislature_district_jurisdictions')->whereIn('district_id', $firstIds)->delete();
+            DB::table('legislature_districts')->whereIn('id', $firstIds)->delete();
+            $ghostIds = DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')
+                ->pluck('id');
+            $this->assertCount(2, $ghostIds, 'the ghosts are live subdivisions with no districts');
+
+            // The preview counts the ghosts — the SAME basis the overlap gate reads.
+            $again = $preview();
+            $this->assertSame(2, $again['existing_districts']);
+
+            // Accept & replace reaches the ghosts DIRECTLY through the
+            // subdivisions — no live-district join to fall through — so the
+            // commit succeeds and the ghosts retire.
+            $replace = $controller->autoseedCommit($body($again, ['replace' => true]), $ctx['legislature_id']);
+            $this->assertSame(200, $replace->getStatusCode(), $replace->getContent());
+            $data = json_decode($replace->getContent(), true);
+            $this->assertSame(2, $data['districts_created']);
+            $this->assertSame(2, $data['districts_replaced']);
+
+            foreach ($ghostIds as $gid) {
+                $this->assertNotNull(
+                    DB::table('district_subdivisions')->where('id', $gid)->value('deleted_at'),
+                    'a ghost subdivision is retired by the replace'
+                );
+            }
+            $this->assertSame(2, (int) DB::table('district_subdivisions')
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->where('map_id', $ctx['map_id'])->whereNull('deleted_at')->count());
+        });
+    }
+
+    public function test_remainder_drops_boundary_slivers_and_the_substantive_piece_commits(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(SubdivisionDrawController::class);
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
+            // A balanced vertical cut position, so both the drawn piece and the
+            // remainder land at 5 seats of the 10 budget.
+            $mid = ($ctx['xmin'] + $ctx['xmax']) / 2;
+            $balanced = json_decode($controller->splitBalance(Request::create('/b', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'line'     => ['type' => 'LineString', 'coordinates' => [[$mid, $ctx['ymin'] - 0.001], [$mid, $ctx['ymax'] + 0.001]]],
+            ]), $ctx['legislature_id'])->getContent(), true);
+            $this->assertTrue($balanced['both_in_band'] ?? false);
+            $xBal = $balanced['line']['coordinates'][0][0];
+
+            // The operator's snapped-polygon gesture: a straight-edged
+            // rectangle crossing the giant boundary (auto-clip legalises it —
+            // its clipped edge then hugs the jagged outline). The west edge
+            // sits 1e-4° (~8 m) inside the giant's west extreme, so the
+            // difference is GUARANTEED to strand a de-minimis lens there,
+            // exactly like the hair-thin border shreds the shave leaves.
+            $draw = $controller->draw($this->authedRequest('/dd', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'geojson'  => json_encode(['type' => 'Polygon', 'coordinates' => [[
+                    [$ctx['xmin'] + 0.0001, $ctx['ymin'] - 0.05],
+                    [$xBal,                 $ctx['ymin'] - 0.05],
+                    [$xBal,                 $ctx['ymax'] + 0.05],
+                    [$ctx['xmin'] + 0.0001, $ctx['ymax'] + 0.05],
+                    [$ctx['xmin'] + 0.0001, $ctx['ymin'] - 0.05],
+                ]]]),
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $draw->getStatusCode(), $draw->getContent());
+
+            // The remainder probe: ONE substantive piece, the shreds dropped
+            // and counted — never "split into 80 pieces" over slivers.
+            $resp = $controller->remainder(Request::create('/rm', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+            ]), $ctx['legislature_id']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+            $this->assertGreaterThan(0, $data['slivers_dropped'], 'the stranded lens is dropped, not returned');
+            $this->assertTrue($data['in_band'], json_encode($data));
+
+            $parts = DB::selectOne(
+                'SELECT ST_NumGeometries(ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?)))) AS parts',
+                [json_encode($data['geometry'])]
+            );
+            $this->assertSame(1, (int) $parts->parts, 'the returned remainder is a single polygon');
+
+            // And it COMMITS through the normal draw path — closing the scope.
+            $fill = $controller->draw($this->authedRequest('/dd', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'geojson'  => json_encode($data['geometry']),
+            ], $user), $ctx['legislature_id']);
+            $this->assertSame(200, $fill->getStatusCode(), $fill->getContent());
         });
     }
 

@@ -193,6 +193,22 @@ Five items from the operator's first hands-on session, built as slices 5e-5i:
    trimmed; plus a diagnosis pass on why vertex snapping didn't engage on the
    operator's rig (leaflet-draw private-API wrap).
 
+5e. **Fourth field round (operator, 2026-07-04 late — slices 5t-5v, the ghost's
+   other doors):** snapping confirmed working after 5s. (5t) the ✕ Clear button
+   (massDisband) hard-deletes districts but never touched district_subdivisions —
+   the SAME ghost deleteDistrict had, through a different door: the map looks
+   empty while every tool hits the overlap gate. Fix: massDisband retires
+   subdivisions + sweeps orphans (healing ghosts already minted). (5u) worse,
+   Accept & replace couldn't cure it either — retireDrawnDistricts reached
+   subdivisions THROUGH live district joins, unreachable for a ghost whose
+   district Clear already destroyed; the retirement (and existing_districts)
+   now key off live subdivisions directly, the same basis the overlap gate
+   reads. (5v) Fill remainder 422'd "split into 80 pieces": a snapped polygon's
+   straight edges weave across the giant's jagged outline, so giant−district =
+   one real remainder + ~79 hair-thin border slivers; the remainder now drops
+   de-minimis pieces (< 1 ha geography area) and returns the substantive one
+   (slivers_dropped reported).
+
 6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
    mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
    guard, but never subtree membership, and Earth passes the giant guard trivially —
