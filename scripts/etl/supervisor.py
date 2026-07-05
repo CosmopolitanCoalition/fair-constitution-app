@@ -254,6 +254,22 @@ def build_download_argv(options: dict) -> list[str]:
     return argv
 
 
+def _signal_group(proc, sig) -> None:
+    """Deliver `sig` to the child's whole PROCESS GROUP (the child is started
+    with start_new_session=True, so it leads its own group). Killing the group,
+    not just the direct pid, guarantees a streaming download — or any helper it
+    might ever spawn — actually dies rather than orphaning and continuing to pull
+    bytes after a halt. Falls back to the direct pid if the group is already gone.
+    """
+    try:
+        os.killpg(os.getpgid(proc.pid), sig)
+    except (ProcessLookupError, PermissionError):
+        try:
+            proc.send_signal(sig)
+        except (ProcessLookupError, ValueError):
+            pass
+
+
 def _supervise_child(proc, log_fh, phase_label: str, running_payload: dict):
     """Wait for `proc`, honoring the HALT / PAUSE / RESUME control files
     (SIGTERM / SIGSTOP / SIGCONT) and freezing/thawing the UI bar timers on
@@ -262,10 +278,13 @@ def _supervise_child(proc, log_fh, phase_label: str, running_payload: dict):
     Shared by BOTH the download and the seed phases so halt/pause work
     identically in each — a download is a long child too, and the operator must
     be able to stop it (e.g. a ~100 GB Protomaps pull) without waiting for it to
-    finish just to change the dataset selection.
+    finish just to change the dataset selection. Signals go to the process GROUP,
+    and an unresponsive child is SIGKILLed after a short grace so halt can never
+    leave a download running in the background.
     """
     halted = False
     paused = False
+    halted_at = None
     while True:
         try:
             exit_code = proc.wait(timeout=POLL_SECONDS)
@@ -273,24 +292,27 @@ def _supervise_child(proc, log_fh, phase_label: str, running_payload: dict):
         except subprocess.TimeoutExpired:
             pass
 
+        # Escalate a halt that didn't take: SIGTERM asked nicely; if the child is
+        # still alive a few seconds later, SIGKILL the group — no lingering pull.
+        if halted and halted_at is not None and (time.monotonic() - halted_at) > 6:
+            log_fh.write(f"[supervisor] {phase_label} still alive after SIGTERM — SIGKILL group pid={proc.pid}\n")
+            log_fh.flush()
+            _signal_group(proc, signal.SIGKILL)
+            halted_at = time.monotonic()  # re-arm; loop until wait() returns
+
         if HALT.exists():
             try:
                 HALT.unlink(missing_ok=True)
             except OSError:
                 pass
-            log_fh.write(f"[supervisor] halt requested — SIGTERM {phase_label} pid={proc.pid}\n")
+            log_fh.write(f"[supervisor] halt requested — SIGTERM {phase_label} group pid={proc.pid}\n")
             log_fh.flush()
             if paused:
-                try:
-                    os.kill(proc.pid, signal.SIGCONT)
-                except ProcessLookupError:
-                    pass
+                _signal_group(proc, signal.SIGCONT)
                 paused = False
-            try:
-                proc.terminate()
-            except ProcessLookupError:
-                pass
+            _signal_group(proc, signal.SIGTERM)
             halted = True
+            halted_at = time.monotonic()
             continue
 
         if PAUSE.exists() and not paused:
@@ -298,35 +320,29 @@ def _supervise_child(proc, log_fh, phase_label: str, running_payload: dict):
                 PAUSE.unlink(missing_ok=True)
             except OSError:
                 pass
-            try:
-                os.kill(proc.pid, signal.SIGSTOP)
-                paused = True
-                pause_ts = now_iso()
-                log_fh.write(f"[supervisor] paused {phase_label} pid={proc.pid} at {pause_ts}\n")
-                log_fh.flush()
-                running_payload["paused"]    = True
-                running_payload["paused_at"] = pause_ts
-                write_atomic(RUNNING, running_payload)
-                freeze_bar_timers(pause_ts)
-            except ProcessLookupError:
-                pass
+            _signal_group(proc, signal.SIGSTOP)
+            paused = True
+            pause_ts = now_iso()
+            log_fh.write(f"[supervisor] paused {phase_label} pid={proc.pid} at {pause_ts}\n")
+            log_fh.flush()
+            running_payload["paused"]    = True
+            running_payload["paused_at"] = pause_ts
+            write_atomic(RUNNING, running_payload)
+            freeze_bar_timers(pause_ts)
 
         if RESUME.exists() and paused:
             try:
                 RESUME.unlink(missing_ok=True)
             except OSError:
                 pass
-            try:
-                os.kill(proc.pid, signal.SIGCONT)
-                paused = False
-                log_fh.write(f"[supervisor] resumed {phase_label} pid={proc.pid}\n")
-                log_fh.flush()
-                running_payload["paused"] = False
-                running_payload.pop("paused_at", None)
-                write_atomic(RUNNING, running_payload)
-                thaw_bar_timers()
-            except ProcessLookupError:
-                pass
+            _signal_group(proc, signal.SIGCONT)
+            paused = False
+            log_fh.write(f"[supervisor] resumed {phase_label} pid={proc.pid}\n")
+            log_fh.flush()
+            running_payload["paused"] = False
+            running_payload.pop("paused_at", None)
+            write_atomic(RUNNING, running_payload)
+            thaw_bar_timers()
 
     return exit_code, halted
 
@@ -351,6 +367,7 @@ def run_download_step(request_payload: dict, log_fh):
         stdout=log_fh,
         stderr=subprocess.STDOUT,
         cwd="/etl",
+        start_new_session=True,   # own process group → halt can SIGTERM/KILL the whole group
     )
     running_payload = {
         "pid":        proc.pid,
@@ -457,6 +474,7 @@ def run_job(request_payload: dict) -> int:
         stdout=log_fh,
         stderr=subprocess.STDOUT,
         cwd="/etl",
+        start_new_session=True,   # own process group → halt can SIGTERM/KILL the whole group
     )
 
     running_payload = {
