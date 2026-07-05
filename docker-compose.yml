@@ -303,7 +303,13 @@ services:
     image: redis:7.4-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    # maxmemory + LRU: the map GeoJSON cache (rememberForever, no TTL) once
+    # bloated the RDB past 1.2 GB — every Redis restart then BLOCKED all
+    # requests for 10-30 s+ while it reloaded ("RedisException: LOADING"),
+    # which reads as random mapper hangs/499s. Bounding memory keeps the
+    # reload window sub-second; allkeys-lru evicts the coldest regenerable
+    # cache entries first.
+    command: redis-server --appendonly yes --maxmemory 768mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data                   # persists cache/queue data
     networks:
