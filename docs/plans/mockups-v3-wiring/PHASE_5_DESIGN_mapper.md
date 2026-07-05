@@ -209,6 +209,29 @@ Five items from the operator's first hands-on session, built as slices 5e-5i:
    de-minimis pieces (< 1 ha geography area) and returns the substantive one
    (slivers_dropped reported).
 
+5f. **Fifth field round (operator, 2026-07-05 — slices 5w-5y + the STEP-BACK ruling):**
+   (5w) composite create "stuck until refresh": nginx shows 499s (client closed —
+   the refresh — while the server finished); the endpoint itself replays at 0.66 s,
+   so the hang was the documented Redis-RDB-reload blocking window. Redis is now
+   BOUNDED in compose (maxmemory 768mb + allkeys-lru — the reload window goes
+   sub-second) and the create/assign fetches carry the same 60 s timeout + honest
+   message the autoseed paths have. (5x) DRAFT-MINT INSANITY: the drawer's
+   "+ Draft & draw"/Accept-fallback/wizard-leaf paths silently created NEW draft
+   maps whenever the selection wasn't a draft, and in-page navigation dropped the
+   ?map= param back to the active map — a junk-draft factory. Drawer-side minting
+   is dead (the map controls' [+] is THE creation point); map selection is sticky
+   across drill/step/breadcrumb navigation. (5y) THE STEP-BACK RULING (see memory
+   project_setup_sequence_and_game_modes): the mapper has TWO constitutional
+   contexts — Initial Setup by the founder (NO board requirements: no government
+   exists yet; map v1) vs ongoing drafting (map v2+: board roles, and activation
+   happens by approval + a voting round). Implemented as the SETUP-CONTEXT rule:
+   while a jurisdiction has no HUMAN-seated active election board, an is_operator
+   actor files F-ELB-008 without R-08/provenance; the first human-seated board
+   flips the jurisdiction to the governed context permanently. Dev-mode exceptions
+   are FORBIDDEN as a mechanism (operator: "psychotic") — the future SANDBOX game
+   mode, chosen at setup, is the sanctioned everything-bypass. After districting
+   settles: blow ALL containers, fresh from GitHub, run setup→sandbox, unify.
+
 6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
    mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
    guard, but never subtree membership, and Earth passes the giant guard trivially —

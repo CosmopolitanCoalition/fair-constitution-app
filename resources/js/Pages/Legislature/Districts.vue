@@ -801,18 +801,19 @@
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    <button v-if="drawTargetIsDraft"
-                                            class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                                            :disabled="!canDraw"
+                                    <button class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="!canDraw || !drawTargetIsDraft"
                                             @click="enterDrawMode">✏️ Draw</button>
-                                    <button v-else
-                                            class="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                                            :disabled="creatingMap || !canDraw"
-                                            @click="createDraftHere()">{{ creatingMap ? 'Creating…' : '+ Draft & draw' }}</button>
                                 </div>
                             </div>
-                            <!-- Template picker + Propose — preview is read-only, so it stays
-                                 usable even when can_draw locks the mutating controls. -->
+                            <!-- Drawing NEVER mints a plan from this panel — draft creation lives
+                                 only at the map controls (operator ruling: no silent drafts). -->
+                            <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
+                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
+                            </div>
+                            <!-- Template picker + Propose — preview is read-only, so can_draw never
+                                 locks it, but it targets the SELECTED plan: disabled until that plan
+                                 is a draft (this panel never mints one on the operator's behalf). -->
                             <div class="flex items-center gap-1.5 mt-1.5">
                                 <select v-model="autoseedTemplate"
                                         title="Autoseed template"
@@ -822,7 +823,7 @@
                                     </option>
                                 </select>
                                 <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 shrink-0"
-                                        :disabled="autoseedBusy"
+                                        :disabled="autoseedBusy || !drawTargetIsDraft"
                                         @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Propose' }}</button>
                             </div>
                             <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
@@ -867,21 +868,21 @@
                                 Accepting retires the {{ autoseedPlan.existing_districts }} existing drawn district{{ autoseedPlan.existing_districts === 1 ? '' : 's' }} at this scope.
                             </div>
                             <div class="flex items-center gap-2 mt-1.5">
-                                <button v-if="drawTargetIsDraft"
-                                        class="flex-1 px-2 py-1 rounded text-white"
-                                        :class="(autoseedCommitBusy || !canDraw) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
-                                        :disabled="autoseedCommitBusy || !canDraw"
+                                <button class="flex-1 px-2 py-1 rounded text-white"
+                                        :class="(autoseedCommitBusy || !canDraw || !drawTargetIsDraft) ? 'bg-gray-700 cursor-not-allowed opacity-70' : 'bg-emerald-600 hover:bg-emerald-500'"
+                                        :disabled="autoseedCommitBusy || !canDraw || !drawTargetIsDraft"
                                         @click="acceptAutoseedPlan({ replace: (autoseedPlan.existing_districts ?? 0) > 0 })">{{
                                             autoseedCommitBusy ? 'Committing…'
                                             : (autoseedPlan.existing_districts ?? 0) > 0 ? `Accept & replace ${autoseedPlan.existing_districts}`
                                             : 'Accept plan' }}</button>
-                                <button v-else
-                                        class="flex-1 px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                                        :disabled="creatingMap || !canDraw"
-                                        @click="createDraftHere()">{{ creatingMap ? 'Creating…' : '+ Draft plan to accept' }}</button>
                                 <button class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60"
                                         :disabled="autoseedCommitBusy"
                                         @click="discardAutoseedPlan">Discard</button>
+                            </div>
+                            <!-- Accept commits into the SELECTED plan — never a freshly minted one
+                                 (operator ruling: draft creation lives at the map controls only). -->
+                            <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
+                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
                             </div>
                             <div v-if="autoseedError || drawError" class="text-red-400 mt-1">{{ autoseedError || drawError }}</div>
                         </template>
@@ -2088,7 +2089,8 @@ const showMobileDrawBar = computed(() => drawMode.value && isPortraitPhone.value
 
 // Autoseed-lines (Phase 5b) — a whole-plan preview from the splitline autoseeder,
 // rendered as a translucent proposal overlay until accepted (commit by plan_hash)
-// or discarded. Preview needs no draft; Accept reuses the drawTargetIsDraft guard.
+// or discarded. Propose AND Accept are gated on drawTargetIsDraft: the panel
+// never mints a draft, so proposing against a non-draft plan is a dead end.
 const autoseedPlan       = ref(null)   // { plan_hash, template, seat_sizes, quota, total_pop, cuts, seeds?, districts }
 const autoseedBusy       = ref(false)  // preview POST in-flight
 const autoseedCommitBusy = ref(false)  // commit POST in-flight
@@ -2169,7 +2171,10 @@ function startMassStatusPolling() {
     elapsedTimer = setInterval(updateElapsed, 1000)
     massStatusTimer = setInterval(async () => {
         try {
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            // Per-poll timeout — a hung fetch piles up silently; fail the tick
+            // and let the next interval retry instead.
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+                { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) {
                 massProgress.value = data.mass_progress
@@ -3285,8 +3290,19 @@ function slugForScope(scopeId) {
 // jurisdiction slug); scope uses the target's slug when known. Root scope omits
 // ?scope entirely for the clean canonical form. Preserves map + setup params so
 // wizard mode (?setup=1) and a non-active map survive drill-down navigation.
+//
+// STICKY MAP SELECTION: every in-page navigation (drillTo, wizard steps,
+// breadcrumbs, drill arrows, post-mutation reloads) funnels through here. An
+// explicit mapId wins; otherwise stay on the map this page is displaying
+// (props.active_map echoes the server's resolution of ?map=); as a last
+// resort re-read ?map= straight off the URL (covers a momentarily null/stale
+// active_map prop, e.g. mid partial-reload). Dropping the param would make
+// the server fall back to the ACTIVE map — the silent map-switch that caused
+// the draft re-mint loop. Only confirmDeleteMap intentionally drops it (the
+// displayed map itself was deleted), via a hand-built URL, not this helper.
 function mapUrl(scopeId, mapId) {
-    const mid     = mapId !== undefined ? mapId : props.active_map?.id
+    const urlMap  = new URLSearchParams(window.location.search).get('map')
+    const mid     = mapId !== undefined ? mapId : (props.active_map?.id ?? urlMap)
     const legPath = props.legislature.slug ?? props.legislature.id
     const isRoot  = scopeId === props.legislature.root_jurisdiction_id
     const q = []
@@ -3319,6 +3335,7 @@ async function submitNewMap() {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body:    JSON.stringify({ name }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) {
@@ -3337,7 +3354,9 @@ async function submitNewMap() {
         try {
             const stepsUrl = `/api/legislatures/${props.legislature.id}/wizard-steps`
                            + `?scope_id=${rootScopeId}&map_id=${data.id}`
-            const stepsData = await fetch(stepsUrl).then(r => r.json())
+            // Timeout: the map already exists at this point — a hung prefetch
+            // must not wedge the "Creating…" chip; fall back to root instead.
+            const stepsData = await fetch(stepsUrl, { signal: AbortSignal.timeout(15_000) }).then(r => r.json())
             if (stepsData.steps?.length > 0) {
                 firstStepScopeId = stepsData.steps[0].scope_id
             }
@@ -3351,7 +3370,9 @@ async function submitNewMap() {
         router.visit(mapUrl(firstStepScopeId, data.id))
     } catch (e) {
         console.error('createMap:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
         creatingMap.value = false
     }
 }
@@ -3815,8 +3836,8 @@ async function runWizardAutoActions() {
     if (wizardAutoSeed.value && !wasAlreadyComplete) {
         if (isLeafGiantScope.value) {
             // Childless leaf: nothing to compose — propose + accept the lines
-            // plan instead (its own reload/repaint path). May router.visit()
-            // for a draft; the remount resumes via justStepped either way.
+            // plan instead (its own reload/repaint path). On a non-draft map
+            // it reports an error and stays put — it never mints a draft.
             await runLeafAutoseed()
         } else {
             await runMassReseed('map_view_unassigned', null, /* silent */ true)
@@ -4158,7 +4179,7 @@ const drawCommitReady = computed(() =>
 async function commitDraw() {
     if (!_drawnLayer || !drawCommitReady.value || drawBusy.value || !canDraw.value) return
     if (!drawTargetIsDraft.value) {
-        drawError.value = 'Select or create a DRAFT plan to draw into.'
+        drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'
         return
     }
     drawBusy.value = true
@@ -4169,6 +4190,7 @@ async function commitDraw() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, geojson: geom }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4409,7 +4431,7 @@ async function snapToBalance() {
 
 async function commitSplit() {
     if (_splitPts.length !== 2 || !splitCommitReady.value || drawBusy.value || snapBusy.value || !canDraw.value) return
-    if (!drawTargetIsDraft.value) { drawError.value = 'Create a draft plan to draw into.'; return }
+    if (!drawTargetIsDraft.value) { drawError.value = 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
     drawBusy.value = true
     drawError.value = ''
     try {
@@ -4418,6 +4440,7 @@ async function commitSplit() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, line }),
+            signal: AbortSignal.timeout(60_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4436,33 +4459,9 @@ async function commitSplit() {
     }
 }
 
-// Create a draft plan and stay on THIS scope (so the operator can draw straight
-// away), rather than submitNewMap()'s jump to the auto-seed wizard.
-// resumeWizard: router.visit() remounts and DROPS the wizard auto-action chain;
-// re-arm justStepped right before the visit so the remount resumes it (the
-// stepper's leaf branch relies on this to continue after the draft appears).
-// Template call sites must use createDraftHere() — a bare handler would pass
-// the MouseEvent as resumeWizard.
-async function createDraftHere(resumeWizard = false) {
-    if (creatingMap.value) return
-    creatingMap.value = true
-    drawError.value = ''
-    try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
-            body:    JSON.stringify({ name: 'Manual draft' }),
-        })
-        const data = await resp.json()
-        if (!resp.ok) { drawError.value = data.error ?? 'Failed to create a draft plan.'; return }
-        if (resumeWizard) localStorage.setItem(_wizardLs.justStepped, '1')
-        router.visit(mapUrl(props.scope.id, data.id))   // reload this scope with the draft selected
-    } catch (e) {
-        drawError.value = 'Network error creating the draft plan.'
-    } finally {
-        creatingMap.value = false
-    }
-}
+// NOTE (operator ruling): the drawer NEVER creates maps. Draft creation lives
+// only at the map controls — the [+] beside the MAP selector (submitNewMap).
+// The old createDraftHere() silent-minting affordance was removed.
 
 // ── Autoseed-lines proposal (Phase 5b) ───────────────────────────────────────
 const autoseedSeatTotal = computed(() =>
@@ -4556,7 +4555,7 @@ function discardAutoseedPlan() {
 // reported existing_districts > 0, the stepper only on partial rework.
 async function acceptAutoseedPlan({ replace = false } = {}) {
     if (!autoseedPlan.value || autoseedCommitBusy.value || !canDraw.value) return
-    if (!drawTargetIsDraft.value) { autoseedError.value = 'Create a draft plan to accept into.'; return }
+    if (!drawTargetIsDraft.value) { autoseedError.value = 'Accepting edits a draft plan — pick or create one with the [+] beside the MAP selector.'; return }
     autoseedCommitBusy.value = true
     autoseedError.value = ''
     try {
@@ -4594,8 +4593,9 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
 
 // Wizard-stepper leaf branch: a childless leaf giant has nothing to compose,
 // so its auto-seed is the lines autoseeder — propose with the persisted
-// template, then accept in one pass. May navigate away (draft creation
-// remounts with justStepped re-armed) and resume on the next mount.
+// template, then accept in one pass. Requires the SELECTED map to already be
+// a draft: it never creates one and never navigates (draft creation lives at
+// the map controls only — operator ruling: no silent drafts).
 async function runLeafAutoseed() {
     if (autoseedBusy.value || autoseedCommitBusy.value || autoseedPlan.value) return
     // Never fire on a complete leaf — mirrors the caller's wasAlreadyComplete
@@ -4606,9 +4606,10 @@ async function runLeafAutoseed() {
         return
     }
     if (!drawTargetIsDraft.value) {
-        // The accept endpoint refuses a non-draft target — create one and let
-        // the remount (justStepped set before the visit) re-enter this path.
-        await createDraftHere(true)
+        // The accept endpoint refuses a non-draft target. Do NOT mint a draft
+        // here — report and stay put; the operator picks or creates one via
+        // the [+] beside the MAP selector.
+        showStatus('error', 'Autoseed skipped — the selected map is not a draft. Pick or create one with the [+] beside the MAP selector.')
         return
     }
     await previewAutoseedLines()
@@ -4647,7 +4648,8 @@ async function undoLastCommit() {
             const id   = entry.ids[entry.ids.length - 1]
             const resp = await fetch(
                 `/api/legislatures/${props.legislature.id}/districts/${id}`,
-                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+                  signal: AbortSignal.timeout(60_000) }
             )
             if (!resp.ok) {
                 const err = await resp.json().catch(() => ({}))
@@ -4664,7 +4666,9 @@ async function undoLastCommit() {
         router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
     } catch (e) {
         console.error('undoLastCommit:', e)
-        showStatus('error', 'Network error during undo')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error during undo')
     } finally {
         undoBusy.value = false
     }
@@ -4684,6 +4688,9 @@ async function createDistrictFromPending() {
                 label_scope_id:  effectiveScopeId.value, // first child of root (naming)
                 map_id:          props.active_map?.id ?? null,
             }),
+            // A fetch has NO default timeout — a server hiccup (e.g. Redis
+            // reload) would wedge the "Creating…" chip forever. Degrade honestly.
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Failed to create district'); return }
@@ -4744,7 +4751,9 @@ async function createDistrictFromPending() {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('createDistrict:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         savingEdit.value = false
     }
@@ -4764,6 +4773,7 @@ async function saveDistrictEdit(districtId) {
                 method:  'PATCH',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
                 body:    JSON.stringify({ add, remove, label_scope_id: effectiveScopeId.value, map_id: props.active_map?.id ?? null }),
+                signal:  AbortSignal.timeout(60_000),
             }
         )
         const data = await resp.json()
@@ -4821,7 +4831,9 @@ async function saveDistrictEdit(districtId) {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('saveDistrictEdit:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         savingEdit.value = false
     }
@@ -4831,7 +4843,8 @@ async function deleteDistrict(districtId) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/districts/${districtId}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+              signal: AbortSignal.timeout(60_000) }
         )
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
@@ -4861,7 +4874,9 @@ async function deleteDistrict(districtId) {
         router.reload({ only: ['flags', 'stats'] })
     } catch (e) {
         console.error('deleteDistrict:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     }
 }
 
@@ -4876,7 +4891,8 @@ async function deleteDrawnDistrict(d) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/districts/${d.id}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+              signal: AbortSignal.timeout(60_000) }
         )
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4888,7 +4904,9 @@ async function deleteDrawnDistrict(d) {
         router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
     } catch (e) {
         console.error('deleteDrawnDistrict:', e)
-        showStatus('error', 'Network error')
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         deletingDrawnId.value = null
     }
@@ -4925,7 +4943,11 @@ function runMassTool() {
 async function waitForMassJob({ pollMs = 2500 } = {}) {
     while (true) {
         try {
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`)
+            // Per-poll timeout: a hung status fetch would wedge this awaited
+            // loop (and the wizard's busy chip) forever — time out and let the
+            // catch below fall through to the next poll instead.
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+                { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) massProgress.value = data.mass_progress
             if (!data.running) {
@@ -4953,6 +4975,7 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
                 scope_id: overrideScopeId ?? props.scope.id,
                 map_id:   props.active_map?.id ?? null,
             }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
@@ -4979,7 +5002,11 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
         showStatus('success', 'Auto-seed complete')
     } catch (e) {
         console.error('massReseed:', e)
-        showStatus('error', 'Network error')
+        // Timeout ≠ failure: the job may still have been dispatched — the
+        // mass-status poller (manual path) keeps tracking and reloads honestly.
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         massToolRunning.value = false
     }
@@ -4995,6 +5022,7 @@ async function runMassDisband(scope) {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
             body:    JSON.stringify({ operation_scope: scope, scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
+            signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Clear failed'); return }
@@ -5006,7 +5034,11 @@ async function runMassDisband(scope) {
         router.visit(mapUrl(props.scope.id))
     } catch (e) {
         console.error('massDisband:', e)
-        showStatus('error', 'Network error')
+        // Timeout ≠ failure: the clear may still have landed — the mass-status
+        // poller keeps running and reloads to the honest current state.
+        showStatus('error', e?.name === 'TimeoutError'
+            ? 'Timed out — the server may be busy; refresh to see the current state.'
+            : 'Network error')
     } finally {
         massToolRunning.value = false
     }
