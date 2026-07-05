@@ -52,32 +52,34 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
         }
 
-        $geo = DB::selectOne(
-            'WITH d AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(?)) AS g),
-                  gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = ?)
-             SELECT ST_NumGeometries(ST_Multi((SELECT g FROM d))) AS parts,
-                    ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi)) AS within,
-                    ST_IsEmpty((SELECT g FROM d)) AS empty',
-            [$geoJson, $scopeId]
-        );
-
-        if ($geo === null || (bool) $geo->empty) {
-            return response()->json(['error' => 'The drawn polygon is empty or invalid'], 422);
+        // Auto-clip: the operator's real gesture is a big rectangle dragged
+        // across the giant's boundary — trim it to the giant BEFORE measuring
+        // so the readout prices the shape that would actually file, instead of
+        // refusing with ✗outside. Fully-inside draws pass through untouched.
+        $clip = $this->clipToGiant($scopeId, $geoJson);
+        if (isset($clip['error'])) {
+            return response()->json(['error' => $clip['error']], 422);
         }
 
-        $pop        = $this->raster->populationWithinMulti($geoJson, $year);
+        $pop        = $this->raster->populationWithinMulti($clip['geojson'], $year);
         $fractional = $this->raster->impliedSeats($pop, $ctx['quota']);
         $seats      = (int) round($fractional);
-        $contiguous = (int) $geo->parts === 1;
-        $within     = (bool) $geo->within;
 
         return response()->json([
             'population'              => $pop,
             'implied_fractional_seats'=> round($fractional, 3),
             'implied_seats'           => $seats,
             'in_band'                 => $seats >= $ctx['floor'] && $seats <= $ctx['ceiling'],
-            'contiguous'              => $contiguous,
-            'within_giant'            => $within,
+            'contiguous'              => $clip['parts'] === 1,
+            // Compatibility key: kept for older clients, but the clip makes it
+            // always-true on a 200 — a crossing draw is trimmed, a fully
+            // outside draw 422s above.
+            'within_giant'            => true,
+            // Whether the clip actually trimmed anything, plus the measured
+            // geometry — ALWAYS echoed so the client can redraw its pending
+            // layer as the shape that would really file.
+            'clipped'                 => $clip['clipped'],
+            'geometry'                => json_decode($clip['geojson']),
             'floor'                   => $ctx['floor'],
             'ceiling'                 => $ctx['ceiling'],
             'giant_seat_budget'       => $ctx['budget'],
@@ -98,13 +100,26 @@ class SubdivisionDrawController extends Controller
         $jurisdictionId = (string) DB::table('legislatures')
             ->where('id', $legislature_id)->value('jurisdiction_id');
 
+        // Clip exactly like probe() does before filing: the handler's exact
+        // ST_CoveredBy proof then passes BY CONSTRUCTION — the same reason the
+        // autoseed leaves are pre-clipped. The operator's label passes through
+        // unchanged; a fully-inside draw files byte-identical (never clipped).
+        $geoJson = $validated['geojson'];
+        if (is_array($geoJson)) {
+            $geoJson = json_encode($geoJson);
+        }
+        $clip = $this->clipToGiant($validated['scope_id'], (string) $geoJson);
+        if (isset($clip['error'])) {
+            return response()->json(['error' => $clip['error']], 422);
+        }
+
         try {
             $result = $this->engine->file('F-ELB-008', $request->user(), [
                 'legislature_id'  => $legislature_id,
                 'jurisdiction_id' => $jurisdictionId,
                 'scope_id'        => $validated['scope_id'],
                 'map_id'          => $validated['map_id'],
-                'geojson'         => $validated['geojson'],
+                'geojson'         => $clip['geojson'],
                 'label'           => $validated['label'] ?? null,
             ]);
         } catch (ConstitutionalViolation $e) {
@@ -715,6 +730,64 @@ class SubdivisionDrawController extends Controller
             ->update(['deleted_at' => now(), 'updated_at' => now()]);
 
         return count($districtIds);
+    }
+
+    /**
+     * Clip a drawn polygon to its giant — but ONLY when it actually crosses the
+     * boundary. A fully-inside draw passes through byte-identical, so the
+     * proven behavior of interior draws (probe measurement, the handler's
+     * exact ST_CoveredBy proof) never shifts by a re-serialization.
+     *
+     * The clip itself is the proven leaf posture: extract the polygonal part
+     * of the intersection, then shave 1e-8° (~1 mm) inward so the decimal-
+     * GeoJSON round trip through F-ELB-008's exact ST_CoveredBy gate can never
+     * nudge a shared boundary vertex outside — the same epsilon defense the
+     * autoseed leaves and splitSidesByLine carry.
+     *
+     * @return array{geojson:string, clipped:bool, parts:int}|array{error:string}
+     *         geojson = the shape to measure/file (original when untrimmed).
+     */
+    private function clipToGiant(string $scopeId, string $geoJson): array
+    {
+        $row = DB::selectOne(
+            'WITH d AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+                  gi AS (SELECT ST_MakeValid(geom) AS g
+                           FROM jurisdictions
+                          WHERE id = :scope AND geom IS NOT NULL AND deleted_at IS NULL),
+                  clip AS (
+                      SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                 ST_CollectionExtract(
+                                     ST_Intersection((SELECT g FROM d), (SELECT g FROM gi)), 3),
+                                 -0.00000001)), 3) AS g
+                  )
+             SELECT ST_IsEmpty((SELECT g FROM d))                              AS src_empty,
+                    ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS src_parts,
+                    (SELECT COUNT(*) FROM gi)                                  AS has_giant,
+                    COALESCE(ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi)), false) AS within,
+                    COALESCE(ST_IsEmpty((SELECT g FROM clip)), true)           AS clip_empty,
+                    ST_NumGeometries(ST_Multi((SELECT g FROM clip)))           AS clip_parts,
+                    ST_AsGeoJSON(ST_Multi((SELECT g FROM clip)), 15)           AS clip_gj,
+                    (SELECT name FROM jurisdictions WHERE id = :scope2)        AS giant_name',
+            ['gj' => $geoJson, 'scope' => $scopeId, 'scope2' => $scopeId]
+        );
+
+        if ($row === null || (bool) $row->src_empty) {
+            return ['error' => 'The drawn polygon is empty or invalid'];
+        }
+        if ((int) $row->has_giant === 0 || (bool) $row->within) {
+            // No boundary to clip against (the engine will cite the unknown
+            // jurisdiction) or already inside — pass the original through.
+            return ['geojson' => $geoJson, 'clipped' => false, 'parts' => (int) $row->src_parts];
+        }
+        $name = (string) ($row->giant_name ?? 'the target jurisdiction');
+        if ((bool) $row->clip_empty) {
+            return ['error' => "The polygon lies entirely outside {$name}."];
+        }
+        if ((int) $row->clip_parts !== 1) {
+            return ['error' => "Clipping to the boundary splits your polygon into {$row->clip_parts} pieces — draw inside."];
+        }
+
+        return ['geojson' => (string) $row->clip_gj, 'clipped' => true, 'parts' => 1];
     }
 
     /**

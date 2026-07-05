@@ -321,7 +321,249 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_drawn_districts_list_at_the_ancestor_scope_without_double_counting(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $drawn = $this->commitBalancedDiagonalSplit($ctx);
+
+            // The ANCESTOR scope (the San Marino root) lists the drawn rows —
+            // the reveal layer already painted them there (Branches 4/5); the
+            // sidebar list must carry the same districts.
+            $props = $this->districtsPageProps($ctx);
+
+            $rows = array_values(array_filter(
+                $props['districts'],
+                fn ($d) => ($d['method'] ?? null) === 'drawn'
+            ));
+            $this->assertCount(2, $rows, 'both drawn districts list at the root scope');
+            foreach ($rows as $d) {
+                $this->assertSame('Serravalle', $d['scope_name']);
+                $this->assertNotEmpty($d['label']);
+                $this->assertNotEmpty($d['subdivision_id']);
+                $this->assertArrayHasKey('color_index', $d);
+                $this->assertArrayHasKey('deviation_pct', $d);
+                $this->assertArrayHasKey('fractional_seats', $d, 'every composite row key is present');
+            }
+
+            // Counters stay honest: the giant's child row ALREADY carries the
+            // drawn seats (child_committed subdivision branch) — the new list
+            // rows must never add them a second time anywhere.
+            $drawnSeats = array_sum(array_column($rows, 'seats'));
+            $this->assertSame(count($drawn['district_ids']), count($rows));
+            $giantRow = collect($props['children'])->firstWhere('id', $ctx['giant_id']);
+            $this->assertNotNull($giantRow, 'Serravalle appears as a child at the root scope');
+            $this->assertSame($drawnSeats, $giantRow['drawn_seats']);
+            $this->assertSame($drawnSeats, $giantRow['child_assigned_seats']);
+            if (($props['flags']['cap'] ?? null) !== null) {
+                $this->assertSame($drawnSeats, $props['flags']['cap']['total'],
+                    'the cap flag counts each drawn seat exactly once');
+            }
+        });
+    }
+
+    public function test_drawn_siblings_and_their_touching_composite_neighbor_color_pairwise_distinctly(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $drawn = $this->commitBalancedDiagonalSplit($ctx);
+
+            // A composite neighbor TOUCHING BOTH drawn pieces, resolved from
+            // live geometry (San Marino's castelli are small — the giant's
+            // southern neighbors usually span both sides of a diagonal cut).
+            $neighbor = DB::selectOne('
+                SELECT j.id, j.population
+                  FROM jurisdictions j
+                 WHERE j.parent_id = ?
+                   AND j.id <> ?
+                   AND j.deleted_at IS NULL
+                   AND j.geom IS NOT NULL
+                   AND NOT EXISTS (
+                       SELECT 1 FROM district_subdivisions ds
+                        WHERE ds.map_id = ?
+                          AND ds.parent_jurisdiction_id = ?
+                          AND ds.deleted_at IS NULL
+                          AND NOT ST_DWithin(ds.geom, j.geom, 0.000001)
+                   )
+                 LIMIT 1
+            ', [$ctx['leg_jurisdiction_id'], $ctx['giant_id'], $ctx['map_id'], $ctx['giant_id']]);
+            if ($neighbor === null) {
+                $this->markTestSkipped('No castello touches both drawn pieces under this cut — geometry-dependent pin.');
+            }
+
+            $compositeId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id'                => $compositeId,
+                'legislature_id'    => $ctx['legislature_id'],
+                'map_id'            => $ctx['map_id'],
+                'jurisdiction_id'   => $ctx['leg_jurisdiction_id'],
+                'district_number'   => 99,
+                'seats'             => 5,
+                'target_population' => (int) $neighbor->population,
+                'actual_population' => (int) $neighbor->population,
+                'fractional_seats'  => 5.0,
+                'floor_override'    => false,
+                'status'            => 'active',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id'              => (string) Str::uuid(),
+                'district_id'     => $compositeId,
+                'jurisdiction_id' => $neighbor->id,
+            ]);
+
+            // Colors recompute on the next read (the split-commit flushed the
+            // revealed tag and nothing has re-primed it since).
+            $props = $this->districtsPageProps($ctx);
+            $byId  = collect($props['districts'])->keyBy('id');
+
+            $colors = [];
+            foreach ([...$drawn['district_ids'], $compositeId] as $did) {
+                $this->assertTrue($byId->has($did), "district {$did} lists at the root scope");
+                $colors[$did] = $byId[$did]['color_index'];
+            }
+            $this->assertCount(3, array_unique($colors),
+                'two drawn siblings + their touching composite neighbor wear pairwise-distinct colors');
+
+            // One source of truth: revealedGeoJson paints the SAME color the
+            // sidebar row carries.
+            $fc = json_decode(app(\App\Http\Controllers\LegislatureController::class)->revealedGeoJson(
+                \Illuminate\Http\Request::create('/r', 'GET', [
+                    'scope' => $ctx['leg_jurisdiction_id'],
+                    'map'   => $ctx['map_id'],
+                    'zoom'  => 12,
+                ]),
+                $ctx['legislature_id']
+            )->getContent(), true);
+            foreach ($fc['features'] as $f) {
+                $did = $f['properties']['district_id'] ?? null;
+                if ($did !== null && isset($colors[$did])) {
+                    $this->assertSame($colors[$did], $f['properties']['color_index'],
+                        'map fill and sidebar dot read the same color map');
+                }
+            }
+        });
+    }
+
+    public function test_probe_and_draw_auto_clip_an_over_the_boundary_rectangle(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+            $probe = function (string $geojson) use ($controller, $ctx) {
+                return $controller->probe(
+                    \Illuminate\Http\Request::create('/pp', 'POST', [
+                        'scope_id' => $ctx['giant_id'],
+                        'geojson'  => $geojson,
+                    ]),
+                    $ctx['legislature_id']
+                );
+            };
+
+            // Reference: the pre-clipped western 60% — never trimmed.
+            $refResp = $probe($ctx['inband_geojson']);
+            $this->assertSame(200, $refResp->getStatusCode(), $refResp->getContent());
+            $reference = json_decode($refResp->getContent(), true);
+            $this->assertFalse($reference['clipped'], 'a fully-inside shape passes through untrimmed');
+            $this->assertNotNull($reference['geometry'], 'the measured geometry is always echoed');
+
+            // The raw over-the-boundary rectangle probes to the SAME region:
+            // clipped, echoed, measured — never refused with ✗outside.
+            $resp = $probe($ctx['overdraw_geojson']);
+            $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+            $data = json_decode($resp->getContent(), true);
+            $this->assertTrue($data['clipped'], 'the crossing rectangle is trimmed, not refused');
+            $this->assertTrue($data['within_giant'], 'the compatibility key holds on every 200');
+            $this->assertNotNull($data['geometry'], 'the clipped geometry is echoed for the pending layer');
+            $this->assertEqualsWithDelta($reference['population'], $data['population'],
+                max(1, $reference['population'] * 0.02),
+                'the readout prices the clipped shape, not the raw rectangle');
+
+            // The SAME raw rectangle COMMITS through draw() — clipped before
+            // filing, so the handler's exact CoveredBy proof passes by
+            // construction. The operator label passes through unchanged.
+            $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+            $drawReq = \Illuminate\Http\Request::create('/dd', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'map_id'   => $ctx['map_id'],
+                'geojson'  => $ctx['overdraw_geojson'],
+                'label'    => 'Clipped West',
+            ]);
+            $drawReq->setUserResolver(fn () => $user);
+            $drawResp = $controller->draw($drawReq, $ctx['legislature_id']);
+            $this->assertSame(200, $drawResp->getStatusCode(), $drawResp->getContent());
+            $this->assertTrue(
+                DB::table('district_subdivisions')
+                    ->where('map_id', $ctx['map_id'])
+                    ->where('label', 'Clipped West')
+                    ->whereNull('deleted_at')
+                    ->exists(),
+                'the clipped rectangle filed under its manual label'
+            );
+
+            // A polygon entirely outside the giant still refuses — plainly.
+            $off = $probe($ctx['offshore_geojson']);
+            $this->assertSame(422, $off->getStatusCode());
+            $this->assertStringContainsString(
+                'entirely outside',
+                json_decode($off->getContent(), true)['error'] ?? ''
+            );
+        });
+    }
+
     // -------------------------------------------------------------------------
+
+    /**
+     * The proven field gesture shared by the new pins: a hand-drawn diagonal,
+     * slid to seat balance by the assist, committed into TWO drawn siblings.
+     *
+     * @return array{district_ids: string[]}
+     */
+    private function commitBalancedDiagonalSplit(array $ctx): array
+    {
+        $controller = app(\App\Http\Controllers\Legislature\SubdivisionDrawController::class);
+
+        $balanced = json_decode($controller->splitBalance(
+            \Illuminate\Http\Request::create('/sb', 'POST', [
+                'scope_id' => $ctx['giant_id'],
+                'line'     => $ctx['diagonal_line'],
+            ]),
+            $ctx['legislature_id']
+        )->getContent(), true);
+        $this->assertTrue($balanced['both_in_band'] ?? false, 'the assist lands the diagonal in band');
+
+        $user = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+        $commitReq = \Illuminate\Http\Request::create('/sc', 'POST', [
+            'scope_id' => $ctx['giant_id'],
+            'map_id'   => $ctx['map_id'],
+            'line'     => json_encode($balanced['line']),
+        ]);
+        $commitReq->setUserResolver(fn () => $user);
+        $resp = $controller->splitCommit($commitReq, $ctx['legislature_id']);
+        $this->assertSame(200, $resp->getStatusCode(), $resp->getContent());
+        $districts = json_decode($resp->getContent(), true)['districts'];
+
+        return ['district_ids' => array_column($districts, 'district_id')];
+    }
+
+    /**
+     * GET the mapper page at the legislature's ROOT scope (by slug, on the
+     * test's draft map) and return the raw Inertia props.
+     */
+    private function districtsPageProps(array $ctx): array
+    {
+        $slug = DB::table('jurisdictions')->where('id', $ctx['leg_jurisdiction_id'])->value('slug');
+        $this->assertNotNull($slug, 'the root jurisdiction carries a slug');
+
+        $props = null;
+        $this->get("/legislatures/{$slug}/districts?map={$ctx['map_id']}")
+            ->assertOk()
+            ->assertInertia(function (\Inertia\Testing\AssertableInertia $page) use (&$props) {
+                $props = $page->toArray()['props'];
+                return $page->component('Legislature/Districts');
+            });
+        $this->assertIsArray($props);
+
+        return $props;
+    }
 
     private function engine(): ConstitutionalEngine
     {
@@ -426,6 +668,21 @@ class ManualDistrictDrawTest extends TestCase
             [$giant->xmin - 0.001, $giant->ymin - 0.001, $xCut, $giant->ymax + 0.001, $giant->id]
         );
 
+        // The SAME western 60% cut as $inband, but drawn the way the operator
+        // really draws it: a raw rectangle with fat margins hanging outside the
+        // giant on three sides. The auto-clip must trim this to the giant and
+        // measure/file the identical region $inband covers.
+        $overdraw = json_encode([
+            'type' => 'Polygon',
+            'coordinates' => [[
+                [$giant->xmin - 0.05, $giant->ymin - 0.05],
+                [$xCut,               $giant->ymin - 0.05],
+                [$xCut,               $giant->ymax + 0.05],
+                [$giant->xmin - 0.05, $giant->ymax + 0.05],
+                [$giant->xmin - 0.05, $giant->ymin - 0.05],
+            ]],
+        ]);
+
         // Tiny box ~ centre of the giant (≈ 0 people → below floor).
         $cx = ($giant->xmin + $giant->xmax) / 2;
         $cy = ($giant->ymin + $giant->ymax) / 2;
@@ -478,6 +735,7 @@ class ManualDistrictDrawTest extends TestCase
             'giant_population'    => (int) $giant->population,
             'map_id'              => $mapId,
             'inband_geojson'      => $inband->gj,
+            'overdraw_geojson'    => $overdraw,
             'tiny_geojson'        => $tiny,
             'multipart_geojson'   => $multipart,
             'offshore_geojson'    => $offshore,
