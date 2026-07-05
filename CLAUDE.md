@@ -126,7 +126,24 @@ These can be changed by valid legislative acts within constitutional bounds:
 
 ---
 
-## Database Schema (9 constitutional migrations)
+## Database Schema (flattened baseline)
+
+The full schema (183 tables) ships as a one-step baseline at
+`database/schema/pgsql-schema.sql` — a full `pg_dump` of a virgin database after
+the final run of the 196 dev-era migrations (flattened 2026-07-05, operator
+order). Fresh installs load it in seconds via plain `php artisan migrate`;
+reference rows (cosmic_addresses, the instance_settings singleton, the
+audit_log genesis entry) ride inside the dump.
+
+**New schema changes** = new migration files in `database/migrations/`,
+REAL-dated (≥ 2026-07-05), additive-only, applied on top of the dump. Never
+date a migration before an object it references: the retired dev-era files
+used fake-future dates (2026_08…2026_12) as phase namespaces, and a real-dated
+file landing mid-sequence broke virgin installs. Re-flattening (dump + prune)
+is allowed ONLY when no live box holds unapplied migration history — operator
+sign-off required.
+
+Core tables (orientation):
 
 ```
 jurisdictions                         PostGIS geometry, self-ref parent_id, federation fields
@@ -145,11 +162,10 @@ residency_confirmations               Confirmed residency — unlocks voting + c
 
 Plus Laravel defaults: users, cache, jobs.
 
-**Forward-looking** (not yet implemented): a `jurisdiction_maps` table will
-parallel `legislature_district_maps` — `planet → jurisdiction_maps → jurisdictions`
-mirrors `legislature → district_maps → districts`. Allows boundary changes to
-be versioned over time without destroying historical data. Tracked as
-follow-up work.
+`jurisdiction_maps` parallels `legislature_district_maps` —
+`planet → jurisdiction_maps → jurisdictions` mirrors
+`legislature → district_maps → districts`, so boundary changes version over
+time without destroying historical data (in the baseline since Phase F).
 
 ---
 
@@ -170,8 +186,8 @@ follow-up work.
 Political parties, businesses, nonprofits, CGCs — all `organizations` with `organization_type`.
 Any org OR individual user can endorse any candidate via the polymorphic `endorsements` table.
 The legacy `legislature_faction_registrations` table and the faction-id columns on
-`legislature_members` were removed in migration
-`2026_05_22_000002_apportionment_cleanup.php` — there is no faction layer.
+`legislature_members` were removed during the 2026-05 apportionment cleanup —
+there is no faction layer in the baseline schema.
 
 ### Committee Assignment (Faction-Independent)
 Each legislature member rank-orders committee preferences. Each committee has a
@@ -208,9 +224,7 @@ app/Services/ConstitutionalValidator.php
 app/Services/Organizations/CoDeterminationService.php   (Art. III §6 hardened math — Phase D)
 app/Models/ConstitutionalSettings.php
 app/Models/Jurisdiction.php
-database/migrations/2026_01_01_000001_create_jurisdictions_table.php
-database/migrations/2026_01_01_000002_create_constitutional_settings_table.php
-database/migrations/2026_01_01_000005_create_elections_table.php
+database/schema/pgsql-schema.sql   (baseline DDL for jurisdictions / constitutional_settings / elections lives here)
 ```
 
 ---

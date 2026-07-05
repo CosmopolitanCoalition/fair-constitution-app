@@ -127,13 +127,18 @@ function continueToWizard() {
 const schemaCardLabel = computed(() => {
     const s = status.value
     if (s.schema_state === 'uninitialised') {
-        return `Database not initialized — ${s.pending_count} migration${s.pending_count === 1 ? '' : 's'} to apply`
+        // Fresh install: the complete schema loads in one step (a flattened
+        // baseline dump + any migrations newer than it). Never enumerate
+        // internals to a first-time user.
+        return 'Fresh database — the complete schema installs in one step.'
     }
     if (s.schema_state === 'pending') {
-        return `${s.pending_count} migration${s.pending_count === 1 ? '' : 's'} pending`
+        return `${s.pending_count} schema update${s.pending_count === 1 ? '' : 's'} available`
     }
     return 'Schema is up to date'
 })
+
+const isFreshInstall = computed(() => status.value.schema_state === 'uninitialised')
 
 const schemaCardOk = computed(() => status.value.schema_state === 'up_to_date')
 const hasFounder   = computed(() => !!status.value.has_founder)
@@ -145,8 +150,8 @@ const canContinue  = computed(() => schemaCardOk.value && hasFounder.value)
         <header>
             <h1 class="text-3xl font-bold text-white">Set up this node</h1>
             <p class="text-gray-400 mt-2">
-                Apply the schema, then create your operator account. The wizard then asks whether to start
-                a new world or join an existing mesh.
+                Set up the database, then create your operator account. The wizard then asks whether to
+                start a new world or join an existing mesh.
             </p>
         </header>
 
@@ -160,10 +165,12 @@ const canContinue  = computed(() => schemaCardOk.value && hasFounder.value)
 
             <p class="text-gray-300">{{ schemaCardLabel }}</p>
 
-            <div v-if="status.pending_count > 0" class="mt-3">
+            <!-- Update details are for operators diagnosing an EXISTING box; a
+                 fresh install never shows internals. -->
+            <div v-if="status.schema_state === 'pending' && status.pending_count > 0" class="mt-3">
                 <details class="text-sm text-gray-400">
                     <summary class="cursor-pointer hover:text-white select-none">
-                        Show pending migrations ({{ status.pending_count }})
+                        Show update details ({{ status.pending_count }})
                     </summary>
                     <ul class="mt-2 ml-4 space-y-1 font-mono text-xs">
                         <li v-for="m in status.pending_migrations" :key="m">{{ m }}</li>
@@ -177,7 +184,9 @@ const canContinue  = computed(() => schemaCardOk.value && hasFounder.value)
                 @click="runMigrations"
                 class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md transition"
             >
-                {{ submittingMigration ? 'Applying…' : 'Apply schema updates' }}
+                {{ submittingMigration
+                    ? (isFreshInstall ? 'Setting up…' : 'Applying…')
+                    : (isFreshInstall ? 'Set up the database' : 'Apply schema updates') }}
             </button>
 
             <p v-if="status.etl_running" class="mt-2 text-xs text-amber-400">

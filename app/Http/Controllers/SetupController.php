@@ -607,6 +607,10 @@ class SetupController extends Controller
             'schema_state'       => $schemaState,
             'pending_migrations' => $pending,
             'pending_count'      => count($pending),
+            // Flattened-baseline marker: a fresh install loads this dump in one
+            // step (plus any migrations newer than it), so the UI never needs
+            // to enumerate history to a first-time user.
+            'has_schema_dump'    => is_file(database_path('schema/pgsql-schema.sql')),
             'has_founder'        => $hasFounder,
             'etl_running'        => $etlRunning,
             'ready'              => $ready,
