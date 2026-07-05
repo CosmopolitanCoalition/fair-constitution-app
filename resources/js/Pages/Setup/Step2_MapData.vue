@@ -83,10 +83,21 @@ const protomapsPathInput = ref('')   // optional host folder for basemap tiles
 const savingArchivePath  = ref(false)
 const archivePathError   = ref('')
 const archivePathMessage = ref('')   // success message from the backend
+const archivePathCommand = ref('')   // copy-pasteable recreate command from the backend
 
 // ─── Download picker (source='download') ─────────────────────────────────────
 const downloadGeoboundaries = ref(true)
 const downloadWorldpop      = ref(false)
+const downloadProtomaps     = ref(false)
+
+// Dataset variants — sent only when the relevant dataset is selected. Defaults
+// mirror the canonical archive layout (worldpop_100m_latest / gbOpen) so a
+// plain download reproduces what a local archive would have contained.
+const wpYear        = ref('2020')          // '2020' | '2023' | 'latest'
+const wpVariant     = ref('constrained')   // 'constrained' | 'unconstrained'
+const wpResolution  = ref('100m')          // '100m' | '1km'
+const wpUnAdjusted  = ref(false)
+const gbRelease     = ref('gbOpen')        // 'gbOpen' | 'gbHumanitarian' | 'gbAuthoritative'
 
 let pollTimer = null
 
@@ -229,6 +240,7 @@ function stopPolling() {
 async function saveArchivePath() {
     archivePathError.value = ''
     archivePathMessage.value = ''
+    archivePathCommand.value = ''
     const archive = archivePathInput.value.trim()
     const protomaps = protomapsPathInput.value.trim()
     if (archive === '' && protomaps === '') {
@@ -252,6 +264,16 @@ async function saveArchivePath() {
         }
         archivePathMessage.value = data.message
             || 'Saved. Re-run docker compose up -d, then reload this page.'
+        // Surface the backend's recreate command verbatim as a copy-pasteable
+        // code block (it explicitly says up -d, not a stop/start).
+        archivePathCommand.value = data.command || 'docker compose up -d'
+        // The mount won't have changed yet — mark the detected panel as
+        // apply-pending locally so the banner appears immediately without
+        // waiting for the operator to click Re-check.
+        if (sources.value) {
+            sources.value.apply_pending = true
+            if (archive) sources.value.archive_env_path = archive
+        }
     } catch (e) {
         archivePathError.value = e.message || String(e)
     } finally {
@@ -265,14 +287,12 @@ async function submitRun() {
     // Guard the two source-specific requirements client-side so the operator
     // gets an immediate, plain message rather than a round-trip 422.
     if (source.value === 'download') {
-        if (!downloadGeoboundaries.value && !downloadWorldpop.value) {
-            submitError.value = 'Choose at least one dataset to download (boundaries and/or population).'
+        if (!downloadGeoboundaries.value && !downloadWorldpop.value && !downloadProtomaps.value) {
+            submitError.value = 'Choose at least one dataset to download (boundaries, population, and/or basemap tiles).'
             return
         }
-        if (parsedCountries.value.length === 0) {
-            submitError.value = 'A download needs a country scope. Enter one or more ISO3 codes below (e.g. NZL,USA).'
-            return
-        }
+        // Country scope is now OPTIONAL — an empty list downloads ALL countries
+        // (a full-world pull). No client gate here; the UI warns about the size.
     }
     if (source.value === 'folder' && customDataRoot.value.trim() === '') {
         submitError.value = 'Enter the container path to ingest (e.g. /archive/snapshots/2026-05).'
@@ -285,6 +305,7 @@ async function submitRun() {
         if (source.value === 'download') {
             if (downloadGeoboundaries.value) downloadDatasets.push('geoboundaries')
             if (downloadWorldpop.value)      downloadDatasets.push('worldpop')
+            if (downloadProtomaps.value)     downloadDatasets.push('protomaps')
         }
 
         const body = {
@@ -295,6 +316,25 @@ async function submitRun() {
             skip_population:     optSkipPopulation.value,
             pause_on_exception:  optPauseOnException.value,
             countries:           parsedCountries.value,
+        }
+
+        // Dataset variants — only relevant to a download, and only for the
+        // datasets actually selected. Sent alongside so the downloader picks
+        // the right WorldPop / geoBoundaries product.
+        if (source.value === 'download') {
+            if (downloadWorldpop.value) {
+                // 'latest' is expressed by omitting the year (null) so the
+                // downloader falls back to its newest-available default.
+                body.wp_year        = wpYear.value === 'latest' ? null : Number(wpYear.value)
+                body.wp_variant     = wpVariant.value
+                body.wp_resolution  = wpResolution.value
+                body.wp_un_adjusted = wpUnAdjusted.value
+            }
+            if (downloadGeoboundaries.value || downloadWorldpop.value) {
+                // WorldPop drags boundaries along, so a gb_release is relevant
+                // whenever either boundary-bearing dataset is selected.
+                body.gb_release = gbRelease.value
+            }
         }
 
         const res = await csrfFetch('/api/setup/wizard/step2/start', {
@@ -432,6 +472,45 @@ onBeforeUnmount(stopPolling)
                     or download the data further down.
                 </p>
 
+                <!-- Half-applied archive: .env points at a real folder but the
+                     containers haven't been recreated, so /archive is still
+                     empty. This is the #1 "the archive won't take" trap — the
+                     operator ran stop/start (or Docker Desktop restart), which
+                     reuses the old mount. Recreation via `up -d` is required. -->
+                <div
+                    v-if="sources?.apply_pending"
+                    class="mb-4 rounded-md border border-amber-600 bg-amber-900/30 px-4 py-3 text-amber-100 text-sm"
+                >
+                    <div class="flex items-start gap-2">
+                        <span class="text-amber-300 text-base leading-none mt-0.5">⚠</span>
+                        <div class="flex-1">
+                            <p class="font-semibold text-amber-200">
+                                Your folder isn't loaded yet
+                            </p>
+                            <p class="mt-1 text-amber-100/90">
+                                You pointed the app at
+                                <code class="text-amber-200 break-all">{{ sources.archive_env_path || 'your folder' }}</code>,
+                                but the containers haven't picked it up yet. Run this in the app folder
+                                (it <strong>recreates</strong> the containers — a stop/start or restart is
+                                <strong>not</strong> enough), then click Re-check:
+                            </p>
+                            <div class="mt-2 flex items-center gap-3 flex-wrap">
+                                <code
+                                    class="select-all inline-block px-2.5 py-1.5 rounded bg-gray-950 border border-amber-700/60 text-emerald-300 font-mono text-xs"
+                                >docker compose up -d</code>
+                                <button
+                                    type="button"
+                                    @click="fetchSources"
+                                    :disabled="sourcesLoading"
+                                    class="bg-amber-700 hover:bg-amber-600 disabled:bg-amber-900 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
+                                >
+                                    {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="sourcesError" class="mb-3 text-sm text-red-400">{{ sourcesError }}</div>
 
                 <div v-if="sourcesLoading && !sources" class="text-gray-500 text-sm italic">
@@ -566,7 +645,20 @@ onBeforeUnmount(stopPolling)
                         v-if="archivePathMessage"
                         class="mt-3 rounded-md border border-emerald-800/70 bg-emerald-900/20 px-3 py-2 text-emerald-200 text-xs"
                     >
-                        {{ archivePathMessage }}
+                        <p>{{ archivePathMessage }}</p>
+                        <div v-if="archivePathCommand" class="mt-2 flex items-center gap-3 flex-wrap">
+                            <code
+                                class="select-all inline-block px-2.5 py-1.5 rounded bg-gray-950 border border-emerald-700/60 text-emerald-300 font-mono text-xs"
+                            >{{ archivePathCommand }}</code>
+                            <button
+                                type="button"
+                                @click="fetchSources"
+                                :disabled="sourcesLoading"
+                                class="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors"
+                            >
+                                {{ sourcesLoading ? 'Checking…' : 'Re-check ↻' }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -628,32 +720,120 @@ onBeforeUnmount(stopPolling)
                         <div class="flex-1">
                             <div class="text-white font-semibold text-sm">Download from official sources</div>
                             <div class="text-gray-400 text-xs mt-1">
-                                Fetch the open datasets straight from their official repos, country by
-                                country, then ingest. Requires a country scope below.
+                                Fetch the open datasets straight from their official repos, then ingest.
+                                Country scope is optional — leave it empty (in Run Options below) to
+                                download <strong>all countries</strong>.
                             </div>
 
-                            <div v-if="source === 'download'" class="mt-3 space-y-2">
-                                <label class="flex items-start gap-2 text-gray-200 text-xs">
-                                    <input type="checkbox" v-model="downloadGeoboundaries"
-                                           :disabled="runOptionsDisabled" class="mt-0.5" />
-                                    <span>
-                                        Jurisdiction boundaries — <strong>geoBoundaries</strong>
-                                        <span class="block text-gray-500">github.com/wmgeolab/geoBoundaries (CC BY 4.0)</span>
-                                    </span>
-                                </label>
-                                <label class="flex items-start gap-2 text-gray-200 text-xs">
-                                    <input type="checkbox" v-model="downloadWorldpop"
-                                           :disabled="runOptionsDisabled" class="mt-0.5" />
-                                    <span>
-                                        Population — <strong>WorldPop</strong>
-                                        <span class="block text-gray-500">
-                                            data.worldpop.org (CC BY 4.0) · pulls boundaries too (needed to attribute population)
+                            <div v-if="source === 'download'" class="mt-3 space-y-3">
+                                <!-- geoBoundaries -->
+                                <div>
+                                    <label class="flex items-start gap-2 text-gray-200 text-xs">
+                                        <input type="checkbox" v-model="downloadGeoboundaries"
+                                               :disabled="runOptionsDisabled" class="mt-0.5" />
+                                        <span>
+                                            Jurisdiction boundaries — <strong>geoBoundaries</strong>
+                                            <span class="block text-gray-500">github.com/wmgeolab/geoBoundaries (CC BY 4.0)</span>
                                         </span>
-                                    </span>
-                                </label>
-                                <p class="text-amber-300/80 text-[11px] italic">
-                                    Country scope is required for a download — set the ISO3 list in Run Options below.
-                                    Basemap tiles (Protomaps) are supplied separately, not via this download.
+                                    </label>
+                                    <div v-if="downloadGeoboundaries" class="mt-2 ml-6">
+                                        <label class="block">
+                                            <span class="text-gray-400 text-[11px]">Release product</span>
+                                            <select
+                                                v-model="gbRelease"
+                                                :disabled="runOptionsDisabled"
+                                                class="mt-1 w-full max-w-xs bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
+                                            >
+                                                <option value="gbOpen">gbOpen — open license, recommended</option>
+                                                <option value="gbHumanitarian">gbHumanitarian — humanitarian use</option>
+                                                <option value="gbAuthoritative">gbAuthoritative — official government</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- WorldPop -->
+                                <div>
+                                    <label class="flex items-start gap-2 text-gray-200 text-xs">
+                                        <input type="checkbox" v-model="downloadWorldpop"
+                                               :disabled="runOptionsDisabled" class="mt-0.5" />
+                                        <span>
+                                            Population — <strong>WorldPop</strong>
+                                            <span class="block text-gray-500">
+                                                data.worldpop.org (CC BY 4.0) · pulls boundaries too (needed to attribute population)
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <div v-if="downloadWorldpop" class="mt-2 ml-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <label class="block">
+                                            <span class="text-gray-400 text-[11px]">Year</span>
+                                            <select
+                                                v-model="wpYear"
+                                                :disabled="runOptionsDisabled"
+                                                class="mt-1 w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
+                                            >
+                                                <option value="2020">2020</option>
+                                                <option value="2023">2023</option>
+                                                <option value="latest">Latest available</option>
+                                            </select>
+                                        </label>
+                                        <label class="block">
+                                            <span class="text-gray-400 text-[11px]">Resolution</span>
+                                            <select
+                                                v-model="wpResolution"
+                                                :disabled="runOptionsDisabled"
+                                                class="mt-1 w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
+                                            >
+                                                <option value="100m">100m — fine (larger)</option>
+                                                <option value="1km">1km — coarse (smaller)</option>
+                                            </select>
+                                        </label>
+                                        <label class="block">
+                                            <span class="text-gray-400 text-[11px]">Variant</span>
+                                            <select
+                                                v-model="wpVariant"
+                                                :disabled="runOptionsDisabled"
+                                                class="mt-1 w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-100 focus:border-blue-500 focus:outline-none"
+                                            >
+                                                <option value="constrained">Constrained — built-area masked</option>
+                                                <option value="unconstrained">Unconstrained — full extent</option>
+                                            </select>
+                                        </label>
+                                        <label class="flex items-center gap-2 text-gray-300 text-xs self-end pb-1">
+                                            <input type="checkbox" v-model="wpUnAdjusted"
+                                                   :disabled="runOptionsDisabled" />
+                                            <span>Un-adjusted (not UN-matched totals)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Protomaps -->
+                                <div>
+                                    <label class="flex items-start gap-2 text-gray-200 text-xs">
+                                        <input type="checkbox" v-model="downloadProtomaps"
+                                               :disabled="runOptionsDisabled" class="mt-0.5" />
+                                        <span>
+                                            Basemap tiles — <strong>Protomaps</strong>
+                                            <span class="block text-gray-500">
+                                                maps.protomaps.com · vector planet basemap for the map background
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <div v-if="downloadProtomaps"
+                                         class="mt-2 ml-6 rounded border border-amber-800/70 bg-amber-900/20 px-2.5 py-1.5 text-amber-200 text-[11px]">
+                                        Heads up: the Protomaps planet build is <strong>~100&nbsp;GB</strong> and takes a long
+                                        time to download. Only fetch it if you want the full-world basemap.
+                                    </div>
+                                </div>
+
+                                <p
+                                    v-if="parsedCountries.length === 0"
+                                    class="text-amber-300 text-[11px] rounded border border-amber-800/70 bg-amber-900/20 px-2.5 py-1.5"
+                                >
+                                    <strong>No country scope set</strong> — this downloads <strong>ALL countries</strong>
+                                    (the whole world). Expect <strong>14&nbsp;GB+</strong> of boundary + population data
+                                    and <strong>hours</strong> of download time. To limit it, enter an ISO3 list in Run
+                                    Options below (e.g. NZL,USA).
                                 </p>
                             </div>
                         </div>
@@ -702,7 +882,7 @@ onBeforeUnmount(stopPolling)
                     </label>
                     <label class="flex items-center gap-2 text-gray-200">
                         <span>
-                            Countries (ISO3, comma-separated<template v-if="source === 'download'">, required for download</template><template v-else>; empty = all</template>):
+                            Countries (ISO3, comma-separated; empty = all<template v-if="source === 'download'">, a full-world download</template>):
                         </span>
                         <input
                             type="text"

@@ -216,6 +216,13 @@ const METERS = [
         </Card>
 
         <template v-else-if="roles">
+            <!-- Founding bootstrap: the operator may have jumped here from the setup
+                 wizard — give them a plain way back so they aren't stranded in the
+                 console's own menu (design flag: back-to-setup). -->
+            <p v-if="founding" class="cluster" style="justify-content: flex-start">
+                <Btn as="a" href="/setup" variant="secondary" size="sm">← Return to setup</Btn>
+            </p>
+
             <div class="plane-wall">
                 <span><Icon name="shield" size="sm" /></span>
                 <div>

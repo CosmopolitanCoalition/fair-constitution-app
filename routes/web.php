@@ -105,6 +105,9 @@ Route::post('/api/setup/game-mode', [SetupController::class, 'saveGameMode'])
 // Setup v2 — operator profile (instance name + peer-reachable self-URL) writes .env; auth + is_operator gated.
 Route::post('/api/setup/operator/profile', [SetupController::class, 'saveOperatorProfile'])
     ->middleware('auth')->name('api.setup.operator.profile');
+// Setup v2 — establish founding operator roles inline from the operator-setup step (no console jump).
+Route::post('/api/setup/operator/roles/establish', [SetupController::class, 'establishFoundingRoles'])
+    ->middleware('auth')->name('api.setup.operator.roles.establish');
 Route::post('/api/setup/wizard/step1/detect', [SetupController::class, 'detectStep1'])->name('api.setup.step1.detect');
 Route::post('/api/setup/wizard/step1/activate', [SetupController::class, 'activateStep1'])->name('api.setup.step1.activate');
 // Setup v2 — detect which map datasets are staged, and point the ETL at a local folder.

@@ -192,6 +192,14 @@ class MeshGateService
                 'what' => (string) ($catalog[$cap]['what'] ?? ''),
                 'kind' => $governed ? 'governed' : 'self-asserted',
                 'state' => $state,
+                // Infra readiness of the channel, INDEPENDENT of whether the
+                // capability is granted. `state` collapses to 'established' the
+                // moment the grant lands, which masks unconfigured infra (DNS,
+                // TLS/lego, a Matrix homeserver, a LiveKit SFU). `ready` keeps the
+                // raw prober result so callers can say "granted, but still needs
+                // setup" — a channel is established && !ready when the role is on
+                // but its infrastructure isn't configured yet.
+                'ready' => (bool) $probe['ok'],
                 'affects_peer_subtree' => $this->prober->affectsPeerSubtree($cap),
                 'gates' => $gates,
             ];

@@ -233,24 +233,10 @@ class SetupController extends Controller
 
         $hasFounder = User::query()->exists();
 
-        // The nine capability channels + their live state (only meaningful once an
-        // operator exists to hold them). Founding → every one is self-assertable.
-        $channels = [];
-        if ($hasFounder) {
-            try {
-                $gate = app(\App\Services\Federation\MeshGateService::class);
-                foreach ($gate->channels() as $c) {
-                    $channels[] = [
-                        'capability' => $c['capability'],
-                        'label'      => $c['label'] ?? $c['capability'],
-                        'what'       => $c['what'] ?? '',
-                        'established' => ($c['state'] ?? null) === 'established',
-                    ];
-                }
-            } catch (\Throwable $e) {
-                $channels = [];
-            }
-        }
+        // The nine capability channels + their founding state (only meaningful
+        // once an operator exists to hold them). Founding → every one is
+        // self-assertable; needs_setup flags an on-but-unconfigured infra role.
+        $channels = $hasFounder ? $this->channelStates() : [];
 
         return Inertia::render('Setup/OperatorSetup', [
             'settings'    => $this->serializeSettings($settings),
@@ -1061,7 +1047,14 @@ class SetupController extends Controller
             'data_root'           => ['nullable', 'string', 'max:512'],
             // For source=download: which official datasets to fetch first.
             'download_datasets'   => ['nullable', 'array'],
-            'download_datasets.*' => [Rule::in(['geoboundaries', 'worldpop'])],
+            'download_datasets.*' => [Rule::in(['geoboundaries', 'worldpop', 'protomaps'])],
+            // Download dataset variants (all optional — sensible defaults if unset).
+            // WorldPop and geoBoundaries publish several products; let the operator pick.
+            'wp_year'             => ['nullable', 'integer', 'min:2000', 'max:2030'],
+            'wp_variant'          => ['nullable', Rule::in(['constrained', 'unconstrained'])],
+            'wp_resolution'       => ['nullable', Rule::in(['100m', '1km'])],
+            'wp_un_adjusted'      => ['nullable', 'boolean'],
+            'gb_release'          => ['nullable', Rule::in(['gbOpen', 'gbHumanitarian', 'gbAuthoritative'])],
             'skip_population'     => ['nullable', 'boolean'],
             'fresh'               => ['nullable', 'boolean'],
             // Both names accepted: pause_on_exception is the new wizard label,
@@ -1155,8 +1148,16 @@ class SetupController extends Controller
                 // /archive bind mount stays in effect).
                 'data_root'          => $dataRoot,
                 // source=download: the supervisor runs download_datasets.py for
-                // these before seeding. Empty for archive/folder.
+                // these before seeding. Empty for archive/folder. An EMPTY
+                // countries list means ALL countries (a full-world download) —
+                // the downloader honors that; the UI warns about the size.
                 'download_datasets'  => $downloadDatasets,
+                // Download dataset variants (null = the downloader's default).
+                'wp_year'            => $data['wp_year']        ?? null,
+                'wp_variant'         => $data['wp_variant']     ?? null,
+                'wp_resolution'      => $data['wp_resolution']  ?? null,
+                'wp_un_adjusted'     => (bool) ($data['wp_un_adjusted'] ?? false),
+                'gb_release'         => $data['gb_release']     ?? null,
             ],
         ];
 
@@ -2387,6 +2388,17 @@ class SetupController extends Controller
         $wpCount = $countIso3Dirs($wpDir);
         $pmFiles = is_dir($pmDir) ? array_map('basename', glob($pmDir.'/*.pmtiles') ?: []) : [];
 
+        // Half-applied detection: the operator can set ARCHIVE_PATH in .env but
+        // the bind mount only changes when the containers are RECREATED
+        // (`docker compose up -d`), NOT on a stop/start. If .env points at a
+        // non-default folder yet /archive shows nothing, they almost certainly
+        // set the path but haven't recreated the containers — the single most
+        // common "the archive won't take" trap.
+        $archiveEnv = $this->readEnvValue('ARCHIVE_PATH');
+        $isDefaultPath = ($archiveEnv === null || $archiveEnv === '' || $archiveEnv === './data/archive');
+        $anyPresent = ($gbCount > 0 || $wpCount > 0 || count($pmFiles) > 0);
+        $applyPending = (! $isDefaultPath && $gbCount === 0 && $wpCount === 0);
+
         return response()->json([
             // The container-visible mount points (constant); the HOST folder is
             // set via ARCHIVE_PATH / PROTOMAPS_DIR in .env and can't be read from
@@ -2394,6 +2406,10 @@ class SetupController extends Controller
             'archive_mount'   => '/archive',
             'protomaps_mount' => $pmDir,
             'archive_present' => is_dir('/archive'),
+            // The folder the operator pointed .env at (host path), and whether it
+            // still needs a `docker compose up -d` to take effect.
+            'archive_env_path' => $archiveEnv,
+            'apply_pending'    => $applyPending,
             'datasets' => [
                 'geoboundaries' => [
                     'present'   => $gbCount > 0,
@@ -2455,8 +2471,95 @@ class SetupController extends Controller
         return response()->json([
             'saved'            => $kv,
             'restart_required' => true,
-            'message'          => 'Saved. Apply it by re-running the start command (docker compose up -d) so the containers remount your map folder, then reload this page.',
+            // The bind mount only changes when the containers are RECREATED, which
+            // is what `docker compose up -d` does — a stop/start (or Docker
+            // Desktop's stop then start) reuses the old mount and the folder never
+            // shows up. Say that explicitly; it's the #1 "the archive won't take" trap.
+            'command'          => 'docker compose up -d',
+            'message'          => 'Saved to .env. Now RECREATE the containers so they pick up your folder: run "docker compose up -d" in the app folder (this recreates them). A plain stop/start or restart is NOT enough. Then click "Re-check" below.',
         ]);
+    }
+
+    /**
+     * POST /api/setup/operator/roles/establish — turn on operator roles from the
+     * operator-setup step, INLINE (so the operator never has to leave the wizard
+     * for the full console and find no way back). Founding only: self-asserted
+     * channels register, governed channels self-grant. Body {capabilities:[]}
+     * (omitted = all). Returns the refreshed per-channel state so the step updates
+     * in place.
+     */
+    public function establishFoundingRoles(
+        Request $request,
+        \App\Services\Federation\CapabilityService $caps,
+        \App\Services\Identity\MeshRoleGrantService $grants,
+        \App\Services\Federation\InstanceIdentityService $identity
+    ): JsonResponse {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+        if (! \App\Support\FoundingContext::isFounding()) {
+            return response()->json(['error' => 'Roles self-assert only during founding; use the operator console afterwards.'], 409);
+        }
+
+        $data = $request->validate([
+            'capabilities'   => ['nullable', 'array'],
+            'capabilities.*' => [Rule::in(\App\Models\InstanceCapability::CHANNELS)],
+        ]);
+
+        $wanted = ! empty($data['capabilities'])
+            ? array_values(array_unique($data['capabilities']))
+            : \App\Models\InstanceCapability::CHANNELS; // default: all of them
+
+        $identity->ensureIdentity();
+        $established = [];
+        $errors = [];
+        foreach ($wanted as $cap) {
+            try {
+                if (\App\Models\InstanceCapability::isGoverned($cap)) {
+                    $grants->selfGrantFounding($cap);
+                } else {
+                    $caps->registerSelf($cap);
+                }
+                $established[] = $cap;
+            } catch (\Throwable $e) {
+                $errors[$cap] = $e->getMessage();
+            }
+        }
+
+        return response()->json([
+            'established' => $established,
+            'errors'      => $errors,
+            'channels'    => $this->channelStates(),
+        ]);
+    }
+
+    /**
+     * The 9 capability channels with founding-relevant state: established (the
+     * grant is on) and needs_setup (established but the underlying infra — DNS,
+     * TLS/lego, a Matrix homeserver, a LiveKit SFU — is NOT configured yet, so
+     * the role is granted but doesn't actually work until the operator sets it
+     * up). needs_setup keys off MeshGateService's `ready` (the raw prober), NOT
+     * `state` (which collapses to 'established' once granted and would mask it).
+     *
+     * @return list<array{capability:string,label:string,what:string,established:bool,needs_setup:bool}>
+     */
+    private function channelStates(): array
+    {
+        $out = [];
+        try {
+            foreach (app(\App\Services\Federation\MeshGateService::class)->channels() as $c) {
+                $established = ($c['state'] ?? null) === 'established';
+                $ready = (bool) ($c['ready'] ?? false);
+                $out[] = [
+                    'capability'  => $c['capability'],
+                    'label'       => $c['label'] ?? $c['capability'],
+                    'what'        => $c['what'] ?? '',
+                    'established'  => $established,
+                    'needs_setup' => $established && ! $ready,
+                ];
+            }
+        } catch (\Throwable $e) {
+            $out = [];
+        }
+        return $out;
     }
 
     /**
@@ -2536,6 +2639,21 @@ class SetupController extends Controller
             'Content-Type'        => 'text/plain; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="'.$script['filename'].'"',
         ]);
+    }
+
+    /** Read a single KEY's value from the repo-root .env (unquoted, trimmed), or null if absent. */
+    private function readEnvValue(string $key): ?string
+    {
+        $envPath = base_path('.env');
+        if (! is_file($envPath)) {
+            return null;
+        }
+        foreach (preg_split('/\r\n|\r|\n/', (string) file_get_contents($envPath)) ?: [] as $line) {
+            if (preg_match('/^\s*'.preg_quote($key, '/').'\s*=\s*(.*)$/', $line, $m)) {
+                return trim($m[1], " \t\"'");
+            }
+        }
+        return null;
     }
 
     /** Normalize a host path for .env: Windows backslashes → forward slashes (docker-compose accepts them cross-platform). */

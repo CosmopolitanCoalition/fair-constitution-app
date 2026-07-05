@@ -6,12 +6,14 @@
  *   1. Create the operator/founder account (the physical credentials that run the box).
  *   2. Node address — novice-friendly: "just me for now" needs no peer address;
  *      opening the node to others uses the address the browser is already on.
- *   3. Operator roles — as the founding operator you self-assert them all; a
- *      one-click baseline plus a link to the full console (which now self-asserts
- *      in founding, no request/qualify dance).
+ *   3. Operator roles — as the founding operator you self-assert them all,
+ *      INLINE (no console jump): a "turn on all" button plus per-channel toggles
+ *      POST /api/setup/operator/roles/establish and update the list in place.
+ *      Channels that still need infra config surface a short "needs setup" note
+ *      pointing at where to configure it, and a link to the full console remains.
  * Plus the shareable deploy packages, and Continue (→ cosmic for solo, → join).
  */
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import { csrfFetch } from '@/lib/csrf'
@@ -129,12 +131,84 @@ function downloadPackage(os, kind) {
     window.location.href = `/api/setup/deploy-package?os=${os}&kind=${kind}`
 }
 
+// ── 3. Operator roles (inline establish) ────────────────────────────────────
+// Local, reactive copy of the channel list — seeded from props, then replaced
+// wholesale from the establish response so the panel updates in place without a
+// console jump. The GET seed carries {capability,label,what,established}; the
+// establish response adds needs_setup — default it to false until then.
+const channels = ref((props.channels || []).map((c) => ({ ...c, needs_setup: !!c.needs_setup })))
+// Creating the founder account partial-reloads this step; props.channels is only
+// populated once an operator exists, so re-seed the local list when it arrives
+// (unless the operator has already toggled roles here, i.e. the list is non-empty).
+watch(() => props.channels, (next) => {
+    if (!channels.value.length && Array.isArray(next) && next.length) {
+        channels.value = next.map((c) => ({ ...c, needs_setup: !!c.needs_setup }))
+    }
+})
+const establishingAll = ref(false)
+const establishingCap = ref(null)   // capability currently toggling, for per-row spinner
+const rolesError      = ref(null)
+
+const activeChannels = computed(() => channels.value.filter((c) => c.established).length)
+// Channels that turned on but still need infra config before they actually work.
+const needsSetup = computed(() => channels.value.filter((c) => c.established && c.needs_setup))
+
+// broker.dns / broker.tls are configured on the broker console (/operator); every
+// other channel is configured on the full operator console (/operator/roles).
+const BROKER_CHANNELS = ['broker.dns', 'broker.tls']
+function configHref(capability) {
+    return BROKER_CHANNELS.includes(capability) ? '/operator' : '/operator/roles'
+}
+function configLabel(capability) {
+    return BROKER_CHANNELS.includes(capability)
+        ? 'Configure on the broker console'
+        : 'Configure on the operator console'
+}
+
+async function establishRoles(capabilities /* array | null (= all) */) {
+    if (establishingAll.value || establishingCap.value) return
+    rolesError.value = null
+    if (capabilities === null) establishingAll.value = true
+    else establishingCap.value = capabilities[0]
+    try {
+        const res = await csrfFetch('/api/setup/operator/roles/establish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // Omit the key entirely when turning on all (the endpoint treats
+            // empty/absent capabilities as "all of them").
+            body: JSON.stringify(capabilities === null ? {} : { capabilities }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            rolesError.value = data.error || data.message || 'Could not turn on the roles.'
+            return
+        }
+        // Only replace the local list from a NON-EMPTY response — an empty
+        // channels array (e.g. a transient channels() read failure) must not wipe
+        // the list and flip the panel back to the "account not created" empty state.
+        if (Array.isArray(data.channels) && data.channels.length) {
+            channels.value = data.channels.map((c) => ({ ...c, needs_setup: !!c.needs_setup }))
+        }
+        // Surface any per-channel establish errors returned alongside a 200.
+        const failed = data.errors && Object.keys(data.errors)
+        if (failed && failed.length) {
+            rolesError.value = failed.map((cap) => `${cap}: ${data.errors[cap]}`).join(' · ')
+        }
+    } catch (e) {
+        rolesError.value = e.message
+    } finally {
+        establishingAll.value = false
+        establishingCap.value = null
+    }
+}
+
+const turnOnAll     = () => establishRoles(null)
+const turnOnChannel = (cap) => establishRoles([cap])
+
 // ── Continue ────────────────────────────────────────────────────────────────
 function continueNext() {
     router.visit(isJoin.value ? '/setup/join' : '/setup/step/0')
 }
-
-const activeChannels = computed(() => props.channels.filter((c) => c.established).length)
 </script>
 
 <template>
@@ -247,21 +321,66 @@ const activeChannels = computed(() => props.channels.filter((c) => c.established
                     <h2 class="text-xl font-semibold text-white">3 · Operator roles</h2>
                     <span class="text-gray-500 text-xs">{{ activeChannels }} / {{ channels.length }} on</span>
                 </div>
-                <p class="text-gray-400 text-sm mb-3">
+                <p class="text-gray-400 text-sm mb-4">
                     Running a node carries operator <strong>roles</strong> on the mesh — infrastructure duties,
                     not citizen privilege (they buy no vote or seat). As the founding operator you self-assert
-                    them directly; once a government seats, governed roles return to shared consent for later changes.
+                    them directly, right here; once a government seats, governed roles return to shared consent
+                    for later changes.
                 </p>
-                <ul v-if="channels.length" class="text-xs text-gray-400 space-y-1 mb-4">
-                    <li v-for="c in channels" :key="c.capability" class="flex items-center gap-2">
+
+                <div v-if="rolesError" class="mb-3 text-sm text-red-400 bg-red-900/20 border border-red-800/50 rounded p-2">
+                    {{ rolesError }}
+                </div>
+
+                <button :disabled="establishingAll || !!establishingCap || activeChannels === channels.length"
+                    @click="turnOnAll"
+                    class="mb-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md transition">
+                    {{ establishingAll ? 'Turning on…'
+                        : activeChannels === channels.length && channels.length ? '✓ All roles on' : 'Turn on all roles' }}
+                </button>
+
+                <ul v-if="channels.length" class="space-y-2 mb-4">
+                    <li v-for="c in channels" :key="c.capability"
+                        class="flex items-center gap-3 bg-gray-950 border border-gray-800 rounded px-3 py-2">
                         <span :class="c.established ? 'text-emerald-400' : 'text-gray-600'">●</span>
-                        <code class="text-gray-300">{{ c.capability }}</code>
-                        <span class="text-gray-600">— {{ c.label }}</span>
+                        <span class="flex-1 min-w-0">
+                            <code class="text-gray-300 text-xs">{{ c.capability }}</code>
+                            <span class="text-gray-500 text-xs"> — {{ c.label }}</span>
+                        </span>
+                        <span v-if="c.established" class="text-emerald-400 text-xs whitespace-nowrap">On</span>
+                        <button v-else :disabled="establishingAll || !!establishingCap"
+                            @click="turnOnChannel(c.capability)"
+                            class="px-3 py-1 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-600 text-gray-100 text-xs rounded whitespace-nowrap transition">
+                            {{ establishingCap === c.capability ? 'Turning on…' : 'Turn on' }}
+                        </button>
                     </li>
                 </ul>
+                <p v-else class="text-gray-500 text-sm mb-4">
+                    Roles become available once the operator account above is created.
+                </p>
+
+                <!-- Channels that are on but still need infra config to actually work. -->
+                <div v-if="needsSetup.length"
+                    class="mb-4 text-xs bg-amber-900/20 border border-amber-800/50 rounded p-3 space-y-2">
+                    <p class="text-amber-300 font-medium">Some roles still need setup before they work:</p>
+                    <ul class="space-y-1.5">
+                        <li v-for="c in needsSetup" :key="c.capability" class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <code class="text-amber-200">{{ c.capability }}</code>
+                            <span class="text-amber-400/80">— {{ c.what || 'needs configuration' }}</span>
+                            <a :href="configHref(c.capability)"
+                                class="text-blue-400 hover:text-blue-300 underline whitespace-nowrap">
+                                {{ configLabel(c.capability) }} →
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="text-amber-400/70">
+                        Infrastructure config comes next — you can turn a role on now and finish its setup there.
+                    </p>
+                </div>
+
                 <a href="/operator/roles"
-                    class="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300">
-                    Open the operator console to turn roles on →
+                    class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300">
+                    Prefer the full console? Open the operator console →
                 </a>
             </section>
 

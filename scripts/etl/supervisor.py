@@ -198,22 +198,57 @@ def build_argv(options: dict) -> list[str]:
 def build_download_argv(options: dict) -> list[str]:
     """Translate request JSON options into a download_datasets.py argv list.
 
-    Reads options.download_datasets (['geoboundaries','worldpop']) and
-    options.countries. The download target is always DOWNLOAD_DATA_ROOT (/data);
-    the seed step is later pointed at the same path via --data-root."""
+    Reads:
+      options.download_datasets  — ['geoboundaries','worldpop','protomaps']
+      options.countries          — ISO3 list; EMPTY means ALL countries (a
+                                    full-world download). download_datasets.py
+                                    now accepts an empty country list and treats
+                                    it as full-world (warned about, not refused).
+      options.gb_release         — gbOpen | gbHumanitarian | gbAuthoritative
+      options.wp_year            — int (2000..2030)
+      options.wp_variant         — constrained | unconstrained
+      options.wp_resolution      — 100m | 1km
+      options.wp_un_adjusted     — bool
+
+    The download target is always DOWNLOAD_DATA_ROOT (/data); the seed step is
+    later pointed at the same path via --data-root."""
     argv = ["python3", "-u", "/etl/download_datasets.py"]
 
+    # --countries is ALWAYS emitted (with nargs='*' on the downloader side, a
+    # bare `--countries` = empty list = full-world). Passing it explicitly, even
+    # empty, keeps the intent unambiguous and lets the downloader's full-world
+    # warning + enumeration path fire.
     countries = options.get("countries") or []
-    # download_datasets.py REQUIRES a country filter (it refuses a full-world
-    # download). If the wizard somehow sent none, we still pass the flag empty
-    # and let download_datasets emit its clear "scope to countries" error.
     argv.append("--countries")
-    argv.extend(countries)
+    argv.extend(str(c) for c in countries)
 
     datasets = options.get("download_datasets") or []
     if datasets:
         argv.append("--datasets")
-        argv.extend(datasets)
+        argv.extend(str(d) for d in datasets)
+
+    # ── Dataset/year variant options (all optional; downloader has defaults) ──
+    gb_release = options.get("gb_release")
+    if gb_release:
+        argv.extend(["--gb-release", str(gb_release)])
+
+    wp_year = options.get("wp_year")
+    if wp_year is not None:
+        argv.extend(["--wp-year", str(wp_year)])
+
+    wp_variant = options.get("wp_variant")
+    if wp_variant:
+        argv.extend(["--wp-variant", str(wp_variant)])
+
+    wp_resolution = options.get("wp_resolution")
+    if wp_resolution:
+        argv.extend(["--wp-resolution", str(wp_resolution)])
+
+    # UN-adjusted is a bool. The downloader's --wp-un-adjusted takes an optional
+    # value (bare flag == True); pass an explicit 'true' only when the operator
+    # asked for it, and omit the flag entirely otherwise (default False).
+    if options.get("wp_un_adjusted"):
+        argv.extend(["--wp-un-adjusted", "true"])
 
     argv.extend(["--data-root", DOWNLOAD_DATA_ROOT])
     return argv
