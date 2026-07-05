@@ -262,6 +262,65 @@ class ManualDistrictDrawTest extends TestCase
         });
     }
 
+    public function test_the_map_on_screen_is_the_map_the_tools_draw_into(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            $this->enterSetupContext($ctx['leg_jurisdiction_id']);
+
+            $activeMapId = (string) DB::table('legislature_district_maps')
+                ->where('legislature_id', $ctx['legislature_id'])
+                ->where('status', 'active')->whereNull('deleted_at')
+                ->value('id');
+            $this->assertNotSame('', $activeMapId, 'the legislature carries an active (founding) map');
+
+            // The operator's rule, verbatim intent: "If I'm on a map I'm on a
+            // map." During Initial Setup the displayed map IS the founding
+            // (v1, active) map and the founder draws into it directly — no
+            // draft ceremony. Drafts-only begins at map v2, with the standing
+            // government that votes plans active.
+            $rec = $this->engine()->file('F-ELB-008', $this->operatorUser(), [
+                'legislature_id'  => $ctx['legislature_id'],
+                'scope_id'        => $ctx['giant_id'],
+                'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                'map_id'          => $activeMapId,
+                'geojson'         => $ctx['inband_geojson'],
+            ])->recorded;
+
+            $this->assertDatabaseHasOn(self::LIVE_CONNECTION, 'district_subdivisions', [
+                'id'     => $rec['subdivision_id'],
+                'map_id' => $activeMapId,
+            ]);
+        });
+    }
+
+    public function test_governed_context_keeps_the_active_map_drafts_only(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // A human-seated board = a standing government: map changes now run
+            // draft → approval → vote, so direct draws into the ACTIVE map are
+            // refused even for a seated member — only drafts accept filings.
+            $member = $this->seatedBoardUser($ctx['leg_jurisdiction_id']);
+
+            $activeMapId = (string) DB::table('legislature_district_maps')
+                ->where('legislature_id', $ctx['legislature_id'])
+                ->where('status', 'active')->whereNull('deleted_at')
+                ->value('id');
+
+            try {
+                $this->engine()->file('F-ELB-008', $member, [
+                    'legislature_id'  => $ctx['legislature_id'],
+                    'scope_id'        => $ctx['giant_id'],
+                    'jurisdiction_id' => $ctx['leg_jurisdiction_id'],
+                    'map_id'          => $activeMapId,
+                    'geojson'         => $ctx['inband_geojson'],
+                ]);
+                $this->fail('a governed-context draw into the ACTIVE map must be refused');
+            } catch (ConstitutionalViolation $e) {
+                $this->assertStringContainsString('standing government', $e->getMessage());
+            }
+        });
+    }
+
     public function test_setup_context_still_refuses_a_non_operator_with_a_citation(): void
     {
         $this->onLivePg(function (array $ctx) {

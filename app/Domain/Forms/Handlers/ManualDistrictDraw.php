@@ -92,10 +92,20 @@ class ManualDistrictDraw implements FormHandler
             throw new ConstitutionalViolation('F-ELB-008 targets an unknown district map.', 'CGA Forms Catalog (F-ELB-008)');
         }
         if ($map->status !== 'draft') {
-            throw new ConstitutionalViolation(
-                "District map [{$map->id}] is not a draft (status: {$map->status}) — draw into a draft plan.",
-                'CGA Forms Catalog (F-ELB-008)'
-            );
+            // SETUP-context exception, same posture as the provenance skip below:
+            // during Initial Setup the FOUNDING map IS the active map — there is no
+            // standing government to run the draft → approval → vote procedure
+            // (that begins at map v2), so the founder/system draws v1 directly.
+            // Governed context keeps drafts-only.
+            $activeFoundingMap = $map->status === 'active'
+                && BoardProvenance::inSetupContext((string) $leg->jurisdiction_id);
+            if (! $activeFoundingMap) {
+                throw new ConstitutionalViolation(
+                    "District map [{$map->id}] is not a draft (status: {$map->status}) — "
+                    .'a standing government drafts new plans and votes them active.',
+                    'CGA Forms Catalog (F-ELB-008)'
+                );
+            }
         }
 
         // An operator-chosen label must be unique per plan among LIVE rows (the

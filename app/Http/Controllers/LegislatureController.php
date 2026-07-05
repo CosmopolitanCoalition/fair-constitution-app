@@ -414,6 +414,22 @@ class LegislatureController extends Controller
             return '/legislatures/' . $legSlug . '/districts' . (count($q) ? '?' . http_build_query($q) : '');
         };
 
+        // A ?map= that no longer resolves (a deleted draft, a foreign id) must
+        // not linger in the address bar while the page silently renders the
+        // fallback — the URL and the MAP selector would disagree, and every
+        // canonicalUrl-built link would carry the stale param forward forever.
+        // Redirect once onto the RESOLVED map (or bare, if none). Runs before
+        // the guards below so their redirects never re-embed the dead param.
+        $mapParam = $request->query('map');
+        if ($mapParam !== null && $mapParam !== '' && $mapParam !== $mapId) {
+            $q = $request->query();
+            unset($q['map']);
+            if ($mapId !== null) {
+                $q['map'] = $mapId;
+            }
+            return redirect()->to($request->url() . (count($q) ? '?' . http_build_query($q) : ''));
+        }
+
         // Guard: the scope must live INSIDE this legislature's own root subtree.
         // Without it, breadcrumb/step-up links (or a hand-edited URL) can walk a
         // legislature's mapper onto an ANCESTOR jurisdiction — the giant guard
@@ -1294,6 +1310,16 @@ class LegislatureController extends Controller
 
             'mass_tool_running' => $massToolRunning,
             'can_draw'   => $canDraw,
+            // WHETHER the displayed map may be drawn into (can_draw is WHO):
+            // drafts always; the ACTIVE map only during the SETUP context —
+            // the founding (v1) map is drawn directly because no standing
+            // government exists yet to run draft → approval → vote (map v2+).
+            // Shares the exact rule the F-ELB-008 handler enforces.
+            'map_drawable' => $activeMapRow !== null && (
+                $activeMapRow->status === 'draft'
+                || ($activeMapRow->status === 'active'
+                    && \App\Domain\Forms\Support\BoardProvenance::inSetupContext((string) $leg->jurisdiction_id))
+            ),
             'maps'       => $allMaps,
             'active_map' => $activeMapRow ? [
                 'id'     => $activeMapRow->id,

@@ -314,7 +314,7 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => 'Not a districtable leaf giant at this scope'], 422);
         }
 
-        // The same draft-plan guard F-ELB-008 enforces per filing — checked up
+        // The same map guard F-ELB-008 enforces per filing — checked up
         // front so a wrong map fails before the recomputation is paid for.
         $map = DB::table('legislature_district_maps')
             ->where('id', $validated['map_id'])->whereNull('deleted_at')->first();
@@ -322,9 +322,19 @@ class SubdivisionDrawController extends Controller
             return response()->json(['error' => 'Unknown district map for this legislature'], 422);
         }
         if ($map->status !== 'draft') {
-            return response()->json([
-                'error' => "District map is not a draft (status: {$map->status}) — commit into a draft plan.",
-            ], 422);
+            // Mirror of the handler's SETUP-context posture: the FOUNDING (v1)
+            // map IS the active map, drawn directly during Initial Setup —
+            // drafts-only binds once a standing government exists (map v2+).
+            $legJurisdiction = (string) DB::table('legislatures')
+                ->where('id', $legislature_id)->value('jurisdiction_id');
+            $activeFoundingMap = $map->status === 'active'
+                && \App\Domain\Forms\Support\BoardProvenance::inSetupContext($legJurisdiction);
+            if (! $activeFoundingMap) {
+                return response()->json([
+                    'error' => "District map is not a draft (status: {$map->status}) — "
+                        .'a standing government drafts new plans and votes them active.',
+                ], 422);
+            }
         }
 
         // A whole-scope plan over live drawn districts can only end one of two

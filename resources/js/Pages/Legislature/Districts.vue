@@ -1693,6 +1693,12 @@ const props = defineProps({
     // (R-08). Stale payloads may omit this prop entirely — absence must read
     // as "allowed", so no Boolean default (Vue would coerce missing → false).
     can_draw: { type: Boolean, default: undefined },
+    // WHETHER the displayed map may be drawn into (can_draw is WHO): drafts
+    // always; the ACTIVE map only during the SETUP context (the founding v1
+    // map is drawn directly — no government exists yet to vote drafts
+    // active). Server-computed with the same rule the F-ELB-008 handler
+    // enforces; absence (stale payload) falls back to the draft-only check.
+    map_drawable: { type: Boolean, default: undefined },
     constitutional: {
         // Derived thresholds from the legislature's constitutional_settings.
         // With default 5/9 settings these resolve to 9.5 / 5.0 / 4.5.
@@ -1966,8 +1972,14 @@ const isLeafGiantScope = computed(() =>
     && props.scope.id !== props.legislature?.root_jurisdiction_id
     && (props.children?.length ?? 0) === 0
 )
-// Drawing writes into a DRAFT plan (F-ELB-008 refuses a non-draft).
-const drawTargetIsDraft = computed(() => (props.active_map?.status ?? null) === 'draft')
+// Drawing writes into a DRAFT plan — or the ACTIVE founding (v1) map while
+// the jurisdiction is in the SETUP context (server-computed map_drawable
+// carries that rule; the name predates it — read "draw target is editable").
+const drawTargetIsDraft = computed(() =>
+    props.map_drawable !== undefined
+        ? props.map_drawable === true
+        : (props.active_map?.status ?? null) === 'draft'
+)
 // Server-side authorship gate for the mutating draw endpoints — only an
 // explicit false locks the tools (undefined = stale payload = allowed).
 const canDraw = computed(() => props.can_draw !== false)
