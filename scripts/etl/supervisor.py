@@ -254,27 +254,115 @@ def build_download_argv(options: dict) -> list[str]:
     return argv
 
 
-def run_download_step(request_payload: dict, log_fh) -> int:
-    """Run download_datasets.py as a child process, streaming its output into the
-    same run log the seed uses. Returns the child's exit code (0 == success).
+def _supervise_child(proc, log_fh, phase_label: str, running_payload: dict):
+    """Wait for `proc`, honoring the HALT / PAUSE / RESUME control files
+    (SIGTERM / SIGSTOP / SIGCONT) and freezing/thawing the UI bar timers on
+    pause/resume. Updates running.json's paused flag. Returns (exit_code, halted).
 
-    The download is a plain blocking subprocess.run — it doesn't participate in
-    the pause/halt control-signal loop the seed does. Halting mid-download is a
-    future refinement; today an operator halt during the download is honored at
-    the next phase boundary (the seed step checks the control files)."""
+    Shared by BOTH the download and the seed phases so halt/pause work
+    identically in each — a download is a long child too, and the operator must
+    be able to stop it (e.g. a ~100 GB Protomaps pull) without waiting for it to
+    finish just to change the dataset selection.
+    """
+    halted = False
+    paused = False
+    while True:
+        try:
+            exit_code = proc.wait(timeout=POLL_SECONDS)
+            break
+        except subprocess.TimeoutExpired:
+            pass
+
+        if HALT.exists():
+            try:
+                HALT.unlink(missing_ok=True)
+            except OSError:
+                pass
+            log_fh.write(f"[supervisor] halt requested — SIGTERM {phase_label} pid={proc.pid}\n")
+            log_fh.flush()
+            if paused:
+                try:
+                    os.kill(proc.pid, signal.SIGCONT)
+                except ProcessLookupError:
+                    pass
+                paused = False
+            try:
+                proc.terminate()
+            except ProcessLookupError:
+                pass
+            halted = True
+            continue
+
+        if PAUSE.exists() and not paused:
+            try:
+                PAUSE.unlink(missing_ok=True)
+            except OSError:
+                pass
+            try:
+                os.kill(proc.pid, signal.SIGSTOP)
+                paused = True
+                pause_ts = now_iso()
+                log_fh.write(f"[supervisor] paused {phase_label} pid={proc.pid} at {pause_ts}\n")
+                log_fh.flush()
+                running_payload["paused"]    = True
+                running_payload["paused_at"] = pause_ts
+                write_atomic(RUNNING, running_payload)
+                freeze_bar_timers(pause_ts)
+            except ProcessLookupError:
+                pass
+
+        if RESUME.exists() and paused:
+            try:
+                RESUME.unlink(missing_ok=True)
+            except OSError:
+                pass
+            try:
+                os.kill(proc.pid, signal.SIGCONT)
+                paused = False
+                log_fh.write(f"[supervisor] resumed {phase_label} pid={proc.pid}\n")
+                log_fh.flush()
+                running_payload["paused"] = False
+                running_payload.pop("paused_at", None)
+                write_atomic(RUNNING, running_payload)
+                thaw_bar_timers()
+            except ProcessLookupError:
+                pass
+
+    return exit_code, halted
+
+
+def run_download_step(request_payload: dict, log_fh):
+    """Run download_datasets.py as a supervised child, streaming its output into
+    the same run log the seed uses. Returns (exit_code, halted).
+
+    Runs via Popen + the shared control-signal loop (NOT a blocking
+    subprocess.run) so an operator can HALT / PAUSE / RESUME the download in
+    flight — previously the supervisor was blocked inside subprocess.run and
+    never saw the halt file, so halt only took effect at the seed boundary.
+    """
     options = request_payload.get("options") or {}
     argv = build_download_argv(options)
 
     log_fh.write(f"[supervisor] download step: {' '.join(argv)}\n")
     log_fh.flush()
 
-    proc = subprocess.run(
+    proc = subprocess.Popen(
         argv,
         stdout=log_fh,
         stderr=subprocess.STDOUT,
         cwd="/etl",
     )
-    return proc.returncode
+    running_payload = {
+        "pid":        proc.pid,
+        "started_at": now_iso(),
+        "request":    request_payload,
+        "argv":       argv,
+        "phase":      "download",
+        "paused":     False,
+    }
+    write_atomic(RUNNING, running_payload)
+
+    return _supervise_child(proc, log_fh, "download", running_payload)
 
 
 def clear_stale_pause_markers() -> None:
@@ -334,18 +422,13 @@ def run_job(request_payload: dict) -> int:
     # Runs before the seed subprocess. On failure, we record FAILED and bail so
     # the seed never runs against an incomplete/empty download tree.
     if is_download:
-        write_atomic(RUNNING, {
-            "pid":        None,           # no seed pid yet — download in flight
-            "started_at": started_at,
-            "request":    request_payload,
-            "phase":      "download",
-            "paused":     False,
-        })
-        dl_rc = run_download_step(request_payload, log_fh)
-        if dl_rc != 0:
+        # run_download_step writes running.json (with the real pid) and supervises
+        # the child, so HALT/PAUSE/RESUME work DURING the download too.
+        dl_rc, dl_halted = run_download_step(request_payload, log_fh)
+        if dl_halted or dl_rc != 0:
             finished_at = now_iso()
-            log_fh.write(f"[supervisor] download step failed (exit {dl_rc}) — "
-                         f"aborting before seed.\n")
+            reason = "download halted by operator" if dl_halted else "download step failed"
+            log_fh.write(f"[supervisor] {reason} (exit {dl_rc}) — not seeding.\n")
             log_fh.write(f"==== ETL run finished at {finished_at} (exit {dl_rc}) ====\n")
             log_fh.close()
             write_atomic(FAILED, {
@@ -353,7 +436,8 @@ def run_job(request_payload: dict) -> int:
                 "started_at":  started_at,
                 "finished_at": finished_at,
                 "exit_code":   dl_rc,
-                "error":       "download step failed",
+                "error":       reason,
+                "halted":      dl_halted,
                 "request":     request_payload,
             })
             for p in (RUNNING, CURRENT, HALT, PAUSE, RESUME):
@@ -361,7 +445,9 @@ def run_job(request_payload: dict) -> int:
                     p.unlink(missing_ok=True)
                 except OSError:
                     pass
-            return dl_rc
+            # A clean-but-halted download still exits 0; surface non-zero so the
+            # UI treats an operator halt as "stopped", not "done".
+            return dl_rc if dl_rc != 0 else 130
 
     log_fh.write(f"argv: {' '.join(argv)}\n")
     log_fh.flush()
@@ -382,79 +468,8 @@ def run_job(request_payload: dict) -> int:
     }
     write_atomic(RUNNING, running_payload)
 
-    halted = False
-    paused = False
-    while True:
-        try:
-            exit_code = proc.wait(timeout=POLL_SECONDS)
-            break
-        except subprocess.TimeoutExpired:
-            pass
-
-        # Drain control signals. Each file is consumed immediately so the
-        # supervisor doesn't re-act on the next poll.
-        if HALT.exists():
-            try:
-                HALT.unlink(missing_ok=True)
-            except OSError:
-                pass
-            log_fh.write(f"[supervisor] halt requested — SIGTERM pid={proc.pid}\n")
-            log_fh.flush()
-            # If the child is currently SIGSTOP'd it won't see SIGTERM until
-            # resumed, so unpause first.
-            if paused:
-                try:
-                    os.kill(proc.pid, signal.SIGCONT)
-                except ProcessLookupError:
-                    pass
-                paused = False
-            try:
-                proc.terminate()
-            except ProcessLookupError:
-                pass
-            halted = True
-            # Don't break — let the next wait() observe exit_code.
-            continue
-
-        if PAUSE.exists() and not paused:
-            try:
-                PAUSE.unlink(missing_ok=True)
-            except OSError:
-                pass
-            try:
-                os.kill(proc.pid, signal.SIGSTOP)
-                paused = True
-                pause_ts = now_iso()
-                log_fh.write(f"[supervisor] paused pid={proc.pid} at {pause_ts}\n")
-                log_fh.flush()
-                running_payload["paused"]    = True
-                running_payload["paused_at"] = pause_ts
-                write_atomic(RUNNING, running_payload)
-                # Freeze the bars-side elapsed timers so the UI doesn't tick
-                # while the Python ETL is SIGSTOPped.
-                freeze_bar_timers(pause_ts)
-            except ProcessLookupError:
-                pass
-
-        if RESUME.exists() and paused:
-            try:
-                RESUME.unlink(missing_ok=True)
-            except OSError:
-                pass
-            try:
-                os.kill(proc.pid, signal.SIGCONT)
-                paused = False
-                log_fh.write(f"[supervisor] resumed pid={proc.pid}\n")
-                log_fh.flush()
-                running_payload["paused"] = False
-                running_payload.pop("paused_at", None)
-                write_atomic(RUNNING, running_payload)
-                # Push each paused bar's started_at forward by the pause
-                # duration. Elapsed timers continue from where they were
-                # without the pause counted against them.
-                thaw_bar_timers()
-            except ProcessLookupError:
-                pass
+    # Supervise the seed with the SAME control loop the download uses.
+    exit_code, halted = _supervise_child(proc, log_fh, "seed", running_payload)
 
     finished_at = now_iso()
     log_fh.write(f"==== ETL run finished at {finished_at} (exit {exit_code}) ====\n")
