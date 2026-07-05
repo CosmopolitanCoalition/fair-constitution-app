@@ -179,6 +179,20 @@ Five items from the operator's first hands-on session, built as slices 5e-5i:
    giant-minus-drawn as the pending polygon through the normal probe/commit
    path — the last district never needs hand-tracing.
 
+5d. **Third field round (operator, 2026-07-04 night — slices 5p-5s, parity with
+   the composite system):** (5p) the drawn-district sidebar didn't refresh on
+   commit until a full reload (a once-seeded ref not re-synced on Inertia partial
+   reloads); (5q) drawn districts appear in ANCESTOR sidebar lists like composite
+   children's districts do (same descendant reach as the reveal branches);
+   (5r) drawn districts join the composite ADJACENCY-COLORING graph — operator's
+   screenshot showed both Serravalle drawn districts wearing the neighboring
+   composite district's orange (adjacency = geometry touching: drawn↔drawn share
+   the cut, drawn↔composite share the giant's edge); (5s) polygon AUTO-CLIP —
+   probes and filings trim the drawn polygon to the giant (proven clip+shave), so
+   ✗outside becomes impossible by construction and the pending shape redraws
+   trimmed; plus a diagnosis pass on why vertex snapping didn't engage on the
+   operator's rig (leaflet-draw private-API wrap).
+
 6. **Scope subtree clamp (5j)** — operator stepped the San Marino legislature's
    mapper up to scope=earth-0-earth: the scope resolver checks existence + the giant
    guard, but never subtree membership, and Earth passes the giant guard trivially —

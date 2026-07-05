@@ -956,6 +956,7 @@
                                         <span :class="drawProbe.contiguous ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
                                         <span :class="drawProbe.within_giant ? 'text-emerald-400' : 'text-red-400'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
                                     </div>
+                                    <div v-if="drawProbe.clipped" class="text-amber-400/80">✂ Trimmed to {{ scope.name }}'s boundary.</div>
                                     <button class="w-full mt-1 px-2 py-1 rounded text-white"
                                             :class="(drawCommitReady && !drawBusy && canDraw) ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-gray-700 cursor-not-allowed opacity-70'"
                                             :disabled="!drawCommitReady || drawBusy || !canDraw"
@@ -1133,6 +1134,12 @@
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-white transition-colors">
                                             Cancel
                                         </button>
+                                    </template>
+                                    <!-- Drawn (geometry) district surfaced from a descendant leaf
+                                         giant: member edit / disband live where the draw tools are —
+                                         its own scope — so no affordances here, same as the map. -->
+                                    <template v-else-if="row.district.method === 'drawn'">
+                                        <span class="text-xs text-gray-500">Drawn district — manage it at its own scope.</span>
                                     </template>
                                     <template v-else>
                                         <button @click.stop="startEdit(row.district.id)"
@@ -1517,6 +1524,7 @@
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.in_band ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.in_band ? '✓ band' : '✕ band' }}</span>
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.contiguous ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.contiguous ? '✓ contiguous' : '✕ split' }}</span>
                                 <span class="px-2 py-1 rounded whitespace-nowrap" :class="drawProbe.within_giant ? 'bg-emerald-950/70 text-emerald-300' : 'bg-red-950/70 text-red-300'">{{ drawProbe.within_giant ? '✓ inside' : '✕ outside' }}</span>
+                                <span v-if="drawProbe.clipped" class="px-2 py-1 rounded bg-amber-950/70 text-amber-300 whitespace-nowrap">✂ trimmed to boundary</span>
                             </div>
                             <div v-else class="mt-1.5 text-amber-300/80">Draw a polygon with the ▢ tool (top-left, under zoom). Vertices snap to the giant's outline and drawn-district borders — hold Alt to disable.</div>
                             <button v-if="districtsRef.length > 0"
@@ -1792,14 +1800,55 @@ function revealedDistrictName(feat, memberCount) {
 }
 
 // ── Local reactive copies ─────────────────────────────────────────────────────
+// THE one districts-prop → districtsRef normalizer (setup seed, prop watcher,
+// reinitMapLayers all go through it). DRAWN rows (method:'drawn' — the leaf
+// giant's own scope, and composite ancestors since the descendant surfacing)
+// carry no member jurisdictions and may use the leaf field names
+// (label/chr/contiguous/intact/deviation), so alias them onto the composite
+// row shape every sidebar template reads.
+function districtRowFromProp(d) {
+    const dev = d.deviation ?? d.deviation_pct
+    return {
+        ...d,
+        id:                d.id ?? d.district_id,
+        name:              d.name ?? d.label ?? '',
+        // The backend's adjacency-aware index — never a list position.
+        color_index:       d.color_index ?? 0,
+        population:        d.population ?? 0,
+        // Drawn rows may report a deviation % instead of fractional seats —
+        // invert dev = (frac/seats − 1)·100 so the quality strip agrees.
+        fractional_seats:  d.fractional_seats
+            ?? ((d.seats > 0 && dev != null) ? d.seats * (1 + dev / 100) : 0),
+        convex_hull_ratio: d.convex_hull_ratio ?? d.chr        ?? null,
+        is_contiguous:     d.is_contiguous     ?? d.contiguous ?? null,
+        has_integrity:     d.has_integrity     ?? d.intact     ?? null,
+        members:           (d.members ?? []).map(m => ({ ...m })),   // drawn rows carry none
+    }
+}
 const childrenRef  = ref(props.children.map(c => ({ ...c })))
-// members may be absent on a leaf-giant scope's DRAWN-district rows (they have
-// no member jurisdictions) — normalize to [] so every .members.reduce() holds.
-const districtsRef = ref(props.districts.map(d => ({
-    ...d,
-    color_index: d.color_index ?? 0,
-    members: (d.members ?? []).map(m => ({ ...m })),
-})))
+const districtsRef = ref(props.districts.map(districtRowFromProp))
+
+// Partial reloads (draw/split/autoseed commits, undo, drawn deletes — and the
+// deferred props' first delivery after mount) hand us FRESH prop references;
+// the local copies above were otherwise seeded once and went stale until a
+// hard refresh. Shallow watches: Inertia's partial-reload merge keeps
+// untouched keys by reference (`{ ...current, ...response }`), so these fire
+// exactly when the prop was actually in a reload's only-list — and they never
+// reload in turn, so no request loop is possible. They also must NOT clobber
+// the optimistic local patches of the member-CRUD paths, which reload only
+// ['flags','stats'] (districts keeps its reference → no trigger).
+watch(() => props.districts, () => {
+    districtsRef.value = props.districts.map(districtRowFromProp)
+    // Selection/expansion may point at a district the reload removed.
+    if (selectedDistrictId.value && !districtsRef.value.some(d => d.id === selectedDistrictId.value)) {
+        selectedDistrictId.value = null
+    }
+    restyleAll()   // no-op until the map layers exist
+})
+watch(() => props.children, () => {
+    childrenRef.value = props.children.map(c => ({ ...c }))
+    restyleAll()
+})
 
 // ── UI state ──────────────────────────────────────────────────────────────────
 const mapLoading          = ref(true)
@@ -1937,8 +1986,9 @@ const leafDrawnDistricts = computed(() => {
         chr:        d.chr ?? d.convex_hull_ratio ?? null,
         contiguous: d.contiguous ?? d.is_contiguous ?? null,
         intact:     d.intact ?? d.has_integrity ?? null,
-        // Match the map layer: revealed features color by district color_index;
-        // fall back to the list position (autoseed proposal ordering).
+        // Match the map layer: revealed features color by the backend's
+        // adjacency-aware color_index (districtRowFromProp guarantees it);
+        // list position remains only as a last-resort fallback.
         colorIndex: d.color_index ?? i,
     }))
 })
@@ -1950,6 +2000,16 @@ const showLeafDrawnList = computed(() =>
 // has no giant children, so the giant term is always 0).
 const leafDrawnSeats = computed(() =>
     districtsRef.value.reduce((s, d) => s + (d.seats ?? 0), 0)
+)
+// Seat-budget arithmetic must not count DRAWN rows at COMPOSITE scopes: those
+// districts live inside descendant leaf giants, whose whole budget is already
+// in the giant term (child_assigned_seats / Math.round(fractional_seats)) —
+// counting them again would double-book the giant's seats. At the leaf scope
+// itself the drawn rows ARE the committed seats, so all rows count there.
+const seatCountableDistricts = computed(() =>
+    isLeafGiantScope.value
+        ? districtsRef.value
+        : districtsRef.value.filter(d => d.method !== 'drawn')
 )
 // DEV-only helper strip: seats the signed-in user on the election board so
 // can_draw flips without running an election. Never part of the application.
@@ -2651,7 +2711,7 @@ const suboptimalConfig = computed(() => {
     const pool = childrenRef.value.filter(c =>
         c.fractional_seats < GIANT_THRESHOLD && !c.district_id
     )
-    const assignedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    const assignedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     // Giant seats must always be excluded — they're never compositable at this scope.
     // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
     const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
@@ -2804,7 +2864,7 @@ const suboptimalLabel = computed(() => {
     // Already-committed districts shown in parens alongside expansion singles —
     // NOT lumped into the bare-number pile (which would make them look like giants)
     const allExpansion = { ...(expansionGroups ?? {}) }
-    for (const dist of districtsRef.value) {
+    for (const dist of seatCountableDistricts.value) {
         allExpansion[dist.seats] = (allExpansion[dist.seats] ?? 0) + 1
     }
 
@@ -2846,14 +2906,14 @@ const currentConfigLabel = computed(() => {
         return d.seats
     }
 
-    const createdSeats = districtsRef.value.reduce((s, d) => s + effectiveSeats(d), 0)
+    const createdSeats = seatCountableDistricts.value.reduce((s, d) => s + effectiveSeats(d), 0)
     const total = createdSeats + committedGiantSeats
 
     if (total === 0) return '0 = 0'
 
     // Build seat-count groups using the effective (mathematical) seat count
     const countMap = {}
-    for (const d of districtsRef.value) {
+    for (const d of seatCountableDistricts.value) {
         const s = effectiveSeats(d)
         countMap[s] = (countMap[s] || 0) + 1
     }
@@ -3096,7 +3156,7 @@ const pendingFractionalTotal = computed(() => {
 // Remaining seat budget for non-giant compositable pool (quota cap takes precedence over floor)
 const remainingBudget = computed(() => {
     const giantSeats     = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
-    const committedSeats = districtsRef.value.reduce((s, d) => s + d.seats, 0)
+    const committedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
 const pendingSeats = computed(() => {
@@ -3124,9 +3184,11 @@ const pendingFloor = computed(() =>
 // True when all compositable jurisdictions are assigned AND all districts have valid fracs.
 // Signals the user they can now drill into giants.
 const roundingReady = computed(() =>
+    // seatCountableDistricts: drawn descendant rows have no members — they would
+    // read as frac 0 and wrongly veto readiness at composite scopes.
     unassignedAssignable.value.length === 0 &&
-    districtsRef.value.length > 0 &&
-    districtsRef.value.every(d =>
+    seatCountableDistricts.value.length > 0 &&
+    seatCountableDistricts.value.every(d =>
         d.members.reduce((s, m) => s + m.fractional_seats, 0) >= FLOOR_BOUNDARY
     )
 )
@@ -3958,6 +4020,10 @@ function _onPolySnapCursor(e) {
 function startPolygonTool() {
     teardownSplitTool()
     if (!_drawnItems) _drawnItems = new L.FeatureGroup().addTo(_map)
+    // reinitMapLayers()'s layer sweep detaches _drawnItems (post-commit
+    // repaint) without nulling the handle — re-attach or every shape staged
+    // after a commit lands in a detached group and never shows.
+    else if (!_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
     if (!_drawControl) {
         _drawControl = new L.Control.Draw({
             position: 'topleft',   // top-right is the legend toggles
@@ -3970,12 +4036,17 @@ function startPolygonTool() {
         _map.addControl(_drawControl)
         _map.on(L.Draw.Event.CREATED, onDrawCreated)
         _map.on(L.Draw.Event.EDITED, onDrawEdited)
-        // Snap each placed vertex: Leaflet.draw funnels every placement
-        // through the handler's addVertex, so wrapping it once per control
-        // instance covers click AND touch. Alt (sampled at the last cursor
-        // move) disables snapping for that click.
+        // Snap each placed vertex: leaflet-draw 1.0.4 funnels EVERY placement
+        // — mouse (_endPoint) and touch (_onTouch) — through the handler's
+        // addVertex, so wrapping it once per control instance covers both.
+        // Alt (sampled at the last cursor move) disables snapping per click.
+        // Throw-or-work: the toolbar path is private API — if a library bump
+        // ever moves it, say so in the panel instead of silently not snapping.
         const h = _polygonDrawHandler()
-        if (h && !h.__snapWrapped) {
+        if (!h || typeof h.addVertex !== 'function') {
+            drawError.value = 'Vertex snapping unavailable — the drawing library changed underneath this tool.'
+            console.error('polygon snap: _toolbars.draw._modes.polygon.handler.addVertex missing (leaflet-draw', L.drawVersion, ')')
+        } else if (!h.__snapWrapped) {
             const origAddVertex = h.addVertex
             h.addVertex = function (latlng) {
                 const r = _snapAltHeld ? { latlng, snapped: false } : _snapLatLng(latlng)
@@ -3984,6 +4055,12 @@ function startPolygonTool() {
             h.__snapWrapped = true
         }
     }
+    // Zero rings = zero snapping with no other symptom. Legitimate while the
+    // outline fetch is still in flight on a fresh scope, but if it persists
+    // the giant-outline fetch failed — leave a trace for that diagnosis.
+    if (_snapRings.length === 0) {
+        console.warn('polygon snap: 0 snap rings at tool start (giant outline still loading, or its fetch failed)')
+    }
     if (_map && !_map.__polySnapBound) {
         _map.on('mousemove', _onPolySnapCursor)
         _map.__polySnapBound = true
@@ -3991,6 +4068,10 @@ function startPolygonTool() {
 }
 
 function teardownPolygonTool() {
+    // Invalidate in-flight probes — a late response must not repaint the
+    // readout or restage a clipped layer after the tool is gone (method
+    // switch, exit, or scope change all land here).
+    _probeSeq++
     _drawnLayer = null
     if (_drawnItems) _drawnItems.clearLayers()
     // Snap feedback must not outlive the mode — clear the dot + cursor hook.
@@ -4010,7 +4091,13 @@ function teardownPolygonTool() {
 
 function onDrawCreated(e) {
     // One pending piece at a time — a new draw replaces the previous.
-    if (_drawnItems) { _drawnItems.clearLayers() }
+    if (_drawnItems) {
+        _drawnItems.clearLayers()
+        // Guard against reinitMapLayers()'s detach here too — the draw
+        // control (and its wrapped handler) survives a repaint, so a shape
+        // can arrive while the group is off the map.
+        if (_map && !_map.hasLayer(_drawnItems)) _drawnItems.addTo(_map)
+    }
     _drawnLayer = e.layer
     _drawnItems.addLayer(_drawnLayer)
     probeDrawnLayer()
@@ -4039,7 +4126,24 @@ async function probeDrawnLayer() {
             drawProbe.value = null
             return
         }
-        drawProbe.value = await resp.json()
+        const data = await resp.json()
+        if (seq !== _probeSeq) return   // superseded while the body streamed
+        drawProbe.value = data
+        // The server clips a partially-outside polygon to the giant and echoes
+        // the clipped geometry — restage it so the shape on screen, the
+        // readout, and the eventual commit are all the SAME polygon (draw()
+        // clips identically server-side; this is belt and braces). No
+        // re-probe: the echoed stats already describe the clipped shape.
+        if (data.clipped && data.geometry && _drawnItems) {
+            const clipped = L.geoJSON(data.geometry, {
+                style: { color: '#fbbf24', weight: 2, fillColor: '#fbbf24', fillOpacity: 0.2 },
+            }).getLayers()[0]
+            if (clipped) {
+                _drawnItems.clearLayers()
+                _drawnLayer = clipped
+                _drawnItems.addLayer(_drawnLayer)
+            }
+        }
     } catch (e) {
         if (seq === _probeSeq) { drawError.value = 'Probe failed.'; drawProbe.value = null }
     } finally {
@@ -4403,6 +4507,8 @@ async function previewAutoseedLines() {
 
 // Proposal overlay: one translucent fill per proposed district (same palette +
 // opacity as the revealed sub-district layer) plus each cut as a dashed blade.
+// Colors are POSITIONAL by design — a pre-commit proposal has no committed
+// color_index yet; the adjacency-aware indices arrive with the commit reload.
 // Non-interactive so map clicks pass through, like the leaf-giant outline.
 function renderAutoseedOverlay(plan) {
     if (!_map) return
@@ -4981,12 +5087,8 @@ async function reinitMapLayers() {
     _snapMarker = null
 
     // 5. Sync childrenRef / districtsRef from the latest Inertia props
-    childrenRef.value = props.children.map(c => ({ ...c }))
-    districtsRef.value = props.districts.map(d => ({
-        ...d,
-        color_index: d.color_index ?? 0,
-        members: (d.members ?? []).map(m => ({ ...m })),   // drawn rows carry none
-    }))
+    childrenRef.value  = props.children.map(c => ({ ...c }))
+    districtsRef.value = props.districts.map(districtRowFromProp)
 
     mapLoading.value   = true
     mapLoadBytes.value = 0
@@ -5048,7 +5150,12 @@ async function reinitMapLayers() {
                 0   // no client timeout — cold PostGIS query can take >45s; nginx allows 300s
             ).catch(() => ({ features: [] })),
             needSelf
-                ? fetchJsonXhr(`/api/jurisdictions/${props.scope.id}/self.geojson?zoom=${z}`, () => {}).catch(() => null)
+                // timeout 0 (like revealed.geojson): a cold PostGIS
+                // ST_Simplify over a giant's full geometry can exceed the
+                // default 45s — a timed-out fetch silently killed BOTH the
+                // draw canvas and every polygon-snap target. Fail loudly.
+                ? fetchJsonXhr(`/api/jurisdictions/${props.scope.id}/self.geojson?zoom=${z}`, () => {}, 0)
+                    .catch(e => { console.error('self.geojson failed — no draw canvas or snap outline:', e); return null })
                 : Promise.resolve(null),
         ])
 
