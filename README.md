@@ -74,10 +74,20 @@ still building), then reload the page.
 
 The world is built from real datasets: **geoBoundaries** (jurisdiction boundaries) and
 **WorldPop** (population). Download them by following
-[docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md), then either place them in the app folder
-under `data/archive` or point `ARCHIVE_PATH` in your `.env` file at wherever you keep them. The
-wizard's Map data step lets you scope the import to a single country for a fast first world;
-the full planet is ~14 GB of source data and a 6–12 hour import.
+[docs/DATA_ACQUISITION.md](docs/DATA_ACQUISITION.md).
+
+**The start command asks where they are.** On the first run, the get-started script asks for
+your map-data folder and points the app at it before the containers are built — so it's ready
+from the moment the app comes up, with no extra steps. Already have your files at, say,
+`D:\map-files`? Just type that when prompted. Don't have them yet? Leave it blank and download
+them later from inside the app. To change the folder afterward, re-run the start script with
+`-Reconfigure` (Windows) / `--reconfigure` (macOS/Linux) — it re-points the app and restarts it
+for you, no Docker commands needed. (You can also preseed it non-interactively by setting
+`CGA_ARCHIVE_PATH` before running.)
+
+Inside the app, the **Map data** step shows what it detected, lets you scope the import to a
+single country for a fast first world, or download the datasets over the internet country by
+country. The full planet is ~14 GB of source data and a 6–12 hour import.
 
 ## Advanced
 

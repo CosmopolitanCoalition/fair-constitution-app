@@ -2476,7 +2476,7 @@ class SetupController extends Controller
             // Desktop's stop then start) reuses the old mount and the folder never
             // shows up. Say that explicitly; it's the #1 "the archive won't take" trap.
             'command'          => 'docker compose up -d',
-            'message'          => 'Saved to .env. Now RECREATE the containers so they pick up your folder: run "docker compose up -d" in the app folder (this recreates them). A plain stop/start or restart is NOT enough. Then click "Re-check" below.',
+            'message'          => 'Saved. To apply it, re-run the start script from the app folder ("./get-started.sh --reconfigure" or ".\\get-started.ps1 -Reconfigure"), or run "docker compose up -d" directly — both RECREATE the containers so they pick up your folder. A plain stop/start or restart is NOT enough. Then click "Re-check". Tip: next time, the start script asks for your map folder up front so no recreate is needed.',
         ]);
     }
 
