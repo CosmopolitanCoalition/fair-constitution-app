@@ -63,17 +63,40 @@ function Set-EnvValue([string]$key, [string]$value) {
     Set-Content '.env' $out
 }
 
+# Run docker (a native command) WITHOUT letting its normal progress output abort
+# the script. docker streams all of its build/pull and "Container Running" progress
+# to stderr, and Windows PowerShell 5.1 promotes the FIRST stderr line from a native
+# command to a TERMINATING error while $ErrorActionPreference = 'Stop' - which killed
+# the run on the first "Image ... Building" line of a cold build. Relax the preference
+# just for the call (docker's own exit code is the real signal, read via $LASTEXITCODE),
+# and print its progress as plain lines instead of scary red NativeCommandError records.
+function Invoke-Docker {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & docker @args 2>&1 | ForEach-Object {
+            # Native stderr arrives as ErrorRecords; the raw line is Exception.Message
+            # (empty for docker's blank progress lines) - ToString() would print the
+            # exception TYPE name for those, so use the message.
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { Write-Host $_.Exception.Message }
+            else { Write-Host $_ }
+        }
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 # Ask where the map-data files live and write ARCHIVE_PATH / PROTOMAPS_DIR into
 # .env BEFORE the containers are built, so the folder is mounted from the first
 # boot. This is the thing that otherwise forces a `docker compose up -d` recreate
-# mid-setup — settling it here removes that entirely.
+# mid-setup - settling it here removes that entirely.
 function Configure-MapData([bool]$firstRun) {
     $current   = Get-EnvValue 'ARCHIVE_PATH'
     $isDefault = ($current -eq '' -or $current -eq './data/archive')
 
-    # Automation override — no prompt.
+    # Automation override - no prompt.
     if ($env:CGA_ARCHIVE_PATH) {
-        $p = ($env:CGA_ARCHIVE_PATH -replace '\\', '/')
+        $p = ($env:CGA_ARCHIVE_PATH.Trim().Trim('"').Trim("'") -replace '\\', '/').TrimEnd('/')
         Set-EnvValue 'ARCHIVE_PATH' $p
         Set-EnvValue 'PROTOMAPS_DIR' "$p/protomaps_pmtiles"
         Say "      Map-data folder set from CGA_ARCHIVE_PATH: $p"
@@ -91,9 +114,13 @@ function Configure-MapData([bool]$firstRun) {
     )
     $detected = $null
     foreach ($c in $candidates) {
-        if ((Test-Path (Join-Path $c 'geoBoundaries_repo')) -or (Test-Path (Join-Path $c 'worldpop_100m_latest'))) {
-            $detected = $c; break
-        }
+        # A candidate on a drive that does not exist (e.g. D:\ on a single-C: PC) makes
+        # Join-Path throw a terminating DriveNotFoundException under 'Stop' - catch and skip.
+        try {
+            if ((Test-Path (Join-Path $c 'geoBoundaries_repo')) -or (Test-Path (Join-Path $c 'worldpop_100m_latest'))) {
+                $detected = $c; break
+            }
+        } catch { }
     }
     $default = if ($detected) { $detected } elseif (-not $isDefault) { ($current -replace '/', '\') } else { '' }
 
@@ -111,6 +138,9 @@ function Configure-MapData([bool]$firstRun) {
         Say '  No folder set - point at it later with -Reconfigure, or use the in-app download.'
         return
     }
+    # Strip surrounding quotes first - Windows "Copy as path" wraps the path in
+    # double-quotes, which would otherwise corrupt the .env line and break the mount.
+    $ans = $ans.Trim().Trim('"').Trim("'")
     $ans = ($ans -replace '\\', '/').TrimEnd('/')
     Set-EnvValue 'ARCHIVE_PATH' $ans
     Set-EnvValue 'PROTOMAPS_DIR' "$ans/protomaps_pmtiles"
@@ -141,11 +171,39 @@ if (Test-Path (Join-Path (Get-Location) 'docker-compose.yml')) {
     } else {
         Say "[2/5] Downloading the app to $AppDir ..."
         $zip = Join-Path $env:TEMP 'fair-constitution-app.zip'
-        Invoke-WebRequest -UseBasicParsing `
-            -Uri "https://github.com/$Repo/archive/refs/heads/$Branch.zip" -OutFile $zip
+        $zipUri = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
+        # Retry the download with a friendly message - a novice on flaky wifi should not
+        # get a raw red WebException and give up (this is the first and flakiest network
+        # step, and it runs under $ErrorActionPreference='Stop').
+        $downloaded = $false
+        for ($try = 1; $try -le 3; $try++) {
+            try {
+                Invoke-WebRequest -UseBasicParsing -Uri $zipUri -OutFile $zip -TimeoutSec 120
+                $downloaded = $true; break
+            } catch {
+                if ($try -lt 3) {
+                    Say "      Download attempt $try failed ($($_.Exception.Message)). Retrying..."
+                    Start-Sleep -Seconds 5
+                }
+            }
+        }
+        if (-not $downloaded) {
+            throw ('Could not download the app from GitHub after several tries. Check your ' +
+                'internet connection (a corporate proxy or VPN can block github.com), then run this again.')
+        }
         $extract = Join-Path $env:TEMP ('cga-extract-' + [Guid]::NewGuid().ToString('N'))
         Expand-Archive -Path $zip -DestinationPath $extract -Force
-        Move-Item (Join-Path $extract "fair-constitution-app-$Branch") $AppDir
+        $src = Join-Path $extract "fair-constitution-app-$Branch"
+        # If an incomplete earlier copy already exists (an abandoned clone, a manual ZIP,
+        # a partial move), Move-Item would NEST the download inside it and the run would
+        # later abort at '.env.example'. Set the old copy aside instead of nesting.
+        if (Test-Path $AppDir) {
+            $bak = "$AppDir.old"
+            if (Test-Path $bak) { Remove-Item -Recurse -Force $bak }
+            Rename-Item -LiteralPath $AppDir -NewName (Split-Path $bak -Leaf)
+            Say "      Set aside an incomplete earlier copy at $bak"
+        }
+        Move-Item $src $AppDir
         Remove-Item $zip -Force -ErrorAction SilentlyContinue
         Remove-Item $extract -Recurse -Force -ErrorAction SilentlyContinue
     }
@@ -167,13 +225,13 @@ Configure-MapData $firstRun
 
 # -- 5. Start the app --------------------------------------------------------
 Say '[5/5] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds...'
-docker compose up -d
+Invoke-Docker compose up -d
 if ($LASTEXITCODE -ne 0) {
     # A first boot occasionally trips over itself (a container loses a race and
     # restarts) - re-issuing the same command resumes and finishes the job.
     Say 'The first start reported a problem - giving it one more push (this is usually enough)...'
     Start-Sleep -Seconds 20
-    docker compose up -d
+    Invoke-Docker compose up -d
 }
 if ($LASTEXITCODE -ne 0) {
     throw ('The app containers had trouble starting. This script is safe to run again and ' +

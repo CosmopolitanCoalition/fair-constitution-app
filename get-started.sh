@@ -85,6 +85,9 @@ configure_map_data() {
     say "  No folder set - point at it later with --reconfigure, or use the in-app download."
     return
   fi
+  # Strip a surrounding pair of quotes (some file managers copy a path wrapped in
+  # them) - an interior quote would corrupt the .env line and break the mount.
+  case "$ans" in \"*\") ans="${ans#\"}"; ans="${ans%\"}";; \'*\') ans="${ans#\'}"; ans="${ans%\'}";; esac
   ans="${ans%/}"
   set_env ARCHIVE_PATH "$ans"
   set_env PROTOMAPS_DIR "$ans/protomaps_pmtiles"
