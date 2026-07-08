@@ -1368,7 +1368,13 @@ class LegislatureController extends Controller
 
         $jids    = $request->input('jurisdiction_ids', []);
         $scopeId = $request->input('scope_id');
-        $mapId   = $this->getMapId($legislature_id, $request->input('map_id'));
+        // ensureMapId (not getMapId): on a legislature with no maps yet — the
+        // founding-setup case, where apportionment sizes the legislature but
+        // mints no map — getMapId returns null and the manually drawn district
+        // would be inserted floating with map_id = NULL, invisible to every
+        // per-map view. The autoseed paths were already hardened this way;
+        // the manual-draw path had been missed.
+        $mapId   = $this->ensureMapId($legislature_id, $request->input('map_id'));
 
         // label_scope_id: first child of root (passed from frontend for naming at grandchild scopes).
         // Falls back to actual scope if not provided (e.g., at root or depth-1).
@@ -5134,6 +5140,19 @@ class LegislatureController extends Controller
             'created_at'     => now(),
             'updated_at'     => now(),
         ]);
+
+        // Adopt any floating districts (map_id = NULL) into the newly minted
+        // map. Before the createDistrict path was hardened to ensureMapId, a
+        // manual commit on a map-less legislature inserted districts with no
+        // map container — those rows are the operator's real drawn work, and
+        // the first map minted for the legislature is definitionally their
+        // home. No-op when nothing floats.
+        DB::table('legislature_districts')
+            ->where('legislature_id', $legislature_id)
+            ->whereNull('map_id')
+            ->whereNull('deleted_at')
+            ->update(['map_id' => $newId, 'updated_at' => now()]);
+
         return $newId;
     }
 
