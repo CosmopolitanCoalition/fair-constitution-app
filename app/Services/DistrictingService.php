@@ -23,6 +23,19 @@ use Illuminate\Support\Str;
  * Per-request memos (legislature rows, seat budgets) live on the instance;
  * the controller holds one instance per request (constructor injection),
  * preserving the original memoization scope.
+ *
+ * 2026-07-08 DOCTRINE REWORK (constitutional review: operator-sanctioned) —
+ * the auto-composite search no longer matches the controller originals.
+ * The objective function now encodes the operator's manual-districting
+ * doctrine, validated against his Manual Draft 1 (50/81 scopes better on
+ * equality, worst district 8.27% vs auto's 32.32%):
+ *   floor/ceiling inviolable → population balance (banded) → contiguity
+ *   (breaks are purchasable; fragments kept close) → compactness →
+ *   seat-mix/UPD optimality (abandoned first).
+ * Mechanisms: integer seat-quota targets with dynamic retargeting
+ * (optimalIntegerTargets), population-anchor seeding, deliberate-break
+ * rebalancing (breakRebalance), fragment-proximity scoring (fragment_gap),
+ * and the scoreRank()/scoreBeats() comparator. Webster (Step 11) untouched.
  */
 class DistrictingService
 {
@@ -209,7 +222,7 @@ class DistrictingService
             WHERE j.parent_id = :scope_id
               AND j.deleted_at IS NULL
               AND j.geom IS NOT NULL
-            ORDER BY j.population DESC
+            ORDER BY j.population DESC, j.id
         ", ['scope_id' => $scopeId]);
 
         if (empty($allChildrenRows)) {
@@ -358,19 +371,24 @@ class DistrictingService
             $components[] = $component;
         }
 
-        // ── Step 8: Multi-attempt seed expansion — retain best by constitutional priority ───
-        // For each component, tries every integer k in [kMin, min(kMax, kMin+7)] across 3 seed
-        // strategies, scoring every candidate in-memory.  Constitutional scoring priority:
-        //   1. Fewest non-contiguous bins
-        //   2. Lowest avg deviation %   (overall population equality — primary equality metric)
-        //   3. Lowest avg Droop threshold (UPD diversity: 5×9+2×8 beats 9×6+1×7 — bigger districts
-        //                                  clear at a lower threshold; see scoreConfiguration())
-        //   4. Lowest max deviation %   (worst-district tiebreaker)
+        // ── Step 8: Multi-attempt seed expansion — retain best by the operator's doctrine ────
+        // For each component, tries every integer k in [kMin, min(kMax, kMin+7)]; for each k,
+        // every component member seeds one attempt (far-point spread for the rest) plus one
+        // population-anchor attempt (top-k most populous children as seeds, so lumpy
+        // population — Canada-class — gets its own bins). A cheap BFS-only proxy scored
+        // against INTEGER seat targets gates the top 20 into the full pipeline.
         //
-        // The Uniform Political Diversity metric is the average Droop entry threshold (1/(s+1) per
-        // district): larger magnitudes → lower threshold → more proportional → more diverse, while a
-        // lone small district raises the average (spread penalty). It replaces the old seat-variance
-        // uniformity proxy, which preferred the opposite (many equal small districts).
+        // Scoring priority (operator doctrine ruling 2026-07-08 — see scoreRank()):
+        //   1. Population balance, banded (avg dev 0.5pp bands, then max dev 1.0pp bands)
+        //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
+        //   3. Compactness (avg Rg² — stringy = bad)
+        //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
+        // The constitutional floor/ceiling stay hard throughout (frac guards + Webster caps).
+        //
+        // After the contiguity-preserving pipeline, any per-k winner still >2.5% off its
+        // worst integer target spawns a deliberate-break variant (breakRebalance — transfers
+        // without adjacency, fragments kept close) that competes under the same comparator:
+        // population balance may BUY a contiguity break, never the reverse.
         // Zero DB queries; uses the adjacency graph already in memory.
         $allBins     = [];
         $totalBinPop = array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $childIds));
@@ -389,7 +407,7 @@ class DistrictingService
             $kMax = max($kMin, (int) floor($compFrac / (float) $floor));
 
             // Exhaustive integer range [kMin, min(kMax, kMin+7)].
-            // Cap at kMin+7 so runtime stays bounded for very large budgets (≤8 k values × 3 strategies = ≤24 BFS runs).
+            // Cap at kMin+7 so runtime stays bounded for very large budgets.
             // Full range ensures UPD-optimal k values (e.g. k=10 for a 61-seat budget) are never skipped.
             $kCandidates = range($kMin, min($kMax, $kMin + 7));
 
@@ -398,69 +416,96 @@ class DistrictingService
             $compBudget = $totalBinPop > 0
                 ? (int) round($compBinPop * $nonGiantBudget / $totalBinPop)
                 : $nonGiantBudget;
+            $quotaPopC  = $compBudget > 0 ? (float) $compBinPop / $compBudget : 0.0;
 
-            $bestBins  = null;
-            $bestScore = null;
+            // Population-anchor seed ordering (deterministic: population desc, then id)
+            $byPop = $component;
+            usort($byPop, function ($a, $b) use ($childById) {
+                return ((int) $childById[$b]->population <=> (int) $childById[$a]->population) ?: strcmp($a, $b);
+            });
+
+            $candidateConfigs = [];
 
             foreach ($kCandidates as $k) {
                 $targetPopK = $compBinPop > 0 ? (float) $compBinPop / $k : 0.0;
 
-                // ── Phase A: BFS-only scan over ALL jids as potential first seeds ─────
+                // ── Phase A: BFS-only scan — every jid as first seed + a population-anchor set ─
                 // geographicSeedExpansion($bfsOnly=true) returns after BFS before passes.
-                // Scoring here is a cheap raw sum-of-absolute-deviations proxy (no Webster).
-                // This lets us try every possible geographic partition from every starting
-                // point, rather than just 6 fixed cardinal-direction anchors.
-                $bfsCandidates = [];
+                // The proxy scores each raw partition against the OPTIMAL integer seat targets
+                // for its realized bins (operator method: "look at the optimal breakdown of
+                // reps per district first" — districts should land ON whole seat multiples,
+                // because bounded Webster can reward nothing else).
+                $seedSets = [];
                 foreach ($component as $firstSeed) {
-                    $seeds    = $this->farPointSeeds($firstSeed, $k, $component, $centroids);
-                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, $giantThreshold, $floorBoundary, true);
+                    $seedSets[] = $this->farPointSeeds($firstSeed, $k, $component, $centroids);
+                }
+                $seedSets[] = array_slice($byPop, 0, min($k, count($byPop)));
+
+                $bfsCandidates = [];
+                foreach ($seedSets as $seeds) {
+                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, $giantThreshold, $floorBoundary, true, $compBudget);
+                    $binPopsA = array_map(
+                        fn($bin) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin)),
+                        $bfsBins
+                    );
                     $devProxy = 0.0;
-                    foreach ($bfsBins as $bin) {
-                        $pop       = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin));
-                        $devProxy += abs($pop - $targetPopK);
+                    if ($quotaPopC > 0) {
+                        $targetsA = $this->optimalIntegerTargets($binPopsA, $quotaPopC, $compBudget, $floor, $ceiling);
+                        foreach ($binPopsA as $bi => $bp) {
+                            $devProxy += abs($bp - $targetsA[$bi] * $quotaPopC);
+                        }
+                    } else {
+                        foreach ($binPopsA as $bp) {
+                            $devProxy += abs($bp - $targetPopK);
+                        }
                     }
                     $bfsCandidates[] = ['seeds' => $seeds, 'dev' => $devProxy];
                 }
                 usort($bfsCandidates, fn($a, $b) => $a['dev'] <=> $b['dev']);
 
                 // ── Phase B: Full pipeline (balance + compact + balance) on top 20 ────
-                // Running balance+compact+balance on every jid as first seed is unnecessary;
-                // the raw BFS score is a reliable proxy for which starting configurations
-                // will converge to better final results.
-                $topN = min(count($component), 20);
+                // Running the full pipeline on every seed set is unnecessary; the integer-
+                // target proxy reliably ranks which starting configurations converge well.
+                $topN = min(count($bfsCandidates), 20);
+                $bestBinsK = null; $bestScoreK = null;
                 foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
-                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary);
+                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary, false, $compBudget);
 
                     $effectiveBudget = max(count($bins), $compBudget);
 
                     $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
 
-                    // Lexicographic priority:
-                    //   1. Fewest non-contiguous bins (hard constraint)
-                    //   2. Fewest districts with |dev| > 2%  (per-district balance target)
-                    //   3. Lowest avg Rg²                    (compactness — stringy = bad)
-                    //   4. Lowest avg Droop threshold        (UPD diversity — bigger districts win)
-                    //   5. Lowest avg deviation %            (fine-tune balance)
-                    if (
-                        $bestScore === null ||
-                        $score['non_contiguous_count'] < $bestScore['non_contiguous_count'] ||
-                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['count_over_2pct']      < $bestScore['count_over_2pct']) ||
-                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
-                         $score['avg_rg_sq']            < $bestScore['avg_rg_sq']) ||
-                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
-                         $score['avg_rg_sq']            === $bestScore['avg_rg_sq'] &&
-                         $score['avg_droop_threshold']  < $bestScore['avg_droop_threshold']) ||
-                        ($score['non_contiguous_count'] === $bestScore['non_contiguous_count'] &&
-                         $score['count_over_2pct']      === $bestScore['count_over_2pct'] &&
-                         $score['avg_rg_sq']            === $bestScore['avg_rg_sq'] &&
-                         $score['avg_droop_threshold']  === $bestScore['avg_droop_threshold'] &&
-                         $score['avg_deviation_pct']    < $bestScore['avg_deviation_pct'])
-                    ) {
-                        $bestBins  = $bins;
-                        $bestScore = $score;
+                    if ($bestScoreK === null || $this->scoreBeats($score, $bestScoreK)) {
+                        $bestBinsK  = $bins;
+                        $bestScoreK = $score;
+                    }
+                }
+                if ($bestBinsK !== null) {
+                    $candidateConfigs[] = ['bins' => $bestBinsK, 'score' => $bestScoreK];
+                }
+            }
+
+            // ── Deliberate-break variants: balance may buy a contiguity break ─────────
+            // The operator's last resort, mechanized: "Sometimes … I have to break
+            // contiguity in order to be above the floor and below the ceiling."
+            // Only candidates still >2.5% off a whole seat target on their worst district
+            // spawn a variant, and the variant must WIN under scoreRank() (a full equality
+            // band or better) to displace the contiguous configuration.
+            $bestBins = null; $bestScore = null;
+            foreach ($candidateConfigs as $cfg) {
+                if ($bestScore === null || $this->scoreBeats($cfg['score'], $bestScore)) {
+                    $bestBins  = $cfg['bins'];
+                    $bestScore = $cfg['score'];
+                }
+                if ($quotaPopC > 0 && $cfg['score']['max_deviation_pct'] > 2.5) {
+                    $broken = $this->breakRebalance($cfg['bins'], $childById, $centroids, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                    if ($broken !== $cfg['bins']) {
+                        $effectiveBudget = max(count($broken), $compBudget);
+                        $bScore = $this->scoreConfiguration($broken, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                        if ($this->scoreBeats($bScore, $bestScore)) {
+                            $bestBins  = $broken;
+                            $bestScore = $bScore;
+                        }
                     }
                 }
             }
@@ -1054,16 +1099,18 @@ class DistrictingService
      * pulling distant jids into a bin during BFS (root cause of geometric non-contiguity)
      * and from fooling the per-swap contiguity guard or post-swap full-revert check.
      *
-     * The multi-attempt loop in runAutoCompositeForScope() calls this 3× (one per
-     * seed strategy) per k value and keeps the best-scoring configuration.
+     * The multi-attempt loop in runAutoCompositeForScope() calls this once per seed
+     * set (every member as first seed + a population-anchor set) per k value and
+     * keeps the best-scoring configuration.
      *
      * Algorithm:
      *  1. Distance threshold: compute p90 × 16 of adjacency edge lengths for the component
      *  2. BFS expansion (distance-filtered): round-robin from k seeds
      *  3. Isolated-jid assignment: adjacency-aware, distance-filtered, standalone fallback
-     *  4. Population balance swaps: border transfers that strictly reduce avg deviation
+     *  4. Population balance swaps: border transfers chasing per-bin INTEGER seat targets
+     *     (minimax, dynamic retargeting — see optimalIntegerTargets)
      *  5. Post-swap contiguity validation: full revert if any swap broke contiguity
-     *  6. Post-repair merge: merge undersized bins (< 5.0 frac) into adjacent absorbers
+     *  6. Post-repair merge: merge undersized bins (< floor frac) into adjacent absorbers
      *
      * @param  array $seeds    Pre-computed seed jurisdiction IDs (one per desired district)
      * @param  array $jids     Jurisdiction IDs in this component
@@ -1080,7 +1127,8 @@ class DistrictingService
         array $seeds,
         float $giantThreshold,
         float $floorBoundary,
-        bool  $bfsOnly = false  // when true: return after BFS expansion, skip balance/compact passes
+        bool  $bfsOnly = false, // when true: return after BFS expansion, skip balance/compact passes
+        int   $compBudget = 0   // component seat budget — enables integer-quota targeting in the passes
     ): array {
         // Pre-compute the "BFS full" threshold (slightly below giant) used to gate
         // expansion. With default 5/9 this is 9.49 (giant=9.5 minus epsilon).
@@ -1094,6 +1142,17 @@ class DistrictingService
         $jidSet    = array_flip($jids); // O(1) membership test
         $totalPop  = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $jids));
         $targetPop = $totalPop / $k;
+
+        // Integer-quota targeting (operator doctrine): when the caller supplies the
+        // component's seat budget, the refinement passes measure each bin against its own
+        // whole-seat target (s_i × quota, Σs_i = budget, re-derived every iteration —
+        // dynamic retargeting) instead of the uniform pop/k. Districts should land ON
+        // whole seat multiples: that is what bounded Webster can actually reward.
+        // BFS itself still coarse-fills toward pop/k; only the passes chase integers.
+        $quotaPop      = $compBudget > 0 ? $totalPop / $compBudget : 0.0;
+        $intFloor      = (int) round($floorBoundary);
+        $intCeiling    = (int) round($giantThreshold - 0.5);
+        $useIntTargets = $quotaPop > 0.0;
 
         // ── Distance filter — computed once, used throughout all phases ──────────────
         // BFS expansion is the root cause of non-contiguous districts: when the adjacency
@@ -1314,10 +1373,21 @@ class DistrictingService
         $swapIter = 0;
         $swapMax  = count($jids) * 3;
         do {
-            // Precompute current maximum deviation — once per iteration, O(k)
+            // Dynamic integer retargeting (operator doctrine): re-derive each bin's
+            // whole-seat target every iteration — a bin drifting from 6.55 toward 8.12
+            // retargets to the 8 ("I'm taking the 8.12 if an 8 is closer").
+            $targets1 = $useIntTargets
+                ? $this->optimalIntegerTargets($binPops, $quotaPop, $compBudget, $intFloor, $intCeiling)
+                : null;
+            $tpops1 = [];
+            for ($ti = 0; $ti < $k; $ti++) {
+                $tpops1[$ti] = $targets1 !== null ? max($targets1[$ti] * $quotaPop, 1.0) : max($targetPop, 1.0);
+            }
+
+            // Precompute current maximum deviation (normalized per-bin) — once per iteration, O(k)
             $currentMaxDev = 0.0;
-            foreach ($binPops as $bp) {
-                $d = abs($bp - $targetPop);
+            foreach ($binPops as $bi => $bp) {
+                $d = abs($bp - $tpops1[$bi]) / $tpops1[$bi];
                 if ($d > $currentMaxDev) $currentMaxDev = $d;
             }
 
@@ -1346,8 +1416,8 @@ class DistrictingService
 
                         // Fast skip: if neither bin i nor bin j holds the current max deviation,
                         // no swap between them can reduce the maximum.
-                        $devI = abs($binPops[$i] - $targetPop);
-                        $devJ = abs($binPops[$j] - $targetPop);
+                        $devI = abs($binPops[$i] - $tpops1[$i]) / $tpops1[$i];
+                        $devJ = abs($binPops[$j] - $tpops1[$j]) / $tpops1[$j];
                         if ($devI < $currentMaxDev && $devJ < $currentMaxDev) continue;
 
                         // Compute new maximum if this swap were applied — O(k)
@@ -1356,7 +1426,7 @@ class DistrictingService
                             $newPop = $bp;
                             if ($bi === $i) $newPop -= $jPop;
                             if ($bi === $j) $newPop += $jPop;
-                            $d = abs($newPop - $targetPop);
+                            $d = abs($newPop - $tpops1[$bi]) / $tpops1[$bi];
                             if ($d > $newMaxDev) $newMaxDev = $d;
                         }
                         $improvement = $currentMaxDev - $newMaxDev;
@@ -1427,6 +1497,11 @@ class DistrictingService
         $compactIter = 0;
         $compactMax  = count($jids) * 2;
         do {
+            // Integer targets for the deviation caps below (dynamic retargeting).
+            $targetsC = $useIntTargets
+                ? $this->optimalIntegerTargets($binPops, $quotaPop, $compBudget, $intFloor, $intCeiling)
+                : null;
+
             $bestCGain = 0.0;
             $bestCI = -1; $bestCJ = -1;
             $bestCJid = null; $bestCRemainingI = null;
@@ -1454,7 +1529,8 @@ class DistrictingService
                     // swaps from accumulating large deviations in a single bin.
                     $newIM = $iM - $jPop;
                     if ($newIM <= 0) continue;
-                    $devIAfter = abs($newIM - $targetPop) / max($targetPop, 1.0);
+                    $tpopCI = $targetsC !== null ? max($targetsC[$i] * $quotaPop, 1.0) : max($targetPop, 1.0);
+                    $devIAfter = abs($newIM - $tpopCI) / $tpopCI;
                     if ($devIAfter > $compactTol) continue;
 
                     // Incremental Rg² for bin i after removing jid (O(1) via statistics)
@@ -1484,7 +1560,8 @@ class DistrictingService
 
                         // Absolute deviation cap for receiver bin j after addition.
                         $newJM = $jM + $jPop;
-                        $devJAfter = abs($newJM - $targetPop) / max($targetPop, 1.0);
+                        $tpopCJ = $targetsC !== null ? max($targetsC[$j] * $quotaPop, 1.0) : max($targetPop, 1.0);
+                        $devJAfter = abs($newJM - $tpopCJ) / $tpopCJ;
                         if ($devJAfter > $compactTol) continue;
 
                         // Incremental Rg² for bin j after adding jid (O(1))
@@ -1525,8 +1602,119 @@ class DistrictingService
                 }
             }
 
+            // Pairwise exchange scan (c∈i ↔ d∈j): reshapes at near-constant population.
+            // Single moves cannot compact coarse-grained scopes — when each child is a
+            // double-digit share of its bin's target, ANY single move breaches the
+            // deviation cap (the São Paulo snake class). An exchange moves ~equal
+            // population both ways, so it passes the caps and can straighten shapes.
+            // Guards: same frac window, same deviation caps (vs integer targets), and
+            // BOTH bins must remain contiguous after the exchange.
+            $bestX = null;
+            for ($i = 0; $i < $k; $i++) {
+                if (count($bins[$i]) <= 1) continue;
+                $iM = $binPops[$i];
+                if ($iM <= 0) continue;
+                $iRg = ($binSx2[$i] + $binSy2[$i]) / $iM
+                     - ($binSx[$i] * $binSx[$i] + $binSy[$i] * $binSy[$i]) / ($iM * $iM);
+                for ($j = $i + 1; $j < $k; $j++) {
+                    if (count($bins[$j]) <= 1) continue;
+                    $jM = $binPops[$j];
+                    if ($jM <= 0) continue;
+                    $jRg = ($binSx2[$j] + $binSy2[$j]) / $jM
+                         - ($binSx[$j] * $binSx[$j] + $binSy[$j] * $binSy[$j]) / ($jM * $jM);
+
+                    // Border cells only: c must touch bin j, d must touch bin i.
+                    $iBorder = [];
+                    foreach ($bins[$i] as $bc) {
+                        foreach ($adj[$bc] ?? [] as $nb) {
+                            if (($assigned[$nb] ?? -1) === $j) { $iBorder[] = $bc; break; }
+                        }
+                    }
+                    $jBorder = [];
+                    foreach ($bins[$j] as $bd) {
+                        foreach ($adj[$bd] ?? [] as $nb) {
+                            if (($assigned[$nb] ?? -1) === $i) { $jBorder[] = $bd; break; }
+                        }
+                    }
+                    if (empty($iBorder) || empty($jBorder)) continue;
+
+                    $tpopXI = $targetsC !== null ? max($targetsC[$i] * $quotaPop, 1.0) : max($targetPop, 1.0);
+                    $tpopXJ = $targetsC !== null ? max($targetsC[$j] * $quotaPop, 1.0) : max($targetPop, 1.0);
+
+                    foreach ($iBorder as $cJid) {
+                        $cPop  = (float) $childById[$cJid]->population;
+                        $cFrac = (float) $childById[$cJid]->fractional_seats;
+                        $cx = $centroids[$cJid]['x'] ?? 0.0;
+                        $cy = $centroids[$cJid]['y'] ?? 0.0;
+                        foreach ($jBorder as $dJid) {
+                            $dPop  = (float) $childById[$dJid]->population;
+                            $dFrac = (float) $childById[$dJid]->fractional_seats;
+
+                            $newFracI = $binFracs[$i] - $cFrac + $dFrac;
+                            $newFracJ = $binFracs[$j] - $dFrac + $cFrac;
+                            if ($newFracI < $floorBoundary || $newFracI >= $giantThreshold) continue;
+                            if ($newFracJ < $floorBoundary || $newFracJ >= $giantThreshold) continue;
+
+                            $newIM = $iM - $cPop + $dPop;
+                            $newJM = $jM - $dPop + $cPop;
+                            if ($newIM <= 0 || $newJM <= 0) continue;
+                            if (abs($newIM - $tpopXI) / $tpopXI > $compactTol) continue;
+                            if (abs($newJM - $tpopXJ) / $tpopXJ > $compactTol) continue;
+
+                            $dcx = $centroids[$dJid]['x'] ?? 0.0;
+                            $dcy = $centroids[$dJid]['y'] ?? 0.0;
+
+                            $nISx  = $binSx[$i]  - $cPop * $cx       + $dPop * $dcx;
+                            $nISy  = $binSy[$i]  - $cPop * $cy       + $dPop * $dcy;
+                            $nISx2 = $binSx2[$i] - $cPop * $cx * $cx + $dPop * $dcx * $dcx;
+                            $nISy2 = $binSy2[$i] - $cPop * $cy * $cy + $dPop * $dcy * $dcy;
+                            $nIRg  = ($nISx2 + $nISy2) / $newIM
+                                   - ($nISx * $nISx + $nISy * $nISy) / ($newIM * $newIM);
+
+                            $nJSx  = $binSx[$j]  + $cPop * $cx       - $dPop * $dcx;
+                            $nJSy  = $binSy[$j]  + $cPop * $cy       - $dPop * $dcy;
+                            $nJSx2 = $binSx2[$j] + $cPop * $cx * $cx - $dPop * $dcx * $dcx;
+                            $nJSy2 = $binSy2[$j] + $cPop * $cy * $cy - $dPop * $dcy * $dcy;
+                            $nJRg  = ($nJSx2 + $nJSy2) / $newJM
+                                   - ($nJSx * $nJSx + $nJSy * $nJSy) / ($newJM * $newJM);
+
+                            $xGain = ($iRg + $jRg) - ($nIRg + $nJRg);
+                            if ($xGain <= $bestCGain || ($bestX !== null && $xGain <= $bestX['gain'])) continue;
+
+                            // Contiguity guard: BOTH bins must stay connected post-exchange.
+                            $setI   = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
+                            $setI[] = $dJid;
+                            $setJ   = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
+                            $setJ[] = $cJid;
+                            if (!$this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)) continue;
+                            if (!$this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq)) continue;
+
+                            $bestX = ['gain' => $xGain, 'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
+                        }
+                    }
+                }
+            }
+
             $compactSwapMade = false;
-            if ($bestCI >= 0) {
+            if ($bestX !== null && $bestX['gain'] > $bestCGain) {
+                // Apply the exchange: c leaves i for j, d leaves j for i.
+                foreach ([[$bestX['c'], $bestX['i'], $bestX['j']], [$bestX['d'], $bestX['j'], $bestX['i']]] as [$mJid, $from, $to]) {
+                    $mPop  = (float) $childById[$mJid]->population;
+                    $mFrac = (float) $childById[$mJid]->fractional_seats;
+                    $mx = $centroids[$mJid]['x'] ?? 0.0;
+                    $my = $centroids[$mJid]['y'] ?? 0.0;
+                    $bins[$from]      = array_values(array_filter($bins[$from], fn($x) => $x !== $mJid));
+                    $bins[$to][]      = $mJid;
+                    $binPops[$from]  -= $mPop;            $binPops[$to]  += $mPop;
+                    $binFracs[$from] -= $mFrac;           $binFracs[$to] += $mFrac;
+                    $binSx[$from]  -= $mPop * $mx;        $binSx[$to]  += $mPop * $mx;
+                    $binSy[$from]  -= $mPop * $my;        $binSy[$to]  += $mPop * $my;
+                    $binSx2[$from] -= $mPop * $mx * $mx;  $binSx2[$to] += $mPop * $mx * $mx;
+                    $binSy2[$from] -= $mPop * $my * $my;  $binSy2[$to] += $mPop * $my * $my;
+                    $assigned[$mJid] = $to;
+                }
+                $compactSwapMade = true;
+            } elseif ($bestCI >= 0) {
                 $cx = $centroids[$bestCJid]['x'] ?? 0.0;
                 $cy = $centroids[$bestCJid]['y'] ?? 0.0;
                 $bins[$bestCJ][]     = $bestCJid;
@@ -1557,10 +1745,19 @@ class DistrictingService
         $swapIter2 = 0;
         $swapMax2  = count($jids) * 2;
         do {
-            // Precompute current maximum deviation — once per iteration, O(k)
+            // Dynamic integer retargeting — same treatment as the first balance pass.
+            $targets2 = $useIntTargets
+                ? $this->optimalIntegerTargets($binPops, $quotaPop, $compBudget, $intFloor, $intCeiling)
+                : null;
+            $tpops2 = [];
+            for ($ti = 0; $ti < $k; $ti++) {
+                $tpops2[$ti] = $targets2 !== null ? max($targets2[$ti] * $quotaPop, 1.0) : max($targetPop, 1.0);
+            }
+
+            // Precompute current maximum deviation (normalized per-bin) — once per iteration, O(k)
             $currentMaxDev2 = 0.0;
-            foreach ($binPops as $bp) {
-                $d = abs($bp - $targetPop);
+            foreach ($binPops as $bi => $bp) {
+                $d = abs($bp - $tpops2[$bi]) / $tpops2[$bi];
                 if ($d > $currentMaxDev2) $currentMaxDev2 = $d;
             }
 
@@ -1588,8 +1785,8 @@ class DistrictingService
                         if ($binFracs[$j] + $jFrac >= $giantThreshold) continue;
 
                         // Fast skip: neither bin involved = cannot reduce the max
-                        $devI2 = abs($binPops[$i] - $targetPop);
-                        $devJ2 = abs($binPops[$j] - $targetPop);
+                        $devI2 = abs($binPops[$i] - $tpops2[$i]) / $tpops2[$i];
+                        $devJ2 = abs($binPops[$j] - $tpops2[$j]) / $tpops2[$j];
                         if ($devI2 < $currentMaxDev2 && $devJ2 < $currentMaxDev2) continue;
 
                         // Compute new maximum — O(k)
@@ -1598,7 +1795,7 @@ class DistrictingService
                             $newPop2 = $bp2;
                             if ($bi2 === $i) $newPop2 -= $jPop;
                             if ($bi2 === $j) $newPop2 += $jPop;
-                            $d2 = abs($newPop2 - $targetPop);
+                            $d2 = abs($newPop2 - $tpops2[$bi2]) / $tpops2[$bi2];
                             if ($d2 > $newMaxDev2) $newMaxDev2 = $d2;
                         }
                         $improvement = $currentMaxDev2 - $newMaxDev2;
@@ -1760,23 +1957,24 @@ class DistrictingService
     }
 
     /**
-     * Score a candidate bin configuration against constitutional priority criteria.
-     * Returns an array suitable for lexicographic comparison (lower = better for all fields).
+     * Score a candidate bin configuration against the operator's doctrine criteria
+     * (ruling 2026-07-08). Fields feed scoreRank()/scoreBeats() for lexicographic
+     * comparison (lower = better for all fields):
      *
-     * Priority order:
-     *   1. Fewest non-contiguous bins       (BFS reachability check in-memory via $adj)
-     *   2. Fewest districts with |dev| > 2% (per-district balance: sub-2% is the primary goal)
-     *   3. Lowest avg Rg²                   (compactness — stringy districts penalised heavily)
-     *   4. Lowest avg Droop threshold       (UPD diversity: prefer 5×9+2×8 over 9×6+1×7)
-     *   5. Lowest average deviation %       (fine-tune balance within tied configurations)
+     *   1. avg_deviation_pct  (banded 0.5pp by scoreRank) — population balance leads
+     *   2. max_deviation_pct  (banded 1.0pp)              — worst-district extreme
+     *   3. non_contiguous_count                            — contiguity breaks
+     *   4. fragment_gap                                    — broken pieces kept CLOSE
+     *   5. avg_rg_sq                                       — compactness (stringy = bad)
+     *   6. avg_droop_threshold                             — seat-mix/UPD, abandoned first
      *
-     * count_over_2pct as criterion 2 encodes the user's priority hierarchy: get every district
-     * under 2% first, then optimise compactness, then UPD, then average balance.  The implicit
-     * "expand by 2% and retry" relaxation emerges naturally: if no configuration achieves
-     * count_over_2pct = 0, the one with fewest over-threshold districts wins, and the algorithm
-     * still found the best solution it could at the strict tolerance before relaxing.
-     * avg_rg_sq (radius of gyration², lower = more compact) ranks above the UPD-diversity metric
-     * because stringy non-compact districts are almost as bad as non-contiguity.
+     * The banding means a fraction-of-a-band equality gain can never buy a snake
+     * district or a pointless contiguity break; a full band (0.5pp avg) can. This
+     * inverts the previous contiguity-first order per the operator's sacrifice
+     * hierarchy: "Population balance last [to be given up]. Contiguity I'd give up
+     * to make population balance work and to remain above the floor and below the
+     * ceiling."  fragment_gap operationalizes "Even when I can't be contiguous I
+     * try to keep the non-contiguous pieces as close together as I can."
      *
      * Simulates Webster apportionment in-memory to compute accurate per-district deviations.
      * Zero DB queries — uses the adjacency graph already loaded in runAutoCompositeForScope().
@@ -1888,39 +2086,332 @@ class DistrictingService
         }
         $avgRgSq = $binCount > 0 ? $totalRgSq / $binCount : 0.0;
 
+        // Contiguity + fragment proximity. Each bin's members are decomposed into
+        // connected fragments (distance-filtered BFS). A bin with >1 fragment counts as
+        // non-contiguous, and every fragment beyond the largest contributes its
+        // closest-approach distance to the largest fragment — the operator's "keep the
+        // non-contiguous pieces as close together as I can", made scoreable.
         $nonContiguousCount = 0;
+        $fragmentGap        = 0.0;
         foreach ($bins as $binJids) {
             if (count($binJids) <= 1) continue; // single-member bins are trivially contiguous
-            $binSet  = array_flip($binJids);
-            $visited = [$binJids[0] => true];
-            $queue   = [$binJids[0]];
-            while (!empty($queue)) {
-                $curr = array_shift($queue);
-                foreach ($adj[$curr] ?? [] as $nb) {
-                    if (!isset($binSet[$nb]) || isset($visited[$nb])) continue;
-                    $dx = ($childById[$curr]->centroid_x ?? 0.0) - ($childById[$nb]->centroid_x ?? 0.0);
-                    $dy = ($childById[$curr]->centroid_y ?? 0.0) - ($childById[$nb]->centroid_y ?? 0.0);
-                    if ($dx * $dx + $dy * $dy > $scMaxEdgeDistSq) continue;
-                    $visited[$nb] = true;
-                    $queue[]      = $nb;
+            $binSet    = array_flip($binJids);
+            $seen      = [];
+            $fragments = [];
+            foreach ($binJids as $start) {
+                if (isset($seen[$start])) continue;
+                $frag         = [];
+                $queue        = [$start];
+                $seen[$start] = true;
+                while (!empty($queue)) {
+                    $curr   = array_shift($queue);
+                    $frag[] = $curr;
+                    foreach ($adj[$curr] ?? [] as $nb) {
+                        if (!isset($binSet[$nb]) || isset($seen[$nb])) continue;
+                        $dx = ($childById[$curr]->centroid_x ?? 0.0) - ($childById[$nb]->centroid_x ?? 0.0);
+                        $dy = ($childById[$curr]->centroid_y ?? 0.0) - ($childById[$nb]->centroid_y ?? 0.0);
+                        if ($dx * $dx + $dy * $dy > $scMaxEdgeDistSq) continue;
+                        $seen[$nb] = true;
+                        $queue[]   = $nb;
+                    }
+                }
+                $fragments[] = $frag;
+            }
+            if (count($fragments) > 1) {
+                $nonContiguousCount++;
+                usort($fragments, fn($a, $b) => count($b) <=> count($a));
+                $main = $fragments[0];
+                for ($f = 1, $fc = count($fragments); $f < $fc; $f++) {
+                    $minSq = PHP_FLOAT_MAX;
+                    foreach ($fragments[$f] as $aJid) {
+                        foreach ($main as $mJid) {
+                            $dx = ($childById[$aJid]->centroid_x ?? 0.0) - ($childById[$mJid]->centroid_x ?? 0.0);
+                            $dy = ($childById[$aJid]->centroid_y ?? 0.0) - ($childById[$mJid]->centroid_y ?? 0.0);
+                            $d  = $dx * $dx + $dy * $dy;
+                            if ($d < $minSq) $minSq = $d;
+                        }
+                    }
+                    if ($minSq < PHP_FLOAT_MAX) $fragmentGap += sqrt($minSq);
                 }
             }
-            if (count($visited) < count($binJids)) $nonContiguousCount++;
         }
-
-        // count_over_2pct: number of districts whose per-seat deviation exceeds 2%.
-        // This is the primary post-contiguity criterion: the algorithm prefers configurations
-        // where every district is ≤2% over configurations that are merely better on average.
-        $countOver2pct = count(array_filter($deviations, fn($d) => $d > 2.0));
 
         return [
             'non_contiguous_count' => $nonContiguousCount,
-            'count_over_2pct'      => $countOver2pct,
+            'fragment_gap'         => $fragmentGap,
             'avg_rg_sq'            => $avgRgSq,
             'avg_droop_threshold'  => $avgDroopThreshold,
             'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
             'max_deviation_pct'    => empty($deviations) ? 0.0 : max($deviations),
         ];
+    }
+
+    /**
+     * Optimal integer seat targets for a set of bins — the operator's manual method,
+     * mechanized: "What I do manually is look at the optimal breakdown of reps per
+     * district first … Example 6.55 vs 8.12, I'm taking the 8.12 if an 8 is closer
+     * and has the least distortion."
+     *
+     * Given realized bin populations, finds the integer seat vector s_i in
+     * [floor, ceiling] with Σs_i = budget minimizing Σ|pop_i − s_i×quota|.
+     * Greedy marginal-cost adjustment is exact here: each bin's cost |pop_i − s×quota|
+     * is convex in s, so repeatedly applying the cheapest single-step correction
+     * toward the budget reaches the global optimum of this separable convex program.
+     *
+     * When the budget cannot support the floor for every bin, the lower bound relaxes
+     * to 1 (mirrors Step 11's floor_override posture). When the budget exceeds
+     * ceiling×bins the vector saturates at the ceiling and the sum falls short
+     * (Step 11's safety loop faces the same wall).
+     *
+     * @param  array $binPops float population per bin, sequential integer keys
+     * @return array int seat target per bin (same order); empty when unusable input
+     */
+    private function optimalIntegerTargets(array $binPops, float $quota, int $budget, int $floor, int $ceiling): array
+    {
+        $k = count($binPops);
+        if ($k === 0 || $quota <= 0) return [];
+        $low = ($budget >= $floor * $k) ? $floor : 1;
+
+        $targets = [];
+        foreach ($binPops as $p) {
+            $targets[] = max($low, min($ceiling, (int) round(((float) $p) / $quota)));
+        }
+
+        $cost = fn(float $p, int $s): float => abs($p - $s * $quota);
+        $sum  = array_sum($targets);
+        while ($sum > $budget) {
+            $bestI = -1; $bestDelta = PHP_FLOAT_MAX;
+            foreach ($targets as $i => $s) {
+                if ($s <= $low) continue;
+                $delta = $cost((float) $binPops[$i], $s - 1) - $cost((float) $binPops[$i], $s);
+                if ($delta < $bestDelta) { $bestDelta = $delta; $bestI = $i; }
+            }
+            if ($bestI < 0) break;
+            $targets[$bestI]--; $sum--;
+        }
+        while ($sum < $budget) {
+            $bestI = -1; $bestDelta = PHP_FLOAT_MAX;
+            foreach ($targets as $i => $s) {
+                if ($s >= $ceiling) continue;
+                $delta = $cost((float) $binPops[$i], $s + 1) - $cost((float) $binPops[$i], $s);
+                if ($delta < $bestDelta) { $bestDelta = $delta; $bestI = $i; }
+            }
+            if ($bestI < 0) break;
+            $targets[$bestI]++; $sum++;
+        }
+        return $targets;
+    }
+
+    /**
+     * Comparator rank vector encoding the operator's sacrifice hierarchy
+     * (ruling 2026-07-08): floor/ceiling are inviolable (enforced upstream by frac
+     * guards and Webster caps), then population balance, then contiguity (breaks are
+     * purchasable; fragments kept close), then compactness, then seat-mix/UPD
+     * optimality — "I'm normally quick to abandon the optimal reps per district
+     * balance first. Population balance last."
+     *
+     * Balance leads but in BANDS (avg 0.5pp, max 1.0pp) so a fraction-of-a-band
+     * equality gain can never buy a snake district or a pointless contiguity break —
+     * within a band, contiguity and then shape decide. Raw avg deviation returns as
+     * the final tiebreak.
+     */
+    private function scoreRank(array $s): array
+    {
+        return [
+            (int) floor($s['avg_deviation_pct'] / 0.5),  // 1. equality, 0.5pp bands
+            (int) floor($s['max_deviation_pct'] / 1.0),  // 2. worst district, 1pp bands
+            $s['non_contiguous_count'],                  // 3. contiguity breaks
+            $s['fragment_gap'],                          // 4. break quality: fragments close
+            $s['avg_rg_sq'],                             // 5. compactness
+            $s['avg_droop_threshold'],                   // 6. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 7. raw equality tiebreak
+        ];
+    }
+
+    /** True when score $a strictly beats score $b under scoreRank() lexicographic order. */
+    private function scoreBeats(array $a, array $b): bool
+    {
+        $ra = $this->scoreRank($a);
+        $rb = $this->scoreRank($b);
+        foreach ($ra as $i => $v) {
+            if ($v < $rb[$i]) return true;
+            if ($v > $rb[$i]) return false;
+        }
+        return false;
+    }
+
+    /**
+     * Deliberate-break rebalance — the operator's last resort, mechanized:
+     * "Sometimes that doesn't work either and I have to break contiguity in order
+     * to be above the floor and below the ceiling … Even when I can't be contiguous
+     * I try to keep the non-contiguous pieces as close together as I can."
+     *
+     * Transfers children between bins WITHOUT requiring adjacency — single moves and
+     * pairwise exchanges (exchanges cross balance humps single moves cannot, e.g.
+     * Canada's Quebec↔Prairies class) — chasing the per-bin integer seat targets,
+     * re-derived every step (dynamic retargeting). Among near-best balance gains the
+     * geographically closest transfer wins, so unavoidable fragments stay tight; the
+     * fragment_gap score criterion then judges the result.
+     *
+     * The caller scores the returned configuration against the contiguous original
+     * under scoreBeats(): banded equality decides whether the break was worth it
+     * (a ±32% Canada → yes; a 0.1pp São Paulo → no).
+     *
+     * Frac guards keep every bin inside Webster's round-to-legal window: each bin
+     * stays ≥ floorBoundary−0.5 (still rounds to ≥ floor) and < giantThreshold
+     * (still rounds to ≤ ceiling). Bins are never emptied.
+     */
+    private function breakRebalance(
+        array $bins,
+        array $childById,
+        array $centroids,
+        float $quotaPop,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): array {
+        $k = count($bins);
+        if ($k < 2 || $quotaPop <= 0) return $bins;
+
+        $bins     = array_map(fn($b) => array_values($b), $bins);
+        $binPops  = array_map(fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)), $bins);
+        $binFracs = array_map(fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $b)), $bins);
+        $overrideBoundary = $floorBoundary - 0.5;
+
+        $maxSteps = array_sum(array_map('count', $bins)) * 3;
+        for ($step = 0; $step < $maxSteps; $step++) {
+            // Dynamic retargeting: the integer targets follow the bins as they change.
+            $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $floor, $ceiling);
+            if (empty($targets)) break;
+            $tpops = [];
+            foreach ($targets as $i => $t) $tpops[$i] = max($t * $quotaPop, 1.0);
+
+            $maxDevOf = function (array $pops) use ($tpops): float {
+                $worst = 0.0;
+                foreach ($pops as $i => $p) {
+                    $d = abs($p - $tpops[$i]) / $tpops[$i];
+                    if ($d > $worst) $worst = $d;
+                }
+                return $worst;
+            };
+            $currentMax = $maxDevOf($binPops);
+            if ($currentMax <= 0.01) break;   // every bin within 1% of a whole seat target
+
+            $binCenters = array_map(fn($b) => $this->binCentroid($b, $centroids), $bins);
+
+            // Collect every improving single move and pairwise exchange.
+            $cands = [];
+            for ($i = 0; $i < $k; $i++) {
+                for ($j = 0; $j < $k; $j++) {
+                    if ($j === $i) continue;
+                    foreach ($bins[$i] as $cJid) {
+                        $cPop  = (float) $childById[$cJid]->population;
+                        $cFrac = (float) $childById[$cJid]->fractional_seats;
+
+                        // Single move c: i → j
+                        if (count($bins[$i]) >= 2
+                            && $binFracs[$i] - $cFrac >= $overrideBoundary
+                            && $binFracs[$j] + $cFrac < $giantThreshold) {
+                            $trial      = $binPops;
+                            $trial[$i] -= $cPop;
+                            $trial[$j] += $cPop;
+                            $gain = $currentMax - $maxDevOf($trial);
+                            if ($gain > 1e-12) {
+                                $dx = ($centroids[$cJid]['x'] ?? 0.0) - $binCenters[$j]['x'];
+                                $dy = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
+                                $cands[] = ['gain' => $gain, 'dist' => $dx * $dx + $dy * $dy,
+                                            'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => null];
+                            }
+                        }
+
+                        // Pairwise exchange c ↔ d (i < j only — exchanges are symmetric)
+                        if ($i < $j) {
+                            foreach ($bins[$j] as $dJid) {
+                                $dPop  = (float) $childById[$dJid]->population;
+                                $dFrac = (float) $childById[$dJid]->fractional_seats;
+                                $newFracI = $binFracs[$i] - $cFrac + $dFrac;
+                                $newFracJ = $binFracs[$j] - $dFrac + $cFrac;
+                                if ($newFracI < $overrideBoundary || $newFracI >= $giantThreshold) continue;
+                                if ($newFracJ < $overrideBoundary || $newFracJ >= $giantThreshold) continue;
+                                $trial      = $binPops;
+                                $trial[$i] += $dPop - $cPop;
+                                $trial[$j] += $cPop - $dPop;
+                                $gain = $currentMax - $maxDevOf($trial);
+                                if ($gain > 1e-12) {
+                                    $dx1 = ($centroids[$cJid]['x'] ?? 0.0) - $binCenters[$j]['x'];
+                                    $dy1 = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
+                                    $dx2 = ($centroids[$dJid]['x'] ?? 0.0) - $binCenters[$i]['x'];
+                                    $dy2 = ($centroids[$dJid]['y'] ?? 0.0) - $binCenters[$i]['y'];
+                                    $cands[] = ['gain' => $gain,
+                                                'dist' => $dx1 * $dx1 + $dy1 * $dy1 + $dx2 * $dx2 + $dy2 * $dy2,
+                                                'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (empty($cands)) break;
+
+            // Best balance gain wins; among near-best (≥95% of the best gain) the
+            // geographically closest transfer wins — fragments stay tight.
+            $maxGain = 0.0;
+            foreach ($cands as $c) {
+                if ($c['gain'] > $maxGain) $maxGain = $c['gain'];
+            }
+            $chosen = null;
+            foreach ($cands as $c) {
+                if ($c['gain'] < 0.95 * $maxGain) continue;
+                if ($chosen === null || $c['dist'] < $chosen['dist']) $chosen = $c;
+            }
+
+            // Apply the chosen transfer
+            $i = $chosen['i']; $j = $chosen['j']; $cJid = $chosen['c'];
+            $cPop  = (float) $childById[$cJid]->population;
+            $cFrac = (float) $childById[$cJid]->fractional_seats;
+            $bins[$i]      = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
+            $bins[$j][]    = $cJid;
+            $binPops[$i]  -= $cPop;  $binPops[$j]  += $cPop;
+            $binFracs[$i] -= $cFrac; $binFracs[$j] += $cFrac;
+            if ($chosen['d'] !== null) {
+                $dJid  = $chosen['d'];
+                $dPop  = (float) $childById[$dJid]->population;
+                $dFrac = (float) $childById[$dJid]->fractional_seats;
+                $bins[$j]      = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
+                $bins[$i][]    = $dJid;
+                $binPops[$j]  -= $dPop;  $binPops[$i]  += $dPop;
+                $binFracs[$j] -= $dFrac; $binFracs[$i] += $dFrac;
+            }
+        }
+
+        return $bins;
+    }
+
+    /**
+     * Distance-filtered BFS connectivity test for a set of jids.
+     * Same false-positive edge filter as everywhere else in the expansion pipeline.
+     */
+    private function connectedSet(array $jids, array $adj, array $centroids, float $maxEdgeDistSq): bool
+    {
+        $n = count($jids);
+        if ($n <= 1) return true;
+        $set = array_flip($jids);
+        $vis = [$jids[0] => true];
+        $q   = [$jids[0]];
+        while (!empty($q)) {
+            $cur = array_shift($q);
+            foreach ($adj[$cur] ?? [] as $nb) {
+                if (!isset($set[$nb]) || isset($vis[$nb])) continue;
+                $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                $vis[$nb] = true;
+                $q[]      = $nb;
+            }
+        }
+        return count($vis) === $n;
     }
 
     /**
