@@ -66,10 +66,13 @@ class PrewarmRasterTilesJob implements ShouldQueue
          *  rewarms after a map edit. Null = full zoom-range scan. */
         public readonly ?string $tileKeysFile = null,
     ) {
-        // Dedicated queue so Horizon's `long-running` supervisor picks it
-        // up with no per-job timeout. The default supervisor's 60 s
-        // timeout would SIGTERM us within seconds.
-        $this->onQueue('long-running');
+        // Dedicated LOW-PRIORITY lane (own supervisor, no per-job timeout —
+        // the default supervisor's 60 s timeout would SIGTERM us in seconds).
+        // NOT 'long-running': that supervisor has a single slot reserved for
+        // the INTERACTIVE heavy jobs (autoseed / mass-reseed / geodata scan),
+        // and this warm re-dispatches on every horizon boot — parked there it
+        // jammed an operator's autoseed behind hours of planetary prewarm.
+        $this->onQueue('prewarm');
     }
 
     public function handle(): void

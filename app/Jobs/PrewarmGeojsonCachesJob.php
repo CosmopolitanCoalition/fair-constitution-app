@@ -36,7 +36,9 @@ class PrewarmGeojsonCachesJob implements ShouldQueue
         /** Comma-separated zoom levels, forwarded to --zooms. Null = command default. */
         public readonly ?string $zooms = null,
     ) {
-        $this->onQueue('long-running');
+        // Low-priority prewarm lane — see PrewarmRasterTilesJob: boot-time
+        // warms must never occupy the single interactive long-running slot.
+        $this->onQueue('prewarm');
     }
 
     public function handle(): void

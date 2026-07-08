@@ -235,6 +235,25 @@ return [
             'timeout' => 0,
             'nice' => 0,
         ],
+
+        // Boot-time cache prewarms (raster tiles + geojson) ride their own
+        // lane: they re-dispatch on every horizon boot and can grind for
+        // hours planet-wide, and sharing the single long-running slot parked
+        // an operator's autoseed behind them. Isolated here, an update or
+        // restart never blocks interactive heavy work (autoseed, mass-reseed,
+        // geodata scan).
+        'supervisor-prewarm' => [
+            'connection' => 'redis',
+            'queue' => ['prewarm'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 0,
+            'nice' => 10,
+        ],
     ],
 
     'environments' => [
@@ -247,6 +266,9 @@ return [
             'supervisor-long-running' => [
                 'maxProcesses' => 1,
             ],
+            'supervisor-prewarm' => [
+                'maxProcesses' => 1,
+            ],
         ],
 
         'local' => [
@@ -254,6 +276,9 @@ return [
                 'maxProcesses' => 3,
             ],
             'supervisor-long-running' => [
+                'maxProcesses' => 1,
+            ],
+            'supervisor-prewarm' => [
                 'maxProcesses' => 1,
             ],
         ],
