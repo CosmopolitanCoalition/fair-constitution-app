@@ -2932,24 +2932,9 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        // Stage 0: a job that never left the 'queued' phase (or has no
-        // progress at all) has no worker to signal and no query to cancel —
-        // the polite halt below would wait forever on a ghost. Clear the
-        // flags outright so the UI unblocks immediately.
-        $progress = Cache::get("legislature.{$legislature_id}.mass_progress") ?: [];
-        if ($progress === [] || ($progress['phase'] ?? null) === 'queued') {
-            Cache::forget("legislature.{$legislature_id}.mass_running");
-            Cache::forget("legislature.{$legislature_id}.mass_halt");
-            Cache::forget("legislature.{$legislature_id}.mass_db_pid");
-            $this->publishMassProgress($legislature_id, [
-                'phase'       => 'halted',
-                'phase_label' => 'Halted — the queued job never started; cleared.',
-            ]);
-
-            return response()->json(['ok' => true, 'cleared' => true]);
-        }
-
-        // Stage 1: cache flag for graceful PHP-side exit.
+        // Stage 1: cache flag for graceful PHP-side exit. A live worker sees
+        // it at its next scope boundary and stops; a ghost has nobody to see
+        // it — which is why Stage 4 below clears the run state UNCONDITIONALLY.
         Cache::put("legislature.{$legislature_id}.mass_halt", true, 3600);
 
         // Stage 2: graceful Postgres cancel of the worker's in-flight query.
@@ -2989,17 +2974,28 @@ class LegislatureController extends Controller
             Cache::forget("legislature.{$legislature_id}.mass_db_pid");
         }
 
+        // Stage 4: Halt means STOP NOW — clear the run state UNCONDITIONALLY.
+        // A polite-signal-only halt wedges forever on a ghost (a job cleared
+        // from the queue leaves its 2 h mass_running flag lying, with phases
+        // like 'queued' OR 'halting' that no phase-specific check reliably
+        // covers — a real operator hit exactly that). A live worker was
+        // already signalled (mass_halt) and its query cancelled/terminated
+        // above; its own exit-cleanup clearing already-cleared flags is a
+        // no-op. The narrow race (a new dispatch clearing mass_halt while an
+        // old worker is still unwinding) is accepted: the operator being
+        // permanently wedged is strictly worse than a recoverable overlap.
+        Cache::forget("legislature.{$legislature_id}.mass_running");
+        Cache::forget("legislature.{$legislature_id}.mass_db_pid");
         $this->publishMassProgress($legislature_id, [
-            'phase'       => $terminated ? 'halted' : 'halting',
+            'phase'       => 'halted',
             'phase_label' => $terminated
                 ? 'Halted by operator (terminated stuck query)'
-                : ($cancelled
-                    ? 'Halt requested — cancelling in-flight query'
-                    : 'Halt requested — will stop after current scope'),
+                : 'Halted by operator.',
         ]);
 
         return response()->json([
             'ok'         => true,
+            'cleared'    => true,
             'cancelled'  => $cancelled,
             'terminated' => $terminated,
         ]);
