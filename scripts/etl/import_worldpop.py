@@ -249,9 +249,9 @@ def get_adm_levels_for_country(conn: psycopg2.extensions.connection, iso3: str) 
 
     Sources accepted:
       - 'geoboundaries' — normal imported features
-      - 'synthetic'     — country-row synthesis (Phase J1.5 + legacy fix_orphans),
-                          covers PRI today and any future iso missing its
-                          country-level row in geoBoundaries
+      - 'synthetic'     — country-row synthesis (Phase J1.5; re-derived by
+                          reresolve_parents.py), covers PRI today and any future
+                          iso missing its country-level row in geoBoundaries
     """
     with get_cursor(conn) as cur:
         cur.execute("""

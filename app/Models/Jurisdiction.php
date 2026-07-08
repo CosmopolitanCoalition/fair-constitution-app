@@ -34,6 +34,7 @@ class Jurisdiction extends Model
         'osm_relation_id',
         'official_languages',
         'timezone',
+        'merged_into_id',
     ];
 
     protected $casts = [
@@ -58,6 +59,15 @@ class Jurisdiction extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Jurisdiction::class, 'parent_id');
+    }
+
+    /**
+     * The surviving row this (soft-deleted) member of a collapsed same-space
+     * chain was merged into — set by the geodata merge_chain repair.
+     */
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(Jurisdiction::class, 'merged_into_id');
     }
 
     public function constitutionalSettings(): HasOne

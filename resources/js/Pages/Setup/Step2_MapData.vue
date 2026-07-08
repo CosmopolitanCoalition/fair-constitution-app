@@ -66,6 +66,10 @@ const includeDebug        = ref(false)
 const advancing           = ref(false)
 const apportioning        = ref(false)
 const advanceError        = ref('')
+// True when Continue 422'd on the map-acceptance gate (activateStep1 refuses
+// until map_accepted_at is stamped in the Jurisdiction Viewer). Renders the
+// message as amber guidance with a viewer link instead of a raw red error.
+const acceptanceRequired  = ref(false)
 const submitting          = ref(false)
 const submitError         = ref('')
 
@@ -100,6 +104,13 @@ const wpUnAdjusted  = ref(false)
 const gbRelease     = ref('gbOpen')        // 'gbOpen' | 'gbHumanitarian' | 'gbAuthoritative'
 
 let pollTimer = null
+
+// ─── Geodata flag counts (post-ETL Review & Accept state) ────────────────────
+// Once the ETL is done, Step 2 surfaces the open-flag count from the Data
+// Review & Repair plane so the operator knows what awaits in the Jurisdiction
+// Viewer. Polled gently (10s) — repairs happen over there, not here.
+const flagState = ref({ loaded: false, open: 0, critical: 0, warning: 0, info: 0 })
+let flagPollTimer = null
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -211,6 +222,10 @@ async function fetchProgress() {
             // A finished run may have changed what's on disk (a download run
             // populated /archive). Refresh the detected-data panel once.
             fetchSources()
+            // Post-ETL the Review & Accept card shows the live open-flag
+            // count from the repair plane; keep it fresh while the operator
+            // repairs over in the Jurisdiction Viewer.
+            if (lifecycle.value === 'done' && !flagPollTimer) startFlagPolling()
         }
     } catch (e) {
         // swallow — poll will retry
@@ -232,6 +247,43 @@ async function startPolling() {
 function stopPolling() {
     if (pollTimer) clearInterval(pollTimer)
     pollTimer = null
+}
+
+async function fetchFlagCounts() {
+    try {
+        const res = await fetch('/api/geodata/flags?status=open', {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+        })
+        if (!res.ok) return   // best-effort — the viewer is the authoritative surface
+        const data = await res.json().catch(() => ({}))
+        const sev  = data.counts?.open_by_severity || {}
+        flagState.value = {
+            loaded:   true,
+            open:     data.counts?.open ?? 0,
+            critical: sev.critical ?? 0,
+            warning:  sev.warning ?? 0,
+            info:     sev.info ?? 0,
+        }
+    } catch (e) {
+        // swallow — poll retries
+    }
+}
+
+function startFlagPolling() {
+    stopFlagPolling()
+    fetchFlagCounts()
+    // Once the map is accepted the repair window is closed and the counts
+    // are frozen — one fetch for display is enough, no 10s heartbeat forever.
+    // (Acceptance happens in the Jurisdiction Viewer, so returning to Step 2
+    // is always a fresh page load carrying the updated settings prop.)
+    if (props.settings?.map_accepted_at) return
+    flagPollTimer = setInterval(fetchFlagCounts, 10000)
+}
+
+function stopFlagPolling() {
+    if (flagPollTimer) clearInterval(flagPollTimer)
+    flagPollTimer = null
 }
 
 // Save the local host folder(s) into .env via the backend. Needs a
@@ -390,6 +442,8 @@ async function sendControl(action) {
 async function advance() {
     advancing.value = true
     apportioning.value = true
+    acceptanceRequired.value = false
+    advanceError.value = ''
     try {
         const res = await csrfFetch('/api/setup/wizard/step1/activate', {
             method: 'POST',
@@ -399,6 +453,13 @@ async function advance() {
         const data = await res.json().catch(() => ({}))
         if (res.ok) {
             router.visit(data.next || '/setup/step/3')
+        } else if (res.status === 422 && (data.map_acceptance_required || /accept the map data/i.test(data.error || ''))) {
+            // Map-acceptance gate: activateStep1 refuses until the operator
+            // accepts the map data in the Jurisdiction Viewer. Render as
+            // guidance (amber + link), not a raw error.
+            acceptanceRequired.value = true
+            advanceError.value = data.error
+            fetchFlagCounts()
         } else {
             // Surface the real failure (apportionment 422/500, or csrfFetch's
             // honest 419 message) instead of a silent dead button.
@@ -432,7 +493,10 @@ onMounted(() => {
     fetchSources()
     startPolling()
 })
-onBeforeUnmount(stopPolling)
+onBeforeUnmount(() => {
+    stopPolling()
+    stopFlagPolling()
+})
 </script>
 
 <template>
@@ -939,9 +1003,40 @@ onBeforeUnmount(stopPolling)
                 <p class="text-gray-400 text-xs mb-3">
                     The import finished. Open the jurisdiction viewer to inspect
                     boundaries, populations, raster overlays, dual-footprint
-                    relationships, and any flagged discrepancies. Click Continue
-                    below when satisfied — that triggers apportionment.
+                    relationships, and any flagged discrepancies — then accept the
+                    map data there (planet scope). Click Continue below once
+                    accepted — that triggers apportionment.
                 </p>
+
+                <!-- Live open-flag state from the Data Review & Repair plane.
+                     Continue is gated server-side on map acceptance, and the
+                     acceptance in turn asks for acknowledgment while these
+                     stay open — so the count is worth watching from here. -->
+                <div v-if="flagState.loaded" class="mb-3">
+                    <div v-if="flagState.open > 0"
+                         class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 flex items-center gap-2 flex-wrap">
+                        <span>
+                            ⚑ {{ flagState.open }} open data flag{{ flagState.open === 1 ? '' : 's' }}
+                            — review &amp; repair in the Jurisdiction Viewer →
+                        </span>
+                        <span v-if="flagState.critical > 0"
+                              class="px-1.5 py-0 rounded text-[10px] bg-red-900 text-red-200 border border-red-700">
+                            {{ flagState.critical }} critical
+                        </span>
+                        <span v-if="flagState.warning > 0"
+                              class="px-1.5 py-0 rounded text-[10px] bg-amber-900 text-amber-200 border border-amber-700">
+                            {{ flagState.warning }} warning
+                        </span>
+                        <span v-if="flagState.info > 0"
+                              class="px-1.5 py-0 rounded text-[10px] bg-gray-700 text-gray-300 border border-gray-600">
+                            {{ flagState.info }} info
+                        </span>
+                    </div>
+                    <div v-else class="text-xs text-emerald-300">
+                        ✓ No open data flags.
+                    </div>
+                </div>
+
                 <a href="/jurisdictions"
                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
                     Open Jurisdiction Viewer →
@@ -965,7 +1060,17 @@ onBeforeUnmount(stopPolling)
                     <span v-if="apportioning" class="text-xs text-gray-500 italic">
                         Running cube-root apportionment across the jurisdiction tree…
                     </span>
-                    <span v-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">
+                    <!-- Map-acceptance gate 422: guidance, not failure — the
+                         operator just hasn't accepted the map data yet. -->
+                    <div v-if="acceptanceRequired"
+                         class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 max-w-sm text-right">
+                        <p>{{ advanceError }}</p>
+                        <a href="/jurisdictions"
+                           class="inline-block mt-1.5 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
+                            Open Jurisdiction Viewer →
+                        </a>
+                    </div>
+                    <span v-else-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">
                         {{ advanceError }}
                     </span>
                 </div>

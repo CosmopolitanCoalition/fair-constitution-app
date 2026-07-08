@@ -116,6 +116,20 @@
                         </div>
                     </div>
 
+                    <!-- Repair-queue chip (sub-scopes only). Lights up when this
+                         jurisdiction appears in any open geodata flag; the full
+                         Data Review & Repair queue lives at planet scope, so
+                         the chip links there. Setup-window only. -->
+                    <div v-if="!map_acceptance.is_planet_scope && relatedOpenFlagCount > 0"
+                         class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1.5">Data flags</div>
+                        <a :href="planetSlug ? `/jurisdictions/${planetSlug}` : '/jurisdictions'"
+                           class="inline-block px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700
+                                  hover:bg-amber-800 transition-colors">
+                            ⚑ {{ relatedOpenFlagCount }} open data flag{{ relatedOpenFlagCount === 1 ? '' : 's' }} — review at planet scope →
+                        </a>
+                    </div>
+
                     <!-- Region & dataset metadata. Absorbs what used to be
                          three separate cards (geographic context, official
                          languages, data source) — they're all dataset-level
@@ -254,6 +268,18 @@
                         Judiciary →
                     </a>
 
+                    <!-- Data Review & Repair — the flag queue over the imported
+                         geodata (planet scope only; the repair plane is global).
+                         Read-only once the maps are accepted; the Accept gate
+                         below refuses to stamp while open flags exist unless
+                         explicitly acknowledged. -->
+                    <div v-if="map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
+                        <GeodataFlagQueue
+                            ref="flagQueue"
+                            :read-only="!!map_acceptance.map_accepted_at"
+                        />
+                    </div>
+
                     <!-- P.6 — Acceptance gate. Visible only at planet scope.
                          Disabled until the ETL has finished and the operator
                          hasn't already accepted. Click stamps map_accepted_at
@@ -269,10 +295,25 @@
                             <div v-else class="text-xs text-emerald-300 mt-1 italic">
                                 Apportionment running…
                             </div>
+                            <!-- Reopen — clears map_accepted_at so the repair
+                                 window comes back. Only while setup is still
+                                 incomplete (the backend 403s afterwards). -->
+                            <button v-if="!setupComplete"
+                                    type="button"
+                                    @click="reopenMaps"
+                                    :disabled="reopening"
+                                    class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
+                                           bg-gray-800 hover:bg-gray-700 disabled:opacity-50
+                                           text-gray-300 border border-gray-600 transition-colors">
+                                {{ reopening ? 'Reopening…' : 'Reopen map data' }}
+                            </button>
+                            <div v-if="reopenError" class="mt-1 text-xs text-red-400">
+                                {{ reopenError }}
+                            </div>
                         </div>
                         <button v-else
                                 type="button"
-                                @click="acceptMaps"
+                                @click="acceptMaps()"
                                 :disabled="acceptingMaps"
                                 class="block w-full text-center text-sm font-semibold px-3 py-2.5 rounded
                                        bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed
@@ -386,14 +427,72 @@
                 </div>
             </div>
     </div>
+
+    <!-- Acknowledge-open-flags modal — shown when accept-maps 422s with
+         requires_acknowledgment. The operator can accept anyway, but only
+         after explicitly ticking the acknowledgment. -->
+    <div v-if="showAckModal"
+         class="fixed inset-0 z-[2000] flex items-center justify-center bg-gray-950/80 px-4"
+         @click.self="showAckModal = false">
+        <div class="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
+            <div class="px-4 py-3 border-b border-gray-800">
+                <div class="text-sm font-semibold text-white">Open data flags remain</div>
+            </div>
+            <div class="px-4 py-3 space-y-3 text-sm">
+                <p class="text-gray-400 text-xs">
+                    The data review scan still has unresolved flags. You can repair
+                    or accept them individually in the panel on the left, or accept
+                    the map data anyway — the flags stay on record.
+                </p>
+                <div class="flex flex-wrap gap-1.5">
+                    <span v-if="ackOpenFlags.critical > 0"
+                          class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-200 border border-red-700">
+                        {{ ackOpenFlags.critical }} critical
+                    </span>
+                    <span v-if="ackOpenFlags.warning > 0"
+                          class="px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700">
+                        {{ ackOpenFlags.warning }} warning
+                    </span>
+                    <span v-if="ackOpenFlags.info > 0"
+                          class="px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-300 border border-gray-600">
+                        {{ ackOpenFlags.info }} info
+                    </span>
+                </div>
+                <label class="flex items-start gap-2 text-gray-200 text-xs">
+                    <input type="checkbox" v-model="ackChecked" class="mt-0.5" />
+                    <span>
+                        Accept anyway — I acknowledge {{ ackOpenTotal }} open
+                        flag{{ ackOpenTotal === 1 ? '' : 's' }}
+                    </span>
+                </label>
+                <div v-if="acceptError" class="text-xs text-red-400">{{ acceptError }}</div>
+            </div>
+            <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-800">
+                <button type="button" @click="showAckModal = false"
+                        class="px-3 py-1.5 rounded text-xs font-medium text-gray-300 hover:text-white transition-colors">
+                    Cancel
+                </button>
+                <button type="button"
+                        @click="acceptMaps(true)"
+                        :disabled="!ackChecked || acceptingMaps"
+                        class="px-4 py-1.5 rounded text-xs font-semibold text-white
+                               bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed
+                               transition-colors">
+                    {{ acceptingMaps ? 'Accepting…' : 'Accept Map Data & Continue →' }}
+                </button>
+            </div>
+        </div>
+    </div>
     </PageScaffold>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import PageScaffold from '@/Components/Surface/PageScaffold.vue'
+import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'
+import { csrfFetch } from '@/lib/csrf'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -442,6 +541,28 @@ const hoveredChild   = ref(null)
 // P.6 — review-badges + accept-maps state
 const acceptingMaps = ref(false)
 const acceptError   = ref('')
+
+// Data Review & Repair plane — the acceptance gate now refuses to stamp
+// map_accepted_at while open geodata_flags exist unless the operator
+// explicitly acknowledges them (422 requires_acknowledgment → modal).
+const showAckModal  = ref(false)
+const ackOpenFlags  = ref({ critical: 0, warning: 0, info: 0 })
+const ackChecked    = ref(false)
+const flagQueue     = ref(null)   // GeodataFlagQueue ref — refreshed after reopen
+
+// Reopen-maps affordance (post-acceptance, pre-setup-completion only).
+const reopening     = ref(false)
+const reopenError   = ref('')
+
+// Setup completeness from the shared Inertia 'instance' prop — the repair
+// window (and the reopen affordance) only exists while setup is incomplete.
+const page = usePage()
+const setupComplete = computed(() => page.props.instance?.setupComplete ?? false)
+
+const ackOpenTotal = computed(() => {
+    const f = ackOpenFlags.value
+    return (f.critical || 0) + (f.warning || 0) + (f.info || 0)
+})
 
 // P.6.x.2 — toggle state with localStorage persistence (mimics the
 // District Mapper pattern from Legislature/Show.vue). Global keys (no scope
@@ -556,30 +677,40 @@ const activationDisplay = computed(() => {
     }
 })
 
-async function acceptMaps() {
+async function acceptMaps(acknowledge = false) {
     if (acceptingMaps.value) return
     acceptingMaps.value = true
     acceptError.value   = ''
     try {
-        const res = await fetch('/api/jurisdictions/accept-maps', {
-            method:      'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept':       'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
-            // WI-9: apportionment scope = the jurisdiction whose maps are
-            // being accepted (the button only renders at planet scope today,
-            // so this is the planet root — but the endpoint no longer
-            // assumes it).
-            body: JSON.stringify({ jurisdiction_id: props.jurisdiction.id }),
+        // WI-9: apportionment scope = the jurisdiction whose maps are
+        // being accepted (the button only renders at planet scope today,
+        // so this is the planet root — but the endpoint no longer
+        // assumes it).
+        const body = { jurisdiction_id: props.jurisdiction.id }
+        // Only sent when the operator explicitly acknowledged the open
+        // flags in the modal — the backend treats presence of the boolean
+        // as the acknowledgment, so a plain accept omits it entirely.
+        if (acknowledge) body.acknowledge_open_flags = true
+
+        const res = await csrfFetch('/api/jurisdictions/accept-maps', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(body),
         })
         const data = await res.json().catch(() => ({}))
+        // Open geodata flags exist → the backend refuses until the operator
+        // acknowledges them. Surface the severity breakdown in a modal.
+        if (res.status === 422 && data.requires_acknowledgment) {
+            ackOpenFlags.value = data.open_flags || { critical: 0, warning: 0, info: 0 }
+            ackChecked.value   = false
+            showAckModal.value = true
+            return
+        }
         if (!res.ok || !data.ok) {
             acceptError.value = data.error || `accept failed (HTTP ${res.status})`
             return
         }
+        showAckModal.value = false
         // Reload so the page reflects the persisted map_accepted_at + the
         // apportionment-running banner. Server provides the canonical state.
         router.reload({ only: ['map_acceptance'] })
@@ -589,6 +720,61 @@ async function acceptMaps() {
         acceptingMaps.value = false
     }
 }
+
+// Reopen the map-data window (clears map_accepted_at server-side; 403 once
+// setup is complete). The full-prop reload flips the acceptance card back to
+// the button and unlocks the repair queue in one pass.
+async function reopenMaps() {
+    if (reopening.value) return
+    reopening.value  = true
+    reopenError.value = ''
+    try {
+        const res = await csrfFetch('/api/jurisdictions/reopen-maps', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({}),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            reopenError.value = data.error || `reopen failed (HTTP ${res.status})`
+            return
+        }
+        router.reload({ only: ['map_acceptance'] })
+    } catch (e) {
+        reopenError.value = String(e?.message || e)
+    } finally {
+        reopening.value = false
+    }
+}
+
+// Non-planet scopes: a lightweight "this row shows up in the repair queue"
+// chip. One fetch of the open flags, filtered client-side — the flags API
+// filters by status/category only, and sub-scope page loads shouldn't cost
+// a per-jurisdiction endpoint. Skipped entirely once setup is complete
+// (the repair plane is a setup-window concern).
+const relatedOpenFlagCount = ref(0)
+async function fetchRelatedOpenFlags() {
+    try {
+        const res = await fetch('/api/geodata/flags?status=open', {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+        })
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        const id   = props.jurisdiction.id
+        const slugNeedle = `"${props.jurisdiction.slug}"`
+        relatedOpenFlagCount.value = (Array.isArray(data.flags) ? data.flags : []).filter(f =>
+            f.jurisdiction_id === id
+            || f.related_jurisdiction_id === id
+            || JSON.stringify(f.payload || {}).includes(slugNeedle)
+        ).length
+    } catch (e) {
+        // silent — the chip is best-effort decoration
+    }
+}
+// Planet root when ancestors exist is always ancestors[0]; that's where the
+// repair queue lives, so the chip links there.
+const planetSlug = computed(() => props.ancestors?.[0]?.slug ?? null)
 
 // ── Map styles ────────────────────────────────────────────────────────────────
 // Transparency strategy (operator review, post-protomaps):
@@ -677,6 +863,11 @@ function applyRasterOverlay() {
 watch(showRaster, () => applyRasterOverlay())
 
 onMounted(async () => {
+    // Sub-scope repair-queue chip (planet scope mounts the full queue instead).
+    if (!props.map_acceptance.is_planet_scope && !setupComplete.value) {
+        fetchRelatedOpenFlags()
+    }
+
     // Dynamic minZoom: prevent the operator from zooming out further than
     // the point at which the world fills the viewport vertically. Below
     // that, Leaflet would render empty grey space above/below the world

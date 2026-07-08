@@ -213,6 +213,17 @@ WORLDPOP_DEFAULT_YEAR = 2023
 WORLDPOP_UC_BASE = "https://data.worldpop.org/GIS/Population"
 WORLDPOP_UC_MAX_YEAR = 2020
 
+# WorldPop legacy ISO3 aliases — some countries appear in WorldPop's catalogs
+# under a DIFFERENT code than the geoBoundaries ISO3 everything else keys on.
+# Verified: Kosovo is XKX in geoBoundaries, but the R2025A constrained STAC has
+# NO Kosovo collection under ANY code, and in the legacy Global_2000_2020
+# direct-URL series .../2020/XKX/ 404s while .../2020/KOS/kos_ppp_2020.tif is
+# present. When the primary iso resolves nothing (on either the STAC path or
+# the constructed direct-URL path), each alias is tried before giving up; a
+# hit is logged loudly. The raster still lands under the PRIMARY iso's
+# directory so the seeder finds it.
+WORLDPOP_ISO_ALIASES: dict[str, list[str]] = {"XKX": ["KOS"]}
+
 # geoBoundaries app-side ADM levels to probe. geoBoundaries publishes ADM0..ADM5;
 # import_geoboundaries maps geoBoundaries ADM0→app-level-1, etc. We fetch every
 # level the country ships; the seeder decides the hierarchy.
@@ -676,6 +687,9 @@ def download_worldpop_for_country(worldpop_root: Path, iso3: str,
       * constrained (default): STAC lookup via resolve_worldpop_asset().
       * unconstrained and/or UN-adjusted: direct data.worldpop.org URL
         construction via resolve_worldpop_direct().
+      * Either way, if the primary iso yields nothing, WORLDPOP_ISO_ALIASES
+        legacy codes are tried before giving up (e.g. XKX falls back to KOS;
+        a hit is logged).
 
     We ALWAYS write into worldpop_100m_latest/<iso>/ (the directory the seeder
     scans) and keep the upstream filename verbatim. find_worldpop_tif prefers
@@ -701,18 +715,28 @@ def download_worldpop_for_country(worldpop_root: Path, iso3: str,
     year: int | None = None
     want_direct = (wp_variant == "unconstrained") or wp_un_adjusted
 
-    if want_direct:
-        resolved = resolve_worldpop_direct(
-            iso3, wp_year, wp_resolution,
-            unconstrained=(wp_variant == "unconstrained"),
-            un_adjusted=wp_un_adjusted,
-        )
-        if resolved is not None:
-            year, href = resolved
-    else:
-        asset = resolve_worldpop_asset(iso3, wp_year, wp_resolution)
-        if asset is not None:
-            year, href, _item_id = asset
+    # Primary iso first, then any WorldPop legacy aliases (WORLDPOP_ISO_ALIASES,
+    # e.g. XKX → KOS). The alias only changes which upstream STAC collection /
+    # constructed direct URL we ask for — the downloaded raster still lands
+    # under the PRIMARY iso's directory below, where the seeder looks.
+    for candidate in [iso3] + [a.upper() for a in WORLDPOP_ISO_ALIASES.get(iso3, [])]:
+        if want_direct:
+            resolved = resolve_worldpop_direct(
+                candidate, wp_year, wp_resolution,
+                unconstrained=(wp_variant == "unconstrained"),
+                un_adjusted=wp_un_adjusted,
+            )
+            if resolved is not None:
+                year, href = resolved
+        else:
+            asset = resolve_worldpop_asset(candidate, wp_year, wp_resolution)
+            if asset is not None:
+                year, href, _item_id = asset
+        if href is not None:
+            if candidate != iso3:
+                logger.info("  %s: found via WorldPop legacy code %s",
+                            iso3, candidate)
+            break
 
     if href is None:
         logger.info("  %s: no population raster available for the requested "

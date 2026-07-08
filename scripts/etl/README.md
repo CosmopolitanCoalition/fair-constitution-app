@@ -10,6 +10,7 @@ and WorldPop raster tiles into PostgreSQL/PostGIS.
 | `seed_database.py` | Master orchestrator — runs the full pipeline in order |
 | `import_geoboundaries.py` | Phase 1: boundary polygons + hierarchy from geoBoundaries |
 | `import_worldpop.py` | Phase 2: WorldPop 100m raster → `jurisdictions.population` + optional tile loading |
+| `reresolve_parents.py` | Maintenance: clear + re-derive the entire parent hierarchy via the import-time strategy ladder |
 | `db.py` | Shared DB connection and bulk insert/update helpers |
 
 ## Quickstart
@@ -84,6 +85,48 @@ logical backups, exclude the raster table (it can be re-loaded from source):
 ```bash
 pg_dump --exclude-table=worldpop_rasters fair_constitution > backup.sql
 ```
+
+## Re-deriving the parent hierarchy (`reresolve_parents.py`)
+
+Lineage is just `parent_id` + `parent_assigned_via` (no ancestry cache), so the
+whole hierarchy can be cheaply cleared and re-derived from the stored
+geometries. `reresolve_parents.py` does exactly that:
+
+1. Clears `parent_id`/`parent_assigned_via` on every row above Earth.
+2. Re-anchors ALL `adm_level=1` rows (including `source='synthetic'` ones like
+   PRI) back to Earth — mandatory, because the strategy ladder only covers
+   levels 2–6 and Earth has no geometry to match against.
+3. Runs `import_geoboundaries.post_pass_orphan_resolution()` (direct →
+   exact → buffered → topological ladder + Phase S same-iso synthesis).
+4. Prints before/after orphan counts and the `parent_assigned_via` histogram.
+
+Never touches population or geometry columns; never deletes rows. Idempotent —
+safe to re-run.
+
+```bash
+# Preview: planned actions + current orphan/strategy histograms, no writes
+docker compose exec etl python reresolve_parents.py --dry-run
+
+# Live run
+docker compose exec etl python reresolve_parents.py
+```
+
+(It supersedes the retired `fix_orphans.py`, whose unbounded nearest-centroid
+fallback could mis-parent across continents and which never wrote
+`parent_assigned_via`.)
+
+## WorldPop ISO aliases (`download_datasets.py`)
+
+Some countries appear in WorldPop's catalogs under a different code than the
+geoBoundaries ISO3 the pipeline keys on. `download_datasets.py` keeps a
+`WORLDPOP_ISO_ALIASES` map (currently `XKX → KOS`): when the primary iso
+resolves no raster on either the STAC path or the constructed
+data.worldpop.org direct-URL path, each alias is tried before giving up, and a
+hit is logged (`XKX: found via WorldPop legacy code KOS`). The downloaded
+raster still lands under the primary iso's directory
+(`worldpop_100m_latest/xkx/`) so the seeder finds it. Verified: the R2025A
+constrained STAC has no Kosovo under any code; the legacy `Global_2000_2020`
+series serves it as `KOS` only.
 
 ## Architecture Notes
 

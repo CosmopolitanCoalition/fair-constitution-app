@@ -557,27 +557,71 @@ class JurisdictionController extends Controller
      */
     public function acceptMaps(Request $request): JsonResponse
     {
-        $instance = \App\Models\InstanceSettings::current();
-        if (! $instance) {
-            return response()->json([
-                'ok' => false,
-                'error' => 'Instance settings row is missing — bootstrap not complete.',
-            ], 422);
-        }
+        // Same operator posture as the geodata repair POSTs: acceptance flips
+        // the repair-window gate, so an unauthenticated LAN visitor must not
+        // be able to slam it shut (or, via reopen, swing it open).
+        abort_unless((bool) $request->user()?->is_operator, 403);
 
-        if ($instance->map_accepted_at) {
-            return response()->json([
-                'ok' => true,
-                'already_accepted' => true,
-                'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
-                'apportionment_completed_at' => $instance->apportionment_completed_at?->toIso8601String(),
-            ]);
-        }
+        // Locked check-then-stamp: repairs take the same instance_settings row
+        // lock as the FIRST statement of their transactions, so acceptance
+        // serializes against an in-flight repair instead of racing it.
+        $gate = DB::transaction(function () use ($request) {
+            $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->lockForUpdate()->first();
+            if (! $instance) {
+                return ['response' => response()->json([
+                    'ok' => false,
+                    'error' => 'Instance settings row is missing — bootstrap not complete.',
+                ], 422)];
+            }
 
-        $instance->forceFill([
-            'map_accepted_at' => now(),
-            'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
-        ])->save();
+            if ($instance->map_accepted_at) {
+                return ['response' => response()->json([
+                    'ok' => true,
+                    'already_accepted' => true,
+                    'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+                    'apportionment_completed_at' => $instance->apportionment_completed_at?->toIso8601String(),
+                ])];
+            }
+
+            // Repair-plane acknowledgment gate: accepting the map CLOSES the
+            // repair window, so open geodata flags must be surfaced first. Any
+            // open flag requires an explicit acknowledge_open_flags=true from
+            // the confirm dialog before acceptance proceeds; the counts snapshot
+            // rides the success response (and the log) either way.
+            $openRow = DB::table('geodata_flags')
+                ->whereNull('deleted_at')
+                ->where('status', 'open')
+                ->selectRaw("
+                    COUNT(*) FILTER (WHERE severity = 'critical') AS critical,
+                    COUNT(*) FILTER (WHERE severity = 'warning')  AS warning,
+                    COUNT(*) FILTER (WHERE severity = 'info')     AS info
+                ")
+                ->first();
+            $openFlags = [
+                'critical' => (int) ($openRow->critical ?? 0),
+                'warning'  => (int) ($openRow->warning ?? 0),
+                'info'     => (int) ($openRow->info ?? 0),
+            ];
+            if (array_sum($openFlags) > 0 && ! $request->boolean('acknowledge_open_flags')) {
+                return ['response' => response()->json([
+                    'requires_acknowledgment' => true,
+                    'open_flags' => $openFlags,
+                ], 422)];
+            }
+
+            $instance->forceFill([
+                'map_accepted_at' => now(),
+                'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
+            ])->save();
+
+            return ['instance' => $instance, 'open_flags' => $openFlags];
+        });
+
+        if (isset($gate['response'])) {
+            return $gate['response'];
+        }
+        $instance  = $gate['instance'];
+        $openFlags = $gate['open_flags'];
 
         // Dispatch apportionment as a queued artisan command. Horizon picks
         // it up; the UI polls instance_settings.apportionment_completed_at
@@ -622,10 +666,52 @@ class JurisdictionController extends Controller
             );
         }
 
+        \Illuminate\Support\Facades\Log::info(sprintf(
+            'Map data accepted — open geodata flags at acceptance: %d critical, %d warning, %d info.',
+            $openFlags['critical'],
+            $openFlags['warning'],
+            $openFlags['info'],
+        ));
+
         return response()->json([
             'ok' => true,
             'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+            'open_flags_at_acceptance' => $openFlags,
         ]);
+    }
+
+    /**
+     * POST /api/jurisdictions/reopen-maps — clear map_accepted_at so the
+     * geodata repair window reopens. Only legal while instance setup is
+     * still incomplete: once setup_completed_at is stamped the accepted
+     * dataset is the constitutional substrate and the gate locks for good.
+     *
+     * Idempotent: reopening an already-open gate is a no-op success.
+     */
+    public function reopenMaps(Request $request): JsonResponse
+    {
+        // Operator-only, like acceptMaps and the repair POSTs — this swings
+        // the repair-window gate open.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $instance = \App\Models\InstanceSettings::current();
+
+        if ($instance->isSetupComplete()) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Setup is complete — the accepted map data is locked and cannot be reopened.',
+            ], 403);
+        }
+
+        if ($instance->map_accepted_at === null) {
+            return response()->json(['ok' => true, 'already_open' => true]);
+        }
+
+        $instance->forceFill(['map_accepted_at' => null])->save();
+
+        \Illuminate\Support\Facades\Log::info('Map acceptance reopened — the geodata repair window is open again.');
+
+        return response()->json(['ok' => true]);
     }
 
     /**

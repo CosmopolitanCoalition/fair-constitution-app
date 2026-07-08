@@ -1025,5 +1025,47 @@ Route::middleware('auth:operator')->group(function () {
         ->name('operator.roles.revoke');
 });
 
+// ── Geodata repair plane (setup-time acceptance gate) ───────────────────────────────────
+// Flags come from the detector sweep (geodata:scan / GeodataScanJob); repairs are the
+// operator's remediation actions on the Jurisdiction Viewer's flag queue. Reads follow
+// the step-2 review endpoints' public posture (read-only, setup-window surface); every
+// MUTATING endpoint rides the setup-tool idiom — auth middleware here + the is_operator
+// check inside the controller (same as saveGameMode). The repair WINDOW itself (setup
+// incomplete + map data not yet accepted) is enforced in GeodataRemediationService, so
+// none of these routes needs window logic of its own.
+Route::get('/api/geodata/flags', [\App\Http\Controllers\GeodataRepairController::class, 'flags'])
+    ->name('api.geodata.flags');
+Route::get('/api/geodata/scan/status', [\App\Http\Controllers\GeodataRepairController::class, 'scanStatus'])
+    ->name('api.geodata.scan.status');
+Route::get('/api/geodata/repairs', [\App\Http\Controllers\GeodataRepairController::class, 'repairs'])
+    ->name('api.geodata.repairs');
+Route::middleware('auth')->group(function () {
+    Route::post('/api/geodata/scan', [\App\Http\Controllers\GeodataRepairController::class, 'scan'])
+        ->name('api.geodata.scan');
+    Route::post('/api/geodata/flags/{flag}/accept', [\App\Http\Controllers\GeodataRepairController::class, 'acceptFlag'])
+        ->whereUuid('flag')
+        ->name('api.geodata.flags.accept');
+    Route::post('/api/geodata/repairs/reparent', [\App\Http\Controllers\GeodataRepairController::class, 'reparent'])
+        ->name('api.geodata.repairs.reparent');
+    Route::post('/api/geodata/repairs/synthesize-anchor', [\App\Http\Controllers\GeodataRepairController::class, 'synthesizeAnchor'])
+        ->name('api.geodata.repairs.synthesize-anchor');
+    Route::post('/api/geodata/repairs/merge-chain', [\App\Http\Controllers\GeodataRepairController::class, 'mergeChain'])
+        ->name('api.geodata.repairs.merge-chain');
+    Route::post('/api/geodata/repairs/prune', [\App\Http\Controllers\GeodataRepairController::class, 'prune'])
+        ->name('api.geodata.repairs.prune');
+    Route::post('/api/geodata/repairs/recompute-population', [\App\Http\Controllers\GeodataRepairController::class, 'recomputePopulation'])
+        ->name('api.geodata.repairs.recompute-population');
+    Route::post('/api/geodata/repairs/{repair}/revert', [\App\Http\Controllers\GeodataRepairController::class, 'revert'])
+        ->whereUuid('repair')
+        ->name('api.geodata.repairs.revert');
+});
+// Reopen the map-acceptance gate: clears map_accepted_at so the repair window reopens.
+// Operator-gated in the controller (like accept-maps and the repair POSTs — both flip
+// the repair-window gate); additionally 403s once setup is complete (after that the
+// gate is locked for good).
+Route::post('/api/jurisdictions/reopen-maps', [JurisdictionController::class, 'reopenMaps'])
+    ->name('jurisdictions.reopen-maps');
+// ── End geodata repair plane ─────────────────────────────────────────────────────────────
+
 // Session auth — register / login / logout (WI-3).
 require __DIR__.'/auth.php';

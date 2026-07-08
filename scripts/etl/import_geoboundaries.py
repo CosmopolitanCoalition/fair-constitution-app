@@ -493,7 +493,7 @@ def synthesize_missing_country_rows(
     or state row). Future ETL data may surface more. Idempotent — skipped
     if a row already exists at the deterministic slug.
 
-    The row matches the pattern fix_orphans.py uses on main:
+    The row matches the synthetic-row pattern reresolve_parents.py preserves:
       - source              = 'synthetic'  (NOT 'synthetic_country' — using the
                               same value lets the existing source filters in
                               count_jurisdiction_rows_for_level / fetch_chunk

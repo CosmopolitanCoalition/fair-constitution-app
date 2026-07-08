@@ -2285,6 +2285,21 @@ class SetupController extends Controller
     {
         $settings = InstanceSettings::current();
 
+        // Geodata acceptance gate: the wizard cannot advance past Map Data
+        // until the operator has reviewed the repair-plane flags and clicked
+        // "Accept Map Data & Continue" on the planet-scope viewer (which
+        // stamps instance_settings.map_accepted_at and closes the repair
+        // window). Checked FIRST so nothing below runs on unaccepted data.
+        if ($settings->map_accepted_at === null) {
+            return response()->json([
+                // map_acceptance_required is the structured signal Step 2
+                // keys its guidance rendering on (the message text is copy,
+                // not contract).
+                'map_acceptance_required' => true,
+                'error' => 'Accept the map data first — review and repair the data flags in the Jurisdiction Viewer, then Accept Map Data & Continue.',
+            ], 422);
+        }
+
         $pending = $settings->pending_constitutional_defaults;
         if (is_array($pending)) {
             $root = $this->resolveRootJurisdiction();
@@ -2727,6 +2742,7 @@ class SetupController extends Controller
             'time_scale_seconds_per_year'   => $settings->time_scale_seconds_per_year,
             'setup_step_completed'          => (int) $settings->setup_step_completed,
             'setup_completed_at'            => optional($settings->setup_completed_at)->toIso8601String(),
+            'map_accepted_at'               => optional($settings->map_accepted_at)->toIso8601String(),
             'apportionment_completed_at'    => optional($settings->apportionment_completed_at)->toIso8601String(),
             'setup_districts_confirmed_at'  => optional($settings->setup_districts_confirmed_at)->toIso8601String(),
             'setup_mode'                    => $settings->setup_mode,

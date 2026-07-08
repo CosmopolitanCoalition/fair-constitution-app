@@ -21,10 +21,11 @@ use Illuminate\Support\Str;
  *                                  the territory's separate WorldPop raster
  *                                  wasn't loaded
  *
- * The service is read-only. Remediation actions ship in a future iteration
- * (Phase J) — fix_orphans.py, sovereign-territory raster loading, etc. The
- * existing scripts/etl/sovereign_territories.py is the Python side of the
- * map mirrored here; keep them in sync when adding new pairs.
+ * The service is read-only. Remediation lives in the geodata repair plane
+ * (GeodataRemediationService + the /api/geodata/* endpoints) and the ETL's
+ * post-pass re-resolver (scripts/etl/reresolve_parents.py). The existing
+ * scripts/etl/sovereign_territories.py is the Python side of the map
+ * mirrored here; keep them in sync when adding new pairs.
  */
 class DataReviewService
 {
@@ -777,7 +778,9 @@ class DataReviewService
     {
         // Severity weighted by impact:
         //   - sovereign territories at 0 pop: actionable (load the raster)
-        //   - orphans: structural, but fix_orphans.py handles most
+        //   - orphans: structural, but the ETL post-pass re-resolver
+        //     (scripts/etl/reresolve_parents.py) and the geodata repair
+        //     plane handle most
         //   - aggregation discrepancies: source-data quirks, low priority
         //   - population gaps: dominated by uninhabited level-6 cells, lowest priority
         if ($sovTerrs >= 10 || $orphans >= 1000 || $aggDiscr >= 30) {
