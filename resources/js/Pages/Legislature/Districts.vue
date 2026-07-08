@@ -2143,8 +2143,12 @@ let   elapsedTimer      = null
 async function haltMassOperation() {
     if (haltRequesting.value) return
     haltRequesting.value = true
+    // Halting means "stop the machine" — that includes the wizard's own march.
+    wizardAutoStep.value = false
+    wizardAutoSeed.value = false
+    clearAutoStepTimer()
     try {
-        await fetch(`/api/legislatures/${props.legislature.id}/mass-halt`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-halt`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -2153,6 +2157,13 @@ async function haltMassOperation() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
             },
         })
+        const data = await resp.json().catch(() => ({}))
+        if (data.cleared) {
+            // Ghost state: the queued job never started, the server cleared
+            // the flags outright — unblock the UI immediately.
+            massJobRunning.value = false
+            showStatus('success', 'Halted — the stuck operation was cleared. You can autoseed again.')
+        }
     } catch (e) {
         // Non-fatal — operator can retry. The Halt is a cache flag; if the
         // POST hits the server, the job will see it on the next scope boundary.
@@ -4990,7 +5001,23 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
             signal:  AbortSignal.timeout(60_000),
         })
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', data.error ?? 'Reseed failed'); return }
+        if (!resp.ok) {
+            if (resp.status === 409) {
+                // A mass flag (possibly a ghost) blocks every dispatch —
+                // letting the wizard march on would just skip scope after
+                // scope silently. Stop the march, show the mass banner so the
+                // Halt button is available (Halt clears a ghost immediately),
+                // and hand control back to the operator.
+                wizardAutoStep.value = false
+                wizardAutoSeed.value = false
+                clearAutoStepTimer()
+                massJobRunning.value = true
+                startMassStatusPolling()
+                showStatus('error', (data.error ?? 'A mass operation is already running.') + ' Wizard paused.')
+                return
+            }
+            showStatus('error', data.error ?? 'Reseed failed'); return
+        }
         // The endpoint dispatches a Horizon job and returns 202 immediately —
         // `data.districts_created` doesn't exist on the response. We learn the
         // actual count after the job completes (via mass-status polling).

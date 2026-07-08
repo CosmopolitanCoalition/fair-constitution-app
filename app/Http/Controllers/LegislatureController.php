@@ -2657,10 +2657,34 @@ class LegislatureController extends Controller
 
         // Refuse to start a new sweep if one is already in flight. The Halt
         // button must be used to stop the existing run before launching another.
+        //
+        // GHOST GUARD: mass_running is a 2 h cache flag — if the queued job
+        // dies before a worker ever picks it up (queue cleared, horizon
+        // killed), the flag lies for 2 hours and blocks every autoseed with
+        // nothing for Halt to signal. A flag whose progress never left the
+        // 'queued' phase after 15 minutes (or has no progress at all) is a
+        // zombie: clear it and proceed instead of stonewalling the operator.
         if (Cache::get("legislature.{$legislature_id}.mass_running")) {
-            return response()->json([
-                'error' => 'A mass operation is already running. Wait for it to finish or click Halt to stop it.',
-            ], 409);
+            $progress  = Cache::get("legislature.{$legislature_id}.mass_progress") ?: [];
+            $phase     = $progress['phase'] ?? null;
+            $startedAt = (int) ($progress['started_at'] ?? 0);
+            $zombie    = $progress === []
+                || ($phase === 'queued' && (time() - $startedAt) > 900);
+
+            if (! $zombie) {
+                return response()->json([
+                    'error' => 'A mass operation is already running. Wait for it to finish or click Halt to stop it.',
+                    'phase' => $phase,
+                ], 409);
+            }
+
+            \Illuminate\Support\Facades\Log::warning(
+                'massReseed: cleared zombie mass_running flag (job never left queued phase)',
+                ['legislature_id' => $legislature_id, 'phase' => $phase, 'started_at' => $startedAt]
+            );
+            Cache::forget("legislature.{$legislature_id}.mass_running");
+            Cache::forget("legislature.{$legislature_id}.mass_halt");
+            Cache::forget("legislature.{$legislature_id}.mass_db_pid");
         }
 
         // Auto-create a "Draft N" map if none exists so districts belong to a
@@ -2906,6 +2930,23 @@ class LegislatureController extends Controller
         $leg = DB::table('legislatures')->where('id', $legislature_id)->whereNull('deleted_at')->first();
         if (!$leg) {
             return response()->json(['error' => 'Legislature not found'], 404);
+        }
+
+        // Stage 0: a job that never left the 'queued' phase (or has no
+        // progress at all) has no worker to signal and no query to cancel —
+        // the polite halt below would wait forever on a ghost. Clear the
+        // flags outright so the UI unblocks immediately.
+        $progress = Cache::get("legislature.{$legislature_id}.mass_progress") ?: [];
+        if ($progress === [] || ($progress['phase'] ?? null) === 'queued') {
+            Cache::forget("legislature.{$legislature_id}.mass_running");
+            Cache::forget("legislature.{$legislature_id}.mass_halt");
+            Cache::forget("legislature.{$legislature_id}.mass_db_pid");
+            $this->publishMassProgress($legislature_id, [
+                'phase'       => 'halted',
+                'phase_label' => 'Halted — the queued job never started; cleared.',
+            ]);
+
+            return response()->json(['ok' => true, 'cleared' => true]);
         }
 
         // Stage 1: cache flag for graceful PHP-side exit.
