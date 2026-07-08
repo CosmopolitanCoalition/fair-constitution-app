@@ -52,6 +52,11 @@ curl -fsSL https://raw.githubusercontent.com/CosmopolitanCoalition/fair-constitu
 that folder — `.\get-started.ps1` on Windows, `./get-started.sh` elsewhere — and it uses your
 copy instead of downloading.*
 
+**Updating:** re-run the same start command any time. It pulls the latest code and applies the
+update automatically (database migrations, interface build, worker restart). Installs made from
+a ZIP are connected to the update channel automatically on their next run — your settings and
+data are never touched by an update.
+
 **Step 3 — answer the questions in your browser.** The app comes up at
 **<http://localhost:8080/setup>** and the setup wizard carries you the rest of the way:
 

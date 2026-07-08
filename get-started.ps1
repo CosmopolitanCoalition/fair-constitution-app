@@ -86,6 +86,21 @@ function Invoke-Docker {
     }
 }
 
+# git is a native command too - clone/fetch/pull all narrate PROGRESS on stderr
+# and would abort the script under 'Stop' exactly like docker (see Invoke-Docker).
+function Invoke-Git {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & git @args 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { Write-Host $_.Exception.Message }
+            else { Write-Host $_ }
+        }
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 # Ask where the map-data files live and write ARCHIVE_PATH / PROTOMAPS_DIR into
 # .env BEFORE the containers are built, so the folder is mounted from the first
 # boot. This is the thing that otherwise forces a `docker compose up -d` recreate
@@ -161,6 +176,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # -- 2. Find or download the app code ----------------------------------------
+$justDownloaded = $false
 if (Test-Path (Join-Path (Get-Location) 'docker-compose.yml')) {
     $AppDir = (Get-Location).Path
     Say "[2/5] Using the app code in this folder: $AppDir"
@@ -169,46 +185,82 @@ if (Test-Path (Join-Path (Get-Location) 'docker-compose.yml')) {
     if (Test-Path (Join-Path $AppDir 'docker-compose.yml')) {
         Say "[2/5] Found the app at $AppDir"
     } else {
-        Say "[2/5] Downloading the app to $AppDir ..."
-        $zip = Join-Path $env:TEMP 'fair-constitution-app.zip'
-        $zipUri = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
-        # Retry the download with a friendly message - a novice on flaky wifi should not
-        # get a raw red WebException and give up (this is the first and flakiest network
-        # step, and it runs under $ErrorActionPreference='Stop').
-        $downloaded = $false
-        for ($try = 1; $try -le 3; $try++) {
-            try {
-                Invoke-WebRequest -UseBasicParsing -Uri $zipUri -OutFile $zip -TimeoutSec 120
-                $downloaded = $true; break
-            } catch {
-                if ($try -lt 3) {
-                    Say "      Download attempt $try failed ($($_.Exception.Message)). Retrying..."
-                    Start-Sleep -Seconds 5
-                }
-            }
-        }
-        if (-not $downloaded) {
-            throw ('Could not download the app from GitHub after several tries. Check your ' +
-                'internet connection (a corporate proxy or VPN can block github.com), then run this again.')
-        }
-        $extract = Join-Path $env:TEMP ('cga-extract-' + [Guid]::NewGuid().ToString('N'))
-        Expand-Archive -Path $zip -DestinationPath $extract -Force
-        $src = Join-Path $extract "fair-constitution-app-$Branch"
+        $justDownloaded = $true
         # If an incomplete earlier copy already exists (an abandoned clone, a manual ZIP,
-        # a partial move), Move-Item would NEST the download inside it and the run would
-        # later abort at '.env.example'. Set the old copy aside instead of nesting.
+        # a partial move), downloading into it would nest or fail. Set the old copy aside.
         if (Test-Path $AppDir) {
             $bak = "$AppDir.old"
             if (Test-Path $bak) { Remove-Item -Recurse -Force $bak }
             Rename-Item -LiteralPath $AppDir -NewName (Split-Path $bak -Leaf)
             Say "      Set aside an incomplete earlier copy at $bak"
         }
-        Move-Item $src $AppDir
-        Remove-Item $zip -Force -ErrorAction SilentlyContinue
-        Remove-Item $extract -Recurse -Force -ErrorAction SilentlyContinue
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            # Prefer git (the bash installer always has): a cloned install can
+            # UPDATE in place on every re-run. A ZIP install has no update
+            # channel at all - that gap stranded real installs on day-one code.
+            Say "[2/5] Downloading the app to $AppDir ..."
+            Invoke-Git clone --depth 1 -b $Branch "https://github.com/$Repo.git" $AppDir
+            if ($LASTEXITCODE -ne 0) {
+                throw ('Could not download the app with git. Check your internet connection ' +
+                    '(a corporate proxy or VPN can block github.com), then run this again.')
+            }
+        } else {
+            Say "[2/5] Downloading the app to $AppDir (no git found - using a ZIP) ..."
+            $zip = Join-Path $env:TEMP 'fair-constitution-app.zip'
+            $zipUri = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
+            # Retry the download with a friendly message - a novice on flaky wifi should not
+            # get a raw red WebException and give up (this is the first and flakiest network
+            # step, and it runs under $ErrorActionPreference='Stop').
+            $downloaded = $false
+            for ($try = 1; $try -le 3; $try++) {
+                try {
+                    Invoke-WebRequest -UseBasicParsing -Uri $zipUri -OutFile $zip -TimeoutSec 120
+                    $downloaded = $true; break
+                } catch {
+                    if ($try -lt 3) {
+                        Say "      Download attempt $try failed ($($_.Exception.Message)). Retrying..."
+                        Start-Sleep -Seconds 5
+                    }
+                }
+            }
+            if (-not $downloaded) {
+                throw ('Could not download the app from GitHub after several tries. Check your ' +
+                    'internet connection (a corporate proxy or VPN can block github.com), then run this again.')
+            }
+            $extract = Join-Path $env:TEMP ('cga-extract-' + [Guid]::NewGuid().ToString('N'))
+            Expand-Archive -Path $zip -DestinationPath $extract -Force
+            Move-Item (Join-Path $extract "fair-constitution-app-$Branch") $AppDir
+            Remove-Item $zip -Force -ErrorAction SilentlyContinue
+            Remove-Item $extract -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 Set-Location $AppDir
+
+# -- 2b. Keep an existing install up to date ----------------------------------
+# Re-running the start command IS the update path: pull the latest code and,
+# when it changed, apply it inside the running app after step 5 (database
+# migrations + interface build + worker restart). ZIP-era installs get
+# connected to the update channel once; settings (.env) and data are untracked
+# and untouched by any of this.
+$updated = $false
+if (-not $justDownloaded -and (Get-Command git -ErrorAction SilentlyContinue)) {
+    if (-not (Test-Path '.git')) {
+        Say '      Connecting this install to the update channel (one-time)...'
+        Invoke-Git init
+        Invoke-Git remote add origin "https://github.com/$Repo.git"
+        Invoke-Git fetch --depth 1 origin $Branch
+        Invoke-Git checkout -f -B $Branch "origin/$Branch"
+        $updated = ($LASTEXITCODE -eq 0)
+    } else {
+        try { $before = & git rev-parse HEAD } catch { $before = '' }
+        Say '      Checking for updates...'
+        Invoke-Git pull --ff-only origin $Branch
+        try { $after = & git rev-parse HEAD } catch { $after = $before }
+        $updated = ($LASTEXITCODE -eq 0) -and $after -and ($before -ne $after)
+        if ($updated) { Say '      Update downloaded - it will be applied after the app starts.' }
+    }
+}
 
 # -- 3. First-run settings file ----------------------------------------------
 $firstRun = -not (Test-Path '.env')
@@ -237,6 +289,21 @@ if ($LASTEXITCODE -ne 0) {
     throw ('The app containers had trouble starting. This script is safe to run again and ' +
         'resumes where it left off - try that first. If it keeps failing, run ' +
         '"docker compose logs app --tail 50" in this folder and report what it says.')
+}
+
+# Apply a downloaded update inside the running app: database migrations, a
+# fresh interface build, and a worker restart so queued jobs load the new code.
+if ($updated) {
+    Say 'Applying the update (database changes + interface build)...'
+    Invoke-Docker compose exec -T app php artisan migrate --force
+    if ($LASTEXITCODE -ne 0) {
+        # The database container can still be waking up right after `up -d`.
+        Start-Sleep -Seconds 15
+        Invoke-Docker compose exec -T app php artisan migrate --force
+    }
+    Invoke-Docker compose run --rm --no-deps vite npm run build
+    Invoke-Docker compose restart app horizon scheduler
+    Say 'Update applied.'
 }
 
 # Wait for the web page to answer, then open the browser.

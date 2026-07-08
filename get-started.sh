@@ -113,6 +113,7 @@ On Debian / Ubuntu / Raspberry Pi OS:  sudo apt install -y docker-compose-plugin
 Then run this again."
 
 # -- 2. Find or download the app code ----------------------------------------
+JUST_DOWNLOADED=0
 if [ -f docker-compose.yml ]; then
   APP_DIR="$(pwd)"
   say "[2/5] Using the app code in this folder: $APP_DIR"
@@ -121,9 +122,11 @@ else
   if [ -f "$APP_DIR/docker-compose.yml" ]; then
     say "[2/5] Found the app at $APP_DIR"
   elif command -v git >/dev/null 2>&1; then
+    JUST_DOWNLOADED=1
     say "[2/5] Downloading the app to $APP_DIR ..."
     git clone --depth 1 -b "$BRANCH" "https://github.com/$REPO.git" "$APP_DIR"
   else
+    JUST_DOWNLOADED=1
     say "[2/5] Downloading the app to $APP_DIR (no git found - using a ZIP) ..."
     command -v unzip >/dev/null 2>&1 || fail "Need either git or unzip installed. Easiest:  sudo apt install -y git   then run this again."
     tmp="$(mktemp -d)"
@@ -134,6 +137,36 @@ else
   fi
 fi
 cd "$APP_DIR"
+
+# -- 2b. Keep an existing install up to date ----------------------------------
+# Re-running the start command IS the update path: pull the latest code and,
+# when it changed, apply it after step 5 (migrations + interface build +
+# worker restart). ZIP-era installs get connected to the update channel once;
+# settings (.env) and data are untracked and untouched by any of this.
+UPDATED=0
+if [ "$JUST_DOWNLOADED" != "1" ] && command -v git >/dev/null 2>&1; then
+  if [ ! -d .git ]; then
+    say "      Connecting this install to the update channel (one-time)..."
+    git init -q \
+      && git remote add origin "https://github.com/$REPO.git" \
+      && git fetch --depth 1 -q origin "$BRANCH" \
+      && git checkout -f -q -B "$BRANCH" "origin/$BRANCH" \
+      && UPDATED=1 \
+      || say "      Could not connect to the update channel (offline?) - continuing with the current code."
+  else
+    before="$(git rev-parse HEAD 2>/dev/null || true)"
+    say "      Checking for updates..."
+    if git pull --ff-only -q origin "$BRANCH" 2>/dev/null; then
+      after="$(git rev-parse HEAD 2>/dev/null || true)"
+      if [ -n "$after" ] && [ "$before" != "$after" ]; then
+        UPDATED=1
+        say "      Update downloaded - it will be applied after the app starts."
+      fi
+    else
+      say "      Could not check for updates (offline?) - continuing with the current code."
+    fi
+  fi
+fi
 
 # -- 3. First-run settings file ----------------------------------------------
 FIRST_RUN=0
@@ -164,6 +197,20 @@ if ! docker compose up -d; then
   say "The first start reported a problem - giving it one more push (this is usually enough)..."
   sleep 20
   docker compose up -d || fail "The app containers had trouble starting. This script is safe to run again and resumes where it left off - try that first. If it keeps failing, run:  docker compose logs app --tail 50   in this folder and report what it says."
+fi
+
+# Apply a downloaded update inside the running app: database migrations, a
+# fresh interface build, and a worker restart so queued jobs load the new code.
+if [ "$UPDATED" = "1" ]; then
+  say "Applying the update (database changes + interface build)..."
+  if ! docker compose exec -T app php artisan migrate --force; then
+    # The database container can still be waking up right after `up -d`.
+    sleep 15
+    docker compose exec -T app php artisan migrate --force || say "  Migration failed - run:  docker compose exec app php artisan migrate --force   once the app is up."
+  fi
+  docker compose run --rm --no-deps vite npm run build || say "  Interface build failed - run:  docker compose run --rm --no-deps vite npm run build"
+  docker compose restart app horizon scheduler || true
+  say "Update applied."
 fi
 
 PORT="$(grep -E '^[[:space:]]*NGINX_HOST_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
