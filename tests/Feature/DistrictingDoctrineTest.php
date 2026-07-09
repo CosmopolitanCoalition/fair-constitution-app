@@ -55,6 +55,10 @@ use Tests\TestCase;
  *       converge on a 600-child scope in bounded work — worst-bin-focused
  *       exchanges, capped member lists, heavy checks only on a shortlist.
  *
+ *   (9) COMPACTNESS RELAXED (round-4, operator's full-81 review): within
+ *       acceptability and at equal mix, a full 1pp equality band outranks
+ *       shape — but a fractional equality edge still never buys a snake.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -399,6 +403,37 @@ class DistrictingDoctrineTest extends TestCase
             $this->assertSame(5, (int) $chainDistrict->seats, 'the 4.70-frac chain rounds to the floor on its own');
             $this->assertTrue((bool) $chainDistrict->floor_override, 'flagged for audit, not "fixed" with ballast');
         });
+    }
+
+    // ─── (9) A full point of equality outranks compactness — a fraction never ─
+
+    public function test_equality_point_beats_compactness_but_fractions_do_not(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
+            'seat_spread' => 0, 'avg_droop_threshold' => 0.13,
+        ];
+        // Round-4 relaxation: within acceptability and at equal mix, a config a
+        // full 1pp band better on equality beats a more compact one…
+        $balanced = $base + ['avg_deviation_pct' => 1.2, 'max_deviation_pct' => 2.1, 'avg_rg_sq' => 2.6];
+        $compact  = $base + ['avg_deviation_pct' => 2.4, 'max_deviation_pct' => 3.0, 'avg_rg_sq' => 1.4];
+        $this->assertTrue(
+            $m->invoke($svc, $balanced, $compact),
+            'a full equality point buys shape (the operator round-4 relaxation)'
+        );
+
+        // …but within the same 1pp band, compactness still decides — the São
+        // Paulo snake can never be bought with a fraction of a point.
+        $snake = $base + ['avg_deviation_pct' => 0.4, 'max_deviation_pct' => 0.9, 'avg_rg_sq' => 3.1];
+        $block = $base + ['avg_deviation_pct' => 0.8, 'max_deviation_pct' => 1.2, 'avg_rg_sq' => 1.5];
+        $this->assertTrue(
+            $m->invoke($svc, $block, $snake),
+            'within a band, the compact shape wins regardless of a fractional equality edge'
+        );
     }
 
     // ─── (8) breakRebalance stays bounded on São Paulo-scale scopes ─────────

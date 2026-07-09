@@ -2466,6 +2466,16 @@ class DistrictingService
      * 6/6/6 at 2.6% beats 7/6/5 at 0.4%. It can never buy a break or push
      * balance past the acceptability threshold; the UPD/Droop diversity metric
      * remains the last-ranked tiebreak.
+     *
+     * Round-4 tuning (operator, after the full-81 review): compactness RELAXED —
+     * within acceptability and at equal mix, equality gets 1pp sub-bands that
+     * OUTRANK shape ("the key may be laxing the avg hull ratio a bit … to open
+     * up possibilities to improve the other stats"). A configuration a full
+     * point better on average deviation now beats a more compact one; within
+     * the same point, compactness still decides — so a snake can still never
+     * be bought with a fraction of a point, and the neck detector plus the
+     * border-smoothing pass hold the shape floor that used to be compactness's
+     * job alone.
      */
     private function scoreRank(array $s): array
     {
@@ -2474,15 +2484,16 @@ class DistrictingService
         $maxExcess = $s['max_deviation_pct'] <= 10.0 ? 0
             : 1 + (int) floor(($s['max_deviation_pct'] - 10.0) / 5.0);
         return [
-            $avgExcess,                                  // 1. balance beyond acceptability (2pp bands)
-            $maxExcess,                                  // 2. worst district beyond acceptability (5pp bands)
-            $s['non_contiguous_count'],                  // 3. contiguity breaks
-            $s['fragment_gap'],                          // 4. break quality: fragments close
-            $s['neck_count'],                            // 5. pinch points (barely-legal contiguity)
-            $s['seat_spread'],                           // 6. reps-per-district equality
-            $s['avg_rg_sq'],                             // 7. compactness
-            $s['avg_droop_threshold'],                   // 8. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 9. raw equality tiebreak
+            $avgExcess,                                  //  1. balance beyond acceptability (2pp bands)
+            $maxExcess,                                  //  2. worst district beyond acceptability (5pp bands)
+            $s['non_contiguous_count'],                  //  3. contiguity breaks
+            $s['fragment_gap'],                          //  4. break quality: fragments close
+            $s['neck_count'],                            //  5. pinch points (barely-legal contiguity)
+            $s['seat_spread'],                           //  6. reps-per-district equality
+            (int) floor($s['avg_deviation_pct'] / 1.0),  //  7. equality, 1pp sub-bands — outranks shape
+            $s['avg_rg_sq'],                             //  8. compactness
+            $s['avg_droop_threshold'],                   //  9. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 10. raw equality tiebreak
         ];
     }
 
