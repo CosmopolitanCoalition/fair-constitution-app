@@ -379,10 +379,11 @@ class DistrictingService
         // against INTEGER seat targets gates the top 20 into the full pipeline.
         //
         // Scoring priority (operator doctrine ruling 2026-07-08 — see scoreRank()):
-        //   1. Population balance, banded COARSE (avg dev 2pp bands, then max dev 10pp bands)
+        //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie)
         //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
-        //   3. Compactness (avg Rg² — stringy = bad)
-        //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
+        //   3. Pinch points (neck_count — barely-legal contiguity)
+        //   4. Compactness (avg Rg² — stringy = bad)
+        //   5. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
         // The constitutional floor/ceiling stay hard throughout (frac guards + Webster caps).
         //
         // After the contiguity-preserving pipeline, any per-k winner still >2.5% off its
@@ -1961,12 +1962,13 @@ class DistrictingService
      * (ruling 2026-07-08). Fields feed scoreRank()/scoreBeats() for lexicographic
      * comparison (lower = better for all fields):
      *
-     *   1. avg_deviation_pct  (banded 2pp by scoreRank)  — population balance leads
-     *   2. max_deviation_pct  (banded 10pp)              — worst-district extreme
+     *   1. avg_deviation_pct  (acceptability threshold 4%) — balance leads, coarsely
+     *   2. max_deviation_pct  (acceptability threshold 10%) — worst-district extreme
      *   3. non_contiguous_count                            — contiguity breaks
      *   4. fragment_gap                                    — broken pieces kept CLOSE
-     *   5. avg_rg_sq                                       — compactness (stringy = bad)
-     *   6. avg_droop_threshold                             — seat-mix/UPD, abandoned first
+     *   5. neck_count                                      — pinch points (barely-legal contiguity)
+     *   6. avg_rg_sq                                       — compactness (stringy = bad)
+     *   7. avg_droop_threshold                             — seat-mix/UPD, abandoned first
      *
      * The banding means a fraction-of-a-band equality gain can never buy a snake
      * district or a pointless contiguity break; a full band (0.5pp avg) can. This
@@ -2093,7 +2095,8 @@ class DistrictingService
         // non-contiguous pieces as close together as I can", made scoreable.
         $nonContiguousCount = 0;
         $fragmentGap        = 0.0;
-        foreach ($bins as $binJids) {
+        $binFragCounts      = [];
+        foreach ($bins as $bIdx => $binJids) {
             if (count($binJids) <= 1) continue; // single-member bins are trivially contiguous
             $binSet    = array_flip($binJids);
             $seen      = [];
@@ -2117,6 +2120,7 @@ class DistrictingService
                 }
                 $fragments[] = $frag;
             }
+            $binFragCounts[$bIdx] = count($fragments);
             if (count($fragments) > 1) {
                 $nonContiguousCount++;
                 usort($fragments, fn($a, $b) => count($b) <=> count($a));
@@ -2136,9 +2140,74 @@ class DistrictingService
             }
         }
 
+        // Neck (pinch-point) detection — operator flag class, round-2 rematch:
+        // a contiguous district pinched to a single cut member whose removal splits
+        // it into two SUBSTANTIAL pieces meets the letter of contiguity but not its
+        // spirit, and Rg² cannot see it. Tarjan articulation points over the bin's
+        // distance-filtered subgraph, O(n+edges) per bin; a member counts as a neck
+        // when the second-largest piece after its removal holds ≥ max(2, 25% of the
+        // remaining members). Only contiguous bins are scored — broken bins are
+        // already penalized harder by non_contiguous_count.
+        $neckCount = 0;
+        foreach ($bins as $bIdx => $binJids) {
+            $n = count($binJids);
+            if ($n < 4 || ($binFragCounts[$bIdx] ?? 1) > 1) continue;
+
+            $inBin = array_flip($binJids);
+            $ladj  = [];
+            foreach ($binJids as $jid) {
+                $ladj[$jid] = [];
+                foreach ($adj[$jid] ?? [] as $nb) {
+                    if (!isset($inBin[$nb])) continue;
+                    $dx = ($childById[$jid]->centroid_x ?? 0.0) - ($childById[$nb]->centroid_x ?? 0.0);
+                    $dy = ($childById[$jid]->centroid_y ?? 0.0) - ($childById[$nb]->centroid_y ?? 0.0);
+                    if ($dx * $dx + $dy * $dy > $scMaxEdgeDistSq) continue;
+                    $ladj[$jid][] = $nb;
+                }
+            }
+
+            $disc = []; $low = []; $sub = []; $timer = 0;
+            $minPiece = max(2, (int) ceil(0.25 * ($n - 1)));
+            $dfs = function ($u, $parent) use (&$dfs, &$disc, &$low, &$sub, &$timer, &$neckCount, $ladj, $n, $minPiece) {
+                $disc[$u] = $low[$u] = ++$timer;
+                $sub[$u]  = 1;
+                $sepSizes   = [];
+                $childCount = 0;
+                foreach ($ladj[$u] as $v) {
+                    if (!isset($disc[$v])) {
+                        $childCount++;
+                        $dfs($v, $u);
+                        $sub[$u] += $sub[$v];
+                        if ($low[$v] < $low[$u]) $low[$u] = $low[$v];
+                        if ($parent === null || $low[$v] >= $disc[$u]) {
+                            $sepSizes[] = $sub[$v];
+                        }
+                    } elseif ($v !== $parent && $disc[$v] < $low[$u]) {
+                        $low[$u] = $disc[$v];
+                    }
+                }
+                // Pieces if u were removed: root → its child subtrees; non-root →
+                // each separated subtree plus the remainder holding the parent side.
+                if ($parent === null) {
+                    $pieces = $childCount > 1 ? $sepSizes : [];
+                } elseif (!empty($sepSizes)) {
+                    $pieces   = $sepSizes;
+                    $pieces[] = $n - 1 - array_sum($sepSizes);
+                } else {
+                    $pieces = [];
+                }
+                if (count($pieces) > 1) {
+                    rsort($pieces);
+                    if ($pieces[1] >= $minPiece) $neckCount++;
+                }
+            };
+            $dfs($binJids[0], null);
+        }
+
         return [
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
+            'neck_count'           => $neckCount,
             'avg_rg_sq'            => $avgRgSq,
             'avg_droop_threshold'  => $avgDroopThreshold,
             'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
@@ -2210,24 +2279,36 @@ class DistrictingService
      * optimality — "I'm normally quick to abandon the optimal reps per district
      * balance first. Population balance last."
      *
-     * Balance leads but in COARSE bands (avg 2pp, max 10pp) so that breaks are a
-     * LAST RESORT, exactly as practiced: a contiguity break can only be bought by a
-     * ≥2pp average-deviation improvement or a ≥10pp worst-district improvement
-     * (Canada's ±32% → break; polishing a decent 1.3% map to 0.1% → NEVER — the
-     * Uttar Pradesh shatter regression, repinned in DistrictingDoctrineTest).
-     * Within a band, contiguity and then shape decide. Raw avg deviation returns
-     * as the final tiebreak.
+     * Balance leads as an ACCEPTABILITY THRESHOLD, not a fine gradient: below
+     * 4% average / 10% worst-district, every configuration ties on balance and
+     * contiguity + shape decide. Above the threshold, 2pp/5pp bands grade how bad
+     * it is. This makes breaks a LAST RESORT exactly as practiced: a break can
+     * never be bought by nudging 2.1% down to 1.5% across a band edge (the West
+     * Bengal north/south teleport, round-2 rematch), only by escaping genuinely
+     * unacceptable balance (Canada's ±32%, Ethiopia's 8%). Raw avg deviation
+     * returns as the final tiebreak, so within-threshold equality still matters
+     * once contiguity and shape are settled.
+     *
+     * neck_count sits between the break metrics and compactness: a pinch point —
+     * one member whose removal splits the district into two substantial halves —
+     * meets the letter of contiguity but not its spirit (operator flag class,
+     * round-2 rematch); Rg² cannot see necks.
      */
     private function scoreRank(array $s): array
     {
+        $avgExcess = $s['avg_deviation_pct'] <= 4.0 ? 0
+            : 1 + (int) floor(($s['avg_deviation_pct'] - 4.0) / 2.0);
+        $maxExcess = $s['max_deviation_pct'] <= 10.0 ? 0
+            : 1 + (int) floor(($s['max_deviation_pct'] - 10.0) / 5.0);
         return [
-            (int) floor($s['avg_deviation_pct'] / 2.0),  // 1. equality, 2pp bands
-            (int) floor($s['max_deviation_pct'] / 10.0), // 2. worst district, 10pp bands
+            $avgExcess,                                  // 1. balance beyond acceptability (2pp bands)
+            $maxExcess,                                  // 2. worst district beyond acceptability (5pp bands)
             $s['non_contiguous_count'],                  // 3. contiguity breaks
             $s['fragment_gap'],                          // 4. break quality: fragments close
-            $s['avg_rg_sq'],                             // 5. compactness
-            $s['avg_droop_threshold'],                   // 6. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 7. raw equality tiebreak
+            $s['neck_count'],                            // 5. pinch points (barely-legal contiguity)
+            $s['avg_rg_sq'],                             // 6. compactness
+            $s['avg_droop_threshold'],                   // 7. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 8. raw equality tiebreak
         ];
     }
 

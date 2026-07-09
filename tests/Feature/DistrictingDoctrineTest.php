@@ -238,12 +238,12 @@ class DistrictingDoctrineTest extends TestCase
         // worst 3.8%) vs shattered near-zero (6 broken districts).
         $contiguous = [
             'avg_deviation_pct' => 1.3, 'max_deviation_pct' => 3.8,
-            'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
             'avg_rg_sq' => 2.0, 'avg_droop_threshold' => 0.118,
         ];
         $shattered = [
             'avg_deviation_pct' => 0.1, 'max_deviation_pct' => 0.3,
-            'non_contiguous_count' => 6, 'fragment_gap' => 14.0,
+            'non_contiguous_count' => 6, 'fragment_gap' => 14.0, 'neck_count' => 0,
             'avg_rg_sq' => 1.4, 'avg_droop_threshold' => 0.118,
         ];
         $this->assertFalse(
@@ -252,18 +252,44 @@ class DistrictingDoctrineTest extends TestCase
         );
         $this->assertTrue(
             $m->invoke($svc, $contiguous, $shattered),
-            'the decent contiguous map wins on fewest breaks within the same band'
+            'the decent contiguous map wins on fewest breaks within acceptability'
         );
 
-        // The Canada-class rescue must still win: a break IS worth two whole bands.
+        // The West Bengal band-edge regression (round-2 rematch): BOTH maps are
+        // acceptable (≤4% avg / ≤10% max), so nudging 2.1% down to 1.5% must never
+        // buy the north/south teleport.
+        $wbContiguous = [
+            'avg_deviation_pct' => 2.1, 'max_deviation_pct' => 5.0,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 1,
+            'avg_rg_sq' => 2.4, 'avg_droop_threshold' => 0.118,
+        ];
+        $wbBroken = [
+            'avg_deviation_pct' => 1.5, 'max_deviation_pct' => 1.9,
+            'non_contiguous_count' => 1, 'fragment_gap' => 3.5, 'neck_count' => 0,
+            'avg_rg_sq' => 1.9, 'avg_droop_threshold' => 0.118,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $wbContiguous, $wbBroken),
+            'within acceptability, a band-edge equality gain must never buy a break'
+        );
+
+        // Pinch points decide between otherwise-equal contiguous maps.
+        $pinched = $contiguous;
+        $pinched['neck_count'] = 2;
+        $this->assertTrue(
+            $m->invoke($svc, $contiguous, $pinched),
+            'fewer necks wins when balance and contiguity tie'
+        );
+
+        // The Canada-class rescue must still win: a break IS worth escaping ±32%.
         $catastrophe = [
             'avg_deviation_pct' => 20.0, 'max_deviation_pct' => 32.3,
-            'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
             'avg_rg_sq' => 1.0, 'avg_droop_threshold' => 0.118,
         ];
         $rescue = [
             'avg_deviation_pct' => 0.2, 'max_deviation_pct' => 0.5,
-            'non_contiguous_count' => 1, 'fragment_gap' => 2.0,
+            'non_contiguous_count' => 1, 'fragment_gap' => 2.0, 'neck_count' => 0,
             'avg_rg_sq' => 1.6, 'avg_droop_threshold' => 0.118,
         ];
         $this->assertTrue(
