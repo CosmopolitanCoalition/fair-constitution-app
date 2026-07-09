@@ -481,6 +481,31 @@ class DistrictingService
                         $bestScoreK = $score;
                     }
                 }
+
+                // ── Sequential constructive candidates (round-5): the operator's
+                // manual method as a generator. Build toward the most-equal
+                // partition of this budget at this k, in both build orders
+                // (big districts first / small first), polish with a clean-only
+                // rebalance toward the same partition, and let them compete.
+                // These reach the canonical configurations the transfer-walking
+                // passes stall on (Egypt 7+7+7+7, Russia 9+9+9+9, Bihar 9+8+8+8).
+                if ($quotaPopC > 0) {
+                    $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
+                    if ($parts !== null) {
+                        foreach ([$parts, array_reverse($parts)] as $ordered) {
+                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $ordered, $quotaPopC, $giantThreshold);
+                            if ($sBins === null) continue;
+                            $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                            $effectiveBudget = max(count($sBins), $compBudget);
+                            $sScore = $this->scoreConfiguration($sBins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                            if ($bestScoreK === null || $this->scoreBeats($sScore, $bestScoreK)) {
+                                $bestBinsK  = $sBins;
+                                $bestScoreK = $sScore;
+                            }
+                        }
+                    }
+                }
+
                 if ($bestBinsK !== null) {
                     $candidateConfigs[] = ['bins' => $bestBinsK, 'score' => $bestScoreK];
                 }
@@ -607,6 +632,26 @@ class DistrictingService
             $globalBinFracs[$minI]  = 0.0;
         }
         $allBins = array_values(array_filter($allBins, fn($b) => !empty($b)));
+
+        // ── Post-attachment rebalance (round-5, mechanism 1) ──────────────────
+        // Island attachment above shifts population AFTER every candidate was
+        // scored and refined — Tanzania's 8+8 skeleton matched the operator's
+        // exactly yet sat at 4.2%/4.2% vs his 0.1%/0.1%, purely because Zanzibar
+        // landed on one side post-hoc. One CLEAN-ONLY rebalance over the FINAL
+        // bin set (contiguity-preserving transfers only; islands never move)
+        // lets the mainland compensate before Webster runs.
+        if (count($allBins) >= 2 && $nonGiantBudget > 0) {
+            $popAll = 0.0;
+            foreach ($allBins as $b) {
+                foreach ($b as $jid) {
+                    $popAll += (float) $childById[$jid]->population;
+                }
+            }
+            $quotaPopAll = $popAll / max($nonGiantBudget, 1);
+            if ($quotaPopAll > 0) {
+                $allBins = $this->breakRebalance($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, null, true);
+            }
+        }
 
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
@@ -2513,6 +2558,134 @@ class DistrictingService
         return array_merge(array_fill(0, $rem, $base + 1), array_fill(0, $k - $rem, $base));
     }
 
+    /**
+     * Sequential constructive builder — the operator's manual method as a
+     * generator (round-5): "look at the optimal breakdown of reps per district
+     * first. Then I pick something on an edge or in a pocket or stuck in a
+     * corner and connect jurisdictions compactly trying to reach close to a
+     * whole number."
+     *
+     * Builds districts ONE AT A TIME toward a caller-supplied seat partition:
+     * seed each district at the most-constrained unassigned child (fewest
+     * unassigned neighbors — corners and pockets first), then grow through the
+     * frontier, always taking the nearest-to-centroid child that moves the bin
+     * CLOSER to its whole-seat population target, stopping at the turning
+     * point. The last district absorbs the remainder — exactly where the
+     * operator parks the noise by hand.
+     *
+     * This reaches configurations the transfer-walking passes cannot: fat-atom
+     * scopes (Egypt's 2.5-seat governorates on a Nile chain, where every walked
+     * transfer overshoots) and near-ceiling districts (Russia's 9+9+9+9, where
+     * round-robin growth keeps tripping the giant guard). O(n²·deg) worst case —
+     * cheaper than one refinement pass over the same component.
+     *
+     * Returns null when construction degenerates (an empty district).
+     */
+    private function sequentialBuild(
+        array $jids,
+        array $childById,
+        array $adj,
+        array $centroids,
+        array $targets,
+        float $quotaPop,
+        float $giantThreshold
+    ): ?array {
+        $k = count($targets);
+        if ($k < 1 || $quotaPop <= 0 || count($jids) < $k) return null;
+
+        // Same p90×16 false-edge suppression as the rest of the pipeline.
+        $jidSet = array_flip($jids);
+        $dists  = [];
+        foreach ($jids as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($jidSet[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $dists[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($dists);
+        $p90Idx        = max(0, (int) floor(count($dists) * 0.90) - 1);
+        $maxEdgeDistSq = !empty($dists) ? $dists[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
+
+        $unassigned = array_flip($jids);
+        $bins = [];
+        foreach ($targets as $ti => $t) {
+            if ($ti === $k - 1) {
+                $bins[] = array_keys($unassigned);
+                $unassigned = [];
+                break;
+            }
+            if (empty($unassigned)) return null;
+            $T = $t * $quotaPop;
+
+            // Most-constrained seed: fewest unassigned neighbors (corners and
+            // pockets first), deterministic tie-break by id.
+            $seed = null; $seedDeg = PHP_INT_MAX;
+            foreach ($unassigned as $jid => $_) {
+                $deg = 0;
+                foreach ($adj[$jid] ?? [] as $nb) {
+                    if (isset($unassigned[$nb])) $deg++;
+                }
+                if ($seed === null || $deg < $seedDeg
+                    || ($deg === $seedDeg && strcmp((string) $jid, (string) $seed) < 0)) {
+                    $seedDeg = $deg; $seed = $jid;
+                }
+            }
+
+            $bin = [$seed];
+            unset($unassigned[$seed]);
+            $binPop  = (float) $childById[$seed]->population;
+            $binFrac = (float) $childById[$seed]->fractional_seats;
+            $sx = $centroids[$seed]['x'] ?? 0.0;
+            $sy = $centroids[$seed]['y'] ?? 0.0;
+            $nBin = 1;
+
+            while (true) {
+                $curErr = abs($binPop - $T);
+                $cx = $sx / $nBin;
+                $cy = $sy / $nBin;
+                $bestC = null; $bestD = PHP_FLOAT_MAX;
+                $seen  = [];
+                foreach ($bin as $m) {
+                    foreach ($adj[$m] ?? [] as $nb) {
+                        if (!isset($unassigned[$nb]) || isset($seen[$nb])) continue;
+                        $seen[$nb] = true;
+                        $dx = ($centroids[$m]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                        $dy = ($centroids[$m]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                        if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                        $p = (float) $childById[$nb]->population;
+                        $f = (float) $childById[$nb]->fractional_seats;
+                        if ($binFrac + $f >= $giantThreshold) continue;
+                        // The turning-point rule: only additions that move the
+                        // bin CLOSER to its whole-seat target.
+                        if (abs($binPop + $p - $T) >= $curErr) continue;
+                        $ddx = ($centroids[$nb]['x'] ?? 0.0) - $cx;
+                        $ddy = ($centroids[$nb]['y'] ?? 0.0) - $cy;
+                        $d   = $ddx * $ddx + $ddy * $ddy;
+                        if ($d < $bestD || ($d === $bestD && strcmp((string) $nb, (string) $bestC) < 0)) {
+                            $bestD = $d; $bestC = $nb;
+                        }
+                    }
+                }
+                if ($bestC === null) break;
+                $bin[] = $bestC;
+                unset($unassigned[$bestC]);
+                $binPop  += (float) $childById[$bestC]->population;
+                $binFrac += (float) $childById[$bestC]->fractional_seats;
+                $sx += $centroids[$bestC]['x'] ?? 0.0;
+                $sy += $centroids[$bestC]['y'] ?? 0.0;
+                $nBin++;
+            }
+            $bins[] = $bin;
+        }
+
+        foreach ($bins as $b) {
+            if (empty($b)) return null;
+        }
+        return $bins;
+    }
+
     /** True when score $a strictly beats score $b under scoreRank() lexicographic order. */
     private function scoreBeats(array $a, array $b): bool
     {
@@ -2726,10 +2899,12 @@ class DistrictingService
                     // ride as balance ballast to a farther bin ("keep the
                     // non-contiguous pieces as close together as I can").
                     if (empty($adj[$cJid]) && $dist >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
-                    // Clean = both bins stay connected: c touches its new bin and
-                    // the donor remains one piece.
+                    // Clean = neither bin's fragment count grows: c touches its new
+                    // bin, and the donor keeps (or improves) its piece count — a bin
+                    // already carrying an island can still donate cleanly.
                     $clean = $touchesSet($cJid, $bins[$j])
-                        && $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq);
+                        && $this->fragmentCount($setI, $adj, $centroids, $maxEdgeDistSq)
+                            <= $this->fragmentCount($bins[$i], $adj, $centroids, $maxEdgeDistSq);
                 } else {
                     $setJ = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
                     $dc = $this->closestApproachSq([$cJid], $setJ, $centroids);
@@ -2738,11 +2913,13 @@ class DistrictingService
                     if (empty($adj[$cJid]) && $dc >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
                     if (empty($adj[$dJid]) && $dd >= $this->closestApproachSq([$dJid], $setJ, $centroids)) continue;
                     $dist = $dc + $dd;
-                    // Clean = both post-exchange bins stay connected.
+                    // Clean = neither post-exchange bin's fragment count grows.
                     $setI[] = $dJid;
                     $setJ[] = $cJid;
-                    $clean = $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)
-                        && $this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq);
+                    $clean = $this->fragmentCount($setI, $adj, $centroids, $maxEdgeDistSq)
+                            <= $this->fragmentCount($bins[$i], $adj, $centroids, $maxEdgeDistSq)
+                        && $this->fragmentCount($setJ, $adj, $centroids, $maxEdgeDistSq)
+                            <= $this->fragmentCount($bins[$j], $adj, $centroids, $maxEdgeDistSq);
                 }
                 $eligible[] = $cand + ['dist' => $dist, 'clean' => $clean];
             }
@@ -2811,6 +2988,41 @@ class DistrictingService
             }
         }
         return $best;
+    }
+
+    /**
+     * Distance-filtered fragment count for a set of jids (connected components
+     * of the induced subgraph). The "clean transfer" test compares fragment
+     * counts before and after: a bin that already carries an island is
+     * permanently disconnected, and demanding full connectivity would freeze
+     * it out of every clean rebalance (the France/Tanzania post-attachment
+     * class) — non-worsening is the honest criterion.
+     */
+    private function fragmentCount(array $jids, array $adj, array $centroids, float $maxEdgeDistSq): int
+    {
+        $n = count($jids);
+        if ($n <= 1) return $n;
+        $set   = array_flip($jids);
+        $seen  = [];
+        $frags = 0;
+        foreach ($jids as $start) {
+            if (isset($seen[$start])) continue;
+            $frags++;
+            $q = [$start];
+            $seen[$start] = true;
+            while (!empty($q)) {
+                $cur = array_shift($q);
+                foreach ($adj[$cur] ?? [] as $nb) {
+                    if (!isset($set[$nb]) || isset($seen[$nb])) continue;
+                    $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                    $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                    if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                    $seen[$nb] = true;
+                    $q[] = $nb;
+                }
+            }
+        }
+        return $frags;
     }
 
     /**

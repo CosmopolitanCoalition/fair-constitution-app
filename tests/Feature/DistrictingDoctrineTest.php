@@ -59,6 +59,14 @@ use Tests\TestCase;
  *       acceptability and at equal mix, a full 1pp equality band outranks
  *       shape — but a fractional equality edge still never buys a snake.
  *
+ *   (10) POST-ATTACHMENT REBALANCE (round-5, Tanzania/France class): island
+ *        attachment shifts population after all scoring; a clean-only
+ *        rebalance over the final bins must compensate before Webster.
+ *
+ *   (11) SEQUENTIAL BUILDER (round-5, Russia/Egypt class): the operator's
+ *        one-district-at-a-time method as a generator must construct
+ *        canonical whole-seat districts exactly on a uniform chain.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -486,6 +494,85 @@ class DistrictingDoctrineTest extends TestCase
             );
         }
         $this->assertLessThan(30.0, $elapsed, 'bounded candidate machinery — never minutes per scope');
+    }
+
+    // ─── (10) Island attachment is compensated before Webster runs ──────────
+
+    public function test_island_attachment_is_rebalanced_before_webster(): void
+    {
+        $this->onLivePg(function () {
+            // The Tanzania mechanism: a mainland chain splits beautifully, then
+            // the offshore island lands on one side AFTER all scoring — and
+            // before round 5, nothing ever rebalanced. Mainland: 10×120k,
+            // 4×60k (the fine-grained middle where the border falls), 10×120k;
+            // island 120k off the east end. Budget 10, quota 276k. Without the
+            // post-attachment rebalance both districts sit at ±4.3%; with it, a
+            // 60k border cell crosses back and both land exactly on quota.
+            $rootId  = $this->makeJurisdiction('zzdf-0-root', 'Test Root', 0, null, $this->square(0, 0, 30, 10), 2_760_000);
+            $scopeId = $this->makeJurisdiction('zzdf-1-scope', 'Test Scope', 1, $rootId, $this->square(0, 0, 26, 2), 2_760_000);
+            for ($i = 0; $i < 24; $i++) {
+                $pop = ($i >= 10 && $i <= 13) ? 60_000 : 120_000;
+                $this->makeJurisdiction("zzdf-2-cell-{$i}", "Cell {$i}", 2, $scopeId, $this->square($i, 0, $i + 1, 1), $pop);
+            }
+            $this->makeJurisdiction('zzdf-2-island', 'Island', 2, $scopeId, $this->square(24.4, 0, 25.4, 1), 120_000);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(2, $result['districts_created']);
+
+            $quota = 2_760_000 / 10;
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'actual_population']);
+            $this->assertSame([5, 5], $districts->pluck('seats')->sort()->values()->all());
+            foreach ($districts as $d) {
+                $dev = abs($d->actual_population / $d->seats - $quota) / $quota;
+                $this->assertLessThan(
+                    0.021,
+                    $dev,
+                    'the mainland must compensate for the island AFTER attachment (was ±4.3% before round 5)'
+                );
+            }
+        });
+    }
+
+    // ─── (11) The sequential builder constructs canonical districts exactly ──
+
+    public function test_sequential_builder_constructs_canonical_districts(): void
+    {
+        // Russia-class: 9+9+9+9 is trivial to construct one district at a time
+        // but nearly unreachable for round-robin growth under the giant guard.
+        // Drive the builder directly: a 36-cell uniform chain toward [9,9,9,9]
+        // must produce exactly four consecutive nine-cell districts.
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'sequentialBuild');
+        $m->setAccessible(true);
+
+        $n = 36;
+        $childById = []; $centroids = []; $adj = []; $ids = [];
+        for ($i = 0; $i < $n; $i++) {
+            $id = sprintf('c%04d', $i);
+            $ids[] = $id;
+            $childById[$id] = (object) ['population' => 100_000, 'fractional_seats' => 1.0];
+            $centroids[$id] = ['x' => $i * 0.5, 'y' => 0.0];
+            $adj[$id] = [];
+        }
+        for ($i = 1; $i < $n; $i++) {
+            $adj[$ids[$i - 1]][] = $ids[$i];
+            $adj[$ids[$i]][]     = $ids[$i - 1];
+        }
+
+        $bins = $m->invoke($svc, $ids, $childById, $adj, $centroids, [9, 9, 9, 9], 100_000.0, 9.5);
+        $this->assertNotNull($bins);
+        $this->assertCount(4, $bins);
+        foreach ($bins as $bin) {
+            $this->assertCount(9, $bin, 'each district lands exactly on its whole-seat target');
+            $idx = array_map(fn($id) => (int) substr($id, 1), $bin);
+            $this->assertSame(8, max($idx) - min($idx), 'each district is a contiguous run of the chain');
+        }
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
