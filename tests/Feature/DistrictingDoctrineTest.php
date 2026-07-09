@@ -46,6 +46,11 @@ use Tests\TestCase;
  *       must never grab a far-away orphan island to cross 5.0; orphans attach
  *       to the nearest SHORE (closest approach), never the nearest centroid.
  *
+ *   (7) REPS-PER-DISTRICT EQUALITY (round-3 tuning): within acceptable
+ *       balance and equal contiguity, the most-equal seat mix wins (6/6/6 at
+ *       2.6% beats 7/6/5 at 0.4%) — but mix equality never buys unacceptable
+ *       balance or a contiguity break.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -243,12 +248,12 @@ class DistrictingDoctrineTest extends TestCase
         // worst 3.8%) vs shattered near-zero (6 broken districts).
         $contiguous = [
             'avg_deviation_pct' => 1.3, 'max_deviation_pct' => 3.8,
-            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0, 'seat_spread' => 0,
             'avg_rg_sq' => 2.0, 'avg_droop_threshold' => 0.118,
         ];
         $shattered = [
             'avg_deviation_pct' => 0.1, 'max_deviation_pct' => 0.3,
-            'non_contiguous_count' => 6, 'fragment_gap' => 14.0, 'neck_count' => 0,
+            'non_contiguous_count' => 6, 'fragment_gap' => 14.0, 'neck_count' => 0, 'seat_spread' => 0,
             'avg_rg_sq' => 1.4, 'avg_droop_threshold' => 0.118,
         ];
         $this->assertFalse(
@@ -265,12 +270,12 @@ class DistrictingDoctrineTest extends TestCase
         // buy the north/south teleport.
         $wbContiguous = [
             'avg_deviation_pct' => 2.1, 'max_deviation_pct' => 5.0,
-            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 1,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 1, 'seat_spread' => 0,
             'avg_rg_sq' => 2.4, 'avg_droop_threshold' => 0.118,
         ];
         $wbBroken = [
             'avg_deviation_pct' => 1.5, 'max_deviation_pct' => 1.9,
-            'non_contiguous_count' => 1, 'fragment_gap' => 3.5, 'neck_count' => 0,
+            'non_contiguous_count' => 1, 'fragment_gap' => 3.5, 'neck_count' => 0, 'seat_spread' => 0,
             'avg_rg_sq' => 1.9, 'avg_droop_threshold' => 0.118,
         ];
         $this->assertTrue(
@@ -289,17 +294,57 @@ class DistrictingDoctrineTest extends TestCase
         // The Canada-class rescue must still win: a break IS worth escaping ±32%.
         $catastrophe = [
             'avg_deviation_pct' => 20.0, 'max_deviation_pct' => 32.3,
-            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0, 'seat_spread' => 0,
             'avg_rg_sq' => 1.0, 'avg_droop_threshold' => 0.118,
         ];
         $rescue = [
             'avg_deviation_pct' => 0.2, 'max_deviation_pct' => 0.5,
-            'non_contiguous_count' => 1, 'fragment_gap' => 2.0, 'neck_count' => 0,
+            'non_contiguous_count' => 1, 'fragment_gap' => 2.0, 'neck_count' => 0, 'seat_spread' => 0,
             'avg_rg_sq' => 1.6, 'avg_droop_threshold' => 0.118,
         ];
         $this->assertTrue(
             $m->invoke($svc, $rescue, $catastrophe),
             'escaping ±32% with one break must still win'
+        );
+    }
+
+    // ─── (7) Equal seat mix buys balance imperfection within acceptability ──
+
+    public function test_equal_seat_mix_buys_balance_imperfection_within_acceptability(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
+            'avg_droop_threshold' => 0.13,
+        ];
+        // Round-3 tuning: "it is giving up reps per district balance long before
+        // it has to." A 6/6/6 map at 2.6% must beat a 7/6/5 map at 0.4% — both
+        // are inside the acceptability threshold, so the even mix decides.
+        $equalMix  = $base + ['avg_deviation_pct' => 2.6, 'max_deviation_pct' => 3.9, 'seat_spread' => 0, 'avg_rg_sq' => 2.3];
+        $unevenMix = $base + ['avg_deviation_pct' => 0.4, 'max_deviation_pct' => 0.8, 'seat_spread' => 2, 'avg_rg_sq' => 1.9];
+        $this->assertTrue(
+            $m->invoke($svc, $equalMix, $unevenMix),
+            'within acceptability, the even seat mix wins over tighter balance'
+        );
+        $this->assertFalse($m->invoke($svc, $unevenMix, $equalMix));
+
+        // But mix equality never buys UNACCEPTABLE balance…
+        $equalButUnacceptable = $base + ['avg_deviation_pct' => 4.6, 'max_deviation_pct' => 6.0, 'seat_spread' => 0, 'avg_rg_sq' => 2.0];
+        $this->assertTrue(
+            $m->invoke($svc, $unevenMix, $equalButUnacceptable),
+            'an even mix past the acceptability threshold still loses'
+        );
+
+        // …and never buys a contiguity break.
+        $equalButBroken = $equalMix;
+        $equalButBroken['non_contiguous_count'] = 1;
+        $equalButBroken['fragment_gap'] = 1.5;
+        $this->assertTrue(
+            $m->invoke($svc, $unevenMix, $equalButBroken),
+            'an even mix bought with a break still loses'
         );
     }
 

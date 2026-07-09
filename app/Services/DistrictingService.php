@@ -498,6 +498,27 @@ class DistrictingService
                     $bestBins  = $cfg['bins'];
                     $bestScore = $cfg['score'];
                 }
+                // Seat-mix equalization variant (round-3 tuning: "it is giving up
+                // reps per district balance long before it has to"). When the
+                // most-equal legal partition of this budget (6/6/6 for 18) is more
+                // even than the winner's mix (7/6/5), attempt a CLEAN-only
+                // rebalance toward it — contiguity is never sacrificed for
+                // seat-mix equality — and let scoreRank's seat_spread slot decide
+                // whether the balance it costs (within acceptability) was worth it.
+                if ($quotaPopC > 0) {
+                    $parts = $this->canonicalPartition($compBudget, count($cfg['bins']), $floor, $ceiling);
+                    if ($parts !== null && $cfg['score']['seat_spread'] > (max($parts) - min($parts))) {
+                        $equalized = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                        if ($equalized !== $cfg['bins']) {
+                            $effectiveBudget = max(count($equalized), $compBudget);
+                            $eScore = $this->scoreConfiguration($equalized, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                            if ($this->scoreBeats($eScore, $bestScore)) {
+                                $bestBins  = $equalized;
+                                $bestScore = $eScore;
+                            }
+                        }
+                    }
+                }
                 if ($quotaPopC > 0 && $cfg['score']['max_deviation_pct'] > 2.5) {
                     $broken = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
                     if ($broken !== $cfg['bins']) {
@@ -2063,6 +2084,10 @@ class DistrictingService
         }
         $avgDroopThreshold = $binCount > 0 ? $droopSum / $binCount : 1.0;
 
+        // Reps-per-district equality: the spread of the simulated Webster seat
+        // vector. 6/6/6 → 0; 7/6/5 → 2. Ranked above compactness by scoreRank().
+        $seatSpread = $binCount > 0 ? max($binSeats) - min($binSeats) : 0;
+
         // In-memory contiguity: BFS reachability within each bin using the adjacency graph.
         // Apply the same distance-based false-positive filter used in geographicSeedExpansion:
         // ignore adjacency edges whose centroid distance exceeds 4× the 90th-percentile edge
@@ -2224,6 +2249,7 @@ class DistrictingService
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
             'neck_count'           => $neckCount,
+            'seat_spread'          => $seatSpread,
             'avg_rg_sq'            => $avgRgSq,
             'avg_droop_threshold'  => $avgDroopThreshold,
             'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
@@ -2309,6 +2335,13 @@ class DistrictingService
      * one member whose removal splits the district into two substantial halves —
      * meets the letter of contiguity but not its spirit (operator flag class,
      * round-2 rematch); Rg² cannot see necks.
+     *
+     * seat_spread (max − min seats) sits above compactness (round-3 tuning: "it
+     * is giving up reps per district balance long before it has to"): within
+     * acceptable balance and equal contiguity, the most-equal seat mix wins —
+     * 6/6/6 at 2.6% beats 7/6/5 at 0.4%. It can never buy a break or push
+     * balance past the acceptability threshold; the UPD/Droop diversity metric
+     * remains the last-ranked tiebreak.
      */
     private function scoreRank(array $s): array
     {
@@ -2322,10 +2355,27 @@ class DistrictingService
             $s['non_contiguous_count'],                  // 3. contiguity breaks
             $s['fragment_gap'],                          // 4. break quality: fragments close
             $s['neck_count'],                            // 5. pinch points (barely-legal contiguity)
-            $s['avg_rg_sq'],                             // 6. compactness
-            $s['avg_droop_threshold'],                   // 7. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 8. raw equality tiebreak
+            $s['seat_spread'],                           // 6. reps-per-district equality
+            $s['avg_rg_sq'],                             // 7. compactness
+            $s['avg_droop_threshold'],                   // 8. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 9. raw equality tiebreak
         ];
+    }
+
+    /**
+     * Most-equal legal partition of a seat budget into k parts (each within
+     * [floor, ceiling]): rem parts of base+1, k−rem parts of base. Returns null
+     * when no such partition exists at this k. The operator's "optimal breakdown
+     * of reps per district", computed FIRST — exactly as he does by hand.
+     */
+    private function canonicalPartition(int $budget, int $k, int $floor, int $ceiling): ?array
+    {
+        if ($k < 1 || $budget < 1) return null;
+        $base = intdiv($budget, $k);
+        $rem  = $budget % $k;
+        if ($base < $floor || $base > $ceiling) return null;
+        if ($rem > 0 && $base + 1 > $ceiling) return null;
+        return array_merge(array_fill(0, $rem, $base + 1), array_fill(0, $k - $rem, $base));
     }
 
     /** True when score $a strictly beats score $b under scoreRank() lexicographic order. */
@@ -2366,18 +2416,26 @@ class DistrictingService
      * Frac guards keep every bin inside Webster's round-to-legal window: each bin
      * stays ≥ floorBoundary−0.5 (still rounds to ≥ floor) and < giantThreshold
      * (still rounds to ≤ ceiling). Bins are never emptied.
+     *
+     * EQUALIZATION MODE ($forcedTargets + $cleanOnly, round-3 tuning): instead of
+     * fitting integer targets to the realized bins, chase a caller-supplied seat
+     * partition (the canonical most-equal one), rank-matched to bins by population
+     * each step. cleanOnly restricts every transfer to contiguity-preserving ones —
+     * reps-per-district equality never buys a break.
      */
     private function breakRebalance(
-        array $bins,
-        array $childById,
-        array $centroids,
-        array $adj,
-        float $quotaPop,
-        int   $budget,
-        int   $floor,
-        int   $ceiling,
-        float $giantThreshold,
-        float $floorBoundary
+        array  $bins,
+        array  $childById,
+        array  $centroids,
+        array  $adj,
+        float  $quotaPop,
+        int    $budget,
+        int    $floor,
+        int    $ceiling,
+        float  $giantThreshold,
+        float  $floorBoundary,
+        ?array $forcedTargets = null,
+        bool   $cleanOnly = false
     ): array {
         $k = count($bins);
         if ($k < 2 || $quotaPop <= 0) return $bins;
@@ -2420,7 +2478,20 @@ class DistrictingService
         $maxSteps = array_sum(array_map('count', $bins)) * 3;
         for ($step = 0; $step < $maxSteps; $step++) {
             // Dynamic retargeting: the integer targets follow the bins as they change.
-            $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $floor, $ceiling);
+            if ($forcedTargets !== null && count($forcedTargets) === $k) {
+                // Equal-mix flavor: rank-match the forced parts to bins by
+                // population — the biggest part chases the biggest bin.
+                $order = array_keys($binPops);
+                usort($order, fn($a, $b) => $binPops[$b] <=> $binPops[$a]);
+                $parts = $forcedTargets;
+                rsort($parts);
+                $targets = [];
+                foreach ($order as $rank => $bi) {
+                    $targets[$bi] = $parts[$rank];
+                }
+            } else {
+                $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $floor, $ceiling);
+            }
             if (empty($targets)) break;
             $tpops = [];
             foreach ($targets as $i => $t) $tpops[$i] = max($t * $quotaPop, 1.0);
@@ -2520,6 +2591,7 @@ class DistrictingService
             // Contiguity-preserving transfers always outrank teleports at each step —
             // breaks fire only when NO clean transfer improves the balance.
             $cleanCands = array_values(array_filter($cands, fn($c) => $c['clean']));
+            if ($cleanOnly && empty($cleanCands)) break;   // equal-mix mode never buys a break
             if (!empty($cleanCands)) {
                 $cands = $cleanCands;
             }
