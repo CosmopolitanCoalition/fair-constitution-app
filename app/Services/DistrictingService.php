@@ -521,29 +521,33 @@ class DistrictingService
             'phase_total'   => count($allBins),
         ]);
 
-        // Cross-component post-repair: merge undersized bins (< floor fractional) into
-        // nearest absorbable bin (merged total < giant_threshold). Handles isolated
-        // island jurisdictions.
+        // Cross-component post-repair (the ATTACHMENT plane — runs AFTER scoring, so
+        // it must be conservative). Merges bins that cannot legally round to the
+        // floor (fractional < floorBoundary − 0.5) into their nearest absorbable
+        // bin. Two round-2 rematch fixes live here (the Zhoushan mis-attachment):
+        //   • Trigger is the OVERRIDE boundary, not the floor: a 4.79-frac mainland
+        //     bin rounds to 5 seats legally (floor_override flags it for audit) and
+        //     must NOT grab a far-away island as population ballast to cross 5.0.
+        //   • Proximity is CLOSEST APPROACH (nearest member pair), never unweighted
+        //     bin centroids — an island belongs to the nearest SHORE, and adjacent
+        //     orphan islands thereby ride together to the same coast.
         $globalBinFracs = array_map(fn($bin) =>
             array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $bin)),
             $allBins
         );
 
+        $mergeBoundary = $floorBoundary - 0.5;
         $changed = true;
         while ($changed) {
             $changed = false;
             foreach ($globalBinFracs as $i => $t) {
-                if ($t >= $floorBoundary || empty($allBins[$i])) continue;
-                $iCenter  = $this->binCentroid($allBins[$i], $centroids);
+                if ($t >= $mergeBoundary || empty($allBins[$i])) continue;
                 $bestJ    = -1;
                 $bestDist = PHP_FLOAT_MAX;
                 foreach ($globalBinFracs as $j => $tj) {
                     if ($j === $i || empty($allBins[$j])) continue;
                     if ($tj + $t >= $giantThreshold) continue;
-                    $jCenter = $this->binCentroid($allBins[$j], $centroids);
-                    $dx = $iCenter['x'] - $jCenter['x'];
-                    $dy = $iCenter['y'] - $jCenter['y'];
-                    $d  = $dx * $dx + $dy * $dy;
+                    $d = $this->closestApproachSq($allBins[$i], $allBins[$j], $centroids);
                     if ($d < $bestDist) { $bestDist = $d; $bestJ = $j; }
                 }
                 if ($bestJ >= 0) {
@@ -555,6 +559,31 @@ class DistrictingService
                     break;
                 }
             }
+        }
+
+        // Floor feasibility backstop: Step 11 needs binCount × floor ≤ budget. If
+        // legal-but-small bins (override..floor) left too many bins standing, merge
+        // the smallest into its closest absorbable neighbor until feasible — never
+        // hand Step 11 a bin count that forces sub-floor seat vectors.
+        while (true) {
+            $live = array_keys(array_filter($allBins, fn($b) => !empty($b)));
+            if (count($live) * $floor <= max($nonGiantBudget, $floor)) break;
+            $minI = -1; $minT = PHP_FLOAT_MAX;
+            foreach ($live as $li) {
+                if ($globalBinFracs[$li] < $minT) { $minT = $globalBinFracs[$li]; $minI = $li; }
+            }
+            $bestJ = -1; $bestDist = PHP_FLOAT_MAX;
+            foreach ($live as $lj) {
+                if ($lj === $minI) continue;
+                if ($globalBinFracs[$lj] + $minT >= $giantThreshold) continue;
+                $d = $this->closestApproachSq($allBins[$minI], $allBins[$lj], $centroids);
+                if ($d < $bestDist) { $bestDist = $d; $bestJ = $lj; }
+            }
+            if ($minI < 0 || $bestJ < 0) break;   // nothing mergeable — Step 11's safety paths take over
+            $allBins[$bestJ]        = array_merge($allBins[$bestJ], $allBins[$minI]);
+            $globalBinFracs[$bestJ] += $globalBinFracs[$minI];
+            $allBins[$minI]         = [];
+            $globalBinFracs[$minI]  = 0.0;
         }
         $allBins = array_values(array_filter($allBins, fn($b) => !empty($b)));
 
@@ -1282,10 +1311,7 @@ class DistrictingService
                 foreach (array_keys($adjacentBins) as $i) {
                     if (!isset($binFracs[$i])) continue;
                     if ($binFracs[$i] + $jFrac >= $giantThreshold) continue;
-                    $iCenter = $this->binCentroid($bins[$i], $centroids);
-                    $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
-                    $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
-                    $d  = $dx * $dx + $dy * $dy;
+                    $d = $this->closestApproachSq([$jid], $bins[$i], $centroids);
                     if ($d < $minDist) { $minDist = $d; $nearestBin = $i; }
                 }
             } else {
@@ -1293,10 +1319,7 @@ class DistrictingService
                 foreach (range(0, $k - 1) as $i) {
                     if (!isset($binFracs[$i])) continue;
                     if ($binFracs[$i] + $jFrac >= $giantThreshold) continue;
-                    $iCenter = $this->binCentroid($bins[$i], $centroids);
-                    $dx = ($centroids[$jid]['x'] ?? 0.0) - $iCenter['x'];
-                    $dy = ($centroids[$jid]['y'] ?? 0.0) - $iCenter['y'];
-                    $d  = $dx * $dx + $dy * $dy;
+                    $d = $this->closestApproachSq([$jid], $bins[$i], $centroids);
                     if ($d < $minDist) { $minDist = $d; $nearestBin = $i; }
                 }
             }
@@ -1918,27 +1941,20 @@ class DistrictingService
 
                 $bestJ    = -1;
                 $bestDist = PHP_FLOAT_MAX;
-                $iCenter  = $this->binCentroid($bins[$i], $centroids);
 
                 // Phase 1: adjacent absorbers only (contiguity-safe merge)
                 foreach (array_keys($adjBorderBins) as $j) {
                     if ($binFracs[$j] + $t >= $giantThreshold) continue;
-                    $jCenter = $this->binCentroid($bins[$j], $centroids);
-                    $dx = $iCenter['x'] - $jCenter['x'];
-                    $dy = $iCenter['y'] - $jCenter['y'];
-                    $d  = $dx * $dx + $dy * $dy;
+                    $d = $this->closestApproachSq($bins[$i], $bins[$j], $centroids);
                     if ($d < $bestDist) { $bestDist = $d; $bestJ = $j; }
                 }
 
-                // Phase 2: fallback to any absorber by centroid (truly isolated jids only)
+                // Phase 2: fallback to any absorber by closest approach (truly isolated jids only)
                 if ($bestJ < 0) {
                     foreach ($binFracs as $j => $tj) {
                         if ($j === $i || empty($bins[$j])) continue;
                         if ($tj + $t >= $giantThreshold) continue;
-                        $jCenter = $this->binCentroid($bins[$j], $centroids);
-                        $dx = $iCenter['x'] - $jCenter['x'];
-                        $dy = $iCenter['y'] - $jCenter['y'];
-                        $d  = $dx * $dx + $dy * $dy;
+                        $d = $this->closestApproachSq($bins[$i], $bins[$j], $centroids);
                         if ($d < $bestDist) { $bestDist = $d; $bestJ = $j; }
                     }
                 }
@@ -2420,8 +2436,6 @@ class DistrictingService
             $currentMax = $maxDevOf($binPops);
             if ($currentMax <= 0.02) break;   // every bin within 2% of a whole seat target — done, never polish
 
-            $binCenters = array_map(fn($b) => $this->binCentroid($b, $centroids), $bins);
-
             // Collect every improving single move and pairwise exchange.
             $cands = [];
             for ($i = 0; $i < $k; $i++) {
@@ -2440,8 +2454,18 @@ class DistrictingService
                             $trial[$j] += $cPop;
                             $gain = $currentMax - $maxDevOf($trial);
                             if ($gain > 1e-12) {
-                                $dx = ($centroids[$cJid]['x'] ?? 0.0) - $binCenters[$j]['x'];
-                                $dy = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
+                                $dist = $this->closestApproachSq([$cJid], $bins[$j], $centroids);
+                                // Edge-less members (true islands) may only move CLOSER —
+                                // never ride as balance ballast to a farther bin ("keep the
+                                // non-contiguous pieces as close together as I can").
+                                if (empty($adj[$cJid])) {
+                                    $cur = $this->closestApproachSq(
+                                        [$cJid],
+                                        array_values(array_filter($bins[$i], fn($x) => $x !== $cJid)),
+                                        $centroids
+                                    );
+                                    if ($dist >= $cur) continue;
+                                }
                                 // Clean = both bins stay connected: c touches its new bin
                                 // and the donor remains one piece.
                                 $clean = $touchesSet($cJid, $bins[$j])
@@ -2449,7 +2473,7 @@ class DistrictingService
                                         array_values(array_filter($bins[$i], fn($x) => $x !== $cJid)),
                                         $adj, $centroids, $maxEdgeDistSq
                                     );
-                                $cands[] = ['gain' => $gain, 'dist' => $dx * $dx + $dy * $dy,
+                                $cands[] = ['gain' => $gain, 'dist' => $dist,
                                             'clean' => $clean,
                                             'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => null];
                             }
@@ -2469,19 +2493,20 @@ class DistrictingService
                                 $trial[$j] += $cPop - $dPop;
                                 $gain = $currentMax - $maxDevOf($trial);
                                 if ($gain > 1e-12) {
-                                    $dx1 = ($centroids[$cJid]['x'] ?? 0.0) - $binCenters[$j]['x'];
-                                    $dy1 = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
-                                    $dx2 = ($centroids[$dJid]['x'] ?? 0.0) - $binCenters[$i]['x'];
-                                    $dy2 = ($centroids[$dJid]['y'] ?? 0.0) - $binCenters[$i]['y'];
-                                    // Clean = both post-exchange bins stay connected.
                                     $setI   = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
-                                    $setI[] = $dJid;
                                     $setJ   = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
+                                    $dc = $this->closestApproachSq([$cJid], $setJ, $centroids);
+                                    $dd = $this->closestApproachSq([$dJid], $setI, $centroids);
+                                    // Island monotone rule, both directions.
+                                    if (empty($adj[$cJid]) && $dc >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
+                                    if (empty($adj[$dJid]) && $dd >= $this->closestApproachSq([$dJid], $setJ, $centroids)) continue;
+                                    // Clean = both post-exchange bins stay connected.
+                                    $setI[] = $dJid;
                                     $setJ[] = $cJid;
                                     $clean = $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)
                                         && $this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq);
                                     $cands[] = ['gain' => $gain,
-                                                'dist' => $dx1 * $dx1 + $dy1 * $dy1 + $dx2 * $dx2 + $dy2 * $dy2,
+                                                'dist' => $dc + $dd,
                                                 'clean' => $clean,
                                                 'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
                                 }
@@ -2531,6 +2556,29 @@ class DistrictingService
         }
 
         return $bins;
+    }
+
+    /**
+     * Closest approach between two bins: the minimum squared centroid distance
+     * over member pairs. THE proximity metric for every attachment decision —
+     * an orphan belongs to the bin whose SHORE is nearest, not whose unweighted
+     * centroid is nearest (a spread-out bin's centroid sits far from its own
+     * coastline: the Zhoushan-to-west-Zhejiang mis-attachment, round-2 rematch).
+     */
+    private function closestApproachSq(array $aJids, array $bJids, array $centroids): float
+    {
+        $best = PHP_FLOAT_MAX;
+        foreach ($aJids as $a) {
+            $ax = $centroids[$a]['x'] ?? 0.0;
+            $ay = $centroids[$a]['y'] ?? 0.0;
+            foreach ($bJids as $b) {
+                $dx = $ax - ($centroids[$b]['x'] ?? 0.0);
+                $dy = $ay - ($centroids[$b]['y'] ?? 0.0);
+                $d  = $dx * $dx + $dy * $dy;
+                if ($d < $best) $best = $d;
+            }
+        }
+        return $best;
     }
 
     /**

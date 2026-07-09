@@ -41,6 +41,11 @@ use Tests\TestCase;
  *       must LOSE to a decent contiguous map under scoreBeats(), while the
  *       Canada-class rescue (±32% → ~0% with one break) must still WIN.
  *
+ *   (6) NO BALLAST ATTACHMENT (Zhoushan, round-2 rematch): a mainland bin in
+ *       the override window (4.5..5.0 fracs) rounds to the floor legally and
+ *       must never grab a far-away orphan island to cross 5.0; orphans attach
+ *       to the nearest SHORE (closest approach), never the nearest centroid.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -296,6 +301,55 @@ class DistrictingDoctrineTest extends TestCase
             $m->invoke($svc, $rescue, $catastrophe),
             'escaping ±32% with one break must still win'
         );
+    }
+
+    // ─── (6) Orphan islands attach to the nearest shore, never as ballast ───
+
+    public function test_orphan_island_attaches_to_nearest_shore_not_as_ballast(): void
+    {
+        $this->onLivePg(function () {
+            // Three components: a 10-cell mainland chain (93k each — 4.70 fracs,
+            // legally rounds to the 5-seat floor), a 5-cell block (240k each —
+            // 6.07 fracs), and an orphan island floating 0.3° off the BLOCK's
+            // north end. The Zhoushan ballast bug: the sub-5.0 chain used to grab
+            // the island (~8° away) as population ballast to cross the floor.
+            // Doctrine: the chain keeps its floor_override rounding and the
+            // island joins the shore it actually sits next to.
+            $rootId  = $this->makeJurisdiction('zzde-0-root', 'Test Root', 0, null, $this->square(0, 0, 20, 20), 2_175_000);
+            $scopeId = $this->makeJurisdiction('zzde-1-scope', 'Test Scope', 1, $rootId, $this->square(0, 0, 15, 10), 2_175_000);
+            for ($i = 0; $i < 10; $i++) {
+                $this->makeJurisdiction("zzde-2-chain-{$i}", "Chain {$i}", 2, $scopeId, $this->square($i, 0, $i + 1, 1), 93_000);
+            }
+            for ($i = 0; $i < 5; $i++) {
+                $this->makeJurisdiction("zzde-2-block-{$i}", "Block {$i}", 2, $scopeId, $this->square(12, 2 + $i, 13, 3 + $i), 240_000);
+            }
+            $islandId = $this->makeJurisdiction('zzde-2-island', 'Island', 2, $scopeId, $this->square(12, 7.3, 13, 8.3), 45_000);
+            $leg = $this->makeLegislature($rootId, 11);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 11, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(2, $result['districts_created']);
+
+            $islandDistrict = DB::table('legislature_district_jurisdictions as ldj')
+                ->join('legislature_districts as ld', 'ld.id', '=', 'ldj.district_id')
+                ->where('ldj.jurisdiction_id', $islandId)
+                ->whereNull('ld.deleted_at')
+                ->first(['ld.id', 'ld.seats']);
+            $memberCount = (int) DB::table('legislature_district_jurisdictions')
+                ->where('district_id', $islandDistrict->id)->count();
+            $this->assertSame(6, $memberCount, 'island joins the 5-cell block next door, never the far chain');
+            $this->assertSame(6, (int) $islandDistrict->seats);
+
+            $chainDistrict = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->where('id', '!=', $islandDistrict->id)
+                ->sole();
+            $this->assertSame(5, (int) $chainDistrict->seats, 'the 4.70-frac chain rounds to the floor on its own');
+            $this->assertTrue((bool) $chainDistrict->floor_override, 'flagged for audit, not "fixed" with ballast');
+        });
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
