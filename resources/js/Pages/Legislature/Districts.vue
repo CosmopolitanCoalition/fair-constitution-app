@@ -1656,6 +1656,7 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
+import { csrfHeaders } from '@/lib/csrf'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -1719,7 +1720,7 @@ async function returnToSetup() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                ...csrfHeaders(),
             },
         })
     } catch (e) { /* fall through — user still gets redirected */ }
@@ -2041,7 +2042,7 @@ async function devSeatMe() {
     try {
         const resp = await fetch('/dev/board/seat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ legislature_id: props.legislature.id }),
         })
         if (!resp.ok) {
@@ -2154,7 +2155,7 @@ async function haltMassOperation() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                ...csrfHeaders(),
             },
         })
         const data = await resp.json().catch(() => ({}))
@@ -3254,27 +3255,17 @@ function pct(n, total, decimals = 1) {
     if (!total || total <= 0) return '0%'
     return (n / total * 100).toFixed(decimals) + '%'
 }
-function csrf() {
-    return _freshCsrf || (document.querySelector('meta[name="csrf-token"]')?.content ?? '')
-}
-
 // ── Session heartbeat ─────────────────────────────────────────────────────
-// Drawing sessions run for hours; the CSRF token baked into the page dies
-// with the session (SESSION_LIFETIME, default 120 min) and every POST after
-// that 419s as an HTML "Page Expired" the fetch helpers can only report
-// generically ("Probe failed."). A light ping keeps the session warm while
-// the tab lives, and re-arms the token after a laptop-sleep gap
-// (visibilitychange fires on wake → immediate ping → fresh token for the
-// next probe; the draw/probe routes need no auth, so drawing just resumes).
-let _freshCsrf = ''
+// Drawing sessions run for hours; a light ping keeps the session warm while
+// the tab lives (visibilitychange fires on wake → immediate ping). CSRF for
+// every mutation rides csrfHeaders() (cookie-first — Laravel refreshes the
+// XSRF-TOKEN cookie on EVERY response, so it survives session rotation and
+// app restarts; the old page-baked token raced the wake-up heartbeat and
+// 419'd the first autoseed click after an idle gap).
 let _heartbeatTimer = null
 async function sessionHeartbeat() {
     try {
-        const resp = await fetch('/api/session/heartbeat', { headers: { Accept: 'application/json' } })
-        if (resp.ok) {
-            const data = await resp.json()
-            if (data.csrf) _freshCsrf = data.csrf
-        }
+        await fetch('/api/session/heartbeat', { headers: { Accept: 'application/json' } })
     } catch (e) { /* offline — the next tick retries */ }
 }
 function _onVisibleHeartbeat() {
@@ -3356,7 +3347,7 @@ async function submitNewMap() {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({ name }),
             signal:  AbortSignal.timeout(60_000),
         })
@@ -3406,7 +3397,7 @@ async function activateCurrentMap() {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/maps/${props.active_map.id}/activate`,
-            { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf() } }
+            { method: 'POST', headers: { ...csrfHeaders() } }
         )
         if (!resp.ok) { showStatus('error', 'Failed to activate map'); return }
         router.visit(mapUrl(props.scope.id))
@@ -3430,7 +3421,7 @@ async function submitRename(mapId) {
             `/api/legislatures/${props.legislature.id}/maps/${mapId}`,
             {
                 method:  'PATCH',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+                headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
                 body:    JSON.stringify({ name }),
             }
         )
@@ -3457,7 +3448,7 @@ async function duplicateMap(mapId) {
             `/api/legislatures/${props.legislature.id}/maps/${mapId}/copy`,
             {
                 method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+                headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
                 body:    JSON.stringify({ name }),
             }
         )
@@ -3477,7 +3468,7 @@ async function confirmDeleteMap(mapId) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/maps/${mapId}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() } }
+            { method: 'DELETE', headers: { ...csrfHeaders() } }
         )
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Failed to delete map'); return }
@@ -4160,7 +4151,7 @@ async function probeDrawnLayer() {
         const geom = _drawnLayer.toGeoJSON().geometry
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/population-probe`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, geojson: geom }),
         })
         if (seq !== _probeSeq) return   // a newer probe superseded this one
@@ -4211,7 +4202,7 @@ async function commitDraw() {
         const geom = _drawnLayer.toGeoJSON().geometry
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/subdivisions/draw`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, geojson: geom }),
             signal: AbortSignal.timeout(60_000),
         })
@@ -4248,7 +4239,7 @@ async function fillRemainder() {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/subdivisions/remainder`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
             signal: AbortSignal.timeout(60_000),
         })
@@ -4391,7 +4382,7 @@ async function probeSplit() {
         const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-probe`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, line }),
         })
         if (seq !== _probeSeq) return
@@ -4431,7 +4422,7 @@ async function snapToBalance() {
         const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-balance`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, line }),
         })
         if (!resp.ok) {
@@ -4461,7 +4452,7 @@ async function commitSplit() {
         const line = { type: 'LineString', coordinates: _splitPts.map(p => [p.lng, p.lat]) }
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/split-commit`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({ scope_id: props.scope.id, map_id: props.active_map.id, line }),
             signal: AbortSignal.timeout(60_000),
         })
@@ -4501,7 +4492,7 @@ async function previewAutoseedLines() {
         // "Proposing…" with no error. Degrade honestly instead.
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/preview`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             // map_id pins existing_districts (the replace offer) to the plan
             // actually displayed — without it the server falls back to the
             // active→newest-draft resolution, which can differ under ?map=.
@@ -4584,7 +4575,7 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/autoseed-lines/commit`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body: JSON.stringify({
                 scope_id:  props.scope.id,
                 map_id:    props.active_map.id,
@@ -4671,7 +4662,7 @@ async function undoLastCommit() {
             const id   = entry.ids[entry.ids.length - 1]
             const resp = await fetch(
                 `/api/legislatures/${props.legislature.id}/districts/${id}`,
-                { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+                { method: 'DELETE', headers: { ...csrfHeaders() },
                   signal: AbortSignal.timeout(60_000) }
             )
             if (!resp.ok) {
@@ -4704,7 +4695,7 @@ async function createDistrictFromPending() {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/districts`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({
                 jurisdiction_ids: jids,
                 scope_id:        props.scope.id,         // actual scope (validation)
@@ -4794,7 +4785,7 @@ async function saveDistrictEdit(districtId) {
             `/api/legislatures/${props.legislature.id}/districts/${districtId}/members`,
             {
                 method:  'PATCH',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+                headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
                 body:    JSON.stringify({ add, remove, label_scope_id: effectiveScopeId.value, map_id: props.active_map?.id ?? null }),
                 signal:  AbortSignal.timeout(60_000),
             }
@@ -4866,7 +4857,7 @@ async function deleteDistrict(districtId) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/districts/${districtId}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+            { method: 'DELETE', headers: { ...csrfHeaders() },
               signal: AbortSignal.timeout(60_000) }
         )
         const data = await resp.json()
@@ -4914,7 +4905,7 @@ async function deleteDrawnDistrict(d) {
     try {
         const resp = await fetch(
             `/api/legislatures/${props.legislature.id}/districts/${d.id}`,
-            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf() },
+            { method: 'DELETE', headers: { ...csrfHeaders() },
               signal: AbortSignal.timeout(60_000) }
         )
         if (!resp.ok) {
@@ -4992,7 +4983,7 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-reseed`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({
                 operation_scope: scope,
                 scope_id: overrideScopeId ?? props.scope.id,
@@ -5059,7 +5050,7 @@ async function runMassDisband(scope) {
     try {
         const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-disband`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf() },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({ operation_scope: scope, scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
             signal:  AbortSignal.timeout(60_000),
         })
