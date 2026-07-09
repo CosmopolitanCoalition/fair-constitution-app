@@ -1540,7 +1540,7 @@ class DistrictingService
         // Rg² formula: (Sx2+Sy2)/M − Sx²/M² − Sy²/M²   (in geographic degree² units)
         $compactTol  = 0.025; // absolute cap (2.5%) — leaves margin for post-compact minimax pass to reach sub-2%
         $compactIter = 0;
-        $compactMax  = count($jids) * 2;
+        $compactMax  = min(count($jids) * 2, 300);   // bounded for São Paulo-class scopes (637 children)
         do {
             // Integer targets for the deviation caps below (dynamic retargeting).
             $targetsC = $useIntTargets
@@ -1682,6 +1682,10 @@ class DistrictingService
                         }
                     }
                     if (empty($iBorder) || empty($jBorder)) continue;
+                    // Bound the pair scan for fine-grained scopes (São Paulo: 637
+                    // children → borders in the hundreds; 64×64 is plenty).
+                    $iBorder = array_slice($iBorder, 0, 64);
+                    $jBorder = array_slice($jBorder, 0, 64);
 
                     $tpopXI = $targetsC !== null ? max($targetsC[$i] * $quotaPop, 1.0) : max($targetPop, 1.0);
                     $tpopXJ = $targetsC !== null ? max($targetsC[$j] * $quotaPop, 1.0) : max($targetPop, 1.0);
@@ -1781,6 +1785,126 @@ class DistrictingService
             }
             $compactIter++;
         } while ($compactSwapMade && $compactIter < $compactMax);
+
+        // --- Border smoothing pass (round-3: Yunnan's interdigitated borders) ---
+        // Rg² barely moves when adjacent border cells swap sides, so the passes
+        // above converge with jagged, interlocking district lines on fine-grained
+        // scopes. Cut edges — adjacency edges whose endpoints sit in different
+        // bins, a discrete perimeter — see exactly that. Accept border single
+        // moves that strictly REDUCE cut edges under the compact pass's guards
+        // (dev caps vs integer targets, frac window, donor contiguity) plus an
+        // Rg² non-worsening tolerance (2%), so smoothing never re-stretches a
+        // district the compact pass just tightened.
+        $degIn = function (string $jid, array $set) use ($adj, $centroids, $maxEdgeDistSq): int {
+            $flip = array_flip($set);
+            $n = 0;
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($flip[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                $n++;
+            }
+            return $n;
+        };
+        $smoothIter = 0;
+        $smoothMax  = min(count($jids), 200);
+        do {
+            $targetsS = $useIntTargets
+                ? $this->optimalIntegerTargets($binPops, $quotaPop, $compBudget, $intFloor, $intCeiling)
+                : null;
+
+            $bestSGain = 0;
+            $bestS     = null;
+            for ($i = 0; $i < $k; $i++) {
+                if (count($bins[$i]) <= 1) continue;
+                $iM = $binPops[$i];
+                if ($iM <= 0) continue;
+                $iRg = ($binSx2[$i] + $binSy2[$i]) / $iM
+                     - ($binSx[$i] * $binSx[$i] + $binSy[$i] * $binSy[$i]) / ($iM * $iM);
+                for ($j = 0; $j < $k; $j++) {
+                    if ($j === $i || $binPops[$j] <= 0) continue;
+
+                    $iBorder = [];
+                    foreach ($bins[$i] as $bc) {
+                        foreach ($adj[$bc] ?? [] as $nb) {
+                            if (($assigned[$nb] ?? -1) === $j) { $iBorder[] = $bc; break; }
+                        }
+                    }
+                    if (empty($iBorder)) continue;
+                    $iBorder = array_slice($iBorder, 0, 64);
+
+                    $tpopSI = $targetsS !== null ? max($targetsS[$i] * $quotaPop, 1.0) : max($targetPop, 1.0);
+                    $tpopSJ = $targetsS !== null ? max($targetsS[$j] * $quotaPop, 1.0) : max($targetPop, 1.0);
+
+                    $jM  = $binPops[$j];
+                    $jRg = ($binSx2[$j] + $binSy2[$j]) / $jM
+                         - ($binSx[$j] * $binSx[$j] + $binSy[$j] * $binSy[$j]) / ($jM * $jM);
+
+                    foreach ($iBorder as $cJid) {
+                        // Cut-edge gain: c's cross-edges to j become internal, its
+                        // internal edges in i become cross.
+                        $sGain = $degIn($cJid, $bins[$j]) - $degIn($cJid, $bins[$i]);
+                        if ($sGain <= $bestSGain) continue;
+
+                        $cPop  = (float) $childById[$cJid]->population;
+                        $cFrac = (float) $childById[$cJid]->fractional_seats;
+                        if ($binFracs[$i] - $cFrac < $floorBoundary) continue;
+                        if ($binFracs[$j] + $cFrac >= $giantThreshold) continue;
+                        $newIM = $iM - $cPop;
+                        $newJM = $jM + $cPop;
+                        if ($newIM <= 0) continue;
+                        if (abs($newIM - $tpopSI) / $tpopSI > $compactTol) continue;
+                        if (abs($newJM - $tpopSJ) / $tpopSJ > $compactTol) continue;
+
+                        $cx = $centroids[$cJid]['x'] ?? 0.0;
+                        $cy = $centroids[$cJid]['y'] ?? 0.0;
+                        $nISx  = $binSx[$i]  - $cPop * $cx;
+                        $nISy  = $binSy[$i]  - $cPop * $cy;
+                        $nISx2 = $binSx2[$i] - $cPop * $cx * $cx;
+                        $nISy2 = $binSy2[$i] - $cPop * $cy * $cy;
+                        $nIRg  = ($nISx2 + $nISy2) / $newIM
+                               - ($nISx * $nISx + $nISy * $nISy) / ($newIM * $newIM);
+                        $nJSx  = $binSx[$j]  + $cPop * $cx;
+                        $nJSy  = $binSy[$j]  + $cPop * $cy;
+                        $nJSx2 = $binSx2[$j] + $cPop * $cx * $cx;
+                        $nJSy2 = $binSy2[$j] + $cPop * $cy * $cy;
+                        $nJRg  = ($nJSx2 + $nJSy2) / $newJM
+                               - ($nJSx * $nJSx + $nJSy * $nJSy) / ($newJM * $newJM);
+                        if (($nIRg + $nJRg) > ($iRg + $jRg) * 1.02 + 1e-12) continue;
+
+                        $remainingI = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
+                        if (!$this->connectedSet($remainingI, $adj, $centroids, $maxEdgeDistSq)) continue;
+
+                        $bestSGain = $sGain;
+                        $bestS     = ['c' => $cJid, 'i' => $i, 'j' => $j, 'remI' => $remainingI,
+                                      'pop' => $cPop, 'frac' => $cFrac, 'x' => $cx, 'y' => $cy];
+                    }
+                }
+            }
+
+            $smoothMade = false;
+            if ($bestS !== null) {
+                $si = $bestS['i']; $sj = $bestS['j'];
+                $bins[$sj][]    = $bestS['c'];
+                $binPops[$sj]  += $bestS['pop'];
+                $binFracs[$sj] += $bestS['frac'];
+                $binSx[$sj]    += $bestS['pop'] * $bestS['x'];
+                $binSy[$sj]    += $bestS['pop'] * $bestS['y'];
+                $binSx2[$sj]   += $bestS['pop'] * $bestS['x'] * $bestS['x'];
+                $binSy2[$sj]   += $bestS['pop'] * $bestS['y'] * $bestS['y'];
+                $bins[$si]      = $bestS['remI'];
+                $binPops[$si]  -= $bestS['pop'];
+                $binFracs[$si] -= $bestS['frac'];
+                $binSx[$si]    -= $bestS['pop'] * $bestS['x'];
+                $binSy[$si]    -= $bestS['pop'] * $bestS['y'];
+                $binSx2[$si]   -= $bestS['pop'] * $bestS['x'] * $bestS['x'];
+                $binSy2[$si]   -= $bestS['pop'] * $bestS['y'] * $bestS['y'];
+                $assigned[$bestS['c']] = $sj;
+                $smoothMade = true;
+            }
+            $smoothIter++;
+        } while ($smoothMade && $smoothIter < $smoothMax);
 
         // --- Post-compact balance pass (minimax) ---
         // Re-optimises population equality after the compactness reshaping phase.
@@ -2475,7 +2599,10 @@ class DistrictingService
             return false;
         };
 
-        $maxSteps = array_sum(array_map('count', $bins)) * 3;
+        // Step cap (round-3 São Paulo hang): each step moves one child, and even a
+        // badly split scope needs a few dozen transfers, not thousands. 3n steps
+        // on a 637-child scope was a runaway budget.
+        $maxSteps = min(array_sum(array_map('count', $bins)) * 3, 200);
         for ($step = 0; $step < $maxSteps; $step++) {
             // Dynamic retargeting: the integer targets follow the bins as they change.
             if ($forcedTargets !== null && count($forcedTargets) === $k) {
@@ -2507,52 +2634,54 @@ class DistrictingService
             $currentMax = $maxDevOf($binPops);
             if ($currentMax <= 0.02) break;   // every bin within 2% of a whole seat target — done, never polish
 
-            // Collect every improving single move and pairwise exchange.
+            // ── Phase 1 (CHEAP): collect improving transfers by balance gain only ──
+            // Round-3 São Paulo hang fix: at 637 children the old exhaustive
+            // exchange scan ran O(n²) pairs × per-candidate BFS = minutes per step.
+            // Singles stay exhaustive (each trial is O(k)); exchanges only involve
+            // the current WORST bin (only they can reduce the max) with member
+            // lists capped at 64 largest movers. The expensive checks (contiguity
+            // BFS, closest approach, island rule) run in Phase 2 on the top 48.
+            $worstBin = 0; $worstDev = -1.0;
+            foreach ($binPops as $bi => $bp) {
+                $d = abs($bp - $tpops[$bi]) / $tpops[$bi];
+                if ($d > $worstDev) { $worstDev = $d; $worstBin = $bi; }
+            }
+            $capMembers = function (array $b) use ($childById): array {
+                if (count($b) <= 64) return $b;
+                $sorted = $b;
+                usort($sorted, fn($x, $y) =>
+                    (((float) $childById[$y]->population) <=> ((float) $childById[$x]->population)) ?: strcmp($x, $y));
+                return array_slice($sorted, 0, 64);
+            };
+
             $cands = [];
             for ($i = 0; $i < $k; $i++) {
                 for ($j = 0; $j < $k; $j++) {
                     if ($j === $i) continue;
-                    foreach ($bins[$i] as $cJid) {
-                        $cPop  = (float) $childById[$cJid]->population;
-                        $cFrac = (float) $childById[$cJid]->fractional_seats;
 
-                        // Single move c: i → j
-                        if (count($bins[$i]) >= 2
-                            && $binFracs[$i] - $cFrac >= $overrideBoundary
-                            && $binFracs[$j] + $cFrac < $giantThreshold) {
+                    // Single move c: i → j — exhaustive, each trial is O(k)
+                    if (count($bins[$i]) >= 2) {
+                        foreach ($bins[$i] as $cJid) {
+                            $cPop  = (float) $childById[$cJid]->population;
+                            $cFrac = (float) $childById[$cJid]->fractional_seats;
+                            if ($binFracs[$i] - $cFrac < $overrideBoundary) continue;
+                            if ($binFracs[$j] + $cFrac >= $giantThreshold) continue;
                             $trial      = $binPops;
                             $trial[$i] -= $cPop;
                             $trial[$j] += $cPop;
                             $gain = $currentMax - $maxDevOf($trial);
                             if ($gain > 1e-12) {
-                                $dist = $this->closestApproachSq([$cJid], $bins[$j], $centroids);
-                                // Edge-less members (true islands) may only move CLOSER —
-                                // never ride as balance ballast to a farther bin ("keep the
-                                // non-contiguous pieces as close together as I can").
-                                if (empty($adj[$cJid])) {
-                                    $cur = $this->closestApproachSq(
-                                        [$cJid],
-                                        array_values(array_filter($bins[$i], fn($x) => $x !== $cJid)),
-                                        $centroids
-                                    );
-                                    if ($dist >= $cur) continue;
-                                }
-                                // Clean = both bins stay connected: c touches its new bin
-                                // and the donor remains one piece.
-                                $clean = $touchesSet($cJid, $bins[$j])
-                                    && $this->connectedSet(
-                                        array_values(array_filter($bins[$i], fn($x) => $x !== $cJid)),
-                                        $adj, $centroids, $maxEdgeDistSq
-                                    );
-                                $cands[] = ['gain' => $gain, 'dist' => $dist,
-                                            'clean' => $clean,
-                                            'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => null];
+                                $cands[] = ['gain' => $gain, 'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => null];
                             }
                         }
+                    }
 
-                        // Pairwise exchange c ↔ d (i < j only — exchanges are symmetric)
-                        if ($i < $j) {
-                            foreach ($bins[$j] as $dJid) {
+                    // Pairwise exchange c ↔ d — worst-bin pairs only, capped members
+                    if ($i < $j && ($i === $worstBin || $j === $worstBin)) {
+                        foreach ($capMembers($bins[$i]) as $cJid) {
+                            $cPop  = (float) $childById[$cJid]->population;
+                            $cFrac = (float) $childById[$cJid]->fractional_seats;
+                            foreach ($capMembers($bins[$j]) as $dJid) {
                                 $dPop  = (float) $childById[$dJid]->population;
                                 $dFrac = (float) $childById[$dJid]->fractional_seats;
                                 $newFracI = $binFracs[$i] - $cFrac + $dFrac;
@@ -2564,22 +2693,7 @@ class DistrictingService
                                 $trial[$j] += $cPop - $dPop;
                                 $gain = $currentMax - $maxDevOf($trial);
                                 if ($gain > 1e-12) {
-                                    $setI   = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
-                                    $setJ   = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
-                                    $dc = $this->closestApproachSq([$cJid], $setJ, $centroids);
-                                    $dd = $this->closestApproachSq([$dJid], $setI, $centroids);
-                                    // Island monotone rule, both directions.
-                                    if (empty($adj[$cJid]) && $dc >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
-                                    if (empty($adj[$dJid]) && $dd >= $this->closestApproachSq([$dJid], $setJ, $centroids)) continue;
-                                    // Clean = both post-exchange bins stay connected.
-                                    $setI[] = $dJid;
-                                    $setJ[] = $cJid;
-                                    $clean = $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)
-                                        && $this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq);
-                                    $cands[] = ['gain' => $gain,
-                                                'dist' => $dc + $dd,
-                                                'clean' => $clean,
-                                                'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
+                                    $cands[] = ['gain' => $gain, 'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
                                 }
                             }
                         }
@@ -2588,22 +2702,57 @@ class DistrictingService
             }
             if (empty($cands)) break;
 
+            // ── Phase 2 (HEAVY, bounded): vet the top 48 gains ────────────────────
+            usort($cands, fn($a, $b) =>
+                ($b['gain'] <=> $a['gain']) ?: strcmp($a['c'] . ($a['d'] ?? ''), $b['c'] . ($b['d'] ?? '')));
+            $eligible = [];
+            foreach (array_slice($cands, 0, 48) as $cand) {
+                $i = $cand['i']; $j = $cand['j']; $cJid = $cand['c']; $dJid = $cand['d'];
+                $setI = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
+                if ($dJid === null) {
+                    $dist = $this->closestApproachSq([$cJid], $bins[$j], $centroids);
+                    // Edge-less members (true islands) may only move CLOSER — never
+                    // ride as balance ballast to a farther bin ("keep the
+                    // non-contiguous pieces as close together as I can").
+                    if (empty($adj[$cJid]) && $dist >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
+                    // Clean = both bins stay connected: c touches its new bin and
+                    // the donor remains one piece.
+                    $clean = $touchesSet($cJid, $bins[$j])
+                        && $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq);
+                } else {
+                    $setJ = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
+                    $dc = $this->closestApproachSq([$cJid], $setJ, $centroids);
+                    $dd = $this->closestApproachSq([$dJid], $setI, $centroids);
+                    // Island monotone rule, both directions.
+                    if (empty($adj[$cJid]) && $dc >= $this->closestApproachSq([$cJid], $setI, $centroids)) continue;
+                    if (empty($adj[$dJid]) && $dd >= $this->closestApproachSq([$dJid], $setJ, $centroids)) continue;
+                    $dist = $dc + $dd;
+                    // Clean = both post-exchange bins stay connected.
+                    $setI[] = $dJid;
+                    $setJ[] = $cJid;
+                    $clean = $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)
+                        && $this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq);
+                }
+                $eligible[] = $cand + ['dist' => $dist, 'clean' => $clean];
+            }
+            if (empty($eligible)) break;
+
             // Contiguity-preserving transfers always outrank teleports at each step —
             // breaks fire only when NO clean transfer improves the balance.
-            $cleanCands = array_values(array_filter($cands, fn($c) => $c['clean']));
+            $cleanCands = array_values(array_filter($eligible, fn($c) => $c['clean']));
             if ($cleanOnly && empty($cleanCands)) break;   // equal-mix mode never buys a break
             if (!empty($cleanCands)) {
-                $cands = $cleanCands;
+                $eligible = $cleanCands;
             }
 
             // Best balance gain wins; among near-best (≥95% of the best gain) the
             // geographically closest transfer wins — fragments stay tight.
             $maxGain = 0.0;
-            foreach ($cands as $c) {
+            foreach ($eligible as $c) {
                 if ($c['gain'] > $maxGain) $maxGain = $c['gain'];
             }
             $chosen = null;
-            foreach ($cands as $c) {
+            foreach ($eligible as $c) {
                 if ($c['gain'] < 0.95 * $maxGain) continue;
                 if ($chosen === null || $c['dist'] < $chosen['dist']) $chosen = $c;
             }

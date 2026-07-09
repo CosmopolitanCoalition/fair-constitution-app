@@ -51,6 +51,10 @@ use Tests\TestCase;
  *       2.6% beats 7/6/5 at 0.4%) — but mix equality never buys unacceptable
  *       balance or a contiguity break.
  *
+ *   (8) BOUNDED REBALANCER (São Paulo hang, round-3): breakRebalance must
+ *       converge on a 600-child scope in bounded work — worst-bin-focused
+ *       exchanges, capped member lists, heavy checks only on a shortlist.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -395,6 +399,58 @@ class DistrictingDoctrineTest extends TestCase
             $this->assertSame(5, (int) $chainDistrict->seats, 'the 4.70-frac chain rounds to the floor on its own');
             $this->assertTrue((bool) $chainDistrict->floor_override, 'flagged for audit, not "fixed" with ballast');
         });
+    }
+
+    // ─── (8) breakRebalance stays bounded on São Paulo-scale scopes ─────────
+
+    public function test_break_rebalance_bounded_on_fine_grained_scopes(): void
+    {
+        // Round-3 São Paulo hang: 637 children × O(n²) exchange pairs × per-
+        // candidate BFS wedged the scope for 10+ minutes. This pin drives the
+        // rebalancer directly with a 600-child chain split badly (360/240) and
+        // requires convergence to the integer targets within seconds of work —
+        // the bounded two-phase candidate machinery, exercised at real scale.
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'breakRebalance');
+        $m->setAccessible(true);
+
+        $n = 600;
+        $childById = []; $centroids = []; $adj = []; $ids = [];
+        for ($i = 0; $i < $n; $i++) {
+            $id = sprintf('c%04d', $i);
+            $ids[] = $id;
+            $childById[$id] = (object) ['population' => 100_000, 'fractional_seats' => 0.02];
+            $centroids[$id] = ['x' => $i * 0.01, 'y' => 0.0];
+            $adj[$id] = [];
+        }
+        for ($i = 1; $i < $n; $i++) {
+            $adj[$ids[$i - 1]][] = $ids[$i];
+            $adj[$ids[$i]][]     = $ids[$i - 1];
+        }
+        // 60M total, budget 12 → quota 5M; bins split 36M/24M (targets 7/5 →
+        // 35M/25M) so the rebalancer must move ~1M (10 children) to converge.
+        $bins = [array_slice($ids, 0, 360), array_slice($ids, 360)];
+        // fractional_seats must reflect the scope quota for the frac guards.
+        foreach ($childById as $c) {
+            $c->fractional_seats = 100_000 / 5_000_000;
+        }
+
+        $start  = microtime(true);
+        $result = $m->invoke($svc, $bins, $childById, $centroids, $adj, 5_000_000.0, 12, 5, 9, 9.5, 5.0);
+        $elapsed = microtime(true) - $start;
+
+        $this->assertCount(2, $result);
+        $pops = array_map(fn($b) => count($b) * 100_000, $result);
+        $targets = [7 * 5_000_000, 5 * 5_000_000];
+        rsort($pops);
+        foreach ($pops as $bi => $p) {
+            $this->assertLessThanOrEqual(
+                0.021,
+                abs($p - $targets[$bi]) / $targets[$bi],
+                'rebalancer converges to within 2% of the integer targets'
+            );
+        }
+        $this->assertLessThan(30.0, $elapsed, 'bounded candidate machinery — never minutes per scope');
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
