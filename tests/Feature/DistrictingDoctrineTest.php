@@ -32,6 +32,15 @@ use Tests\TestCase;
  *       balance-neutral pairwise exchanges (single moves always breach the
  *       deviation cap when each child is a double-digit share of its bin).
  *
+ *   (4) FINE-TUNING NEVER BUYS BREAKS (Uttar Pradesh shatter regression,
+ *       2026-07-08 rematch): a contiguous map already inside the acceptable
+ *       band must never be shattered to polish its deviation toward zero —
+ *       breaks are a last resort for BAD balance, not a finishing tool.
+ *
+ *   (5) COMPARATOR PIN for the same regression: a shattered near-zero map
+ *       must LOSE to a decent contiguous map under scoreBeats(), while the
+ *       Canada-class rescue (±32% → ~0% with one break) must still WIN.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -179,6 +188,88 @@ class DistrictingDoctrineTest extends TestCase
                 'compact halves (1.5) must win over staircases (~2.2) and snakes — the exchange pass must fire'
             );
         });
+    }
+
+    // ─── (4) Fine-tuning never buys contiguity breaks ───────────────────────
+
+    public function test_fine_tuning_never_buys_contiguity_breaks(): void
+    {
+        $this->onLivePg(function () {
+            // Chain of 10 near-uniform children (total 10.0M), budget 10, quota 1M.
+            // The best contiguous cut is 5.02M/4.98M — 0.4% on both districts.
+            // A break could polish that to 0.0%; the doctrine forbids it: within
+            // the acceptable band, contiguity outranks polish (the Uttar Pradesh
+            // shatter regression — Automatic Draft 2 broke EVERY district for ~0%).
+            $pops = [103, 99, 101, 97, 102, 98, 103, 99, 101, 97];
+            [$leg, $scopeId] = $this->makeScopeFixture('zzdd', $pops, 10_000, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(2, $result['districts_created']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['id', 'seats', 'actual_population', 'is_contiguous']);
+
+            $quota = 10_000_000 / 10;
+            foreach ($districts as $d) {
+                $this->assertTrue(
+                    (bool) $d->is_contiguous,
+                    'a 0.4% contiguous map must never be shattered for polish'
+                );
+                $dev = abs($d->actual_population / $d->seats - $quota) / $quota;
+                $this->assertLessThan(0.01, $dev);
+            }
+        });
+    }
+
+    // ─── (5) Comparator pin: shatter loses, rescue wins ─────────────────────
+
+    public function test_shatter_never_beats_a_decent_contiguous_map(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        // The Uttar Pradesh regression, as scores: decent contiguous (avg 1.3%,
+        // worst 3.8%) vs shattered near-zero (6 broken districts).
+        $contiguous = [
+            'avg_deviation_pct' => 1.3, 'max_deviation_pct' => 3.8,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_rg_sq' => 2.0, 'avg_droop_threshold' => 0.118,
+        ];
+        $shattered = [
+            'avg_deviation_pct' => 0.1, 'max_deviation_pct' => 0.3,
+            'non_contiguous_count' => 6, 'fragment_gap' => 14.0,
+            'avg_rg_sq' => 1.4, 'avg_droop_threshold' => 0.118,
+        ];
+        $this->assertFalse(
+            $m->invoke($svc, $shattered, $contiguous),
+            'a shattered near-zero map must never beat a decent contiguous map'
+        );
+        $this->assertTrue(
+            $m->invoke($svc, $contiguous, $shattered),
+            'the decent contiguous map wins on fewest breaks within the same band'
+        );
+
+        // The Canada-class rescue must still win: a break IS worth two whole bands.
+        $catastrophe = [
+            'avg_deviation_pct' => 20.0, 'max_deviation_pct' => 32.3,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_rg_sq' => 1.0, 'avg_droop_threshold' => 0.118,
+        ];
+        $rescue = [
+            'avg_deviation_pct' => 0.2, 'max_deviation_pct' => 0.5,
+            'non_contiguous_count' => 1, 'fragment_gap' => 2.0,
+            'avg_rg_sq' => 1.6, 'avg_droop_threshold' => 0.118,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $rescue, $catastrophe),
+            'escaping ±32% with one break must still win'
+        );
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────

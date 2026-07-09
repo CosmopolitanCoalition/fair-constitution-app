@@ -379,7 +379,7 @@ class DistrictingService
         // against INTEGER seat targets gates the top 20 into the full pipeline.
         //
         // Scoring priority (operator doctrine ruling 2026-07-08 — see scoreRank()):
-        //   1. Population balance, banded (avg dev 0.5pp bands, then max dev 1.0pp bands)
+        //   1. Population balance, banded COARSE (avg dev 2pp bands, then max dev 10pp bands)
         //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
         //   3. Compactness (avg Rg² — stringy = bad)
         //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
@@ -498,7 +498,7 @@ class DistrictingService
                     $bestScore = $cfg['score'];
                 }
                 if ($quotaPopC > 0 && $cfg['score']['max_deviation_pct'] > 2.5) {
-                    $broken = $this->breakRebalance($cfg['bins'], $childById, $centroids, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                    $broken = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
                     if ($broken !== $cfg['bins']) {
                         $effectiveBudget = max(count($broken), $compBudget);
                         $bScore = $this->scoreConfiguration($broken, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
@@ -1961,8 +1961,8 @@ class DistrictingService
      * (ruling 2026-07-08). Fields feed scoreRank()/scoreBeats() for lexicographic
      * comparison (lower = better for all fields):
      *
-     *   1. avg_deviation_pct  (banded 0.5pp by scoreRank) — population balance leads
-     *   2. max_deviation_pct  (banded 1.0pp)              — worst-district extreme
+     *   1. avg_deviation_pct  (banded 2pp by scoreRank)  — population balance leads
+     *   2. max_deviation_pct  (banded 10pp)              — worst-district extreme
      *   3. non_contiguous_count                            — contiguity breaks
      *   4. fragment_gap                                    — broken pieces kept CLOSE
      *   5. avg_rg_sq                                       — compactness (stringy = bad)
@@ -2210,16 +2210,19 @@ class DistrictingService
      * optimality — "I'm normally quick to abandon the optimal reps per district
      * balance first. Population balance last."
      *
-     * Balance leads but in BANDS (avg 0.5pp, max 1.0pp) so a fraction-of-a-band
-     * equality gain can never buy a snake district or a pointless contiguity break —
-     * within a band, contiguity and then shape decide. Raw avg deviation returns as
-     * the final tiebreak.
+     * Balance leads but in COARSE bands (avg 2pp, max 10pp) so that breaks are a
+     * LAST RESORT, exactly as practiced: a contiguity break can only be bought by a
+     * ≥2pp average-deviation improvement or a ≥10pp worst-district improvement
+     * (Canada's ±32% → break; polishing a decent 1.3% map to 0.1% → NEVER — the
+     * Uttar Pradesh shatter regression, repinned in DistrictingDoctrineTest).
+     * Within a band, contiguity and then shape decide. Raw avg deviation returns
+     * as the final tiebreak.
      */
     private function scoreRank(array $s): array
     {
         return [
-            (int) floor($s['avg_deviation_pct'] / 0.5),  // 1. equality, 0.5pp bands
-            (int) floor($s['max_deviation_pct'] / 1.0),  // 2. worst district, 1pp bands
+            (int) floor($s['avg_deviation_pct'] / 2.0),  // 1. equality, 2pp bands
+            (int) floor($s['max_deviation_pct'] / 10.0), // 2. worst district, 10pp bands
             $s['non_contiguous_count'],                  // 3. contiguity breaks
             $s['fragment_gap'],                          // 4. break quality: fragments close
             $s['avg_rg_sq'],                             // 5. compactness
@@ -2246,16 +2249,22 @@ class DistrictingService
      * to be above the floor and below the ceiling … Even when I can't be contiguous
      * I try to keep the non-contiguous pieces as close together as I can."
      *
-     * Transfers children between bins WITHOUT requiring adjacency — single moves and
-     * pairwise exchanges (exchanges cross balance humps single moves cannot, e.g.
-     * Canada's Quebec↔Prairies class) — chasing the per-bin integer seat targets,
-     * re-derived every step (dynamic retargeting). Among near-best balance gains the
-     * geographically closest transfer wins, so unavoidable fragments stay tight; the
-     * fragment_gap score criterion then judges the result.
+     * Transfers children between bins — single moves and pairwise exchanges
+     * (exchanges cross balance humps single moves cannot, e.g. Canada's
+     * Quebec↔Prairies class) — chasing the per-bin integer seat targets, re-derived
+     * every step (dynamic retargeting). Breaks stay MINIMAL two ways:
+     *   (a) every step PREFERS contiguity-preserving transfers — a transfer that
+     *       keeps both bins connected always wins over a teleport at that step;
+     *       teleports fire only when no clean transfer improves the balance;
+     *   (b) the loop stops as soon as every bin is within 2% of a whole seat
+     *       target — this pass exists to escape BAD balance, never to polish a
+     *       decent map (the Uttar Pradesh shatter regression).
+     * Among near-best gains the geographically closest transfer wins, so
+     * unavoidable fragments stay tight; fragment_gap then judges the result.
      *
      * The caller scores the returned configuration against the contiguous original
-     * under scoreBeats(): banded equality decides whether the break was worth it
-     * (a ±32% Canada → yes; a 0.1pp São Paulo → no).
+     * under scoreBeats(): coarse-banded equality decides whether the break was worth
+     * it (a ±32% Canada → yes; polishing 1.3% to 0.1% → no).
      *
      * Frac guards keep every bin inside Webster's round-to-legal window: each bin
      * stays ≥ floorBoundary−0.5 (still rounds to ≥ floor) and < giantThreshold
@@ -2265,6 +2274,7 @@ class DistrictingService
         array $bins,
         array $childById,
         array $centroids,
+        array $adj,
         float $quotaPop,
         int   $budget,
         int   $floor,
@@ -2279,6 +2289,36 @@ class DistrictingService
         $binPops  = array_map(fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)), $bins);
         $binFracs = array_map(fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $b)), $bins);
         $overrideBoundary = $floorBoundary - 0.5;
+
+        // Distance filter for the contiguity-preservation checks — same p90×16
+        // false-positive-edge suppression as everywhere else in the pipeline.
+        $allJids     = array_merge(...$bins);
+        $jidSetAll   = array_flip($allJids);
+        $adjDistsSq  = [];
+        foreach ($allJids as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($jidSetAll[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $adjDistsSq[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($adjDistsSq);
+        $p90Idx        = max(0, (int) floor(count($adjDistsSq) * 0.90) - 1);
+        $maxEdgeDistSq = !empty($adjDistsSq) ? $adjDistsSq[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
+
+        // True when the child touches (within the distance filter) any member of the set.
+        $touchesSet = function (string $jid, array $set) use ($adj, $centroids, $maxEdgeDistSq): bool {
+            $flip = array_flip($set);
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($flip[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                return true;
+            }
+            return false;
+        };
 
         $maxSteps = array_sum(array_map('count', $bins)) * 3;
         for ($step = 0; $step < $maxSteps; $step++) {
@@ -2297,7 +2337,7 @@ class DistrictingService
                 return $worst;
             };
             $currentMax = $maxDevOf($binPops);
-            if ($currentMax <= 0.01) break;   // every bin within 1% of a whole seat target
+            if ($currentMax <= 0.02) break;   // every bin within 2% of a whole seat target — done, never polish
 
             $binCenters = array_map(fn($b) => $this->binCentroid($b, $centroids), $bins);
 
@@ -2321,7 +2361,15 @@ class DistrictingService
                             if ($gain > 1e-12) {
                                 $dx = ($centroids[$cJid]['x'] ?? 0.0) - $binCenters[$j]['x'];
                                 $dy = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
+                                // Clean = both bins stay connected: c touches its new bin
+                                // and the donor remains one piece.
+                                $clean = $touchesSet($cJid, $bins[$j])
+                                    && $this->connectedSet(
+                                        array_values(array_filter($bins[$i], fn($x) => $x !== $cJid)),
+                                        $adj, $centroids, $maxEdgeDistSq
+                                    );
                                 $cands[] = ['gain' => $gain, 'dist' => $dx * $dx + $dy * $dy,
+                                            'clean' => $clean,
                                             'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => null];
                             }
                         }
@@ -2344,8 +2392,16 @@ class DistrictingService
                                     $dy1 = ($centroids[$cJid]['y'] ?? 0.0) - $binCenters[$j]['y'];
                                     $dx2 = ($centroids[$dJid]['x'] ?? 0.0) - $binCenters[$i]['x'];
                                     $dy2 = ($centroids[$dJid]['y'] ?? 0.0) - $binCenters[$i]['y'];
+                                    // Clean = both post-exchange bins stay connected.
+                                    $setI   = array_values(array_filter($bins[$i], fn($x) => $x !== $cJid));
+                                    $setI[] = $dJid;
+                                    $setJ   = array_values(array_filter($bins[$j], fn($x) => $x !== $dJid));
+                                    $setJ[] = $cJid;
+                                    $clean = $this->connectedSet($setI, $adj, $centroids, $maxEdgeDistSq)
+                                        && $this->connectedSet($setJ, $adj, $centroids, $maxEdgeDistSq);
                                     $cands[] = ['gain' => $gain,
                                                 'dist' => $dx1 * $dx1 + $dy1 * $dy1 + $dx2 * $dx2 + $dy2 * $dy2,
+                                                'clean' => $clean,
                                                 'i' => $i, 'j' => $j, 'c' => $cJid, 'd' => $dJid];
                                 }
                             }
@@ -2354,6 +2410,13 @@ class DistrictingService
                 }
             }
             if (empty($cands)) break;
+
+            // Contiguity-preserving transfers always outrank teleports at each step —
+            // breaks fire only when NO clean transfer improves the balance.
+            $cleanCands = array_values(array_filter($cands, fn($c) => $c['clean']));
+            if (!empty($cleanCands)) {
+                $cands = $cleanCands;
+            }
 
             // Best balance gain wins; among near-best (≥95% of the best gain) the
             // geographically closest transfer wins — fragments stay tight.
