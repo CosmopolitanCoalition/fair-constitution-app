@@ -492,8 +492,8 @@ class DistrictingService
                 if ($quotaPopC > 0) {
                     $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
                     if ($parts !== null) {
-                        foreach ([$parts, array_reverse($parts)] as $ordered) {
-                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $ordered, $quotaPopC, $giantThreshold);
+                        foreach ([true, false] as $bigFirst) {
+                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst);
                             if ($sBins === null) continue;
                             $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
                             $effectiveBudget = max(count($sBins), $compBudget);
@@ -2565,13 +2565,25 @@ class DistrictingService
      * corner and connect jurisdictions compactly trying to reach close to a
      * whole number."
      *
-     * Builds districts ONE AT A TIME toward a caller-supplied seat partition:
-     * seed each district at the most-constrained unassigned child (fewest
-     * unassigned neighbors — corners and pockets first), then grow through the
-     * frontier, always taking the nearest-to-centroid child that moves the bin
-     * CLOSER to its whole-seat population target, stopping at the turning
-     * point. The last district absorbs the remainder — exactly where the
-     * operator parks the noise by hand.
+     * Builds districts ONE AT A TIME: seed each district at the most-constrained
+     * unassigned child (fewest unassigned neighbors — corners and pockets first),
+     * then grow through the frontier, always taking the nearest-to-centroid child
+     * that moves the bin CLOSER to its whole-seat population target, stopping at
+     * the turning point. The last district absorbs the remainder — exactly where
+     * the operator parks the noise by hand.
+     *
+     * Round-6 (Draft-4 autopsy — "the builder lost its battles"): the naive
+     * last-district-absorbs rule degenerated on fat-atom geographies, so two of
+     * the operator's hand habits are now mechanized:
+     *   • DYNAMIC RETARGETING — each district's target is re-derived from the
+     *     REMAINING budget and remaining district count ("if I find myself far
+     *     off … I may try a different whole number target"): close a district at
+     *     7.6 fractional and the next targets adapt to the 8 it will actually
+     *     round to, instead of chasing a stale plan.
+     *   • REMAINDER AWARENESS — before committing an addition, prefer the
+     *     candidate that does NOT fragment the unassigned remainder (the hand
+     *     never eats the junction that strands an arm); falls back softly when
+     *     geography forces it.
      *
      * This reaches configurations the transfer-walking passes cannot: fat-atom
      * scopes (Egypt's 2.5-seat governorates on a Nile chain, where every walked
@@ -2579,18 +2591,22 @@ class DistrictingService
      * round-robin growth keeps tripping the giant guard). O(n²·deg) worst case —
      * cheaper than one refinement pass over the same component.
      *
-     * Returns null when construction degenerates (an empty district).
+     * Returns null when construction degenerates (an empty district, or the
+     * remaining budget admits no legal partition).
      */
     private function sequentialBuild(
         array $jids,
         array $childById,
         array $adj,
         array $centroids,
-        array $targets,
+        int   $budget,
+        int   $k,
         float $quotaPop,
-        float $giantThreshold
+        float $giantThreshold,
+        int   $floor,
+        int   $ceiling,
+        bool  $bigFirst
     ): ?array {
-        $k = count($targets);
         if ($k < 1 || $quotaPop <= 0 || count($jids) < $k) return null;
 
         // Same p90×16 false-edge suppression as the rest of the pipeline.
@@ -2608,15 +2624,22 @@ class DistrictingService
         $p90Idx        = max(0, (int) floor(count($dists) * 0.90) - 1);
         $maxEdgeDistSq = !empty($dists) ? $dists[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
 
-        $unassigned = array_flip($jids);
-        $bins = [];
-        foreach ($targets as $ti => $t) {
+        $unassigned      = array_flip($jids);
+        $bins            = [];
+        $remainingBudget = $budget;
+        for ($ti = 0; $ti < $k; $ti++) {
             if ($ti === $k - 1) {
                 $bins[] = array_keys($unassigned);
                 $unassigned = [];
                 break;
             }
             if (empty($unassigned)) return null;
+
+            // Dynamic retargeting: the target is the biggest (or smallest) part
+            // of the most-equal partition of what REMAINS — not a stale plan.
+            $parts = $this->canonicalPartition($remainingBudget, $k - $ti, $floor, $ceiling);
+            if ($parts === null) return null;
+            $t = $bigFirst ? max($parts) : min($parts);
             $T = $t * $quotaPop;
 
             // Most-constrained seed: fewest unassigned neighbors (corners and
@@ -2645,8 +2668,8 @@ class DistrictingService
                 $curErr = abs($binPop - $T);
                 $cx = $sx / $nBin;
                 $cy = $sy / $nBin;
-                $bestC = null; $bestD = PHP_FLOAT_MAX;
-                $seen  = [];
+                $improving = [];
+                $seen      = [];
                 foreach ($bin as $m) {
                     foreach ($adj[$m] ?? [] as $nb) {
                         if (!isset($unassigned[$nb]) || isset($seen[$nb])) continue;
@@ -2662,13 +2685,32 @@ class DistrictingService
                         if (abs($binPop + $p - $T) >= $curErr) continue;
                         $ddx = ($centroids[$nb]['x'] ?? 0.0) - $cx;
                         $ddy = ($centroids[$nb]['y'] ?? 0.0) - $cy;
-                        $d   = $ddx * $ddx + $ddy * $ddy;
-                        if ($d < $bestD || ($d === $bestD && strcmp((string) $nb, (string) $bestC) < 0)) {
-                            $bestD = $d; $bestC = $nb;
-                        }
+                        $improving[] = ['jid' => $nb, 'd' => $ddx * $ddx + $ddy * $ddy];
                     }
                 }
-                if ($bestC === null) break;
+                if (empty($improving)) break;
+                usort($improving, fn($a, $b) => ($a['d'] <=> $b['d']) ?: strcmp($a['jid'], $b['jid']));
+
+                // Remainder awareness: among the nearest candidates, prefer one
+                // whose removal does not fragment the unassigned remainder — the
+                // hand never eats the junction that strands an arm. Soft: when
+                // every option fragments (a forced junction), take the nearest.
+                $bestC = null;
+                if (count($improving) === 1) {
+                    $bestC = $improving[0]['jid'];
+                } else {
+                    $remainderList = array_keys($unassigned);
+                    $remFrags = $this->fragmentCount($remainderList, $adj, $centroids, $maxEdgeDistSq);
+                    foreach (array_slice($improving, 0, 8) as $cand) {
+                        $without = array_values(array_filter($remainderList, fn($x) => $x !== $cand['jid']));
+                        if ($this->fragmentCount($without, $adj, $centroids, $maxEdgeDistSq) <= $remFrags) {
+                            $bestC = $cand['jid'];
+                            break;
+                        }
+                    }
+                    if ($bestC === null) $bestC = $improving[0]['jid'];
+                }
+
                 $bin[] = $bestC;
                 unset($unassigned[$bestC]);
                 $binPop  += (float) $childById[$bestC]->population;
@@ -2678,6 +2720,11 @@ class DistrictingService
                 $nBin++;
             }
             $bins[] = $bin;
+
+            // Deduct what this district will actually round to, so the plan for
+            // the remaining districts stays honest (7.6 closed → an 8 leaves).
+            $seatsEst = min($ceiling, max($floor, (int) round($binPop / $quotaPop)));
+            $remainingBudget -= $seatsEst;
         }
 
         foreach ($bins as $b) {

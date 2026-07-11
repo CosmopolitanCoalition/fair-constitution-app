@@ -565,13 +565,47 @@ class DistrictingDoctrineTest extends TestCase
             $adj[$ids[$i]][]     = $ids[$i - 1];
         }
 
-        $bins = $m->invoke($svc, $ids, $childById, $adj, $centroids, [9, 9, 9, 9], 100_000.0, 9.5);
+        $bins = $m->invoke($svc, $ids, $childById, $adj, $centroids, 36, 4, 100_000.0, 9.5, 5, 9, true);
         $this->assertNotNull($bins);
         $this->assertCount(4, $bins);
         foreach ($bins as $bin) {
             $this->assertCount(9, $bin, 'each district lands exactly on its whole-seat target');
             $idx = array_map(fn($id) => (int) substr($id, 1), $bin);
             $this->assertSame(8, max($idx) - min($idx), 'each district is a contiguous run of the chain');
+        }
+
+        // Egypt-class fat atoms (2.5-seat governorates on a chain): the round-6
+        // remainder-aware builder must produce contiguous, near-canonical
+        // districts in BOTH build orders — no degenerate remainders.
+        $pops = [250, 230, 220, 200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 80, 70];
+        $n = count($pops);
+        $total = array_sum($pops) * 1000;           // 2,500,000
+        $budget = 25; $quota = $total / $budget;    // 100k
+        $childById = []; $centroids = []; $adj = []; $ids = [];
+        for ($i = 0; $i < $n; $i++) {
+            $id = sprintf('e%04d', $i);
+            $ids[] = $id;
+            $childById[$id] = (object) ['population' => $pops[$i] * 1000, 'fractional_seats' => $pops[$i] * 1000 / $quota];
+            $centroids[$id] = ['x' => $i * 0.5, 'y' => 0.0];
+            $adj[$id] = [];
+        }
+        for ($i = 1; $i < $n; $i++) {
+            $adj[$ids[$i - 1]][] = $ids[$i];
+            $adj[$ids[$i]][]     = $ids[$i - 1];
+        }
+        foreach ([true, false] as $bigFirst) {
+            $bins = $m->invoke($svc, $ids, $childById, $adj, $centroids, $budget, 4, (float) $quota, 9.5, 5, 9, $bigFirst);
+            $this->assertNotNull($bins, 'fat-atom chain must not degenerate');
+            $this->assertCount(4, $bins);
+            foreach ($bins as $bin) {
+                $this->assertNotEmpty($bin);
+                $idx = array_map(fn($id) => (int) substr($id, 1), $bin);
+                $this->assertSame(count($bin) - 1, max($idx) - min($idx), 'every district is a contiguous run');
+                $binPop = array_sum(array_map(fn($id) => $childById[$id]->population, $bin));
+                $est = (int) round($binPop / $quota);
+                $this->assertGreaterThanOrEqual(5, $est, 'district rounds to at least the floor');
+                $this->assertLessThanOrEqual(9, $est, 'district rounds to at most the ceiling');
+            }
         }
     }
 
