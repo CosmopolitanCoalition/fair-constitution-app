@@ -509,6 +509,7 @@ class DistrictingService
                 // target proxy reliably ranks which starting configurations converge well.
                 $topN = min(count($bfsCandidates), 20);
                 $bestBinsK = null; $bestScoreK = null;
+                $bestPhaseB = null; $bestPhaseBScore = null;
                 foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
                     $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary, false, $compBudget);
 
@@ -519,6 +520,10 @@ class DistrictingService
                     if ($bestScoreK === null || $this->scoreBeats($score, $bestScoreK)) {
                         $bestBinsK  = $bins;
                         $bestScoreK = $score;
+                    }
+                    if ($bestPhaseBScore === null || $this->scoreBeats($score, $bestPhaseBScore)) {
+                        $bestPhaseB      = $bins;
+                        $bestPhaseBScore = $score;
                     }
                 }
 
@@ -532,8 +537,12 @@ class DistrictingService
                 if ($quotaPopC > 0) {
                     $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
                     if ($parts !== null) {
-                        foreach ([true, false] as $bigFirst) {
-                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst);
+                        // Both builder flavors per order (round-8.1, the Mexico
+                        // probe): the adaptive flavor wins archipelagos and fat
+                        // atoms, the fixed-target flavor won Mexico's 0.84% —
+                        // generate both, let the comparator pick per scope.
+                        foreach ([[true, true], [true, false], [false, true], [false, false]] as [$bigFirst, $adaptive]) {
+                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst, $adaptive);
                             if ($sBins === null) continue;
                             $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
                             // Round-7: the built candidate gets the same shape passes
@@ -553,6 +562,15 @@ class DistrictingService
 
                 if ($bestBinsK !== null) {
                     $candidateConfigs[] = ['bins' => $bestBinsK, 'score' => $bestScoreK];
+                }
+                // Round-8.1 (the Mexico probe): the per-k winner is often a built
+                // candidate whose shape stalls the downstream walkers, while the
+                // Phase-B best is a better BASE for the equalizer and break
+                // variants (Draft 4's lost 0.84% Mexico was exactly a walked
+                // Phase-B base). Keep the Phase-B best as its own candidate so
+                // the variant machinery below walks BOTH.
+                if ($bestPhaseB !== null && $bestPhaseB !== $bestBinsK) {
+                    $candidateConfigs[] = ['bins' => $bestPhaseB, 'score' => $bestPhaseBScore];
                 }
             }
 
@@ -2705,9 +2723,19 @@ class DistrictingService
         float $giantThreshold,
         int   $floor,
         int   $ceiling,
-        bool  $bigFirst
+        bool  $bigFirst,
+        bool  $adaptive = true  // false = round-5 flavor: fixed canonical targets,
+                                // plain nearest choice (the Mexico probe: each
+                                // flavor wins geographies the other loses)
     ): ?array {
         if ($k < 1 || $quotaPop <= 0 || count($jids) < $k) return null;
+
+        $fixedParts = null;
+        if (!$adaptive) {
+            $fixedParts = $this->canonicalPartition($budget, $k, $floor, $ceiling);
+            if ($fixedParts === null) return null;
+            if ($bigFirst) { rsort($fixedParts); } else { sort($fixedParts); }
+        }
 
         // Same p90×16 false-edge suppression as the rest of the pipeline.
         $jidSet = array_flip($jids);
@@ -2737,9 +2765,14 @@ class DistrictingService
 
             // Dynamic retargeting: the target is the biggest (or smallest) part
             // of the most-equal partition of what REMAINS — not a stale plan.
-            $parts = $this->canonicalPartition($remainingBudget, $k - $ti, $floor, $ceiling);
-            if ($parts === null) return null;
-            $t = $bigFirst ? max($parts) : min($parts);
+            // (Non-adaptive flavor: the fixed part list, in order.)
+            if ($adaptive) {
+                $parts = $this->canonicalPartition($remainingBudget, $k - $ti, $floor, $ceiling);
+                if ($parts === null) return null;
+                $t = $bigFirst ? max($parts) : min($parts);
+            } else {
+                $t = $fixedParts[$ti];
+            }
             $T = $t * $quotaPop;
 
             // Most-constrained seed: fewest unassigned neighbors (corners and
@@ -2795,8 +2828,9 @@ class DistrictingService
                 // whose removal does not fragment the unassigned remainder — the
                 // hand never eats the junction that strands an arm. Soft: when
                 // every option fragments (a forced junction), take the nearest.
+                // (Non-adaptive flavor: plain nearest, as in round 5.)
                 $bestC = null;
-                if (count($improving) === 1) {
+                if (!$adaptive || count($improving) === 1) {
                     $bestC = $improving[0]['jid'];
                 } else {
                     $remainderList = array_keys($unassigned);
