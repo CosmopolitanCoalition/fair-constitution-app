@@ -371,6 +371,46 @@ class DistrictingService
             $components[] = $component;
         }
 
+        // ── Pre-attach sub-floor components (round-8, the France probe) ──────────
+        // A component too small to ever round to a district (< floorBoundary − 0.5
+        // fracs) WILL end up inside a bigger component's bins — deciding k before
+        // counting it optimizes the WRONG budget. France: the mainland alone rounds
+        // to a 15-seat sub-budget, where canonical thirds (5+5+5) win the comparator;
+        // count its 0.5 fracs of overseas territories and the true budget is 16,
+        // where the operator's 8+8 wins. Merge each such component into its
+        // closest-approach neighbor BEFORE the multi-attempt loop — the expansion's
+        // isolated-member assignment and the island monotone rules place the
+        // edge-less pieces inside every candidate, scored at the true budget.
+        if (count($components) > 1) {
+            $compFracsArr = array_map(
+                fn($c) => array_sum(array_map(fn($j) => (float) $childById[$j]->fractional_seats, $c)),
+                $components
+            );
+            $preMergeBoundary = $floorBoundary - 0.5;
+            while (count($components) > 1) {
+                $smallIdx = -1; $smallFrac = PHP_FLOAT_MAX;
+                foreach ($compFracsArr as $ci => $f) {
+                    if ($f >= $preMergeBoundary) continue;
+                    if ($f < $smallFrac
+                        || ($f === $smallFrac && $smallIdx >= 0 && strcmp($components[$ci][0], $components[$smallIdx][0]) < 0)) {
+                        $smallFrac = $f; $smallIdx = $ci;
+                    }
+                }
+                if ($smallIdx < 0) break;
+                $bestJ = -1; $bestD = PHP_FLOAT_MAX;
+                foreach ($components as $cj => $c2) {
+                    if ($cj === $smallIdx) continue;
+                    $d = $this->closestApproachSq($components[$smallIdx], $c2, $centroids);
+                    if ($d < $bestD) { $bestD = $d; $bestJ = $cj; }
+                }
+                if ($bestJ < 0) break;
+                $components[$bestJ]   = array_merge($components[$bestJ], $components[$smallIdx]);
+                $compFracsArr[$bestJ] += $compFracsArr[$smallIdx];
+                array_splice($components, $smallIdx, 1);
+                array_splice($compFracsArr, $smallIdx, 1);
+            }
+        }
+
         // ── Step 8: Multi-attempt seed expansion — retain best by the operator's doctrine ────
         // For each component, tries every integer k in [kMin, min(kMax, kMin+7)]; for each k,
         // every component member seeds one attempt (far-point spread for the rest) plus one
@@ -932,11 +972,23 @@ class DistrictingService
                 ->get(['id', 'population']);
             $distChildStd = $distChildren->map(function ($c) use ($fullQuota, $legislatureId) {
                 $obj = new \stdClass();
+                $obj->id                 = $c->id;
                 $obj->population         = $c->population;
                 $obj->fractional_seats   = (float) $c->population / max($fullQuota, 1);
                 $obj->type_a_apportioned = $this->computeSeatBudget($c->id, $legislatureId);
                 return $obj;
             })->all();
+
+            // Giant siblings at this scope — never available to the composite pool,
+            // so a border to one of them cannot make a district "fixable"
+            // (round-8 gbr ruling: flag non-contiguity only when contiguity was
+            // possible among the AVAILABLE siblings).
+            $giantSiblingIds = [];
+            foreach ($distChildStd as $c) {
+                if ((float) $c->fractional_seats >= $giantThreshold) {
+                    $giantSiblingIds[$c->id] = true;
+                }
+            }
             $quota = $this->computeNonGiantQuota($distChildStd, $fullQuota, $distSeatBudget, $scopeChildrenPop, $giantThreshold, $floor);
 
             // Quota cap: when giants consume most of the seat budget, the remaining
@@ -955,6 +1007,7 @@ class DistrictingService
             $reRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
             $quota = $reRootPop / max((int) $leg->type_a_seats, 1);
             $effectiveFloor = $floor;   // no scope context — cannot determine quota cap
+            $giantSiblingIds = [];      // no scope context — treat every sibling as available
         }
         $fractional = $totalPop / max($quota, 1);
         $seats      = max($effectiveFloor, min($ceiling, (int) round($fractional)));
@@ -1090,6 +1143,15 @@ class DistrictingService
             // If ANY orphaned member has no sibling border at all, the non-contiguity
             // is geographic/unavoidable → override to contiguous (no flag).
             if (!$isContiguous) {
+                // Round-8 (operator ruling, the gbr case): flag non-contiguity ONLY
+                // when contiguity was POSSIBLE among the AVAILABLE siblings. A border
+                // to a GIANT sibling doesn't count — the giant was never in the
+                // composite pool (Scotland and Wales border only England, which is a
+                // giant, so {Scotland, Wales, NI} is exempt). Exemption now requires
+                // EVERY orphaned piece to be unavoidable, which also removes the old
+                // start-node lottery (the exempt piece being the BFS start used to
+                // flip the flag between otherwise-identical districts).
+                $allUnavoidable = true;
                 $orphanedJids = array_values(array_filter($jids, fn($j) => !isset($visited[$j])));
                 foreach ($orphanedJids as $oj) {
                     // Ask: does this orphaned member share any spatial border with
@@ -1104,8 +1166,8 @@ class DistrictingService
                     //   • ST_Intersects only fails for containment artifacts (coastal polygon
                     //     geometrically containing an island), but those islands have no bbox
                     //     overlap with any sibling anyway, so this query never reaches them.
-                    $hasSiblingBorder = DB::selectOne("
-                        SELECT 1
+                    $borderSiblings = DB::select("
+                        SELECT b.id
                         FROM jurisdictions a
                         JOIN jurisdictions b
                             ON b.parent_id = a.parent_id
@@ -1116,12 +1178,18 @@ class DistrictingService
                             AND ST_Intersects(a.geom, b.geom)
                         WHERE a.id = ?
                           AND a.deleted_at IS NULL
-                        LIMIT 1
                     ", [$oj]);
-                    if (!$hasSiblingBorder) {
-                        $isContiguous = true;
-                        break;
+                    foreach ($borderSiblings as $bs) {
+                        if (!isset($giantSiblingIds[$bs->id])) {
+                            // This piece borders an AVAILABLE sibling — a better
+                            // grouping existed, so the break was avoidable.
+                            $allUnavoidable = false;
+                            break 2;
+                        }
                     }
+                }
+                if ($allUnavoidable) {
+                    $isContiguous = true;
                 }
             }
         }

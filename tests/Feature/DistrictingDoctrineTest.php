@@ -694,6 +694,110 @@ class DistrictingDoctrineTest extends TestCase
         );
     }
 
+    // ─── (13) Sub-floor islands count toward the budget BEFORE k is chosen ──
+
+    public function test_island_population_counts_before_district_count_is_chosen(): void
+    {
+        $this->onLivePg(function () {
+            // The France probe: a mainland whose lone share rounds DOWN (9.19
+            // fracs → sub-budget 9, where no legal 2-split exists) plus a small
+            // island that pushes the true budget to 10. Before round 8 the island
+            // was attached after all decisions — here the mainland alone isn't
+            // even a giant (9.19 < 9.5), so it stayed ONE bin and the merged
+            // 10.0-frac district couldn't legally seat its budget. Pre-attaching
+            // makes the component 10.0 fracs → split → 5+5 at the true quota.
+            $rootId  = $this->makeJurisdiction('zzdg-0-root', 'Test Root', 0, null, $this->square(0, 0, 20, 6), 1_240_000);
+            $scopeId = $this->makeJurisdiction('zzdg-1-scope', 'Test Scope', 1, $rootId, $this->square(0, 0, 16, 2), 1_240_000);
+            for ($i = 0; $i < 12; $i++) {
+                $this->makeJurisdiction("zzdg-2-main-{$i}", "Main {$i}", 2, $scopeId, $this->square($i, 0, $i + 1, 1), 95_000);
+            }
+            $this->makeJurisdiction('zzdg-2-island', 'Island', 2, $scopeId, $this->square(13.4, 0, 14.4, 1), 100_000);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(2, $result['districts_created'], 'the merged 10-frac component must split');
+
+            $quota = 1_240_000 / 10;
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'actual_population']);
+            $this->assertSame(10, (int) $districts->sum('seats'), 'the full budget is seated');
+            $this->assertSame([5, 5], $districts->pluck('seats')->sort()->values()->all());
+            foreach ($districts as $d) {
+                $dev = abs($d->actual_population / $d->seats - $quota) / $quota;
+                // 95k atoms + one 100k island bound the optimal split at ±7.26% —
+                // the engine must land ON that optimum, not merely near it.
+                $this->assertLessThan(0.075, $dev);
+            }
+        });
+    }
+
+    // ─── (14) Contiguity flags only when contiguity was POSSIBLE ────────────
+
+    public function test_contiguity_flag_exempts_pieces_that_only_border_giants(): void
+    {
+        $this->onLivePg(function () {
+            // The gbr ruling: {Scotland, Wales, NI} can never be contiguous —
+            // Scotland and Wales border only England, which is a GIANT and was
+            // never available to the composite pool; NI borders nothing. The old
+            // check counted the England border as "fixable" and flipped with the
+            // BFS start node. New rule: exempt when EVERY orphaned piece borders
+            // only giants (or nothing).
+            $rootId  = $this->makeJurisdiction('zzdh-0-root', 'Test Root', 0, null, $this->square(-4, -2, 14, 10), 1_500_000);
+            $scopeId = $this->makeJurisdiction('zzdh-1-scope', 'Test Scope', 1, $rootId, $this->square(-3, -1, 13, 9), 1_500_000);
+            $giant = $this->makeJurisdiction('zzdh-2-giant', 'Giantland', 2, $scopeId, $this->square(0, 0, 6, 6), 1_100_000);
+            $s = $this->makeJurisdiction('zzdh-2-south', 'Southpiece', 2, $scopeId, $this->square(-1, 0, 0, 1), 140_000);
+            $w = $this->makeJurisdiction('zzdh-2-west', 'Westpiece', 2, $scopeId, $this->square(-1, 2, 0, 3), 140_000);
+            $n = $this->makeJurisdiction('zzdh-2-isle', 'Islepiece', 2, $scopeId, $this->square(8, 0, 9, 1), 120_000);
+            $leg = $this->makeLegislature($rootId, 15);
+
+            $svc = app(DistrictingService::class);
+            $districtId = (string) \Illuminate\Support\Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $districtId, 'legislature_id' => $leg->id, 'jurisdiction_id' => $scopeId,
+                'district_number' => 1, 'seats' => 4, 'fractional_seats' => 4.0,
+                'floor_override' => true, 'target_population' => 400_000, 'actual_population' => 400_000,
+                'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            foreach ([$s, $w, $n] as $jid) {
+                DB::table('legislature_district_jurisdictions')->insert([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'district_id' => $districtId, 'jurisdiction_id' => $jid,
+                ]);
+            }
+            $svc->recomputeDistrict($districtId, $leg->id, $leg, true);
+            $this->assertTrue(
+                (bool) DB::table('legislature_districts')->where('id', $districtId)->value('is_contiguous'),
+                'pieces bordering only a giant (or nothing) are unavoidably separate — no flag'
+            );
+
+            // Counter-case: two pieces with an AVAILABLE connector between them
+            // skipped — the break was avoidable, so the flag must stand.
+            $x = $this->makeJurisdiction('zzdh-2-mid', 'Midpiece', 2, $scopeId, $this->square(-1, 1, 0, 2), 100_000);
+            $district2 = (string) \Illuminate\Support\Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $district2, 'legislature_id' => $leg->id, 'jurisdiction_id' => $scopeId,
+                'district_number' => 2, 'seats' => 5, 'fractional_seats' => 5.0,
+                'floor_override' => false, 'target_population' => 280_000, 'actual_population' => 280_000,
+                'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            foreach ([$s, $w] as $jid) {
+                DB::table('legislature_district_jurisdictions')->insert([
+                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'district_id' => $district2, 'jurisdiction_id' => $jid,
+                ]);
+            }
+            $svc->recomputeDistrict($district2, $leg->id, $leg, true);
+            $this->assertFalse(
+                (bool) DB::table('legislature_districts')->where('id', $district2)->value('is_contiguous'),
+                'skipping an available connector is an avoidable break — flag stands'
+            );
+        });
+    }
+
     // ─── Fixtures ────────────────────────────────────────────────────────────
 
     /**
