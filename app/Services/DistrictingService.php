@@ -62,6 +62,15 @@ class DistrictingService
     /** Per-request memo for getLegislature(). */
     private array $legislatureMemo = [];
 
+    /**
+     * Shared-border lengths for the scope currently being autoseeded, keyed
+     * "j1|j2" with j1 < j2 (the Step-7 adjacency query's ordering). Feeds the
+     * cut_length shape signal in scoreConfiguration() (round 10). Populated per
+     * runAutoCompositeForScope() invocation; empty means the signal is neutral
+     * (reflection-driven scoring in tests stays byte-compatible).
+     */
+    private array $borderLen = [];
+
     /** Per-request memo for computeSeatBudget(). Keyed "{legId}:{jid}". */
     private array $seatBudgetMemo = [];
 
@@ -320,6 +329,13 @@ class DistrictingService
         // ST_MakeValid wraps each simplify because simplifying complex
         // coastlines can introduce self-intersections (e.g. James Bay coast)
         // that crash ST_Intersection with a GEOS topology exception.
+        // Each edge also carries the LENGTH of the shared border (round 10): the
+        // linework of the already-computed intersection, summed per pair. This is
+        // the real-geometry compactness currency — a partition's total cut length
+        // (borders between districts) is what the operator's eye reads as
+        // stringiness, where centroid Rg² is blind to low-population tendrils
+        // (the São Paulo snake carried 7× Manual's border length at equal Rg²).
+        // The inner subquery computes ST_Intersection once per pair.
         $idsStr = '{' . implode(',', $childIds) . '}';
         $edges  = DB::select("
             WITH g AS (
@@ -335,20 +351,28 @@ class DistrictingService
                 WHERE id = ANY(:ids::uuid[])
                   AND deleted_at IS NULL
                   AND geom IS NOT NULL
+            ),
+            pair AS (
+                SELECT a.id AS j1, b.id AS j2,
+                       ST_Intersection(a.geom, b.geom) AS ix
+                FROM g a
+                JOIN g b ON a.id < b.id
+                    AND a.geom && b.geom
+                    AND ST_Intersects(a.geom, b.geom)
             )
-            SELECT a.id AS j1, b.id AS j2
-            FROM g a
-            JOIN g b ON a.id < b.id
-                AND a.geom && b.geom
-                AND ST_Intersects(a.geom, b.geom)
-                AND ST_Dimension(ST_Intersection(a.geom, b.geom)) >= 1
+            SELECT j1, j2,
+                   ST_Length(ST_CollectionExtract(ix, 2)) AS border_len
+            FROM pair
+            WHERE ST_Dimension(ix) >= 1
         ", ['ids' => $idsStr]);
 
         $adj = [];
+        $this->borderLen = [];
         foreach ($childIds as $id) $adj[$id] = [];
         foreach ($edges as $edge) {
             $adj[$edge->j1][] = $edge->j2;
             $adj[$edge->j2][] = $edge->j1;
+            $this->borderLen[$edge->j1 . '|' . $edge->j2] = (float) $edge->border_len;
         }
 
         $visited    = [];
@@ -420,9 +444,9 @@ class DistrictingService
         // Scoring priority (operator doctrine ruling 2026-07-08 — see scoreRank()):
         //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie)
         //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
-        //   3. Pinch points (neck_count — barely-legal contiguity)
-        //   4. Compactness (avg Rg² — stringy = bad)
-        //   5. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
+        //   3. Compactness (cut_length: REAL border length between districts — stringy = bad;
+        //      then neck_count pinch points, then avg Rg² as the centroid fallback)
+        //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
         // The constitutional floor/ceiling stay hard throughout (frac guards + Webster caps).
         //
         // After the contiguity-preserving pipeline, any per-k winner still >2.5% off its
@@ -2322,9 +2346,10 @@ class DistrictingService
      *   2. max_deviation_pct  (acceptability threshold 10%) — worst-district extreme
      *   3. non_contiguous_count                            — contiguity breaks
      *   4. fragment_gap                                    — broken pieces kept CLOSE
-     *   5. neck_count                                      — pinch points (barely-legal contiguity)
-     *   6. avg_rg_sq                                       — compactness (stringy = bad)
-     *   7. avg_droop_threshold                             — seat-mix/UPD, abandoned first
+     *   5. cut_length                                      — REAL border length (stringy = bad)
+     *   6. neck_count                                      — pinch points (barely-legal contiguity)
+     *   7. avg_rg_sq                                       — compactness fallback (centroid proxy)
+     *   8. avg_droop_threshold                             — seat-mix/UPD, abandoned first
      *
      * The banding means a fraction-of-a-band equality gain can never buy a snake
      * district or a pointless contiguity break; a full band (0.5pp avg) can. This
@@ -2335,11 +2360,14 @@ class DistrictingService
      * try to keep the non-contiguous pieces as close together as I can."
      *
      * Simulates Webster apportionment in-memory to compute accurate per-district deviations.
-     * Zero DB queries — uses the adjacency graph already loaded in runAutoCompositeForScope().
+     * Zero DB queries — uses the adjacency graph and the shared-border lengths
+     * ($this->borderLen) already loaded in runAutoCompositeForScope().
      *
-     * Note: compactness (convex_hull_ratio) requires ST_Union geometry — scored post-insert
-     * by recomputeDistrict(). Community integrity is determined at classification time
-     * (giants pre-separated) — not scored here.
+     * Note: hull-ratio compactness (convex_hull_ratio) requires ST_Union geometry —
+     * scored post-insert by recomputeDistrict() for display. The IN-LOOP shape
+     * signal is cut_length (round 10): real shared-border length between districts,
+     * free at score time from the Step-7 edge query. Community integrity is
+     * determined at classification time (giants pre-separated) — not scored here.
      */
     private function scoreConfiguration(
         array $bins,
@@ -2564,11 +2592,36 @@ class DistrictingService
             $dfs($binJids[0], null);
         }
 
+        // Total cut length (round 10, the 5-scope stringiness probe): the summed
+        // REAL border length between districts, from the Step-7 edge query. This
+        // is what the operator's eye reads as stringiness — a snake or wiggly
+        // border is a long internal border regardless of where the population
+        // sits, which is exactly the case centroid Rg² cannot see (São Paulo's
+        // snake: 7× Manual's cut length at near-equal Rg²; Sichuan: Rg² actively
+        // preferred the stringy plan). Satellites virtualized into bins have no
+        // edges and contribute nothing; giant-locked members are absent from the
+        // owner map and skip. Empty borderLen (reflection-driven tests) → 0.0
+        // for every configuration → the signal is neutral.
+        $cutLength = 0.0;
+        if (!empty($this->borderLen)) {
+            $binOf = [];
+            foreach ($bins as $i => $binJids) {
+                foreach ($binJids as $jid) $binOf[$jid] = $i;
+            }
+            foreach ($this->borderLen as $pair => $len) {
+                [$pa, $pb] = explode('|', $pair);
+                if (isset($binOf[$pa], $binOf[$pb]) && $binOf[$pa] !== $binOf[$pb]) {
+                    $cutLength += $len;
+                }
+            }
+        }
+
         return [
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
             'neck_count'           => $neckCount,
             'seat_spread'          => $seatSpread,
+            'cut_length'           => $cutLength,
             'avg_rg_sq'            => $avgRgSq,
             'avg_droop_threshold'  => $avgDroopThreshold,
             'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
@@ -2650,6 +2703,18 @@ class DistrictingService
      * returns as the final tiebreak, so within-threshold equality still matters
      * once contiguity and shape are settled.
      *
+     * cut_length LEADS the shape cluster (round 10, the 5-scope stringiness
+     * probe): the real border length between districts is what the operator's
+     * eye reads as stringiness, and the prior proxies were blind or backwards
+     * on exactly his flagged scopes — population-weighted Rg² cannot see a
+     * snake through low-population territory (São Paulo: 7× Manual's border
+     * length at near-equal Rg²; Sichuan: Rg² actively preferred the stringy
+     * plan) and neck_count steered Iran to a spindly 4-district plan and
+     * vetoed Yunnan's clean split over a single pinch the operator's own hand
+     * had accepted. Positioned BELOW the 1pp equality band (round-4 tuning
+     * stands: shape never buys a band) and below spread/contiguity — it can
+     * only decide among configurations the higher doctrine keys call equal.
+     *
      * neck_count rides with the SHAPE cluster (round-6 Egypt probe): a pinch
      * point — one member whose removal splits the district into two substantial
      * halves — is the operator's "meets the letter of contiguity but could be
@@ -2657,7 +2722,9 @@ class DistrictingService
      * a single unavoidable Nile-chain articulation vetoed a 7+7+7+7 Egypt at
      * 0.81% in favor of a spread-4 mix at 1.40%. It still decides ahead of Rg²
      * (Rg² cannot see necks), but never ahead of reps-equality or an equality
-     * band.
+     * band — and since round 10 never ahead of real border length either (a
+     * neckless plan bought with a longer, wigglier border is the Yunnan/Iran
+     * failure class).
      *
      * seat_spread (max − min seats) sits above compactness (round-3 tuning: "it
      * is giving up reps per district balance long before it has to"): within
@@ -2689,10 +2756,11 @@ class DistrictingService
             $s['fragment_gap'],                          //  4. break quality: fragments close
             $s['seat_spread'],                           //  5. reps-per-district equality
             (int) floor($s['avg_deviation_pct'] / 1.0),  //  6. equality, 1pp sub-bands — outranks shape
-            $s['neck_count'],                            //  7. pinch points (shape spirit, with shape)
-            $s['avg_rg_sq'],                             //  8. compactness
-            $s['avg_droop_threshold'],                   //  9. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 10. raw equality tiebreak
+            $s['cut_length'] ?? 0.0,                     //  7. compactness lead: real border length (round 10)
+            $s['neck_count'],                            //  8. pinch points (shape spirit, within cut ties)
+            $s['avg_rg_sq'],                             //  9. compactness fallback (centroid proxy)
+            $s['avg_droop_threshold'],                   // 10. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 11. raw equality tiebreak
         ];
     }
 

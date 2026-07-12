@@ -67,6 +67,22 @@ use Tests\TestCase;
  *        one-district-at-a-time method as a generator must construct
  *        canonical whole-seat districts exactly on a uniform chain.
  *
+ *   (12) PRESET RESHAPING (round-7, the five stringiness flags): sequential
+ *        winners get the same compact/smoothing passes as Phase-B candidates.
+ *
+ *   (13) ISLAND BUDGET BEFORE K (round-8, the France probe): sub-floor island
+ *        population counts toward a component's budget before k is chosen.
+ *
+ *   (14) HONEST CONTIGUITY FLAGS (round-8, the gbr ruling): the flag applies
+ *        only when contiguity was POSSIBLE among available siblings.
+ *
+ *   (15) REAL BORDER LENGTH LEADS SHAPE (round-10, the 5-scope stringiness
+ *        probe): cut_length — summed real border length between districts —
+ *        decides the shape cluster ahead of neck_count and Rg², which were
+ *        blind or backwards on all five operator-flagged scopes. It sits
+ *        BELOW the 1pp equality band, seat spread, and contiguity: shape
+ *        never buys balance, mix, or a break.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -794,6 +810,183 @@ class DistrictingDoctrineTest extends TestCase
             $this->assertFalse(
                 (bool) DB::table('legislature_districts')->where('id', $district2)->value('is_contiguous'),
                 'skipping an available connector is an avoidable break — flag stands'
+            );
+        });
+    }
+
+    // ─── (15) Real border length leads the shape cluster ────────────────────
+
+    public function test_real_border_length_leads_the_shape_cluster(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_droop_threshold' => 0.12,
+        ];
+
+        // The Iran inversion (round-10 probe, real numbers): the fat 3-district
+        // 8+7+7 with one pinch and a SHORT border must beat the spindly
+        // 4-district plan the old comparator picked on neck_count alone.
+        $fatShortBorder = $base + [
+            'avg_deviation_pct' => 0.70, 'max_deviation_pct' => 0.98,
+            'seat_spread' => 1, 'cut_length' => 33.3, 'neck_count' => 1, 'avg_rg_sq' => 10.5,
+        ];
+        $spindlyNeckless = $base + [
+            'avg_deviation_pct' => 0.75, 'max_deviation_pct' => 1.57,
+            'seat_spread' => 1, 'cut_length' => 51.2, 'neck_count' => 0, 'avg_rg_sq' => 9.7,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $fatShortBorder, $spindlyNeckless),
+            'a shorter real border must beat a neckless plan bought with a longer one (Iran)'
+        );
+        $this->assertFalse($m->invoke($svc, $spindlyNeckless, $fatShortBorder));
+
+        // The Sichuan inversion (round-10 probe, real numbers): population-
+        // weighted Rg² actively preferred the stringy plan; real border length
+        // must overrule it within the same equality band.
+        $blocky = $base + [
+            'avg_deviation_pct' => 0.07, 'max_deviation_pct' => 0.10,
+            'seat_spread' => 0, 'cut_length' => 10.7, 'neck_count' => 0, 'avg_rg_sq' => 1.88,
+        ];
+        $stringy = $base + [
+            'avg_deviation_pct' => 0.09, 'max_deviation_pct' => 0.14,
+            'seat_spread' => 0, 'cut_length' => 16.2, 'neck_count' => 0, 'avg_rg_sq' => 1.58,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $blocky, $stringy),
+            'real border length overrules the centroid Rg² proxy (Sichuan)'
+        );
+
+        // Shape never buys reps-per-district equality (the São Paulo guard):
+        // a blocky 7+5 must LOSE to a snaky 6+6.
+        $blockyUnevenMix = $base + [
+            'avg_deviation_pct' => 0.10, 'max_deviation_pct' => 0.16,
+            'seat_spread' => 2, 'cut_length' => 6.9, 'neck_count' => 0, 'avg_rg_sq' => 1.51,
+        ];
+        $snakyEvenMix = $base + [
+            'avg_deviation_pct' => 0.08, 'max_deviation_pct' => 0.08,
+            'seat_spread' => 0, 'cut_length' => 16.5, 'neck_count' => 5, 'avg_rg_sq' => 1.63,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $snakyEvenMix, $blockyUnevenMix),
+            'a shorter border never buys a seat-spread increase (São Paulo)'
+        );
+
+        // Shape never buys a full 1pp equality band (round-4 tuning stands).
+        $blockyBandWorse = $base + [
+            'avg_deviation_pct' => 1.40, 'max_deviation_pct' => 1.90,
+            'seat_spread' => 0, 'cut_length' => 4.0, 'neck_count' => 0, 'avg_rg_sq' => 1.4,
+        ];
+        $wigglyBandBetter = $base + [
+            'avg_deviation_pct' => 0.30, 'max_deviation_pct' => 0.60,
+            'seat_spread' => 0, 'cut_length' => 9.0, 'neck_count' => 0, 'avg_rg_sq' => 1.9,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $wigglyBandBetter, $blockyBandWorse),
+            'a shorter border never buys a full 1pp equality band'
+        );
+
+        // Shape never buys a contiguity break. (Overrides on the LEFT of `+` —
+        // the base's non_contiguous_count would otherwise win the key collision.)
+        $brokenShortBorder = [
+            'non_contiguous_count' => 1, 'fragment_gap' => 2.0,
+            'avg_deviation_pct' => 0.30, 'max_deviation_pct' => 0.60,
+            'seat_spread' => 0, 'cut_length' => 4.0, 'neck_count' => 0, 'avg_rg_sq' => 1.4,
+        ] + $base;
+        $contiguousLongBorder = $base + [
+            'avg_deviation_pct' => 0.30, 'max_deviation_pct' => 0.60,
+            'seat_spread' => 0, 'cut_length' => 14.0, 'neck_count' => 1, 'avg_rg_sq' => 2.4,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $contiguousLongBorder, $brokenShortBorder),
+            'a shorter border never buys a contiguity break'
+        );
+
+        // Backward compatibility: score arrays WITHOUT cut_length (the pin-5
+        // style) default to a neutral 0.0 and fall through to neck_count.
+        $legacyClean   = $base + [
+            'avg_deviation_pct' => 1.3, 'max_deviation_pct' => 3.8,
+            'seat_spread' => 0, 'neck_count' => 0, 'avg_rg_sq' => 2.0,
+        ];
+        $legacyPinched = $base + [
+            'avg_deviation_pct' => 1.3, 'max_deviation_pct' => 3.8,
+            'seat_spread' => 0, 'neck_count' => 2, 'avg_rg_sq' => 2.0,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $legacyClean, $legacyPinched),
+            'cut-less score arrays stay neutral on cut and decide on necks as before'
+        );
+    }
+
+    public function test_step7_measures_real_border_lengths_for_the_scorer(): void
+    {
+        $this->onLivePg(function () {
+            // End-to-end wiring: the Step-7 edge query must measure each shared
+            // border, the service must retain the lengths, and scoreConfiguration
+            // must price a partition's total cut from them. 4×4 unit grid: 24
+            // internal borders of exactly 1.0° each; a half-split cuts 4 of them,
+            // an L-hook split cuts 7.
+            $cells = [];
+            for ($gy = 0; $gy < 4; $gy++) {
+                for ($gx = 0; $gx < 4; $gx++) $cells[] = [$gx, $gy];
+            }
+            [$leg, $scopeId, $cellById] = $this->makeGridFixture('zzdi', $cells, 100_000, 10);
+
+            $svc    = app(DistrictingService::class);
+            $result = $svc->runAutoCompositeForScope($leg->id, $leg, $scopeId, false, 10, null);
+            $this->assertNull($result['error']);
+
+            $prop = new \ReflectionProperty($svc, 'borderLen');
+            $prop->setAccessible(true);
+            $borderLen = $prop->getValue($svc);
+            $this->assertCount(24, $borderLen, 'a 4×4 grid has 24 internal borders');
+            foreach ($borderLen as $len) {
+                $this->assertEqualsWithDelta(1.0, $len, 0.001, 'each unit-square border measures 1.0');
+            }
+
+            // Hand partitions through the scorer on the SAME service instance.
+            $byCell = [];
+            foreach ($cellById as $id => [$cx, $cy]) $byCell[($cx - 0.5) . ',' . ($cy - 0.5)] = $id;
+            $childById = []; $adj = [];
+            foreach ($cellById as $id => [$cx, $cy]) {
+                $childById[$id] = (object) [
+                    'population' => 100_000, 'fractional_seats' => 0.625,
+                    'centroid_x' => $cx, 'centroid_y' => $cy,
+                ];
+                $adj[$id] = [];
+            }
+            foreach ($byCell as $key => $id) {
+                [$gx, $gy] = array_map('intval', explode(',', $key));
+                foreach ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [$dx, $dy]) {
+                    $nb = $byCell[($gx + $dx) . ',' . ($gy + $dy)] ?? null;
+                    if ($nb !== null) $adj[$id][] = $nb;
+                }
+            }
+            $pick  = fn(array $coords) => array_map(fn($c) => $byCell[$c], $coords);
+            $block = [
+                $pick(['0,0', '1,0', '0,1', '1,1', '0,2', '1,2', '0,3', '1,3']),
+                $pick(['2,0', '3,0', '2,1', '3,1', '2,2', '3,2', '2,3', '3,3']),
+            ];
+            $hook  = [
+                $pick(['0,0', '0,1', '0,2', '0,3', '1,3', '2,3', '3,3', '1,0']),
+                $pick(['1,1', '2,1', '3,1', '1,2', '2,2', '3,2', '2,0', '3,0']),
+            ];
+
+            $sc = new \ReflectionMethod($svc, 'scoreConfiguration');
+            $sc->setAccessible(true);
+            $sBlock = $sc->invoke($svc, $block, $childById, $adj, 1_600_000.0, 10, 5, 9, 5.0);
+            $sHook  = $sc->invoke($svc, $hook, $childById, $adj, 1_600_000.0, 10, 5, 9, 5.0);
+            $this->assertEqualsWithDelta(4.0, $sBlock['cut_length'], 0.01, 'the half split cuts 4 unit borders');
+            $this->assertEqualsWithDelta(7.0, $sHook['cut_length'], 0.01, 'the L-hook split cuts 7 unit borders');
+
+            $beats = new \ReflectionMethod($svc, 'scoreBeats');
+            $beats->setAccessible(true);
+            $this->assertTrue(
+                $beats->invoke($svc, $sBlock, $sHook),
+                'at identical balance and mix, the shorter real border wins'
             );
         });
     }
