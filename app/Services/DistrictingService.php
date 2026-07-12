@@ -2500,10 +2500,14 @@ class DistrictingService
      * returns as the final tiebreak, so within-threshold equality still matters
      * once contiguity and shape are settled.
      *
-     * neck_count sits between the break metrics and compactness: a pinch point —
-     * one member whose removal splits the district into two substantial halves —
-     * meets the letter of contiguity but not its spirit (operator flag class,
-     * round-2 rematch); Rg² cannot see necks.
+     * neck_count rides with the SHAPE cluster (round-6 Egypt probe): a pinch
+     * point — one member whose removal splits the district into two substantial
+     * halves — is the operator's "meets the letter of contiguity but could be
+     * more compact" flag, i.e. shape spirit, not break spirit. Ranked above it,
+     * a single unavoidable Nile-chain articulation vetoed a 7+7+7+7 Egypt at
+     * 0.81% in favor of a spread-4 mix at 1.40%. It still decides ahead of Rg²
+     * (Rg² cannot see necks), but never ahead of reps-equality or an equality
+     * band.
      *
      * seat_spread (max − min seats) sits above compactness (round-3 tuning: "it
      * is giving up reps per district balance long before it has to"): within
@@ -2533,9 +2537,9 @@ class DistrictingService
             $maxExcess,                                  //  2. worst district beyond acceptability (5pp bands)
             $s['non_contiguous_count'],                  //  3. contiguity breaks
             $s['fragment_gap'],                          //  4. break quality: fragments close
-            $s['neck_count'],                            //  5. pinch points (barely-legal contiguity)
-            $s['seat_spread'],                           //  6. reps-per-district equality
-            (int) floor($s['avg_deviation_pct'] / 1.0),  //  7. equality, 1pp sub-bands — outranks shape
+            $s['seat_spread'],                           //  5. reps-per-district equality
+            (int) floor($s['avg_deviation_pct'] / 1.0),  //  6. equality, 1pp sub-bands — outranks shape
+            $s['neck_count'],                            //  7. pinch points (shape spirit, with shape)
             $s['avg_rg_sq'],                             //  8. compactness
             $s['avg_droop_threshold'],                   //  9. seat-mix / UPD — abandoned first
             $s['avg_deviation_pct'],                     // 10. raw equality tiebreak

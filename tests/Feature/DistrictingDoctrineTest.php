@@ -307,6 +307,31 @@ class DistrictingDoctrineTest extends TestCase
             'fewer necks wins when balance and contiguity tie'
         );
 
+        // The Egypt probe (round-6, real geography): a 7+7+7+7 at 0.81% with ONE
+        // unavoidable Nile-chain pinch must beat the 9+8+6+5 at 1.40% with none —
+        // a pinch is shape spirit and never vetoes reps-equality or an equality band.
+        $canonical = [
+            'avg_deviation_pct' => 0.81, 'max_deviation_pct' => 1.62,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 1,
+            'seat_spread' => 0, 'avg_rg_sq' => 1.542, 'avg_droop_threshold' => 0.125,
+        ];
+        $unevenNeckless = [
+            'avg_deviation_pct' => 1.40, 'max_deviation_pct' => 2.69,
+            'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
+            'seat_spread' => 4, 'avg_rg_sq' => 1.422, 'avg_droop_threshold' => 0.130,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $canonical, $unevenNeckless),
+            'the equal-mix canonical map wins despite one pinch point (the Egypt probe)'
+        );
+        // …while at equal balance and mix, fewer pinches still decide before shape.
+        $twoNecks = $canonical;
+        $twoNecks['neck_count'] = 2;
+        $this->assertTrue(
+            $m->invoke($svc, $canonical, $twoNecks),
+            'pinches still decide within the shape cluster'
+        );
+
         // The Canada-class rescue must still win: a break IS worth escaping ±32%.
         $catastrophe = [
             'avg_deviation_pct' => 20.0, 'max_deviation_pct' => 32.3,
