@@ -371,43 +371,42 @@ class DistrictingService
             $components[] = $component;
         }
 
-        // ── Pre-attach sub-floor components (round-8, the France probe) ──────────
-        // A component too small to ever round to a district (< floorBoundary − 0.5
-        // fracs) WILL end up inside a bigger component's bins — deciding k before
-        // counting it optimizes the WRONG budget. France: the mainland alone rounds
-        // to a 15-seat sub-budget, where canonical thirds (5+5+5) win the comparator;
-        // count its 0.5 fracs of overseas territories and the true budget is 16,
-        // where the operator's 8+8 wins. Merge each such component into its
-        // closest-approach neighbor BEFORE the multi-attempt loop — the expansion's
-        // isolated-member assignment and the island monotone rules place the
-        // edge-less pieces inside every candidate, scored at the true budget.
+        // ── Sub-floor component budget ACCOUNTING (round-9) ──────────────────────
+        // Round 8 physically pre-merged tiny island components into their hosts;
+        // that fixed France's wrong-budget k-choice but reshuffled every
+        // multi-component scope and degraded Draft 7 (operator verdict: avoidable
+        // breaks, worse spread, the 14.5% India-root district). Retraction keeps
+        // ONLY the arithmetic: a component too small to ever round to a district
+        // (< floorBoundary − 0.5 fracs) COUNTS toward its nearest host's budget,
+        // quota, and split decision — France's mainland plans for 16 seats, not
+        // 15 — but candidates are built on the real landmass, and islands attach
+        // AFTER scoring by closest approach (the Draft-6 flow the operator
+        // validated), with the post-attachment rebalance compensating.
+        $ownFrac = [];
+        $accountedPop = [];
+        foreach ($components as $ci => $comp) {
+            $ownFrac[$ci]      = array_sum(array_map(fn($j) => (float) $childById[$j]->fractional_seats, $comp));
+            $accountedPop[$ci] = array_sum(array_map(fn($j) => (int) $childById[$j]->population, $comp));
+        }
+        $accountedFrac  = $ownFrac;
+        $satelliteComps = [];   // hostIdx => [satellite member lists]
         if (count($components) > 1) {
-            $compFracsArr = array_map(
-                fn($c) => array_sum(array_map(fn($j) => (float) $childById[$j]->fractional_seats, $c)),
-                $components
-            );
-            $preMergeBoundary = $floorBoundary - 0.5;
-            while (count($components) > 1) {
-                $smallIdx = -1; $smallFrac = PHP_FLOAT_MAX;
-                foreach ($compFracsArr as $ci => $f) {
-                    if ($f >= $preMergeBoundary) continue;
-                    if ($f < $smallFrac
-                        || ($f === $smallFrac && $smallIdx >= 0 && strcmp($components[$ci][0], $components[$smallIdx][0]) < 0)) {
-                        $smallFrac = $f; $smallIdx = $ci;
+            $satBoundary = $floorBoundary - 0.5;
+            $hosts = array_keys(array_filter($ownFrac, fn($f) => $f >= $satBoundary));
+            if (!empty($hosts)) {
+                foreach ($components as $ci => $comp) {
+                    if ($ownFrac[$ci] >= $satBoundary) continue;
+                    $bestJ = -1; $bestD = PHP_FLOAT_MAX;
+                    foreach ($hosts as $hj) {
+                        $d = $this->closestApproachSq($comp, $components[$hj], $centroids);
+                        if ($d < $bestD) { $bestD = $d; $bestJ = $hj; }
+                    }
+                    if ($bestJ >= 0) {
+                        $accountedPop[$bestJ]    += $accountedPop[$ci];
+                        $accountedFrac[$bestJ]   += $ownFrac[$ci];
+                        $satelliteComps[$bestJ][] = $comp;
                     }
                 }
-                if ($smallIdx < 0) break;
-                $bestJ = -1; $bestD = PHP_FLOAT_MAX;
-                foreach ($components as $cj => $c2) {
-                    if ($cj === $smallIdx) continue;
-                    $d = $this->closestApproachSq($components[$smallIdx], $c2, $centroids);
-                    if ($d < $bestD) { $bestD = $d; $bestJ = $cj; }
-                }
-                if ($bestJ < 0) break;
-                $components[$bestJ]   = array_merge($components[$bestJ], $components[$smallIdx]);
-                $compFracsArr[$bestJ] += $compFracsArr[$smallIdx];
-                array_splice($components, $smallIdx, 1);
-                array_splice($compFracsArr, $smallIdx, 1);
             }
         }
 
@@ -434,8 +433,10 @@ class DistrictingService
         $allBins     = [];
         $totalBinPop = array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $childIds));
 
-        foreach ($components as $component) {
-            $compFrac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $component));
+        foreach ($components as $componentIdx => $component) {
+            // Accounted frac: this component plus the sub-floor satellites that
+            // will attach to it after scoring (round-9 budget accounting).
+            $compFrac = $accountedFrac[$componentIdx];
 
             // Single-district components need no splitting — skip multi-attempt overhead
             if ($compFrac < $giantThreshold) {
@@ -452,8 +453,9 @@ class DistrictingService
             // Full range ensures UPD-optimal k values (e.g. k=10 for a 61-seat budget) are never skipped.
             $kCandidates = range($kMin, min($kMax, $kMin + 7));
 
-            // Component-level proportional budget (fixed regardless of k)
-            $compBinPop = array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $component));
+            // Component-level proportional budget (fixed regardless of k) — the
+            // ACCOUNTED population, so the plan anticipates its satellites.
+            $compBinPop = $accountedPop[$componentIdx];
             $compBudget = $totalBinPop > 0
                 ? (int) round($compBinPop * $nonGiantBudget / $totalBinPop)
                 : $nonGiantBudget;
@@ -464,6 +466,26 @@ class DistrictingService
             usort($byPop, function ($a, $b) use ($childById) {
                 return ((int) $childById[$b]->population <=> (int) $childById[$a]->population) ?: strcmp($a, $b);
             });
+
+            // Virtual-attachment scoring (round-9): candidates are BUILT on the real
+            // landmass but SCORED as they will exist after their satellites attach —
+            // each satellite joins its closest-approach bin for scoring only. Without
+            // this, pre-attachment bins run light by their islands' share against the
+            // accounted quota and degenerate configs out-score honest ones.
+            $mySats = $satelliteComps[$componentIdx] ?? [];
+            $virtualize = function (array $bins) use ($mySats, $centroids): array {
+                if (empty($mySats)) return $bins;
+                $v = array_map(fn($b) => $b, $bins);
+                foreach ($mySats as $sat) {
+                    $bestJ = 0; $bestD = PHP_FLOAT_MAX;
+                    foreach ($v as $j => $b) {
+                        $d = $this->closestApproachSq($sat, $b, $centroids);
+                        if ($d < $bestD) { $bestD = $d; $bestJ = $j; }
+                    }
+                    $v[$bestJ] = array_merge($v[$bestJ], $sat);
+                }
+                return $v;
+            };
 
             $candidateConfigs = [];
 
@@ -489,6 +511,16 @@ class DistrictingService
                         fn($bin) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin)),
                         $bfsBins
                     );
+                    // Satellites count toward their nearest bin in the proxy too.
+                    foreach ($mySats as $sat) {
+                        $satPop = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $sat));
+                        $bestBi = 0; $bestD = PHP_FLOAT_MAX;
+                        foreach ($bfsBins as $bi => $b) {
+                            $d = $this->closestApproachSq($sat, $b, $centroids);
+                            if ($d < $bestD) { $bestD = $d; $bestBi = $bi; }
+                        }
+                        $binPopsA[$bestBi] += $satPop;
+                    }
                     $devProxy = 0.0;
                     if ($quotaPopC > 0) {
                         $targetsA = $this->optimalIntegerTargets($binPopsA, $quotaPopC, $compBudget, $floor, $ceiling);
@@ -515,7 +547,7 @@ class DistrictingService
 
                     $effectiveBudget = max(count($bins), $compBudget);
 
-                    $score = $this->scoreConfiguration($bins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                    $score = $this->scoreConfiguration($virtualize($bins), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
 
                     if ($bestScoreK === null || $this->scoreBeats($score, $bestScoreK)) {
                         $bestBinsK  = $bins;
@@ -551,7 +583,7 @@ class DistrictingService
                             // crescent becomes blocks at bounded balance cost.
                             $sBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $sBins);
                             $effectiveBudget = max(count($sBins), $compBudget);
-                            $sScore = $this->scoreConfiguration($sBins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                            $sScore = $this->scoreConfiguration($virtualize($sBins), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                             if ($bestScoreK === null || $this->scoreBeats($sScore, $bestScoreK)) {
                                 $bestBinsK  = $sBins;
                                 $bestScoreK = $sScore;
@@ -599,7 +631,7 @@ class DistrictingService
                         $equalized = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
                         if ($equalized !== $cfg['bins']) {
                             $effectiveBudget = max(count($equalized), $compBudget);
-                            $eScore = $this->scoreConfiguration($equalized, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                            $eScore = $this->scoreConfiguration($virtualize($equalized), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                             if ($this->scoreBeats($eScore, $bestScore)) {
                                 $bestBins  = $equalized;
                                 $bestScore = $eScore;
@@ -611,7 +643,7 @@ class DistrictingService
                     $broken = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
                     if ($broken !== $cfg['bins']) {
                         $effectiveBudget = max(count($broken), $compBudget);
-                        $bScore = $this->scoreConfiguration($broken, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                        $bScore = $this->scoreConfiguration($virtualize($broken), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                         if ($this->scoreBeats($bScore, $bestScore)) {
                             $bestBins  = $broken;
                             $bestScore = $bScore;
@@ -2217,18 +2249,22 @@ class DistrictingService
             }
         }
 
-        // --- Post-repair: merge undersized bins (< 5.0 fractional) if possible ---
+        // --- Post-repair: merge bins that cannot round to the floor ---
         // $binFracs is already live-tracked throughout BFS — no need to recompute.
         // After swap refinement this path is rare (standalone isolated-jid bins only).
+        // Trigger is the OVERRIDE boundary (floor − 0.5), not the floor: a 4.6-frac
+        // bin rounds to the floor legally, and satellite-light components (round-9
+        // budget accounting: the host's bins run light by their islands' share
+        // until attachment) must not be force-collapsed back into one bin.
         //
         // Priority: merge into an ADJACENT absorber (shares a border in $adj) to preserve
-        // contiguity.  Only fall back to nearest-centroid when no adjacent absorber exists
+        // contiguity.  Only fall back to nearest absorber when no adjacent one exists
         // (truly isolated jids with no adjacency data — unavoidable non-contiguity).
         $changed = true;
         while ($changed) {
             $changed = false;
             foreach ($binFracs as $i => $t) {
-                if ($t >= $floorBoundary || empty($bins[$i])) continue;
+                if ($t >= $floorBoundary - 0.5 || empty($bins[$i])) continue;
 
                 // Collect bins that share at least one adjacency edge with bin i
                 $adjBorderBins = [];
