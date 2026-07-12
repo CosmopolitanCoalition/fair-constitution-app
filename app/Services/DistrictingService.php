@@ -496,6 +496,11 @@ class DistrictingService
                             $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst);
                             if ($sBins === null) continue;
                             $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                            // Round-7: the built candidate gets the same shape passes
+                            // Phase-B candidates get (compact exchanges + border
+                            // smoothing under integer-target caps) — the remainder
+                            // crescent becomes blocks at bounded balance cost.
+                            $sBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $sBins);
                             $effectiveBudget = max(count($sBins), $compBudget);
                             $sScore = $this->scoreConfiguration($sBins, $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                             if ($bestScoreK === null || $this->scoreBeats($sScore, $bestScoreK)) {
@@ -1224,7 +1229,8 @@ class DistrictingService
         float $giantThreshold,
         float $floorBoundary,
         bool  $bfsOnly = false, // when true: return after BFS expansion, skip balance/compact passes
-        int   $compBudget = 0   // component seat budget — enables integer-quota targeting in the passes
+        int   $compBudget = 0,  // component seat budget — enables integer-quota targeting in the passes
+        ?array $presetBins = null // round-7: refine these bins through the passes, skipping seed+BFS
     ): array {
         // Pre-compute the "BFS full" threshold (slightly below giant) used to gate
         // expansion. With default 5/9 this is 9.49 (giant=9.5 minus epsilon).
@@ -1232,7 +1238,7 @@ class DistrictingService
         if (empty($jids)) return [];
 
         // Degenerate: caller provided no seeds — return everything as one bin
-        $k = count($seeds);
+        $k = $presetBins !== null ? count($presetBins) : count($seeds);
         if ($k < 1) return [$jids];
 
         $jidSet    = array_flip($jids); // O(1) membership test
@@ -1274,6 +1280,27 @@ class DistrictingService
         $p90Idx        = max(0, (int) floor(count($adjDistsSq) * 0.90) - 1);
         $maxEdgeDistSq = !empty($adjDistsSq) ? $adjDistsSq[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
 
+        // ── Preset mode (round-7, the operator's five stringiness flags) ─────────
+        // The sequential builder's winners never met the compact/smoothing passes —
+        // their remainder district arrived as a crescent wrapped around the built
+        // cores (Turkey's C, Yunnan's horseshoe, São Paulo's coastal band). Preset
+        // mode drops caller-supplied bins straight into the full refinement
+        // pipeline below — balance minimax, compact exchanges, border smoothing,
+        // post-compact minimax — under the same integer-target deviation caps that
+        // protect the equality wins.
+        if ($presetBins !== null) {
+            $bins     = array_map(fn($b) => array_values($b), array_values($presetBins));
+            $binFracs = array_map(
+                fn($b) => (float) array_sum(array_map(fn($jid) => (float) $childById[$jid]->fractional_seats, $b)),
+                $bins
+            );
+            $assigned = [];
+            foreach ($bins as $bi => $b) {
+                foreach ($b as $jid) {
+                    $assigned[$jid] = $bi;
+                }
+            }
+        } else {
         // --- Initialize BFS bins ---
         $bins     = array_fill(0, $k, []);
         $binPops  = array_fill(0, $k, 0.0);
@@ -1401,6 +1428,7 @@ class DistrictingService
                 $assigned[$jid] = $k - 1;
             }
         }
+        } // end seed + BFS + isolated assignment (preset mode skips straight here)
 
         // --- Border swap refinement: improve population balance after BFS ---
         // Iteratively moves border jurisdictions between adjacent bins to minimise

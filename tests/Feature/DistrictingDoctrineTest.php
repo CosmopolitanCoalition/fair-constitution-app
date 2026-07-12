@@ -634,6 +634,66 @@ class DistrictingDoctrineTest extends TestCase
         }
     }
 
+    // ─── (12) Preset bins go through the shape passes ────────────────────────
+
+    public function test_preset_bins_are_reshaped_by_the_refinement_passes(): void
+    {
+        // Round-7 (the operator's five stringiness flags): sequential-builder
+        // winners never met the compact/smoothing passes, so their remainder
+        // district shipped as a crescent. Preset mode must take a contiguous-
+        // but-stringy split and hand back a compacter one at held balance.
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'geographicSeedExpansion');
+        $m->setAccessible(true);
+
+        // 4×4 uniform grid; preset = an L-shaped hook (8) vs the interior blob (8).
+        $childById = []; $centroids = []; $adj = []; $byCell = [];
+        for ($gy = 0; $gy < 4; $gy++) {
+            for ($gx = 0; $gx < 4; $gx++) {
+                $id = sprintf('g%d%d', $gx, $gy);
+                $byCell["$gx,$gy"] = $id;
+                $childById[$id] = (object) ['population' => 100_000, 'fractional_seats' => 0.625,
+                                            'centroid_x' => $gx + 0.5, 'centroid_y' => $gy + 0.5];
+                $centroids[$id] = ['x' => $gx + 0.5, 'y' => $gy + 0.5];
+                $adj[$id] = [];
+            }
+        }
+        foreach ($byCell as $key => $id) {
+            [$gx, $gy] = array_map('intval', explode(',', $key));
+            foreach ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [$dx, $dy]) {
+                $nb = $byCell[($gx + $dx) . ',' . ($gy + $dy)] ?? null;
+                if ($nb !== null) $adj[$id][] = $nb;
+            }
+        }
+        $hook = [$byCell['0,3'], $byCell['1,3'], $byCell['2,3'], $byCell['3,3'],
+                 $byCell['3,2'], $byCell['3,1'], $byCell['3,0'], $byCell['2,0']];
+        $blob = array_values(array_diff(array_values($byCell), $hook));
+        $rg = function (array $bins) use ($centroids) {
+            $sum = 0.0;
+            foreach ($bins as $b) {
+                $mx = array_sum(array_map(fn($j) => $centroids[$j]['x'], $b)) / count($b);
+                $my = array_sum(array_map(fn($j) => $centroids[$j]['y'], $b)) / count($b);
+                foreach ($b as $j) {
+                    $sum += ($centroids[$j]['x'] - $mx) ** 2 + ($centroids[$j]['y'] - $my) ** 2;
+                }
+            }
+            return $sum;
+        };
+
+        $ids = array_values($byCell);
+        $out = $m->invoke($svc, $ids, $childById, $adj, $centroids, [], 9.5, 5.0, false, 10, [$hook, $blob]);
+
+        $this->assertCount(2, $out);
+        $sizes = array_map('count', $out);
+        sort($sizes);
+        $this->assertSame([8, 8], $sizes, 'balance held through reshaping');
+        $this->assertLessThan(
+            $rg([$hook, $blob]),
+            $rg($out),
+            'the passes must strictly reduce the stringy preset\'s spread (crescent → blocks)'
+        );
+    }
+
     // ─── Fixtures ────────────────────────────────────────────────────────────
 
     /**
