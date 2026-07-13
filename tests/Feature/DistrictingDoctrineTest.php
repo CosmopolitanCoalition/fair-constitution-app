@@ -92,6 +92,14 @@ use Tests\TestCase;
  *        redrawing. Rounding lives in exactly two places: the giant split
  *        and the drawn district.
  *
+ *   (17) BUDGET EXACTNESS (operator ruling 2026-07-13, the Draft-9 India
+ *        undercount): "generated outcomes that dont arrive at the parent
+ *        seat budget are excluded … another configuration needs to be
+ *        considered when generating." seat_drift is scoreRank's FIRST key:
+ *        a drifted drawing loses to ANY budget-exact one regardless of
+ *        every lower key; the fallback of pin 16 applies only when no
+ *        exact drawing exists at all.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1051,6 +1059,85 @@ class DistrictingDoctrineTest extends TestCase
             $this->assertSame([6, 6, 6], $districts->pluck('seats')->sort()->values()->all());
             $this->assertSame(18, (int) $districts->sum('seats'),
                 'nearest rounding may seat one over the pool — no seat is clawed back to force the total');
+        });
+    }
+
+    // ─── (17) Budget exactness: drifted drawings are excluded ───────────────
+
+    public function test_drifted_drawings_lose_to_any_budget_exact_drawing(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        // The Draft-9 India story as scores: the drifted 60/61 plan is better
+        // on EVERY doctrine key — balance, spread, shape — and must still lose
+        // to the budget-exact plan.
+        $drifted = [
+            'seat_drift' => 1, 'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_deviation_pct' => 0.4, 'max_deviation_pct' => 0.9,
+            'seat_spread' => 0, 'cut_length' => 5.0, 'neck_count' => 0,
+            'avg_rg_sq' => 1.2, 'avg_droop_threshold' => 0.12,
+        ];
+        $exact = [
+            'seat_drift' => 0, 'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_deviation_pct' => 3.6, 'max_deviation_pct' => 6.0,
+            'seat_spread' => 2, 'cut_length' => 14.0, 'neck_count' => 2,
+            'avg_rg_sq' => 2.8, 'avg_droop_threshold' => 0.14,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $exact, $drifted),
+            'a budget-exact drawing beats a drifted one on any terms (exclusion)'
+        );
+        $this->assertFalse($m->invoke($svc, $drifted, $exact));
+
+        // Among drifted drawings (no exact exists — the pin-16 fallback),
+        // smaller drift wins first, then the normal doctrine.
+        $driftedByTwo = $drifted;
+        $driftedByTwo['seat_drift'] = 2;
+        $this->assertTrue(
+            $m->invoke($svc, $drifted, $driftedByTwo),
+            'when no exact drawing exists, the closest-to-budget one wins'
+        );
+
+        // Legacy score arrays without the key stay neutral (drift 0).
+        $legacy = $exact;
+        unset($legacy['seat_drift']);
+        $this->assertTrue(
+            $m->invoke($svc, $legacy, $drifted),
+            'drift-less score arrays read as exact — backward compatible'
+        );
+    }
+
+    public function test_generator_lands_the_budget_when_an_exact_drawing_exists(): void
+    {
+        $this->onLivePg(function () {
+            // 22 equal atoms of 0.5 fracs each, budget 11. The lazy halving
+            // (11 atoms each) reads 5.5 + 5.5 → rounds 6 + 6 = 12, one over.
+            // An exact drawing exists two doors down: 12 + 10 atoms = 6.0 +
+            // 5.0 → 6 + 5 = 11 on the nose. The exactness rule must steer
+            // generation there — the pool budget is landed by DRAWING, never
+            // by seat arithmetic.
+            [$leg, $scopeId] = $this->makeScopeFixture('zzdl', array_fill(0, 22, 50), 1_000, 11);
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 11, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(2, $result['districts_created']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            $this->assertSame(11, (int) $districts->sum('seats'),
+                'the pool budget is landed exactly by the drawing');
+            $this->assertSame([5, 6], $districts->pluck('seats')->sort()->values()->all());
+            foreach ($districts as $d) {
+                $this->assertSame(
+                    (int) round((float) $d->fractional_seats),
+                    (int) $d->seats,
+                    'every district still seats exactly its nearest rounding'
+                );
+            }
         });
     }
 

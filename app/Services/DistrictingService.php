@@ -453,7 +453,9 @@ class DistrictingService
         // population — Canada-class — gets its own bins). A cheap BFS-only proxy scored
         // against INTEGER seat targets gates the top 20 into the full pipeline.
         //
-        // Scoring priority (operator doctrine ruling 2026-07-08 — see scoreRank()):
+        // Scoring priority (operator doctrine rulings 2026-07-08 + 2026-07-13 — see scoreRank()):
+        //   0. BUDGET EXACTNESS (seat_drift): drawings whose nearest-rounded seats miss the
+        //      pool budget are EXCLUDED whenever any exact drawing exists
         //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie)
         //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
         //   3. Compactness (cut_length: REAL border length between districts — stringy = bad;
@@ -661,9 +663,14 @@ class DistrictingService
                 // rebalance toward it — contiguity is never sacrificed for
                 // seat-mix equality — and let scoreRank's seat_spread slot decide
                 // whether the balance it costs (within acceptability) was worth it.
+                // ALSO fires on seat_drift (exactness rule, 2026-07-13): the
+                // canonical partition sums to the budget by construction, so
+                // walking toward it is the direct repair for a drawing whose
+                // nearest-rounded seats miss the pool total.
                 if ($quotaPopC > 0) {
                     $parts = $this->canonicalPartition($compBudget, count($cfg['bins']), $floor, $ceiling);
-                    if ($parts !== null && $cfg['score']['seat_spread'] > (max($parts) - min($parts))) {
+                    if ($parts !== null && ($cfg['score']['seat_spread'] > (max($parts) - min($parts))
+                        || ($cfg['score']['seat_drift'] ?? 0) > 0)) {
                         $equalized = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
                         if ($equalized !== $cfg['bins']) {
                             $effectiveBudget = max(count($equalized), $compBudget);
@@ -2348,14 +2355,15 @@ class DistrictingService
      * (ruling 2026-07-08). Fields feed scoreRank()/scoreBeats() for lexicographic
      * comparison (lower = better for all fields):
      *
-     *   1. avg_deviation_pct  (acceptability threshold 4%) — balance leads, coarsely
-     *   2. max_deviation_pct  (acceptability threshold 10%) — worst-district extreme
-     *   3. non_contiguous_count                            — contiguity breaks
-     *   4. fragment_gap                                    — broken pieces kept CLOSE
-     *   5. cut_length                                      — REAL border length (stringy = bad)
-     *   6. neck_count                                      — pinch points (barely-legal contiguity)
-     *   7. avg_rg_sq                                       — compactness fallback (centroid proxy)
-     *   8. avg_droop_threshold                             — seat-mix/UPD, abandoned first
+     *   1. seat_drift         (|Σseats − budget|)          — budget exactness: drifted drawings excluded
+     *   2. avg_deviation_pct  (acceptability threshold 4%) — balance leads, coarsely
+     *   3. max_deviation_pct  (acceptability threshold 10%) — worst-district extreme
+     *   4. non_contiguous_count                            — contiguity breaks
+     *   5. fragment_gap                                    — broken pieces kept CLOSE
+     *   6. cut_length                                      — REAL border length (stringy = bad)
+     *   7. neck_count                                      — pinch points (barely-legal contiguity)
+     *   8. avg_rg_sq                                       — compactness fallback (centroid proxy)
+     *   9. avg_droop_threshold                             — seat-mix/UPD, abandoned first
      *
      * The banding means a fraction-of-a-band equality gain can never buy a snake
      * district or a pointless contiguity break; a full band (0.5pp avg) can. This
@@ -2407,6 +2415,17 @@ class DistrictingService
             fn($p) => max($minSeat, min($ceiling, (int) round($binQuota > 0 ? $p / $binQuota : 0.0))),
             $binPops
         );
+
+        // Seat drift: |Σ nearest-rounded seats − pool budget|. The operator's
+        // exactness rule (ruling 2026-07-13, the Draft-9 undercount): "generated
+        // outcomes that dont arrive at the parent seat budget are excluded …
+        // another configuration needs to be considered when generating." The
+        // drawing must land the budget; rounding never forces it. scoreRank()
+        // ranks this FIRST, so a drifted configuration can never beat ANY
+        // budget-exact one — it survives only when no exact drawing exists
+        // (indivisible-atom scopes), shipping closest-possible under the
+        // undercount flag.
+        $seatDrift = abs(array_sum($binSeats) - $nonGiantBudget);
 
         // Compute per-bin deviation percentages
         $deviations = [];
@@ -2620,6 +2639,7 @@ class DistrictingService
         }
 
         return [
+            'seat_drift'           => $seatDrift,
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
             'neck_count'           => $neckCount,
@@ -2706,6 +2726,16 @@ class DistrictingService
      * returns as the final tiebreak, so within-threshold equality still matters
      * once contiguity and shape are settled.
      *
+     * seat_drift ranks FIRST (operator ruling 2026-07-13, the Draft-9 India
+     * undercount): under the seating law each district rounds to nearest, so
+     * hitting the pool budget is the DRAWING's job — "generated outcomes that
+     * dont arrive at the parent seat budget are excluded … another
+     * configuration needs to be considered when generating." Ranking |Σseats −
+     * budget| ahead of everything implements the exclusion: a drifted drawing
+     * can never beat ANY budget-exact one, on any lower key, and survives only
+     * when no exact drawing exists at all (indivisible-atom scopes, which ship
+     * closest-possible under the undercount flag).
+     *
      * cut_length LEADS the shape cluster (round 10, the 5-scope stringiness
      * probe): the real border length between districts is what the operator's
      * eye reads as stringiness, and the prior proxies were blind or backwards
@@ -2753,17 +2783,18 @@ class DistrictingService
         $maxExcess = $s['max_deviation_pct'] <= 10.0 ? 0
             : 1 + (int) floor(($s['max_deviation_pct'] - 10.0) / 5.0);
         return [
-            $avgExcess,                                  //  1. balance beyond acceptability (2pp bands)
-            $maxExcess,                                  //  2. worst district beyond acceptability (5pp bands)
-            $s['non_contiguous_count'],                  //  3. contiguity breaks
-            $s['fragment_gap'],                          //  4. break quality: fragments close
-            $s['seat_spread'],                           //  5. reps-per-district equality
-            (int) floor($s['avg_deviation_pct'] / 1.0),  //  6. equality, 1pp sub-bands — outranks shape
-            $s['cut_length'] ?? 0.0,                     //  7. compactness lead: real border length (round 10)
-            $s['neck_count'],                            //  8. pinch points (shape spirit, within cut ties)
-            $s['avg_rg_sq'],                             //  9. compactness fallback (centroid proxy)
-            $s['avg_droop_threshold'],                   // 10. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 11. raw equality tiebreak
+            $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
+            $avgExcess,                                  //  2. balance beyond acceptability (2pp bands)
+            $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
+            $s['non_contiguous_count'],                  //  4. contiguity breaks
+            $s['fragment_gap'],                          //  5. break quality: fragments close
+            $s['seat_spread'],                           //  6. reps-per-district equality
+            (int) floor($s['avg_deviation_pct'] / 1.0),  //  7. equality, 1pp sub-bands — outranks shape
+            $s['cut_length'] ?? 0.0,                     //  8. compactness lead: real border length (round 10)
+            $s['neck_count'],                            //  9. pinch points (shape spirit, within cut ties)
+            $s['avg_rg_sq'],                             // 10. compactness fallback (centroid proxy)
+            $s['avg_droop_threshold'],                   // 11. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 12. raw equality tiebreak
         ];
     }
 

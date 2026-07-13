@@ -190,10 +190,15 @@ or implement one. The procedure (per legislature):
    drawing's defect, fixed by redrawing — never by a redistribution loop.
    (Exceptions: an above-ceiling jurisdiction with no children awaits manual
    split; STV/Droop in `VoteCountingService` is the ELECTION method, unrelated.)
+6. **Exactness rule for the autoseeder** (ruling 2026-07-13, Draft-9 India
+   undercount): generated configurations whose nearest-rounded seats do not
+   sum to the pool budget are **excluded** — another configuration must be
+   considered. Only when NO exact drawing exists (indivisible-atom scopes)
+   does the closest one ship, under the undercount flag.
 
-Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4)
-and Step 11 of `runAutoCompositeForScope` (step 5). Pinned in
-`DistrictingDoctrineTest`.
+Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4),
+Step 11 of `runAutoCompositeForScope` (step 5), and `seat_drift` as
+`scoreRank()`'s first key (step 6). Pinned in `DistrictingDoctrineTest`.
 
 ---
 
