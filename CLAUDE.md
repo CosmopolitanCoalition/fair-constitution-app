@@ -197,8 +197,9 @@ or implement one. The procedure (per legislature):
    does the closest one ship, under the undercount flag.
 
 Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4),
-Step 11 of `runAutoCompositeForScope` (step 5), and `seat_drift` as
-`scoreRank()`'s first key (step 6). Pinned in `DistrictingDoctrineTest`.
+Step 11 of `runAutoCompositeForScope` (step 5), `seat_drift` as `scoreRank()`'s
+first key, and the final-bin break-tolerant repair for scattered-component
+pools that never enter the k-loop (step 6). Pinned in `DistrictingDoctrineTest`.
 
 ---
 

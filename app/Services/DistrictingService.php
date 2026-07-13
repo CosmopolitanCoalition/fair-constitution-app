@@ -788,6 +788,48 @@ class DistrictingService
             $quotaPopAll = $popAll / max($nonGiantBudget, 1);
             if ($quotaPopAll > 0) {
                 $allBins = $this->breakRebalance($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, null, true);
+
+                // ── Budget-exactness repair over the FINAL bin set (operator
+                // ruling 2026-07-13, the Draft-9 India rematch). The seat_drift
+                // comparator key only referees candidate COMPETITIONS — but a
+                // component below the giant threshold becomes a bin without ever
+                // entering the k-loop, so a scattered-smalls pool (India's 23
+                // non-giant states between the locked giants: four SINGLE-state
+                // districts + attachment clusters) can round down a hair per bin
+                // and drift −1 with no scoring plane ever seeing the sum.
+                //
+                // The clean rebalance above cannot fix it either: the bins are
+                // separate components, and contiguity-preserving transfers
+                // cannot cross the gaps. So when the nearest-rounded sum still
+                // misses the pool budget, escalate to the break-tolerant
+                // rebalance toward the integer targets — targets sum to the
+                // budget by construction, transfers keep fragments close
+                // (doctrine: breaks are purchasable, pieces stay close, islands
+                // never ballast), and landing every bin within ±0.5 of its
+                // target makes the nearest-rounds sum exactly. Kept only on
+                // strict drift improvement; when no exact drawing exists
+                // (indivisible atoms) the drifted map ships under the
+                // undercount flag, per the pin-16 fallback.
+                $seatSumOf = function (array $bins) use ($childById, $quotaPopAll, $nonGiantBudget, $floor, $ceiling): int {
+                    $binCount      = count(array_filter($bins, fn($b) => !empty($b)));
+                    $floorFeasible = ($nonGiantBudget >= $binCount * $floor);
+                    $minSeat       = $floorFeasible ? $floor : 1;
+                    $sum           = 0;
+                    foreach ($bins as $b) {
+                        if (empty($b)) continue;
+                        $frac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll;
+                        $sum += max($minSeat, min($ceiling, (int) round($frac)));
+                    }
+                    return $sum;
+                };
+                $drift = abs($seatSumOf($allBins) - $nonGiantBudget);
+                for ($attempt = 0; $drift > 0 && $attempt < 3; $attempt++) {
+                    $repaired = $this->breakRebalance($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, null, false);
+                    $repairedDrift = abs($seatSumOf($repaired) - $nonGiantBudget);
+                    if ($repairedDrift >= $drift) break;
+                    $allBins = $repaired;
+                    $drift   = $repairedDrift;
+                }
             }
         }
 

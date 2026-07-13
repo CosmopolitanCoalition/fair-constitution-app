@@ -100,6 +100,14 @@ use Tests\TestCase;
  *        every lower key; the fallback of pin 16 applies only when no
  *        exact drawing exists at all.
  *
+ *   (18) SCATTERED POOLS LAND THE BUDGET (the India rematch): components
+ *        below the giant threshold become bins WITHOUT entering the
+ *        k-loop, so no comparator ever sees their sum — a scattered-smalls
+ *        pool rounds down a hair per bin and drifts −1. The final-bin
+ *        repair escalates from the clean rebalance to the break-tolerant
+ *        one (integer targets sum to the budget; fragments kept close)
+ *        until the nearest-rounded sum lands the pool budget exactly.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1131,6 +1139,53 @@ class DistrictingDoctrineTest extends TestCase
             $this->assertSame(11, (int) $districts->sum('seats'),
                 'the pool budget is landed exactly by the drawing');
             $this->assertSame([5, 6], $districts->pluck('seats')->sort()->values()->all());
+            foreach ($districts as $d) {
+                $this->assertSame(
+                    (int) round((float) $d->fractional_seats),
+                    (int) $d->seats,
+                    'every district still seats exactly its nearest rounding'
+                );
+            }
+        });
+    }
+
+    // ─── (18) Scattered pools land the budget via break-tolerant repair ─────
+
+    public function test_scattered_component_pools_land_the_budget_exactly(): void
+    {
+        $this->onLivePg(function () {
+            // The India structure, distilled: three mutually NON-adjacent
+            // clusters of small cells (5.4 + 5.4 + 6.2 fracs of a 17-seat
+            // pool). Each cluster is its own component below the giant
+            // threshold → each auto-bins with no k-loop, no comparator, no
+            // competition. Nearest-rounding the auto-bins gives 5+5+6 = 16 —
+            // and the clean rebalance cannot fix it because contiguity-
+            // preserving transfers cannot cross the gaps. The final-bin
+            // repair must escalate to break-tolerant transfers (fragments
+            // kept close) and land 17 on the nose.
+            $rootId  = $this->makeJurisdiction('zzdm-0-root', 'Test Root', 0, null, $this->square(-2, -2, 40, 26), 1_700_000);
+            $scopeId = $this->makeJurisdiction('zzdm-1-scope', 'Test Scope', 1, $rootId, $this->square(-1, -1, 36, 24), 1_700_000);
+            $mk = function (string $tag, int $i, float $x, float $y) use ($scopeId) {
+                return $this->makeJurisdiction(
+                    "zzdm-2-{$tag}-{$i}", strtoupper($tag) . " {$i}", 2, $scopeId,
+                    $this->square($x, $y, $x + 1, $y + 1), 20_000
+                );
+            };
+            for ($i = 0; $i < 27; $i++) $mk('a', $i, $i, 0.0);   // cluster A: 5.4 fracs
+            for ($i = 0; $i < 27; $i++) $mk('b', $i, $i, 10.0);  // cluster B: 5.4 fracs
+            for ($i = 0; $i < 31; $i++) $mk('c', $i, $i, 20.0);  // cluster C: 6.2 fracs
+            $leg = $this->makeLegislature($rootId, 17);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 17, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            $this->assertSame(17, (int) $districts->sum('seats'),
+                'the scattered pool lands its budget exactly via break-tolerant regrouping');
             foreach ($districts as $d) {
                 $this->assertSame(
                     (int) round((float) $d->fractional_seats),
