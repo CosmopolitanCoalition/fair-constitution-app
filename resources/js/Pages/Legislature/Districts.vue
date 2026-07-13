@@ -3189,7 +3189,8 @@ const remainingBudget = computed(() => {
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
 const pendingSeats = computed(() => {
-    // Webster rounding clamped to the constitutional [floor, ceiling] range.
+    // Nearest rounding clamped to the constitutional [floor, ceiling] range
+    // (the operator's seating law — mirrors the server).
     // Was previously hardcoded as Math.max(5, ...) — now scales with operator-set
     // floor (e.g. with floor=3 a frac of 3.08 rounds to 3, not 5).
     const natural = Math.max(SEAT_FLOOR, Math.min(SEAT_CEILING, Math.round(pendingFractionalTotal.value)))

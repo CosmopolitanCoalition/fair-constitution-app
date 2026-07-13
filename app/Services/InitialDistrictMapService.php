@@ -20,19 +20,20 @@ use RuntimeException;
  *
  *  1. create a draft `legislature_district_maps` row;
  *  2. run the landed DistrictingService auto-composite at the
- *     legislature's root scope (Webster over the constituent
- *     jurisdictions → 5–9-seat composite districts);
+ *     legislature's root scope (nearest-rounded seating over the
+ *     constituent jurisdictions → 5–9-seat composite districts);
  *  3. THE LEAF-GIANT CLAMP: a constituent whose fractional seats exceed
  *     the giant threshold is skipped by the composite (giants are meant
  *     to be subdivided at the next level) — but a CHILDLESS giant has
  *     nothing to subdivide over. Same Art. II §8 posture as the
  *     Montegiardino chamber clamp: it becomes a single district clamped
  *     to the ceiling, audited with citation; the shortest-split-line
- *     drawing tool (master-plan backlog #1) lifts this later.
- *  4. reconcile: seats freed by the clamp are re-placed by Webster
- *     priority (pop / (2s+1)) so the map's seat vector sums EXACTLY to
- *     type_a_seats with every district inside [floor, ceiling];
- *  5. system-file F-ELB-003 through the ConstitutionalEngine — the
+ *     drawing tool (master-plan backlog #1) lifts this later. Seats the
+ *     clamp frees are NOT re-placed anywhere — the operator's seating
+ *     law (ruling 2026-07-13: "there is no rebudgeting a district after
+ *     giants are split") makes the shortfall an honest, visible posture
+ *     that the manual split of the giant later recovers;
+ *  4. system-file F-ELB-003 through the ConstitutionalEngine — the
  *     landed SubdivisionBoundaryDrawing handler validates the 5–9 band +
  *     membership shape and flips the draft → active (archiving any
  *     prior active plan). Board provenance: the bootstrap board is
@@ -109,11 +110,7 @@ class InitialDistrictMapService
                 throw new RuntimeException("Initial-map auto-composite failed: {$result['error']}");
             }
 
-            $clamps = $this->clampUnassignedLeafGiants($legislature, $jurisdictionId, $typeA, (string) $map->id);
-
-            $this->reconcileSeatTotal($legislature, $jurisdictionId, $typeA, (string) $map->id);
-
-            return $clamps;
+            return $this->clampUnassignedLeafGiants($legislature, $jurisdictionId, $typeA, (string) $map->id);
         });
 
         $summary = $this->summarize((string) $map->id);
@@ -257,7 +254,7 @@ class InitialDistrictMapService
                 'jurisdiction_id' => (string) $giant->id,
             ]);
 
-            // Spatial stats only — seats stay as clamped (Webster skip).
+            // Spatial stats only — seats stay as clamped (skipSeatsUpdate).
             $this->districting->recomputeDistrict($districtId, (string) $legislature->id, $legislature, true);
 
             $clamps[] = [
@@ -275,78 +272,12 @@ class InitialDistrictMapService
         return $clamps;
     }
 
-    /**
-     * Make the map's seat vector sum EXACTLY to type_a_seats. The
-     * leaf-giant clamp frees seats (locked round(frac) ≥ ceiling+1 →
-     * clamped ceiling); freed seats are re-placed one at a time by
-     * Webster priority pop/(2s+1) across districts below the ceiling —
-     * the same rule the composite itself uses, so the completed map is
-     * the Webster apportionment of type_a_seats under the ceiling bound.
-     */
-    private function reconcileSeatTotal(object $legislature, string $scopeId, int $typeA, string $mapId): void
-    {
-        $floor   = ConstitutionalDefaults::floor($scopeId);
-        $ceiling = ConstitutionalDefaults::ceiling($scopeId);
-
-        $districts = DB::table('legislature_districts')
-            ->where('map_id', $mapId)
-            ->whereNull('deleted_at')
-            ->get(['id', 'seats', 'actual_population'])
-            ->map(fn ($d) => (object) [
-                'id'    => (string) $d->id,
-                'seats' => (int) $d->seats,
-                'pop'   => (int) ($d->actual_population ?? 0),
-            ])
-            ->all();
-
-        $sum = array_sum(array_map(fn ($d) => $d->seats, $districts));
-
-        while ($sum < $typeA) {
-            $best = null;
-            foreach ($districts as $d) {
-                if ($d->seats >= $ceiling) {
-                    continue;
-                }
-                $priority = $d->pop / (2 * $d->seats + 1);
-                if ($best === null || $priority > $best->priority) {
-                    $best = (object) ['district' => $d, 'priority' => $priority];
-                }
-            }
-            if ($best === null) {
-                throw new RuntimeException(
-                    "Cannot place {$typeA} seats: every district is at the constitutional ceiling ({$ceiling})."
-                );
-            }
-            $best->district->seats++;
-            $sum++;
-        }
-
-        while ($sum > $typeA) {
-            $worst = null;
-            foreach ($districts as $d) {
-                if ($d->seats <= $floor) {
-                    continue;
-                }
-                $priority = $d->pop / (2 * $d->seats - 1); // priority of the seat being removed
-                if ($worst === null || $priority < $worst->priority) {
-                    $worst = (object) ['district' => $d, 'priority' => $priority];
-                }
-            }
-            if ($worst === null) {
-                throw new RuntimeException(
-                    "Cannot trim to {$typeA} seats: every district is at the constitutional floor ({$floor})."
-                );
-            }
-            $worst->district->seats--;
-            $sum--;
-        }
-
-        foreach ($districts as $d) {
-            DB::table('legislature_districts')
-                ->where('id', $d->id)
-                ->update(['seats' => $d->seats, 'updated_at' => now()]);
-        }
-    }
+    // reconcileSeatTotal() was REMOVED under the operator's seating law
+    // (ruling 2026-07-13): it re-placed clamp-freed seats one at a time by
+    // pop/(2s+1) priority so the map summed exactly to type_a_seats — a
+    // total-forcing loop, i.e. rebudgeting districts after the giant split,
+    // which the ruling forbids. A clamped childless giant's shortfall stays
+    // visible until its manual split recovers the seats.
 
     /** @return array{map_id: string, district_count: int, seat_vector: list<int>} */
     private function summarize(string $mapId): array

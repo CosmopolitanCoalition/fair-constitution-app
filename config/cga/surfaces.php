@@ -1013,7 +1013,7 @@ return [
             ['id' => 'F-ELB-008', 'citation' => 'Art. II §2 (manual district draw — childless leaf giants)'],
         ],
         'clocks'    => [],
-        'citation'  => 'Districts partition the jurisdiction; every district seats 5–9 · Webster rounding · Art. II §2',
+        'citation'  => 'Districts partition the jurisdiction; every district seats 5–9 · nearest rounding · Art. II §2',
     ],
 
     'jurisdictions/viewer' => [

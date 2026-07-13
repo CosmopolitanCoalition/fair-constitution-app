@@ -5,8 +5,9 @@ namespace App\Services;
 /**
  * G-VER — the DERIVED `constitutional_version`: a hash of the hardened-compute
  * surface (the files whose change alters HOW the constitution COUNTS — STV/Droop/
- * Gregory transfers, RCV, the supermajority formula, Webster apportionment, the
- * Art. III §6 co-determination math, the finalist cutoff). Because it is derived,
+ * Gregory transfers, RCV, the supermajority formula, the nearest-rounding seat
+ * apportionment, the Art. III §6 co-determination math, the finalist cutoff).
+ * Because it is derived,
  * it can NEVER drift from reality: any change to that surface changes the version
  * automatically, so a real vote-math change cannot ship as a mere app_release and
  * slip past the upgrade-agreement + freeze (G-VER's whole reason to exist).

@@ -151,7 +151,7 @@ constitutional_settings               Amendable defaults scoped per jurisdiction
 organizations                         Universal entity (political_party|business|nonprofit|common_good_corp|informal)
 legislatures                          Legislature instances, term tracking, bicameral support
 legislature_district_maps             Versioned district plans per legislature (draft / active / archived)
-legislature_districts                 Districts within a plan, with seat counts (Webster-rounded)
+legislature_districts                 Districts within a plan, seat counts NEAREST-ROUNDED (see apportionment law below)
 legislature_district_jurisdictions    Members of each district (join: district_id ↔ jurisdiction_id)
 legislature_members                   Elected reps, seat type, term dates, vacancy tracking
 elections                             Election trigger/cycle framework
@@ -166,6 +166,34 @@ Plus Laravel defaults: users, cache, jobs.
 `planet → jurisdiction_maps → jurisdictions` mirrors
 `legislature → district_maps → districts`, so boundary changes version over
 time without destroying historical data (in the baseline since Phase F).
+
+---
+
+## Apportionment Law (operator ruling 2026-07-13 — SETTLED, do not re-derive)
+
+There is **NO Webster, Sainte-Laguë, largest-remainder, or any other textbook
+apportionment method** anywhere in seat allocation. Do not describe, propose,
+or implement one. The procedure (per legislature):
+
+1. The legislature ROOT's seats = rounded cube root of its population (Earth → 1999).
+2. Split to children by population share **with the CHILDREN-SUM as denominator**
+   — never the parent's stored population (geodata noise: parent ≠ Σchildren).
+3. A child whose share would round **past the ceiling** (frac ≥ ceiling + 0.5)
+   rounds to its **nearest whole immediately and locks** (a "giant"). Shares
+   that round to the ceiling or below do not round here.
+4. Budget minus locked giants **redistributes among the rest**; repeat down the
+   layers. If redistribution pushes a share past the ceiling, the giant split
+   repeats until no layer has an unsplit giant.
+5. **Drawn districts round to NEAREST, independently** — no total-forcing, no
+   rebudgeting after the giant split. If a pool's drawn districts miss whole
+   multiples, the seated total drifts from the pool budget; that drift is the
+   drawing's defect, fixed by redrawing — never by a redistribution loop.
+   (Exceptions: an above-ceiling jurisdiction with no children awaits manual
+   split; STV/Droop in `VoteCountingService` is the ELECTION method, unrelated.)
+
+Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4)
+and Step 11 of `runAutoCompositeForScope` (step 5). Pinned in
+`DistrictingDoctrineTest`.
 
 ---
 

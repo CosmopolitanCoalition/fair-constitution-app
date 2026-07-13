@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * District within a versioned district plan (substrate model added with
  * WI-B0 — the table dates from 2026_02; controllers previously used
- * query-builder access). Seats are Webster-rounded, constitutionally 5–9.
+ * query-builder access). Seats are NEAREST-rounded from the drawn fractional
+ * (operator seating law, 2026-07-13), constitutionally 5–9.
  * Member jurisdictions live in legislature_district_jurisdictions (join);
  * there is no unioned polygon on the row (geom dropped 2026-04-23).
  */

@@ -20,8 +20,8 @@ use Illuminate\Support\Str;
  *
  * It does NOT create districts. District drawing is the exclusive
  * responsibility of the district viewer's auto-composite tools
- * (LegislatureController::runAutoCompositeForScope), which compute the
- * exact level-local Webster result and persist seat allocations on
+ * (DistrictingService::runAutoCompositeForScope), which seat each drawn
+ * district by NEAREST rounding (operator law, 2026-07-13) and persist on
  * `legislature_districts.seats`. Per-jurisdiction apportionment columns
  * were removed in migration 2026_05_22_000002_apportionment_cleanup.php
  * — apportionment lives at the district level now.

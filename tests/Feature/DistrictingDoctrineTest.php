@@ -24,7 +24,7 @@ use Tests\TestCase;
  *       (9×q, 6×q …), not on the uniform pop/k midpoint — "look at the optimal
  *       breakdown of reps per district first … 6.55 vs 8.12, I'm taking the 8".
  *       Old engine: equal-target refinement pulled every candidate to the
- *       750/750 midpoint, then bounded Webster left ~7% on both districts.
+ *       750/750 midpoint, then bounded rounding left ~7% on both districts.
  *
  *   (3) COMPACT SHAPE AT EQUAL BALANCE (São Paulo class): among equally
  *       balanced contiguous configurations the compact one must win, and the
@@ -61,7 +61,7 @@ use Tests\TestCase;
  *
  *   (10) POST-ATTACHMENT REBALANCE (round-5, Tanzania/France class): island
  *        attachment shifts population after all scoring; a clean-only
- *        rebalance over the final bins must compensate before Webster.
+ *        rebalance over the final bins must compensate before seating.
  *
  *   (11) SEQUENTIAL BUILDER (round-5, Russia/Egypt class): the operator's
  *        one-district-at-a-time method as a generator must construct
@@ -82,6 +82,15 @@ use Tests\TestCase;
  *        blind or backwards on all five operator-flagged scopes. It sits
  *        BELOW the 1pp equality band, seat spread, and contiguity: shape
  *        never buys balance, mix, or a break.
+ *
+ *   (16) THE SEATING LAW (operator ruling 2026-07-13): drawn districts round
+ *        to NEAREST, independently — "there is no rebudgeting a district
+ *        after giants are split." No Webster / Sainte-Laguë / largest-
+ *        remainder total-forcing exists: when drawn shares miss whole
+ *        multiples the seated total drifts from the pool budget in either
+ *        direction, and that drift is the drawing's defect to fix by
+ *        redrawing. Rounding lives in exactly two places: the giant split
+ *        and the drawn district.
  *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
@@ -138,7 +147,7 @@ class DistrictingDoctrineTest extends TestCase
         $this->onLivePg(function () {
             // Chain of 12: six 150k children then six 100k (total 1.5M),
             // budget 15, quota 100k. The equal-target midpoint (750/750) can
-            // only earn a 7+8 Webster split → ~7% on both districts. Integer
+            // only earn a 7+8 split → ~7% on both districts. Integer
             // targeting finds 900k/600k → 9+6 seats → 0%, fully contiguous.
             $pops = array_merge(array_fill(0, 6, 150), array_fill(0, 6, 100));
             [$leg, $scopeId] = $this->makeScopeFixture('zzdb', $pops, 1_000, 15);
@@ -537,9 +546,9 @@ class DistrictingDoctrineTest extends TestCase
         $this->assertLessThan(30.0, $elapsed, 'bounded candidate machinery — never minutes per scope');
     }
 
-    // ─── (10) Island attachment is compensated before Webster runs ──────────
+    // ─── (10) Island attachment is compensated before seating ───────────────
 
-    public function test_island_attachment_is_rebalanced_before_webster(): void
+    public function test_island_attachment_is_rebalanced_before_seating(): void
     {
         $this->onLivePg(function () {
             // The Tanzania mechanism: a mainland chain splits beautifully, then
@@ -988,6 +997,60 @@ class DistrictingDoctrineTest extends TestCase
                 $beats->invoke($svc, $sBlock, $sHook),
                 'at identical balance and mix, the shorter real border wins'
             );
+        });
+    }
+
+    // ─── (16) The seating law: nearest rounding, no total-forcing ───────────
+
+    public function test_drawn_districts_round_to_nearest_with_no_total_forcing(): void
+    {
+        $this->onLivePg(function () {
+            // UNDER-seat direction (the Puducherry case, distilled): three
+            // indivisible atoms at 5.4 + 5.4 + 6.2 fracs of a 17-seat pool.
+            // No legal 2-way grouping exists (either grouping makes a >9.5
+            // bin), so the engine must seat the atoms as three districts.
+            // Nearest rounding gives 5 + 5 + 6 = 16 of 17 — the drift is
+            // deliberate law, not a defect: no loop may force the total by
+            // handing a 5.4 district a sixth seat.
+            [$leg, $scopeId] = $this->makeScopeFixture('zzdj', [54, 54, 62], 10_000, 17);
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 17, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(3, $result['districts_created']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            foreach ($districts as $d) {
+                $this->assertSame(
+                    (int) round((float) $d->fractional_seats),
+                    (int) $d->seats,
+                    'every drawn district seats exactly its nearest rounding'
+                );
+            }
+            $this->assertSame([5, 5, 6], $districts->pluck('seats')->sort()->values()->all());
+            $this->assertSame(16, (int) $districts->sum('seats'),
+                'the pool seats 16 of 17 — the missing seat is the drawing\'s defect, never redistributed');
+        });
+
+        $this->onLivePg(function () {
+            // OVER-seat direction (the China 7.529 case, distilled): three
+            // atoms at 5.667 fracs each of a 17-seat pool. Nearest rounding
+            // gives 6 + 6 + 6 = 18 — one over, equally deliberate.
+            [$leg, $scopeId] = $this->makeScopeFixture('zzdk', [58, 58, 58], 10_000, 17);
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 17, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(3, $result['districts_created']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            $this->assertSame([6, 6, 6], $districts->pluck('seats')->sort()->values()->all());
+            $this->assertSame(18, (int) $districts->sum('seats'),
+                'nearest rounding may seat one over the pool — no seat is clawed back to force the total');
         });
     }
 

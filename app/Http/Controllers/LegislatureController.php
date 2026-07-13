@@ -434,7 +434,7 @@ class LegislatureController extends Controller
         // Without it, breadcrumb/step-up links (or a hand-edited URL) can walk a
         // legislature's mapper onto an ANCESTOR jurisdiction — the giant guard
         // below can't catch that (an ancestor's fractional seats are always
-        // astronomical), and every Webster-share figure on the page becomes
+        // astronomical), and every seat-share figure on the page becomes
         // nonsense ("7,677,127 seats to assign" on a 32-seat legislature).
         // Out-of-subtree scopes land back at the root scope, map param kept.
         if ($scopeId !== $leg->jurisdiction_id) {
@@ -907,7 +907,7 @@ class LegislatureController extends Controller
         unset($d);
 
         // At non-root scopes, always recompute composite district fractional_seats so they
-        // represent each district's proportional share of the ACTUAL Webster-allocated
+        // represent each district's proportional share of the ACTUAL seated
         // composite seat total (SUM of ld.seats in districtMap). This is independent of
         // how fractional_seats was stored (root-quota vs local-quota) and guarantees:
         //   • composite fracs sum to exactly the composite seat total
@@ -1450,7 +1450,7 @@ class LegislatureController extends Controller
             $childFrac = (int) $child->population / max($localQuota, 1);
             if ($childFrac >= $giantThreshold) {
                 // Locked giant seat count via the gated cascade. Falls back
-                // to Webster-rounded local frac if the cascade returns NULL
+                // to the nearest-rounded local frac if the cascade returns NULL
                 // (degenerate case; same fallback as runAutoCompositeForScope).
                 $childSeats = $this->computeSeatBudget($child->id, $legislature_id)
                     ?? max($floor, (int) round($childFrac));
@@ -1488,7 +1488,8 @@ class LegislatureController extends Controller
             ], 422);
         }
 
-        // Webster (Sainte-Laguë) rounding — clamp to [effectiveFloor, ceiling]
+        // NEAREST rounding (the operator's seating law, ruling 2026-07-13) —
+        // clamp to [effectiveFloor, ceiling]
         $seats         = max($effectiveFloor, min($ceiling, (int) round($fractional)));
         $floorOverride = $seats < $floor;
 
@@ -3912,7 +3913,7 @@ class LegislatureController extends Controller
         }
         unset($d);
 
-        // Always recompute fractional_seats from the actual Webster seat allocation
+        // Always recompute fractional_seats from the actual seated allocation
         // (SUM of ld.seats).  This is independent of how fractional_seats was stored
         // (root-quota vs local-quota) and guarantees composite fracs sum to exactly
         // the district seat total shown in the sidebar.
@@ -4118,7 +4119,7 @@ class LegislatureController extends Controller
 
         // ── Flag 4: Floor exceptions — only genuine cases ─────────────────────
         // A floor exception is meaningful only when the district's fractional seats
-        // would round BELOW the floor via Webster rounding: fractional < floor - 0.5.
+        // would round BELOW the floor via nearest rounding: fractional < floor - 0.5.
         // A district with fractional = floor - 0.1 still rounds to floor and does NOT need a flag.
         foreach ($districts as $d) {
             if ((float)($d['fractional_seats'] ?? $floorOverride + 1) < $floorOverride) {

@@ -35,7 +35,19 @@ use Illuminate\Support\Str;
  * Mechanisms: integer seat-quota targets with dynamic retargeting
  * (optimalIntegerTargets), population-anchor seeding, deliberate-break
  * rebalancing (breakRebalance), fragment-proximity scoring (fragment_gap),
- * and the scoreRank()/scoreBeats() comparator. Webster (Step 11) untouched.
+ * and the scoreRank()/scoreBeats() comparator.
+ *
+ * APPORTIONMENT LAW (operator ruling 2026-07-13 — there is NO Webster /
+ * Sainte-Laguë / largest-remainder method anywhere in this legislature):
+ * the root's cube-root total splits to children by population share with
+ * the CHILDREN-SUM as denominator (geodata noise means parent pop ≠
+ * Σchildren); children whose share would round past the ceiling (≥
+ * ceiling+0.5) round to NEAREST WHOLE immediately and lock; the budget
+ * minus the locked giants redistributes among the rest, repeating down the
+ * layers (computeSeatBudget + Steps 2-5). Drawn districts then round to
+ * nearest INDEPENDENTLY (Step 11) — no total-forcing, no rebudgeting after
+ * the giant split. A pool whose drawn districts miss whole multiples seats
+ * a drifted total; that is the drawing's defect to fix by redrawing.
  */
 class DistrictingService
 {
@@ -447,7 +459,7 @@ class DistrictingService
         //   3. Compactness (cut_length: REAL border length between districts — stringy = bad;
         //      then neck_count pinch points, then avg Rg² as the centroid fallback)
         //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
-        // The constitutional floor/ceiling stay hard throughout (frac guards + Webster caps).
+        // The constitutional floor/ceiling stay hard throughout (frac guards + Step-11 clamps).
         //
         // After the contiguity-preserving pipeline, any per-k winner still >2.5% off its
         // worst integer target spawns a deliberate-break variant (breakRebalance — transfers
@@ -521,7 +533,7 @@ class DistrictingService
                 // The proxy scores each raw partition against the OPTIMAL integer seat targets
                 // for its realized bins (operator method: "look at the optimal breakdown of
                 // reps per district first" — districts should land ON whole seat multiples,
-                // because bounded Webster can reward nothing else).
+                // because nearest-rounded seating rewards nothing else).
                 $seedSets = [];
                 foreach ($component as $firstSeed) {
                     $seedSets[] = $this->farPointSeeds($firstSeed, $k, $component, $centroids);
@@ -758,7 +770,7 @@ class DistrictingService
         // exactly yet sat at 4.2%/4.2% vs his 0.1%/0.1%, purely because Zanzibar
         // landed on one side post-hoc. One CLEAN-ONLY rebalance over the FINAL
         // bin set (contiguity-preserving transfers only; islands never move)
-        // lets the mainland compensate before Webster runs.
+        // lets the mainland compensate before Step 11 seats the bins.
         if (count($allBins) >= 2 && $nonGiantBudget > 0) {
             $popAll = 0.0;
             foreach ($allBins as $b) {
@@ -823,56 +835,48 @@ class DistrictingService
             ];
         }
 
-        // ── Step 11: Webster (Sainte-Laguë) distribution across bins ────────
-        // effectiveBudget = nonGiantBudget (true remaining budget after locking giants).
-        // Constitutional floor (≥ floor per bin) applies only when the budget can support it.
-        // When nonGiantBudget < floor × bins, distribute exactly what's available (floor_override=true).
+        // ── Step 11: Seat each drawn district by NEAREST ROUNDING ───────────
+        // Operator ruling 2026-07-13 (settled law): "It always rounds to
+        // nearest. … The rounding takes place in the giant splitting phase and
+        // the district drawing phase. The district when drawn should round to
+        // the nearest integer. There is no rebudgeting a district after giants
+        // are split."
+        //
+        // Apportionment rounding therefore lives in exactly two places: the
+        // giant-splitting phase (fracs ≥ ceiling+0.5 round to nearest and
+        // lock; the remainder redistributes among what's left — Steps 2-5 and
+        // computeSeatBudget()), and here, where each drawn district rounds to
+        // nearest INDEPENDENTLY. When the drawn shares miss whole multiples,
+        // the seated total may drift from the pool budget (a 5.46-frac
+        // district seats 5, leaving a 61-seat pool seating 60; a 7.53-frac
+        // district seats 8, pushing its pool one over). That drift is the
+        // DRAWING's defect — visible, honest, and fixable by redrawing — and
+        // is deliberately NOT papered over by any total-forcing loop. No
+        // Webster / Sainte-Laguë / largest-remainder methods: those exist to
+        // force a total, and forcing the total is exactly what the ruling
+        // forbids.
+        //
+        // The constitutional floor/ceiling stay hard clamps: fracs in
+        // [floorBoundary−0.5, floorBoundary) round up to the floor with
+        // floor_override recorded for audit; out-of-range bins (possible only
+        // through the attachment/backstop planes or degenerate budgets) are
+        // clamped the same way. When the budget cannot support the floor for
+        // every bin (degenerate tiny scopes), rounding still applies with a
+        // 1-seat minimum, mirroring the old distribute-what-is-available
+        // behavior.
         $totalBinPop     = array_sum(array_column($binData, 'pop'));
         $effectiveBudget = $nonGiantBudget;
         $binCount        = count($binData);
         $floorFeasible   = ($effectiveBudget >= $binCount * $floor);
-        $startSeats      = $floorFeasible ? $floor : 1;
+        $minSeat         = $floorFeasible ? $floor : 1;
         $binQuota        = $totalBinPop / max($effectiveBudget, 1);
 
         foreach ($binData as &$b) {
             $b['fractional']     = $b['pop'] / max($binQuota, 1);
             $b['floor_override'] = $b['fractional'] < $floorBoundary;
-            $b['seats']          = $startSeats;
+            $b['seats']          = max($minSeat, min($ceiling, (int) round($b['fractional'])));
         }
         unset($b);
-
-        // Distribute remaining seats one-by-one using Webster priority (pop / (2s+1)).
-        // When floor is not feasible, skip the floor_override gate so all budget is distributed.
-        $remaining = $effectiveBudget - $startSeats * $binCount;
-        for ($r = 0; $r < $remaining; $r++) {
-            $bestIdx = -1; $bestPriority = -1.0;
-            foreach ($binData as $i => $b) {
-                if ($b['seats'] >= $ceiling) continue;
-                if ($floorFeasible && $b['floor_override']) continue;
-                $priority = $b['pop'] / (2 * $b['seats'] + 1);
-                if ($priority > $bestPriority) { $bestPriority = $priority; $bestIdx = $i; }
-            }
-            if ($bestIdx >= 0) $binData[$bestIdx]['seats']++;
-        }
-
-        // ── Safety: exhaust any budget not placed by the main Webster loop ────────
-        // Occurs when floor_override bins were skipped AND all other bins hit the ceiling,
-        // leaving bestIdx=-1 for one or more rounds. Distribute leftover seats by Webster
-        // priority without the floor_override gate — the constitutional ceiling is the
-        // only hard limit. floor_override stays recorded on the district for audit purposes.
-        $safeAssigned = array_sum(array_column($binData, 'seats'));
-        $safeRemain   = $effectiveBudget - $safeAssigned;
-        for ($r = 0; $r < $safeRemain; $r++) {
-            $bestIdx = -1; $bestPri = -1.0;
-            foreach ($binData as $i => $b) {
-                if ($b['seats'] >= $ceiling) continue;   // constitutional max is still hard
-                $priority = $b['pop'] / (2 * $b['seats'] + 1);
-                if ($priority > $bestPri) { $bestPri = $priority; $bestIdx = $i; }
-            }
-            if ($bestIdx >= 0) $binData[$bestIdx]['seats']++;
-            // If bestIdx is -1 here, ALL bins are at the constitutional ceiling and the
-            // budget genuinely cannot be placed (only possible if budget > ceiling × binCount).
-        }
 
         // ── Step 12: Insert districts ──────────────────────────────────────────
         // The district's `seats` value is the canonical seat budget for any
@@ -939,8 +943,9 @@ class DistrictingService
 
             // Compute and cache spatial stats (convex_hull_ratio, num_geom_parts, is_contiguous)
             // so reseeded districts have stats immediately — same as manual create/update.
-            // Pass $skipSeatsUpdate=true: Webster already assigned the correct seats at INSERT;
-            // recomputeDistrict must not overwrite them with independent per-district rounding.
+            // Pass $skipSeatsUpdate=true: Step 11 already seated the district against the
+            // scope's pool quota; recomputeDistrict must not re-derive seats from a
+            // different quota context.
             $this->recomputeDistrict($districtId, $legislature_id, $leg, true);
 
             $districtsCreated++;
@@ -1000,7 +1005,7 @@ class DistrictingService
         string $districtId,
         string $legislatureId,
         object $leg,
-        bool   $skipSeatsUpdate = false  // true when called from auto-composite: preserve Webster seats
+        bool   $skipSeatsUpdate = false  // true when called from auto-composite: preserve Step-11 seats
     ): void
     {
         ['giant' => $giantThreshold, 'floor' => $floorBoundary] = $this->thresholds($leg->jurisdiction_id);
@@ -1271,10 +1276,11 @@ class DistrictingService
         // No geometry stored on the district record itself —
         // the revealed layer renders member jurisdiction polygons directly.
         //
-        // When $skipSeatsUpdate is true (called from auto-composite), Webster already assigned
-        // the correct seats at INSERT time — do NOT overwrite with per-district rounding, which
-        // can diverge from the guaranteed-total Webster result (e.g. frac 7.49 rounds to 7 but
-        // Webster gave 8 to balance the scope total).  Only spatial stats are refreshed.
+        // When $skipSeatsUpdate is true (called from auto-composite), Step 11 already seated
+        // the district by nearest rounding against the SCOPE's pool quota — do NOT re-derive
+        // seats here, where the quota context (this district's members alone) differs and
+        // would shift the fractional. Only spatial stats are refreshed. Both paths obey the
+        // same law: nearest rounding, no total-forcing (operator ruling 2026-07-13).
         // NOTE: polsby_popper column was dropped by migration
         // 2026_04_23_000003_drop_unused_district_and_jurisdiction_columns —
         // superseded by convex_hull_ratio. Do NOT add it back here.
@@ -1391,7 +1397,7 @@ class DistrictingService
         // component's seat budget, the refinement passes measure each bin against its own
         // whole-seat target (s_i × quota, Σs_i = budget, re-derived every iteration —
         // dynamic retargeting) instead of the uniform pop/k. Districts should land ON
-        // whole seat multiples: that is what bounded Webster can actually reward.
+        // whole seat multiples: that is what nearest-rounded seating rewards.
         // BFS itself still coarse-fills toward pop/k; only the passes chase integers.
         $quotaPop      = $compBudget > 0 ? $totalPop / $compBudget : 0.0;
         $intFloor      = (int) round($floorBoundary);
@@ -2359,7 +2365,8 @@ class DistrictingService
      * ceiling."  fragment_gap operationalizes "Even when I can't be contiguous I
      * try to keep the non-contiguous pieces as close together as I can."
      *
-     * Simulates Webster apportionment in-memory to compute accurate per-district deviations.
+     * Simulates the nearest-rounding seating law in-memory (operator ruling
+     * 2026-07-13, mirrors Step 11) to compute accurate per-district deviations.
      * Zero DB queries — uses the adjacency graph and the shared-border lengths
      * ($this->borderLen) already loaded in runAutoCompositeForScope().
      *
@@ -2382,28 +2389,24 @@ class DistrictingService
         $binCount      = count($bins);
         $binQuota      = $totalBinPop / max($nonGiantBudget, 1);
         $floorFeasible = ($nonGiantBudget >= $binCount * $floor);
-        $startSeats    = $floorFeasible ? $floor : 1;
+        $minSeat       = $floorFeasible ? $floor : 1;
 
-        // Simulate Webster (Sainte-Laguë) apportionment in-memory
-        $binPops        = array_map(
+        // Simulate the SEATING LAW in-memory (operator ruling 2026-07-13,
+        // mirrors Step 11 exactly): each bin rounds to NEAREST independently,
+        // clamped to the constitutional floor/ceiling — no total-forcing loop.
+        // Deviations below are computed against these seats, so a partition
+        // whose districts miss whole multiples is punished through the balance
+        // keys: the comparator itself steers the generators toward
+        // whole-multiple drawing instead of a redistribution loop hiding the
+        // miss ("the rounding takes place in … the district drawing phase").
+        $binPops  = array_map(
             fn($b) => array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $b)),
             $bins
         );
-        $binSeats       = array_fill(0, $binCount, $startSeats);
-        $floorOverrides = array_map(fn($p) => $binQuota > 0 && ($p / $binQuota) < $floorBoundary, $binPops);
-
-        $remaining = $nonGiantBudget - $startSeats * $binCount;
-        for ($r = 0; $r < $remaining; $r++) {
-            $bestIdx = -1;
-            $bestPri = -1.0;
-            foreach ($binSeats as $i => $s) {
-                if ($s >= $ceiling) continue;
-                if ($floorFeasible && $floorOverrides[$i]) continue;
-                $pri = $binPops[$i] / (2 * $s + 1);
-                if ($pri > $bestPri) { $bestPri = $pri; $bestIdx = $i; }
-            }
-            if ($bestIdx >= 0) $binSeats[$bestIdx]++;
-        }
+        $binSeats = array_map(
+            fn($p) => max($minSeat, min($ceiling, (int) round($binQuota > 0 ? $p / $binQuota : 0.0))),
+            $binPops
+        );
 
         // Compute per-bin deviation percentages
         $deviations = [];
@@ -2431,8 +2434,8 @@ class DistrictingService
         }
         $avgDroopThreshold = $binCount > 0 ? $droopSum / $binCount : 1.0;
 
-        // Reps-per-district equality: the spread of the simulated Webster seat
-        // vector. 6/6/6 → 0; 7/6/5 → 2. Ranked above compactness by scoreRank().
+        // Reps-per-district equality: the spread of the simulated seat vector.
+        // 6/6/6 → 0; 7/6/5 → 2. Ranked above compactness by scoreRank().
         $seatSpread = $binCount > 0 ? max($binSeats) - min($binSeats) : 0;
 
         // In-memory contiguity: BFS reachability within each bin using the adjacency graph.
@@ -2688,7 +2691,7 @@ class DistrictingService
     /**
      * Comparator rank vector encoding the operator's sacrifice hierarchy
      * (ruling 2026-07-08): floor/ceiling are inviolable (enforced upstream by frac
-     * guards and Webster caps), then population balance, then contiguity (breaks are
+     * guards and Step-11 clamps), then population balance, then contiguity (breaks are
      * purchasable; fragments kept close), then compactness, then seat-mix/UPD
      * optimality — "I'm normally quick to abandon the optimal reps per district
      * balance first. Population balance last."
@@ -3006,7 +3009,7 @@ class DistrictingService
      * under scoreBeats(): coarse-banded equality decides whether the break was worth
      * it (a ±32% Canada → yes; polishing 1.3% to 0.1% → no).
      *
-     * Frac guards keep every bin inside Webster's round-to-legal window: each bin
+     * Frac guards keep every bin inside the round-to-legal window: each bin
      * stays ≥ floorBoundary−0.5 (still rounds to ≥ floor) and < giantThreshold
      * (still rounds to ≤ ceiling). Bins are never emptied.
      *
