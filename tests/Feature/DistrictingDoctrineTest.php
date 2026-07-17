@@ -144,6 +144,15 @@ use Tests\TestCase;
  *        blocks; EXTRA breaks still lose absolutely at the count key;
  *        raw gap returns as the final tiebreak.
  *
+ *   (23) BORDER-FIRST BISECTION (round 12, the São Paulo snake): growth
+ *        generators leave the border as an emergent scar — on
+ *        population-lopsided scopes it snakes, and no local pass can
+ *        unwind it. bisectionCandidates draws the border first, the way
+ *        the operator does: 12 sweep directions, cut at the canonical
+ *        population boundary, strays rejoin so each side stays whole,
+ *        recurse for k > 2. Pre-flight on the real fixtures: São Paulo
+ *        cut 16.5 → 6.7 at equal balance; Sichuan 16.3 → 13.1.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1461,6 +1470,62 @@ class DistrictingDoctrineTest extends TestCase
             $m->invoke($svc, $identicalButCloser, $betterMixSlightlyFarther),
             'all else equal, closer pieces still win on the raw gap'
         );
+    }
+
+    // ─── (23) Border-first bisection candidates ──────────────────────────────
+
+    public function test_bisection_generator_produces_clean_half_splits(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'bisectionCandidates');
+        $m->setAccessible(true);
+
+        // 6×4 uniform grid, 24 cells of 0.5 fracs, 12 seats at k=2: the
+        // canonical 6+6 is a straight half-split. At least one sweep must
+        // deliver it — both sides contiguous, populations exactly even.
+        $childById = []; $centroids = []; $adj = []; $byCell = [];
+        for ($gy = 0; $gy < 4; $gy++) {
+            for ($gx = 0; $gx < 6; $gx++) {
+                $id = sprintf('g%d%d', $gx, $gy);
+                $byCell["$gx,$gy"] = $id;
+                $childById[$id] = (object) ['population' => 50_000, 'fractional_seats' => 0.5,
+                                            'centroid_x' => $gx + 0.5, 'centroid_y' => $gy + 0.5];
+                $centroids[$id] = ['x' => $gx + 0.5, 'y' => $gy + 0.5];
+                $adj[$id] = [];
+            }
+        }
+        foreach ($byCell as $key => $id) {
+            [$gx, $gy] = array_map('intval', explode(',', $key));
+            foreach ([[1, 0], [0, 1]] as [$dx, $dy]) {
+                $nb = $byCell[($gx + $dx) . ',' . ($gy + $dy)] ?? null;
+                if ($nb !== null) { $adj[$id][] = $nb; $adj[$nb][] = $id; }
+            }
+        }
+
+        $cands = $m->invoke($svc, array_values($byCell), $childById, $adj, $centroids, 12, 2, 100_000.0, 5, 9);
+        $this->assertNotEmpty($cands, 'the sweep produces candidates');
+
+        $connected = function (array $bin) use ($adj): bool {
+            $set = array_flip($bin);
+            $seen = [$bin[0] => true]; $q = [$bin[0]];
+            while ($q) {
+                $cur = array_pop($q);
+                foreach ($adj[$cur] as $nb) {
+                    if (isset($set[$nb]) && !isset($seen[$nb])) { $seen[$nb] = true; $q[] = $nb; }
+                }
+            }
+            return count($seen) === count($bin);
+        };
+        $foundClean = false;
+        foreach ($cands as $bins) {
+            if (count($bins) !== 2) continue;
+            $pops = array_map(fn($b) => array_sum(array_map(fn($j) => $childById[$j]->population, $b)), $bins);
+            if ($pops[0] === $pops[1] && $connected($bins[0]) && $connected($bins[1])) {
+                $foundClean = true;
+                break;
+            }
+        }
+        $this->assertTrue($foundClean, 'at least one sweep lands the exact contiguous half-split');
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────

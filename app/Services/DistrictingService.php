@@ -636,6 +636,33 @@ class DistrictingService
                                 $bestScoreK = $sScore;
                             }
                         }
+
+                        // ── Bisection candidates (round 12, the São Paulo snake):
+                        // the BFS growers and the sequential builder both grow
+                        // regions member-by-member, so the border is an emergent
+                        // scar — on population-lopsided scopes it snakes, and no
+                        // local pass can unwind it (the round-10 probe: greedy
+                        // repair plateaued at 7× the manual border). The operator
+                        // draws the BORDER first: a short line through the
+                        // population field with whole seat multiples on each
+                        // side. This generator mechanizes exactly that — sweep a
+                        // line across 12 directions, cut the member list at the
+                        // canonical population boundary, repair stray fragments,
+                        // recurse for k > 2 — then each candidate takes the same
+                        // polish as the sequential ones and competes under the
+                        // full comparator (cut_length recognizes blocky borders
+                        // on sight since round 10).
+                        foreach ($this->bisectionCandidates($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $floor, $ceiling) as $bBins) {
+                            $bBins = $this->breakRebalance($bBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                            $bBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $bBins);
+                            if (!$bBins) continue;
+                            $effectiveBudget = max(count($bBins), $compBudget);
+                            $bScore = $this->scoreConfiguration($virtualize($bBins), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                            if ($bestScoreK === null || $this->scoreBeats($bScore, $bestScoreK)) {
+                                $bestBinsK  = $bBins;
+                                $bestScoreK = $bScore;
+                            }
+                        }
                     }
                 }
 
@@ -3713,6 +3740,139 @@ class DistrictingService
         }
 
         return $bins;
+    }
+
+    /**
+     * Border-first bisection candidates (round 12, the São Paulo snake).
+     *
+     * Growth-based generators leave the border as an emergent scar; this one
+     * CHOOSES the border, the way the operator draws: sweep a straight line
+     * across the scope in 12 directions, sort members by projection, cut the
+     * prefix at the canonical population boundary (the whole-seat multiple),
+     * hand stray fragments to the side that keeps each bin one piece, and
+     * recurse on the halves for k > 2. Every candidate is a full k-way
+     * partition; the caller polishes and scores it like any other — the
+     * cut_length key recognizes a genuinely short border on sight.
+     *
+     * @return list<array<int, list<string>>>  up to 12 candidate bin sets
+     */
+    private function bisectionCandidates(
+        array $component,
+        array $childById,
+        array $adj,
+        array $centroids,
+        int   $budget,
+        int   $k,
+        float $quotaPop,
+        int   $floor,
+        int   $ceiling
+    ): array {
+        if ($k < 2 || $quotaPop <= 0 || count($component) < $k) return [];
+        $parts = $this->canonicalPartition($budget, $k, $floor, $ceiling);
+        if ($parts === null) return [];
+
+        $candidates = [];
+        for ($d = 0; $d < 12; $d++) {
+            $theta = M_PI * $d / 12.0;
+            $ux = cos($theta);
+            $uy = sin($theta);
+            $bins = $this->bisectRecurse($component, $parts, $childById, $adj, $centroids, $quotaPop, $ux, $uy);
+            if ($bins !== null && count($bins) === $k) {
+                $candidates[] = $bins;
+            }
+        }
+        return $candidates;
+    }
+
+    /**
+     * One recursive level of the bisection: split the target seat vector into
+     * two halves, cut the member list at the halves' population boundary along
+     * the sweep direction, repair strays so each side is one piece per side
+     * where possible, recurse. Sub-levels reuse the top-level direction — the
+     * candidate DIVERSITY comes from the 12 top-level sweeps, and the
+     * comparator picks among the finished partitions.
+     */
+    private function bisectRecurse(
+        array $members,
+        array $parts,
+        array $childById,
+        array $adj,
+        array $centroids,
+        float $quotaPop,
+        float $ux,
+        float $uy
+    ): ?array {
+        if (count($parts) === 1) {
+            return [array_values($members)];
+        }
+        $k1 = intdiv(count($parts), 2);
+        $partsA = array_slice($parts, 0, $k1);
+        $partsB = array_slice($parts, $k1);
+        $targetA = array_sum($partsA) * $quotaPop;
+
+        // Sort by projection onto the sweep direction (stable via id).
+        $sorted = array_values($members);
+        usort($sorted, function ($a, $b) use ($centroids, $ux, $uy) {
+            $pa = $centroids[$a]['x'] * $ux + $centroids[$a]['y'] * $uy;
+            $pb = $centroids[$b]['x'] * $ux + $centroids[$b]['y'] * $uy;
+            return ($pa <=> $pb) ?: strcmp($a, $b);
+        });
+
+        // Cut where the running population crosses the canonical boundary,
+        // choosing the nearer of the two adjacent cuts.
+        $acc = 0.0;
+        $cutIdx = count($sorted) - 1;
+        foreach ($sorted as $i => $jid) {
+            $next = $acc + (float) $childById[$jid]->population;
+            if ($next >= $targetA) {
+                $cutIdx = (($targetA - $acc) < ($next - $targetA)) ? $i - 1 : $i;
+                break;
+            }
+            $acc = $next;
+        }
+        if ($cutIdx < 0 || $cutIdx >= count($sorted) - 1) return null; // degenerate cut
+        $sideA = array_slice($sorted, 0, $cutIdx + 1);
+        $sideB = array_slice($sorted, $cutIdx + 1);
+
+        // Stray repair: a straight cut through a jagged adjacency graph leaves
+        // slivers marooned on the wrong side. Keep each side's LARGEST
+        // connected piece and hand every smaller fragment to the other side —
+        // one pass each way, majority piece wins.
+        [$sideA, $sideB] = $this->keepLargestPiece($sideA, $sideB, $adj, $centroids);
+        [$sideB, $sideA] = $this->keepLargestPiece($sideB, $sideA, $adj, $centroids);
+        if (count($sideA) === 0 || count($sideB) === 0) return null;
+
+        $left  = $this->bisectRecurse($sideA, $partsA, $childById, $adj, $centroids, $quotaPop, $ux, $uy);
+        $right = $this->bisectRecurse($sideB, $partsB, $childById, $adj, $centroids, $quotaPop, $ux, $uy);
+        if ($left === null || $right === null) return null;
+        return array_merge($left, $right);
+    }
+
+    /** Keep $side's largest connected fragment; smaller fragments join $other. */
+    private function keepLargestPiece(array $side, array $other, array $adj, array $centroids): array
+    {
+        if (count($side) <= 1) return [array_values($side), array_values($other)];
+        $inSide = array_flip($side);
+        $seen = []; $fragments = [];
+        foreach ($side as $start) {
+            if (isset($seen[$start])) continue;
+            $frag = []; $q = [$start]; $seen[$start] = true;
+            while ($q) {
+                $cur = array_pop($q);
+                $frag[] = $cur;
+                foreach ($adj[$cur] ?? [] as $nb) {
+                    if (isset($inSide[$nb]) && !isset($seen[$nb])) { $seen[$nb] = true; $q[] = $nb; }
+                }
+            }
+            $fragments[] = $frag;
+        }
+        if (count($fragments) <= 1) return [array_values($side), array_values($other)];
+        usort($fragments, fn($a, $b) => count($b) <=> count($a));
+        $keep = $fragments[0];
+        for ($f = 1, $n = count($fragments); $f < $n; $f++) {
+            $other = array_merge($other, $fragments[$f]);
+        }
+        return [array_values($keep), array_values($other)];
     }
 
     /**
