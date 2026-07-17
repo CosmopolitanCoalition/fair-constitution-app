@@ -2856,12 +2856,26 @@ class DistrictingService
             : 1 + (int) floor(($s['avg_deviation_pct'] - 4.0) / 2.0);
         $maxExcess = $s['max_deviation_pct'] <= 10.0 ? 0
             : 1 + (int) floor(($s['max_deviation_pct'] - 10.0) / 5.0);
+        // fragment_gap rides in DOUBLING bands (round 11.1, the Vietnam veto):
+        // raw-float ordering let a 20 km shift of an already-detached piece
+        // outvote a halving of deviation AND a spread win (439→459 km killed a
+        // 9+8+8 at 0.57% in favor of 9+9+7 at 1.22%). Band edges sit at ~1°,
+        // 3°, 7°, 15° of total detachment (~110/330/780/1650 km): pieces that
+        // stay in the same distance CLASS tie and the lower rules decide;
+        // jumping a class still blocks. Near pieces get fine scrutiny (the
+        // first bands are narrow), far pieces are all just "far" — the same
+        // proportionality the operator gave balance (1pp bands) and necks.
+        // EXTRA breaks still lose absolutely at the count key above; the raw
+        // gap returns as the very last tiebreak.
+        $gap     = max(0.0, (float) $s['fragment_gap']);
+        $gapBand = (int) floor(log(1.0 + $gap) / log(2.0));
+
         return [
             $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
             $avgExcess,                                  //  2. balance beyond acceptability (2pp bands)
             $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
-            $s['non_contiguous_count'],                  //  4. contiguity breaks
-            $s['fragment_gap'],                          //  5. break quality: fragments close
+            $s['non_contiguous_count'],                  //  4. contiguity breaks (absolute — never banded)
+            $gapBand,                                    //  5. break quality: fragments close, in doubling bands
             $s['seat_spread'],                           //  6. reps-per-district equality
             (int) floor($s['avg_deviation_pct'] / 1.0),  //  7. equality, 1pp sub-bands — outranks shape
             $s['cut_length'] ?? 0.0,                     //  8. compactness lead: real border length (round 10)
@@ -2869,6 +2883,7 @@ class DistrictingService
             $s['avg_rg_sq'],                             // 10. compactness fallback (centroid proxy)
             $s['avg_droop_threshold'],                   // 11. seat-mix / UPD — abandoned first
             $s['avg_deviation_pct'],                     // 12. raw equality tiebreak
+            $s['fragment_gap'],                          // 13. raw proximity — the very last word
         ];
     }
 

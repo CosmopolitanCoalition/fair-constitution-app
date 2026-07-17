@@ -136,6 +136,14 @@ use Tests\TestCase;
  *        and the comparator still disposes: in the k-loop as a variant,
  *        post-attachment behind a scoreBeats gate.
  *
+ *   (22) FRAGMENT PROXIMITY IN DOUBLING BANDS (round 11.1, the Vietnam
+ *        veto): raw-float fragment_gap let a 20 km shift of an
+ *        already-detached piece outvote a halving of deviation and a
+ *        spread win. Same-class detachment (band edges ~1°/3°/7°/15°)
+ *        now ties and the lower rules decide; jumping a class still
+ *        blocks; EXTRA breaks still lose absolutely at the count key;
+ *        raw gap returns as the final tiebreak.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1396,6 +1404,63 @@ class DistrictingDoctrineTest extends TestCase
         rsort($rounds);
         $this->assertSame([7, 6, 6], $rounds, 'the break-tolerant landing reaches the canonical mix across the gaps');
         $this->assertSame(19, array_sum($rounds), 'budget exactness survives the landing');
+    }
+
+    // ─── (22) Fragment proximity decides in classes, not millimeters ────────
+
+    public function test_fragment_proximity_decides_in_classes_not_millimeters(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'seat_drift' => 0, 'non_contiguous_count' => 2, 'neck_count' => 0,
+            'cut_length' => 8.0, 'avg_rg_sq' => 2.0, 'avg_droop_threshold' => 0.12,
+        ];
+        // The real Vietnam numbers: same break count, detached pieces 3.95° vs
+        // 4.13° (same distance class) — the map with the better mix and twice
+        // the balance must WIN, not lose over 20 km of already-detached water.
+        $betterMixSlightlyFarther = $base + [
+            'fragment_gap' => 4.13, 'seat_spread' => 1,
+            'avg_deviation_pct' => 0.57, 'max_deviation_pct' => 0.87,
+        ];
+        $tighterPiecesWorseMix = $base + [
+            'fragment_gap' => 3.95, 'seat_spread' => 2,
+            'avg_deviation_pct' => 1.22, 'max_deviation_pct' => 1.81,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $betterMixSlightlyFarther, $tighterPiecesWorseMix),
+            'same-class detachment ties — the spread and balance wins decide (Vietnam)'
+        );
+
+        // Jumping a distance CLASS still blocks: the same better map with its
+        // pieces flung to 8.5° loses to the tight 3.95° map.
+        $betterMixFlungFar = $betterMixSlightlyFarther;
+        $betterMixFlungFar['fragment_gap'] = 8.5;
+        $this->assertTrue(
+            $m->invoke($svc, $tighterPiecesWorseMix, $betterMixFlungFar),
+            'a genuine scattering still loses regardless of mix and balance'
+        );
+
+        // And an EXTRA break still loses absolutely — banding never touches
+        // the count key.
+        $extraBreak = $betterMixSlightlyFarther;
+        $extraBreak['non_contiguous_count'] = 3;
+        $extraBreak['fragment_gap'] = 0.5;
+        $this->assertTrue(
+            $m->invoke($svc, $tighterPiecesWorseMix, $extraBreak),
+            'more broken districts always lose, however close their pieces sit'
+        );
+
+        // Within the same band AND same spread/balance/shape, closer pieces
+        // still win — the raw gap is the final tiebreak.
+        $identicalButCloser = $betterMixSlightlyFarther;
+        $identicalButCloser['fragment_gap'] = 4.01;
+        $this->assertTrue(
+            $m->invoke($svc, $identicalButCloser, $betterMixSlightlyFarther),
+            'all else equal, closer pieces still win on the raw gap'
+        );
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
