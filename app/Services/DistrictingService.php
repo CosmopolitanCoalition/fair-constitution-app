@@ -796,40 +796,27 @@ class DistrictingService
                 // entering the k-loop, so a scattered-smalls pool (India's 23
                 // non-giant states between the locked giants: four SINGLE-state
                 // districts + attachment clusters) can round down a hair per bin
-                // and drift −1 with no scoring plane ever seeing the sum.
+                // and drift with no scoring plane ever seeing the sum. The clean
+                // rebalance above cannot fix it: the bins are separate
+                // components, and contiguity-preserving transfers cannot cross
+                // the gaps.
                 //
-                // The clean rebalance above cannot fix it either: the bins are
-                // separate components, and contiguity-preserving transfers
-                // cannot cross the gaps. So when the nearest-rounded sum still
-                // misses the pool budget, escalate to the break-tolerant
-                // rebalance toward the integer targets — targets sum to the
-                // budget by construction, transfers keep fragments close
-                // (doctrine: breaks are purchasable, pieces stay close, islands
-                // never ballast), and landing every bin within ±0.5 of its
-                // target makes the nearest-rounds sum exactly. Kept only on
-                // strict drift improvement; when no exact drawing exists
-                // (indivisible atoms) the drifted map ships under the
-                // undercount flag, per the pin-16 fallback.
-                $seatSumOf = function (array $bins) use ($childById, $quotaPopAll, $nonGiantBudget, $floor, $ceiling): int {
-                    $binCount      = count(array_filter($bins, fn($b) => !empty($b)));
-                    $floorFeasible = ($nonGiantBudget >= $binCount * $floor);
-                    $minSeat       = $floorFeasible ? $floor : 1;
-                    $sum           = 0;
-                    foreach ($bins as $b) {
-                        if (empty($b)) continue;
-                        $frac = array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll;
-                        $sum += max($minSeat, min($ceiling, (int) round($frac)));
-                    }
-                    return $sum;
-                };
-                $drift = abs($seatSumOf($allBins) - $nonGiantBudget);
-                for ($attempt = 0; $drift > 0 && $attempt < 3; $attempt++) {
-                    $repaired = $this->breakRebalance($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, null, false);
-                    $repairedDrift = abs($seatSumOf($repaired) - $nonGiantBudget);
-                    if ($repairedDrift >= $drift) break;
-                    $allBins = $repaired;
-                    $drift   = $repairedDrift;
-                }
+                // Draft-9 rematch #2 (China +1, Earth +2): a break-tolerant walk
+                // toward optimalIntegerTargets stalls here, because the target
+                // optimizer is indivisibility-blind — it keeps demanding the
+                // arithmetically-cheapest correction from a SINGLE-member
+                // district (China's 7.560 province, Earth's 6.574/6.589 country
+                // districts) that has nothing to give, while feasible
+                // corrections sit one rank down the cost list. The repair is
+                // therefore a direct feasibility-aware BOUNDARY NUDGE
+                // (landPoolBudget): enumerate real (donor member → receiver)
+                // moves that change the nearest-rounded sum by exactly one unit
+                // while both bins stay in the round-to-legal window, prefer the
+                // closest-fragment move (doctrine: breaks purchasable, pieces
+                // close, islands never ballast), repeat per unit of drift. When
+                // no feasible nudge exists (indivisible atoms), the drifted map
+                // ships under the undercount flag, per the pin-16 fallback.
+                $allBins = $this->landPoolBudget($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
             }
         }
 
@@ -3323,6 +3310,102 @@ class DistrictingService
                 $binPops[$j]  -= $dPop;  $binPops[$i]  += $dPop;
                 $binFracs[$j] -= $dFrac; $binFracs[$i] += $dFrac;
             }
+        }
+
+        return $bins;
+    }
+
+    /**
+     * Land the pool budget exactly — the feasibility-aware boundary nudge
+     * (operator exactness rule 2026-07-13; Draft-9 China/Earth rematch).
+     *
+     * Under the seating law every bin seats round(frac) independently, so the
+     * pool's seated total is Σ round(frac_i). When drawn shares miss whole
+     * multiples that sum drifts off the pool budget. This pass repairs the
+     * DRAWING: per unit of drift it enumerates every real move of one member
+     * from a multi-member donor to any other bin such that the two bins'
+     * combined rounded seats change by exactly the needed unit — a donor
+     * crossing DOWN through its .5 boundary while the receiver's round holds,
+     * or a receiver crossing UP while the donor's holds — with both bins kept
+     * inside the round-to-legal window (≥ floorBoundary−0.5, < giantThreshold).
+     * Among feasible nudges the closest-fragment one wins (breaks are
+     * purchasable, pieces stay close), and edge-less members (islands) only
+     * ever move CLOSER — never as ballast.
+     *
+     * It cannot chase impossible targets by construction — that was the
+     * failure of walking toward optimalIntegerTargets here: the optimizer is
+     * indivisibility-blind and kept demanding the arithmetically-cheapest
+     * correction from single-member districts (China's 7.560 province, +1
+     * shipped; Earth's single-country districts, +2 shipped) while feasible
+     * corrections sat one rank down the cost list. When no feasible nudge
+     * exists at all (indivisible-atom pools), the drift ships honestly under
+     * the undercount flag — the pin-16 fallback.
+     */
+    private function landPoolBudget(
+        array $bins,
+        array $childById,
+        array $centroids,
+        array $adj,
+        float $quotaPop,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): array {
+        if ($quotaPop <= 0) return $bins;
+        $bins = array_values(array_filter($bins, fn($b) => !empty($b)));
+        $binCount      = count($bins);
+        $floorFeasible = ($budget >= $binCount * $floor);
+        $minSeat       = $floorFeasible ? $floor : 1;
+        $guardLo       = $floorBoundary - 0.5;
+
+        $seatOf = fn(float $f) => max($minSeat, min($ceiling, (int) round($f)));
+        $fracs  = array_map(
+            fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPop,
+            $bins
+        );
+        $seats = array_map($seatOf, $fracs);
+        $drift = array_sum($seats) - $budget;
+
+        for ($step = 0; $drift !== 0 && $step < 8; $step++) {
+            $need = $drift > 0 ? -1 : 1;
+            $best = null; // [distSq, donorIdx, jid, recvIdx, donorFrac', recvFrac']
+            foreach ($bins as $di => $donor) {
+                if (count($donor) < 2) continue;             // a bin is never emptied
+                foreach ($donor as $jid) {
+                    $mf = ((float) $childById[$jid]->population) / $quotaPop;
+                    if ($mf <= 0.0) continue;
+                    $df = $fracs[$di] - $mf;
+                    if ($df < $guardLo) continue;            // donor stays round-to-legal
+                    $dSeat = $seatOf($df);
+                    foreach ($bins as $ri => $recv) {
+                        if ($ri === $di) continue;
+                        $rf = $fracs[$ri] + $mf;
+                        if ($rf >= $giantThreshold) continue; // receiver stays round-to-legal
+                        $rSeat = $seatOf($rf);
+                        if (($dSeat - $seats[$di]) + ($rSeat - $seats[$ri]) !== $need) continue;
+                        $dist = $this->closestApproachSq([$jid], $recv, $centroids);
+                        if (empty($adj[$jid])) {
+                            // island monotone rule: edge-less members only move closer
+                            $rest = array_values(array_diff($donor, [$jid]));
+                            if (!empty($rest) && $dist >= $this->closestApproachSq([$jid], $rest, $centroids)) continue;
+                        }
+                        if ($best === null || $dist < $best[0]) {
+                            $best = [$dist, $di, $jid, $ri, $df, $rf];
+                        }
+                    }
+                }
+            }
+            if ($best === null) break;                        // no feasible nudge — ships under the flag
+            [, $di, $jid, $ri, $df, $rf] = $best;
+            $bins[$di] = array_values(array_diff($bins[$di], [$jid]));
+            $bins[$ri][] = $jid;
+            $fracs[$di] = $df;
+            $fracs[$ri] = $rf;
+            $seats[$di] = $seatOf($df);
+            $seats[$ri] = $seatOf($rf);
+            $drift = array_sum($seats) - $budget;
         }
 
         return $bins;

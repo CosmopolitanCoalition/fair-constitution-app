@@ -104,9 +104,15 @@ use Tests\TestCase;
  *        below the giant threshold become bins WITHOUT entering the
  *        k-loop, so no comparator ever sees their sum — a scattered-smalls
  *        pool rounds down a hair per bin and drifts −1. The final-bin
- *        repair escalates from the clean rebalance to the break-tolerant
- *        one (integer targets sum to the budget; fragments kept close)
- *        until the nearest-rounded sum lands the pool budget exactly.
+ *        repair (landPoolBudget) nudges real members across bins until the
+ *        nearest-rounded sum lands the pool budget exactly.
+ *
+ *   (19) THE NUDGE ROUTES AROUND INDIVISIBLE DISTRICTS (the China/Earth
+ *        rematch, Draft 9 shipped +3): the arithmetically-cheapest
+ *        correction can sit on a SINGLE-member district that has nothing
+ *        to give — a target-chasing walk stalls there forever. The
+ *        boundary nudge only ever considers moves that exist, so it takes
+ *        the feasible correction one rank down the cost list.
  *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
@@ -1186,6 +1192,48 @@ class DistrictingDoctrineTest extends TestCase
                 ->get(['seats', 'fractional_seats']);
             $this->assertSame(17, (int) $districts->sum('seats'),
                 'the scattered pool lands its budget exactly via break-tolerant regrouping');
+            foreach ($districts as $d) {
+                $this->assertSame(
+                    (int) round((float) $d->fractional_seats),
+                    (int) $d->seats,
+                    'every district still seats exactly its nearest rounding'
+                );
+            }
+        });
+    }
+
+    // ─── (19) The nudge routes around indivisible districts ─────────────────
+
+    public function test_budget_repair_routes_around_single_member_districts(): void
+    {
+        $this->onLivePg(function () {
+            // The China +1 class, distilled: three non-adjacent clusters at
+            // 7.56 + 8.65 + 5.79 fracs of a 22-seat pool. Nearest rounds give
+            // 8 + 9 + 6 = 23, one over. The CHEAPEST correction by pure
+            // arithmetic is the 7.56 district → 7 (only 0.12 of distortion) —
+            // but that district is a single indivisible member, exactly like
+            // China's 7.560 province that shipped Draft 9 one seat over. The
+            // repair must take the feasible correction instead: the 8.65
+            // cluster donates its 0.6-frac member, dropping to 8.05 → 8, and
+            // the pool lands 22 exactly.
+            $rootId  = $this->makeJurisdiction('zzdn-0-root', 'Test Root', 0, null, $this->square(-2, -2, 12, 26), 2_200_000);
+            $scopeId = $this->makeJurisdiction('zzdn-1-scope', 'Test Scope', 1, $rootId, $this->square(-1, -1, 10, 24), 2_200_000);
+            $this->makeJurisdiction('zzdn-2-a', 'Solo Fat A', 2, $scopeId, $this->square(0, 0, 1, 1), 756_000);
+            $this->makeJurisdiction('zzdn-2-b1', 'Cluster B1', 2, $scopeId, $this->square(0, 10, 1, 11), 805_000);
+            $this->makeJurisdiction('zzdn-2-b2', 'Cluster B2', 2, $scopeId, $this->square(1, 10, 2, 11), 60_000);
+            $this->makeJurisdiction('zzdn-2-c', 'Solo C', 2, $scopeId, $this->square(0, 20, 1, 21), 579_000);
+            $leg = $this->makeLegislature($rootId, 22);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 22, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            $this->assertSame(22, (int) $districts->sum('seats'),
+                'the repair routes around the indivisible cheapest correction and lands the budget');
             foreach ($districts as $d) {
                 $this->assertSame(
                     (int) round((float) $d->fractional_seats),
