@@ -54,25 +54,52 @@ class PopulationRaster
 
     /**
      * The giant's WorldPop pixels as a flat [[lng, lat, people], ...] grid,
-     * clipped to its boundary and de-duplicated across border rasters — computed
-     * ONCE and cached. This is what makes the split-line tools interactive: every
-     * candidate cut (manual line OR an automatic shortest-split-line sweep) is
-     * then an O(pixels) blade-side sum in PHP instead of a fresh PostGIS raster
-     * scan per cut. Aggregate-only (100 m pixel sums) — never individual records.
+     * clipped to its boundary — computed ONCE and cached. This is what makes
+     * the split-line tools interactive: every candidate cut (manual line OR an
+     * automatic shortest-split-line sweep) is then an O(pixels) blade-side sum
+     * in PHP instead of a fresh PostGIS raster scan per cut. Aggregate-only
+     * (pixel/cell population sums) — never individual records.
      *
-     * Sized for the childless-giant case (a castello/county = a few thousand
-     * pixels). Earth-class giants would use the queued path (not this).
+     * ADAPTIVE RESOLUTION LADDER (2026-07-17 — the LA-County fix): the native
+     * 100 m grid was sized for a castello (~10 km², ~1.5k pixels); a giant
+     * COUNTY like Los Angeles (10,616 km²) is ~1M pixels — minutes of PHP
+     * sorting per candidate blade, a multi-hundred-MB cache entry, and the
+     * browser's fetch timeout long gone. Cells are SUM-binned server-side to a
+     * size chosen from the giant's geographic area, keeping the grid ≤ ~50k
+     * cells at any scale. DETERMINISM holds: the ladder is fixed in code and
+     * the bin size derives from the geometry alone, so every mesh node
+     * produces the identical grid → identical plan_hash. Balance quality is
+     * untouched in practice: a dense 0.005° cell holds a few thousand people
+     * vs a ~500k-person seat quota — two orders of magnitude inside the 5%
+     * per-seat guard — and the F-ELB-008 handler re-measures every filed
+     * piece at FULL raster resolution anyway. Small scopes (≤ 300 km², the
+     * San-Marino class) stay native, so their shipped plan hashes are
+     * byte-identical to before.
      */
     public function pixelGrid(string $scopeId, int $year = 2023): array
     {
-        return Cache::rememberForever("districting.pixelgrid.{$scopeId}.{$year}", function () use ($scopeId, $year) {
+        $areaKm2 = (float) (DB::selectOne(
+            'SELECT ST_Area(geom::geography) / 1e6 AS km2 FROM jurisdictions WHERE id = ?',
+            [$scopeId]
+        )->km2 ?? 0.0);
+
+        $cell = match (true) {
+            $areaKm2 <= 300.0    => null,    // native 100 m (castello / small county)
+            $areaKm2 <= 3000.0   => 0.002,   // ~200 m cells
+            $areaKm2 <= 30000.0  => 0.005,   // ~500 m cells (LA County → ~25k cells, 7 s once)
+            $areaKm2 <= 300000.0 => 0.02,    // ~2 km cells (childless giant states)
+            default              => 0.05,    // ~5 km cells (continental-class)
+        };
+        $cellKey = $cell === null ? 'native' : rtrim(rtrim(sprintf('%.3f', $cell), '0'), '.');
+
+        // v2 key: the cell size is part of the identity, so a rescaled ladder
+        // (or the pre-ladder native entries) can never serve a stale grid.
+        return Cache::rememberForever("districting.pixelgrid.v2.{$scopeId}.{$year}.{$cellKey}", function () use ($scopeId, $year, $cell) {
             // Per-tile clip + pixel-centroids of the giant's OWN country raster —
             // NO ST_Union (unioning border-overlapping tiles is ~500× slower). A
-            // childless leaf giant sits inside one country, so iso_code suffices;
-            // ~1.5k pixels for a castello, ~0.4s once, then cached. (A rare
-            // cross-border giant would need the multi path — out of scope here.)
-            $rows = DB::select(
-                "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
+            // childless leaf giant sits inside one country, so iso_code suffices.
+            // (A rare cross-border giant would need the multi path — out of scope.)
+            $inner = "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
                  SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
                    FROM worldpop_rasters r
                    CROSS JOIN g
@@ -80,9 +107,22 @@ class PopulationRaster
                   WHERE r.iso_code = g.iso_code
                     AND r.year = ?::smallint
                     AND ST_Intersects(r.rast, g.geom)
-                    AND pc.val > 0",
-                [$scopeId, $year]
-            );
+                    AND pc.val > 0";
+
+            if ($cell === null) {
+                $rows = DB::select($inner, [$scopeId, $year]);
+            } else {
+                // SUM-preserving bin aggregation at cell centers. floor()-based
+                // bin ids are deterministic; population is conserved exactly.
+                $rows = DB::select(
+                    "SELECT (floor(x / {$cell}) + 0.5) * {$cell} AS x,
+                            (floor(y / {$cell}) + 0.5) * {$cell} AS y,
+                            SUM(val) AS val
+                       FROM ({$inner}) px
+                      GROUP BY floor(x / {$cell}), floor(y / {$cell})",
+                    [$scopeId, $year]
+                );
+            }
 
             return array_map(fn ($r) => [(float) $r->x, (float) $r->y, (float) $r->val], $rows);
         });

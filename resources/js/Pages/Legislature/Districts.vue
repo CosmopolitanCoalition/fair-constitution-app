@@ -622,11 +622,34 @@
                         </div>
                     </div>
 
-                    <!-- Mass tools toolbar -->
+                    <!-- Mass tools toolbar — ONE shape everywhere (2026-07-17 rework):
+                         composite scopes get ⚡ Autoseed + ✕ Clear; a leaf giant gets the
+                         SAME toolbar with the method selector added — the ⚡ button IS the
+                         propose button, and picking '✏️ Manual draw' in the selector is
+                         what reveals the draw tools below (no standalone Draw button). -->
                     <div class="flex items-center justify-center gap-1 px-3 py-2 border-b border-gray-800 bg-gray-900/50 shrink-0">
-                        <!-- Composite autoseed only — a childless leaf giant has nothing to
-                             compose; its lines autoseeder lives in the leaf panel below. -->
-                        <button v-if="!isLeafGiantScope"
+                        <select v-if="isLeafGiantScope"
+                                v-model="leafTool"
+                                title="Districting method for this undivided area"
+                                class="flex-1 min-w-0 bg-gray-900 border border-gray-700 rounded px-1.5 py-1 text-xs text-gray-200 cursor-pointer">
+                            <option v-for="t in AUTOSEED_TEMPLATES" :key="t.key" :value="t.key">
+                                {{ t.label }}{{ t.hint ? ` — ${t.hint}` : '' }}
+                            </option>
+                            <option value="manual">✏️ Manual draw</option>
+                        </select>
+                        <button v-if="isLeafGiantScope"
+                                @click="previewAutoseedLines"
+                                :disabled="leafTool === 'manual' || autoseedBusy || autoseedCommitBusy || !!autoseedPlan || !drawTargetIsDraft"
+                                :title="leafTool === 'manual' ? 'Manual draw is selected — the draw tools below are active'
+                                    : !drawTargetIsDraft ? 'Pick or create a draft plan first'
+                                    : 'Propose a full plan with the selected method'"
+                                class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
+                                :class="(leafTool === 'manual' || autoseedBusy || autoseedCommitBusy || !!autoseedPlan || !drawTargetIsDraft)
+                                    ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
+                                    : 'bg-indigo-900 border-indigo-700 text-indigo-300 hover:bg-indigo-800 hover:text-white'">
+                            {{ autoseedBusy ? '⚡ Proposing…' : '⚡ Autoseed' }}
+                        </button>
+                        <button v-else
                                 @click="openMassTool('reseed')"
                                 :disabled="massToolRunning || massJobRunning"
                                 class="px-2 py-1 rounded text-xs border transition-colors"
@@ -639,7 +662,7 @@
                         </button>
                         <button @click="openMassTool('clear')"
                                 :disabled="massToolRunning || massJobRunning"
-                                class="px-2 py-1 rounded text-xs border transition-colors"
+                                class="px-2 py-1 rounded text-xs border transition-colors shrink-0"
                                 :class="massToolRunning || massJobRunning
                                     ? 'bg-gray-800 border-gray-700 text-gray-600 cursor-not-allowed'
                                     : massToolPanel === 'clear'
@@ -797,34 +820,19 @@
                                     @click="devSeatMe">{{ devSeatBusy ? 'Seating…' : 'Seat me on this board' }}</button>
                             <span v-if="devSeatMsg" class="text-red-400">{{ devSeatMsg }}</span>
                         </div>
+                        <!-- 2026-07-17 rework: the method selector + ⚡ Autoseed live in the
+                             toolbar above (one shape with composite scopes); this panel holds
+                             the hint, the warnings, and — only when '✏️ Manual draw' is the
+                             selected method — the draw tools. -->
                         <template v-if="!drawMode && !autoseedPlan">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-amber-300">Leaf giant — no child units. Draw its <span class="font-semibold">{{ scope_seats }}</span> seats by hand.</span>
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <button class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                                            :disabled="!canDraw || !drawTargetIsDraft"
-                                            @click="enterDrawMode">✏️ Draw</button>
-                                </div>
+                            <div class="text-amber-300">
+                                Undivided area — no child units. Its <span class="font-semibold">{{ scope_seats }}</span> seats
+                                are cut from its territory: pick a method above and ⚡ Autoseed, or choose ✏️ Manual draw.
                             </div>
                             <!-- Drawing NEVER mints a plan from this panel — draft creation lives
                                  only at the map controls (operator ruling: no silent drafts). -->
                             <div v-if="!drawTargetIsDraft" class="text-amber-400/90 mt-1">
-                                Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector above.
-                            </div>
-                            <!-- Template picker + Propose — preview is read-only, so can_draw never
-                                 locks it, but it targets the SELECTED plan: disabled until that plan
-                                 is a draft (this panel never mints one on the operator's behalf). -->
-                            <div class="flex items-center gap-1.5 mt-1.5">
-                                <select v-model="autoseedTemplate"
-                                        title="Autoseed template"
-                                        class="flex-1 min-w-0 bg-gray-900 border border-amber-800 rounded px-1.5 py-1 text-amber-200 cursor-pointer">
-                                    <option v-for="t in AUTOSEED_TEMPLATES" :key="t.key" :value="t.key">
-                                        {{ t.label }}{{ t.hint ? ` — ${t.hint}` : '' }}
-                                    </option>
-                                </select>
-                                <button class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 shrink-0"
-                                        :disabled="autoseedBusy || !drawTargetIsDraft"
-                                        @click="previewAutoseedLines">{{ autoseedBusy ? 'Proposing…' : '⚡ Propose' }}</button>
+                                Districting edits a draft plan — pick or create one with the [+] beside the MAP selector above.
                             </div>
                             <div v-if="autoseedError" class="text-red-400 mt-1">{{ autoseedError }}</div>
                         </template>
@@ -1931,8 +1939,7 @@ const _wizardLs = {
     autoDelay:   `leg_wizard_${props.legislature.id}_autodelay`,
     justStepped: `leg_wizard_${props.legislature.id}_stepped`,   // gates auto-actions to step-triggered mounts
 }
-const wizardActive        = ref(localStorage.getItem(_wizardLs.active)   === '1')
-const wizardSteps         = ref([])     // [{ scope_id, scope_name }] — re-fetched on every mount
+const wizardSteps         = ref([])     // [{ scope_id, scope_name, is_leaf }] — re-fetched on every mount
 const wizardCurrentIndex  = ref(-1)    // synced to current scope after steps load
 const wizardAutoSeed      = ref(localStorage.getItem(_wizardLs.autoSeed) === '1')
 const wizardSkipSeeded    = ref(localStorage.getItem(_wizardLs.skip)     === '1')
@@ -1944,7 +1951,6 @@ let   _wizardLastDir      = parseInt(localStorage.getItem(_wizardLs.lastDir) ?? 
 let   _autoStepTimer      = null       // interval handle for auto-step countdown
 
 // Persist wizard toggles to localStorage whenever they change
-watch(wizardActive,     v => localStorage.setItem(_wizardLs.active,   v ? '1' : '0'))
 watch(wizardAutoSeed,   v => localStorage.setItem(_wizardLs.autoSeed, v ? '1' : '0'))
 watch(wizardSkipSeeded, v => localStorage.setItem(_wizardLs.skip,     v ? '1' : '0'))
 watch(wizardAutoDelay,  v => {
@@ -1954,10 +1960,13 @@ watch(wizardAutoDelay,  v => {
 })
 watch(wizardAutoStep, v => {
     localStorage.setItem(_wizardLs.autoStep, v ? '1' : '0')
-    if (!v) clearAutoStepTimer()
-    // Timer is NOT started here on toggle-on — it starts from onMounted after
-    // runWizardAutoActions() completes, preventing a step fire mid-auto-seed.
-    // The timer will activate on the next scope the user navigates to.
+    if (!v) { clearAutoStepTimer(); return }
+    // Toggle-ON arms the countdown IMMEDIATELY (2026-07-17 — "auto step
+    // doesn't work" report: the old code only ever armed on a stepper-arrow
+    // mount, so checking the box mid-scope did nothing until the operator
+    // happened to click →). Safe now: the tick HOLDS while any seed/commit
+    // is in flight, so an early-armed timer can never advance mid-operation.
+    startAutoStepTimer()
 })
 
 // Set of parent jurisdiction IDs whose sub-districts are shown on the map
@@ -2134,6 +2143,30 @@ watch(autoseedTemplate, v => localStorage.setItem('leg_autoseed_template', v))
 function autoseedTemplateLabel(key) {
     return AUTOSEED_TEMPLATES.find(t => t.key === key)?.label ?? (key || 'Shortest lines')
 }
+
+// Unified leaf toolbar (2026-07-17 UX rework, operator direction): ONE method
+// selector drives everything — the four autoseed templates PLUS '✏️ Manual
+// draw'. Picking a template arms the ⚡ Autoseed button (which IS the propose
+// button — same slot as the composite scopes' ⚡, beside ✕ Clear, stepper
+// beneath); picking Manual draw reveals the draw tools. There is no standalone
+// Draw button any more.
+const leafTool = ref(autoseedTemplate.value)
+watch(leafTool, (v, prev) => {
+    if (v === 'manual') {
+        if (!canDraw.value || !drawTargetIsDraft.value) {
+            showStatus('error', !canDraw.value
+                ? 'Drawing files F-ELB-008 — requires a seated election-board member (R-08).'
+                : 'Drawing edits a draft plan — pick or create one with the [+] beside the MAP selector.')
+            leafTool.value = prev !== 'manual' ? prev : autoseedTemplate.value
+            return
+        }
+        discardAutoseedPlan()          // an open proposal and draw mode never coexist
+        if (!drawMode.value) enterDrawMode()
+    } else {
+        autoseedTemplate.value = v     // write through — sweep + preview follow the picker
+        if (drawMode.value) exitDrawMode()
+    }
+})
 
 // Mixed autoseed: label a wizard step by its creation method — ✂ marks a
 // childless leaf giant the autoseeder LINE-SPLITS (backend is_leaf flag);
@@ -3795,25 +3828,9 @@ async function loadWizardSteps() {
     }
 }
 
-async function activateWizard() {
-    wizardActive.value = true
-    await loadWizardSteps()
-    // Stay at current scope — user controls navigation via Forward/Back/Up.
-    // (New-map flow auto-navigates via the _wizardLs.newmap flag instead.)
-}
-
-function deactivateWizard() {
-    clearAutoStepTimer()
-    wizardActive.value        = false
-    wizardSteps.value         = []
-    wizardCurrentIndex.value  = -1
-    wizardAutoSeed.value      = false
-    wizardSkipSeeded.value    = false
-    wizardAutoStep.value      = false
-    wizardAutoCountdown.value = 0
-    // Purge all wizard localStorage keys for this legislature
-    Object.values(_wizardLs).forEach(k => localStorage.removeItem(k))
-}
+// (activateWizard/deactivateWizard removed 2026-07-17 — caller-less legacy of
+// the pre-always-visible stepper. Their wizardActive flag was still gating the
+// auto-step tick, which killed every countdown on its first second.)
 
 // ── Auto-step timer ───────────────────────────────────────────────────────────
 
@@ -3822,10 +3839,21 @@ function startAutoStepTimer() {
     if (!wizardAutoStep.value) return
     wizardAutoCountdown.value = wizardAutoDelay.value
     _autoStepTimer = setInterval(() => {
-        // Self-terminate if auto-step or the wizard was turned off externally
-        // (e.g. user unchecks the box mid-countdown, or deactivates wizard).
-        if (!wizardAutoStep.value || !wizardActive.value) {
+        // Self-terminate if auto-step was turned off externally (user unchecks
+        // the box mid-countdown). NOTE 2026-07-17: this used to ALSO require
+        // wizardActive — a flag only the caller-less legacy activateWizard()
+        // ever set true — so on any fresh box the countdown died on its FIRST
+        // tick. That was the whole "Auto Step doesn't work, period" bug: the
+        // stepper became always-visible, but the timer kept gating on the
+        // retired activation flag.
+        if (!wizardAutoStep.value) {
             clearAutoStepTimer()
+            return
+        }
+        // HOLD (don't tick down) while any seed/commit is in flight — the
+        // countdown must never advance the wizard mid-operation. This is what
+        // makes arming the timer early (toggle-on, plain navigation) safe.
+        if (massToolRunning.value || massJobRunning.value || autoseedBusy.value || autoseedCommitBusy.value) {
             return
         }
         wizardAutoCountdown.value--
@@ -3976,6 +4004,10 @@ function exitDrawMode() {
     drawError.value = ''
     teardownPolygonTool()
     teardownSplitTool()
+    // Leaving draw mode returns the unified selector to the last algorithm
+    // template (the watch sees a non-manual value with drawMode already false
+    // — no recursion).
+    if (leafTool.value === 'manual') leafTool.value = autoseedTemplate.value
 }
 
 // Split-line — a two-tap interaction. Taps place the two ends; a drag still
@@ -4238,8 +4270,7 @@ async function commitDraw() {
         if (_drawnItems) _drawnItems.clearLayers()
         _drawnLayer = null
         drawProbe.value = null
-        await reinitMapLayers()
-        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+        await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         drawError.value = 'Commit failed.'
     } finally {
@@ -4484,8 +4515,7 @@ async function commitSplit() {
         const data = await resp.json().catch(() => ({}))
         _pushUndo('split cut', (data.districts ?? []).map(d => d.district_id))
         resetSplit()
-        await reinitMapLayers()
-        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+        await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         drawError.value = 'Commit failed.'
     } finally {
@@ -4517,7 +4547,11 @@ async function previewAutoseedLines() {
             // actually displayed — without it the server falls back to the
             // active→newest-draft resolution, which can differ under ?map=.
             body: JSON.stringify({ scope_id: props.scope.id, template: autoseedTemplate.value, map_id: props.active_map?.id ?? null }),
-            signal: AbortSignal.timeout(60_000),
+            // County-scale giants (LA: 10,600 km²) legitimately spend ~10-30s
+            // building their population grid on FIRST preview (cached after).
+            // The old 60s cap aborted the fetch mid-compute — the "waited a
+            // long time, then failed" report.
+            signal: AbortSignal.timeout(300_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4605,7 +4639,10 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
                 template:  autoseedPlan.value.template,
                 ...(replace ? { replace: true } : {}),
             }),
-            signal: AbortSignal.timeout(60_000),
+            // The commit recomputes the plan AND re-measures each filed piece
+            // at full raster resolution — a county-scale giant needs minutes,
+            // not the old 60s.
+            signal: AbortSignal.timeout(300_000),
         })
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}))
@@ -4616,8 +4653,7 @@ async function acceptAutoseedPlan({ replace = false } = {}) {
         const ids  = data.district_ids ?? []
         _pushUndo(`autoseed plan (${ids.length} districts)`, ids)
         discardAutoseedPlan()
-        await reinitMapLayers()
-        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+        await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         autoseedError.value = 'Commit failed.'
     } finally {
@@ -4662,6 +4698,19 @@ async function runLeafAutoseed() {
     if (autoseedError.value) showStatus('error', autoseedError.value)
 }
 
+// ── Post-commit repaint (2026-07-17 — the "tab-away" bug) ────────────────────
+// Every commit path used to `await reinitMapLayers()` and then fire an
+// UN-awaited router.reload(): Leaflet repainted from STALE props, the fresh
+// districts arrived silently afterwards, and nothing re-rendered — the new
+// district only appeared after some later navigation (the operator's
+// tab-away/tab-back). Order it deterministically: fresh props FIRST (awaited
+// partial reload), repaint SECOND.
+async function reloadThenRepaint(only = ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats']) {
+    await new Promise(resolve => router.reload({ only, onFinish: resolve }))
+    await nextTick()          // flush the fresh props into computeds
+    await reinitMapLayers()   // repaint Leaflet from the fresh state
+}
+
 // ── Undo last commit (split / polygon / autoseed accept) ─────────────────────
 function _pushUndo(label, ids) {
     ids = (ids ?? []).filter(Boolean)
@@ -4696,8 +4745,7 @@ async function undoLastCommit() {
             undoStack.value = undoStack.value.slice(0, -1)
             showStatus('success', `Undid ${entry.label}`)
         }
-        await reinitMapLayers()
-        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+        await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         console.error('undoLastCommit:', e)
         showStatus('error', e?.name === 'TimeoutError'
@@ -4934,8 +4982,7 @@ async function deleteDrawnDistrict(d) {
             return
         }
         showStatus('success', 'Drawn district deleted')
-        await reinitMapLayers()
-        router.reload({ only: ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats'] })
+        await reloadThenRepaint()   // fresh props FIRST, repaint second (tab-away bug)
     } catch (e) {
         console.error('deleteDrawnDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
@@ -6026,10 +6073,25 @@ onMounted(async () => {
     localStorage.removeItem(_wizardLs.justStepped)   // consume immediately
 
     if (justStepped) {
-        const navigatedAway = await runWizardAutoActions()
+        // Exception-proof (2026-07-17): a throw anywhere in the auto-actions
+        // (a Leaflet teardown race, an aborted fetch) used to kill the whole
+        // bootstrap — no timer, wizard silently dead. Degrade to "stay here,
+        // arm the countdown" instead.
+        let navigatedAway = false
+        try {
+            navigatedAway = await runWizardAutoActions()
+        } catch (e) {
+            console.error('wizard auto-actions:', e)
+        }
         if (!navigatedAway && wizardAutoStep.value) {
             startAutoStepTimer()
         }
+    } else if (wizardAutoStep.value) {
+        // Auto Step is CHECKED (persisted) but we landed here by ordinary
+        // navigation — the march must survive any remount, not only
+        // stepper-arrow ones. Auto-SEED stays justStepped-gated (no surprise
+        // seeding on casual navigation); the countdown just resumes.
+        startAutoStepTimer()
     }
 })
 
@@ -6061,10 +6123,18 @@ watch(() => props.scope.id, async () => {
     localStorage.removeItem(_wizardLs.justStepped)
 
     if (justStepped) {
-        const navigatedAway = await runWizardAutoActions()
+        // Exception-proof — same posture as the onMounted call site.
+        let navigatedAway = false
+        try {
+            navigatedAway = await runWizardAutoActions()
+        } catch (e) {
+            console.error('wizard auto-actions:', e)
+        }
         if (!navigatedAway && wizardAutoStep.value) {
             startAutoStepTimer()
         }
+    } else if (wizardAutoStep.value) {
+        startAutoStepTimer()   // the march survives non-stepper navigation
     }
 })
 
