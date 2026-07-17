@@ -274,7 +274,11 @@ Route::delete('/api/legislatures/{legislature_id}/districts/{district_id}', [Leg
 // Legislature GeoJSON + auto-composite
 Route::get('/api/legislatures/{legislature_id}/revealed.geojson', [LegislatureController::class, 'revealedGeoJson'])->name('legislatures.revealed.geojson');
 Route::post('/api/legislatures/{legislature_id}/auto-composite', [LegislatureController::class, 'autoComposite'])->name('legislatures.auto-composite');
-Route::post('/api/legislatures/{legislature_id}/mass-reseed', [LegislatureController::class, 'massReseed'])->name('legislatures.mass-reseed');
+// mass-reseed requires a session (mixed autoseed 2026-07-17): the sweep now
+// files F-ELB-008 line-split districts for childless leaf giants AS the
+// initiating operator, and a guest POST must never reach that filing path
+// (a null actor is the system path — the engine bypasses the role gate).
+Route::post('/api/legislatures/{legislature_id}/mass-reseed', [LegislatureController::class, 'massReseed'])->name('legislatures.mass-reseed')->middleware('auth');
 Route::post('/api/legislatures/{legislature_id}/mass-disband', [LegislatureController::class, 'massDisband'])->name('legislatures.mass-disband');
 Route::get('/api/legislatures/{legislature_id}/mass-status', [LegislatureController::class, 'massStatus'])->name('legislatures.mass-status');
 Route::post('/api/legislatures/{legislature_id}/mass-halt', [LegislatureController::class, 'massHalt'])->name('legislatures.mass-halt');

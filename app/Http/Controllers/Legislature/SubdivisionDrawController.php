@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Legislature;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Http\Controllers\Controller;
-use App\Services\ConstitutionalDefaults;
 use App\Services\Districting\PopulationRaster;
 use App\Services\Districting\SubdivisionAutoseedService;
 use Illuminate\Http\JsonResponse;
@@ -30,6 +29,10 @@ class SubdivisionDrawController extends Controller
         private readonly PopulationRaster $raster,
         private readonly ConstitutionalEngine $engine,
         private readonly SubdivisionAutoseedService $autoseed,
+        // Mixed-autoseed unification (2026-07-17): the leaf-giant detector +
+        // the Request-free F-ELB-008 commit loop now live in this shared
+        // service so the mass-reseed sweep runs the identical logic.
+        private readonly \App\Services\Districting\LeafGiantResolver $leafGiants,
     ) {
     }
 
@@ -352,57 +355,42 @@ class SubdivisionDrawController extends Controller
         }
 
         try {
-            // The recompute runs under the SAME template as the preview — the
-            // template is inside the hashed identity, so a swapped or omitted
-            // template fails the hash_equals below (fails closed).
-            $plan = $this->autoseed->plan($validated['scope_id'], $ctx, $year, $template);
-        } catch (\RuntimeException $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
-        if (! hash_equals($plan['plan_hash'], (string) $validated['plan_hash'])) {
-            return response()->json(['error' => 'Plan changed — run the preview again.'], 422);
-        }
-
-        $jurisdictionId = (string) DB::table('legislatures')->where('id', $legislature_id)->value('jurisdiction_id');
-
-        try {
-            // Atomic: every leaf district files, or none do. Districts are
-            // already in deterministic (path) order from the service. A
-            // replace retires the scope's live drawn set INSIDE the same
-            // transaction, before the first filing — so a failed plan rolls
-            // the old districts back too, never leaving the scope emptied.
-            $districtIds = DB::transaction(function () use ($plan, $legislature_id, $jurisdictionId, $validated, $request, $year, $replace) {
-                if ($replace) {
-                    $this->retireDrawnDistricts($legislature_id, $validated['scope_id'], $validated['map_id']);
-                }
-
-                $ids = [];
-                foreach ($plan['districts'] as $d) {
-                    $res = $this->engine->file('F-ELB-008', $request->user(), [
-                        'legislature_id'  => $legislature_id,
-                        'jurisdiction_id' => $jurisdictionId,
-                        'scope_id'        => $validated['scope_id'],
-                        'map_id'          => $validated['map_id'],
-                        'geojson'         => json_encode($d['geometry']),
-                        'label'           => null,
-                        'population_year' => $year,
-                    ]);
-                    $ids[] = $res->recorded['district_id'];
-                }
-
-                return $ids;
-            });
+            // Atomic: every leaf district files, or none do. The resolver's
+            // commit runs the recompute → hash check → optional retire →
+            // per-leaf F-ELB-008 loop inside THIS transaction (extracted to
+            // LeafGiantResolver 2026-07-17 so the method-aware mass sweep
+            // files the identical districts without a Request). Districts
+            // are in deterministic (path) order from the plan service; a
+            // replace retires the scope's live drawn set before the first
+            // filing, so a failed plan rolls the old districts back too.
+            $result = DB::transaction(fn () => $this->leafGiants->commit(
+                $legislature_id,
+                $validated['scope_id'],
+                $validated['map_id'],
+                $request->user(),
+                $ctx,
+                $year,
+                $template,
+                $replace,
+                (string) $validated['plan_hash'],
+            ));
         } catch (ConstitutionalViolation $e) {
             return response()->json(['error' => $e->getMessage(), 'citation' => $e->citation], 422);
+        } catch (\App\Services\Districting\PlanRefused $e) {
+            // Plan failure, or "Plan changed — run the preview again." — the
+            // EXACT pre-extraction 422 set; any other RuntimeException from
+            // inside the filing transaction keeps propagating as a 500 and
+            // never leaks internals to the client.
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
         Cache::tags(["revealed.{$legislature_id}"])->flush();
 
         return response()->json([
             'ok'                 => true,
-            'districts_created'  => count($districtIds),
-            'district_ids'       => $districtIds,
-            'districts_replaced' => $replace ? $liveDrawn : 0,
+            'districts_created'  => $result['districts_created'],
+            'district_ids'       => $result['district_ids'],
+            'districts_replaced' => $result['replaced'],
         ]);
     }
 
@@ -678,14 +666,10 @@ class SubdivisionDrawController extends Controller
         return $out;
     }
 
-    /** Live drawn districts at a scope+plan — the set a whole-scope autoseed would displace. */
+    /** Live drawn districts at a scope+plan — delegates to LeafGiantResolver (shared with the mass sweep). */
     private function liveDrawnCount(string $scopeId, string $mapId): int
     {
-        return (int) DB::table('district_subdivisions')
-            ->where('map_id', $mapId)
-            ->where('parent_jurisdiction_id', $scopeId)
-            ->whereNull('deleted_at')
-            ->count();
+        return $this->leafGiants->liveDrawnCount($scopeId, $mapId);
     }
 
     /**
@@ -720,51 +704,13 @@ class SubdivisionDrawController extends Controller
     }
 
     /**
-     * Retire every live DRAWN district at a scope+plan — the delete-endpoint
-     * semantics (LegislatureController::deleteDistrict), applied to the whole
-     * drawn set: soft-delete the subdivisions AND their legislature_districts,
-     * hard-delete the membership rows. Same audit posture as the delete
-     * endpoint (a plan-editing operation on a draft, not an engine filing) —
-     * the replacement districts each file an audited F-ELB-008 right after.
-     * Caller supplies the transaction.
+     * Retire every live DRAWN district at a scope+plan — delegates to
+     * LeafGiantResolver (shared with the mass sweep). Caller supplies the
+     * transaction, exactly as before the extraction.
      */
     private function retireDrawnDistricts(string $legislatureId, string $scopeId, string $mapId): int
     {
-        // Keyed off the SUBDIVISIONS — the exact basis the Art. II §8 overlap
-        // gate reads — never through live-district joins: a ghost subdivision
-        // whose district was already hard-deleted (the old Clear path) has no
-        // join row, and a replace that cannot reach it can never clear the
-        // gate. Each subdivision retires WITH its live district/memberships
-        // when they exist; a districtless ghost still retires.
-        $subdivisionIds = DB::table('district_subdivisions')
-            ->where('map_id', $mapId)
-            ->where('parent_jurisdiction_id', $scopeId)
-            ->whereNull('deleted_at')
-            ->pluck('id')
-            ->all();
-
-        if (empty($subdivisionIds)) {
-            return 0;
-        }
-
-        $districtIds = DB::table('legislature_district_jurisdictions AS ldj')
-            ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
-            ->whereIn('ldj.subdivision_id', $subdivisionIds)
-            ->where('ld.legislature_id', $legislatureId)
-            ->whereNull('ld.deleted_at')
-            ->distinct()
-            ->pluck('ld.id')
-            ->all();
-
-        if (! empty($districtIds)) {
-            DB::table('legislature_district_jurisdictions')->whereIn('district_id', $districtIds)->delete();
-            DB::table('legislature_districts')->whereIn('id', $districtIds)
-                ->update(['deleted_at' => now(), 'updated_at' => now()]);
-        }
-        DB::table('district_subdivisions')->whereIn('id', $subdivisionIds)
-            ->update(['deleted_at' => now(), 'updated_at' => now()]);
-
-        return count($subdivisionIds);
+        return $this->leafGiants->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
     }
 
     /**
@@ -827,40 +773,11 @@ class SubdivisionDrawController extends Controller
 
     /**
      * Resolve a giant scope's seat budget + local quota, or null if the scope is
-     * not a childless leaf giant. Mirrors the F-ELB-008 handler's resolution.
+     * not a childless leaf giant. Delegates to LeafGiantResolver — ONE detector
+     * for these HTTP handlers and the mass-reseed sweep.
      */
     private function giantContext(string $legislatureId, string $scopeId): ?array
     {
-        $leg = DB::table('legislatures')->where('id', $legislatureId)->whereNull('deleted_at')->first();
-        if ($leg === null) {
-            return null;
-        }
-        $giant = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-        if ($giant === null || $giant->geom === null) {
-            return null;
-        }
-
-        $floor          = ConstitutionalDefaults::floor($leg->jurisdiction_id);
-        $ceiling        = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
-        $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
-
-        $rootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
-        $totalSeats = max((int) $leg->type_a_seats, 1);
-        $giantPop   = (int) $giant->population;
-        $giantFrac  = $giantPop * $totalSeats / $rootPop;
-        $childCount = (int) DB::table('jurisdictions')->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-
-        if ($giantFrac < $giantThreshold || $childCount > 0) {
-            return null;
-        }
-
-        $budget = max($floor, (int) round($giantFrac));
-
-        return [
-            'floor'   => $floor,
-            'ceiling' => $ceiling,
-            'budget'  => $budget,
-            'quota'   => $giantPop / max($budget, 1),
-        ];
+        return $this->leafGiants->context($legislatureId, $scopeId);
     }
 }

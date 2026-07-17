@@ -816,6 +816,9 @@ class SetupController extends Controller
             'legislature_min_seats'             => ['required', 'integer', 'min:1'],
             'legislature_max_seats'             => ['required', 'integer', 'min:1'],
             'legislature_sizing_law'            => ['required', Rule::in(['cube_root'])],
+            // Default line-split method for childless leaf giants (mixed
+            // autoseed, 2026-07-17). Mirrors SubdivisionAutoseedService::TEMPLATES.
+            'districting_autoseed_template'     => ['required', Rule::in(\App\Services\Districting\SubdivisionAutoseedService::TEMPLATES)],
             'election_interval_months'          => ['required', 'integer', 'min:1', 'max:1200'],
             'voting_method'                     => ['required', Rule::in(['stv_droop'])],
             'special_election_min_days'         => ['required', 'integer', 'min:1'],
@@ -902,6 +905,7 @@ class SetupController extends Controller
             'legislature_min_seats'             => 5,
             'legislature_max_seats'             => 9,
             'legislature_sizing_law'            => 'cube_root',
+            'districting_autoseed_template'     => 'shortest',
             'election_interval_months'          => 60,
             'voting_method'                     => 'stv_droop',
             'special_election_min_days'         => 90,
@@ -945,6 +949,7 @@ class SetupController extends Controller
                             'judiciary_is_elected'              => (bool) $row->$k,
                             'initiative_petition_threshold_pct' => (float) $row->$k,
                             'legislature_sizing_law',
+                            'districting_autoseed_template',
                             'voting_method',
                             'currency_name',
                             'currency_code',

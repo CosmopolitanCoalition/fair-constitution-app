@@ -36,8 +36,14 @@ class LegislatureController extends Controller
      * mechanically to DistrictingService. The methods below delegate with
      * identical signatures; all call sites in this controller are unchanged.
      */
-    public function __construct(private readonly \App\Services\DistrictingService $districting)
-    {
+    public function __construct(
+        private readonly \App\Services\DistrictingService $districting,
+        // Mixed autoseed (2026-07-17): shared childless-leaf-giant detector +
+        // Request-free F-ELB-008 commit, so the mass sweep line-splits the
+        // giants the composite pass cannot touch — same service the Phase H
+        // draw endpoints use.
+        private readonly \App\Services\Districting\LeafGiantResolver $leafGiants,
+    ) {
     }
 
     /** @see \App\Services\DistrictingService::thresholds() */
@@ -1337,6 +1343,11 @@ class LegislatureController extends Controller
                 'giant_threshold' => $giantThreshold,
                 'floor_boundary'  => $floorBoundary,
                 'floor_override'  => $floorOverride,
+                // Mixed autoseed (2026-07-17): the constitutional DEFAULT
+                // line-split template for childless leaf giants (Setup
+                // Option). The mapper's per-run picker starts here and may
+                // override per run.
+                'autoseed_template' => ConstitutionalDefaults::districtingTemplate((string) $leg->jurisdiction_id),
             ],
             // Wizard integration: when the user arrives from /setup/step/3,
             // ?setup=1 toggles a sticky banner with a return-to-wizard button.
@@ -2656,6 +2667,14 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'operation_scope and scope_id are required'], 422);
         }
 
+        // Mixed autoseed (2026-07-17): optional per-run line-split template
+        // override. Null → the sweep resolves the constitutional default
+        // (constitutional_settings.districting_autoseed_template).
+        $template = $request->input('template');
+        if ($template !== null && ! in_array($template, \App\Services\Districting\SubdivisionAutoseedService::TEMPLATES, true)) {
+            return response()->json(['error' => 'Unknown districting template.'], 422);
+        }
+
         // Refuse to start a new sweep if one is already in flight. The Halt
         // button must be used to stop the existing run before launching another.
         //
@@ -2721,11 +2740,19 @@ class LegislatureController extends Controller
         // Dispatch to Horizon. The job's timeout is 7200 s (2 h) which
         // covers a whole-Earth recursive sweep; per-scope commits inside
         // the job mean partial progress survives any worker death.
+        //
+        // The initiating operator rides along (mixed autoseed): childless
+        // leaf giants in the sweep file F-ELB-008 per line-split district,
+        // and that filing must carry the REAL author through the engine's
+        // R-08 gate — never the null system actor (the route's auth
+        // middleware guarantees a user exists here).
         \App\Jobs\MassReseedJob::dispatch(
             $legislature_id,
             $operationScope,
             $scopeId,
             $mapId,
+            $request->user()?->getKey(),
+            $template,
         );
 
         return response()->json([
@@ -2752,6 +2779,14 @@ class LegislatureController extends Controller
         string $operationScope,
         string $scopeId,
         string $mapId,
+        // Mixed autoseed (2026-07-17): the initiating operator's user id —
+        // leaf-giant scopes file F-ELB-008 as this actor (R-08 gate applies;
+        // null only on legacy/manual invocations, where leaf giants then
+        // fail per-scope instead of riding the null-actor system path).
+        ?string $initiatorUserId = null,
+        // Per-run line-split template override; null → the constitutional
+        // default (constitutional_settings.districting_autoseed_template).
+        ?string $template = null,
     ): array {
         // Record this worker's Postgres backend PID so massHalt() can cancel
         // / terminate its in-flight queries directly (instead of just setting
@@ -2777,6 +2812,15 @@ class LegislatureController extends Controller
         }
 
         $clearExisting = str_ends_with($operationScope, '_all');
+
+        // Mixed autoseed (2026-07-17): resolve the F-ELB-008 filing actor and
+        // the line-split template ONCE for the whole sweep. The actor is the
+        // initiating operator (threaded through MassReseedJob) — leaf-giant
+        // filings must never ride the null-actor system path, so a missing
+        // actor fails those scopes per-scope instead of bypassing R-08.
+        $actor = $initiatorUserId !== null ? \App\Models\User::find($initiatorUserId) : null;
+        $lineTemplate = $template ?? ConstitutionalDefaults::districtingTemplate($leg->jurisdiction_id);
+
         $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
 
         // At root scope: auto-update type_a_seats from cube root of children sum.
@@ -2835,6 +2879,17 @@ class LegislatureController extends Controller
                 break;
             }
 
+            // Mixed autoseed (2026-07-17): is this scope a CHILDLESS LEAF
+            // GIANT? The BFS scope list has always included them; the
+            // composite call below just no-ops ("No children with geometry")
+            // and the clamp stub strands the seats. Now they take the
+            // line-split path instead — same detector + commit the Phase H
+            // panel uses (LeafGiantResolver). Root scope is never a leaf
+            // giant here, matching the mapper's isLeafGiantScope.
+            $leafCtx = ($sid !== $leg->jurisdiction_id)
+                ? $this->leafGiants->context($legislature_id, $sid)
+                : null;
+
             $scopeStart = time();
             $this->publishMassProgress($legislature_id, [
                 'current_scope'    => $scopeNames[$sid] ?? $sid,
@@ -2842,11 +2897,57 @@ class LegislatureController extends Controller
                 'completed'        => $scopeIdx,
                 'total'            => $totalScopes,
                 'phase'            => 'scope_start',
-                'phase_label'      => "Starting scope: " . ($scopeNames[$sid] ?? $sid),
+                'phase_label'      => ($leafCtx !== null ? 'Line-splitting scope: ' : 'Starting scope: ')
+                    . ($scopeNames[$sid] ?? $sid)
+                    . ($leafCtx !== null ? " ({$leafCtx['budget']} seats, {$lineTemplate})" : ''),
                 'phase_current'    => 0,
                 'phase_total'      => 0,
                 'scope_started_at' => $scopeStart,
             ]);
+
+            if ($leafCtx !== null) {
+                DB::beginTransaction();
+                try {
+                    if ($actor === null) {
+                        // Never file F-ELB-008 as the null system actor — that
+                        // would bypass the R-08 authorship gate entirely.
+                        throw new \RuntimeException(
+                            'Line-split autoseed requires the initiating operator — re-run from the mapper while signed in.'
+                        );
+                    }
+
+                    if (! $clearExisting && $this->leafGiants->liveDrawnCount($sid, $mapId) > 0) {
+                        // _unassigned resume: drawn districts already exist at
+                        // this giant — leave the operator's work alone (the
+                        // composite analog of skipping an assigned child).
+                        DB::commit();
+                        $scopesProcessed++;
+                    } else {
+                        $res = $this->leafGiants->commit(
+                            $legislature_id,
+                            $sid,
+                            $mapId,
+                            $actor,
+                            $leafCtx,
+                            2023,
+                            $lineTemplate,
+                            $clearExisting,   // _all retires the drawn set first
+                            null,             // no client plan hash — the recompute IS the plan
+                        );
+                        DB::commit();
+                        $totalCreated    += $res['districts_created'];
+                        $scopesProcessed++;
+                    }
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
+                    $this->publishMassProgress($legislature_id, [
+                        'phase'       => 'scope_failed',
+                        'phase_label' => "Scope failed: " . ($scopeNames[$sid] ?? $sid) . " ({$e->getMessage()})",
+                    ]);
+                }
+                continue;
+            }
 
             // Compute per-scope seat budget
             if ($sid === $leg->jurisdiction_id) {
@@ -5319,13 +5420,27 @@ class LegislatureController extends Controller
         }
         unset($kids);
 
+        // Mixed autoseed (2026-07-17): which giants are CHILDLESS (leaf
+        // giants → the line-split method) vs composite. One indexed query
+        // over the giant set; the stepper labels each step by method.
+        $giantIds     = array_map(fn ($r) => $r->id, $rows);
+        $withChildren = empty($giantIds) ? [] : array_flip(
+            DB::table('jurisdictions')
+                ->whereIn('parent_id', $giantIds)
+                ->whereNull('deleted_at')
+                ->distinct()
+                ->pluck('parent_id')
+                ->all()
+        );
+
         // Post-order DFS: children before parent, largest-first within each level
         $steps = [];
-        $this->postOrderGiants($rootId, $adj, $steps);
+        $this->postOrderGiants($rootId, $adj, $steps, $withChildren);
 
-        // Root scope is always the final step
+        // Root scope is always the final step (always composite — the mapper
+        // never treats the root as a leaf giant).
         $rootName = DB::scalar('SELECT name FROM jurisdictions WHERE id = ?', [$rootId]);
-        $steps[] = ['scope_id' => $rootId, 'scope_name' => (string) $rootName];
+        $steps[] = ['scope_id' => $rootId, 'scope_name' => (string) $rootName, 'is_leaf' => false];
 
         // Find the index for the requested scope
         $currentId  = $request->query('scope_id', $rootId);
@@ -5340,11 +5455,16 @@ class LegislatureController extends Controller
         return response()->json(['steps' => $steps, 'current_index' => $currentIdx]);
     }
 
-    private function postOrderGiants(string $scopeId, array &$adj, array &$steps): void
+    private function postOrderGiants(string $scopeId, array &$adj, array &$steps, array $withChildren = []): void
     {
         foreach ($adj[$scopeId] ?? [] as $child) {
-            $this->postOrderGiants($child->id, $adj, $steps);
-            $steps[] = ['scope_id' => $child->id, 'scope_name' => (string) $child->name];
+            $this->postOrderGiants($child->id, $adj, $steps, $withChildren);
+            $steps[] = [
+                'scope_id'   => $child->id,
+                'scope_name' => (string) $child->name,
+                // Childless giant → the line-split (✂) method; else composite.
+                'is_leaf'    => ! isset($withChildren[$child->id]),
+            ];
         }
     }
 }

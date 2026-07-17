@@ -63,6 +63,24 @@ class ConstitutionalDefaults
     }
 
     /**
+     * The DEFAULT line-split template the autoseeder uses when a childless
+     * leaf giant must be cut into synthetic district geometries (Setup
+     * Option, operator ruling 2026-07-17). One of
+     * SubdivisionAutoseedService::TEMPLATES; the mapper's per-run picker can
+     * override. Falls back to 'shortest' (the compactness-preserving
+     * shortest-splitline) when unset or invalid — never a stringy strip by
+     * accident.
+     */
+    public static function districtingTemplate(?string $jurisdictionId = null): string
+    {
+        $tpl = self::resolve($jurisdictionId)['districting_autoseed_template'] ?? 'shortest';
+
+        return in_array($tpl, \App\Services\Districting\SubdivisionAutoseedService::TEMPLATES, true)
+            ? $tpl
+            : 'shortest';
+    }
+
+    /**
      * The fractional-seats boundary above which a jurisdiction must be
      * subdivided (cannot fit into a single district because it would round
      * to seats > ceiling). Mathematically: `ceiling + 0.5` — any fractional

@@ -43,6 +43,14 @@ class MassReseedJob implements ShouldQueue
         private readonly string $operationScope,
         private readonly string $scopeId,
         private readonly string $mapId,
+        // Mixed autoseed (2026-07-17): the initiating operator's user id —
+        // childless leaf giants in the sweep file F-ELB-008 line-split
+        // districts as this actor (R-08 gate). Plain string id, so
+        // SerializesModels never hydrates a stale model.
+        private readonly ?string $initiatorUserId = null,
+        // Per-run line-split template override; null → the constitutional
+        // default (districting_autoseed_template).
+        private readonly ?string $template = null,
     ) {
         // Route to the long-running Horizon supervisor (timeout=0, memory=512).
         // The default supervisor-1 has timeout=60s which SIGKILLs workers
@@ -58,11 +66,21 @@ class MassReseedJob implements ShouldQueue
             /** @var LegislatureController $ctrl */
             $ctrl = app(LegislatureController::class);
 
+            // Deploy-boundary guard: a job serialized under the pre-2026-07-17
+            // 4-argument constructor deserializes WITHOUT the two new typed
+            // properties — reading them raw would throw "must not be accessed
+            // before initialization" and kill the sweep before its first
+            // scope. isset() is false (not an error) for an uninitialized
+            // typed property, so an old-shape job degrades to the legacy
+            // behavior (no actor → leaf giants refuse per-scope) instead of
+            // dying on the update boundary.
             $result = $ctrl->executeMassReseedSweep(
                 $this->legislatureId,
                 $this->operationScope,
                 $this->scopeId,
                 $this->mapId,
+                isset($this->initiatorUserId) ? $this->initiatorUserId : null,
+                isset($this->template) ? $this->template : null,
             );
 
             Log::info('MassReseedJob complete', [

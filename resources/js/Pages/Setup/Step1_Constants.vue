@@ -31,6 +31,10 @@ const c = props.constants ?? {}
 const minSeats   = ref(c.legislature_min_seats   ?? 5)
 const maxSeats   = ref(c.legislature_max_seats   ?? 9)
 const sizingLaw  = ref(c.legislature_sizing_law  ?? 'cube_root')
+// Default line-split method the autoseeder uses when a jurisdiction earns
+// more seats than the ceiling allows but has no child subdivisions to group
+// (a "childless leaf giant" — its polygon is cut directly).
+const autoseedTemplate = ref(c.districting_autoseed_template ?? 'shortest')
 
 // ── Elections ──────────────────────────────────────────────────────
 const electionInterval       = ref(c.election_interval_months  ?? 60)
@@ -132,6 +136,15 @@ const SIZING_LAWS = [
     { id: 'cube_root', label: 'Cube-Root Law — round(population^(1/3))', enabled: true },
 ]
 
+// Mirrors SubdivisionAutoseedService::TEMPLATES — the line-split methods for
+// a childless giant. 'shortest' is the compactness-preserving default.
+const AUTOSEED_TEMPLATES = [
+    { id: 'shortest',          label: 'Shortest split-line — shortest balanced cuts (compact, default)' },
+    { id: 'vertical_strips',   label: 'Vertical strips — north–south cuts' },
+    { id: 'horizontal_strips', label: 'Horizontal strips — east–west cuts' },
+    { id: 'community_cells',   label: 'Community cells — balanced population cells' },
+]
+
 const VOTING_METHODS = [
     { id: 'stv_droop', label: 'STV with Droop Quota', enabled: true },
 ]
@@ -194,6 +207,7 @@ async function onSubmit() {
                 legislature_min_seats: minSeats.value,
                 legislature_max_seats: maxSeats.value,
                 legislature_sizing_law: sizingLaw.value,
+                districting_autoseed_template: autoseedTemplate.value,
                 election_interval_months: electionInterval.value,
                 voting_method: votingMethod.value,
                 special_election_min_days: specialElectionMinDays.value,
@@ -354,6 +368,26 @@ async function onSubmit() {
                             Total legislature size is computed from population, then clamped to
                             <code class="text-gray-400">[min, max]</code>, then partitioned into districts of size
                             <code class="text-gray-400">[min_seats, max_seats]</code>.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-1">
+                            District Auto-Draw Method (undivided areas)
+                        </label>
+                        <select
+                            v-model="autoseedTemplate"
+                            class="w-full bg-gray-950 border border-gray-700 rounded-md px-3 py-2 text-gray-100"
+                        >
+                            <option v-for="t in AUTOSEED_TEMPLATES" :key="t.id" :value="t.id">
+                                {{ t.label }}
+                            </option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Default of defaults: <span class="text-gray-300">Shortest split-line</span> ·
+                            When an area earns more seats than the maximum but has no smaller
+                            subdivisions to group, the autoseeder cuts its territory directly using
+                            this method. The district mapper can still override per run.
                         </p>
                     </div>
 

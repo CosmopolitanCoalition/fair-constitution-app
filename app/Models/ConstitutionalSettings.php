@@ -23,6 +23,9 @@ class ConstitutionalSettings extends Model
         'legislature_min_seats',
         'legislature_max_seats',
         'legislature_sizing_law',
+        // Mixed-autoseed default line-split method (Setup Option 2026-07-17):
+        // shortest | vertical_strips | horizontal_strips | community_cells.
+        'districting_autoseed_template',
         'supermajority_numerator',
         'supermajority_denominator',
         'max_days_between_meetings',

@@ -658,11 +658,11 @@
                             <!-- Left: previous scope (wraps from first → last) -->
                             <button @click="wizardStepBackward"
                                     :disabled="wizardSteps.length === 0 || wizardLoading"
-                                    :title="wizardSteps.length > 0 ? wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]?.scope_name : ''"
+                                    :title="wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]) ?? '') : ''"
                                     class="flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
                                            disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                ←&nbsp;<span class="truncate">{{ wizardSteps.length > 0 ? (wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]?.scope_name ?? '—') : '—' }}</span>
+                                ←&nbsp;<span class="truncate">{{ wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]) ?? '—') : '—' }}</span>
                             </button>
                             <!-- Centre: parent scope (↑ up) -->
                             <button @click="wizardStepUp"
@@ -677,11 +677,11 @@
                             <!-- Right: next scope (wraps from last → first) -->
                             <button @click="wizardStepForward"
                                     :disabled="wizardSteps.length === 0 || wizardLoading"
-                                    :title="wizardSteps.length > 0 ? wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]?.scope_name : ''"
+                                    :title="wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]) ?? '') : ''"
                                     class="flex items-center justify-end gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
                                            text-violet-300 hover:bg-violet-800 transition-colors
                                            disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                <span class="truncate">{{ wizardSteps.length > 0 ? (wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]?.scope_name ?? '—') : '—' }}</span>&nbsp;→
+                                <span class="truncate">{{ wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]) ?? '—') : '—' }}</span>&nbsp;→
                             </button>
                         </div>
                         <!-- Row 2: options / in-progress indicator + pagination -->
@@ -2121,12 +2121,26 @@ const AUTOSEED_TEMPLATES = [
     { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
 ]
 const _autoseedTplStored = localStorage.getItem('leg_autoseed_template')
+// The picker STARTS at the constitutional default (Setup Option
+// districting_autoseed_template, via props.constitutional); a per-run
+// override the operator made earlier (localStorage) still wins.
+const _autoseedTplDefault = props.constitutional?.autoseed_template ?? 'shortest'
 const autoseedTemplate = ref(
-    AUTOSEED_TEMPLATES.some(t => t.key === _autoseedTplStored) ? _autoseedTplStored : 'shortest'
+    AUTOSEED_TEMPLATES.some(t => t.key === _autoseedTplStored)
+        ? _autoseedTplStored
+        : (AUTOSEED_TEMPLATES.some(t => t.key === _autoseedTplDefault) ? _autoseedTplDefault : 'shortest')
 )
 watch(autoseedTemplate, v => localStorage.setItem('leg_autoseed_template', v))
 function autoseedTemplateLabel(key) {
     return AUTOSEED_TEMPLATES.find(t => t.key === key)?.label ?? (key || 'Shortest lines')
+}
+
+// Mixed autoseed: label a wizard step by its creation method — ✂ marks a
+// childless leaf giant the autoseeder LINE-SPLITS (backend is_leaf flag);
+// unmarked steps are composite (grouped from child units).
+function wizardStepLabel(step) {
+    if (!step) return null
+    return (step.is_leaf ? '✂ ' : '') + (step.scope_name ?? '—')
 }
 
 const massToolPanel   = ref(null)   // null | 'reseed' | 'clear'
@@ -2217,11 +2231,16 @@ function startMassStatusPolling() {
     }, 2500)
 }
 
+// Mixed autoseed (2026-07-17): the recursive sweeps now also LINE-DRAW every
+// childless giant they reach (an area with more seats than the ceiling but no
+// smaller units to group) — one operation produces the complete map, composite
+// + line-split districts together. "All — recursively" from the root is the
+// canonical produce-the-whole-map run.
 const MASS_SCOPES = [
     { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts',            clearable: false },
     { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level',         clearable: true,  clearDesc: 'Remove all districts at this level' },
-    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope',      clearable: false },
-    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope', clearable: true,  clearDesc: 'Remove all districts here and at every nested giant scope' },
+    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope — undivided giants are line-drawn automatically', clearable: false },
+    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope, line-drawing undivided giants — the complete map in one run', clearable: true,  clearDesc: 'Remove all districts here and at every nested giant scope' },
 ]
 
 // Clear only removes existing districts, so the "Unassigned" (fill-gaps) scopes
@@ -4989,6 +5008,11 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
                 operation_scope: scope,
                 scope_id: overrideScopeId ?? props.scope.id,
                 map_id:   props.active_map?.id ?? null,
+                // Mixed autoseed: leaf giants in the sweep line-split with the
+                // SAME template the panel picker shows — the on-screen choice
+                // and the sweep never diverge. (The picker itself defaults to
+                // the constitutional Setup Option.)
+                template: autoseedTemplate.value,
             }),
             signal:  AbortSignal.timeout(60_000),
         })
