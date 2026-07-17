@@ -666,21 +666,22 @@ class DistrictingService
                     $bestScore = $cfg['score'];
                 }
                 // Seat-mix equalization variant (round-3 tuning: "it is giving up
-                // reps per district balance long before it has to"). When the
-                // most-equal legal partition of this budget (6/6/6 for 18) is more
-                // even than the winner's mix (7/6/5), attempt a CLEAN-only
-                // rebalance toward it — contiguity is never sacrificed for
-                // seat-mix equality — and let scoreRank's seat_spread slot decide
-                // whether the balance it costs (within acceptability) was worth it.
-                // ALSO fires on seat_drift (exactness rule, 2026-07-13): the
-                // canonical partition sums to the budget by construction, so
-                // walking toward it is the direct repair for a drawing whose
-                // nearest-rounded seats miss the pool total.
+                // reps per district balance long before it has to"; round-11
+                // rework, the Draft-11 spread flags). When the most-equal legal
+                // partition of this budget (6/6/6 for 18) is more even than the
+                // winner's mix (7/6/5), or the winner's nearest-rounds miss the
+                // budget (exactness rule), land the canonical vector with the
+                // FEASIBILITY-AWARE pass — the old breakRebalance equalizer
+                // chased arithmetic targets without checking which moves exist
+                // and stalled on fat atoms and scattered pools (Hubei shipped
+                // 8+6 with 7+7 one clean move away; Oromia 8+5; Vietnam 9+9+7;
+                // Russia's 9+9+9+9 never materialized). scoreRank's seat_spread
+                // slot still decides whether the balance it costs was worth it.
                 if ($quotaPopC > 0) {
                     $parts = $this->canonicalPartition($compBudget, count($cfg['bins']), $floor, $ceiling);
                     if ($parts !== null && ($cfg['score']['seat_spread'] > (max($parts) - min($parts))
                         || ($cfg['score']['seat_drift'] ?? 0) > 0)) {
-                        $equalized = $this->breakRebalance($cfg['bins'], $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                        $equalized = $this->landSeatVector($cfg['bins'], $parts, $childById, $centroids, $adj, $quotaPopC, $floor, $ceiling, $giantThreshold, $floorBoundary);
                         if ($equalized !== $cfg['bins']) {
                             $effectiveBudget = max(count($equalized), $compBudget);
                             $eScore = $this->scoreConfiguration($virtualize($equalized), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
@@ -826,6 +827,41 @@ class DistrictingService
                 // no feasible nudge exists (indivisible atoms), the drifted map
                 // ships under the undercount flag, per the pin-16 fallback.
                 $allBins = $this->landPoolBudget($allBins, $childById, $centroids, $adj, $quotaPopAll, $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary);
+
+                // ── Canonical-mix landing over the FINAL bin set (round 11).
+                // Scattered-pool scopes finalize here without any candidate
+                // competition (auto-binned components + attachments), so the
+                // k-loop equalizer never sees them — the Japan / Ethiopia /
+                // Philippines spread class. When the final mix is less even
+                // than the canonical partition, attempt the feasibility-aware
+                // landing — and because this plane has no competition, the
+                // result is COMPARATOR-GATED: it replaces the map only when
+                // it wins under the full doctrine ladder (a landing that buys
+                // its spread with too many breaks or too much deviation is
+                // discarded). Canonical targets sum to the budget, so budget
+                // exactness survives the landing by construction.
+                $allBins = array_values(array_filter($allBins, fn($b) => !empty($b)));
+                $finalParts = $this->canonicalPartition($nonGiantBudget, count($allBins), $floor, $ceiling);
+                if ($finalParts !== null && count($allBins) >= 2) {
+                    $roundsNow = array_map(
+                        fn($b) => max($floor, min($ceiling, (int) round(
+                            array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll
+                        ))),
+                        $allBins
+                    );
+                    $spreadNow   = max($roundsNow) - min($roundsNow);
+                    $spreadCanon = max($finalParts) - min($finalParts);
+                    if ($spreadNow > $spreadCanon) {
+                        $landed = $this->landSeatVector($allBins, $finalParts, $childById, $centroids, $adj, $quotaPopAll, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                        if ($landed !== $allBins) {
+                            $before = $this->scoreConfiguration($allBins, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
+                            $after  = $this->scoreConfiguration($landed, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
+                            if ($this->scoreBeats($after, $before)) {
+                                $allBins = $landed;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -3453,6 +3489,212 @@ class DistrictingService
             $seats[$di] = $seatOf($df);
             $seats[$ri] = $seatOf($rf);
             $drift = array_sum($seats) - $budget;
+        }
+
+        return $bins;
+    }
+
+    /**
+     * Land a target seat VECTOR — the canonical-mix landing pass (round 11,
+     * the operator's Draft-11 spread flags: Hubei 8+6 where 7+7 exists,
+     * Oromia 8+5 where a clean 7+6 is one border-zone away, Vietnam 9+9+7,
+     * Russia's k=4 9+9+9+9 lost to null builders, Japan/Ethiopia/Philippines
+     * archipelago mixes).
+     *
+     * The old equalizer (breakRebalance toward canonical parts) chased
+     * arithmetic targets without checking which moves EXIST and stalled —
+     * the same target-fixation disease landPoolBudget cured for budget
+     * drift. This is the generalization: given per-bin integer targets
+     * (rank-matched to bins by fractional, biggest to biggest, re-matched
+     * after every applied step), walk only feasible member moves that
+     * strictly reduce the total seat mismatch Σ|round(frac_i) − target_i|,
+     * until every bin rounds to its target or no feasible step remains.
+     *
+     * Move preference mirrors the doctrine: tier 1 = the member has an
+     * adjacency edge into the receiver (joins contiguously); tier 2 = any
+     * move (breaks purchasable, closest fragment first, islands only ever
+     * move closer); tier 3 = pairwise exchange (only when no single move
+     * improves; islands never swap). Both bins stay inside the
+     * round-to-legal window at every step, and bins are never emptied.
+     * Because canonical targets sum to the pool budget, landing the vector
+     * preserves budget exactness. The caller judges the result under the
+     * full comparator — this pass proposes, scoreBeats disposes.
+     */
+    private function landSeatVector(
+        array $bins,
+        array $targets,
+        array $childById,
+        array $centroids,
+        array $adj,
+        float $quotaPop,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): array {
+        if ($quotaPop <= 0 || count($targets) !== count(array_filter($bins, fn($b) => !empty($b)))) {
+            return $bins;
+        }
+        $bins    = array_values(array_filter($bins, fn($b) => !empty($b)));
+        $guardLo = $floorBoundary - 0.5;
+        $seatOf  = fn(float $f) => max($floor, min($ceiling, (int) round($f)));
+
+        $fracs = array_map(
+            fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPop,
+            $bins
+        );
+
+        // Rank-match: biggest target to biggest bin (by fractional).
+        $matchTargets = function (array $fracs) use ($targets): array {
+            $tSorted = $targets;
+            rsort($tSorted);
+            $order = array_keys($fracs);
+            usort($order, fn($a, $b) => $fracs[$b] <=> $fracs[$a]);
+            $out = [];
+            foreach ($order as $rank => $bi) $out[$bi] = $tSorted[$rank];
+            return $out;
+        };
+
+        $binHasEdgeFrom = function (string $jid, array $bin) use ($adj): bool {
+            $set = array_flip($bin);
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (isset($set[$nb])) return true;
+            }
+            return false;
+        };
+
+        // TWO PHASES (the Hubei receiver-break lesson): phase 1 attempts the
+        // entire landing BREAK-FREE — only tier-1 moves (member joins the
+        // receiver contiguously) that pass the donor-integrity veto, so a
+        // contiguous scope lands its canonical mix with zero new fragments
+        // when such a path exists. Only if the mix is still unlanded does
+        // phase 2 open the cross-gap moves (tier 2) and exchanges that
+        // scattered pools genuinely need — and the comparator gate judges
+        // whatever those cost.
+        foreach ([false, true] as $allowBreaks) {
+        for ($step = 0; $step < 48; $step++) {
+            $tgt   = $matchTargets($fracs);
+            $seats = array_map($seatOf, $fracs);
+            $mismatch = 0;
+            foreach ($seats as $i => $s) $mismatch += abs($s - $tgt[$i]);
+            if ($mismatch === 0) break 2;
+
+            // Improvement is LEXICOGRAPHIC: first the integer seat mismatch,
+            // then the continuous distance Σ|frac − target|. The second term
+            // walks plateaus (the Hubei class: counties of 0.1–0.36 fracs can
+            // never cross a 0.9 gap in one hop — every early step is
+            // integer-neutral and only the continuous distance shows progress
+            // until the boundary finally flips).
+            $cands = []; // [dMismatch, tier, distSq, di, jid, ri, df, rf, backJid|null]
+            foreach ($bins as $di => $donor) {
+                if (count($donor) < 2) continue;
+                foreach ($donor as $jid) {
+                    $mf = ((float) $childById[$jid]->population) / $quotaPop;
+                    if ($mf <= 0.0) continue;
+                    $df = $fracs[$di] - $mf;
+                    if ($df < $guardLo) continue;
+                    foreach ($bins as $ri => $recv) {
+                        if ($ri === $di) continue;
+                        $rf = $fracs[$ri] + $mf;
+                        if ($rf >= $giantThreshold) continue;
+                        $dMis = (abs($seatOf($df) - $tgt[$di]) + abs($seatOf($rf) - $tgt[$ri]))
+                              - (abs($seats[$di] - $tgt[$di]) + abs($seats[$ri] - $tgt[$ri]));
+                        $dCont = (abs($df - $tgt[$di]) + abs($rf - $tgt[$ri]))
+                               - (abs($fracs[$di] - $tgt[$di]) + abs($fracs[$ri] - $tgt[$ri]));
+                        if ($dMis > 0 || ($dMis === 0 && $dCont >= -1e-9)) continue;
+                        $dist = $this->closestApproachSq([$jid], $recv, $centroids);
+                        if (empty($adj[$jid])) {
+                            $rest = array_values(array_diff($donor, [$jid]));
+                            if (!empty($rest) && $dist >= $this->closestApproachSq([$jid], $rest, $centroids)) continue;
+                            $tier = 2;                        // islands never count as clean joins
+                        } else {
+                            $tier = $binHasEdgeFrom($jid, $recv) ? 1 : 2;
+                        }
+                        if (!$allowBreaks && $tier !== 1) continue;   // phase 1: break-free only
+                        $cands[] = [$dMis, $tier, $dist, $di, $jid, $ri, $df, $rf, null];
+                    }
+                }
+            }
+            // Donor-integrity veto (the Hubei/Japan pre-flight lesson): tier 1
+            // guarantees the member JOINS the receiver contiguously but says
+            // nothing about what it leaves behind — pulling a border county
+            // can detach a corner of the donor, and the comparator gate then
+            // rightly discards the whole landing for the new break. Try
+            // candidates best-first and veto any single move that increases
+            // the donor's fragment count.
+            usort($cands, fn($a, $b) => ($a[0] <=> $b[0]) ?: ($a[1] <=> $b[1]) ?: ($a[2] <=> $b[2]));
+            $best = null;
+            foreach (array_slice($cands, 0, 40) as $cand) {
+                [, , , $di, $jid] = $cand;
+                $before = $this->fragmentCount($bins[$di], $adj, $centroids, PHP_FLOAT_MAX);
+                $rest   = array_values(array_diff($bins[$di], [$jid]));
+                $after  = $this->fragmentCount($rest, $adj, $centroids, PHP_FLOAT_MAX);
+                if ($after > $before) continue;
+                $best = $cand;
+                break;
+            }
+            if ($best === null && $allowBreaks) {
+                // Exchange fallback — no single move improves (the Draft-10
+                // Ethiopia lesson, generalized): trade a bigger member out
+                // for a smaller one back. Islands never swap as ballast.
+                // Exchanges stay strict on the INTEGER mismatch — plateau
+                // exchanges would churn without converging.
+                foreach ($bins as $di => $donor) {
+                    if (count($donor) < 2) continue;
+                    foreach ($donor as $jid) {
+                        $mf = ((float) $childById[$jid]->population) / $quotaPop;
+                        if ($mf <= 0.0 || empty($adj[$jid])) continue;
+                        foreach ($bins as $ri => $recv) {
+                            if ($ri === $di || count($recv) < 2) continue;
+                            foreach ($recv as $backJid) {
+                                $bf = ((float) $childById[$backJid]->population) / $quotaPop;
+                                if ($bf <= 0.0 || $bf >= $mf || empty($adj[$backJid])) continue;
+                                $df = $fracs[$di] - $mf + $bf;
+                                $rf = $fracs[$ri] + $mf - $bf;
+                                if ($df < $guardLo || $df >= $giantThreshold) continue;
+                                if ($rf < $guardLo || $rf >= $giantThreshold) continue;
+                                $delta = (abs($seatOf($df) - $tgt[$di]) + abs($seatOf($rf) - $tgt[$ri]))
+                                       - (abs($seats[$di] - $tgt[$di]) + abs($seats[$ri] - $tgt[$ri]));
+                                if ($delta >= 0) continue;
+                                $dist = $this->closestApproachSq([$jid], $recv, $centroids)
+                                      + $this->closestApproachSq([$backJid], $donor, $centroids);
+                                if ($best === null || $dist < $best[2]) {
+                                    $best = [$delta, 3, $dist, $di, $jid, $ri, $df, $rf, $backJid];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($best === null) break;                        // phase exhausted — next phase or ship partial
+            [, , , $di, $jid, $ri, $df, $rf, $backJid] = $best;
+            $bins[$di] = array_values(array_diff($bins[$di], [$jid]));
+            $bins[$ri][] = $jid;
+            if ($backJid !== null) {
+                $bins[$ri] = array_values(array_diff($bins[$ri], [$backJid]));
+                $bins[$di][] = $backJid;
+            }
+            $fracs[$di] = $df;
+            $fracs[$ri] = $rf;
+        }
+        }
+
+        // Post-landing balance polish (the Oromia lesson): crossing a rounding
+        // boundary with whatever member EXISTS can leave the landed mix at
+        // ugly deviations (a 1.2-frac zone where the ideal transfer was 0.6).
+        // The old clean equalizer is the right FINISHER — walk balance toward
+        // the landed targets with contiguity-preserving transfers only. It
+        // needs fractional_seats on the children (present on every engine
+        // path; unit fixtures without it skip the polish).
+        $sample = null;
+        foreach ($bins as $b) { if (!empty($b)) { $sample = $childById[$b[0]] ?? null; break; } }
+        if ($sample !== null && property_exists($sample, 'fractional_seats')) {
+            $tSorted = $targets;
+            rsort($tSorted);
+            $bins = $this->breakRebalance(
+                $bins, $childById, $centroids, $adj, $quotaPop, array_sum($targets),
+                $floor, $ceiling, $giantThreshold, $floorBoundary, $tSorted, true
+            );
         }
 
         return $bins;

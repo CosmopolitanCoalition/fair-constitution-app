@@ -126,6 +126,16 @@ use Tests\TestCase;
  *        DIFFERENT maps from identical data (how Draft 10 diverged from
  *        Draft 9 on one scope).
  *
+ *   (21) THE CANONICAL-MIX LANDING (round 11, the Draft-11 spread flags:
+ *        Hubei 8+6, Oromia 8+5, Vietnam 9+9+7, Russia's missing 9+9+9+9,
+ *        Japan/Ethiopia/Philippines): the old equalizer chased canonical
+ *        targets without checking which moves exist and stalled.
+ *        landSeatVector walks only feasible moves that strictly reduce
+ *        Σ|round(frac) − target| — clean joins preferred, breaks
+ *        purchasable closest-first, exchanges last, islands only closer —
+ *        and the comparator still disposes: in the k-loop as a variant,
+ *        post-attachment behind a scoreBeats gate.
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1301,6 +1311,91 @@ class DistrictingDoctrineTest extends TestCase
                 );
             }
         });
+    }
+
+    // ─── (21) The canonical-mix landing pass ─────────────────────────────────
+
+    public function test_seat_vector_landing_reaches_canonical_by_clean_moves(): void
+    {
+        // The Hubei class, distilled: a chain of 28 half-frac cells drawn as
+        // 6.0 + 8.0 (rounds 6+8, spread 2) when the canonical 7+7 sits two
+        // clean border moves away. The landing must walk exactly there.
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'landSeatVector');
+        $m->setAccessible(true);
+
+        $childById = []; $centroids = []; $adj = []; $ids = [];
+        for ($i = 0; $i < 28; $i++) {
+            $id = sprintf('c%02d', $i);
+            $childById[$id] = (object) ['population' => 50_000, 'centroid_x' => $i + 0.5, 'centroid_y' => 0.5];
+            $centroids[$id] = ['x' => $i + 0.5, 'y' => 0.5];
+            $adj[$id] = [];
+            $ids[] = $id;
+        }
+        for ($i = 1; $i < 28; $i++) {
+            $adj[$ids[$i - 1]][] = $ids[$i];
+            $adj[$ids[$i]][]     = $ids[$i - 1];
+        }
+        $bins = [array_slice($ids, 0, 12), array_slice($ids, 12)];   // 6.0 + 8.0 fracs
+
+        $out = $m->invoke($svc, $bins, [7, 7], $childById, $centroids, $adj, 100_000.0, 5, 9, 9.5, 5.0);
+
+        $sizes = array_map('count', $out);
+        sort($sizes);
+        $this->assertSame([14, 14], $sizes, 'two clean border moves land the canonical 7+7');
+        foreach ($out as $b) {
+            $frac = array_sum(array_map(fn($j) => $childById[$j]->population, $b)) / 100_000.0;
+            $this->assertEqualsWithDelta(7.0, $frac, 0.001);
+            // both bins stay contiguous — the moves were tier-1 clean joins
+            $set = array_flip($b);
+            $seen = [$b[0] => true]; $q = [$b[0]];
+            while ($q) {
+                $cur = array_pop($q);
+                foreach ($adj[$cur] as $nb) {
+                    if (isset($set[$nb]) && !isset($seen[$nb])) { $seen[$nb] = true; $q[] = $nb; }
+                }
+            }
+            $this->assertCount(count($b), $seen, 'clean landing never fragments a chain bin');
+        }
+    }
+
+    public function test_seat_vector_landing_crosses_gaps_when_no_clean_move_exists(): void
+    {
+        // The Oromia/Ethiopia class, distilled to the real Draft-10 numbers:
+        // three mutually non-adjacent clusters at 6.69 + 7.69 + 4.62 of a
+        // 19-seat pool (rounds 7+8+5, spread 3). The canonical 7+6+6 is one
+        // break-tolerant move away — the 1.40 member crosses from the 7.69
+        // cluster to the 4.62 one (6.29 rounds 6, 6.02 rounds 6, and the
+        // 6.69 cluster rounds 7).
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'landSeatVector');
+        $m->setAccessible(true);
+
+        $childById = []; $centroids = []; $adj = [];
+        $mkCluster = function (string $tag, float $y, array $pops) use (&$childById, &$centroids, &$adj) {
+            $prev = null; $members = [];
+            foreach ($pops as $i => $p) {
+                $id = "{$tag}{$i}";
+                $childById[$id] = (object) ['population' => $p, 'centroid_x' => $i + 0.5, 'centroid_y' => $y + 0.5];
+                $centroids[$id] = ['x' => $i + 0.5, 'y' => $y + 0.5];
+                $adj[$id] = [];
+                if ($prev !== null) { $adj[$prev][] = $id; $adj[$id][] = $prev; }
+                $prev = $id; $members[] = $id;
+            }
+            return $members;
+        };
+        $a = $mkCluster('a', 0, [657_000, 12_000]);
+        $b = $mkCluster('b', 10, [620_000, 140_000, 9_000]);
+        $c = $mkCluster('c', 20, [146_000, 159_000, 54_000, 31_000, 72_000]);
+
+        $out = $m->invoke($svc, [$a, $b, $c], [7, 6, 6], $childById, $centroids, $adj, 100_000.0, 5, 9, 9.5, 5.0);
+
+        $rounds = array_map(function ($bin) use ($childById) {
+            return max(5, min(9, (int) round(array_sum(array_map(fn($j) => $childById[$j]->population, $bin)) / 100_000.0)));
+        }, $out);
+        rsort($rounds);
+        $this->assertSame([7, 6, 6], $rounds, 'the break-tolerant landing reaches the canonical mix across the gaps');
+        $this->assertSame(19, array_sum($rounds), 'budget exactness survives the landing');
     }
 
     // ─── Fixtures ────────────────────────────────────────────────────────────
