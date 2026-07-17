@@ -376,7 +376,16 @@ class DistrictingService
                    ST_Length(ST_CollectionExtract(ix, 2)) AS border_len
             FROM pair
             WHERE ST_Dimension(ix) >= 1
+            ORDER BY j1, j2
         ", ['ids' => $idsStr]);
+        // ORDER BY is LOAD-BEARING (the Draft-10 Ethiopia lottery): without it
+        // Postgres returns join rows in plan/heap order, which shifts whenever a
+        // jurisdictions tuple is rewritten — the adjacency lists inherit that
+        // order, BFS growth inherits it from them, and the candidate pool tilts.
+        // The scope-by-scope walk and the recursive sweep then disagree on the
+        // SAME data (Draft 9 drew Ethiopia 8+6+5 exact; Draft 10 drew 8+7+5,
+        // +1). Determinism of the drawing is a settled property (the Draft-4/5
+        // byte-identity proof) — never remove this clause.
 
         $adj = [];
         $this->borderLen = [];
@@ -3397,10 +3406,48 @@ class DistrictingService
                     }
                 }
             }
+            // Exchange arm (the Draft-10 Ethiopia class): when no single move
+            // can cross exactly one boundary — every candidate either flips
+            // BOTH bins' rounds (net 0) or strands a sub-window remainder —
+            // a pairwise exchange still can (real case: Addis Ababa out of
+            // the 7.69 bin for Afar out of the 4.62 bin → donor 6.83 rounds
+            // 7, receiver 5.48 holds 5, net −1). Single moves stay preferred:
+            // less displacement.
+            if ($best === null) {
+                foreach ($bins as $di => $donor) {
+                    if (count($donor) < 2) continue;
+                    foreach ($donor as $jid) {
+                        $mf = ((float) $childById[$jid]->population) / $quotaPop;
+                        if ($mf <= 0.0 || empty($adj[$jid])) continue; // islands never swap as ballast
+                        foreach ($bins as $ri => $recv) {
+                            if ($ri === $di || count($recv) < 2) continue;
+                            foreach ($recv as $backJid) {
+                                $bf = ((float) $childById[$backJid]->population) / $quotaPop;
+                                if ($bf <= 0.0 || $bf >= $mf || empty($adj[$backJid])) continue;
+                                $df = $fracs[$di] - $mf + $bf;
+                                $rf = $fracs[$ri] + $mf - $bf;
+                                if ($df < $guardLo || $df >= $giantThreshold) continue;
+                                if ($rf < $guardLo || $rf >= $giantThreshold) continue;
+                                if (($seatOf($df) - $seats[$di]) + ($seatOf($rf) - $seats[$ri]) !== $need) continue;
+                                $dist = $this->closestApproachSq([$jid], $recv, $centroids)
+                                      + $this->closestApproachSq([$backJid], $donor, $centroids);
+                                if ($best === null || $dist < $best[0]) {
+                                    $best = [$dist, $di, $jid, $ri, $df, $rf, $backJid];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if ($best === null) break;                        // no feasible nudge — ships under the flag
+            $backJid = $best[6] ?? null;
             [, $di, $jid, $ri, $df, $rf] = $best;
             $bins[$di] = array_values(array_diff($bins[$di], [$jid]));
             $bins[$ri][] = $jid;
+            if ($backJid !== null) {
+                $bins[$ri] = array_values(array_diff($bins[$ri], [$backJid]));
+                $bins[$di][] = $backJid;
+            }
             $fracs[$di] = $df;
             $fracs[$ri] = $rf;
             $seats[$di] = $seatOf($df);

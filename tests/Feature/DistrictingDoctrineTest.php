@@ -114,6 +114,18 @@ use Tests\TestCase;
  *        boundary nudge only ever considers moves that exist, so it takes
  *        the feasible correction one rank down the cost list.
  *
+ *   (20) THE NUDGE EXCHANGES WHEN NO SINGLE MOVE EXISTS (the Draft-10
+ *        Ethiopia lottery): a pool can drift where every single move
+ *        either flips BOTH bins' rounds (net zero) or strands a
+ *        sub-window remainder — the real 8+7+5 Ethiopia had no single
+ *        move at all. A pairwise exchange still crosses exactly one
+ *        boundary (Addis Ababa out for Afar in). Related determinism fix,
+ *        not pinnable directly: the Step-7 edge query now carries ORDER
+ *        BY j1, j2 — without it the adjacency lists inherit plan/heap
+ *        row order, and the scope-walk and the recursive sweep can draw
+ *        DIFFERENT maps from identical data (how Draft 10 diverged from
+ *        Draft 9 on one scope).
+ *
  * Live-pg posture (PostGIS adjacency + real Step 12 inserts) — per-test
  * transaction, rolled back; never RefreshDatabase.
  */
@@ -1234,6 +1246,53 @@ class DistrictingDoctrineTest extends TestCase
                 ->get(['seats', 'fractional_seats']);
             $this->assertSame(22, (int) $districts->sum('seats'),
                 'the repair routes around the indivisible cheapest correction and lands the budget');
+            foreach ($districts as $d) {
+                $this->assertSame(
+                    (int) round((float) $d->fractional_seats),
+                    (int) $d->seats,
+                    'every district still seats exactly its nearest rounding'
+                );
+            }
+        });
+    }
+
+    // ─── (20) The nudge exchanges when no single move exists ────────────────
+
+    public function test_budget_repair_exchanges_when_no_single_move_exists(): void
+    {
+        $this->onLivePg(function () {
+            // The Draft-10 Ethiopia case, distilled to three non-adjacent
+            // clusters of a 19-seat pool: 6.69 (6.57 + 0.12), 7.69 (6.20 +
+            // 1.40 + 0.09), 4.62 (1.46 + 1.59 + 0.54 + 0.31 + 0.72). Nearest
+            // rounds give 7 + 8 + 5 = 20, one over — and NO single move can
+            // fix it: every candidate either changes both bins' rounds (net
+            // zero) or strands a sub-4.5 remainder. The exchange arm must
+            // find the two-way trade (the 1.40 out of the 7.69 bin for a
+            // small member of the 4.62 bin: 6.83 rounds 7 while the other
+            // side holds 5) and land 19 exactly.
+            $rootId  = $this->makeJurisdiction('zzdo-0-root', 'Test Root', 0, null, $this->square(-2, -2, 12, 26), 1_900_000);
+            $scopeId = $this->makeJurisdiction('zzdo-1-scope', 'Test Scope', 1, $rootId, $this->square(-1, -1, 10, 24), 1_900_000);
+            $mk = function (string $tag, int $i, float $x, float $y, int $pop) use ($scopeId) {
+                return $this->makeJurisdiction(
+                    "zzdo-2-{$tag}-{$i}", strtoupper($tag) . " {$i}", 2, $scopeId,
+                    $this->square($x, $y, $x + 1, $y + 1), $pop
+                );
+            };
+            foreach ([657_000, 12_000] as $i => $p)                       $mk('a', $i, $i, 0.0, $p);
+            foreach ([620_000, 140_000, 9_000] as $i => $p)               $mk('b', $i, $i, 10.0, $p);
+            foreach ([146_000, 159_000, 54_000, 31_000, 72_000] as $i => $p) $mk('c', $i, $i, 20.0, $p);
+            $leg = $this->makeLegislature($rootId, 19);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 19, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)->whereNull('deleted_at')
+                ->get(['seats', 'fractional_seats']);
+            $this->assertSame(19, (int) $districts->sum('seats'),
+                'the exchange arm lands the pool budget when no single move can');
             foreach ($districts as $d) {
                 $this->assertSame(
                     (int) round((float) $d->fractional_seats),
