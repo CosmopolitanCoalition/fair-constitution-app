@@ -458,12 +458,13 @@ class LegislatureController extends Controller
             }
         }
 
-        // Root jurisdiction population — always the legislature's own jurisdiction (e.g. Earth).
-        // Used to compute proportional entitlements consistently across all drill-down levels.
-        $rootPop = (int) DB::table('jurisdictions')
-            ->where('id', $leg->jurisdiction_id)
-            ->value('population');
-        $rootPop = max($rootPop, 1);
+        // THE share base — the root's CHILDREN-SUM, never its stored figure
+        // (Kentucky ruling 2026-07-18; seating law step 2). Every proportional
+        // entitlement and giant test on this page divides by this, so the
+        // display can never disagree with the binding cascade about who is a
+        // giant (the stored-pop base manufactured a phantom drillable
+        // 10-seat Kentucky over an already-seated 9-seat district).
+        $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
 
         // Constitutional thresholds — resolved from the legislature's root
         // jurisdiction's constitutional_settings. Substituting these for the
@@ -520,7 +521,9 @@ class LegislatureController extends Controller
         // geoBoundaries boundary levels).
         if ($scopeId === $leg->jurisdiction_id) {
             $scopeSeats   = (int) $leg->type_a_seats;
-            $effectivePop = (int) $scope->population;
+            // Children-sum, matching $rootPop and the binding cascade — the
+            // displayed quota and every child fractional derive from it.
+            $effectivePop = $rootPop;
         } else {
             $effectivePop = (int) DB::table('jurisdictions')
                 ->where('parent_id', $scopeId)
@@ -1417,7 +1420,7 @@ class LegislatureController extends Controller
         // covers giants (walks parent chain). Returns NULL only on a
         // degenerate (no legislature) case; fall back to a proportional
         // approximation then.
-        $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
         $scopeRow = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
         $scopeChildrenPop = (int) DB::table('jurisdictions')
             ->where('parent_id', $scopeId)
@@ -1698,7 +1701,7 @@ class LegislatureController extends Controller
             // Compute local quota for this district's scope
             $distScopeId  = DB::table('legislature_districts')->where('id', $district_id)->value('jurisdiction_id')
                             ?? $leg->jurisdiction_id;
-            $distRootPop  = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+            $distRootPop  = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             $distScopeRow = DB::table('jurisdictions')->where('id', $distScopeId)->whereNull('deleted_at')->first();
             $distScopePop = (int) DB::table('jurisdictions')
                 ->where('parent_id', $distScopeId)
@@ -2011,10 +2014,7 @@ class LegislatureController extends Controller
             ->whereNull('deleted_at')
             ->value('jurisdiction_id');
         $giantThreshold = ConstitutionalDefaults::giantThreshold($legJid);
-        $revRootPop = max((int) DB::table('jurisdictions')
-            ->join('legislatures', 'legislatures.jurisdiction_id', '=', 'jurisdictions.id')
-            ->where('legislatures.id', $legislature_id)
-            ->value('jurisdictions.population'), 1);
+        $revRootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $legJid);
         $revTotalSeats = (int) DB::table('legislatures')
             ->where('id', $legislature_id)
             ->value('type_a_seats');
@@ -2586,7 +2586,7 @@ class LegislatureController extends Controller
                 $seatBudget = (int) $leg->type_a_seats;
             } else {
                 $autoScope   = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-                $autoRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+                $autoRootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
                 // Gated cascade — Path 2 for composite scopes, Path 3 for
                 // giants. Falls back to proportional approx only in
                 // degenerate cases.
@@ -2821,7 +2821,7 @@ class LegislatureController extends Controller
         $actor = $initiatorUserId !== null ? \App\Models\User::find($initiatorUserId) : null;
         $lineTemplate = $template ?? ConstitutionalDefaults::districtingTemplate($leg->jurisdiction_id);
 
-        $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
 
         // At root scope: auto-update type_a_seats from cube root of children sum.
         if ($scopeId === $leg->jurisdiction_id) {
@@ -3134,8 +3134,8 @@ class LegislatureController extends Controller
 
         Cache::put("legislature.{$legislature_id}.mass_running", true, 7200);
 
-        $rootPop   = (int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population');
-        $rootQuota = max($rootPop, 1) / max((int) $leg->type_a_seats, 1);
+        $rootPop   = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
+        $rootQuota = $rootPop / max((int) $leg->type_a_seats, 1);
 
         $scopeIds = $this->resolveMassScopeIds(
             $legislature_id, $leg, $scopeId, $operationScope, $rootQuota, $mapId
@@ -3878,8 +3878,7 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        $rootPop    = max((int) DB::table('jurisdictions')
-            ->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop    = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
         $totalSeats = (int) $leg->type_a_seats;
         $rootQuota  = $rootPop / $totalSeats;
 
@@ -4462,7 +4461,7 @@ class LegislatureController extends Controller
         if (count($flags['incomplete_scopes']) === 0) {
             $rootId     = (string) $leg->jurisdiction_id;
             $totalSeats = max((int) $leg->type_a_seats, 1);
-            $rootPop    = max((int) DB::table('jurisdictions')->where('id', $rootId)->value('population'), 1);
+            $rootPop    = \App\Services\Districting\LeafGiantResolver::shareBase($rootId);
             $floor      = ConstitutionalDefaults::floor($rootId);
 
             $undrawnMapClause = $mapId !== null ? 'AND ds.map_id = :ds_map' : '';
@@ -5377,7 +5376,7 @@ class LegislatureController extends Controller
 
         $rootId         = $leg->jurisdiction_id;
         $totalSeats     = (int) $leg->type_a_seats;
-        $rootPop        = (int) DB::scalar('SELECT population FROM jurisdictions WHERE id = ?', [$rootId]);
+        $rootPop        = \App\Services\Districting\LeafGiantResolver::shareBase((string) $rootId);
         $giantThreshold = ConstitutionalDefaults::giantThreshold($rootId);
 
         if ($rootPop <= 0) {

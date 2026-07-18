@@ -1143,7 +1143,9 @@ class DistrictingService
                 ->whereNull('deleted_at')
                 ->sum('population');
             $distScopeRow = DB::table('jurisdictions')->where('id', $distScopeId)->whereNull('deleted_at')->first();
-            $reRootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+            // Children-sum share base (Kentucky ruling 2026-07-18) — the
+            // fallback denominator must match the cascade's own base.
+            $reRootPop    = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             // Seat budget via the gated cascade. Falls back to proportional
             // approximation only in degenerate cases.
             $distSeatBudget = $this->computeSeatBudget($distScopeId, $legislatureId)
@@ -1191,7 +1193,7 @@ class DistrictingService
             }
             $effectiveFloor = min($floor, max(1, $distSeatBudget - $giantSeatsForFloor));
         } else {
-            $reRootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+            $reRootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             $quota = $reRootPop / max((int) $leg->type_a_seats, 1);
             $effectiveFloor = $floor;   // no scope context — cannot determine quota cap
             $giantSiblingIds = [];      // no scope context — treat every sibling as available

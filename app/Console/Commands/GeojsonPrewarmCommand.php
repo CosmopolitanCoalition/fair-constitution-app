@@ -80,7 +80,7 @@ class GeojsonPrewarmCommand extends Command
 
         foreach ($legislatures as $leg) {
             $rootId  = $leg->jurisdiction_id;
-            $rootPop = max((int) DB::table('jurisdictions')->where('id', $rootId)->value('population'), 1);
+            $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $rootId);
             $seats   = (int) $leg->type_a_seats;
             $thr     = ConstitutionalDefaults::giantThreshold($rootId);
 

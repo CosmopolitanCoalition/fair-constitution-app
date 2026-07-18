@@ -332,7 +332,13 @@ class MixedAutoseedSweepTest extends TestCase
             return $id;
         };
 
-        $rootId = $mkJur('Pinland', null, 1, 40000, [[10.0, 50.0, 10.4, 50.2], [10.05, 49.90, 10.15, 49.95]]);
+        // Root STORED population is deliberately NOISY (43 000) while the
+        // children sum to 40 000 — the USA-style geodata drift (342.35M stored
+        // vs 346.04M children-sum) that manufactured the phantom-giant
+        // Kentucky. Every share in the system must divide by the CHILDREN-SUM
+        // (seating law step 2); on the old stored base the giant's share reads
+        // 12000×34/43000 = 9.49 < 9.5 and every giant test goes blind.
+        $rootId = $mkJur('Pinland', null, 1, 43000, [[10.0, 50.0, 10.4, 50.2], [10.05, 49.90, 10.15, 49.95]]);
         $compositeIds = [];
         foreach (range(0, 3) as $i) {
             $x = 10.0 + $i * 0.1;

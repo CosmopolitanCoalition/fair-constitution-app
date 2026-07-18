@@ -36,6 +36,40 @@ class LeafGiantResolver
     }
 
     /**
+     * THE share base for flat proportional entitlements under a legislature
+     * root: the SUM of the root's direct children's populations, never the
+     * root's own stored figure (Kentucky ruling 2026-07-18; seating law step
+     * 2 — "children-sum as denominator, never the parent's stored population:
+     * geodata noise"). The stored figure and the children-sum drift apart
+     * (USA: 342.35M stored vs 346.04M children-sum), and any classification
+     * computed on one base while the binding cascade runs on the other
+     * manufactures phantom giants — Kentucky displayed as an undrawn 10-seat
+     * scope while the law had already seated it as a 9-seat district, and
+     * every drill attempt bounced. One base, everywhere. Falls back to the
+     * stored population only when the root has no children (a leaf-rooted
+     * legislature). Memoized per process; populations do not move mid-request
+     * or mid-sweep.
+     */
+    public static function shareBase(string $rootJurisdictionId): int
+    {
+        static $memo = [];
+        if (! isset($memo[$rootJurisdictionId])) {
+            $sum = (int) DB::table('jurisdictions')
+                ->where('parent_id', $rootJurisdictionId)
+                ->whereNull('deleted_at')
+                ->sum('population');
+            if ($sum <= 0) {
+                $sum = (int) DB::table('jurisdictions')
+                    ->where('id', $rootJurisdictionId)
+                    ->value('population');
+            }
+            $memo[$rootJurisdictionId] = max($sum, 1);
+        }
+
+        return $memo[$rootJurisdictionId];
+    }
+
+    /**
      * Resolve a giant scope's seat budget + local quota, or null if the scope
      * is not a childless leaf giant. Mirrors the F-ELB-008 handler's
      * resolution. (Moved verbatim from SubdivisionDrawController::giantContext
@@ -58,7 +92,7 @@ class LeafGiantResolver
         $ceiling        = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
         $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
 
-        $rootPop    = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop    = self::shareBase((string) $leg->jurisdiction_id);
         $totalSeats = max((int) $leg->type_a_seats, 1);
         $giantPop   = (int) $giant->population;
         $giantFrac  = $giantPop * $totalSeats / $rootPop;

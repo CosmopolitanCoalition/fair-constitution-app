@@ -156,7 +156,7 @@ class ManualDistrictDraw implements FormHandler
 
         // The scope must be a CHILDLESS LEAF GIANT — manual draw exists for no
         // other case (composite districts every child-bearing scope).
-        $rootPop = max((int) DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('population'), 1);
+        $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
         $totalSeats = max((int) $leg->type_a_seats, 1);
         $giantPop = (int) $giant->population;
         $giantFrac = $giantPop * $totalSeats / $rootPop;
