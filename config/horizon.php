@@ -224,7 +224,7 @@ return [
         // timeout=0: no per-job ceiling. The job's own ->timeout hint is
         // also 0. The operator cancels via Horizon's UI if needed.
         'supervisor-long-running' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['long-running'],
             'balance' => 'simple',
             'maxProcesses' => 1,
@@ -236,6 +236,42 @@ return [
             'nice' => 0,
         ],
 
+        // Full-scale autoscale: 48k+ per-legislature sweep jobs after map-data
+        // acceptance. Width 3 — Postgres contention caps useful parallelism on
+        // a single box, and the audit chain's advisory lock serialises filings
+        // anyway. timeout=0: a giant-country sweep can run for hours.
+        'supervisor-autoscale' => [
+            'connection' => 'redis-long',
+            'queue' => ['autoscale'],
+            'balance' => 'simple',
+            'maxProcesses' => 3,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 0,
+            'nice' => 5,
+        ],
+
+        // The orchestrator's tick chain rides its OWN one-worker lane: on the
+        // shared long-running lane a single interactive MassReseedJob (hours
+        // on a giant country) would park every tick — no wave top-ups, no
+        // singles levels, a dead-looking heartbeat. Ticks are seconds each
+        // except the one 1–2 h sizing tick; a per-run pg advisory lock (not
+        // this maxProcesses=1) is what guarantees single-writer phases.
+        'supervisor-autoscale-tick' => [
+            'connection' => 'redis-long',
+            'queue' => ['autoscale-tick'],
+            'balance' => 'simple',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 0,
+            'nice' => 5,
+        ],
+
         // Boot-time cache prewarms (raster tiles + geojson) ride their own
         // lane: they re-dispatch on every horizon boot and can grind for
         // hours planet-wide, and sharing the single long-running slot parked
@@ -243,7 +279,7 @@ return [
         // restart never blocks interactive heavy work (autoseed, mass-reseed,
         // geodata scan).
         'supervisor-prewarm' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['prewarm'],
             'balance' => 'simple',
             'maxProcesses' => 1,
@@ -266,6 +302,12 @@ return [
             'supervisor-long-running' => [
                 'maxProcesses' => 1,
             ],
+            'supervisor-autoscale' => [
+                'maxProcesses' => 3,
+            ],
+            'supervisor-autoscale-tick' => [
+                'maxProcesses' => 1,
+            ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,
             ],
@@ -276,6 +318,12 @@ return [
                 'maxProcesses' => 3,
             ],
             'supervisor-long-running' => [
+                'maxProcesses' => 1,
+            ],
+            'supervisor-autoscale' => [
+                'maxProcesses' => 3,
+            ],
+            'supervisor-autoscale-tick' => [
                 'maxProcesses' => 1,
             ],
             'supervisor-prewarm' => [

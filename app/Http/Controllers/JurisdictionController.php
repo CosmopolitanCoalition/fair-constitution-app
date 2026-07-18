@@ -550,10 +550,12 @@ class JurisdictionController extends Controller
     /**
      * Phase P.6 — operator clicks "Accept Map Data & Continue" on the
      * planet-scope viewer. Stamps `instance_settings.map_accepted_at`,
-     * advances `setup_step_completed` to 2, and dispatches the
-     * `apportionment:seed` artisan command (Horizon-queued).
+     * advances `setup_step_completed` to 2, and starts the full-scale
+     * AUTOSCALE run (AutoscaleOrchestratorJob): every jurisdiction gets a
+     * sized legislature and a founding district map.
      *
-     * Idempotent: re-clicking after acceptance is a no-op.
+     * Idempotent: re-clicking after acceptance no-ops on a live run and
+     * RESUMES a stalled or halted one.
      */
     public function acceptMaps(Request $request): JsonResponse
     {
@@ -575,6 +577,32 @@ class JurisdictionController extends Controller
             }
 
             if ($instance->map_accepted_at) {
+                // Autoscale (2026-07-18): a re-POST after acceptance RESUMES an
+                // unfinished full-scale run instead of 409ing — the operator's
+                // recovery path after a box reboot or a halt. A live run
+                // (fresh heartbeat) is left alone.
+                $unfinished = \App\Models\AutoscaleRun::unfinished();
+                if ($unfinished !== null) {
+                    $heartbeatFresh = $unfinished->updated_at !== null
+                        && $unfinished->updated_at->gt(now()->subMinutes(15));
+                    if ($unfinished->status !== 'halted' && $heartbeatFresh) {
+                        return ['response' => response()->json([
+                            'ok' => true,
+                            'already_accepted' => true,
+                            'autoscale_run_id' => (string) $unfinished->id,
+                            'autoscale_status' => $unfinished->status,
+                        ])];
+                    }
+                    \Illuminate\Support\Facades\Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
+                    \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $unfinished->id);
+                    return ['response' => response()->json([
+                        'ok' => true,
+                        'already_accepted' => true,
+                        'autoscale_resumed' => true,
+                        'autoscale_run_id' => (string) $unfinished->id,
+                    ])];
+                }
+
                 return ['response' => response()->json([
                     'ok' => true,
                     'already_accepted' => true,
@@ -623,47 +651,41 @@ class JurisdictionController extends Controller
         $instance  = $gate['instance'];
         $openFlags = $gate['open_flags'];
 
-        // Dispatch apportionment as a queued artisan command. Horizon picks
-        // it up; the UI polls instance_settings.apportionment_completed_at
-        // (which ApportionmentSeedCommand now stamps on completion) to
-        // flip the banner from "running…" → "completed".
+        // AUTOSCALE (operator ruling 2026-07-18): acceptance kicks off
+        // governance for ALL jurisdictions — the orchestrator sizes every
+        // legislature (TRUE ALL SCALE, adm6 villages included) and
+        // district-maps every one (48k mixed-autoseed sweeps + ~903k
+        // set-based single-district leaf councils). This replaces the old
+        // bare Artisan::queue('apportionment:seed') dispatch, which (a) only
+        // seeded the planet root's direct children and (b) rode the DEFAULT
+        // queue whose 60 s timeout would SIGKILL any full-scale run.
         //
-        // WI-9: the apportionment scope is derived from the jurisdiction
-        // whose maps are being accepted (the caller sends its UUID), falling
-        // back to the planet root for the legacy setup path (the button has
-        // only ever been rendered at planet scope, so the fallback IS the
-        // common case today). Acceptance itself remains a single global gate
-        // — map_accepted_at / setup_step_completed live on instance_settings
-        // — so the planet-only-gate semantics are unchanged; only the
-        // seeding call is parameterized.
-        $planetId = DB::table('jurisdictions')
-            ->where('adm_level', 0)
-            ->whereNull('deleted_at')
-            ->value('id');
-        $scopeId = $request->input('jurisdiction_id');
-        if ($scopeId !== null) {
-            $scopeId = DB::table('jurisdictions')
-                ->where('id', $scopeId)
-                ->whereNull('deleted_at')
-                ->value('id');   // validate existence; null falls back below
-        }
-        $scopeId ??= $planetId;
+        // The run row + autoscale_items are the durable state: the Step-3
+        // dashboard polls it, and a re-POST here resumes an interrupted run.
         try {
-            \Illuminate\Support\Facades\Artisan::queue('apportionment:seed', [
-                '--jurisdiction' => $scopeId,
-                // Setup-wizard path (planet scope): this run IS the canonical
-                // apportionment, so it stamps
-                // instance_settings.apportionment_completed_at. Non-planet
-                // scopes (future per-jurisdiction acceptance) and
-                // activation-engine runs omit the flag — WI-7/WI-9.
-                '--stamp-instance' => $scopeId === $planetId,
-            ]);
+            // Accept → reopen → repairs → accept-again must not mint a SECOND
+            // run: two runs' waves would concurrently _all-sweep the same
+            // Founding Maps. An unfinished run (paused by reopenMaps' halt)
+            // resumes instead. The orchestrator's newest-yields dedupe
+            // backstops the remaining ms-window against a racing CLI start.
+            $run = \App\Models\AutoscaleRun::unfinished();
+            if ($run === null) {
+                $run = \App\Models\AutoscaleRun::create([
+                    'status'            => 'queued',
+                    'adm_max'           => (int) config('cga.autoscale_adm_max', 6),
+                    'initiator_user_id' => $request->user()?->getKey(),
+                    'template'          => null, // constitutional default per legislature
+                ]);
+            }
+            \Illuminate\Support\Facades\Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
+            \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
         } catch (\Throwable $e) {
-            // Don't fail the acceptance — the operator can re-run the command
-            // manually if Horizon is down.
+            // Don't fail the acceptance — the operator can start the run
+            // manually (`php artisan districting:autoscale`) if Horizon is down.
             \Illuminate\Support\Facades\Log::warning(
-                'apportionment:seed dispatch failed (acceptance still recorded): '.$e->getMessage()
+                'Autoscale dispatch failed (acceptance still recorded): '.$e->getMessage()
             );
+            $run = null;
         }
 
         \Illuminate\Support\Facades\Log::info(sprintf(
@@ -677,6 +699,7 @@ class JurisdictionController extends Controller
             'ok' => true,
             'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
             'open_flags_at_acceptance' => $openFlags,
+            'autoscale_run_id' => $run?->id,
         ]);
     }
 
@@ -709,9 +732,20 @@ class JurisdictionController extends Controller
 
         $instance->forceFill(['map_accepted_at' => null])->save();
 
-        \Illuminate\Support\Facades\Log::info('Map acceptance reopened — the geodata repair window is open again.');
+        // Reopening the repair window PAUSES a live autoscale run: repairs
+        // merge/soft-delete jurisdictions, and sizing/sweeps racing that
+        // would build on rows the operator is retiring. The next acceptance
+        // clears the flag and resumes the run.
+        $halted = false;
+        if (\App\Models\AutoscaleRun::unfinished() !== null) {
+            \Illuminate\Support\Facades\Cache::put(\App\Models\AutoscaleRun::HALT_CACHE_KEY, true, 86400);
+            $halted = true;
+        }
 
-        return response()->json(['ok' => true]);
+        \Illuminate\Support\Facades\Log::info('Map acceptance reopened — the geodata repair window is open again.'
+            . ($halted ? ' (live autoscale run signalled to halt)' : ''));
+
+        return response()->json(['ok' => true, 'autoscale_halted' => $halted]);
     }
 
     /**

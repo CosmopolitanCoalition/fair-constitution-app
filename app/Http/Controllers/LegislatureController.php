@@ -137,6 +137,14 @@ class LegislatureController extends Controller
              ORDER BY legislature_id, certified_at DESC"
         ))->keyBy('legislature_id');
 
+        // Autoscale (True All Scale, 2026-07-18): 951k legislatures exist
+        // after acceptance — an unpaginated render dies in the Inertia
+        // payload. Cap the hub at the LARGEST chambers (adm ASC, seats DESC:
+        // Earth, the countries, the provinces) and carry the true total;
+        // everything deeper is reached through the jurisdiction viewer's
+        // drill, which is how sub-province chambers are addressed anyway.
+        $totalLegislatures = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+
         $rows = DB::table('legislatures as l')
             ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
             ->leftJoin('jurisdiction_activations as a', function ($join) {
@@ -146,6 +154,7 @@ class LegislatureController extends Controller
             ->whereNull('l.deleted_at')
             ->orderBy('j.adm_level')
             ->orderByDesc(DB::raw('l.type_a_seats + l.type_b_seats'))
+            ->limit(500)
             ->get([
                 'l.id',
                 'l.type_a_seats',
@@ -193,8 +202,9 @@ class LegislatureController extends Controller
             ->values();
 
         return Inertia::render('Legislature/Index', [
-            'surface'      => \App\Support\SurfaceMeta::for('legislature/index'),
-            'legislatures' => $rows,
+            'surface'            => \App\Support\SurfaceMeta::for('legislature/index'),
+            'legislatures'       => $rows,
+            'total_legislatures' => $totalLegislatures,
         ]);
     }
 
@@ -2787,6 +2797,14 @@ class LegislatureController extends Controller
         // Per-run line-split template override; null → the constitutional
         // default (constitutional_settings.districting_autoseed_template).
         ?string $template = null,
+        // Autoscale (2026-07-18): when false, leaf-giant scopes commit WITHOUT
+        // the outer per-scope transaction. Inside that wrapper every
+        // F-ELB-008's AuditService::append holds the GLOBAL chain advisory
+        // lock until the scope's outer commit — collapsing parallel autoscale
+        // workers to 1. Without it the engine's own per-district transaction
+        // is the atomic unit (lock held ~ms per filing); a mid-scope failure
+        // leaves a partial drawn set that the _all re-run retires first.
+        bool $leafScopeTx = true,
     ): array {
         // Record this worker's Postgres backend PID so massHalt() can cancel
         // / terminate its in-flight queries directly (instead of just setting
@@ -2906,7 +2924,9 @@ class LegislatureController extends Controller
             ]);
 
             if ($leafCtx !== null) {
-                DB::beginTransaction();
+                if ($leafScopeTx) {
+                    DB::beginTransaction();
+                }
                 try {
                     if ($actor === null) {
                         // Never file F-ELB-008 as the null system actor — that
@@ -2920,7 +2940,9 @@ class LegislatureController extends Controller
                         // _unassigned resume: drawn districts already exist at
                         // this giant — leave the operator's work alone (the
                         // composite analog of skipping an assigned child).
-                        DB::commit();
+                        if ($leafScopeTx) {
+                            DB::commit();
+                        }
                         $scopesProcessed++;
                     } else {
                         $res = $this->leafGiants->commit(
@@ -2934,12 +2956,16 @@ class LegislatureController extends Controller
                             $clearExisting,   // _all retires the drawn set first
                             null,             // no client plan hash — the recompute IS the plan
                         );
-                        DB::commit();
+                        if ($leafScopeTx) {
+                            DB::commit();
+                        }
                         $totalCreated    += $res['districts_created'];
                         $scopesProcessed++;
                     }
                 } catch (\Throwable $e) {
-                    DB::rollBack();
+                    if ($leafScopeTx) {
+                        DB::rollBack();
+                    }
                     $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
                     $this->publishMassProgress($legislature_id, [
                         'phase'       => 'scope_failed',

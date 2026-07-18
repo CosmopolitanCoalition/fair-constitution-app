@@ -4055,5 +4055,31 @@ class DistrictingService
         Cache::put($key, array_merge($existing, $patch, [
             'last_update_at' => time(),
         ]), 7200);
+
+        // Liveness lease (autoscale 2026-07-18, non-law mechanics): a sweep
+        // that is publishing progress is alive — extend its mass_running flag
+        // so a multi-hour sweep never sheds it mid-run. The autoscale
+        // orchestrator reads flag ABSENCE on a 'running' item as worker death
+        // (its reclaim rule); without the refresh a >TTL sweep would be
+        // falsely reclaimed and double-run.
+        $runKey = "legislature.{$legislature_id}.mass_running";
+        if (Cache::get($runKey)) {
+            Cache::put($runKey, true, 14400);
+        }
+
+        // DB-side heartbeat, UNCONDITIONAL: cache is wipeable (redis
+        // flush/restart mid-run) and the refresh above can never resurrect a
+        // lost flag — the item row's updated_at is the reclaim rule's durable
+        // signal, and it must keep beating precisely when the cache lease is
+        // gone. Indexed no-op unless an autoscale sweep owns this legislature.
+        try {
+            \Illuminate\Support\Facades\DB::table('autoscale_items')
+                ->where('legislature_id', $legislature_id)
+                ->where('status', 'running')
+                ->update(['updated_at' => now()]);
+        } catch (\Throwable) {
+            // Pre-migration box or transient DB hiccup — the cache lease
+            // still covers liveness.
+        }
     }
 }

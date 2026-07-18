@@ -123,6 +123,14 @@ Route::get('/api/setup/deploy-package', [SetupController::class, 'deployPackage'
     ->middleware('auth')->name('api.setup.deploy-package');
 Route::get('/api/setup/wizard/step3/summary', [SetupController::class, 'step3Summary'])->name('api.setup.step3.summary');
 Route::post('/api/setup/wizard/step3/complete', [SetupController::class, 'completeStep3'])->name('api.setup.step3.complete');
+// Autoscale (2026-07-18) — the Step-3 dashboard's poll target + operator
+// halt/resume for the full-scale run. Halt/resume are AUTH-gated (handlers
+// additionally require is_operator, same posture as accept-maps).
+Route::get('/api/setup/wizard/step3/autoscale-progress', [SetupController::class, 'autoscaleProgress'])->name('api.setup.step3.autoscale-progress');
+Route::post('/api/setup/wizard/step3/autoscale-halt', [SetupController::class, 'autoscaleHalt'])
+    ->middleware('auth')->name('api.setup.step3.autoscale-halt');
+Route::post('/api/setup/wizard/step3/autoscale-resume', [SetupController::class, 'autoscaleResume'])
+    ->middleware('auth')->name('api.setup.step3.autoscale-resume');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])->name('api.setup.step4.complete');
 
 // Step 2 manual data review — surfaces post-ETL discrepancies BEFORE the user

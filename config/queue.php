@@ -73,6 +73,24 @@ return [
             'after_commit' => false,
         ],
 
+        // The LONG lane (autoscale 2026-07-18): same Redis, same storage keys
+        // — only the WORKER-side retry_after differs. Multi-hour jobs
+        // (autoscale sweeps, mass reseeds, prewarms, exports) reserved under
+        // the 90 s default get ghost-redelivered to a sibling worker mid-run
+        // (tries=1 → phantom failures, double sweeps). Short-lived queues
+        // stay on `redis` so a genuinely dead worker's job (election phase
+        // advance, mail) is redelivered in 90 s, not 4 h. Horizon's
+        // long-running/autoscale/prewarm supervisors consume via this
+        // connection; producers need no changes (identical redis keys).
+        'redis-long' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_QUEUE', 'default'),
+            'retry_after' => (int) env('REDIS_QUEUE_LONG_RETRY_AFTER', 14400),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
         'deferred' => [
             'driver' => 'deferred',
         ],

@@ -24,6 +24,7 @@ const props = defineProps({
      *     status, district_count, activation_state, activated_at,
      *     election: { id, status } | null, results_election_id }] */
     legislatures: { type: Array, required: true },
+    total_legislatures: { type: Number, default: null },
 });
 
 const columns = [
@@ -115,12 +116,18 @@ function formatDate(iso) {
                 No legislatures yet — complete setup (apportionment) to found the first one.
             </p>
 
+            <p v-if="total_legislatures && total_legislatures > legislatures.length" class="gloss">
+                Showing the {{ legislatures.length.toLocaleString() }} largest chambers of
+                {{ total_legislatures.toLocaleString() }} — reach any other legislature by
+                drilling to its jurisdiction in the map viewer.
+            </p>
+
             <DataTable
-                v-else
+                v-if="legislatures.length > 0"
                 :columns="columns"
                 :rows="legislatures"
                 row-key="id"
-                caption="All legislatures, by jurisdiction"
+                caption="Legislatures, by jurisdiction"
             >
                 <template #cell-jurisdiction="{ row }">
                     <Link :href="`/legislatures/${row.slug}`">{{ row.jurisdiction }}</Link>

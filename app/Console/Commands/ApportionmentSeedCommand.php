@@ -40,6 +40,7 @@ class ApportionmentSeedCommand extends Command
                             {--dry-run : Compute apportionment but do not write to database}
                             {--adm-max=6 : Only process parent jurisdictions with adm_level <= N}
                             {--jurisdiction= : Seed only the direct children of this jurisdiction (slug or UUID)}
+                            {--parents-only : Size only jurisdictions that have children (autoscale seeds childless leaves set-based)}
                             {--stamp-instance : Stamp instance_settings.apportionment_completed_at (setup-wizard runs only)}';
 
     protected $description = 'Compute cube-root legislature sizes and upsert legislature records (no districts)';
@@ -49,10 +50,11 @@ class ApportionmentSeedCommand extends Command
 
     public function handle(): int
     {
-        $dryRun     = (bool)   $this->option('dry-run');
-        $fresh      = (bool)   $this->option('fresh');
-        $admMax     = (int)    $this->option('adm-max');
-        $targetSlug = (string) $this->option('jurisdiction');
+        $dryRun      = (bool)   $this->option('dry-run');
+        $fresh       = (bool)   $this->option('fresh');
+        $admMax      = (int)    $this->option('adm-max');
+        $targetSlug  = (string) $this->option('jurisdiction');
+        $parentsOnly = (bool)   $this->option('parents-only');
 
         $this->info('Apportionment seeder — legislature sizing (cube root law)' . ($dryRun ? ' [DRY RUN]' : ''));
 
@@ -64,7 +66,7 @@ class ApportionmentSeedCommand extends Command
             $exitCode = $this->seedSingleJurisdiction($targetSlug, $dryRun);
         } else {
             for ($parentAdmLevel = 0; $parentAdmLevel <= $admMax; $parentAdmLevel++) {
-                $this->processLevel($parentAdmLevel, $dryRun);
+                $this->processLevel($parentAdmLevel, $dryRun, $parentsOnly);
             }
 
             if (! $dryRun) {
@@ -119,7 +121,7 @@ class ApportionmentSeedCommand extends Command
     // Level sweep
     // -------------------------------------------------------------------------
 
-    private function processLevel(int $parentAdmLevel, bool $dryRun): void
+    private function processLevel(int $parentAdmLevel, bool $dryRun, bool $parentsOnly = false): void
     {
         $parentCount = (int) (DB::selectOne("
             SELECT COUNT(DISTINCT parent_id) AS cnt
@@ -131,6 +133,12 @@ class ApportionmentSeedCommand extends Command
               )
         ", [$parentAdmLevel])?->cnt ?? 0);
 
+        // TRUE ALL SCALE (operator revision 2026-07-18) lives in the
+        // autoscale orchestrator: childless leaves are seeded SET-BASED
+        // there, so this per-row command keeps the historical skip for
+        // uniformly-childless levels (a bare invocation walking 700k adm6
+        // villages per-row would take days for nothing). --parents-only is
+        // the orchestrator's Phase-A entry.
         if ($parentCount === 0 && $parentAdmLevel > 0) {
             return;
         }
@@ -139,10 +147,23 @@ class ApportionmentSeedCommand extends Command
         $bar = $this->output->createProgressBar($parentCount);
         $bar->start();
 
-        DB::table('jurisdictions')
+        $query = DB::table('jurisdictions')
             ->where('adm_level', $parentAdmLevel)
-            ->whereNull('deleted_at')
-            ->orderBy('id')
+            ->whereNull('deleted_at');
+
+        if ($parentsOnly) {
+            // Childless rows are the autoscale orchestrator's job (one
+            // set-based INSERT…SELECT seeds all ~903k leaf councils); a
+            // per-row loop over them here would take days.
+            $query->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('jurisdictions as c')
+                    ->whereColumn('c.parent_id', 'jurisdictions.id')
+                    ->whereNull('c.deleted_at');
+            });
+        }
+
+        $query->orderBy('id')
             ->chunkById(200, function ($parents) use ($dryRun, $bar) {
                 foreach ($parents as $parent) {
                     $this->processParent($parent, $dryRun);
@@ -227,10 +248,16 @@ class ApportionmentSeedCommand extends Command
         $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sumChildrenPop, $parent->id);
         $quota          = $sumChildrenPop > 0 ? $sumChildrenPop / $totalSeats : 1.0;
 
-        // Equal-house seats per child (type_b) from constitutional settings
+        // Equal-house seats per child (type_b) from constitutional settings.
+        // Fallback = 1 per constituent — the Art. V §3 bicameral law as
+        // ActivationService::typeBSeats derives it (instantiateBicameral
+        // explicitly overrode this command's old ×5 product as wrong under
+        // Art. V §3, and the live USA chamber carries the 1× shape). The two
+        // mass paths must mint the same chamber; a stored
+        // type_b_seats_per_child still wins when a settings row provides it.
         $typeB      = (int) (DB::table('constitutional_settings')
             ->where('jurisdiction_id', $parent->id)
-            ->value('type_b_seats_per_child') ?? 5);
+            ->value('type_b_seats_per_child') ?? 1);
         $totalTypeB = $typeB * $children->count();
 
         if ($dryRun) {
@@ -248,9 +275,10 @@ class ApportionmentSeedCommand extends Command
 
         // Seat allocations to individual districts (and the per-district members
         // they contain) are written exclusively by the viewer's auto-composite
-        // tools (runAutoCompositeForScope), which compute the exact Webster
-        // result at each scope and persist it on `legislature_districts.seats`.
-        // This command only sizes the legislature as a whole.
+        // tools (runAutoCompositeForScope), which seat each drawn district by
+        // NEAREST rounding (operator seating law, 2026-07-13) and persist on
+        // `legislature_districts.seats`. This command only sizes the
+        // legislature as a whole.
         $this->jurisdictionsProcessed += $children->count();
     }
 

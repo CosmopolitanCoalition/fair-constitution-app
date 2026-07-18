@@ -17,6 +17,15 @@
 return [
 
     /*
+    | Full-scale autoscale (2026-07-18): deepest adm level to size and
+    | district-map when "Accept Map Data" starts the run. Default = 6 (TRUE
+    | ALL SCALE — every jurisdiction, adm6 villages included, per operator
+    | ruling). Lower it only for staged tests via districting:autoscale
+    | --adm-max=N; the acceptance path always runs full depth.
+    */
+    'autoscale_adm_max' => env('CGA_AUTOSCALE_ADM_MAX', 6),
+
+    /*
     | Dev impersonation + dev tooling (WI-4). The /dev/* routes (user
     | impersonation, ping simulator) are registered only in the local
     | environment AND gated at runtime by this flag — flipping it to false

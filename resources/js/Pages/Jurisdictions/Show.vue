@@ -283,7 +283,8 @@
                     <!-- P.6 — Acceptance gate. Visible only at planet scope.
                          Disabled until the ETL has finished and the operator
                          hasn't already accepted. Click stamps map_accepted_at
-                         and dispatches apportionment:seed via Horizon. -->
+                         and starts the full-scale autoscale run (every
+                         jurisdiction gets a legislature + founding map). -->
                     <div v-if="map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
                         <div v-if="map_acceptance.map_accepted_at"
                              class="bg-emerald-900/40 border border-emerald-700 rounded-lg p-3 text-emerald-200">
@@ -293,8 +294,14 @@
                                 Apportionment completed {{ formatTime(map_acceptance.apportionment_completed_at) }}
                             </div>
                             <div v-else class="text-xs text-emerald-300 mt-1 italic">
-                                Apportionment running…
+                                Sizing every legislature…
                             </div>
+                            <a href="/setup/step/3"
+                               class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
+                                      bg-emerald-800 hover:bg-emerald-700 text-emerald-100
+                                      border border-emerald-600 transition-colors">
+                                Watch the full-scale build →
+                            </a>
                             <!-- Reopen — clears map_accepted_at so the repair
                                  window comes back. Only while setup is still
                                  incomplete (the backend 403s afterwards). -->

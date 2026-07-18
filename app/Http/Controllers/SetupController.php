@@ -38,8 +38,9 @@ use Inertia\Response;
  * can execute as soon as data injection completes. When the founder submits
  * defaults, the planet row (adm_level = 0) may not exist yet — in that case
  * the payload is stashed on instance_settings.pending_constitutional_defaults
- * and applied when Map Data activation resolves. Apportionment runs synchronously
- * inside activateStep1 via the apportionment:seed Artisan command.
+ * and applied when Map Data activation resolves. Apportionment + districting
+ * run as the full-scale AUTOSCALE (AutoscaleOrchestratorJob), kicked off by
+ * "Accept Map Data & Continue" on the planet viewer.
  */
 class SetupController extends Controller
 {
@@ -1963,7 +1964,7 @@ class SetupController extends Controller
      * Powers the summary block on Step 3 (Build Districts): how many
      * legislatures got sized, total seats apportioned, and the largest
      * legislature. Reads directly from the `legislatures` table populated
-     * by `apportionment:seed` during activateStep1.
+     * by the autoscale run (sizing phase).
      */
     public function step3Summary(): JsonResponse
     {
@@ -2015,6 +2016,153 @@ class SetupController extends Controller
             ] : null,
             'rows'         => $rows,
         ]);
+    }
+
+    /**
+     * GET /api/setup/wizard/step3/autoscale-progress — the Step-3 dashboard's
+     * poll target during a full-scale autoscale run (2 s cadence, same
+     * pattern as Step 2's mapDataProgress).
+     *
+     * Returns the newest run with counters, live items, rates/ETA, and the
+     * review list. `run: null` means no autoscale has ever been started
+     * (pre-acceptance, or a legacy box).
+     */
+    public function autoscaleProgress(): JsonResponse
+    {
+        $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
+        if ($run === null) {
+            return response()->json(['run' => null]);
+        }
+
+        // Live + review slices (names joined for the dashboard's tables).
+        $liveItems = DB::table('autoscale_items as ai')
+            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
+            ->where('ai.run_id', $run->id)
+            ->whereIn('ai.status', ['queued', 'running'])
+            ->orderBy('ai.position')
+            ->limit(15)
+            ->get([
+                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
+                'ai.kind', 'ai.status', 'ai.started_at',
+                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
+            ]);
+
+        $reviewItems = DB::table('autoscale_items as ai')
+            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
+            ->where('ai.run_id', $run->id)
+            ->whereIn('ai.status', ['review', 'failed', 'halted'])
+            ->orderBy('ai.position')
+            ->limit(100)
+            ->get([
+                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
+                'ai.kind', 'ai.status', 'ai.reason', 'ai.seats_expected',
+                'ai.seats_seated', 'ai.drift',
+                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
+            ]);
+
+        // Σ-seat drift ships as INFORMATION (seating law: no total-forcing) —
+        // surfaced per item and as a run-wide histogram headline. The
+        // attention count covers everything the review table lists
+        // (review + failed + halted), so the header never undercounts it.
+        $driftRow = DB::table('autoscale_items')
+            ->where('run_id', $run->id)
+            ->selectRaw("
+                COUNT(*) FILTER (WHERE status = 'done' AND COALESCE(drift, 0) <> 0) AS drifted,
+                COALESCE(SUM(drift) FILTER (WHERE status = 'done'), 0)              AS net_drift,
+                COUNT(*) FILTER (WHERE status IN ('review','failed','halted'))      AS attention
+            ")
+            ->first();
+
+        // Sweep rate from the mapping window → honest ETA (null early on).
+        $rate = null;
+        $etaSeconds = null;
+        if ($run->mapping_started_at !== null && (int) $run->sweeps_done > 0) {
+            $elapsed = max(1, $run->mapping_started_at->diffInSeconds(now()));
+            $rate    = (int) $run->sweeps_done / $elapsed; // sweeps per second
+            $remaining = max(0, (int) $run->sweeps_total - (int) $run->sweeps_done);
+            $etaSeconds = $rate > 0 ? (int) round($remaining / $rate) : null;
+        }
+
+        return response()->json([
+            'run' => [
+                'id'                 => (string) $run->id,
+                'status'             => $run->status,
+                'adm_max'            => (int) $run->adm_max,
+                'sized_parents'      => (int) $run->sized_parents,
+                'sized_leaves'       => (int) $run->sized_leaves,
+                'singles_total'      => (int) $run->singles_total,
+                'singles_done'       => (int) $run->singles_done,
+                'sweeps_total'       => (int) $run->sweeps_total,
+                'sweeps_done'        => (int) $run->sweeps_done,
+                'review_count'       => (int) $run->review_count,
+                'last_error'         => $run->last_error,
+                'sizing_started_at'  => $run->sizing_started_at?->toIso8601String(),
+                'mapping_started_at' => $run->mapping_started_at?->toIso8601String(),
+                'finished_at'        => $run->finished_at?->toIso8601String(),
+                'heartbeat_at'       => $run->updated_at?->toIso8601String(),
+                'halt_requested'     => (bool) Cache::get(\App\Models\AutoscaleRun::HALT_CACHE_KEY),
+                'sweeps_per_hour'    => $rate !== null ? round($rate * 3600, 1) : null,
+                'eta_seconds'        => $etaSeconds,
+                'drifted_done'       => (int) ($driftRow->drifted ?? 0),
+                'net_drift'          => (int) ($driftRow->net_drift ?? 0),
+                'attention_count'    => (int) ($driftRow->attention ?? 0),
+            ],
+            'live_items'   => $liveItems,
+            'review_items' => $reviewItems,
+        ]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step3/autoscale-halt — operator halt for the
+     * full-scale run. The orchestrator parks at its next tick; in-flight
+     * sweeps stop at their next scope boundary (their per-scope commits
+     * survive — the run resumes from autoscale_items).
+     */
+    public function autoscaleHalt(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+        Cache::put(\App\Models\AutoscaleRun::HALT_CACHE_KEY, true, 86400);
+        return response()->json(['ok' => true, 'halting' => true]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step3/autoscale-resume — clear the halt flag and
+     * revive the newest unfinished run (accept-maps re-POST does the same;
+     * this is the dashboard's one-click version).
+     */
+    public function autoscaleResume(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        // Prefer an unfinished run; with requeue_review a DONE run can also
+        // be revived to retry its review/failed/halted items (the run flips
+        // back to mapping — the tick chain re-exits through the same
+        // completeness accounting). Hand-fixed legislatures are safe: a
+        // requeued sweep item whose legislature now has an ACTIVE map with
+        // districts is ADOPTED, never re-swept.
+        $run = \App\Models\AutoscaleRun::unfinished()
+            ?? ($request->boolean('requeue_review')
+                ? \App\Models\AutoscaleRun::query()->where('status', 'done')->orderByDesc('created_at')->first()
+                : null);
+        if ($run === null) {
+            return response()->json(['ok' => false, 'error' => 'No autoscale run to resume.'], 404);
+        }
+
+        if ($request->boolean('requeue_review')) {
+            DB::table('autoscale_items')
+                ->where('run_id', $run->id)
+                ->whereIn('status', ['review', 'failed', 'halted'])
+                ->update(['status' => 'pending', 'reason' => null, 'updated_at' => now()]);
+        }
+
+        if ($run->status === 'done') {
+            $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
+        }
+
+        Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
+        \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
+
+        return response()->json(['ok' => true, 'run_id' => (string) $run->id]);
     }
 
     /**
@@ -2280,9 +2428,10 @@ class SetupController extends Controller
      *
      * Apportionment is no longer run inline here — the canonical trigger is the
      * planet-scope "Accept Map Data & Continue" button on
-     * /jurisdictions/earth-0-earth, which queues `apportionment:seed
-     * --jurisdiction=earth` via Horizon. That command stamps the
-     * apportionment_completed_at timestamp on completion. This handler keeps
+     * /jurisdictions/earth-0-earth, which starts the full-scale AUTOSCALE run
+     * (AutoscaleOrchestratorJob, 2026-07-18): every jurisdiction gets a sized
+     * legislature and a founding district map, and the orchestrator stamps
+     * apportionment_completed_at when sizing finishes. This handler keeps
      * the pending_constitutional_defaults apply logic and the step-completion
      * advance; apportionment is decoupled.
      */
