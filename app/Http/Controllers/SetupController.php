@@ -2073,6 +2073,19 @@ class SetupController extends Controller
             ")
             ->first();
 
+        // LIVE sizing progress (operator finding, run 2: during Phase A the
+        // run-row counters only land at phase end and the page looked
+        // frozen). The legislatures count grows row-by-row through sizing —
+        // poll it directly; the denominator is the (static) jurisdiction
+        // count.
+        $sizedLive = null;
+        $sizingTotal = null;
+        if (in_array($run->status, ['queued', 'sizing'], true)) {
+            $sizedLive   = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+            $sizingTotal = (int) Cache::remember('autoscale.sizing_total', 3600, fn () =>
+                DB::table('jurisdictions')->whereNull('deleted_at')->count());
+        }
+
         // Sweep rate from the mapping window → honest ETA (null early on).
         $rate = null;
         $etaSeconds = null;
@@ -2109,6 +2122,8 @@ class SetupController extends Controller
                 // The width governor (the system decides its own throughput):
                 // current busy-width vs the physics ceiling, and the host
                 // signal it steers by.
+                'sized_live'         => $sizedLive,
+                'sizing_total'       => $sizingTotal,
                 'width'              => \App\Support\AutoscaleGovernor::width(),
                 'width_ceiling'      => \App\Support\HostCapacity::workerCeiling(),
                 // Read-only view of the governor's last CPU sample — the web

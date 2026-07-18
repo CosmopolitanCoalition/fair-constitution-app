@@ -51,6 +51,7 @@ const autoscale = ref(null)      // { run, live_items, review_items }
 const autoscaleError = ref('')
 const actionBusy = ref(false)
 let pollTimer = null
+let summaryTick = 0
 
 const run = computed(() => autoscale.value?.run ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
@@ -77,6 +78,12 @@ async function fetchAutoscale() {
         // apportionment summary when the run ends.
         const status = autoscale.value?.run?.status
         if (wasActive && !runActive.value) {
+            loadSummary()
+        }
+        // The Apportionment card reads the legislatures table — refresh it
+        // every ~20s during sizing so the headline numbers move without a
+        // manual page reload.
+        if ((status === 'queued' || status === 'sizing') && ++summaryTick % 10 === 0) {
             loadSummary()
         }
         if ((status === 'done' || status === 'failed') && pollTimer) {
@@ -267,6 +274,18 @@ onBeforeUnmount(stopPolling)
 
                 <!-- Progress bars -->
                 <div class="space-y-3">
+                    <!-- Live sizing bar: during Phase A the phase counters only
+                         land at phase end — the legislatures count is the real
+                         heartbeat, polled every 2s. -->
+                    <div v-if="run.sized_live != null && run.sizing_total">
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Legislatures sized (live)</span>
+                            <span class="tabular-nums">{{ run.sized_live.toLocaleString() }} / {{ run.sizing_total.toLocaleString() }}</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                            <div class="h-full bg-emerald-500 transition-all" :style="{ width: pct(run.sized_live, run.sizing_total) + '%' }"></div>
+                        </div>
+                    </div>
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>Leaf councils (single at-large districts)</span>
