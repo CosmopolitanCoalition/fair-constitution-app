@@ -179,28 +179,62 @@ class ManualDistrictDraw implements FormHandler
         $S = max($floor, (int) round($giantFrac));
         $quota = $giantPop / max($S, 1);
 
-        // Geometry validation in one round-trip: contiguity (single part), within
-        // the giant, and the piece's geometry / centroid as GeoJSON for persistence.
+        // Geometry validation in one round-trip: contiguity, within the giant,
+        // and the piece's part census for persistence.
+        //
+        // CONTIGUITY RULE (2026-07-17, the LA-County islands ruling — "it
+        // should be able to handle multiple non-contiguous pieces"): a giant
+        // whose OWN territory is non-contiguous (LA = mainland + Santa
+        // Catalina + San Clemente) can only be districted if its detached
+        // components ride WHOLE inside some district — the composite side's
+        // fragment doctrine, applied here. A part of the drawn piece is
+        // therefore admissible when it IS an entire original component of the
+        // giant (mutual ≥98% area overlap absorbs the 1e-8° interior shave);
+        // beyond those, at most ONE part may remain — the piece's own cut
+        // fragment of a single landmass. Two-plus non-component parts = a
+        // blade-created fragmentation of one landmass, refused exactly as
+        // before (Art. II §8).
         $geo = DB::selectOne(
             'WITH d AS (
-                 SELECT ST_MakeValid(ST_GeomFromGeoJSON(?)) AS g
+                 SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g
              ),
              gi AS (
-                 SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = ?
+                 SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
+             ),
+             dparts AS (
+                 SELECT (ST_Dump((SELECT g FROM d))).geom AS p
+             ),
+             gcomps AS (
+                 SELECT (ST_Dump((SELECT g FROM gi))).geom AS c
+             ),
+             whole AS (
+                 SELECT count(*) AS n
+                   FROM dparts dp
+                  WHERE EXISTS (
+                      SELECT 1 FROM gcomps gc
+                       WHERE ST_Intersects(dp.p, gc.c)
+                         AND ST_Area(ST_Intersection(dp.p, gc.c)) >= 0.98 * ST_Area(gc.c)
+                         AND ST_Area(ST_Intersection(dp.p, gc.c)) >= 0.98 * ST_Area(dp.p)
+                  )
              )
              SELECT
                  ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS parts,
+                 (SELECT n FROM whole)                                      AS whole_parts,
                  ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
                  ST_IsEmpty((SELECT g FROM d))                              AS empty',
-            [$geoJson, $scopeId]
+            ['gj' => $geoJson, 'scope' => $scopeId]
         );
 
         if ($geo === null || (bool) $geo->empty) {
             throw new ConstitutionalViolation('The drawn polygon is empty or invalid.', 'Art. II §2');
         }
-        if ((int) $geo->parts !== 1) {
+        $parts = (int) $geo->parts;
+        $fragmentParts = $parts - (int) $geo->whole_parts;
+        if ($fragmentParts > 1) {
             throw new ConstitutionalViolation(
-                "A district must be a single contiguous polygon (drawn shape has {$geo->parts} parts).",
+                "A district may not fragment a single landmass (drawn shape has {$parts} parts, "
+                .'of which '.((int) $geo->whole_parts)." are whole detached components of {$giant->name} "
+                ."and {$fragmentParts} are cut fragments — at most one cut fragment is allowed).",
                 'Art. II §8'
             );
         }
@@ -321,8 +355,11 @@ class ManualDistrictDraw implements FormHandler
             'fractional_seats' => round($fractional, 6),
             'floor_override' => $seats < $floor,
             'status' => 'active',
-            'num_geom_parts' => 1,
-            'is_contiguous' => true,
+            // Honest part census: a piece carrying whole detached components
+            // (islands) is multi-part and counted non-contiguous, exactly like
+            // the composite side's nc statistics.
+            'num_geom_parts' => $parts,
+            'is_contiguous' => $parts === 1,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

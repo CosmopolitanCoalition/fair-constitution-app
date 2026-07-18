@@ -140,9 +140,20 @@ class MixedAutoseedSweepTest extends TestCase
                 ->where('jurisdiction_id', $ctx['giant_id'])
                 ->where('map_id', $ctx['map_id'])
                 ->whereNull('deleted_at')
-                ->get(['seats']);
+                ->get(['seats', 'num_geom_parts', 'is_contiguous']);
             $this->assertCount(2, $drawn);
             $this->assertSame(10, (int) $drawn->sum('seats'));
+
+            // ISLAND RIDING (the LA-County shape): the giant is mainland +
+            // one detached island — exactly ONE of the two districts carries
+            // it whole (num_geom_parts 2, honestly non-contiguous); the other
+            // is a single cut piece. The blade never strands or fragments it.
+            $islandCarrier = $drawn->where('is_contiguous', false);
+            $this->assertCount(1, $islandCarrier,
+                'exactly one line-split district must carry the detached island whole');
+            $this->assertSame(2, (int) $islandCarrier->first()->num_geom_parts);
+            $this->assertCount(1, $drawn->where('is_contiguous', true),
+                'the other district is a single contiguous cut piece');
 
             // The whole map seats the full legislature: 24 + 10 = 34 = type_a.
             $total = (int) DB::table('legislature_districts')
@@ -294,22 +305,26 @@ class MixedAutoseedSweepTest extends TestCase
     private function buildSyntheticContext(): array
     {
         $now = now();
-        $mkJur = function (string $name, ?string $parentId, int $admLevel, int $pop, array $rect) use ($now): string {
-            [$x1, $y1, $x2, $y2] = $rect;
+        // Each jurisdiction is one or more envelope rects — a MULTI-rect
+        // geometry is a NON-CONTIGUOUS territory (the LA-County islands
+        // shape: mainland + detached components).
+        $mkJur = function (string $name, ?string $parentId, int $admLevel, int $pop, array $rects) use ($now): string {
             $id = (string) Str::uuid();
+            $envelopes = implode(', ', array_map(
+                fn (array $r) => sprintf('ST_MakeEnvelope(%F, %F, %F, %F, 4326)', ...$r),
+                $rects
+            ));
             DB::insert(
                 "INSERT INTO jurisdictions
                     (id, name, slug, iso_code, adm_level, parent_id, population, is_active, is_civic_active,
                      source, official_languages, timezone, geom, centroid, created_at, updated_at)
                  VALUES
                     (?, ?, ?, ?, ?, ?, ?, true, true, 'pin-fixture', '[]', 'UTC',
-                     ST_Multi(ST_MakeEnvelope(?, ?, ?, ?, 4326)),
-                     ST_Centroid(ST_MakeEnvelope(?, ?, ?, ?, 4326)), ?, ?)",
+                     ST_Multi(ST_Union(ARRAY[{$envelopes}])),
+                     ST_Centroid(ST_Union(ARRAY[{$envelopes}])), ?, ?)",
                 [
                     $id, $name, 'zzp-'.$admLevel.'-'.Str::slug($name).'-'.substr($id, 0, 8), self::ISO,
                     $admLevel, $parentId, $pop,
-                    $x1, $y1, $x2, $y2,
-                    $x1, $y1, $x2, $y2,
                     $now, $now,
                 ]
             );
@@ -317,13 +332,16 @@ class MixedAutoseedSweepTest extends TestCase
             return $id;
         };
 
-        $rootId = $mkJur('Pinland', null, 1, 40000, [10.0, 50.0, 10.4, 50.2]);
+        $rootId = $mkJur('Pinland', null, 1, 40000, [[10.0, 50.0, 10.4, 50.2], [10.05, 49.90, 10.15, 49.95]]);
         $compositeIds = [];
         foreach (range(0, 3) as $i) {
             $x = 10.0 + $i * 0.1;
-            $compositeIds[] = $mkJur('Pin Quarter '.($i + 1), $rootId, 2, 7000, [$x, 50.1, $x + 0.1, 50.2]);
+            $compositeIds[] = $mkJur('Pin Quarter '.($i + 1), $rootId, 2, 7000, [[$x, 50.1, $x + 0.1, 50.2]]);
         }
-        $giantId = $mkJur('Pin Giant Strip', $rootId, 2, 12000, [10.0, 50.0, 10.4, 50.1]);
+        // The giant is NON-CONTIGUOUS: the mainland strip PLUS a detached
+        // island to the southwest (the Santa-Catalina shape) — the island must
+        // RIDE WHOLE with the blade side its position dictates, never strand.
+        $giantId = $mkJur('Pin Giant Strip', $rootId, 2, 12000, [[10.0, 50.0, 10.4, 50.1], [10.05, 49.90, 10.15, 49.95]]);
 
         $legislatureId = (string) Str::uuid();
         DB::table('legislatures')->insert([
@@ -359,13 +377,23 @@ class MixedAutoseedSweepTest extends TestCase
             'updated_at'      => $now,
         ]);
 
-        // The synthetic WorldPop tile: 80×20 pixels of 0.005°, upper-left
-        // (10.0, 50.1), value 7.5 each → exactly 12 000 people in the giant.
+        // Synthetic WorldPop tiles: the mainland strip (80×20 cells of 0.005°,
+        // upper-left (10.0, 50.1), 7.3125 each → 11 700) plus the island
+        // (20×10 cells, upper-left (10.05, 49.95), 1.5 each → 300) — exactly
+        // 12 000 people in the giant, 300 of them riding the island.
         DB::insert(
             "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
              VALUES (?, ?, 2023, 100,
                      ST_AddBand(ST_MakeEmptyRaster(80, 20, 10.0, 50.1, 0.005, -0.005, 0, 0, 4326),
-                                '32BF'::text, 7.5, NULL),
+                                '32BF'::text, 7.3125, NULL),
+                     ?)",
+            [(string) Str::uuid(), self::ISO, $now]
+        );
+        DB::insert(
+            "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
+             VALUES (?, ?, 2023, 100,
+                     ST_AddBand(ST_MakeEmptyRaster(20, 10, 10.05, 49.95, 0.005, -0.005, 0, 0, 4326),
+                                '32BF'::text, 1.5, NULL),
                      ?)",
             [(string) Str::uuid(), self::ISO, $now]
         );

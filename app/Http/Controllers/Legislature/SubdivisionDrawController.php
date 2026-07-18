@@ -73,7 +73,10 @@ class SubdivisionDrawController extends Controller
             'implied_fractional_seats'=> round($fractional, 3),
             'implied_seats'           => $seats,
             'in_band'                 => $seats >= $ctx['floor'] && $seats <= $ctx['ceiling'],
-            'contiguous'              => $clip['parts'] === 1,
+            // Contiguity in the Art. II §8 sense the handler enforces: at most
+            // one CUT FRAGMENT — whole detached components of the giant
+            // (islands the shape captured entire) ride without penalty.
+            'contiguous'              => ($clip['fragments'] ?? $clip['parts']) <= 1,
             // Compatibility key: kept for older clients, but the clip makes it
             // always-true on a 200 — a crossing draw is trimmed, a fully
             // outside draw 422s above.
@@ -740,6 +743,18 @@ class SubdivisionDrawController extends Controller
                                  ST_CollectionExtract(
                                      ST_Intersection((SELECT g FROM d), (SELECT g FROM gi)), 3),
                                  -0.00000001)), 3) AS g
+                  ),
+                  cparts AS (SELECT (ST_Dump((SELECT g FROM clip))).geom AS p),
+                  gcomps AS (SELECT (ST_Dump((SELECT g FROM gi))).geom AS c),
+                  whole AS (
+                      SELECT count(*) AS n
+                        FROM cparts cp
+                       WHERE EXISTS (
+                           SELECT 1 FROM gcomps gc
+                            WHERE ST_Intersects(cp.p, gc.c)
+                              AND ST_Area(ST_Intersection(cp.p, gc.c)) >= 0.98 * ST_Area(gc.c)
+                              AND ST_Area(ST_Intersection(cp.p, gc.c)) >= 0.98 * ST_Area(cp.p)
+                       )
                   )
              SELECT ST_IsEmpty((SELECT g FROM d))                              AS src_empty,
                     ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS src_parts,
@@ -747,6 +762,7 @@ class SubdivisionDrawController extends Controller
                     COALESCE(ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi)), false) AS within,
                     COALESCE(ST_IsEmpty((SELECT g FROM clip)), true)           AS clip_empty,
                     ST_NumGeometries(ST_Multi((SELECT g FROM clip)))           AS clip_parts,
+                    (SELECT n FROM whole)                                      AS clip_whole_parts,
                     ST_AsGeoJSON(ST_Multi((SELECT g FROM clip)), 15)           AS clip_gj,
                     (SELECT name FROM jurisdictions WHERE id = :scope2)        AS giant_name',
             ['gj' => $geoJson, 'scope' => $scopeId, 'scope2' => $scopeId]
@@ -758,17 +774,26 @@ class SubdivisionDrawController extends Controller
         if ((int) $row->has_giant === 0 || (bool) $row->within) {
             // No boundary to clip against (the engine will cite the unknown
             // jurisdiction) or already inside — pass the original through.
-            return ['geojson' => $geoJson, 'clipped' => false, 'parts' => (int) $row->src_parts];
+            // A hand-drawn polygon is one part, so its cut-fragment count is
+            // its part count.
+            return ['geojson' => $geoJson, 'clipped' => false, 'parts' => (int) $row->src_parts, 'fragments' => (int) $row->src_parts];
         }
         $name = (string) ($row->giant_name ?? 'the target jurisdiction');
         if ((bool) $row->clip_empty) {
             return ['error' => "The polygon lies entirely outside {$name}."];
         }
-        if ((int) $row->clip_parts !== 1) {
-            return ['error' => "Clipping to the boundary splits your polygon into {$row->clip_parts} pieces — draw inside."];
+        // Multi-part clips are admissible when the extra parts are WHOLE
+        // detached components of the giant (islands the lasso captured
+        // entire) — the handler's Art. II §8 rule, mirrored here so a lasso
+        // over mainland + Catalina measures and files instead of refusing.
+        // Two-plus cut fragments of a single landmass still refuse.
+        $clipParts = (int) $row->clip_parts;
+        $fragmentParts = $clipParts - (int) ($row->clip_whole_parts ?? 0);
+        if ($fragmentParts > 1) {
+            return ['error' => "Clipping to the boundary splits your polygon into {$fragmentParts} separate cut pieces — draw inside."];
         }
 
-        return ['geojson' => (string) $row->clip_gj, 'clipped' => true, 'parts' => 1];
+        return ['geojson' => (string) $row->clip_gj, 'clipped' => true, 'parts' => $clipParts, 'fragments' => $fragmentParts];
     }
 
     /**

@@ -103,6 +103,50 @@ class SubdivisionAutoseedService
             throw new RuntimeException('The scope has no geometry.');
         }
 
+        // NON-CONTIGUOUS GIANTS (2026-07-17 — the LA-County islands fix): a
+        // giant with detached parts (LA = mainland + Santa Catalina + San
+        // Clemente) can never satisfy "each blade side is a single polygon" —
+        // every straight cut leaves the islands stranded, so all candidates
+        // were refused. Doctrine now matches the composite side: ISLANDS RIDE
+        // WHOLE with the blade side their position dictates; only
+        // blade-created fragments of a single landmass are refused. The blade
+        // search runs on the LARGEST part (the mainland); each island joins
+        // the search as ONE super-pixel at its representative point carrying
+        // its whole population, so balance stays exact and deterministic.
+        $comps = DB::select(
+            'SELECT ST_AsGeoJSON(g, 15) AS gj,
+                    ST_Area(g::geography) AS area,
+                    ST_X(ST_PointOnSurface(g)) AS cx,
+                    ST_Y(ST_PointOnSurface(g)) AS cy
+               FROM (SELECT (ST_Dump(ST_MakeValid(geom))).geom AS g
+                       FROM jurisdictions WHERE id = ?) t
+              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
+            [$scopeId]
+        );
+
+        $mainlandGj = $region->gj;
+        $islands = [];
+        if (count($comps) > 1) {
+            $mainlandGj = (string) $comps[0]->gj;
+            $mainPixels = $pixels;
+            foreach (array_slice($comps, 1) as $comp) {
+                $poly = json_decode((string) $comp->gj, true);
+                [$inside, $mainPixels] = self::partitionPixelsByPolygon($mainPixels, $poly);
+                $pop = 0.0;
+                foreach ($inside as $p) {
+                    $pop += $p[2];
+                }
+                $islands[] = [
+                    'gj'     => (string) $comp->gj,
+                    'cx'     => (float) $comp->cx,
+                    'cy'     => (float) $comp->cy,
+                    'pop'    => $pop,
+                    'pixels' => $inside,
+                ];
+            }
+            $pixels = $mainPixels;
+        }
+
         // The plan's quota is PIXEL-derived so the deviation figures measure the
         // search's own balance (the stored jurisdiction population can drift a
         // little from the raster sum via correction passes).
@@ -110,12 +154,15 @@ class SubdivisionAutoseedService
         foreach ($pixels as $p) {
             $total += $p[2];
         }
+        foreach ($islands as $isl) {
+            $total += $isl['pop'];
+        }
         $quota = $total / max($S, 1);
 
         $cuts = [];
         $districts = [];
         $order = 0;
-        $this->subdivide($scopeId, 'root', $region->gj, $pixels, $sizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template);
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 
@@ -361,6 +408,90 @@ class SubdivisionAutoseedService
         return [$c, $popA, $total - $popA];
     }
 
+    /**
+     * Partition a pixel grid by containment in a GeoJSON Polygon/MultiPolygon
+     * (an island component): returns [insidePixels, outsidePixels]. Pure PHP
+     * ray casting with hole support and a bbox pre-filter — deterministic, and
+     * cheap at binned-grid scale (tens of thousands of cells × a few islands).
+     * A boundary-ambiguous cell defaults OUTSIDE (it stays with the mainland);
+     * at cell scale that is noise against a ~500k-person quota, and every
+     * filed piece is re-measured at full raster resolution by the handler.
+     *
+     * @param  array<int, array{0: float, 1: float, 2: float}>  $pixels
+     * @return array{0: array, 1: array} [inside, outside]
+     */
+    public static function partitionPixelsByPolygon(array $pixels, array $geometry): array
+    {
+        $polys = match ($geometry['type'] ?? '') {
+            'Polygon'      => [$geometry['coordinates']],
+            'MultiPolygon' => $geometry['coordinates'],
+            default        => [],
+        };
+        if ($polys === []) {
+            return [[], $pixels];
+        }
+
+        // bbox pre-filter across all rings.
+        $minX = INF; $minY = INF; $maxX = -INF; $maxY = -INF;
+        foreach ($polys as $rings) {
+            foreach ($rings[0] as [$x, $y]) {
+                if ($x < $minX) $minX = $x;
+                if ($x > $maxX) $maxX = $x;
+                if ($y < $minY) $minY = $y;
+                if ($y > $maxY) $maxY = $y;
+            }
+        }
+
+        $inside = [];
+        $outside = [];
+        foreach ($pixels as $p) {
+            [$px, $py] = $p;
+            $in = false;
+            if ($px >= $minX && $px <= $maxX && $py >= $minY && $py <= $maxY) {
+                foreach ($polys as $rings) {
+                    if (! self::pointInRing($px, $py, $rings[0])) {
+                        continue;
+                    }
+                    $inHole = false;
+                    for ($r = 1; $r < count($rings); $r++) {
+                        if (self::pointInRing($px, $py, $rings[$r])) {
+                            $inHole = true;
+                            break;
+                        }
+                    }
+                    if (! $inHole) {
+                        $in = true;
+                        break;
+                    }
+                }
+            }
+            if ($in) {
+                $inside[] = $p;
+            } else {
+                $outside[] = $p;
+            }
+        }
+
+        return [$inside, $outside];
+    }
+
+    /** Standard even-odd ray cast against one linear ring ([[x,y], ...], closed or not). */
+    private static function pointInRing(float $px, float $py, array $ring): bool
+    {
+        $in = false;
+        $n = count($ring);
+        for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+            [$xi, $yi] = $ring[$i];
+            [$xj, $yj] = $ring[$j];
+            if ((($yi > $py) !== ($yj > $py))
+                && ($px < ($xj - $xi) * ($py - $yi) / (($yj - $yi) ?: 1e-300) + $xi)) {
+                $in = ! $in;
+            }
+        }
+
+        return $in;
+    }
+
     // ── the recursive bisection tree ────────────────────────────────────────
 
     private function subdivide(
@@ -368,6 +499,7 @@ class SubdivisionAutoseedService
         string $path,
         string $gj,
         array $pixels,
+        array $islands,
         array $sizes,
         float $quota,
         array &$cuts,
@@ -380,6 +512,9 @@ class SubdivisionAutoseedService
             foreach ($pixels as $p) {
                 $pop += $p[2];
             }
+            foreach ($islands as $isl) {
+                $pop += $isl['pop'];
+            }
             $seats = (int) $sizes[0];
 
             // A LEAF is what F-ELB-008 will file, and the handler proves exact
@@ -388,18 +523,32 @@ class SubdivisionAutoseedService
             // can nudge a boundary vertex just outside. Clip against the LIVE
             // giant geometry and shave 1e-8° (~1 mm) inward so the interior
             // margin dwarfs any round-trip error. Deterministic; invisible.
+            // Islands riding this side union in here — the leaf files as ONE
+            // multi-part piece whose extra parts are whole giant components
+            // (the exact shape the handler's Art. II §8 rule admits).
+            $leafGj = $islands === []
+                ? $gj
+                : json_encode([
+                    'type'       => 'GeometryCollection',
+                    'geometries' => array_merge(
+                        [json_decode($gj, true)],
+                        array_map(fn (array $isl) => json_decode($isl['gj'], true), $islands),
+                    ),
+                ]);
+
             $row = DB::selectOne(
                 'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
                       leaf AS (
                           SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
                                      ST_CollectionExtract(ST_Intersection(
-                                         ST_MakeValid(ST_GeomFromGeoJSON(:gj)), (SELECT g FROM gi)), 3),
+                                         ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
+                                         (SELECT g FROM gi)), 3),
                                      -0.00000001)), 3) AS g
                       )
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))
                             / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
-                ['scope' => $scopeId, 'gj' => $gj]
+                ['scope' => $scopeId, 'gj' => $leafGj]
             );
             $geometry = $row?->gj !== null ? json_decode($row->gj, true) : null;
             if ($geometry === null) {
@@ -419,7 +568,7 @@ class SubdivisionAutoseedService
         }
 
         [$aSizes, $bSizes] = self::bisectSizes($sizes);
-        $cut = $this->findBlade($gj, $pixels, array_sum($aSizes), array_sum($bSizes), $quota, $template);
+        $cut = $this->findBlade($gj, $pixels, $islands, array_sum($aSizes), array_sum($bSizes), $quota, $template);
 
         $cuts[] = [
             'order'       => $order++,
@@ -432,8 +581,8 @@ class SubdivisionAutoseedService
             ],
         ];
 
-        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $aSizes, $quota, $cuts, $districts, $order, $template);
-        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $bSizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template);
     }
 
     /**
@@ -446,10 +595,20 @@ class SubdivisionAutoseedService
      * per-seat deviation guard. The strip templates offer a single fixed
      * angle, so "shortest" degenerates to "the one candidate".
      */
-    private function findBlade(string $regionGj, array $pixels, int $seatsA, int $seatsB, float $quota, string $template): array
+    private function findBlade(string $regionGj, array $pixels, array $islands, int $seatsA, int $seatsB, float $quota, string $template): array
     {
-        [$total, $lon0, $lat0, $cosLat] = self::gridFrame($pixels);
-        if (count($pixels) < 2 || $total <= 0.0) {
+        // Islands join the balance search as ONE super-pixel each — their
+        // whole population at their representative point — so the prefix-sum
+        // placement accounts for them exactly, and the SAME strict t < c
+        // predicate that recounts the sides also decides which side each
+        // island rides. The blade itself only ever cuts the mainland.
+        $searchPixels = $pixels;
+        foreach ($islands as $isl) {
+            $searchPixels[] = [(float) $isl['cx'], (float) $isl['cy'], (float) $isl['pop']];
+        }
+
+        [$total, $lon0, $lat0, $cosLat] = self::gridFrame($searchPixels);
+        if (count($searchPixels) < 2 || $total <= 0.0) {
             throw new RuntimeException('Too few populated pixels remain to cut this region.');
         }
         $target = $seatsA / ($seatsA + $seatsB) * $total;
@@ -461,7 +620,7 @@ class SubdivisionAutoseedService
                 $nx = -sin($theta);
                 $ny = cos($theta);
 
-                $found = self::bladeOffsetSearch($pixels, $nx, $ny, $lon0, $lat0, $cosLat, $target);
+                $found = self::bladeOffsetSearch($searchPixels, $nx, $ny, $lon0, $lat0, $cosLat, $target);
                 if ($found === null) {
                     continue;
                 }
@@ -512,6 +671,20 @@ class SubdivisionAutoseedService
                     }
                 }
 
+                // Each island rides WHOLE by its super-pixel's side — the same
+                // strict predicate as the recount, so population and geometry
+                // can never disagree about where an island went.
+                $islandsA = [];
+                $islandsB = [];
+                foreach ($islands as $isl) {
+                    $t = ((float) $isl['cx'] - $lon0) * $cosLat * $cand['nx'] + ((float) $isl['cy'] - $lat0) * $cand['ny'];
+                    if ($t < $cand['c']) {
+                        $islandsA[] = $isl;
+                    } else {
+                        $islandsB[] = $isl;
+                    }
+                }
+
                 return [
                     'angle_deg' => $cand['angle_deg'],
                     'line'      => $line,
@@ -521,6 +694,8 @@ class SubdivisionAutoseedService
                     'gj_b'      => $sides['b'],
                     'pixels_a'  => $pixelsA,
                     'pixels_b'  => $pixelsB,
+                    'islands_a' => $islandsA,
+                    'islands_b' => $islandsB,
                 ];
             }
         }
