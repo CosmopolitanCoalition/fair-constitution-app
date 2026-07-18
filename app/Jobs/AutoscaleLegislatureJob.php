@@ -44,14 +44,16 @@ class AutoscaleLegislatureJob implements ShouldQueue
 
     /**
      * timeout 0: giant-country sweeps run for hours (supervisor-autoscale is
-     * also timeout 0). tries 1: with REDIS_QUEUE_RETRY_AFTER=14400, a >4 h
-     * sweep gets redelivered once — the copy sees the item already `running`
-     * and exits immediately (idempotence guard below); horizon logs a
-     * spurious MaxAttempts failure for it, which failed() ignores because the
-     * item is not `queued`.
+     * also timeout 0). tries 0 (unlimited): the width-governor gate below
+     * RELEASES jobs back to the queue when the width is full, and each
+     * release counts an attempt — a finite tries would MaxAttempts a job
+     * that was merely waiting its turn. Handler errors never rethrow (every
+     * throwable becomes item state), so unlimited tries cannot loop a
+     * genuinely broken job; a >4 h redelivered copy still exits at the
+     * atomic queued→running flip.
      */
     public int $timeout = 0;
-    public int $tries   = 1;
+    public int $tries   = 0;
 
     public function __construct(private readonly string $itemId)
     {
@@ -72,6 +74,25 @@ class AutoscaleLegislatureJob implements ShouldQueue
                 ->where('status', 'queued')
                 ->update(['status' => 'pending', 'updated_at' => now()]);
             return;
+        }
+
+        // WIDTH GATE (the governor's decided width, operator ruling: the
+        // system itself decides): when as many sweeps are already busy as
+        // the width allows, hand this payload back to the queue untouched —
+        // backpressure, not failure. Horizon may hold ceiling-many
+        // processes; only width-many work. (Inline callers — the pin suite —
+        // have no queue context and skip the gate.)
+        if ($this->job !== null) {
+            $busy = (int) DB::table('autoscale_items')
+                ->where('run_id', $run->id)
+                ->where('kind', 'sweep')
+                ->where('status', 'running')
+                ->count();
+            if ($busy >= \App\Support\AutoscaleGovernor::width()) {
+                $this->release(15);
+
+                return;
+            }
         }
 
         // Idempotence: only a queued item may start (a redelivered copy of a

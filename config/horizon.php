@@ -245,7 +245,7 @@ return [
             'connection' => 'redis-long',
             'queue' => ['autoscale'],
             'balance' => 'simple',
-            'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+            'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
@@ -304,7 +304,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
             ],
             'supervisor-autoscale-tick' => [
                 'maxProcesses' => 1,
@@ -322,7 +322,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
             ],
             'supervisor-autoscale-tick' => [
                 'maxProcesses' => 1,

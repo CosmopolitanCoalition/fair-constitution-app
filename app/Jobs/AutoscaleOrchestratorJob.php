@@ -51,7 +51,7 @@ class AutoscaleOrchestratorJob implements ShouldQueue
     private const TICK_DELAY = 90;
 
     /**
-     * Sweep-wave buffer: keep workers × 30 jobs queued+running (min 12).
+     * Sweep-wave buffer: keep width × 30 jobs queued+running (min 12).
      * The buffer must outlast a full tick interval at the FAST tail —
      * deep-level sweeps run ~3-5 s, so a fixed dozen would drain in seconds
      * and leave every worker idle until the next tick: the tick cadence,
@@ -61,7 +61,7 @@ class AutoscaleOrchestratorJob implements ShouldQueue
      */
     private static function inflightTarget(): int
     {
-        return max(12, \App\Support\HostCapacity::autoscaleWorkers() * 30);
+        return max(12, \App\Support\AutoscaleGovernor::width() * 30);
     }
 
     /**
@@ -450,6 +450,12 @@ class AutoscaleOrchestratorJob implements ShouldQueue
 
     private function runMappingTick(AutoscaleRun $run): void
     {
+        // 0. The width governor: measure the host, walk the width toward the
+        //    knee (operator ruling: the system itself decides what it can
+        //    handle). The decided width gates busy sweep jobs and scales the
+        //    wave buffer below.
+        \App\Support\AutoscaleGovernor::tick((string) $run->id);
+
         // 1. Singles: process at most ONE adm level per tick (each level is a
         //    handful of set-based statements; the biggest — adm6, ~700k — runs
         //    minutes). Sweep waves below keep the workers fed in parallel.

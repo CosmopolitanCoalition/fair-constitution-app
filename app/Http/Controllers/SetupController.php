@@ -2106,6 +2106,14 @@ class SetupController extends Controller
                 'drifted_done'       => (int) ($driftRow->drifted ?? 0),
                 'net_drift'          => (int) ($driftRow->net_drift ?? 0),
                 'attention_count'    => (int) ($driftRow->attention ?? 0),
+                // The width governor (the system decides its own throughput):
+                // current busy-width vs the physics ceiling, and the host
+                // signal it steers by.
+                'width'              => \App\Support\AutoscaleGovernor::width(),
+                'width_ceiling'      => \App\Support\HostCapacity::workerCeiling(),
+                'load_per_core'      => \App\Support\AutoscaleGovernor::loadPerCore() !== null
+                    ? round(\App\Support\AutoscaleGovernor::loadPerCore(), 2)
+                    : null,
             ],
             'live_items'   => $liveItems,
             'review_items' => $reviewItems,

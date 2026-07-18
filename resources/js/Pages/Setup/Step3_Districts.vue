@@ -254,6 +254,15 @@ onBeforeUnmount(stopPolling)
                         <div class="text-gray-400 text-xs uppercase tracking-wide">ETA (sweeps)</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ fmtEta(run.eta_seconds) }}</div>
                     </div>
+                    <div v-if="run.width">
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">Width (self-tuned)</div>
+                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">
+                            {{ run.width }}<span class="text-gray-500 text-sm font-normal">/{{ run.width_ceiling }}</span>
+                            <span v-if="run.load_per_core != null" class="text-gray-400 text-xs font-normal ml-1">
+                                load {{ run.load_per_core }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Progress bars -->

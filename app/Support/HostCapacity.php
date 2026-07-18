@@ -33,6 +33,25 @@ class HostCapacity
         return max(2, min(12, intdiv(self::cpuCores() - 2, 2)));
     }
 
+    /**
+     * The PHYSICS ceiling for supervisor-autoscale maxProcesses (operator
+     * ruling 2026-07-18 #2: "set to unlimited and let the system itself
+     * decide"): more worker processes than cores cannot compute CPU-bound
+     * sweeps faster — that is arithmetic, not policy. Horizon provisions up
+     * to this many processes; the AutoscaleGovernor decides each tick how
+     * many may be BUSY (the width), hunting the real knee by feedback. Idle
+     * processes above the width cost ~80 MB RSS and no CPU.
+     */
+    public static function workerCeiling(): int
+    {
+        $override = env('CGA_AUTOSCALE_WORKERS');
+        if ($override !== null && (int) $override > 0) {
+            return (int) $override;
+        }
+
+        return max(2, min(16, self::cpuCores()));
+    }
+
     public static function cpuCores(): int
     {
         $n = (int) trim((string) @shell_exec('nproc 2>/dev/null'));
