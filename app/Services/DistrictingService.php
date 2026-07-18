@@ -589,6 +589,34 @@ class DistrictingService
                 $topN = min(count($bfsCandidates), 20);
                 $bestBinsK = null; $bestScoreK = null;
                 $bestPhaseB = null; $bestPhaseBScore = null;
+
+                // ── Land-then-compete (2026-07-18, the Texas strips probe) ──
+                // The canonical-mix landing used to run only on each k's
+                // ALREADY-SELECTED winner (compete-then-land) — but the
+                // landing's biggest wins come from candidates that LOSE their
+                // own k before landing. Texas: the k=10 sequential build
+                // settles into 7 bins and, landed onto the 7-way canonical
+                // [8,7,7,7,7,7,7], scores avg 1.95% / cut 4.02M m — beating
+                // the shipped coastal strips (cut 4.45M m) under the UNTOUCHED
+                // comparator; pre-landing it lost k=10 and was never landed.
+                // Every built candidate now offers its landed variant to the
+                // per-k competition. This pass proposes; scoreBeats disposes.
+                $landedVariant = function (array $bins, array $score) use ($virtualize, $childById, $centroids, $adj, $quotaPopC, $compBudget, $compBinPop, $floor, $ceiling, $giantThreshold, $floorBoundary): ?array {
+                    if ($quotaPopC <= 0) return null;
+                    $live = array_values(array_filter($bins, fn($b) => !empty($b)));
+                    if (count($live) < 2) return null;
+                    $parts = $this->canonicalPartition($compBudget, count($live), $floor, $ceiling);
+                    if ($parts === null) return null;
+                    if (($score['seat_spread'] ?? 0) <= (max($parts) - min($parts)) && (($score['seat_drift'] ?? 0) <= 0)) {
+                        return null;
+                    }
+                    $landed = $this->landSeatVector($live, $parts, $childById, $centroids, $adj, $quotaPopC, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                    if ($landed === $live) return null;
+                    $effBudget = max(count($landed), $compBudget);
+
+                    return [$landed, $this->scoreConfiguration($virtualize($landed), $childById, $adj, (float) $compBinPop, $effBudget, $floor, $ceiling, $floorBoundary)];
+                };
+
                 foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
                     $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary, false, $compBudget);
 
@@ -603,6 +631,16 @@ class DistrictingService
                     if ($bestPhaseBScore === null || $this->scoreBeats($score, $bestPhaseBScore)) {
                         $bestPhaseB      = $bins;
                         $bestPhaseBScore = $score;
+                    }
+                    if (($lv = $landedVariant($bins, $score)) !== null) {
+                        if ($bestScoreK === null || $this->scoreBeats($lv[1], $bestScoreK)) {
+                            $bestBinsK  = $lv[0];
+                            $bestScoreK = $lv[1];
+                        }
+                        if ($bestPhaseBScore === null || $this->scoreBeats($lv[1], $bestPhaseBScore)) {
+                            $bestPhaseB      = $lv[0];
+                            $bestPhaseBScore = $lv[1];
+                        }
                     }
                 }
 
@@ -635,6 +673,11 @@ class DistrictingService
                                 $bestBinsK  = $sBins;
                                 $bestScoreK = $sScore;
                             }
+                            if (($lv = $landedVariant($sBins, $sScore)) !== null
+                                && ($bestScoreK === null || $this->scoreBeats($lv[1], $bestScoreK))) {
+                                $bestBinsK  = $lv[0];
+                                $bestScoreK = $lv[1];
+                            }
                         }
 
                         // ── Bisection candidates (round 12, the São Paulo snake):
@@ -661,6 +704,11 @@ class DistrictingService
                             if ($bestScoreK === null || $this->scoreBeats($bScore, $bestScoreK)) {
                                 $bestBinsK  = $bBins;
                                 $bestScoreK = $bScore;
+                            }
+                            if (($lv = $landedVariant($bBins, $bScore)) !== null
+                                && ($bestScoreK === null || $this->scoreBeats($lv[1], $bestScoreK))) {
+                                $bestBinsK  = $lv[0];
+                                $bestScoreK = $lv[1];
                             }
                         }
                     }
@@ -705,11 +753,16 @@ class DistrictingService
                 // Russia's 9+9+9+9 never materialized). scoreRank's seat_spread
                 // slot still decides whether the balance it costs was worth it.
                 if ($quotaPopC > 0) {
-                    $parts = $this->canonicalPartition($compBudget, count($cfg['bins']), $floor, $ceiling);
+                    // NON-EMPTY bin count (2026-07-18): a candidate carrying
+                    // empty bins aimed this landing at the wrong canonical
+                    // partition, and landSeatVector's own count guard then
+                    // turned the whole pass into a silent no-op.
+                    $parts = $this->canonicalPartition($compBudget, count(array_filter($cfg['bins'], fn($b) => !empty($b))), $floor, $ceiling);
                     if ($parts !== null && ($cfg['score']['seat_spread'] > (max($parts) - min($parts))
                         || ($cfg['score']['seat_drift'] ?? 0) > 0)) {
-                        $equalized = $this->landSeatVector($cfg['bins'], $parts, $childById, $centroids, $adj, $quotaPopC, $floor, $ceiling, $giantThreshold, $floorBoundary);
-                        if ($equalized !== $cfg['bins']) {
+                        $cfgLive = array_values(array_filter($cfg['bins'], fn($b) => !empty($b)));
+                        $equalized = $this->landSeatVector($cfgLive, $parts, $childById, $centroids, $adj, $quotaPopC, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                        if ($equalized !== $cfgLive) {
                             $effectiveBudget = max(count($equalized), $compBudget);
                             $eScore = $this->scoreConfiguration($virtualize($equalized), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                             if ($this->scoreBeats($eScore, $bestScore)) {
