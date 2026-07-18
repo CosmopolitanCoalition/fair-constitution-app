@@ -50,8 +50,19 @@ class AutoscaleOrchestratorJob implements ShouldQueue
     /** Seconds between ticks while mapping (sweep-wave top-ups). */
     private const TICK_DELAY = 90;
 
-    /** Keep this many sweep jobs queued+running; top up when below. */
-    private const INFLIGHT_TARGET = 12;
+    /**
+     * Sweep-wave buffer: keep workers × 30 jobs queued+running (min 12).
+     * The buffer must outlast a full tick interval at the FAST tail —
+     * deep-level sweeps run ~3-5 s, so a fixed dozen would drain in seconds
+     * and leave every worker idle until the next tick: the tick cadence,
+     * not the host, would set the pace (operator ruling 2026-07-18: the
+     * host sets the pace). Queue depth is near-free; halt stays safe (a
+     * queued job re-checks the halt flag and hands its item back).
+     */
+    private static function inflightTarget(): int
+    {
+        return max(12, \App\Support\HostCapacity::autoscaleWorkers() * 30);
+    }
 
     /**
      * Per-run pg advisory-lock class (bytes of "ASCA"): a tick that cannot
@@ -492,7 +503,11 @@ class AutoscaleOrchestratorJob implements ShouldQueue
         $reclaimedQueued = DB::table('autoscale_items')
             ->where('run_id', $run->id)
             ->where('status', 'queued')
-            ->where('updated_at', '<', now()->subSeconds(self::RECLAIM_AFTER_SECONDS))
+            // 2 h, not the sweep threshold: the host-scaled buffer means an
+            // item can legitimately sit queued behind slow giants for a long
+            // while — churning it would just pile up no-op payloads. A
+            // genuinely lost payload (redis flush) still self-heals.
+            ->where('updated_at', '<', now()->subHours(2))
             ->update([
                 'status'     => 'pending',
                 'reason'     => 'reclaimed: queued payload never delivered',
@@ -520,16 +535,17 @@ class AutoscaleOrchestratorJob implements ShouldQueue
             ]);
         }
 
-        // 3. Sweep waves: keep INFLIGHT_TARGET jobs queued+running. The
+        // 3. Sweep waves: keep the host-scaled buffer queued+running. The
         //    UPDATE…RETURNING flip makes double-dispatch impossible even with
         //    concurrent ticks.
+        $target   = self::inflightTarget();
         $inflight = (int) DB::table('autoscale_items')
             ->where('run_id', $run->id)
             ->where('kind', 'sweep')
             ->whereIn('status', ['queued', 'running'])
             ->count();
 
-        if ($inflight < self::INFLIGHT_TARGET) {
+        if ($inflight < $target) {
             $flipped = DB::select("
                 UPDATE autoscale_items
                    SET status = 'queued', updated_at = now()
@@ -542,7 +558,7 @@ class AutoscaleOrchestratorJob implements ShouldQueue
                  )
                    AND status = 'pending'
              RETURNING id
-            ", [$run->id, self::INFLIGHT_TARGET - $inflight]);
+            ", [$run->id, $target - $inflight]);
 
             foreach ($flipped as $row) {
                 AutoscaleLegislatureJob::dispatch((string) $row->id);

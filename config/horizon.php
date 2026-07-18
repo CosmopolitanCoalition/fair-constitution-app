@@ -237,14 +237,15 @@ return [
         ],
 
         // Full-scale autoscale: 48k+ per-legislature sweep jobs after map-data
-        // acceptance. Width 3 — Postgres contention caps useful parallelism on
-        // a single box, and the audit chain's advisory lock serialises filings
-        // anyway. timeout=0: a giant-country sweep can run for hours.
+        // acceptance. Width is HOST-DERIVED (operator ruling 2026-07-18: as
+        // fast as the host allows, no over- or under-utilization) — see
+        // HostCapacity::autoscaleWorkers(); CGA_AUTOSCALE_WORKERS overrides.
+        // timeout=0: a giant-country sweep can run for hours.
         'supervisor-autoscale' => [
             'connection' => 'redis-long',
             'queue' => ['autoscale'],
             'balance' => 'simple',
-            'maxProcesses' => 3,
+            'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
@@ -303,7 +304,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => 3,
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-autoscale-tick' => [
                 'maxProcesses' => 1,
@@ -321,7 +322,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => 3,
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-autoscale-tick' => [
                 'maxProcesses' => 1,
