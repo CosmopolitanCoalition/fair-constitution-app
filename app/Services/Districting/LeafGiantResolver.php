@@ -149,13 +149,16 @@ class LeafGiantResolver
         // are re-thrown as PlanRefused so the HTTP path can 422 EXACTLY these
         // (matching its pre-extraction behavior) while any other
         // RuntimeException from the filing loop still bubbles as a 500.
-        try {
-            $plan = $this->autoseed->plan($scopeId, $ctx, $year, $template);
-        } catch (PlanRefused $e) {
-            throw $e;
-        } catch (RuntimeException $e) {
-            throw new PlanRefused($e->getMessage(), previous: $e);
-        }
+        //
+        // FALLBACK LADDER (operator sanction 2026-07-18, "ladder first,
+        // manual for the residue"): only when NO client hash is being
+        // verified (the sweep path — the recompute IS the plan) a refused
+        // template falls through the remaining templates in registry order
+        // before giving up to the review list. A previewed commit
+        // ($expectedPlanHash set) never ladders — silently swapping the
+        // template a human previewed would betray the hash contract.
+        $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, $expectedPlanHash === null);
+        $plan = $planned['plan'];
 
         if ($expectedPlanHash !== null && ! hash_equals($plan['plan_hash'], $expectedPlanHash)) {
             throw new PlanRefused('Plan changed — run the preview again.');
@@ -186,7 +189,43 @@ class LeafGiantResolver
             'districts_created' => count($ids),
             'replaced'          => $replaced,
             'district_ids'      => $ids,
+            'template'          => $planned['template'],
+            'template_fallback' => $planned['fallback'],
         ];
+    }
+
+    /**
+     * Try the requested template; when $allowFallback and it refuses, walk
+     * the remaining templates in registry order (shortest → vertical_strips
+     * → horizontal_strips → community_cells) and take the first that plans.
+     * All refused → the LAST refusal bubbles (the review-list reason).
+     *
+     * @return array{plan: array, template: string, fallback: bool}
+     *
+     * @throws PlanRefused when every attempted template refuses
+     */
+    public function planWithFallback(string $scopeId, array $ctx, int $year, string $template, bool $allowFallback): array
+    {
+        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
+        $last  = null;
+
+        foreach ($order as $i => $tpl) {
+            try {
+                $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
+
+                return ['plan' => $plan, 'template' => $tpl, 'fallback' => $i > 0];
+            } catch (PlanRefused $e) {
+                $last = $e;
+            } catch (RuntimeException $e) {
+                $last = new PlanRefused($e->getMessage(), previous: $e);
+            }
+
+            if (! $allowFallback) {
+                throw $last;
+            }
+        }
+
+        throw $last ?? new PlanRefused('No districting template produced a plan.');
     }
 
     /** Live drawn districts at a scope+plan — the set a whole-scope autoseed would displace. */
