@@ -86,6 +86,11 @@ class GeodataRepairsApplyCommand extends Command
                     'merge_chain'          => $remediation->mergeChain(null, (array) $params['chain_slugs'], $note, null),
                     'prune'                => $remediation->softPrune(null, $slug, (bool) ($params['cascade'] ?? false), $note, null),
                     'recompute_population' => $remediation->recomputePopulation(null, $slug, (string) $params['method'], $note, null),
+                    'rename'               => $remediation->rename(null, $slug, (string) $params['new_name'], $note, null),
+                    // Re-DERIVED from local data on replay (like
+                    // recompute_population): geometry/population come from
+                    // this box's rows, never copied across boxes.
+                    'synthesize_remainder' => $remediation->synthesizeRemainder(null, $slug, $note, null),
                     default                => throw new \InvalidArgumentException("Unknown action [{$action}]."),
                 };
 
@@ -195,6 +200,22 @@ class GeodataRepairsApplyCommand extends Command
                 return $row !== null
                     && $row->population_assigned_via === 'manual_repair'
                     && (int) $row->population === (int) $result['new_population'];
+
+            case 'rename':
+                // Label already carries the recorded name.
+                return DB::table('jurisdictions')
+                    ->where('slug', $slug)
+                    ->whereNull('deleted_at')
+                    ->value('name') === ($params['new_name'] ?? null);
+
+            case 'synthesize_remainder':
+                // The parent already holds a live synthesized remainder.
+                return DB::selectOne('
+                    SELECT 1 FROM jurisdictions c
+                    JOIN jurisdictions p ON p.id = c.parent_id
+                    WHERE p.slug = ? AND c.source = \'synthesized-remainder\'
+                      AND c.deleted_at IS NULL LIMIT 1
+                ', [$slug]) !== null;
 
             default:
                 return false;

@@ -460,6 +460,124 @@ class GeodataRemediationService
      * the children's prior parents are usually the very orphan state the
      * anchor fixed).
      */
+    /**
+     * Rename a jurisdiction's display label (2026-07-18: country anchors
+     * that inherited a constituent's name — India as "Puducherry", Italy as
+     * "Nord-Ovest"). Label-only: slug, lineage, geometry, population are
+     * untouched, so districting math cannot move.
+     */
+    public function rename(?GeodataFlag $flag, string $targetSlug, string $newName, ?string $note, ?string $actorId): GeodataRepair
+    {
+        return DB::transaction(function () use ($flag, $targetSlug, $newName, $note, $actorId) {
+            $this->assertRepairWindowOpen();
+            $target = $this->liveRowBySlug($targetSlug);
+
+            if ($target->name === $newName) {
+                throw new \InvalidArgumentException("[{$targetSlug}] is already named \"{$newName}\".");
+            }
+
+            DB::table('jurisdictions')->where('id', $target->id)->update([
+                'name'       => $newName,
+                'updated_at' => now(),
+            ]);
+
+            return $this->recordRepair($flag, 'rename', $target, [
+                'target_id' => $target->id,
+                'old_name'  => $target->name,
+                'new_name'  => $newName,
+                'note'      => $note,
+            ], [
+                'target_id' => $target->id,
+                'new_name'  => $newName,
+            ], $actorId, $target->id);
+        });
+    }
+
+    /**
+     * Synthesize the REMAINDER child for one coverage-gapped parent
+     * (geometry = parent − children-union, population = parent −
+     * children-sum) — the per-parent replay form of
+     * geodata:synthesize-remainders (which bulk-derives the same repair;
+     * keep the CTE and thresholds in lockstep with that command). Refuses
+     * the settled population-noise class: children that tile the territory
+     * leave no geometric remainder to hold.
+     */
+    public function synthesizeRemainder(?GeodataFlag $flag, string $parentSlug, ?string $note, ?string $actorId, float $minAreaFrac = 0.02): GeodataRepair
+    {
+        return DB::transaction(function () use ($flag, $parentSlug, $note, $actorId, $minAreaFrac) {
+            $this->assertRepairWindowOpen();
+            $parent = $this->liveRowBySlug($parentSlug);
+
+            $existing = DB::table('jurisdictions')
+                ->where('parent_id', $parent->id)
+                ->where('source', 'synthesized-remainder')
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($existing) {
+                throw new \InvalidArgumentException("[{$parentSlug}] already has a synthesized remainder child.");
+            }
+
+            $childSum = (int) DB::table('jurisdictions')
+                ->where('parent_id', $parent->id)->whereNull('deleted_at')->sum('population');
+            $remainderPop = max(0, (int) $parent->population - $childSum);
+
+            $id = (string) \Illuminate\Support\Str::uuid();
+            $inserted = DB::insert('
+                WITH kids AS (
+                    SELECT ST_MakeValid(ST_Union(geom)) AS g
+                      FROM jurisdictions
+                     WHERE parent_id = ? AND deleted_at IS NULL AND geom IS NOT NULL
+                ),
+                diff AS (
+                    SELECT ST_Multi(ST_CollectionExtract(
+                               ST_MakeValid(ST_Difference((SELECT geom FROM jurisdictions WHERE id = ?), kids.g)), 3
+                           )) AS g
+                      FROM kids
+                )
+                INSERT INTO jurisdictions
+                    (id, name, slug, iso_code, adm_level, parent_id, population,
+                     is_active, is_civic_active, source, parent_assigned_via,
+                     official_languages, timezone, geom, centroid, created_at, updated_at)
+                SELECT ?, ?, ?, ?, ?, ?, ?, true, true, \'synthesized-remainder\', \'remainder_synthesis\',
+                       \'[]\', \'UTC\', d.g, ST_PointOnSurface(d.g), now(), now()
+                  FROM diff d
+                 WHERE d.g IS NOT NULL AND NOT ST_IsEmpty(d.g)
+                   AND ST_Area(d.g) >= ? * ST_Area((SELECT geom FROM jurisdictions WHERE id = ?))
+            ', [
+                $parent->id, $parent->id,
+                $id,
+                mb_substr($parent->name, 0, 200).' (Remainder)',
+                \Illuminate\Support\Str::slug($parent->slug.'-remainder-'.substr($id, 0, 8)),
+                $parent->iso_code,
+                (int) $parent->adm_level + 1,
+                $parent->id,
+                $remainderPop,
+                $minAreaFrac, $parent->id,
+            ]);
+
+            $created = DB::table('jurisdictions')->where('id', $id)->exists();
+            if (! $created) {
+                throw new \InvalidArgumentException(
+                    "[{$parentSlug}] has no material geometric remainder — its children tile the territory "
+                    .'(the settled population-noise class is never synthesized).'
+                );
+            }
+
+            return $this->recordRepair($flag, 'synthesize_remainder', $parent, [
+                'target_id'     => $parent->id,
+                'parent_id'     => $parent->id,
+                'created_id'    => $id,
+                'remainder_pop' => $remainderPop,
+                'children_sum'  => $childSum,
+                'parent_pop'    => (int) $parent->population,
+                'revert'        => 'soft-delete created_id',
+                'note'          => $note,
+            ], [
+                'created_id' => $id,
+            ], $actorId, $parent->id);
+        });
+    }
+
     public function revert(GeodataRepair $repair, ?string $actorId): GeodataRepair
     {
         if ($repair->reverted_at !== null) {
@@ -554,6 +672,39 @@ class GeodataRemediationService
                             'updated_at'          => now(),
                         ]);
                     }
+                    break;
+
+                case 'rename':
+                    $currentName = DB::table('jurisdictions')->where('id', $params['target_id'])->value('name');
+                    if ($currentName !== ($params['new_name'] ?? null)) {
+                        throw new \InvalidArgumentException(
+                            "[{$repair->target_slug}] was renamed again after this repair — revert that change first."
+                        );
+                    }
+                    DB::table('jurisdictions')->where('id', $params['target_id'])->update([
+                        'name'       => $params['old_name'],
+                        'updated_at' => now(),
+                    ]);
+                    break;
+
+                case 'synthesize_remainder':
+                    $live = DB::table('jurisdictions')
+                        ->where('id', $params['created_id'])->whereNull('deleted_at')->exists();
+                    if (! $live) {
+                        throw new \InvalidArgumentException(
+                            "The synthesized remainder of [{$repair->target_slug}] is no longer live — nothing to revert."
+                        );
+                    }
+                    $hasChildren = DB::table('jurisdictions')
+                        ->where('parent_id', $params['created_id'])->whereNull('deleted_at')->exists();
+                    if ($hasChildren) {
+                        throw new \InvalidArgumentException(
+                            'The synthesized remainder has since acquired children — reverting would strand them.'
+                        );
+                    }
+                    DB::table('jurisdictions')->where('id', $params['created_id'])->update([
+                        'deleted_at' => now(), 'updated_at' => now(),
+                    ]);
                     break;
 
                 default:

@@ -66,6 +66,50 @@ class RemainderSynthesisTest extends TestCase
         });
     }
 
+    public function test_manifest_replay_reproduces_renames_and_remainders(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // The reproducibility contract (operator ruling 2026-07-18): a
+            // fresh import + this manifest must land on the same names and
+            // the same synthesized remainders. Both actions replay through
+            // geodata:repairs-apply and SKIP when state already matches.
+            $manifest = [
+                'repairs' => [
+                    ['action' => 'rename', 'target_slug' => $ctx['gapland_slug'],
+                     'params' => ['new_name' => 'Gapland Proper']],
+                    ['action' => 'synthesize_remainder', 'target_slug' => $ctx['gapland_slug'],
+                     'params' => []],
+                ],
+            ];
+            $path = storage_path('app/pin-replay-manifest.json');
+            file_put_contents($path, json_encode($manifest));
+
+            try {
+                $exit = Artisan::call('geodata:repairs-apply', ['file' => $path]);
+                $this->assertSame(0, $exit, Artisan::output());
+
+                $this->assertSame('Gapland Proper', DB::table('jurisdictions')
+                    ->where('slug', $ctx['gapland_slug'])->value('name'), 'rename replays by slug');
+                $rem = DB::table('jurisdictions')
+                    ->where('parent_id', $ctx['gapland_id'])
+                    ->where('source', 'synthesized-remainder')->first();
+                $this->assertNotNull($rem, 'remainder re-derives from LOCAL data on replay');
+                $this->assertSame(9700000, (int) $rem->population);
+
+                // Second replay: everything SKIPs — nothing duplicated.
+                $exit = Artisan::call('geodata:repairs-apply', ['file' => $path]);
+                $out  = Artisan::output();
+                $this->assertSame(0, $exit);
+                $this->assertSame(2, substr_count($out, 'SKIP'), $out);
+                $this->assertSame(1, (int) DB::table('jurisdictions')
+                    ->where('parent_id', $ctx['gapland_id'])
+                    ->where('source', 'synthesized-remainder')->count());
+            } finally {
+                @unlink($path);
+            }
+        });
+    }
+
     public function test_refuses_while_map_data_is_accepted(): void
     {
         $this->onLivePg(function (array $ctx) {
