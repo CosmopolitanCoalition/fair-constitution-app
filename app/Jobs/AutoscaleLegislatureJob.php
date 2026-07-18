@@ -223,7 +223,10 @@ class AutoscaleLegislatureJob implements ShouldQueue
                     jurisdictionId: (string) $leg->jurisdiction_id,
                 );
 
-                $this->finishItem($item->id, 'done', $seated, $expected, null);
+                $this->finishItem($item->id, 'done', $seated, $expected,
+                    $assessment['notes'] !== []
+                        ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
+                        : null);
             } else {
                 // Map stays draft; the operator reviews from the dashboard.
                 $this->finishItem($item->id, 'review', $seated, $expected,
@@ -308,10 +311,11 @@ class AutoscaleLegislatureJob implements ShouldQueue
      *     floor only when floor_override is false (override rows are recorded
      *     Art. II §2 postures).
      *
-     * Sweep errors are appended as reasons (an errored scope is incomplete by
-     * construction, but the message tells the operator WHY).
+     * Sweep errors join the reasons only when the checks above already
+     * failed (they explain WHY); on a passing map they are informational
+     * notes — the checks are the oracle, the errors are diagnostics.
      *
-     * @return array{complete: bool, reasons: list<string>}
+     * @return array{complete: bool, reasons: list<string>, notes: list<string>}
      */
     private function assessCompleteness(object $leg, string $mapId, array $sweepResult): array
     {
@@ -420,11 +424,24 @@ class AutoscaleLegislatureJob implements ShouldQueue
             $reasons[] = 'sweep produced no districts';
         }
 
+        // Sweep errors are DIAGNOSTICS, not the oracle — checks 1–3 above ARE
+        // the law's completeness definition. A scope whose children are all
+        // giants makes the composite report "No compositable (non-giant)
+        // children found": a benign no-op (each giant child is its own
+        // scope), NOT incompleteness — Bangladesh landed 550/551 fully drawn
+        // with exactly that noise on the first live run. Any error that
+        // actually left territory uncovered surfaces through check 1/2, so
+        // errors only join the review reasons when the checks already failed;
+        // on a passing map they ride along as notes.
+        $notes = [];
         foreach (array_slice($sweepResult['errors'], 0, 8) as $err) {
-            $reasons[] = 'sweep: ' . mb_substr((string) $err, 0, 200);
+            $notes[] = 'sweep: ' . mb_substr((string) $err, 0, 200);
+        }
+        if ($reasons !== []) {
+            $reasons = array_merge($reasons, $notes);
         }
 
-        return ['complete' => $reasons === [], 'reasons' => $reasons];
+        return ['complete' => $reasons === [], 'reasons' => $reasons, 'notes' => $notes];
     }
 
     private function finishItem(string $itemId, string $status, ?int $seated, ?int $expected, ?string $reason): void
