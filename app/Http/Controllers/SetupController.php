@@ -2111,8 +2111,10 @@ class SetupController extends Controller
                 // signal it steers by.
                 'width'              => \App\Support\AutoscaleGovernor::width(),
                 'width_ceiling'      => \App\Support\HostCapacity::workerCeiling(),
-                'load_per_core'      => \App\Support\AutoscaleGovernor::loadPerCore() !== null
-                    ? round(\App\Support\AutoscaleGovernor::loadPerCore(), 2)
+                // Read-only view of the governor's last CPU sample — the web
+                // request must NOT advance the delta window the tick steers by.
+                'cpu_busy'           => is_array(Cache::get('autoscale.cpu_last_reading'))
+                    ? Cache::get('autoscale.cpu_last_reading')['busy'] ?? null
                     : null,
             ],
             'live_items'   => $liveItems,

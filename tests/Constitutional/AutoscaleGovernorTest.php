@@ -32,13 +32,13 @@ class AutoscaleGovernorTest extends TestCase
 
     public function test_holds_in_the_comfort_band(): void
     {
-        $this->assertSame(8, AutoscaleGovernor::decide(8, 12, 0.95, true, 0, false),
-            'between 0.80 and 1.15 load per core the width is at the knee — hold');
+        $this->assertSame(8, AutoscaleGovernor::decide(8, 12, 0.85, true, 0, false),
+            'between 0.70 and 0.92 CPU-busy the width is at the knee — hold');
     }
 
-    public function test_eases_off_when_the_host_saturates(): void
+    public function test_eases_off_when_the_cores_saturate(): void
     {
-        $this->assertSame(7, AutoscaleGovernor::decide(8, 12, 1.30, true, 0, false));
+        $this->assertSame(7, AutoscaleGovernor::decide(8, 12, 0.97, true, 0, false));
     }
 
     public function test_steps_down_firmly_on_recent_failures(): void
@@ -55,13 +55,13 @@ class AutoscaleGovernorTest extends TestCase
 
     public function test_never_drops_below_two(): void
     {
-        $this->assertSame(2, AutoscaleGovernor::decide(2, 12, 2.00, true, 5, true));
+        $this->assertSame(2, AutoscaleGovernor::decide(2, 12, 0.99, true, 5, true));
         $this->assertSame(2, AutoscaleGovernor::decide(3, 12, 0.50, true, 9, false));
     }
 
-    public function test_unknown_load_probes_gently_instead_of_freezing(): void
+    public function test_unknown_cpu_signal_probes_gently_instead_of_freezing(): void
     {
         $this->assertSame(6, AutoscaleGovernor::decide(5, 12, null, true, 0, false),
-            'a host without /proc/loadavg still walks up — failures and crashes remain the brakes');
+            'a host without /proc/stat still walks up — failures and crashes remain the brakes');
     }
 }

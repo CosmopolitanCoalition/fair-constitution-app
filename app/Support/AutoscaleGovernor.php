@@ -13,10 +13,17 @@ use Illuminate\Support\Facades\Log;
  *
  *   - Postgres restarted since last tick (the crash signal)  → HALVE
  *   - sweep jobs failed in the last window                    → width − 2
- *   - 1-min load per core > 1.15 (host saturated)             → width − 1
- *   - load per core < 0.80 and sweeps are waiting             → width + 1
+ *   - CPU busy-fraction > 0.92 (cores actually saturated)     → width − 1
+ *   - CPU busy-fraction < 0.70 and sweeps are waiting         → width + 1
  *
- * bounded by [2, HostCapacity::workerCeiling()] — the ceiling is cores, i.e.
+ * The signal is REAL CPU busy time from /proc/stat deltas — never load
+ * average, which on this stack counts Postgres' IO-wait sleepers as
+ * pressure (measured live: load 9.4 with 2.3 cores busy) and would
+ * chronically under-drive an IO-latency-hiding workload. IO-wait reads as
+ * headroom here, which is correct: more concurrent sweeps are exactly how
+ * that latency is hidden.
+ *
+ * Bounded by [2, HostCapacity::workerCeiling()] — the ceiling is cores, i.e.
  * physics, not policy. CGA_AUTOSCALE_WORKERS pins the width and disables the
  * governor entirely (the operator's manual dial).
  *
@@ -47,10 +54,18 @@ class AutoscaleGovernor
             $current = HostCapacity::autoscaleWorkers(); // the seed guess
         }
 
+        $cpuBusy = self::cpuBusyFraction();
+        // Published for the dashboard (a read-only copy — the web endpoint
+        // must never advance the delta window this tick steers by).
+        Cache::put('autoscale.cpu_last_reading', [
+            'busy' => $cpuBusy !== null ? round($cpuBusy, 2) : null,
+            'at'   => now()->toIso8601String(),
+        ], 3600);
+
         $decided = self::decide(
             current: $current,
             ceiling: HostCapacity::workerCeiling(),
-            loadPerCore: self::loadPerCore(),
+            cpuBusy: $cpuBusy,
             pendingExists: DB::table('autoscale_items')
                 ->where('run_id', $runId)->where('kind', 'sweep')
                 ->whereIn('status', ['pending', 'queued'])->exists(),
@@ -62,7 +77,7 @@ class AutoscaleGovernor
 
         if ($decided !== $current) {
             Log::info('Autoscale governor width change', [
-                'from' => $current, 'to' => $decided, 'load_per_core' => self::loadPerCore(),
+                'from' => $current, 'to' => $decided, 'cpu_busy' => $cpuBusy,
             ]);
         }
         Cache::put(self::WIDTH_CACHE_KEY, $decided, 86400);
@@ -77,7 +92,7 @@ class AutoscaleGovernor
     public static function decide(
         int $current,
         int $ceiling,
-        ?float $loadPerCore,
+        ?float $cpuBusy,
         bool $pendingExists,
         int $recentFailures,
         bool $pgRestarted,
@@ -88,9 +103,9 @@ class AutoscaleGovernor
             $width = intdiv($width, 2);                       // crash → halve
         } elseif ($recentFailures > 0) {
             $width -= 2;                                      // failures → firm step down
-        } elseif ($loadPerCore !== null && $loadPerCore > 1.15) {
-            $width -= 1;                                      // saturated → ease off
-        } elseif (($loadPerCore === null || $loadPerCore < 0.80) && $pendingExists) {
+        } elseif ($cpuBusy !== null && $cpuBusy > 0.92) {
+            $width -= 1;                                      // cores saturated → ease off
+        } elseif (($cpuBusy === null || $cpuBusy < 0.70) && $pendingExists) {
             $width += 1;                                      // headroom + work waiting → probe up
         }
 
@@ -110,15 +125,36 @@ class AutoscaleGovernor
         return $w >= 2 ? $w : HostCapacity::autoscaleWorkers();
     }
 
-    /** 1-minute load average per core (containers share the host kernel). */
-    public static function loadPerCore(): ?float
+    /**
+     * System-wide CPU busy fraction since the LAST call (a /proc/stat
+     * delta persisted in cache). IO-wait counts as idle — deliberately:
+     * an IO-waiting core can absorb another worker. Null on the first
+     * sample or where /proc/stat is unavailable.
+     */
+    public static function cpuBusyFraction(): ?float
     {
-        if (! is_readable('/proc/loadavg')) {
+        if (! is_readable('/proc/stat')) {
             return null;
         }
-        $load = (float) strtok((string) file_get_contents('/proc/loadavg'), ' ');
+        $line = strtok((string) file_get_contents('/proc/stat'), "\n");
+        if (! is_string($line) || ! str_starts_with($line, 'cpu ')) {
+            return null;
+        }
+        $f = array_map('floatval', preg_split('/\s+/', trim(substr($line, 4))));
+        // user nice system idle iowait irq softirq steal
+        $idle  = ($f[3] ?? 0) + ($f[4] ?? 0);
+        $total = array_sum(array_slice($f, 0, 8));
 
-        return $load / max(1, HostCapacity::cpuCores());
+        $prev = Cache::get('autoscale.cpu_sample');
+        Cache::put('autoscale.cpu_sample', ['idle' => $idle, 'total' => $total], 3600);
+
+        if (! is_array($prev) || $total <= ($prev['total'] ?? 0)) {
+            return null;
+        }
+        $dTotal = $total - $prev['total'];
+        $dIdle  = $idle - $prev['idle'];
+
+        return $dTotal > 0 ? max(0.0, min(1.0, 1.0 - $dIdle / $dTotal)) : null;
     }
 
     /** Crash signal: pg_postmaster_start_time moved since the last tick. */
