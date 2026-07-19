@@ -439,6 +439,55 @@ async function sendControl(action) {
 // Step 2 keeps its ETL controls and the Continue → apportionment button,
 // nothing more.
 
+// Inline map acceptance (operator request 2026-07-19): accept directly from
+// Step 2 — the Jurisdiction Viewer detour is for reviewing/repairing flags,
+// not a mandatory hallway. Same endpoint + acknowledgment contract as the
+// viewer's button; open flags surface in a confirm() before acceptance.
+const accepting = ref(false)
+
+async function acceptHere() {
+    if (accepting.value) return
+    accepting.value = true
+    advanceError.value = ''
+    try {
+        let res = await csrfFetch('/api/jurisdictions/accept-maps', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+        })
+        let data = await res.json().catch(() => ({}))
+
+        if (res.status === 422 && data.requires_acknowledgment) {
+            const f = data.open_flags || {}
+            const ok = confirm(
+                `Open data flags remain: ${f.critical ?? 0} critical, ${f.warning ?? 0} warning, ${f.info ?? 0} info.\n\n` +
+                'Accepting closes the repair window with these flags outstanding. Accept anyway?'
+            )
+            if (!ok) return
+            res = await csrfFetch('/api/jurisdictions/accept-maps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ acknowledge_open_flags: true }),
+            })
+            data = await res.json().catch(() => ({}))
+        }
+
+        if (!res.ok || !data.ok) {
+            advanceError.value = data.error || `accept failed (HTTP ${res.status})`
+            return
+        }
+
+        acceptanceRequired.value = false
+        // Acceptance started the full-scale build — advance the wizard and
+        // land on the Step-3 dashboard.
+        await advance()
+    } catch (e) {
+        advanceError.value = String(e?.message || e)
+    } finally {
+        accepting.value = false
+    }
+}
+
 async function advance() {
     advancing.value = true
     apportioning.value = true
@@ -1037,10 +1086,19 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <a href="/jurisdictions"
-                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
-                    Open Jurisdiction Viewer →
-                </a>
+                <div class="flex items-center gap-3">
+                    <button
+                        type="button"
+                        @click="acceptHere"
+                        :disabled="accepting"
+                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white text-sm font-semibold transition-colors">
+                        {{ accepting ? 'Accepting…' : 'Accept Map Data & Continue →' }}
+                    </button>
+                    <a href="/jurisdictions"
+                       class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
+                        Review in Jurisdiction Viewer →
+                    </a>
+                </div>
             </section>
 
             <div class="flex justify-between pt-4 border-t border-gray-800 mt-4">
@@ -1065,9 +1123,13 @@ onBeforeUnmount(() => {
                     <div v-if="acceptanceRequired"
                          class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 max-w-sm text-right">
                         <p>{{ advanceError }}</p>
+                        <button type="button" @click="acceptHere" :disabled="accepting"
+                                class="inline-block mt-1.5 px-2 py-1 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white font-semibold">
+                            {{ accepting ? 'Accepting…' : 'Accept Map Data & Continue →' }}
+                        </button>
                         <a href="/jurisdictions"
-                           class="inline-block mt-1.5 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
-                            Open Jurisdiction Viewer →
+                           class="inline-block mt-1.5 ml-2 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
+                            Review first →
                         </a>
                     </div>
                     <span v-else-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">
