@@ -114,6 +114,12 @@ services:
     # shutdown even with the heaviest write workload. Docker only waits
     # up to this long; clean shutdowns of an idle DB still take <1 s.
     stop_grace_period: 120s
+    # Cycle-2 (2026-07-19): Docker's default /dev/shm is 64 MB — one
+    # parallel hash join over the planet-scale tables requests dynamic
+    # shared-memory segments beyond it and dies with "could not resize
+    # shared memory segment … No space left on device". 1 GB comfortably
+    # covers work_mem × parallel workers inside the 5 GB container cap.
+    shm_size: 1gb
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432" # set POSTGRES_HOST_PORT in .env to avoid clashing with another stack on 5432
     # Phase L (memory-tuned): pair with the etl container's 2 GB cap so the

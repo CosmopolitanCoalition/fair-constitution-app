@@ -37,6 +37,11 @@ class AutoscaleResizeRepairCommand extends Command
     {
         $floor = ConstitutionalDefaults::floor();
 
+        // Planet-wide joins here would recruit parallel workers whose DSM
+        // segments blow through Docker's default 64 MB /dev/shm. Serial is
+        // fine for set-based UPDATEs — session-scoped, reset on exit.
+        DB::statement('SET max_parallel_workers_per_gather = 0');
+
         if ($this->option('dry-run')) {
             return $this->dryRun($floor);
         }

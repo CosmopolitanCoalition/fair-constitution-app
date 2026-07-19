@@ -29,6 +29,13 @@ final class AutoscaleEnumeration
      */
     public static function deriveOrderingKeys(string $runId, int $ceiling): void
     {
+        // Planet-wide joins (the height loop, the position ROW_NUMBER) must
+        // not recruit parallel workers: their DSM segments exceed Docker's
+        // default 64 MB /dev/shm. Serial is fine for these set-based
+        // passes; reset before returning so the session's later work (the
+        // sweeps) keeps its normal planner freedom.
+        DB::statement('SET max_parallel_workers_per_gather = 0');
+
         // est_districts from the CURRENT lawful size.
         DB::statement('
             UPDATE autoscale_items ai
@@ -97,5 +104,7 @@ final class AutoscaleEnumeration
               FROM ranked r
              WHERE ai.id = r.id
         ', [$runId]);
+
+        DB::statement('RESET max_parallel_workers_per_gather');
     }
 }
