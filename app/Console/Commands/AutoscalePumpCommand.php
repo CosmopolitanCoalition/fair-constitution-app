@@ -167,6 +167,23 @@ class AutoscalePumpCommand extends Command
             ]);
         }
 
+        // Precompute-worklist repair: a run whose SIZING predates the pull
+        // engine (or any path that reaches mapping unseeded) has an empty
+        // jurisdiction_adjacency_parents — the upfront gate would sit open
+        // and every sweep would pay live Step-7 geometry. Seed it exactly
+        // once per run (precompute_started_at is the latch; revert keeps
+        // it). This one duty can take minutes on a planet-scale table —
+        // withoutOverlapping covers the slow pump minute.
+        if (AutoscaleClaims::precomputeEnabled() && $run->precompute_started_at === null) {
+            $pending = app(\App\Services\Autoscale\AdjacencyPrecompute::class)->seedWorklist();
+            AutoscaleRun::query()->whereKey($run->id)
+                ->update(['precompute_started_at' => now(), 'updated_at' => now()]);
+            $run->refresh();
+            Log::info('Autoscale pump seeded the adjacency precompute worklist', [
+                'run_id' => $run->id, 'pending_parents' => $pending,
+            ]);
+        }
+
         // Enumeration-crash repair: a pending sweep item must always have its
         // root scope row (idempotent through the unique key).
         DB::statement("
