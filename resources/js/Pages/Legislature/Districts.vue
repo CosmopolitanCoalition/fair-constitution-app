@@ -1974,13 +1974,21 @@ watch(wizardAutoStep, v => {
 const brokenGiantIds  = ref(new Set())
 
 // ── Phase H — manual district drawing for a childless leaf giant ────────────
-// The current scope is a childless leaf giant when it is NOT the legislature
-// root (the giant-guard only lets giants reach a non-root scope) and it has no
-// child jurisdictions to compose from — the one case the autoseed cannot touch.
+// The current scope is a line-split scope when it has no child jurisdictions
+// to compose from AND it needs more seats than one district can hold:
+//  - a non-root childless scope (the classic leaf giant — the giant-guard
+//    only lets giants reach a non-root scope), or
+//  - the ROOT itself when this is a childless legislature whose lawful size
+//    exceeds the ceiling (cycle-2 leaf law, 2026-07-19: an over-ceiling leaf
+//    legislature line-splits its own districts — mirrors
+//    LeafGiantResolver::context()'s root-leaf branch).
 const isLeafGiantScope = computed(() =>
     !!props.scope?.id
-    && props.scope.id !== props.legislature?.root_jurisdiction_id
     && (props.children?.length ?? 0) === 0
+    && (
+        props.scope.id !== props.legislature?.root_jurisdiction_id
+        || (props.legislature?.type_a_seats ?? 0) > SEAT_CEILING
+    )
 )
 // Drawing writes into a DRAFT plan — or the ACTIVE founding (v1) map while
 // the jurisdiction is in the SETUP context (server-computed map_drawable

@@ -98,37 +98,45 @@ class ActivationService
     }
 
     /**
-     * Bicameral trigger (Art. V §3): one type-B seat per constituent
-     * jurisdiction whenever constituents exist; none otherwise.
-     */
-    public static function typeBSeats(int $directChildren): int
-    {
-        return max(0, $directChildren);
-    }
-
-    /**
-     * Full chamber plan:
+     * Full chamber plan (cycle-2 Type B ladder, operator ruling 2026-07-19):
      *  - constituents present → bicameral: type_a from Σ children
-     *    population (cube root), type_b = child count;
-     *  - leaf → unicameral: type_a from OWN population (cube root), no
-     *    type_b.
+     *    population (cube root); type_b from TypeBSeatLadder — equal
+     *    representation of the constituents, bound by type_a (each
+     *    constituent contributes rep_floor seats, tiny pop ≤ 5 contributes
+     *    min(pop, rep_floor); the ladder descends 5 → 2, then flags for
+     *    the deferred Type B districting);
+     *  - leaf → unicameral: type_a from OWN population under the SAME law
+     *    (floor clamp only — an over-ceiling leaf line-splits, never
+     *    truncates), no type_b.
      *
-     * @return array{type_a:int, type_b:int, bicameral:bool}
+     * @param list<int> $childPopulations direct live constituents' populations
+     * @return array{type_a:int, type_b:int, bicameral:bool, type_b_rep_floor:?int, type_b_needs_districting:bool}
      */
-    public static function seatPlan(float $ownPopulation, float $childrenPopulation, int $directChildren): array
-    {
-        if ($directChildren > 0) {
+    public static function seatPlan(
+        float $ownPopulation,
+        float $childrenPopulation,
+        array $childPopulations,
+        int $startingRep = 5,
+    ): array {
+        if ($childPopulations !== []) {
+            $typeA  = self::cubeRootSeats($childrenPopulation);
+            $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion($typeA, $childPopulations, $startingRep);
+
             return [
-                'type_a'    => self::cubeRootSeats($childrenPopulation),
-                'type_b'    => self::typeBSeats($directChildren),
-                'bicameral' => true,
+                'type_a'                   => $typeA,
+                'type_b'                   => $ladder['seats'],
+                'bicameral'                => true,
+                'type_b_rep_floor'         => $ladder['rep_floor'],
+                'type_b_needs_districting' => $ladder['needs_districting'],
             ];
         }
 
         return [
-            'type_a'    => self::cubeRootSeats($ownPopulation),
-            'type_b'    => 0,
-            'bicameral' => false,
+            'type_a'                   => self::cubeRootSeats($ownPopulation),
+            'type_b'                   => 0,
+            'bicameral'                => false,
+            'type_b_rep_floor'         => null,
+            'type_b_needs_districting' => false,
         ];
     }
 
@@ -396,12 +404,11 @@ class ActivationService
 
     /**
      * Parent path: reuse `apportionment:seed --jurisdiction=<id>` for the
-     * level-local cube-root type_a sizing (the proven path — respects
-     * per-jurisdiction sizing-law settings), then apply the bicameral rule:
-     * type_b_seats = count(direct children), one per constituent
-     * (Art. V §3) — overriding the command's settings-driven
-     * type_b_seats_per_child product. No --stamp-instance: activation runs
-     * must never rewrite setup-wizard state.
+     * level-local cube-root type_a sizing AND the Type B ladder (cycle-2:
+     * the command itself now mints the ladder chamber — TypeBSeatLadder is
+     * the ONE formula both mass paths share, so no override is needed
+     * here anymore). No --stamp-instance: activation runs must never
+     * rewrite setup-wizard state.
      */
     private function instantiateBicameral(Jurisdiction $jurisdiction, int $childCount): object
     {
@@ -426,40 +433,21 @@ class ActivationService
             );
         }
 
-        $typeA = (int) $legislature->type_a_seats;
-        $typeB = self::typeBSeats($childCount);
-        $total = $typeA + $typeB;
-
-        DB::table('legislatures')
-            ->where('id', $legislature->id)
-            ->update([
-                'type_b_seats'    => $typeB,
-                'total_seats'     => $total,
-                'quorum_required' => self::quorumRequired($total),
-                'updated_at'      => now(),
-            ]);
-
-        $legislature->type_b_seats = $typeB;
-        $legislature->total_seats  = $total;
-
         return $legislature;
     }
 
     /**
-     * Leaf path: unicameral, type_a = max(5, round(∛own population)),
-     * CLAMPED to the resolved ceiling (WI-B7 / design §B.4 Montegiardino
-     * ruling): a leaf has no constituents to district over, so a chamber
-     * above the ceiling would be an unconstitutional > 9-seat voter pool
-     * (Art. II §2/§8). The clamp resolves toward the constitution — the
-     * cube-root law is amendable-layer, the 9 max is hardened. Lifted
-     * later by the shortest-split-line drawing tool (backlog #1).
+     * Leaf path: unicameral, type_a = max(floor, round(∛own population)) —
+     * the SAME law as parents (cycle-2 ruling 2026-07-19: the old ceiling
+     * clamp truncated; an over-ceiling leaf legislature now line-splits its
+     * own districts via the LeafGiantResolver root-leaf context — the
+     * shortest-split-line capability the WI-B7 clamp was waiting for).
      */
     private function instantiateLeaf(Jurisdiction $jurisdiction): object
     {
-        $plan    = self::seatPlan((float) ($jurisdiction->population ?? 0), 0.0, 0);
-        $ceiling = ConstitutionalDefaults::ceiling($jurisdiction->id);
-        $typeA   = min($plan['type_a'], $ceiling);
-        $total   = $typeA + $plan['type_b'];
+        $plan  = self::seatPlan((float) ($jurisdiction->population ?? 0), 0.0, []);
+        $typeA = $plan['type_a'];
+        $total = $typeA + $plan['type_b'];
 
         $id = (string) Str::uuid();
 
@@ -475,10 +463,6 @@ class ActivationService
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);
-
-        if ($typeA < $plan['type_a']) {
-            $this->auditLeafClamp($jurisdiction->id, $id, $plan['type_a'], $typeA, $ceiling);
-        }
 
         return (object) [
             'id'           => $id,
@@ -631,22 +615,26 @@ class ActivationService
             return $this->legislatureRow($jurisdiction->id) ?? $legislature;
         }
 
-        // THE CLAMP — undistrictable leaf above the ceiling (Art. II §2/§8).
-        $typeB = (int) $legislature->type_b_seats;
-        $total = $ceiling + $typeB;
+        // Cycle-2 leaf law (2026-07-19): the ceiling clamp is RETIRED. A
+        // childless chamber above the ceiling keeps its lawful size — its
+        // districts come from LINE-SPLIT drawing (LeafGiantResolver's
+        // root-leaf context: the autoseeder or the mapper's draw surface).
+        // Recorded as a posture note, never a truncation.
+        $this->audit->append(
+            module: 'elections',
+            event: 'legislature_awaiting_line_split',
+            payload: [
+                'legislature_id'   => (string) $legislature->id,
+                'type_a_seats'     => $typeA,
+                'ceiling'          => $ceiling,
+                'districts_needed' => (int) ceil($typeA / max($ceiling, 1)),
+                'note'             => 'over-ceiling leaf chamber — districts by line split (cycle-2 leaf law, 2026-07-19)',
+            ],
+            ref: 'WF-ELE-02',
+            jurisdictionId: $jurisdiction->id,
+        );
 
-        DB::table('legislatures')
-            ->where('id', $legislature->id)
-            ->update([
-                'type_a_seats'    => $ceiling,
-                'total_seats'     => $total,
-                'quorum_required' => self::quorumRequired($total),
-                'updated_at'      => now(),
-            ]);
-
-        $this->auditLeafClamp($jurisdiction->id, (string) $legislature->id, $typeA, $ceiling, $ceiling);
-
-        return $this->legislatureRow($jurisdiction->id) ?? $legislature;
+        return $legislature;
     }
 
     /**
@@ -724,26 +712,6 @@ class ActivationService
             ->where('legislature_id', $legislature->id)
             ->whereNull('deleted_at')
             ->exists();
-    }
-
-    private function auditLeafClamp(string $jurisdictionId, string $legislatureId, int $from, int $to, int $ceiling): void
-    {
-        $this->audit->append(
-            module: 'jurisdictions',
-            event: 'legislature_seats_clamped',
-            payload: [
-                'legislature_id' => $legislatureId,
-                'from_type_a'    => $from,
-                'to_type_a'      => $to,
-                'ceiling'        => $ceiling,
-                'citation'       => 'Art. II §2; Art. II §8',
-                'note'           => 'clamped_pending_subdivision_capability — undistrictable leaf above the '
-                    . 'per-voter-pool maximum; the shortest-split-line drawing tool (backlog #1) restores '
-                    . 'cube-root sizing with intra-jurisdiction districts later.',
-            ],
-            ref: 'WF-JUR-01',
-            jurisdictionId: $jurisdictionId,
-        );
     }
 
     private function noteBootstrapElection(JurisdictionActivation $activation, string $electionId): void

@@ -61,6 +61,24 @@ class AutoscaleRevertCommand extends Command
 
         $keepSingles = (bool) $this->option('keep-singles');
 
+        // Cycle-2 leaf law: an over-ceiling leaf's at-large map is WRONG
+        // (a truncated 9-seat council for a line-split-sized legislature) —
+        // keeping singles would strand them behind the adopt guard.
+        if ($keepSingles) {
+            $ceiling = \App\Services\ConstitutionalDefaults::ceiling();
+            $overCeilingSingles = (int) DB::table('autoscale_items as ai')
+                ->join('legislatures as l', 'l.id', '=', 'ai.legislature_id')
+                ->where('ai.run_id', $run->id)
+                ->where('ai.kind', 'single')
+                ->where('l.type_a_seats', '>', $ceiling)
+                ->count();
+            if ($overCeilingSingles > 0) {
+                $this->error("--keep-singles refused: {$overCeilingSingles} single items are over-ceiling under the leaf law and must re-enumerate as line-split sweeps. Run a full revert.");
+
+                return self::FAILURE;
+            }
+        }
+
         // Provenance selectors — the two autoscale map descriptions are
         // distinct on purpose ('single at-large district' vs 'mixed autoseed
         // sweep'); operator/adopted maps carry neither.
@@ -131,9 +149,7 @@ class AutoscaleRevertCommand extends Command
                 ]);
         }
 
-        // Re-derive the bottom-up ordering keys (also upgrades items
-        // enumerated under the retired giants-first engine): child_count from
-        // live children, then position = adm DESC, child_count ASC, pop ASC.
+        // Re-derive the ordering foundation: child_count from live children.
         DB::statement('
             UPDATE autoscale_items ai
                SET child_count = cc.n
@@ -147,22 +163,28 @@ class AutoscaleRevertCommand extends Command
               ) cc
              WHERE ai.id = cc.id
         ', [$run->id]);
-        DB::statement('
-            WITH ranked AS (
-                SELECT ai.id,
-                       ROW_NUMBER() OVER (
-                           ORDER BY ai.adm_level DESC, ai.child_count ASC,
-                                    j.population ASC NULLS FIRST, ai.id
-                       ) AS rn
-                  FROM autoscale_items ai
-                  JOIN jurisdictions j ON j.id = ai.jurisdiction_id
-                 WHERE ai.run_id = ?
-            )
+
+        // Cycle-2 kind flip (leaf law): sweep = has children OR over-ceiling
+        // (a leaf legislature line-splitting itself); single = in-band
+        // childless leaf. seats_expected refreshes from the (possibly
+        // resize-repaired) lawful size. Runs BEFORE the enumeration tail so
+        // the founding-map mint + root scopes cover flipped items.
+        $ceiling = \App\Services\ConstitutionalDefaults::ceiling();
+        DB::statement("
             UPDATE autoscale_items ai
-               SET position = r.rn
-              FROM ranked r
-             WHERE ai.id = r.id
-        ', [$run->id]);
+               SET kind = CASE WHEN ai.child_count > 0 OR l.type_a_seats > ? THEN 'sweep' ELSE 'single' END,
+                   seats_expected = l.type_a_seats,
+                   updated_at = now()
+              FROM legislatures l
+             WHERE l.id = ai.legislature_id
+               AND ai.run_id = ?
+               AND ai.status = 'pending'
+        ", [$ceiling, $run->id]);
+
+        // The operator's simplest-first ordering (est_districts, cascade
+        // height, position) — shared with the sizing job so re-derivation
+        // can never drift from enumeration.
+        \App\Support\AutoscaleEnumeration::deriveOrderingKeys((string) $run->id, $ceiling);
 
         // Re-run the enumeration tail set-based: adopt pre-pass, founding-map
         // mint + stamp, root scopes (same statements as AutoscaleSizingJob B2–B4).
@@ -225,10 +247,13 @@ class AutoscaleRevertCommand extends Command
                 ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq DO NOTHING
         ", [$run->id, $run->id]);
 
-        // Fresh counters; run parks halted unless --resume.
+        // Fresh counters (kind flips change the TOTALS too); run parks
+        // halted unless --resume.
         $counts = DB::table('autoscale_items')
             ->where('run_id', $run->id)
             ->selectRaw("
+                COUNT(*) FILTER (WHERE kind = 'single')                     AS singles_total,
+                COUNT(*) FILTER (WHERE kind = 'sweep')                      AS sweeps_total,
                 COUNT(*) FILTER (WHERE kind = 'single' AND status = 'done') AS singles_done,
                 COUNT(*) FILTER (WHERE kind = 'sweep'  AND status = 'done') AS sweeps_done,
                 COUNT(*) FILTER (WHERE status = 'review')                   AS review_count
@@ -239,6 +264,8 @@ class AutoscaleRevertCommand extends Command
             'status'            => $resume ? 'mapping' : 'halted',
             'halt_requested_at' => $resume ? null : ($run->halt_requested_at ?? now()),
             'finished_at'       => null,
+            'singles_total'     => (int) $counts->singles_total,
+            'sweeps_total'      => (int) $counts->sweeps_total,
             'singles_done'      => (int) $counts->singles_done,
             'sweeps_done'       => (int) $counts->sweeps_done,
             'review_count'      => (int) $counts->review_count,

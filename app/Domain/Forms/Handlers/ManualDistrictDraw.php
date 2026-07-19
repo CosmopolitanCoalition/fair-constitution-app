@@ -248,8 +248,14 @@ class ManualDistrictDraw implements FormHandler
             );
         }
 
-        // Aggregate population inside the drawn piece, and its seat entitlement.
-        $pop = $this->raster->populationWithinMulti($geoJson, $year);
+        // Aggregate population inside the drawn piece, and its seat
+        // entitlement. Cycle-2: measured with the SAME zero-coverage
+        // fallback the planners use (population × area-share, provenance
+        // 'area_proportional') — otherwise this band gate would refuse
+        // every piece an area-planned cut lawfully produced.
+        $measure = $this->raster->measureWithFallback($scopeId, $geoJson, $year);
+        $pop = $measure['pop'];
+        $popSource = $measure['source'];
         $fractional = $this->raster->impliedSeats($pop, $quota);
         $seats = (int) round($fractional);
 
@@ -341,8 +347,8 @@ class ManualDistrictDraw implements FormHandler
                 (?, ?, ?, 'manual', ?,
                  ST_Multi(ST_MakeValid(ST_GeomFromGeoJSON(?))),
                  ST_Centroid(ST_MakeValid(ST_GeomFromGeoJSON(?))),
-                 ?, 'worldpop_raster', ?, ?, ?, 'draft', now(), now())",
-            [$subdivisionId, $mapId, $scopeId, $label, $geoJson, $geoJson, $pop, $year, $fractional, $seats]
+                 ?, ?, ?, ?, ?, 'draft', now(), now())",
+            [$subdivisionId, $mapId, $scopeId, $label, $geoJson, $geoJson, $pop, $popSource, $year, $fractional, $seats]
         );
 
         $districtId = (string) Str::uuid();

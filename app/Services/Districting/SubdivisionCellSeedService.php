@@ -48,7 +48,7 @@ class SubdivisionCellSeedService
      */
     public function plan(string $scopeId, array $ctx, int $year = 2023): array
     {
-        $pixels = $this->raster->pixelGrid($scopeId, $year);
+        $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
             throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
         }

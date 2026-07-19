@@ -13,9 +13,9 @@ use Tests\TestCase;
  * Deliberately DB-free (established posture: the phpunit sqlite :memory:
  * connection has no schema and RefreshDatabase is forbidden on the live
  * dev DB). ActivationService's sizing math lives in pure statics
- * (cubeRootSeats / typeBSeats / seatPlan / quorumRequired) precisely so
- * this suite can pin it; the DB-touching pipeline is exercised by the
- * live-stack jurisdiction:activate verification.
+ * (cubeRootSeats / seatPlan / quorumRequired — Type B via TypeBSeatLadder)
+ * precisely so this suite can pin it; the DB-touching pipeline is
+ * exercised by the live-stack jurisdiction:activate verification.
  *
  * If an edit to ActivationService breaks these tests, that edit is a
  * constitutional violation — fix the edit, never the test.
@@ -58,41 +58,41 @@ class ActivationMathTest extends TestCase
         $this->assertSame(6, ActivationService::cubeRootSeats(250)); // ∛250 ≈ 6.30 → 6
     }
 
-    // ─── Bicameral trigger (Art. V §3) ───────────────────────────────────
-
-    public function test_type_b_is_one_seat_per_constituent(): void
-    {
-        $this->assertSame(9, ActivationService::typeBSeats(9));   // San Marino's castelli
-        $this->assertSame(1, ActivationService::typeBSeats(1));
-        $this->assertSame(0, ActivationService::typeBSeats(0));   // no constituents → no type B
-        $this->assertSame(0, ActivationService::typeBSeats(-1));  // defensive: impossible input stays 0
-    }
+    // ─── Bicameral trigger (Art. V §3) + the Type B ladder (2026-07-19) ──
 
     public function test_seat_plan_with_constituents_is_bicameral_over_children_population(): void
     {
-        // type_a from Σ children population, NOT own population.
-        $plan = ActivationService::seatPlan(33_312.0, 33_313.0, 9);
+        // type_a from Σ children population, NOT own population. Type B from
+        // the LADDER: San Marino's 9 castelli @5 = 45 > 32, @4 = 36 > 32,
+        // @3 = 27 ≤ 32 → rep 3, Type B 27 — equal representation, bound by
+        // the lawful legislature size (Type A).
+        $castelli = [4_000, 3_500, 3_500, 4_500, 3_800, 3_600, 3_400, 3_500, 3_513];
+        $plan = ActivationService::seatPlan(33_312.0, 33_313.0, $castelli);
 
         $this->assertTrue($plan['bicameral']);
         $this->assertSame(32, $plan['type_a']); // ∛33313 ≈ 32.17 → 32
-        $this->assertSame(9, $plan['type_b']);  // one per constituent
+        $this->assertSame(27, $plan['type_b']); // the ladder settles at 3 per castello
+        $this->assertSame(3, $plan['type_b_rep_floor']);
+        $this->assertFalse($plan['type_b_needs_districting']);
     }
 
     public function test_seat_plan_leaf_falls_back_to_own_population_unicameral(): void
     {
-        $plan = ActivationService::seatPlan(1_002.0, 0.0, 0);
+        $plan = ActivationService::seatPlan(1_002.0, 0.0, []);
 
         $this->assertFalse($plan['bicameral']);
-        $this->assertSame(10, $plan['type_a']); // ∛1002 ≈ 10.01 → 10
+        $this->assertSame(10, $plan['type_a']); // ∛1002 ≈ 10.01 → 10 — UNCLAMPED
         $this->assertSame(0, $plan['type_b']);  // unicameral — no constituents
     }
 
     public function test_seat_plan_leaf_floor(): void
     {
         // Tiny leaf still seats a 5-member chamber (Art. II §2 floor).
-        $plan = ActivationService::seatPlan(12.0, 0.0, 0);
+        $plan = ActivationService::seatPlan(12.0, 0.0, []);
 
-        $this->assertSame(['type_a' => 5, 'type_b' => 0, 'bicameral' => false], $plan);
+        $this->assertSame(5, $plan['type_a']);
+        $this->assertSame(0, $plan['type_b']);
+        $this->assertFalse($plan['bicameral']);
     }
 
     public function test_seat_plan_never_mixes_chambers(): void
@@ -100,10 +100,11 @@ class ActivationMathTest extends TestCase
         // Constituents present ⇒ type_b > 0 (both kinds required, Art. V §3);
         // absent ⇒ type_b == 0. There is no third configuration.
         foreach ([0, 1, 2, 9, 50, 250] as $children) {
-            $plan = ActivationService::seatPlan(1_000_000.0, 1_000_000.0, $children);
+            $pops = array_fill(0, $children, 20_000);
+            $plan = ActivationService::seatPlan(1_000_000.0, 1_000_000.0, $pops);
 
             $this->assertSame($children > 0, $plan['bicameral']);
-            $this->assertSame($children > 0 ? $children : 0, $plan['type_b']);
+            $this->assertSame($children > 0, $plan['type_b'] > 0);
             $this->assertGreaterThanOrEqual(5, $plan['type_a']);
         }
     }
@@ -117,7 +118,7 @@ class ActivationMathTest extends TestCase
         $this->assertSame(3, ActivationService::quorumRequired(6));
         $this->assertSame(4, ActivationService::quorumRequired(7));
         $this->assertSame(5, ActivationService::quorumRequired(9));
-        $this->assertSame(21, ActivationService::quorumRequired(41)); // San Marino: 32 + 9
+        $this->assertSame(30, ActivationService::quorumRequired(59)); // San Marino: 32 + 27 (the ladder)
         $this->assertSame(3, ActivationService::quorumRequired(1));   // floor of 3
     }
 }

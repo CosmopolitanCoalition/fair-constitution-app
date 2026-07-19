@@ -87,7 +87,11 @@ class SubdivisionAutoseedService
             return $this->cells->plan($scopeId, $ctx, $year);
         }
 
-        $pixels = $this->raster->pixelGrid($scopeId, $year);
+        // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
+        // outside its iso's tiles) fall back to the area-proportional grid —
+        // same shape, deterministic from geometry + stored population. Only
+        // a scope with no geometry or no population still refuses.
+        $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
             throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
         }
@@ -206,7 +210,11 @@ class SubdivisionAutoseedService
             );
         }
 
-        $pixels = $this->raster->pixelGrid($scopeId, $year);
+        // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
+        // outside its iso's tiles) fall back to the area-proportional grid —
+        // same shape, deterministic from geometry + stored population. Only
+        // a scope with no geometry or no population still refuses.
+        $pixels = $this->raster->gridWithFallback($scopeId, $year);
         if (count($pixels) < 2) {
             throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
         }

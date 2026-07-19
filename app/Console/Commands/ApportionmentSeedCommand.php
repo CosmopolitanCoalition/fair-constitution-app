@@ -227,11 +227,10 @@ class ApportionmentSeedCommand extends Command
             ->get(['id', 'name', 'population']);
 
         if ($children->isEmpty()) {
-            // Leaf jurisdiction: size a legislature within [floor, ceiling], no districts.
-            $leafSeats = min(
-                ConstitutionalDefaults::ceiling($parent->id),
-                ConstitutionalDefaults::sizeFromPopulation((float) $parent->population, $parent->id)
-            );
+            // Leaf jurisdiction: same law as parents (cycle-2 ruling
+            // 2026-07-19 — floor clamp only; a too-large leaf legislature
+            // gets line-split districts, never truncation). No districts here.
+            $leafSeats = ConstitutionalDefaults::sizeFromPopulation((float) $parent->population, $parent->id);
 
             if ($dryRun) {
                 $this->line("  {$parent->name}: leaf, seats={$leafSeats}");
@@ -248,17 +247,25 @@ class ApportionmentSeedCommand extends Command
         $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sumChildrenPop, $parent->id);
         $quota          = $sumChildrenPop > 0 ? $sumChildrenPop / $totalSeats : 1.0;
 
-        // Equal-house seats per child (type_b) from constitutional settings.
-        // Fallback = 1 per constituent — the Art. V §3 bicameral law as
-        // ActivationService::typeBSeats derives it (instantiateBicameral
-        // explicitly overrode this command's old ×5 product as wrong under
-        // Art. V §3, and the live USA chamber carries the 1× shape). The two
-        // mass paths must mint the same chamber; a stored
-        // type_b_seats_per_child still wins when a settings row provides it.
-        $typeB      = (int) (DB::table('constitutional_settings')
+        // THE TYPE B LADDER (cycle-2 ruling 2026-07-19): Type B — equal
+        // representation of the direct constituents — is bound by the same
+        // sizing rule as Type A: its total may not exceed the lawful
+        // legislature size (Type A). Each constituent contributes rep_floor
+        // seats (tiny constituents, pop ≤ 5, contribute min(pop, rep_floor);
+        // a zero-population space seats nobody), starting from the
+        // constitutional type_b_seats_per_child and descending 4 → 3 → 2
+        // until the bound holds. Still over at 2 → keep the floor-2 value,
+        // FLAG for the deferred Type B districting. ActivationService calls
+        // the same ladder — the two mass paths mint identical chambers.
+        $startingRep = (int) (DB::table('constitutional_settings')
             ->where('jurisdiction_id', $parent->id)
-            ->value('type_b_seats_per_child') ?? 1);
-        $totalTypeB = $typeB * $children->count();
+            ->value('type_b_seats_per_child') ?? 5);
+        $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion(
+            $totalSeats,
+            $children->pluck('population')->map(fn ($p) => (int) $p)->all(),
+            $startingRep,
+        );
+        $totalTypeB = $ladder['seats'];
 
         if ($dryRun) {
             foreach ($children as $child) {
@@ -271,7 +278,7 @@ class ApportionmentSeedCommand extends Command
             return;
         }
 
-        $this->upsertLegislature($parent->id, $totalSeats, $totalTypeB);
+        $this->upsertLegislature($parent->id, $totalSeats, $totalTypeB, $ladder['rep_floor'], $ladder['needs_districting']);
 
         // Seat allocations to individual districts (and the per-district members
         // they contain) are written exclusively by the viewer's auto-composite
@@ -299,8 +306,13 @@ class ApportionmentSeedCommand extends Command
     // Legislature upsert
     // -------------------------------------------------------------------------
 
-    private function upsertLegislature(string $jurisdictionId, int $typeASeats, int $typeBSeats): string
-    {
+    private function upsertLegislature(
+        string $jurisdictionId,
+        int $typeASeats,
+        int $typeBSeats,
+        ?int $typeBRepFloor = null,
+        bool $typeBNeedsDistricting = false,
+    ): string {
         $totalSeats = $typeASeats + $typeBSeats;
         $quorum     = max(3, (int) ceil($totalSeats / 2));
 
@@ -313,27 +325,31 @@ class ApportionmentSeedCommand extends Command
             DB::table('legislatures')
                 ->where('id', $existing->id)
                 ->update([
-                    'total_seats'     => $totalSeats,
-                    'type_a_seats'    => $typeASeats,
-                    'type_b_seats'    => $typeBSeats,
-                    'quorum_required' => $quorum,
-                    'updated_at'      => now(),
+                    'total_seats'              => $totalSeats,
+                    'type_a_seats'             => $typeASeats,
+                    'type_b_seats'             => $typeBSeats,
+                    'type_b_rep_floor'         => $typeBRepFloor,
+                    'type_b_needs_districting' => $typeBNeedsDistricting,
+                    'quorum_required'          => $quorum,
+                    'updated_at'               => now(),
                 ]);
             return $existing->id;
         }
 
         $id = (string) Str::uuid();
         DB::table('legislatures')->insert([
-            'id'              => $id,
-            'jurisdiction_id' => $jurisdictionId,
-            'term_number'     => 1,
-            'status'          => 'forming',
-            'total_seats'     => $totalSeats,
-            'type_a_seats'    => $typeASeats,
-            'type_b_seats'    => $typeBSeats,
-            'quorum_required' => $quorum,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'id'                       => $id,
+            'jurisdiction_id'          => $jurisdictionId,
+            'term_number'              => 1,
+            'status'                   => 'forming',
+            'total_seats'              => $totalSeats,
+            'type_a_seats'             => $typeASeats,
+            'type_b_seats'             => $typeBSeats,
+            'type_b_rep_floor'         => $typeBRepFloor,
+            'type_b_needs_districting' => $typeBNeedsDistricting,
+            'quorum_required'          => $quorum,
+            'created_at'               => now(),
+            'updated_at'               => now(),
         ]);
         $this->legislaturesCreated++;
         return $id;

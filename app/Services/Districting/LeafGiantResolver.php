@@ -84,8 +84,43 @@ class LeafGiantResolver
             return null;
         }
         $giant = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-        if ($giant === null || $giant->geom === null || $giant->parent_id === null) {
-            return null; // the legislature root is never a leaf giant
+        if ($giant === null || $giant->geom === null) {
+            return null;
+        }
+
+        // Cycle-2 leaf law (operator ruling 2026-07-19): a scope that IS this
+        // legislature's own jurisdiction is the ROOT — never a leaf giant in
+        // the parent-frame sense. A CHILDLESS root whose lawful size exceeds
+        // the district ceiling line-splits ITSELF: budget = its OWN
+        // type_a_seats (the sizing law's number — leaves follow the same law
+        // as parents, floor-clamp only), never a parent-frame share. An
+        // in-band childless root stays null (the at-large singles shape); a
+        // child-bearing root stays null (the composite path). Because the
+        // mapper panel, the F-ELB-008 handler, and the mass sweep all read
+        // THIS one detector, they inherit root-leaf support together (the
+        // one-frame law's no-disagreement guarantee).
+        if ($scopeId === (string) $leg->jurisdiction_id) {
+            $rootChildren = (int) DB::table('jurisdictions')
+                ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
+            if ($rootChildren > 0) {
+                return null;
+            }
+            $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+            $budget  = (int) $leg->type_a_seats;
+            if ($budget <= $ceiling) {
+                return null;
+            }
+
+            return [
+                'floor'   => ConstitutionalDefaults::floor($leg->jurisdiction_id),
+                'ceiling' => $ceiling,
+                'budget'  => $budget,
+                'quota'   => ((int) $giant->population) / max($budget, 1),
+            ];
+        }
+
+        if ($giant->parent_id === null) {
+            return null; // a planet root under a foreign legislature — never a leaf giant
         }
 
         $childCount = (int) DB::table('jurisdictions')->where('parent_id', $scopeId)->whereNull('deleted_at')->count();

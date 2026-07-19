@@ -94,7 +94,12 @@ class PopulationRaster
 
         // v2 key: the cell size is part of the identity, so a rescaled ladder
         // (or the pre-ladder native entries) can never serve a stale grid.
-        return Cache::rememberForever("districting.pixelgrid.v2.{$scopeId}.{$year}.{$cellKey}", function () use ($scopeId, $year, $cell) {
+        //
+        // Autoscale bypass (cycle-2): a full-scale run plans ~473k root-leaf
+        // scopes exactly ONCE each — rememberForever would balloon Redis by
+        // gigabytes for entries nobody reads twice. Interactive callers keep
+        // the cache (the mapper's blade sweeps re-read the grid constantly).
+        $compute = function () use ($scopeId, $year, $cell) {
             // Per-tile clip + pixel-centroids of the giant's OWN country raster —
             // NO ST_Union (unioning border-overlapping tiles is ~500× slower). A
             // childless leaf giant sits inside one country, so iso_code suffices.
@@ -125,7 +130,151 @@ class PopulationRaster
             }
 
             return array_map(fn ($r) => [(float) $r->x, (float) $r->y, (float) $r->val], $rows);
-        });
+        };
+
+        if (\App\Support\AutoscaleContext::active()) {
+            return $compute();
+        }
+
+        return Cache::rememberForever("districting.pixelgrid.v2.{$scopeId}.{$year}.{$cellKey}", $compute);
+    }
+
+    /**
+     * Does the raster MEANINGFULLY cover this scope? The gate is
+     * POPULATION-based, never a bare tile-intersects test: a geometry whose
+     * edge merely touches a tile clips to a one-pixel strip — the planner
+     * would then balance cuts against a few percent of the real population
+     * and the filing gate would measure pieces at 0 people. Coverage holds
+     * when the raster population over the scope's own geometry is nonzero
+     * AND at least 10% of the stored population (a genuinely partial
+     * cross-border undercount, typically small, stays on the raster path —
+     * the accepted posture; a boundary-touch or fully-missed geometry falls
+     * to the area-proportional grid). Generalized — the trigger is pure
+     * measurement, never a country list. Memoized per process.
+     */
+    public function hasRasterCoverage(string $scopeId, int $year = 2023): bool
+    {
+        static $memo = [];
+        $key = "{$scopeId}.{$year}";
+        if (! isset($memo[$key])) {
+            $row = DB::selectOne(
+                'SELECT COALESCE(population_within_multi(ST_Multi(ST_MakeValid(j.geom)), ?::smallint), 0) AS raster_pop,
+                        GREATEST(COALESCE(j.population, 0), 0) AS stored_pop
+                   FROM jurisdictions j
+                  WHERE j.id = ? AND j.geom IS NOT NULL',
+                [$year, $scopeId]
+            );
+            $rasterPop = (int) ($row->raster_pop ?? 0);
+            $storedPop = (int) ($row->stored_pop ?? 0);
+            $memo[$key] = $rasterPop > 0
+                && ($storedPop <= 0 || $rasterPop >= 0.1 * $storedPop);
+        }
+
+        return $memo[$key];
+    }
+
+    /**
+     * AREA-PROPORTIONAL grid (cycle-2 fallback, 2026-07-19): the same
+     * [[lng, lat, people], …] shape as pixelGrid, for scopes with ZERO
+     * raster coverage — cells from ST_SquareGrid over the geometry, each
+     * carrying population × (its clipped area / the scope's area). The
+     * stored jurisdictions.population is the total; distribution is
+     * uniform by land area. Deterministic from geometry + stored
+     * population alone, so plan_hash reproducibility holds. Empty when the
+     * scope has no geometry or no population — those refusals stay honest.
+     */
+    public function areaGrid(string $scopeId, int $year = 2023): array
+    {
+        $areaKm2 = (float) (DB::selectOne(
+            'SELECT ST_Area(geom::geography) / 1e6 AS km2 FROM jurisdictions WHERE id = ?',
+            [$scopeId]
+        )->km2 ?? 0.0);
+
+        // The pixelGrid ladder, with a floor: no native 100 m tier exists
+        // without a raster, so small scopes take the finest synthetic cell.
+        $cell = match (true) {
+            $areaKm2 <= 3000.0   => 0.002,
+            $areaKm2 <= 30000.0  => 0.005,
+            $areaKm2 <= 300000.0 => 0.02,
+            default              => 0.05,
+        };
+
+        $compute = function () use ($scopeId, $cell) {
+            $rows = DB::select("
+                WITH g AS (
+                    SELECT ST_MakeValid(geom) AS geom, GREATEST(COALESCE(population, 0), 0) AS pop
+                      FROM jurisdictions WHERE id = ?
+                ),
+                cells AS (
+                    SELECT ST_Intersection(sq.geom, g.geom) AS cg, g.pop,
+                           ST_Area(g.geom) AS total_area
+                      FROM g
+                     CROSS JOIN LATERAL ST_SquareGrid({$cell}, g.geom) AS sq
+                     WHERE ST_Intersects(sq.geom, g.geom)
+                )
+                SELECT ST_X(ST_Centroid(cg)) AS x, ST_Y(ST_Centroid(cg)) AS y,
+                       pop * (ST_Area(cg) / NULLIF(total_area, 0)) AS val
+                  FROM cells
+                 WHERE NOT ST_IsEmpty(cg) AND ST_Area(cg) > 0
+            ", [$scopeId]);
+
+            $grid = [];
+            foreach ($rows as $r) {
+                if ((float) $r->val > 0) {
+                    $grid[] = [(float) $r->x, (float) $r->y, (float) $r->val];
+                }
+            }
+
+            return $grid;
+        };
+
+        if (\App\Support\AutoscaleContext::active()) {
+            return $compute();
+        }
+
+        return Cache::rememberForever("districting.areagrid.v1.{$scopeId}", $compute);
+    }
+
+    /**
+     * Grid with the coverage fallback: raster pixels when the raster
+     * meaningfully covers the scope (hasRasterCoverage — the SAME gate the
+     * F-ELB-008 measurement uses, so a planned piece can never be refused
+     * by a differently-gated measurer), the area-proportional grid
+     * otherwise. The planners' one entry point.
+     */
+    public function gridWithFallback(string $scopeId, int $year = 2023): array
+    {
+        if ($this->hasRasterCoverage($scopeId, $year)) {
+            return $this->pixelGrid($scopeId, $year);
+        }
+
+        return $this->areaGrid($scopeId, $year);
+    }
+
+    /**
+     * Measure a drawn piece's population with the same fallback the
+     * planners use: raster sum when the SCOPE has coverage; otherwise
+     * population × area-share (provenance 'area_proportional'). Without
+     * this, the F-ELB-008 handler's band gate would refuse every piece the
+     * area-planner lawfully cut.
+     *
+     * @return array{pop: int, source: string}
+     */
+    public function measureWithFallback(string $scopeId, string $geoJson, int $year = 2023): array
+    {
+        if ($this->hasRasterCoverage($scopeId, $year)) {
+            return ['pop' => $this->populationWithinMulti($geoJson, $year), 'source' => 'worldpop_raster'];
+        }
+
+        $row = DB::selectOne('
+            SELECT GREATEST(COALESCE(j.population, 0), 0)
+                   * (ST_Area(ST_Intersection(ST_MakeValid(ST_GeomFromGeoJSON(?)), ST_MakeValid(j.geom)))
+                      / NULLIF(ST_Area(ST_MakeValid(j.geom)), 0)) AS pop
+              FROM jurisdictions j
+             WHERE j.id = ?
+        ', [$geoJson, $scopeId]);
+
+        return ['pop' => (int) round((float) ($row->pop ?? 0)), 'source' => 'area_proportional'];
     }
 
     /**

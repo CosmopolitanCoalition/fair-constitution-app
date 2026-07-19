@@ -24,23 +24,30 @@ use Tests\TestCase;
  *
  * Runs on a fully SYNTHETIC 3-level fixture built in-transaction ("Pin Earth"
  * adm0 → Pinland/Brokenland/2 midgets adm1 → quarters + childless giant
- * strips adm2 → villages adm3), so the pins hold on any dev/CI box. Pins:
- *  1. TRUE ALL SCALE sizing — every jurisdiction gets a legislature: parents
- *     via the cube-root children-sum law, childless leaves set-based with
- *     seats = min(ceiling, max(floor, round(pop^⅓))) and the quorum law;
- *  2. leaves get a complete governance shape: ACTIVE founding map + ONE
- *     at-large district (seats = type_a, member = self) + spatial stats;
+ * strips adm2 → villages adm3), so the pins hold on any dev/CI box. Pins
+ * (cycle-2 leaf law + Type B ladder, operator rulings 2026-07-19):
+ *  1. TRUE ALL SCALE sizing — every jurisdiction gets a legislature: the
+ *     SAME law everywhere, max(floor, round(pop^⅓)) — the old leaf ceiling
+ *     clamp was unlawful truncation; the quorum law holds;
+ *  2. IN-BAND leaves get the at-large singles shape (ACTIVE map + ONE
+ *     district, seats = type_a, member = self); OVER-CEILING leaves
+ *     line-split THEMSELVES (root-leaf: own map, ceil(type_a/ceiling)+
+ *     districts summing exactly type_a — the LA-County shape);
  *  3. parents get complete ACTIVE founding maps from the PROVEN mixed sweep —
  *     composite districts AND line-split leaf giants in the same map;
  *  4. Σ-seat drift is INFORMATIONAL (seating law 2026-07-13): a complete map
  *     whose nearest-rounded seats drift from type_a still activates, drift
  *     recorded on the item — never a failure, never total-forced;
- *  5. an engineered-incomplete scope (its leaf giant has no population
- *     raster, so the line split lawfully refuses) lands on the review list
- *     with reasons and its map STAYS DRAFT — failures never sink the run,
- *     which still completes with review_count recorded;
+ *  5. honest review: a GEOMETRY-LESS giant constituent flags its parent's
+ *     map (nothing can draw it), and a geometry-less over-ceiling leaf
+ *     flags itself; zero-raster-coverage giants are NOT review — they
+ *     line-split via the AREA-PROPORTIONAL fallback with honest
+ *     population_source provenance;
  *  6. the run is durable state: counters + per-item outcomes land in
- *     autoscale_runs/autoscale_items, and the summary audit appends exist.
+ *     autoscale_runs/autoscale_items, and the summary audit appends exist;
+ *  +  the Type B ladder (bound by Type A, tiny-pop cap) and the
+ *     simplest-first ordering key (est_districts, cascade_height, adm DESC,
+ *     population ASC) are pinned on the same fixture.
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -105,16 +112,19 @@ class AutoscalePinTest extends TestCase
             $this->assertCount(count($ctx['leaves']), $leafLegs,
                 'EVERY childless jurisdiction gets a legislature (True All Scale — no level skipped)');
             foreach ($leafLegs as $leg) {
-                $expected = min(9, max(5, (int) round(pow(max((int) $leg->population, 1), 1 / 3))));
+                // Cycle-2 leaf law: the SAME law as parents — floor clamp
+                // ONLY. A reintroduced ceiling clamp fails this concretely
+                // (the 12,000-pop strips must size 23, never 9).
+                $expected = max(5, (int) round(pow(max((int) $leg->population, 1), 1 / 3)));
                 $this->assertSame($expected, (int) $leg->type_a_seats,
-                    "leaf {$leg->name}: seats = min(ceiling, max(floor, round(pop^⅓)))");
-                $this->assertSame(0, (int) $leg->type_b_seats);
+                    "leaf {$leg->name}: seats = max(floor, round(pop^⅓)) — no ceiling truncation");
+                $this->assertSame(0, (int) $leg->type_b_seats, 'leaves have no constituents — no Type B');
                 $this->assertSame(max(3, (int) ceil($leg->total_seats / 2)), (int) $leg->quorum_required,
                     "leaf {$leg->name}: quorum = max(3, ceil(total/2))");
             }
 
-            // ── Pin 2: leaf singles — active map + one at-large district ──
-            foreach ($ctx['leaves'] as $name => $jid) {
+            // ── Pin 2a: IN-BAND leaf singles — active map + one at-large ──
+            foreach ($ctx['single_leaves'] as $name => $jid) {
                 $legId = DB::table('legislatures')->where('jurisdiction_id', $jid)->whereNull('deleted_at')->value('id');
                 $map = DB::table('legislature_district_maps')
                     ->where('legislature_id', $legId)
@@ -140,6 +150,30 @@ class AutoscalePinTest extends TestCase
                     ->pluck('jurisdiction_id');
                 $this->assertSame([$jid], $members->all(), "leaf {$name}: membership = self");
             }
+
+            // ── Pin 2b: OVER-CEILING leaf — line-splits ITSELF (root-leaf,
+            // the LA-County shape): own founding map, ceil(type_a/ceiling)+
+            // drawn districts (parent = itself) whose seats sum EXACTLY to
+            // type_a (the Splitline in-band decomposition), map ACTIVE.
+            $stripLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['pin_giant_id'])->whereNull('deleted_at')->value('id');
+            $stripItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $stripLegId)->first();
+            $this->assertSame('sweep', $stripItem->kind, 'an over-ceiling leaf enumerates as a line-split sweep, never a single');
+            $this->assertSame('done', $stripItem->status);
+            $stripMap = DB::table('legislature_district_maps')
+                ->where('legislature_id', $stripLegId)->where('status', 'active')->whereNull('deleted_at')->first();
+            $this->assertNotNull($stripMap, 'the over-ceiling leaf has its OWN active founding map');
+            $stripTypeA = (int) DB::table('legislatures')->where('id', $stripLegId)->value('type_a_seats');
+            $this->assertSame(23, $stripTypeA, '12,000 people → round(pop^⅓) = 23 seats (the unclamped law)');
+            $stripDrawn = DB::table('district_subdivisions')
+                ->where('map_id', $stripMap->id)
+                ->where('parent_jurisdiction_id', $ctx['pin_giant_id'])
+                ->whereNull('deleted_at')->count();
+            $this->assertGreaterThanOrEqual((int) ceil($stripTypeA / 9), $stripDrawn,
+                'the root-leaf drew at least ceil(type_a/ceiling) districts');
+            $stripSeated = (int) DB::table('legislature_districts')
+                ->where('map_id', $stripMap->id)->whereNull('deleted_at')->sum('seats');
+            $this->assertSame($stripTypeA, $stripSeated,
+                'the line-split decomposition seats EXACTLY type_a (in-band leaves summing to S)');
 
             // ── Pin 3: the mixed sweep — composite + line-split, ACTIVE ──
             $pinlandLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['pinland_id'])->whereNull('deleted_at')->value('id');
@@ -187,12 +221,14 @@ class AutoscalePinTest extends TestCase
                 'the +1 drift is recorded honestly — never repaired by total-forcing');
             $this->assertSame($seated - (int) $pinlandItem->seats_expected, (int) $pinlandItem->drift);
 
-            // ── Pin 5: the engineered-incomplete scope → review, map draft ──
+            // ── Pin 5: HONEST review + the AREA-PROPORTIONAL rescue ───────
+            // (a) Brokenland flags: its GEOMETRY-LESS giant constituent can
+            // neither composite nor be drawn — nothing can rescue it.
             $brokenLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['brokenland_id'])->whereNull('deleted_at')->value('id');
             $brokenItem = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $brokenLegId)->first();
             $this->assertSame('review', $brokenItem->status,
-                'a scope whose leaf giant cannot line-split (no raster) lands on the review list');
-            $this->assertStringContainsString('giant', mb_strtolower((string) $brokenItem->reason));
+                'a scope with a geometry-less giant constituent lands on the review list');
+            $this->assertStringContainsString('geometry-less giant', (string) $brokenItem->reason);
 
             $brokenMap = DB::table('legislature_district_maps')
                 ->where('legislature_id', $brokenLegId)
@@ -204,12 +240,79 @@ class AutoscalePinTest extends TestCase
                 ->where('map_id', $brokenMap->id)->whereNull('deleted_at')->count(),
                 'the composite part of the partial sweep is preserved for the operator');
 
+            // (b) ZERO-RASTER-COVERAGE is NOT review anymore (cycle-2): the
+            // Broken Giant Strip (no raster tile anywhere for its iso)
+            // line-splits via the AREA-PROPORTIONAL fallback inside
+            // Brokenland's map, with honest provenance on every piece.
+            $brokenDrawn = DB::table('district_subdivisions')
+                ->where('map_id', $brokenMap->id)
+                ->where('parent_jurisdiction_id', $ctx['broken_giant_id'])
+                ->whereNull('deleted_at')
+                ->get(['population_source']);
+            $this->assertGreaterThanOrEqual(2, $brokenDrawn->count(),
+                'the raster-less giant is line-split via the area-proportional fallback');
+            foreach ($brokenDrawn as $piece) {
+                $this->assertSame('area_proportional', (string) $piece->population_source,
+                    'area-fallback pieces carry honest provenance');
+            }
+
+            // (c) a geometry-less OVER-CEILING leaf flags ITSELF — no
+            // geometry means no line split, honestly reviewed.
+            $ghostLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['broken_ghost_id'])->whereNull('deleted_at')->value('id');
+            $ghostItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $ghostLegId)->first();
+            $this->assertSame('review', $ghostItem->status,
+                'a geometry-less over-ceiling leaf cannot be drawn — honest review');
+            $this->assertStringContainsString('no line-split districts', (string) $ghostItem->reason);
+
             // ── Pin 6: durable run state + summary audits ─────────────────
-            $this->assertSame(count($ctx['leaves']), (int) $run->singles_done);
-            $this->assertSame(5, (int) $run->sweeps_done, 'Earth + Pinland + Quarter 1 + Domland + Dom Province complete');
-            $this->assertSame(1, (int) $run->review_count, 'Brokenland is the one review item');
-            $this->assertSame(6, (int) $run->sweeps_total);
+            // Cycle-2 census: 1 in-band single (the hamlet); 24 sweeps = 6
+            // parents + 18 over-ceiling leaves; review 2 = Brokenland
+            // (geometry-less giant constituent) + the ghost leaf itself.
+            $this->assertSame(1, (int) $run->singles_total, 'only the in-band hamlet rides the singles path');
+            $this->assertSame(1, (int) $run->singles_done);
+            $this->assertSame(24, (int) $run->sweeps_total, '6 parents + 18 over-ceiling leaf line-splits');
+            $this->assertSame(22, (int) $run->sweeps_done);
+            $this->assertSame(2, (int) $run->review_count, 'Brokenland + the geometry-less ghost leaf');
             $this->assertNotNull($run->finished_at);
+
+            // ── THE TYPE B LADDER PIN (cycle-2): Type B = equal
+            // representation of the direct constituents, BOUND by Type A.
+            // Pinland: 5 constituents all above tiny-pop → 5 × 5 = 25 ≤ 34.
+            // Quarter 1 sits EXACTLY at the bound: 4 villages × 5 = 20 = 20.
+            $pinlandRow = DB::table('legislatures')->where('id', $pinlandLegId)->first();
+            $this->assertSame(25, (int) $pinlandRow->type_b_seats, 'Pinland Type B: 5 constituents × 5 = 25 ≤ Type A 34');
+            $this->assertSame(5, (int) $pinlandRow->type_b_rep_floor);
+            $this->assertFalse((bool) $pinlandRow->type_b_needs_districting);
+            $this->assertSame((int) $pinlandRow->type_a_seats + 25, (int) $pinlandRow->total_seats,
+                'total = A + B, re-derived with the ladder');
+            $this->assertSame(max(3, (int) ceil($pinlandRow->total_seats / 2)), (int) $pinlandRow->quorum_required,
+                'quorum = majority of ALL serving members, re-derived with the ladder');
+            $q1Row = DB::table('legislatures')->where('id', $q1LegId)->first();
+            $this->assertSame(20, (int) $q1Row->type_b_seats, 'Quarter 1: 4 × 5 = 20, exactly AT the Type A bound — lawful');
+            $this->assertSame(5, (int) $q1Row->type_b_rep_floor);
+            $this->assertFalse((bool) $q1Row->type_b_needs_districting);
+
+            // ── THE ORDERING PIN (cycle-2): simplest-first — est_districts
+            // ASC, cascade_height ASC, adm DESC, population ASC. The in-band
+            // hamlet leads; Pin Earth (est 7, height 3) is dead last.
+            $ord = DB::table('autoscale_items')
+                ->where('run_id', $run->id)
+                ->join('jurisdictions as j', 'j.id', '=', 'autoscale_items.jurisdiction_id')
+                ->get(['autoscale_items.position', 'autoscale_items.est_districts',
+                       'autoscale_items.cascade_height', 'j.name'])
+                ->keyBy('name');
+            $this->assertSame(1, (int) $ord['Pin Hamlet']->est_districts);
+            $this->assertSame(0, (int) $ord['Pin Hamlet']->cascade_height);
+            $this->assertSame(1, (int) $ord['Pin Hamlet']->position, 'the one-district hamlet is the very first work item');
+            $this->assertSame(3, (int) $ord['Pin Giant Strip']->est_districts, 'ceil(23/9) = 3');
+            $this->assertSame(0, (int) $ord['Pin Giant Strip']->cascade_height);
+            $this->assertSame(3, (int) $ord['Pin Quarter 1']->est_districts, 'ceil(20/9) = 3');
+            $this->assertSame(1, (int) $ord['Pin Quarter 1']->cascade_height, 'parent of leaves = height 1');
+            $this->assertLessThan((int) $ord['Pin Quarter 1']->position, (int) $ord['Pin Giant Strip']->position,
+                'same est class: leaves (height 0) work before parents (height 1)');
+            $this->assertSame(3, (int) $ord['Pin Earth']->cascade_height);
+            $this->assertSame((int) DB::table('autoscale_items')->where('run_id', $run->id)->max('position'),
+                (int) $ord['Pin Earth']->position, 'the planet root is the LAST work item — the honest ETA tail');
 
             // ── THE ONE-FRAME PIN (2026-07-19): Dom Core — a LOCAL giant of
             // Dom Province, sub-threshold in the root frame — gets its own
@@ -228,7 +331,7 @@ class AutoscalePinTest extends TestCase
             $this->assertStringNotContainsString('unassigned', (string) $domlandItem->reason,
                 'no constituent is stranded between frames');
 
-            $this->assertSame(5, (int) DB::table('audit_log')
+            $this->assertSame(22, (int) DB::table('audit_log')
                 ->where('event', 'district_map.generated')
                 ->where('payload->generator', 'like', '%SweepScopeProcessor%')
                 ->count(), 'EXACTLY one summary audit entry per completed sweep — never a flood, never silent');
@@ -305,7 +408,7 @@ class AutoscalePinTest extends TestCase
             $this->driveRunFromMapping($run);
 
             $this->assertSame('done', $run->refresh()->status, 'a halted run resumes to completion — nothing is lost');
-            $this->assertSame(1, (int) $run->review_count);
+            $this->assertSame(2, (int) $run->review_count, 'Brokenland + the geometry-less ghost leaf');
         });
     }
 
@@ -394,7 +497,7 @@ class AutoscalePinTest extends TestCase
             $this->driveRunFromMapping($run);
             $run->refresh();
             $this->assertSame('done', $run->status);
-            $this->assertSame(1, (int) $run->review_count);
+            $this->assertSame(2, (int) $run->review_count, 'Brokenland + the geometry-less ghost leaf');
             $doubleActive = DB::table('legislature_district_maps')
                 ->select('legislature_id')
                 ->where('status', 'active')
@@ -468,7 +571,7 @@ class AutoscalePinTest extends TestCase
             $this->driveRunFromMapping($run);
             $run->refresh();
             $this->assertSame('done', $run->status, 'the reverted run re-completes');
-            $this->assertSame(1, (int) $run->review_count, 'the same lawful review outcome');
+            $this->assertSame(2, (int) $run->review_count, 'the same lawful review outcomes');
             $pinlandLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['pinland_id'])->whereNull('deleted_at')->value('id');
             $pinlandItem = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $pinlandLegId)->first();
             $this->assertSame(1, (int) $pinlandItem->drift, 'the honest +1 drift reproduces after revert (determinism)');
@@ -525,10 +628,12 @@ class AutoscalePinTest extends TestCase
      *   │   ├── Pin Quarters 2–4 (adm2, 7 000 each, childless)
      *   │   └── Pin Giant Strip (adm2, 12 000, childless, HAS raster)
      *   │       → frac 12000×34/41000 = 9.95 ≥ 9.5 → line-split, budget 10
-     *   ├── Brokenland (adm1, 18 000, ISO ZZB — NO raster)
+     *   ├── Brokenland (adm1, 18 000, ISO ZZB — NO raster anywhere)
      *   │   ├── Broken Quarters 1–2 (adm2, 3 000 each, childless)
-     *   │   └── Broken Giant Strip (adm2, 12 000, childless, NO raster)
-     *   │       → frac 17.33 → line-split REFUSES (no population raster)
+     *   │   ├── Broken Giant Strip (adm2, 12 000, childless, NO raster)
+     *   │   │   → cycle-2: line-splits via the AREA-PROPORTIONAL fallback
+     *   │   ├── Pin Hamlet (adm2, 400, childless) → the IN-BAND single
+     *   │   └── Broken Ghost (adm2, 12 000, GEOMETRY-LESS) → honest review
      *   └── Pin Midget A/B (adm1, 5 000 each, childless)
      *
      * Plus: an operator user (the run's initiating actor — R-08 rides the
@@ -577,11 +682,29 @@ class AutoscalePinTest extends TestCase
         }
         $pinGiantId = $mkJur('Pin Giant Strip', $pinlandId, 2, 12000, [10.0, 50.0, 10.4, 50.1], self::ISO_OK);
 
-        $brokenlandId = $mkJur('Brokenland', $earthId, 1, 18000, [20.0, 50.0, 20.4, 50.2], self::ISO_BROKEN);
+        $brokenlandId = $mkJur('Brokenland', $earthId, 1, 18000, [20.0, 50.0, 20.5, 50.2], self::ISO_BROKEN);
         $brokenQuarters = [];
         $brokenQuarters['Broken Quarter 1'] = $mkJur('Broken Quarter 1', $brokenlandId, 2, 3000, [20.0, 50.1, 20.2, 50.2], self::ISO_BROKEN);
         $brokenQuarters['Broken Quarter 2'] = $mkJur('Broken Quarter 2', $brokenlandId, 2, 3000, [20.2, 50.1, 20.4, 50.2], self::ISO_BROKEN);
         $brokenGiantId = $mkJur('Broken Giant Strip', $brokenlandId, 2, 12000, [20.0, 50.0, 20.4, 50.1], self::ISO_BROKEN);
+
+        // Cycle-2 fixtures: under the UNCLAMPED leaf law every other leaf in
+        // this fixture is over-ceiling, so the hamlet (pop 400 → 7 seats) is
+        // the one IN-BAND single — the at-large shape's pin. The ghost is
+        // the honest-review class: a GEOMETRY-LESS giant (pop 12,000 → its
+        // parent's composite can't place it, no line can cut it) — it flags
+        // Brokenland AND its own leaf item, and nothing can rescue it.
+        $hamletId = $mkJur('Pin Hamlet', $brokenlandId, 2, 400, [20.4, 50.1, 20.5, 50.2], self::ISO_BROKEN);
+        $ghostId = (string) Str::uuid();
+        DB::insert(
+            "INSERT INTO jurisdictions
+                (id, name, slug, iso_code, adm_level, parent_id, population, is_active, is_civic_active,
+                 source, official_languages, timezone, geom, centroid, created_at, updated_at)
+             VALUES
+                (?, 'Broken Ghost', ?, ?, 2, ?, 12000, true, true, 'pin-fixture', '[]', 'UTC',
+                 NULL, NULL, ?, ?)",
+            [$ghostId, 'zz-2-broken-ghost-'.substr($ghostId, 0, 8), self::ISO_BROKEN, $brokenlandId, $now, $now]
+        );
 
         $midgets = [];
         $midgets['Pin Midget A'] = $mkJur('Pin Midget A', $earthId, 1, 5000, [15.0, 50.0, 15.2, 50.2], self::ISO_OK);
@@ -641,15 +764,18 @@ class AutoscalePinTest extends TestCase
         ]);
 
         return [
-            'earth_id'       => $earthId,
-            'pinland_id'     => $pinlandId,
-            'brokenland_id'  => $brokenlandId,
-            'quarter1_id'    => $quarter1Id,
-            'pin_giant_id'   => $pinGiantId,
-            'domland_id'     => $domlandId,
-            'dom_core_id'    => $domCoreId,
-            'operator_id'    => $operatorId,
-            'parents'        => [
+            'earth_id'        => $earthId,
+            'pinland_id'      => $pinlandId,
+            'brokenland_id'   => $brokenlandId,
+            'quarter1_id'     => $quarter1Id,
+            'pin_giant_id'    => $pinGiantId,
+            'broken_giant_id' => $brokenGiantId,
+            'broken_ghost_id' => $ghostId,
+            'hamlet_id'       => $hamletId,
+            'domland_id'      => $domlandId,
+            'dom_core_id'     => $domCoreId,
+            'operator_id'     => $operatorId,
+            'parents'         => [
                 'Pin Earth'     => $earthId,
                 'Pinland'       => $pinlandId,
                 'Brokenland'    => $brokenlandId,
@@ -657,9 +783,16 @@ class AutoscalePinTest extends TestCase
                 'Domland'       => $domlandId,
                 'Dom Province'  => $domProvinceId,
             ],
-            'leaves'         => $quarters + $brokenQuarters + $midgets + $villages + $domLeaves + [
+            // ALL childless jurisdictions (19). Under the unclamped law only
+            // the hamlet is in-band; the other 18 line-split themselves.
+            'leaves'          => $quarters + $brokenQuarters + $midgets + $villages + $domLeaves + [
                 'Pin Giant Strip'    => $pinGiantId,
                 'Broken Giant Strip' => $brokenGiantId,
+                'Pin Hamlet'         => $hamletId,
+                'Broken Ghost'       => $ghostId,
+            ],
+            'single_leaves'   => [
+                'Pin Hamlet' => $hamletId,
             ],
         ];
     }

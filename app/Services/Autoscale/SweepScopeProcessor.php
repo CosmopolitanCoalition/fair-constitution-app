@@ -399,6 +399,28 @@ class SweepScopeProcessor
             $leafGiants[$id] = (string) ($names[$id] ?? $id);
         }
 
+        // 0 — CHILDLESS ROOT (cycle-2 leaf law): an over-ceiling leaf
+        // legislature line-splits ITSELF. Completeness = the drawn set
+        // exists AND reaches the plan's district count (ceil(type_a /
+        // ceiling)) — a partial commit (leafScopeTx=false means no wrapping
+        // transaction) must never activate. In-band childless roots never
+        // reach the sweep path (they ride the at-large singles shape).
+        $rootIsLeaf = ! DB::table('jurisdictions')
+            ->where('parent_id', $rootId)->whereNull('deleted_at')->exists();
+        if ($rootIsLeaf) {
+            $needed = (int) ceil(((int) $leg->type_a_seats) / max($ceiling, 1));
+            $drawn  = (int) DB::table('district_subdivisions')
+                ->where('map_id', $mapId)
+                ->where('parent_jurisdiction_id', $rootId)
+                ->whereNull('deleted_at')
+                ->count();
+            if ($drawn === 0) {
+                $reasons[] = 'root leaf has no line-split districts';
+            } elseif ($drawn < $needed) {
+                $reasons[] = "root leaf drawn {$drawn} of {$needed} districts";
+            }
+        }
+
         // 1 — unassigned compositable children (with geometry, non-giant in
         // THIS scope's local frame) at each composite scope. A geometry-less
         // child big enough to be a local giant is flagged honestly — it can

@@ -2861,15 +2861,29 @@ class LegislatureController extends Controller
 
         $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
 
-        // At root scope: auto-update type_a_seats from cube root of children sum.
+        // At root scope: auto-update type_a_seats from the sizing law.
+        // Children-sum is the base (seating law step 2); a CHILDLESS root
+        // (cycle-2 leaf law: an over-ceiling leaf legislature line-splitting
+        // itself) re-derives from its OWN population — a zero children-sum
+        // would clobber a lawful 23-seat leaf back to the floor.
+        // total_seats/quorum_required re-derive WITH type_a (cycle-2 bug
+        // fix: the sweep used to leave them stale against the refreshed a).
         if ($scopeId === $leg->jurisdiction_id) {
             $sumChildPop = (int) DB::table('jurisdictions')
                 ->where('parent_id', $scopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
-            $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
+            $base = $sumChildPop > 0
+                ? $sumChildPop
+                : (int) DB::table('jurisdictions')->where('id', $scopeId)->value('population');
+            $newSeats = ConstitutionalDefaults::sizeFromPopulation($base, $leg->jurisdiction_id);
             if ((int) $leg->type_a_seats !== $newSeats) {
-                DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
+                $newTotal = $newSeats + (int) $leg->type_b_seats;
+                DB::table('legislatures')->where('id', $legislature_id)->update([
+                    'type_a_seats'    => $newSeats,
+                    'total_seats'     => $newTotal,
+                    'quorum_required' => max(3, (int) ceil($newTotal / 2)),
+                ]);
                 $leg->type_a_seats = $newSeats;
             }
         }
@@ -2920,13 +2934,14 @@ class LegislatureController extends Controller
             // Mixed autoseed (2026-07-17): is this scope a CHILDLESS LEAF
             // GIANT? The BFS scope list has always included them; the
             // composite call below just no-ops ("No children with geometry")
-            // and the clamp stub strands the seats. Now they take the
-            // line-split path instead — same detector + commit the Phase H
-            // panel uses (LeafGiantResolver). Root scope is never a leaf
-            // giant here, matching the mapper's isLeafGiantScope.
-            $leafCtx = ($sid !== $leg->jurisdiction_id)
-                ? $this->leafGiants->context($legislature_id, $sid)
-                : null;
+            // and the clamp stub strands the seats. They take the line-split
+            // path instead — same detector + commit the Phase H panel uses
+            // (LeafGiantResolver). Cycle-2 leaf law: the detector now also
+            // recognizes a CHILDLESS over-ceiling ROOT (a leaf legislature
+            // line-splitting itself, budget = own type_a) — so the root is
+            // no longer excluded here; child-bearing roots still resolve
+            // null and composite as always.
+            $leafCtx = $this->leafGiants->context($legislature_id, $sid);
 
             $scopeStart = time();
             $this->publishMassProgress($legislature_id, [

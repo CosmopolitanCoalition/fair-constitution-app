@@ -124,10 +124,11 @@ class AutoscaleSizingJob implements ShouldQueue
         }
 
         // A2 — leaves (~903k incl. all adm6 villages): ONE INSERT…SELECT per
-        // adm level. Seats mirror the per-row leaf path exactly:
-        // min(ceiling, max(floor, round(pop^⅓))) under the planet defaults
-        // (lawful in a founding world — every jurisdiction inherits them),
-        // quorum = max(3, ceil(total/2)).
+        // adm level. CYCLE-2 LEAF LAW (operator ruling 2026-07-19): leaves
+        // follow the SAME law as parents — max(floor, round(pop^⅓)), floor
+        // clamp ONLY. A too-large legislature gets subdivided (line-split
+        // districts), never truncated; the old LEAST(ceiling, …) wrapper was
+        // the unlawful truncation. quorum = max(3, ceil(total/2)).
         $floor   = ConstitutionalDefaults::floor();
         $ceiling = ConstitutionalDefaults::ceiling();
 
@@ -146,7 +147,7 @@ class AutoscaleSizingJob implements ShouldQueue
                        now(), now()
                   FROM jurisdictions j
                  CROSS JOIN LATERAL (
-                       SELECT LEAST(?, GREATEST(?, ROUND(POWER(GREATEST(COALESCE(j.population, 0), 1)::numeric, 1.0/3.0))))::int AS seats
+                       SELECT GREATEST(?, ROUND(POWER(GREATEST(COALESCE(j.population, 0), 1)::numeric, 1.0/3.0)))::int AS seats
                  ) s
                  WHERE j.deleted_at IS NULL
                    AND j.adm_level = ?
@@ -154,7 +155,7 @@ class AutoscaleSizingJob implements ShouldQueue
                                     WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM legislatures l
                                     WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
-            ", [$ceiling, $floor, $lvl]);
+            ", [$floor, $lvl]);
             $this->heartbeat($run); // per level
         }
 
@@ -197,18 +198,19 @@ class AutoscaleSizingJob implements ShouldQueue
         $this->ensureRootBootstrapBoard($run);
 
         // ── Phase B — the pull work-list ────────────────────────────────────
-        // Enumerate every legislature into autoscale_items: kind sweep (has
-        // children → per-scope mixed-autoseed) or single (childless leaf →
-        // set-based at-large district). POSITION IS BOTTOM-UP (operator law
-        // 2026-07-19): adm DESC, child_count ASC, population ASC — leaves and
-        // small parents first, monsters and Earth last. Idempotent via the
+        // Enumerate every legislature into autoscale_items. CYCLE-2 kinds:
+        // sweep = has children (per-scope mixed autoseed) OR an over-ceiling
+        // leaf (its root scope line-splits itself); single = in-band
+        // childless leaf (set-based at-large district). The inline position
+        // is provisional — the operator's simplest-first key
+        // (AutoscaleEnumeration) replaces it below. Idempotent via the
         // per-run NOT EXISTS.
         DB::statement("
             INSERT INTO autoscale_items
                 (id, run_id, legislature_id, jurisdiction_id, adm_level, kind,
                  status, position, child_count, seats_expected, created_at, updated_at)
             SELECT gen_random_uuid(), ?, l.id, j.id, j.adm_level,
-                   CASE WHEN cc.n > 0 THEN 'sweep' ELSE 'single' END,
+                   CASE WHEN cc.n > 0 OR l.type_a_seats > ? THEN 'sweep' ELSE 'single' END,
                    'pending',
                    ROW_NUMBER() OVER (ORDER BY j.adm_level DESC, cc.n ASC, j.population ASC NULLS FIRST, j.id),
                    cc.n,
@@ -224,7 +226,13 @@ class AutoscaleSizingJob implements ShouldQueue
                AND j.adm_level <= ?
                AND NOT EXISTS (SELECT 1 FROM autoscale_items ai
                                 WHERE ai.run_id = ? AND ai.legislature_id = l.id)
-        ", [$run->id, (int) $run->adm_max, $run->id]);
+        ", [$run->id, $ceiling, (int) $run->adm_max, $run->id]);
+        $this->heartbeat($run);
+
+        // R2 — the simplest-first ordering keys (est_districts, cascade
+        // height, position). Shared with the revert command so re-derivation
+        // can never drift from enumeration.
+        \App\Support\AutoscaleEnumeration::deriveOrderingKeys((string) $run->id, $ceiling);
         $this->heartbeat($run);
 
         // B2 — ADOPT pre-pass (never bulldoze, set-based): a sweep legislature
