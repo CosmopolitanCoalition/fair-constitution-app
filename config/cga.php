@@ -26,6 +26,20 @@ return [
     'autoscale_adm_max' => env('CGA_AUTOSCALE_ADM_MAX', 6),
 
     /*
+    | Pull engine (2026-07-19). autoscale_precompute: 'upfront' (default)
+    | gates sweep-scope claims behind the run-level sibling-adjacency
+    | precompute pass (each parent's borders computed once instead of once
+    | per sweep); 'lazy' opens the gate immediately and lets sweeps
+    | write-back adjacency as they go — the escape hatch if the precompute
+    | pass ever misbehaves. autoscale_singles_workers caps how many pull
+    | workers may run set-based singles batches concurrently (the
+    | statements are PG-heavy; the rest of the pool overlaps on precompute
+    | and sweeps).
+    */
+    'autoscale_precompute' => env('CGA_AUTOSCALE_PRECOMPUTE', 'upfront'),
+    'autoscale_singles_workers' => env('CGA_AUTOSCALE_SINGLES_WORKERS', 4),
+
+    /*
     | Dev impersonation + dev tooling (WI-4). The /dev/* routes (user
     | impersonation, ping simulator) are registered only in the local
     | environment AND gated at runtime by this flag — flipping it to false

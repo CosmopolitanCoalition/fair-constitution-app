@@ -25,28 +25,19 @@ Artisan::command('inspire', function () {
 // no-op (one node always wins the lock).
 Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer();
 
-// ── Autoscale tick watchdog (2026-07-19, the overnight-stall lesson) ─────
-// The orchestrator's self-rescheduling tick chain can die without ANY
-// survivor to revive it: a horizon-container crash kills the tick worker
-// AND can lose the pre-scheduled successor payload, and the job-level
-// failed() hook only fires for payloads that still exist. Overnight this
-// stalled a healthy run for six hours with 47k sweeps pending. The
-// scheduler container is a separate process tree that survived — so the
-// liveness guarantee lives HERE: any active run whose heartbeat is stale
-// gets a fresh tick chain. Idempotent by design (concurrent ticks no-op on
-// the per-run advisory lock), so a spurious revive costs two queries.
-Schedule::call(function () {
-    $stale = \App\Models\AutoscaleRun::query()
-        ->whereIn('status', ['queued', 'sizing', 'mapping'])
-        ->where('updated_at', '<', now()->subMinutes(10))
-        ->get();
-    foreach ($stale as $run) {
-        \Illuminate\Support\Facades\Log::warning('Autoscale watchdog: reviving stale run', [
-            'run_id' => (string) $run->id, 'last_heartbeat' => (string) $run->updated_at,
-        ]);
-        \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
-    }
-})->name('autoscale-tick-watchdog')->everyFiveMinutes()->onOneServer();
+// ── Autoscale pump (pull engine, 2026-07-19) ─────────────────────────────
+// THE run's only liveness root. The old self-rescheduling orchestrator tick
+// chain died ≥5 times across four runs (horizon crash kills the worker AND
+// its successor payload; tries=1 turns any exception into a dead chain) —
+// and its watchdog lived in this same file but couldn't be trusted to
+// revive a chain whose whole design was the problem. The pump replaces
+// both: every minute it advances phases, reclaims stale item/scope claims,
+// tops the fixed worker pool back up, and refreshes counters — each duty
+// idempotent and seconds-long. If everything else crashes, the next minute
+// heals it. runInBackground so a slow pump never delays EvaluateClocksJob;
+// withoutOverlapping(10) so a killed pump can't wedge the lock for 24 h.
+Schedule::command('autoscale:pump')
+    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale

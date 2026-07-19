@@ -2685,6 +2685,26 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'Unknown districting template.'], 422);
         }
 
+        // Pull engine (2026-07-19): autoscale scope workers no longer take
+        // the per-legislature mass_running mutex (scope parallelism forbids
+        // it — Earth root + China sweep concurrently). The reverse guard
+        // lives HERE instead: an interactive sweep must not race a claimed
+        // autoscale scope on the same legislature. (Scope workers defer to
+        // the interactive mass_running flag on their side — operator
+        // spot-checks win when they start first.)
+        $autoscaleBusy = DB::table('autoscale_scopes as s')
+            ->join('autoscale_runs as r', 'r.id', '=', 's.run_id')
+            ->where('s.legislature_id', $legislature_id)
+            ->whereIn('s.status', ['pending', 'running'])
+            ->whereIn('r.status', ['mapping'])
+            ->exists();
+        if ($autoscaleBusy) {
+            return response()->json([
+                'error' => 'The full-scale autoscale currently owns this legislature (its founding sweep is pending or in flight). Halt the run from the Setup dashboard first, or wait for this legislature to finish.',
+                'autoscale_busy' => true,
+            ], 409);
+        }
+
         // Refuse to start a new sweep if one is already in flight. The Halt
         // button must be used to stop the existing run before launching another.
         //
@@ -3334,9 +3354,20 @@ class LegislatureController extends Controller
      */
     public function massStatus(string $legislature_id): JsonResponse
     {
+        // autoscale_busy (pull engine): the full-scale run owns this
+        // legislature while any of its scopes are open — the mapper shows
+        // "autoscale is drawing this one" instead of a dead ⚡ button.
+        $autoscaleBusy = DB::table('autoscale_scopes as s')
+            ->join('autoscale_runs as r', 'r.id', '=', 's.run_id')
+            ->where('s.legislature_id', $legislature_id)
+            ->whereIn('s.status', ['pending', 'running'])
+            ->where('r.status', 'mapping')
+            ->exists();
+
         return response()->json([
-            'running'       => (bool) Cache::get("legislature.{$legislature_id}.mass_running", false),
-            'mass_progress' => Cache::get("legislature.{$legislature_id}.mass_progress"),
+            'running'        => (bool) Cache::get("legislature.{$legislature_id}.mass_running", false),
+            'autoscale_busy' => $autoscaleBusy,
+            'mass_progress'  => Cache::get("legislature.{$legislature_id}.mass_progress"),
         ]);
     }
 

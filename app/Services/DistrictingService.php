@@ -289,12 +289,20 @@ class DistrictingService
             'phase'       => 'loading',
             'phase_label' => 'Loading children + centroids',
         ]);
+        // Pull-engine read path (2026-07-19, mechanics only): the run-level
+        // precompute stores ST_Centroid(geom) per jurisdiction — the EXACT
+        // expression below, so COALESCE preserves byte-identity. NEVER the
+        // stored jurisdictions.centroid column (mixed provenance —
+        // childrenGeoJson falls back to ST_PointOnSurface); a different
+        // centroid would move BFS seeds and violate the Draft-4/5
+        // byte-identity property.
         $allChildrenRows = DB::select("
             SELECT
                 j.id, j.name, j.population,
-                ST_X(ST_Centroid(j.geom)) AS centroid_x,
-                ST_Y(ST_Centroid(j.geom)) AS centroid_y
+                COALESCE(pc.x, ST_X(ST_Centroid(j.geom))) AS centroid_x,
+                COALESCE(pc.y, ST_Y(ST_Centroid(j.geom))) AS centroid_y
             FROM jurisdictions j
+            LEFT JOIN jurisdiction_centroids pc ON pc.jurisdiction_id = j.id
             WHERE j.parent_id = :scope_id
               AND j.deleted_at IS NULL
               AND j.geom IS NOT NULL
@@ -404,6 +412,27 @@ class DistrictingService
         // (the São Paulo snake carried 7× Manual's border length at equal Rg²).
         // The inner subquery computes ST_Intersection once per pair.
         $idsStr = '{' . implode(',', $childIds) . '}';
+        // Pull-engine read path (2026-07-19, mechanics only): sibling
+        // adjacency + border lengths are stable topology keyed on the parent.
+        // When the run-level precompute has fully materialized this parent
+        // (jurisdiction_adjacency_parents = done), read the table —
+        // byte-identical by construction: same simplify tiers, same
+        // a.id < b.id orientation, same ST_Dimension >= 1 filter, and the
+        // same load-bearing ORDER BY. Otherwise the live query below runs
+        // UNCHANGED and its edges are written back (marked complete only
+        // when the pool covered ALL geometry-bearing children).
+        $adjacencyPre = app(\App\Services\Autoscale\AdjacencyPrecompute::class);
+        if ($adjacencyPre->isDone($scopeId)) {
+            $edges = DB::select("
+                SELECT j1, j2, border_len
+                  FROM jurisdiction_adjacency
+                 WHERE parent_id = :scope_id
+                   AND dim >= 1
+                   AND j1 = ANY(:ids::uuid[])
+                   AND j2 = ANY(:ids2::uuid[])
+                 ORDER BY j1, j2
+            ", ['scope_id' => $scopeId, 'ids' => $idsStr, 'ids2' => $idsStr]);
+        } else {
         $edges  = DB::select("
             WITH g AS (
                 SELECT id,
@@ -433,6 +462,18 @@ class DistrictingService
             WHERE ST_Dimension(ix) >= 1
             ORDER BY j1, j2
         ", ['ids' => $idsStr]);
+            $adjacencyPre->writeBack($scopeId, $childIds, array_map(
+                static fn ($e) => [
+                    'j1'         => (string) $e->j1,
+                    'j2'         => (string) $e->j2,
+                    // Live rows passed the dim>=1 filter; the table's only
+                    // consumer reads dim >= 1, so 1 is the faithful stamp.
+                    'dim'        => 1,
+                    'border_len' => $e->border_len !== null ? (float) $e->border_len : null,
+                ],
+                $edges,
+            ));
+        }
         // ORDER BY is LOAD-BEARING (the Draft-10 Ethiopia lottery): without it
         // Postgres returns join rows in plan/heap order, which shifts whenever a
         // jurisdictions tuple is rewritten — the adjacency lists inherit that
@@ -1328,18 +1369,26 @@ class DistrictingService
         // make Union seconds. Compactness (area-ratio) and component count
         // are insensitive to ~110m boundary precision; the metric is robust.
         $jidPlaceholders = implode(',', array_fill(0, count($jids), '?'));
+        // Pull-engine read path (2026-07-19, mechanics only): the simplify
+        // cache holds the EXACT tier expression for >50k-vertex rows —
+        // ST_Simplify is deterministic, so COALESCE preserves identical
+        // outputs while skipping the expensive per-call simplify (Nunavut's
+        // tier-1 pass alone is ~55 s, paid once at precompute).
         $spatialRow = DB::selectOne("
             WITH g AS (
-                SELECT CASE
-                           WHEN ST_NPoints(geom) > 1000000
-                                THEN ST_MakeValid(ST_Simplify(geom, 0.01))
-                           WHEN ST_NPoints(geom) > 50000
-                                THEN ST_MakeValid(ST_Simplify(geom, 0.001))
-                           ELSE ST_MakeValid(geom)
-                       END AS geom
-                FROM jurisdictions
-                WHERE id IN ({$jidPlaceholders})
-                  AND geom IS NOT NULL AND deleted_at IS NULL
+                SELECT COALESCE(s.geom,
+                           CASE
+                               WHEN ST_NPoints(j.geom) > 1000000
+                                    THEN ST_MakeValid(ST_Simplify(j.geom, 0.01))
+                               WHEN ST_NPoints(j.geom) > 50000
+                                    THEN ST_MakeValid(ST_Simplify(j.geom, 0.001))
+                               ELSE ST_MakeValid(j.geom)
+                           END
+                       ) AS geom
+                FROM jurisdictions j
+                LEFT JOIN jurisdiction_simplified s ON s.jurisdiction_id = j.id
+                WHERE j.id IN ({$jidPlaceholders})
+                  AND j.geom IS NOT NULL AND j.deleted_at IS NULL
             ),
             union_cte AS (
                 SELECT ST_MakeValid(ST_Union(g.geom)) AS geom FROM g
@@ -1372,20 +1421,26 @@ class DistrictingService
             // ST_MakeValid handles self-intersections that simplification can
             // introduce on complex coastlines.
             $jidPh = implode(',', array_fill(0, count($jids), '?'));
+            // Pull-engine read path (2026-07-19, mechanics only): same
+            // simplify-cache COALESCE as the union CTE above — identical
+            // outputs, simplify paid once.
             $adjPairs = DB::select("
                 WITH g AS (
-                    SELECT id,
-                           CASE
-                               WHEN ST_NPoints(geom) > 1000000
-                                    THEN ST_MakeValid(ST_Simplify(geom, 0.01))
-                               WHEN ST_NPoints(geom) > 50000
-                                    THEN ST_MakeValid(ST_Simplify(geom, 0.001))
-                               ELSE geom
-                           END AS geom
-                    FROM jurisdictions
-                    WHERE id IN ({$jidPh})
-                      AND geom IS NOT NULL
-                      AND deleted_at IS NULL
+                    SELECT j.id,
+                           COALESCE(s.geom,
+                               CASE
+                                   WHEN ST_NPoints(j.geom) > 1000000
+                                        THEN ST_MakeValid(ST_Simplify(j.geom, 0.01))
+                                   WHEN ST_NPoints(j.geom) > 50000
+                                        THEN ST_MakeValid(ST_Simplify(j.geom, 0.001))
+                                   ELSE j.geom
+                               END
+                           ) AS geom
+                    FROM jurisdictions j
+                    LEFT JOIN jurisdiction_simplified s ON s.jurisdiction_id = j.id
+                    WHERE j.id IN ({$jidPh})
+                      AND j.geom IS NOT NULL
+                      AND j.deleted_at IS NULL
                 )
                 SELECT a.id AS a_id, b.id AS b_id
                 FROM g a
@@ -4104,6 +4159,33 @@ class DistrictingService
      */
     public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false): void
     {
+        // Pull-engine context (2026-07-19, mechanics only): a claimed scope
+        // worker heartbeats its OWN claim rows — never the whole legislature.
+        // Two scope workers can lawfully share one legislature (Earth root +
+        // China in parallel); a legislature-wide touch would keep a DEAD
+        // sibling's lease fresh forever (reclaim never fires), and a shared
+        // mass_progress cache key would garble the two workers' phase
+        // streams. The interactive mapper path below is unchanged.
+        if (\App\Support\AutoscaleContext::active()) {
+            try {
+                if (\App\Support\AutoscaleContext::$scopeId !== null) {
+                    \Illuminate\Support\Facades\DB::table('autoscale_scopes')
+                        ->where('id', \App\Support\AutoscaleContext::$scopeId)
+                        ->where('status', 'running')
+                        ->update(['updated_at' => now()]);
+                }
+                if (\App\Support\AutoscaleContext::$itemId !== null) {
+                    \Illuminate\Support\Facades\DB::table('autoscale_items')
+                        ->where('id', \App\Support\AutoscaleContext::$itemId)
+                        ->update(['updated_at' => now()]);
+                }
+            } catch (\Throwable) {
+                // Transient DB hiccup — the pump's reclaim margin absorbs it.
+            }
+
+            return;
+        }
+
         $key = "legislature.{$legislature_id}.mass_progress";
         $existing = $reset ? [] : (Cache::get($key, []) ?: []);
         if (! is_array($existing)) $existing = [];
@@ -4111,30 +4193,12 @@ class DistrictingService
             'last_update_at' => time(),
         ]), 7200);
 
-        // Liveness lease (autoscale 2026-07-18, non-law mechanics): a sweep
+        // Liveness lease (interactive sweeps, non-law mechanics): a sweep
         // that is publishing progress is alive — extend its mass_running flag
-        // so a multi-hour sweep never sheds it mid-run. The autoscale
-        // orchestrator reads flag ABSENCE on a 'running' item as worker death
-        // (its reclaim rule); without the refresh a >TTL sweep would be
-        // falsely reclaimed and double-run.
+        // so a multi-hour sweep never sheds it mid-run.
         $runKey = "legislature.{$legislature_id}.mass_running";
         if (Cache::get($runKey)) {
             Cache::put($runKey, true, 14400);
-        }
-
-        // DB-side heartbeat, UNCONDITIONAL: cache is wipeable (redis
-        // flush/restart mid-run) and the refresh above can never resurrect a
-        // lost flag — the item row's updated_at is the reclaim rule's durable
-        // signal, and it must keep beating precisely when the cache lease is
-        // gone. Indexed no-op unless an autoscale sweep owns this legislature.
-        try {
-            \Illuminate\Support\Facades\DB::table('autoscale_items')
-                ->where('legislature_id', $legislature_id)
-                ->where('status', 'running')
-                ->update(['updated_at' => now()]);
-        } catch (\Throwable) {
-            // Pre-migration box or transient DB hiccup — the cache lease
-            // still covers liveness.
         }
     }
 }

@@ -2035,15 +2035,18 @@ class SetupController extends Controller
         }
 
         // Live + review slices (names joined for the dashboard's tables).
-        $liveItems = DB::table('autoscale_items as ai')
-            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
-            ->where('ai.run_id', $run->id)
-            ->whereIn('ai.status', ['queued', 'running'])
-            ->orderBy('ai.position')
+        // Under the pull engine the live sweep view is the SCOPE list — the
+        // real in-flight work units (Earth's provinces show individually).
+        $liveItems = DB::table('autoscale_scopes as s')
+            ->join('jurisdictions as j', 'j.id', '=', 's.scope_jurisdiction_id')
+            ->join('autoscale_items as ai', 'ai.id', '=', 's.item_id')
+            ->where('s.run_id', $run->id)
+            ->where('s.status', 'running')
+            ->orderBy('s.started_at')
             ->limit(15)
             ->get([
-                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
-                'ai.kind', 'ai.status', 'ai.started_at',
+                's.legislature_id', 's.scope_jurisdiction_id as jurisdiction_id',
+                'ai.adm_level', 'ai.kind', 's.status', 's.started_at', 's.depth',
                 'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
             ]);
 
@@ -2086,15 +2089,90 @@ class SetupController extends Controller
                 DB::table('jurisdictions')->whereNull('deleted_at')->count());
         }
 
-        // Sweep rate from the mapping window → honest ETA (null early on).
-        $rate = null;
-        $etaSeconds = null;
-        if ($run->mapping_started_at !== null && (int) $run->sweeps_done > 0) {
-            $elapsed = max(1, $run->mapping_started_at->diffInSeconds(now()));
-            $rate    = (int) $run->sweeps_done / $elapsed; // sweeps per second
-            $remaining = max(0, (int) $run->sweeps_total - (int) $run->sweeps_done);
-            $etaSeconds = $rate > 0 ? (int) round($remaining / $rate) : null;
+        // LIVE mapping counters + per-ADM-layer bars — a fresh GROUP BY per
+        // poll (the Step-2 pattern: real numbers every 2 s, never the
+        // pump's once-a-minute denormalized copies). Index-only on
+        // autoscale_items_layers_idx.
+        $freshCounts = null;
+        $layers = [];
+        if (in_array($run->status, ['mapping', 'halted', 'done'], true)) {
+            $layerRows = DB::table('autoscale_items')
+                ->where('run_id', $run->id)
+                ->selectRaw("
+                    kind, adm_level,
+                    COUNT(*)                                                        AS total,
+                    COUNT(*) FILTER (WHERE status = 'done')                         AS done,
+                    COUNT(*) FILTER (WHERE status IN ('running','assessing'))       AS running,
+                    COUNT(*) FILTER (WHERE status IN ('review','failed'))           AS review
+                ")
+                ->groupBy('kind', 'adm_level')
+                ->orderByRaw('adm_level DESC, kind DESC')
+                ->get();
+
+            $singlesDoneLive = 0;
+            $sweepsDoneLive  = 0;
+            foreach ($layerRows as $row) {
+                if ($row->kind === 'single') {
+                    $singlesDoneLive += (int) $row->done;
+                } else {
+                    $sweepsDoneLive += (int) $row->done;
+                }
+                $layers[] = [
+                    'key'       => "{$row->kind}:{$row->adm_level}",
+                    'kind'      => $row->kind,
+                    'adm_level' => (int) $row->adm_level,
+                    'total'     => (int) $row->total,
+                    'done'      => (int) $row->done,
+                    'running'   => (int) $row->running,
+                    'review'    => (int) $row->review,
+                    'status'    => (int) $row->done >= (int) $row->total
+                        ? 'done'
+                        : (((int) $row->running > 0 || (int) $row->done > 0) ? 'running' : 'pending'),
+                ];
+            }
+            $freshCounts = ['singles_done' => $singlesDoneLive, 'sweeps_done' => $sweepsDoneLive];
         }
+
+        // Precompute bar (global worklist — shown once seeded).
+        $precompute = null;
+        if ($run->precompute_started_at !== null) {
+            $pc = DB::table('jurisdiction_adjacency_parents')
+                ->selectRaw("
+                    COUNT(*)                                        AS total,
+                    COUNT(*) FILTER (WHERE status = 'done')         AS done,
+                    COUNT(*) FILTER (WHERE status = 'running')      AS running,
+                    COUNT(*) FILTER (WHERE status = 'failed')       AS failed
+                ")
+                ->first();
+            $precompute = [
+                'total'   => (int) $pc->total,
+                'done'    => (int) $pc->done,
+                'running' => (int) $pc->running,
+                'failed'  => (int) $pc->failed,
+            ];
+        }
+
+        // Windowed rates (last 30 min) → honest per-track ETA. The whole-run
+        // average lied under bottom-up ordering (cheap leaves first).
+        $rateRow = DB::table('autoscale_items')
+            ->where('run_id', $run->id)
+            ->where('finished_at', '>', now()->subMinutes(30))
+            ->selectRaw("
+                COUNT(*) FILTER (WHERE kind = 'sweep'  AND status = 'done') AS sweeps_30m,
+                COUNT(*) FILTER (WHERE kind = 'single' AND status = 'done') AS singles_30m
+            ")
+            ->first();
+        $sweepsDoneNow = (int) ($freshCounts['sweeps_done'] ?? $run->sweeps_done);
+        $sweepRatePerH = round(((int) $rateRow->sweeps_30m) * 2.0, 1);
+        $etaSeconds = $sweepRatePerH > 0
+            ? (int) round((max(0, (int) $run->sweeps_total - $sweepsDoneNow) / $sweepRatePerH) * 3600)
+            : null;
+
+        // Live workers = lease rows seen in the last 2 minutes.
+        $workers = (int) DB::table('autoscale_worker_leases')
+            ->where('run_id', $run->id)
+            ->where('last_seen_at', '>', now()->subMinutes(2))
+            ->count();
 
         return response()->json([
             'run' => [
@@ -2104,34 +2182,31 @@ class SetupController extends Controller
                 'sized_parents'      => (int) $run->sized_parents,
                 'sized_leaves'       => (int) $run->sized_leaves,
                 'singles_total'      => (int) $run->singles_total,
-                'singles_done'       => (int) $run->singles_done,
+                'singles_done'       => (int) ($freshCounts['singles_done'] ?? $run->singles_done),
                 'sweeps_total'       => (int) $run->sweeps_total,
-                'sweeps_done'        => (int) $run->sweeps_done,
+                'sweeps_done'        => $sweepsDoneNow,
                 'review_count'       => (int) $run->review_count,
                 'last_error'         => $run->last_error,
                 'sizing_started_at'  => $run->sizing_started_at?->toIso8601String(),
                 'mapping_started_at' => $run->mapping_started_at?->toIso8601String(),
                 'finished_at'        => $run->finished_at?->toIso8601String(),
                 'heartbeat_at'       => $run->updated_at?->toIso8601String(),
-                'halt_requested'     => (bool) Cache::get(\App\Models\AutoscaleRun::HALT_CACHE_KEY),
-                'sweeps_per_hour'    => $rate !== null ? round($rate * 3600, 1) : null,
+                'halt_requested'     => $run->halt_requested_at !== null,
+                'paused_until'       => $run->paused_until?->toIso8601String(),
+                'sweeps_per_hour'    => $sweepRatePerH,
+                'singles_per_hour'   => round(((int) $rateRow->singles_30m) * 2.0, 1),
                 'eta_seconds'        => $etaSeconds,
                 'drifted_done'       => (int) ($driftRow->drifted ?? 0),
                 'net_drift'          => (int) ($driftRow->net_drift ?? 0),
                 'attention_count'    => (int) ($driftRow->attention ?? 0),
-                // The width governor (the system decides its own throughput):
-                // current busy-width vs the physics ceiling, and the host
-                // signal it steers by.
                 'sized_live'         => $sizedLive,
                 'sizing_total'       => $sizingTotal,
-                'width'              => \App\Support\AutoscaleGovernor::width(),
-                'width_ceiling'      => \App\Support\HostCapacity::workerCeiling(),
-                // Read-only view of the governor's last CPU sample — the web
-                // request must NOT advance the delta window the tick steers by.
-                'cpu_busy'           => is_array(Cache::get('autoscale.cpu_last_reading'))
-                    ? Cache::get('autoscale.cpu_last_reading')['busy'] ?? null
-                    : null,
+                // Pull engine: ONE concurrency limiter — the live worker pool.
+                'workers'            => $workers,
+                'workers_target'     => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
+            'layers'       => $layers,
+            'precompute'   => $precompute,
             'live_items'   => $liveItems,
             'review_items' => $reviewItems,
         ]);
@@ -2139,32 +2214,37 @@ class SetupController extends Controller
 
     /**
      * POST /api/setup/wizard/step3/autoscale-halt — operator halt for the
-     * full-scale run. The orchestrator parks at its next tick; in-flight
-     * sweeps stop at their next scope boundary (their per-scope commits
-     * survive — the run resumes from autoscale_items).
+     * full-scale run. DB-backed (pull engine): the pump parks the run within
+     * a minute and fans out the in-flight force flags; workers stop at their
+     * next claim boundary (per-scope commits survive — the run resumes from
+     * autoscale_items/autoscale_scopes).
      */
     public function autoscaleHalt(Request $request): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
-        Cache::put(\App\Models\AutoscaleRun::HALT_CACHE_KEY, true, 86400);
+
+        $run = \App\Models\AutoscaleRun::unfinished();
+        if ($run === null) {
+            return response()->json(['ok' => false, 'error' => 'No active autoscale run.'], 404);
+        }
+        $run->forceFill(['halt_requested_at' => now()])->save();
+        \Illuminate\Support\Facades\Artisan::call('autoscale:pump'); // park it now, not in a minute
+
         return response()->json(['ok' => true, 'halting' => true]);
     }
 
     /**
-     * POST /api/setup/wizard/step3/autoscale-resume — clear the halt flag and
-     * revive the newest unfinished run (accept-maps re-POST does the same;
-     * this is the dashboard's one-click version).
+     * POST /api/setup/wizard/step3/autoscale-resume — clear the DB halt flag;
+     * the pump (called inline for immediacy) rewinds the phase and re-seeds
+     * workers. With requeue_review a DONE run is revived to retry its
+     * review/failed items. Hand-fixed legislatures are safe: a requeued
+     * sweep item whose legislature now has an ACTIVE map with districts is
+     * ADOPTED, never re-swept.
      */
     public function autoscaleResume(Request $request): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
 
-        // Prefer an unfinished run; with requeue_review a DONE run can also
-        // be revived to retry its review/failed/halted items (the run flips
-        // back to mapping — the tick chain re-exits through the same
-        // completeness accounting). Hand-fixed legislatures are safe: a
-        // requeued sweep item whose legislature now has an ACTIVE map with
-        // districts is ADOPTED, never re-swept.
         $run = \App\Models\AutoscaleRun::unfinished()
             ?? ($request->boolean('requeue_review')
                 ? \App\Models\AutoscaleRun::query()->where('status', 'done')->orderByDesc('created_at')->first()
@@ -2174,18 +2254,29 @@ class SetupController extends Controller
         }
 
         if ($request->boolean('requeue_review')) {
-            DB::table('autoscale_items')
+            $requeued = DB::table('autoscale_items')
                 ->where('run_id', $run->id)
                 ->whereIn('status', ['review', 'failed', 'halted'])
-                ->update(['status' => 'pending', 'reason' => null, 'updated_at' => now()]);
+                ->pluck('id');
+            if ($requeued->isNotEmpty()) {
+                // Their scope trees are stale attempts — drop them; the pump's
+                // repair re-mints fresh root scopes within a minute.
+                DB::table('autoscale_scopes')->whereIn('item_id', $requeued)->delete();
+                DB::table('autoscale_items')
+                    ->whereIn('id', $requeued)
+                    ->update([
+                        'status' => 'pending', 'reason' => null,
+                        'claim_token' => null, 'updated_at' => now(),
+                    ]);
+            }
         }
 
         if ($run->status === 'done') {
             $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
         }
 
-        Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
-        \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
+        $run->forceFill(['halt_requested_at' => null])->save();
+        \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
 
         return response()->json(['ok' => true, 'run_id' => (string) $run->id]);
     }

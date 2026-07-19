@@ -22,7 +22,10 @@ class AutoscaleItem extends Model
 
     public const KINDS = ['sweep', 'single'];
 
-    public const STATUSES = ['pending', 'queued', 'running', 'done', 'review', 'halted', 'failed'];
+    // 'queued' and 'halted' are legacy (pre-pull-engine) values — still read,
+    // never written. 'assessing' = all scopes closed, completeness assessment
+    // + activation in flight (claimed atomically by exactly one worker).
+    public const STATUSES = ['pending', 'queued', 'running', 'assessing', 'done', 'review', 'halted', 'failed'];
 
     protected $table = 'autoscale_items';
 
@@ -45,6 +48,9 @@ class AutoscaleItem extends Model
         'reason',
         'started_at',
         'finished_at',
+        'map_id',
+        'child_count',
+        'claim_token',
     ];
 
     protected $casts = [
@@ -53,6 +59,7 @@ class AutoscaleItem extends Model
         'seats_expected' => 'integer',
         'seats_seated'   => 'integer',
         'drift'          => 'integer',
+        'child_count'    => 'integer',
         'started_at'     => 'datetime',
         'finished_at'    => 'datetime',
     ];

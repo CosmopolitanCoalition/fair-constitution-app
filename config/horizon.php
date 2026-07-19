@@ -236,38 +236,20 @@ return [
             'nice' => 0,
         ],
 
-        // Full-scale autoscale: 48k+ per-legislature sweep jobs after map-data
-        // acceptance. Width is HOST-DERIVED (operator ruling 2026-07-18: as
-        // fast as the host allows, no over- or under-utilization) — see
-        // HostCapacity::autoscaleWorkers(); CGA_AUTOSCALE_WORKERS overrides.
-        // timeout=0: a giant-country sweep can run for hours.
+        // Full-scale autoscale (pull engine, 2026-07-19): the process count
+        // here is THE ONE concurrency limiter — pull workers claim one unit
+        // at a time, so processes = concurrency. cores−2, capped 12
+        // (CGA_AUTOSCALE_WORKERS overrides). The width governor, per-job
+        // release() gate, and the orchestrator's tick lane are all retired.
+        // timeout=0: a monster-scope sweep can legitimately run for hours.
         'supervisor-autoscale' => [
             'connection' => 'redis-long',
             'queue' => ['autoscale'],
             'balance' => 'simple',
-            'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
+            'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
-            'tries' => 1,
-            'timeout' => 0,
-            'nice' => 5,
-        ],
-
-        // The orchestrator's tick chain rides its OWN one-worker lane: on the
-        // shared long-running lane a single interactive MassReseedJob (hours
-        // on a giant country) would park every tick — no wave top-ups, no
-        // singles levels, a dead-looking heartbeat. Ticks are seconds each
-        // except the one 1–2 h sizing tick; a per-run pg advisory lock (not
-        // this maxProcesses=1) is what guarantees single-writer phases.
-        'supervisor-autoscale-tick' => [
-            'connection' => 'redis-long',
-            'queue' => ['autoscale-tick'],
-            'balance' => 'simple',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 256,
             'tries' => 1,
             'timeout' => 0,
             'nice' => 5,
@@ -304,10 +286,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
-            ],
-            'supervisor-autoscale-tick' => [
-                'maxProcesses' => 1,
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,
@@ -322,10 +301,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::workerCeiling(),
-            ],
-            'supervisor-autoscale-tick' => [
-                'maxProcesses' => 1,
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,

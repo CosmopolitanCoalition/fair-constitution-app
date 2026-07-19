@@ -18,8 +18,6 @@ class AutoscaleRun extends Model
 
     public const STATUSES = ['queued', 'sizing', 'mapping', 'done', 'halted', 'failed'];
 
-    public const HALT_CACHE_KEY = 'autoscale.halt';
-
     protected $table = 'autoscale_runs';
 
     protected $keyType = 'string';
@@ -43,6 +41,11 @@ class AutoscaleRun extends Model
         'sizing_started_at',
         'mapping_started_at',
         'finished_at',
+        'halt_requested_at',
+        'paused_until',
+        'pg_fingerprint',
+        'sizing_lease_at',
+        'precompute_started_at',
     ];
 
     protected $casts = [
@@ -57,6 +60,10 @@ class AutoscaleRun extends Model
         'sizing_started_at'  => 'datetime',
         'mapping_started_at' => 'datetime',
         'finished_at'        => 'datetime',
+        'halt_requested_at'  => 'datetime',
+        'paused_until'       => 'datetime',
+        'sizing_lease_at'    => 'datetime',
+        'precompute_started_at' => 'datetime',
     ];
 
     public function items(): HasMany
@@ -67,6 +74,18 @@ class AutoscaleRun extends Model
     public function isActive(): bool
     {
         return in_array($this->status, ['queued', 'sizing', 'mapping'], true);
+    }
+
+    /** DB-backed operator halt (the retired Redis flag's replacement). */
+    public function haltRequested(): bool
+    {
+        return $this->halt_requested_at !== null;
+    }
+
+    /** pg-crash breaker: claims pause while this is in the future. */
+    public function isPaused(): bool
+    {
+        return $this->paused_until !== null && $this->paused_until->isFuture();
     }
 
     /** The run to resume, if any: newest non-terminal run. */

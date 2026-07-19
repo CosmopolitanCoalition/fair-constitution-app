@@ -551,8 +551,8 @@ class JurisdictionController extends Controller
      * Phase P.6 — operator clicks "Accept Map Data & Continue" on the
      * planet-scope viewer. Stamps `instance_settings.map_accepted_at`,
      * advances `setup_step_completed` to 2, and starts the full-scale
-     * AUTOSCALE run (AutoscaleOrchestratorJob): every jurisdiction gets a
-     * sized legislature and a founding district map.
+     * AUTOSCALE run (pull engine: pump + claim workers): every jurisdiction
+     * gets a sized legislature and a founding district map.
      *
      * Idempotent: re-clicking after acceptance no-ops on a live run and
      * RESUMES a stalled or halted one.
@@ -583,9 +583,9 @@ class JurisdictionController extends Controller
                 // (fresh heartbeat) is left alone.
                 $unfinished = \App\Models\AutoscaleRun::unfinished();
                 if ($unfinished !== null) {
-                    $heartbeatFresh = $unfinished->updated_at !== null
-                        && $unfinished->updated_at->gt(now()->subMinutes(15));
-                    if ($unfinished->status !== 'halted' && $heartbeatFresh) {
+                    if ($unfinished->status !== 'halted' && ! $unfinished->haltRequested()) {
+                        // Pull engine: an active run needs no revival — the
+                        // pump is its liveness root. Nothing to dispatch.
                         return ['response' => response()->json([
                             'ok' => true,
                             'already_accepted' => true,
@@ -593,14 +593,16 @@ class JurisdictionController extends Controller
                             'autoscale_status' => $unfinished->status,
                         ])];
                     }
-                    \Illuminate\Support\Facades\Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
-                    \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $unfinished->id);
+                    $unfinished->forceFill(['halt_requested_at' => null])->save();
+                    // Pump kick happens AFTER this locked transaction commits
+                    // (see below) — never hold the instance_settings row lock
+                    // through pump work.
                     return ['response' => response()->json([
                         'ok' => true,
                         'already_accepted' => true,
                         'autoscale_resumed' => true,
                         'autoscale_run_id' => (string) $unfinished->id,
-                    ])];
+                    ]), 'kick_pump' => true];
                 }
 
                 return ['response' => response()->json([
@@ -646,28 +648,31 @@ class JurisdictionController extends Controller
         });
 
         if (isset($gate['response'])) {
+            if ($gate['kick_pump'] ?? false) {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
+                } catch (\Throwable) {
+                    // The scheduler's next pump minute resumes it anyway.
+                }
+            }
+
             return $gate['response'];
         }
         $instance  = $gate['instance'];
         $openFlags = $gate['open_flags'];
 
-        // AUTOSCALE (operator ruling 2026-07-18): acceptance kicks off
-        // governance for ALL jurisdictions — the orchestrator sizes every
-        // legislature (TRUE ALL SCALE, adm6 villages included) and
-        // district-maps every one (48k mixed-autoseed sweeps + ~903k
-        // set-based single-district leaf councils). This replaces the old
-        // bare Artisan::queue('apportionment:seed') dispatch, which (a) only
-        // seeded the planet root's direct children and (b) rode the DEFAULT
-        // queue whose 60 s timeout would SIGKILL any full-scale run.
-        //
-        // The run row + autoscale_items are the durable state: the Step-3
-        // dashboard polls it, and a re-POST here resumes an interrupted run.
+        // AUTOSCALE (pull engine, 2026-07-19): acceptance kicks off
+        // governance for ALL jurisdictions — sizing every legislature (TRUE
+        // ALL SCALE, adm6 villages included) and district-mapping every one
+        // (48k mixed-autoseed sweeps + ~903k set-based single-district leaf
+        // councils). The run row + items/scopes are the durable state; the
+        // scheduler's every-minute pump is the run's liveness root, and the
+        // inline pump call below just skips the first minute of waiting.
         try {
             // Accept → reopen → repairs → accept-again must not mint a SECOND
-            // run: two runs' waves would concurrently _all-sweep the same
-            // Founding Maps. An unfinished run (paused by reopenMaps' halt)
-            // resumes instead. The orchestrator's newest-yields dedupe
-            // backstops the remaining ms-window against a racing CLI start.
+            // run: an unfinished run (paused by reopenMaps' halt) resumes
+            // instead. The pump's oldest-wins dedupe backstops the remaining
+            // ms-window against a racing CLI start.
             $run = \App\Models\AutoscaleRun::unfinished();
             if ($run === null) {
                 $run = \App\Models\AutoscaleRun::create([
@@ -676,14 +681,15 @@ class JurisdictionController extends Controller
                     'initiator_user_id' => $request->user()?->getKey(),
                     'template'          => null, // constitutional default per legislature
                 ]);
+            } else {
+                $run->forceFill(['halt_requested_at' => null])->save();
             }
-            \Illuminate\Support\Facades\Cache::forget(\App\Models\AutoscaleRun::HALT_CACHE_KEY);
-            \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
+            \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
         } catch (\Throwable $e) {
-            // Don't fail the acceptance — the operator can start the run
-            // manually (`php artisan districting:autoscale`) if Horizon is down.
+            // Don't fail the acceptance — the scheduler's next pump minute
+            // starts the run anyway.
             \Illuminate\Support\Facades\Log::warning(
-                'Autoscale dispatch failed (acceptance still recorded): '.$e->getMessage()
+                'Autoscale pump kick failed (acceptance still recorded): '.$e->getMessage()
             );
             $run = null;
         }
@@ -737,8 +743,14 @@ class JurisdictionController extends Controller
         // would build on rows the operator is retiring. The next acceptance
         // clears the flag and resumes the run.
         $halted = false;
-        if (\App\Models\AutoscaleRun::unfinished() !== null) {
-            \Illuminate\Support\Facades\Cache::put(\App\Models\AutoscaleRun::HALT_CACHE_KEY, true, 86400);
+        $unfinished = \App\Models\AutoscaleRun::unfinished();
+        if ($unfinished !== null) {
+            $unfinished->forceFill(['halt_requested_at' => now()])->save();
+            try {
+                \Illuminate\Support\Facades\Artisan::call('autoscale:pump'); // park it now
+            } catch (\Throwable) {
+                // The scheduler's next pump minute parks it anyway.
+            }
             $halted = true;
         }
 
