@@ -161,6 +161,79 @@ class PopulationRaster
     }
 
     /**
+     * SUB-PIXEL DIVISION (operator ruling 2026-07-19): a district boundary
+     * is vector geometry — only the MEASUREMENT was pixel-atomic. For
+     * scopes below this many native pixels, each pixel is divided into a
+     * 4×4 grid of subcells carrying value/16 at fixed offsets from the
+     * tile's own scale: between-pixel density structure is preserved (what
+     * WorldPop knows), within-pixel mass is uniform by area (the honest
+     * limit of the data). The planner's blades/cells and the F-ELB-008
+     * measurement both run on the SAME subcell basis, so a plan can never
+     * be refused by a coarser scorekeeper. Deterministic from geometry +
+     * pixel values + tile scale.
+     */
+    public const SUBPIXEL_THRESHOLD = 400;
+
+    /** Is this scope in the sub-resolution class? Memoized per process. */
+    public function subResolution(string $scopeId, int $year = 2023): bool
+    {
+        static $memo = [];
+        $key = "{$scopeId}.{$year}";
+        if (! isset($memo[$key])) {
+            $memo[$key] = $this->hasRasterCoverage($scopeId, $year)
+                && count($this->pixelGrid($scopeId, $year)) < self::SUBPIXEL_THRESHOLD;
+        }
+
+        return $memo[$key];
+    }
+
+    /** The scope's raster tile scale [sx, sy] (degrees per pixel). */
+    private function tileScale(string $scopeId, int $year): array
+    {
+        static $memo = [];
+        $key = "{$scopeId}.{$year}";
+        if (! isset($memo[$key])) {
+            $row = DB::selectOne(
+                'SELECT ST_ScaleX(r.rast) AS sx, ST_ScaleY(r.rast) AS sy
+                   FROM worldpop_rasters r
+                   JOIN jurisdictions g ON g.id = ?
+                  WHERE r.iso_code = g.iso_code AND r.year = ?::smallint
+                  LIMIT 1',
+                [$scopeId, $year]
+            );
+            $memo[$key] = [
+                abs((float) ($row->sx ?? 0.000833)) ?: 0.000833,
+                abs((float) ($row->sy ?? 0.000833)) ?: 0.000833,
+            ];
+        }
+
+        return $memo[$key];
+    }
+
+    /**
+     * The 4×4 subcell expansion of a native pixel grid: 16 points per
+     * pixel at ±{1,3}/8 of the scale, each carrying value/16.
+     *
+     * @param  list<array{0: float, 1: float, 2: float}>  $pixels
+     * @return list<array{0: float, 1: float, 2: float}>
+     */
+    private function subdividePixels(array $pixels, float $sx, float $sy): array
+    {
+        $offs = [-0.375, -0.125, 0.125, 0.375];
+        $out = [];
+        foreach ($pixels as [$x, $y, $v]) {
+            $v16 = $v / 16.0;
+            foreach ($offs as $ox) {
+                foreach ($offs as $oy) {
+                    $out[] = [$x + $ox * $sx, $y + $oy * $sy, $v16];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * The scope's raster mass over its own geometry + its stored population
      * — the two oracles every measurement reconciles. Memoized per process.
      *
@@ -256,7 +329,17 @@ class PopulationRaster
     public function gridWithFallback(string $scopeId, int $year = 2023): array
     {
         if ($this->hasRasterCoverage($scopeId, $year)) {
-            return $this->pixelGrid($scopeId, $year);
+            $pixels = $this->pixelGrid($scopeId, $year);
+            if (count($pixels) < self::SUBPIXEL_THRESHOLD) {
+                // The resolution floor: cut below the pixel (operator
+                // ruling 2026-07-19) — a handful of atomic pixels cannot
+                // balance a lawful split; their area-divided subcells can.
+                [$sx, $sy] = $this->tileScale($scopeId, $year);
+
+                return $this->subdividePixels($pixels, $sx, $sy);
+            }
+
+            return $pixels;
         }
 
         return $this->areaGrid($scopeId, $year);
@@ -284,6 +367,31 @@ class PopulationRaster
             // as the planner balanced it instead of being band-refused by
             // the offset.
             [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
+
+            // Sub-resolution scopes measure on the SAME subcell basis the
+            // planner cut on — the piece's share of the subdivided grid's
+            // mass (pixel-atomic SQL would re-coarsen the scorekeeping and
+            // refuse the very cuts the subcells made lawful).
+            if ($this->subResolution($scopeId, $year)) {
+                $grid = $this->gridWithFallback($scopeId, $year);
+                $gridTotal = 0.0;
+                foreach ($grid as [, , $v]) {
+                    $gridTotal += $v;
+                }
+                $pieceSum = (float) (DB::selectOne(
+                    "SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
+                       FROM jsonb_array_elements(?::jsonb) AS c
+                      WHERE ST_Contains(ST_MakeValid(ST_GeomFromGeoJSON(?)),
+                                        ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326))",
+                    [json_encode($grid), $geoJson]
+                )->s ?? 0);
+                $pop = ($gridTotal > 0 && $storedPop > 0)
+                    ? (int) round($storedPop * $pieceSum / $gridTotal)
+                    : (int) round($pieceSum);
+
+                return ['pop' => $pop, 'source' => 'worldpop_raster'];
+            }
+
             $pieceRaw = $this->populationWithinMulti($geoJson, $year);
             $pop = ($rasterPop > 0 && $storedPop > 0)
                 ? (int) round($storedPop * $pieceRaw / $rasterPop)
