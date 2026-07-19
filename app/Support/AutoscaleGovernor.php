@@ -157,18 +157,28 @@ class AutoscaleGovernor
         return $dTotal > 0 ? max(0.0, min(1.0, 1.0 - $dIdle / $dTotal)) : null;
     }
 
-    /** Crash signal: pg_postmaster_start_time moved since the last tick. */
+    /**
+     * Crash signal, TWO detectors (live lesson 2026-07-19 00:02): a BACKEND
+     * OOM-kill puts the whole cluster through crash recovery WITHOUT
+     * restarting the postmaster — pg_postmaster_start_time alone misses it.
+     * pg_stat_database.stats_reset moves on crash recovery, so either
+     * fingerprint changing means the host said the strongest word it has.
+     */
     private static function pgRestartedSinceLastTick(): bool
     {
         try {
-            $started = (string) DB::scalar('SELECT pg_postmaster_start_time()');
+            $fingerprint = (string) DB::scalar(
+                "SELECT pg_postmaster_start_time()::text || '|' ||
+                        COALESCE((SELECT stats_reset::text FROM pg_stat_database
+                                   WHERE datname = current_database()), 'none')"
+            );
         } catch (\Throwable) {
             return false; // unreachable DB is its own storm — don't compound it
         }
 
         $previous = Cache::get(self::PG_START_CACHE_KEY);
-        Cache::put(self::PG_START_CACHE_KEY, $started, 86400);
+        Cache::put(self::PG_START_CACHE_KEY, $fingerprint, 86400);
 
-        return $previous !== null && $previous !== $started;
+        return $previous !== null && $previous !== $fingerprint;
     }
 }
