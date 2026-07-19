@@ -206,12 +206,29 @@ class AutoscalePinTest extends TestCase
 
             // ── Pin 6: durable run state + summary audits ─────────────────
             $this->assertSame(count($ctx['leaves']), (int) $run->singles_done);
-            $this->assertSame(3, (int) $run->sweeps_done, 'Pin Earth + Pinland + Quarter 1 complete');
+            $this->assertSame(5, (int) $run->sweeps_done, 'Earth + Pinland + Quarter 1 + Domland + Dom Province complete');
             $this->assertSame(1, (int) $run->review_count, 'Brokenland is the one review item');
-            $this->assertSame(4, (int) $run->sweeps_total);
+            $this->assertSame(6, (int) $run->sweeps_total);
             $this->assertNotNull($run->finished_at);
 
-            $this->assertSame(3, (int) DB::table('audit_log')
+            // ── THE ONE-FRAME PIN (2026-07-19): Dom Core — a LOCAL giant of
+            // Dom Province, sub-threshold in the root frame — gets its own
+            // line-split scope. The old root-flat-share walk stranded it.
+            $domlandLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['domland_id'])->whereNull('deleted_at')->value('id');
+            $domlandItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $domlandLegId)->first();
+            $this->assertSame('done', $domlandItem->status,
+                'the one-frame walk completes the dominant-child scope instead of stranding it');
+            $domlandMapId = DB::table('legislature_district_maps')
+                ->where('legislature_id', $domlandLegId)->where('name', 'Founding Map')->whereNull('deleted_at')->value('id');
+            $this->assertGreaterThanOrEqual(2, (int) DB::table('district_subdivisions')
+                ->where('map_id', $domlandMapId)
+                ->where('parent_jurisdiction_id', $ctx['dom_core_id'])
+                ->whereNull('deleted_at')->count(),
+                'Dom Core is line-split within its own local-frame budget (cascade, not root flat share)');
+            $this->assertStringNotContainsString('unassigned', (string) $domlandItem->reason,
+                'no constituent is stranded between frames');
+
+            $this->assertSame(5, (int) DB::table('audit_log')
                 ->where('event', 'district_map.generated')
                 ->where('payload->generator', 'like', '%AutoscaleLegislatureJob%')
                 ->count(), 'EXACTLY one summary audit entry per completed sweep — never a flood, never silent');
@@ -392,14 +409,42 @@ class AutoscalePinTest extends TestCase
         $midgets['Pin Midget A'] = $mkJur('Pin Midget A', $earthId, 1, 5000, [15.0, 50.0, 15.2, 50.2], self::ISO_OK);
         $midgets['Pin Midget B'] = $mkJur('Pin Midget B', $earthId, 1, 5000, [15.2, 50.0, 15.4, 50.2], self::ISO_OK);
 
-        // Synthetic WorldPop tile over the ZZA giant strip only: 80×20 cells
-        // of 0.005°, 7.5 people each → exactly 12 000. ZZB has NO raster —
-        // its line split must refuse, engineering the review case.
+        // Domland — THE ONE-FRAME PIN (the Saint-Pierre/Kozhikode shape):
+        // Dom Province (96k, giant → its own scope, cascade budget ~44) has
+        // a COVERAGE GAP (children sum 20k), so its local quota is
+        // 20k/44 ≈ 455 — Dom Core (19k) is a LOCAL giant (frac ≈ 41.8)
+        // while far below the ROOT frame's threshold (19k×46/100k ≈ 8.7 <
+        // 9.5). The old root-flat-share walk gave it NO scope: a giant to
+        // the composite, invisible to the scope list, territory stranded.
+        // Under the one-frame law it is a childless line-split scope with
+        // the cascade's budget.
+        $domlandId = $mkJur('Domland', $earthId, 1, 100000, [70.0, 50.0, 71.0, 51.0], self::ISO_OK);
+        $domProvinceId = $mkJur('Dom Province', $domlandId, 2, 96000, [70.0, 50.0, 70.5, 51.0], self::ISO_OK);
+        $domCoreId = $mkJur('Dom Core', $domProvinceId, 3, 19000, [70.0, 50.0, 70.2, 50.1], self::ISO_OK);
+        $domLeaves = [];
+        $domLeaves['Dom Edge'] = $mkJur('Dom Edge', $domProvinceId, 3, 1000, [70.3, 50.5, 70.35, 50.55], self::ISO_OK);
+        $domLeaves['Dom Isle A'] = $mkJur('Dom Isle A', $domlandId, 2, 2000, [70.6, 50.0, 70.8, 50.2], self::ISO_OK);
+        $domLeaves['Dom Isle B'] = $mkJur('Dom Isle B', $domlandId, 2, 2000, [70.8, 50.0, 71.0, 50.2], self::ISO_OK);
+        $domLeaves['Dom Core'] = $domCoreId;
+
+        // Synthetic WorldPop tiles (ZZA): the Pinland giant strip (80×20
+        // cells of 0.005°, 7.5 each → exactly 12 000) AND Dom Core (40×20
+        // cells, 23.75 each → exactly 19 000) so both line splits run for
+        // real. ZZB has NO raster — its line split must refuse, engineering
+        // the review case.
         DB::insert(
             "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
              VALUES (?, ?, 2023, 100,
                      ST_AddBand(ST_MakeEmptyRaster(80, 20, 10.0, 50.1, 0.005, -0.005, 0, 0, 4326),
                                 '32BF'::text, 7.5, NULL),
+                     ?)",
+            [(string) Str::uuid(), self::ISO_OK, $now]
+        );
+        DB::insert(
+            "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
+             VALUES (?, ?, 2023, 100,
+                     ST_AddBand(ST_MakeEmptyRaster(40, 20, 70.0, 50.1, 0.005, -0.005, 0, 0, 4326),
+                                '32BF'::text, 23.75, NULL),
                      ?)",
             [(string) Str::uuid(), self::ISO_OK, $now]
         );
@@ -418,19 +463,23 @@ class AutoscalePinTest extends TestCase
         ]);
 
         return [
-            'earth_id'      => $earthId,
-            'pinland_id'    => $pinlandId,
-            'brokenland_id' => $brokenlandId,
-            'quarter1_id'   => $quarter1Id,
-            'pin_giant_id'  => $pinGiantId,
-            'operator_id'   => $operatorId,
-            'parents'       => [
+            'earth_id'       => $earthId,
+            'pinland_id'     => $pinlandId,
+            'brokenland_id'  => $brokenlandId,
+            'quarter1_id'    => $quarter1Id,
+            'pin_giant_id'   => $pinGiantId,
+            'domland_id'     => $domlandId,
+            'dom_core_id'    => $domCoreId,
+            'operator_id'    => $operatorId,
+            'parents'        => [
                 'Pin Earth'     => $earthId,
                 'Pinland'       => $pinlandId,
                 'Brokenland'    => $brokenlandId,
                 'Pin Quarter 1' => $quarter1Id,
+                'Domland'       => $domlandId,
+                'Dom Province'  => $domProvinceId,
             ],
-            'leaves'        => $quarters + $brokenQuarters + $midgets + $villages + [
+            'leaves'         => $quarters + $brokenQuarters + $midgets + $villages + $domLeaves + [
                 'Pin Giant Strip'    => $pinGiantId,
                 'Broken Giant Strip' => $brokenGiantId,
             ],

@@ -152,31 +152,34 @@ class ManualDistrictDraw implements FormHandler
 
         $floor = ConstitutionalDefaults::floor($leg->jurisdiction_id);
         $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
-        $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
 
-        // The scope must be a CHILDLESS LEAF GIANT — manual draw exists for no
-        // other case (composite districts every child-bearing scope).
-        $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
-        $totalSeats = max((int) $leg->type_a_seats, 1);
-        $giantPop = (int) $giant->population;
-        $giantFrac = $giantPop * $totalSeats / $rootPop;
-
-        $childCount = (int) DB::table('jurisdictions')
-            ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-
-        if ($giantFrac < $giantThreshold || $childCount > 0) {
+        // The scope must be a CHILDLESS LEAF GIANT — manual draw exists for
+        // no other case (composite districts every child-bearing scope).
+        // ONE-FRAME LAW (2026-07-19): the test + budget are the SHARED
+        // detector's (LeafGiantResolver::context → the cascade's local
+        // frame), so the handler, the panel, and the mass sweep can never
+        // disagree about what a leaf giant is. The old root-flat-share test
+        // refused nested giants (a child dominating a sub-scope) that the
+        // composite had lawfully excluded — territory with no path to a
+        // district. Direct children of the root are unchanged (the root's
+        // local frame IS the root frame).
+        $ctx = app(\App\Services\Districting\LeafGiantResolver::class)
+            ->context($legislatureId, $scopeId);
+        if ($ctx === null) {
+            $childCount = (int) DB::table('jurisdictions')
+                ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
             throw new ConstitutionalViolation(
-                "{$giant->name} is not a childless leaf giant (fractional seats "
-                .number_format($giantFrac, 2).' vs threshold '.number_format($giantThreshold, 1)
-                .", {$childCount} children) — manual line-drawing applies only to the case "
+                "{$giant->name} is not a childless leaf giant at its parent's scope "
+                ."({$childCount} children) — manual line-drawing applies only to the case "
                 .'composite cannot: a giant with no children.',
                 'Art. II §8'
             );
         }
 
-        // Whole seat budget the giant divides into (the LegislatureController clamp:
-        // round(fractional_seats)) and the local quota for the pieces.
-        $S = max($floor, (int) round($giantFrac));
+        // Whole seat budget the giant divides into (the cascade budget) and
+        // the local quota for the pieces.
+        $giantPop = (int) $giant->population;
+        $S = (int) $ctx['budget'];
         $quota = $giantPop / max($S, 1);
 
         // Geometry validation in one round-trip: contiguity, within the giant,

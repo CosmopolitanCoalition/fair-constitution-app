@@ -203,6 +203,61 @@ class DistrictingService
     }
 
     /**
+     * THE ONE-FRAME LAW (2026-07-19 — the share-base unification one layer
+     * up): gianthood at a scope is judged in the SCOPE'S OWN frame — the
+     * same children-sum denominator and cascade budget computeSeatBudget()
+     * locks giants with — never the root's flat share. Every surface that
+     * enumerates scopes (the mass sweep's walk, the wizard stepper, the
+     * autoscale completeness assessor, the F-ELB-008 leaf-giant test) reads
+     * THIS helper, so a child that dominates its parent (Kozhikode/Kerala,
+     * Saint-Pierre/Réunion) can never again be a giant to the composite yet
+     * invisible to the scope list. READ-ONLY EXPOSURE of the settled
+     * cascade — no seat math changes (Calc-A frac, ≥ ceiling+0.5, nearest,
+     * floor clamp — identical arithmetic to the cascade path above).
+     *
+     * @return array<string, int> geometry-bearing giant child id => cascade budget
+     */
+    public function giantChildrenForScope(string $scopeId, string $legislatureId): array
+    {
+        $budget = $this->computeSeatBudget($scopeId, $legislatureId);
+        if ($budget === null || $budget <= 0) {
+            return [];
+        }
+
+        $leg = $this->getLegislature($legislatureId);
+        if (! $leg) {
+            return [];
+        }
+        $threshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
+        $floor     = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+
+        // Denominator: ALL live children (matching the cascade's
+        // parentChildrenPop); output: geometry-bearing giants only — a
+        // geomless giant cannot be a scope (it stays the assessor's honest
+        // review flag, never silently dropped from the math).
+        $children = DB::table('jurisdictions')
+            ->where('parent_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->get(['id', 'population', DB::raw('(geom IS NOT NULL) AS has_geom')]);
+
+        $childSum = (int) $children->sum('population');
+        if ($childSum <= 0) {
+            return [];
+        }
+
+        $quota = $childSum / max($budget, 1);
+        $out = [];
+        foreach ($children as $c) {
+            $frac = ((int) $c->population) / max($quota, 1);
+            if ($frac >= $threshold && $c->has_geom) {
+                $out[(string) $c->id] = max($floor, (int) round($frac));
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Core auto-composite algorithm for a single scope.
      *
      * Caller is responsible for the DB transaction boundary. Colors are

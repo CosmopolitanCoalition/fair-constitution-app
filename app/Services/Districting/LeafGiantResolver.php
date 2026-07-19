@@ -84,31 +84,36 @@ class LeafGiantResolver
             return null;
         }
         $giant = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
-        if ($giant === null || $giant->geom === null) {
-            return null;
+        if ($giant === null || $giant->geom === null || $giant->parent_id === null) {
+            return null; // the legislature root is never a leaf giant
         }
 
-        $floor          = ConstitutionalDefaults::floor($leg->jurisdiction_id);
-        $ceiling        = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
-        $giantThreshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
-
-        $rootPop    = self::shareBase((string) $leg->jurisdiction_id);
-        $totalSeats = max((int) $leg->type_a_seats, 1);
-        $giantPop   = (int) $giant->population;
-        $giantFrac  = $giantPop * $totalSeats / $rootPop;
         $childCount = (int) DB::table('jurisdictions')->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-
-        if ($giantFrac < $giantThreshold || $childCount > 0) {
+        if ($childCount > 0) {
             return null;
         }
 
-        $budget = max($floor, (int) round($giantFrac));
+        // ONE-FRAME LAW (2026-07-19): gianthood + budget come from the
+        // PARENT scope's local frame — the cascade's own classification
+        // (giantChildrenForScope) — never the root flat share, which went
+        // blind to any child dominating a sub-scope (Saint-Pierre/Réunion).
+        // For direct children of the root the two frames coincide, so every
+        // previously working case is unchanged.
+        $giants = app(\App\Services\DistrictingService::class)
+            ->giantChildrenForScope((string) $giant->parent_id, $legislatureId);
+        if (! isset($giants[$scopeId])) {
+            return null;
+        }
+
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+        $budget  = (int) $giants[$scopeId];
 
         return [
             'floor'   => $floor,
             'ceiling' => $ceiling,
             'budget'  => $budget,
-            'quota'   => $giantPop / max($budget, 1),
+            'quota'   => ((int) $giant->population) / max($budget, 1),
         ];
     }
 

@@ -494,18 +494,51 @@ class GeodataRemediationService
     }
 
     /**
-     * Synthesize the REMAINDER child for one coverage-gapped parent
-     * (geometry = parent − children-union, population = parent −
-     * children-sum) — the per-parent replay form of
-     * geodata:synthesize-remainders (which bulk-derives the same repair;
-     * keep the CTE and thresholds in lockstep with that command). Refuses
-     * the settled population-noise class: children that tile the territory
-     * leave no geometric remainder to hold.
+     * Synthesize the REMAINDER children for one coverage-gapped parent —
+     * COMPONENT-AWARE (run-3 finding: 1,206 of 1,504 single-child
+     * remainders were multi-part swiss cheese, worst 2,116 fragments, and
+     * the line-splitter lawfully refuses such geometry).
+     *
+     * The remainder (parent − children-union) is ST_Dump'd; each connected
+     * component with material population (≥ $minPop, raster-sampled via
+     * population_within_multi, area-proportional fallback) or material area
+     * (≥ $minAreaFrac of the parent) becomes its OWN child; all remaining
+     * crumbs aggregate into ONE multi-part "Scattered Remainder" child,
+     * which is small by construction and composites/rides as a fragment
+     * under the existing doctrine. Component populations are scaled so
+     * their sum is EXACTLY parent − children-sum: legislature sizing input
+     * is unchanged by construction.
+     *
+     * Refuses the settled population-noise class (children tile the
+     * territory → no geometric remainder). Window contract: fresh synthesis
+     * is a repair (window must be open); $requireWindow=false is the
+     * RESPLIT path, which touches ONLY synthetic rows this plane created —
+     * it requires the autoscale run to be parked, not the acceptance
+     * window reopened.
      */
-    public function synthesizeRemainder(?GeodataFlag $flag, string $parentSlug, ?string $note, ?string $actorId, float $minAreaFrac = 0.02): GeodataRepair
-    {
-        return DB::transaction(function () use ($flag, $parentSlug, $note, $actorId, $minAreaFrac) {
-            $this->assertRepairWindowOpen();
+    public function synthesizeRemainder(
+        ?GeodataFlag $flag,
+        string $parentSlug,
+        ?string $note,
+        ?string $actorId,
+        float $minAreaFrac = 0.02,
+        int $minPop = 10000,
+        bool $requireWindow = true,
+    ): GeodataRepair {
+        return DB::transaction(function () use ($flag, $parentSlug, $note, $actorId, $minAreaFrac, $minPop, $requireWindow) {
+            if ($requireWindow) {
+                $this->assertRepairWindowOpen();
+            } else {
+                // Resplit safety: synthetic-row surgery only, never while the
+                // autoscale machinery could be sweeping the affected scopes.
+                $active = DB::table('autoscale_runs')
+                    ->whereIn('status', ['queued', 'sizing', 'mapping'])
+                    ->exists();
+                if ($active) {
+                    throw new \InvalidArgumentException('Resplit requires the autoscale run to be halted first.');
+                }
+            }
+
             $parent = $this->liveRowBySlug($parentSlug);
 
             $existing = DB::table('jurisdictions')
@@ -521,59 +554,153 @@ class GeodataRemediationService
                 ->where('parent_id', $parent->id)->whereNull('deleted_at')->sum('population');
             $remainderPop = max(0, (int) $parent->population - $childSum);
 
-            $id = (string) \Illuminate\Support\Str::uuid();
-            $inserted = DB::insert('
+            // Components, server-side (geometry never round-trips PDO):
+            // area + raster-sampled population per connected component.
+            DB::statement('DROP TABLE IF EXISTS _rem_comp');
+            DB::statement('
+                CREATE TEMP TABLE _rem_comp AS
                 WITH kids AS (
                     SELECT ST_MakeValid(ST_Union(geom)) AS g
                       FROM jurisdictions
                      WHERE parent_id = ? AND deleted_at IS NULL AND geom IS NOT NULL
                 ),
                 diff AS (
-                    SELECT ST_Multi(ST_CollectionExtract(
+                    SELECT ST_CollectionExtract(
                                ST_MakeValid(ST_Difference((SELECT geom FROM jurisdictions WHERE id = ?), kids.g)), 3
-                           )) AS g
+                           ) AS g
                       FROM kids
+                ),
+                comp AS (
+                    SELECT (ST_Dump(g)).geom AS geom FROM diff WHERE g IS NOT NULL AND NOT ST_IsEmpty(g)
                 )
-                INSERT INTO jurisdictions
-                    (id, name, slug, iso_code, adm_level, parent_id, population,
-                     is_active, is_civic_active, source, parent_assigned_via,
-                     official_languages, timezone, geom, centroid, created_at, updated_at)
-                SELECT ?, ?, ?, ?, ?, ?, ?, true, true, \'synthesized-remainder\', \'remainder_synthesis\',
-                       \'[]\', \'UTC\', d.g, ST_PointOnSurface(d.g), now(), now()
-                  FROM diff d
-                 WHERE d.g IS NOT NULL AND NOT ST_IsEmpty(d.g)
-                   AND ST_Area(d.g) >= ? * ST_Area((SELECT geom FROM jurisdictions WHERE id = ?))
-            ', [
-                $parent->id, $parent->id,
-                $id,
-                mb_substr($parent->name, 0, 200).' (Remainder)',
-                \Illuminate\Support\Str::slug($parent->slug.'-remainder-'.substr($id, 0, 8)),
-                $parent->iso_code,
-                (int) $parent->adm_level + 1,
-                $parent->id,
-                $remainderPop,
-                $minAreaFrac, $parent->id,
-            ]);
+                SELECT row_number() OVER (ORDER BY ST_Area(geom) DESC) AS ord,
+                       geom,
+                       ST_Area(geom) AS area,
+                       CASE WHEN ST_Area(geom) > 1e-9
+                            THEN COALESCE(population_within_multi(ST_Multi(geom), 2023::smallint), 0)
+                            ELSE 0 END AS sampled_pop
+                  FROM comp
+            ', [$parent->id, $parent->id]);
 
-            $created = DB::table('jurisdictions')->where('id', $id)->exists();
-            if (! $created) {
+            $stats = DB::selectOne('
+                SELECT COUNT(*)::int AS n, COALESCE(SUM(area),0) AS total_area,
+                       COALESCE(SUM(sampled_pop),0) AS total_sampled,
+                       COALESCE((SELECT ST_Area(geom) FROM jurisdictions WHERE id = ?), 0) AS parent_area
+                  FROM _rem_comp
+            ', [$parent->id]);
+
+            if ((int) $stats->n === 0
+                || ($stats->parent_area > 0 && $stats->total_area < $minAreaFrac * $stats->parent_area && $remainderPop < $minPop)) {
+                DB::statement('DROP TABLE IF EXISTS _rem_comp');
                 throw new \InvalidArgumentException(
                     "[{$parentSlug}] has no material geometric remainder — its children tile the territory "
                     .'(the settled population-noise class is never synthesized).'
                 );
             }
 
+            // Allocate the EXACT remainder population across components by
+            // raster weight (area weight when no raster covers the region).
+            $useArea = ((float) $stats->total_sampled) <= 0;
+            $comps = DB::select('SELECT ord, area, sampled_pop FROM _rem_comp ORDER BY ord');
+            $weightTotal = $useArea ? max((float) $stats->total_area, 1e-12) : (float) $stats->total_sampled;
+
+            $alloc = [];
+            $running = 0;
+            foreach ($comps as $i => $c) {
+                $w = $useArea ? (float) $c->area : (float) $c->sampled_pop;
+                $p = ($i === count($comps) - 1)
+                    ? $remainderPop - $running                       // exactness: last takes the residue
+                    : (int) floor($remainderPop * $w / $weightTotal);
+                $p = max(0, $p);
+                $running += $p;
+                $alloc[(int) $c->ord] = ['pop' => $p, 'area' => (float) $c->area];
+            }
+
+            $keepOrds = [];
+            foreach ($alloc as $ord => $a) {
+                if ($a['pop'] >= $minPop || ($stats->parent_area > 0 && $a['area'] >= $minAreaFrac * $stats->parent_area)) {
+                    $keepOrds[] = $ord;
+                }
+            }
+
+            $createdIds = [];
+            $level = (int) $parent->adm_level + 1;
+            $n = 1;
+            $total = count($keepOrds) + 1; // + possible scattered child
+            foreach ($keepOrds as $ord) {
+                $id = (string) \Illuminate\Support\Str::uuid();
+                DB::insert('
+                    INSERT INTO jurisdictions
+                        (id, name, slug, iso_code, adm_level, parent_id, population,
+                         is_active, is_civic_active, source, parent_assigned_via,
+                         official_languages, timezone, geom, centroid, created_at, updated_at)
+                    SELECT ?, ?, ?, ?, ?, ?, ?, true, true, \'synthesized-remainder\', \'remainder_synthesis\',
+                           \'[]\', \'UTC\', ST_Multi(geom), ST_PointOnSurface(geom), now(), now()
+                      FROM _rem_comp WHERE ord = ?
+                ', [
+                    $id,
+                    mb_substr($parent->name, 0, 190).(count($keepOrds) > 1 ? " (Remainder {$n})" : ' (Remainder)'),
+                    \Illuminate\Support\Str::slug($parent->slug.'-remainder-'.$n.'-'.substr($id, 0, 8)),
+                    $parent->iso_code, $level, $parent->id,
+                    $alloc[$ord]['pop'],
+                    $ord,
+                ]);
+                $createdIds[] = $id;
+                $n++;
+            }
+
+            // Crumbs → one multi-part scattered child holding the residue pop.
+            $crumbPop = $remainderPop - array_sum(array_map(
+                fn ($o) => $alloc[$o]['pop'], $keepOrds
+            ));
+            $hasCrumbs = count($comps) > count($keepOrds);
+            if ($hasCrumbs) {
+                $id = (string) \Illuminate\Support\Str::uuid();
+                $keepList = $keepOrds === [] ? [-1] : $keepOrds;
+                $ph = implode(',', array_fill(0, count($keepList), '?'));
+                DB::insert("
+                    INSERT INTO jurisdictions
+                        (id, name, slug, iso_code, adm_level, parent_id, population,
+                         is_active, is_civic_active, source, parent_assigned_via,
+                         official_languages, timezone, geom, centroid, created_at, updated_at)
+                    SELECT ?, ?, ?, ?, ?, ?, ?, true, true, 'synthesized-remainder', 'remainder_synthesis',
+                           '[]', 'UTC', ST_Multi(ST_Collect(geom)), ST_PointOnSurface(ST_Collect(geom)), now(), now()
+                      FROM _rem_comp WHERE ord NOT IN ({$ph})
+                    HAVING COUNT(*) > 0
+                ", array_merge([
+                    $id,
+                    mb_substr($parent->name, 0, 185).' (Scattered Remainder)',
+                    \Illuminate\Support\Str::slug($parent->slug.'-remainder-scattered-'.substr($id, 0, 8)),
+                    $parent->iso_code, $level, $parent->id,
+                    max(0, $crumbPop),
+                ], $keepList));
+                if (DB::table('jurisdictions')->where('id', $id)->exists()) {
+                    $createdIds[] = $id;
+                }
+            }
+
+            DB::statement('DROP TABLE IF EXISTS _rem_comp');
+
+            if ($createdIds === []) {
+                throw new \InvalidArgumentException(
+                    "[{$parentSlug}] remainder synthesis produced no children — nothing material to hold."
+                );
+            }
+
             return $this->recordRepair($flag, 'synthesize_remainder', $parent, [
                 'target_id'     => $parent->id,
                 'parent_id'     => $parent->id,
-                'created_id'    => $id,
+                'created_ids'   => $createdIds,
+                'components'    => (int) $stats->n,
+                'kept'          => count($keepOrds),
                 'remainder_pop' => $remainderPop,
                 'children_sum'  => $childSum,
                 'parent_pop'    => (int) $parent->population,
-                'revert'        => 'soft-delete created_id',
+                'pop_source'    => $useArea ? 'area_proportional' : 'worldpop_raster',
+                'revert'        => 'soft-delete created_ids',
                 'note'          => $note,
             ], [
-                'created_id' => $id,
+                'created_ids' => $createdIds,
             ], $actorId, $parent->id);
         });
     }
@@ -688,21 +815,27 @@ class GeodataRemediationService
                     break;
 
                 case 'synthesize_remainder':
+                    // created_ids (component-aware, 2026-07-19) with
+                    // back-compat for the original single created_id shape.
+                    $ids = array_values((array) ($params['created_ids'] ?? array_filter([$params['created_id'] ?? null])));
+                    if ($ids === []) {
+                        throw new \InvalidArgumentException('This synthesis recorded no created ids — nothing to revert.');
+                    }
                     $live = DB::table('jurisdictions')
-                        ->where('id', $params['created_id'])->whereNull('deleted_at')->exists();
-                    if (! $live) {
+                        ->whereIn('id', $ids)->whereNull('deleted_at')->count();
+                    if ($live === 0) {
                         throw new \InvalidArgumentException(
                             "The synthesized remainder of [{$repair->target_slug}] is no longer live — nothing to revert."
                         );
                     }
                     $hasChildren = DB::table('jurisdictions')
-                        ->where('parent_id', $params['created_id'])->whereNull('deleted_at')->exists();
+                        ->whereIn('parent_id', $ids)->whereNull('deleted_at')->exists();
                     if ($hasChildren) {
                         throw new \InvalidArgumentException(
-                            'The synthesized remainder has since acquired children — reverting would strand them.'
+                            'A synthesized remainder has since acquired children — reverting would strand them.'
                         );
                     }
-                    DB::table('jurisdictions')->where('id', $params['created_id'])->update([
+                    DB::table('jurisdictions')->whereIn('id', $ids)->update([
                         'deleted_at' => now(), 'updated_at' => now(),
                     ]);
                     break;

@@ -340,58 +340,75 @@ class AutoscaleLegislatureJob implements ShouldQueue
      */
     private function assessCompleteness(object $leg, string $mapId, array $sweepResult): array
     {
-        $rootId         = (string) $leg->jurisdiction_id;
-        $totalSeats     = max((int) $leg->type_a_seats, 1);
-        $rootPop        = LeafGiantResolver::shareBase($rootId);
-        $giantThreshold = ConstitutionalDefaults::giantThreshold($rootId);
-        $floor          = ConstitutionalDefaults::floor($rootId);
-        $ceiling        = ConstitutionalDefaults::ceiling($rootId);
+        $rootId  = (string) $leg->jurisdiction_id;
+        $floor   = ConstitutionalDefaults::floor($rootId);
+        $ceiling = ConstitutionalDefaults::ceiling($rootId);
 
         $reasons = [];
 
-        // The giant tree (same CTE frame as wizardSteps — the stepper the
-        // operator sees; the two must agree on what "every step" means).
-        $giants = DB::select("
-            WITH RECURSIVE giant_tree AS (
-                SELECT j.id, j.name,
-                       (SELECT COUNT(*) FROM jurisdictions c
-                         WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count
-                FROM jurisdictions j
-                WHERE j.parent_id = ?
-                  AND j.deleted_at IS NULL
-                  AND CAST(COALESCE(j.population, 0) AS numeric) * ? / ? >= ?
-                UNION ALL
-                SELECT j.id, j.name,
-                       (SELECT COUNT(*) FROM jurisdictions c
-                         WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count
-                FROM jurisdictions j
-                JOIN giant_tree gt ON j.parent_id = gt.id
-                WHERE j.deleted_at IS NULL
-                  AND CAST(COALESCE(j.population, 0) AS numeric) * ? / ? >= ?
-            )
-            SELECT id, name, child_count FROM giant_tree
-        ", [$rootId, $totalSeats, $rootPop, $giantThreshold, $totalSeats, $rootPop, $giantThreshold]);
-
-        $compositeScopes = [$rootId => 'root'];
-        $leafGiants      = [];
-        foreach ($giants as $g) {
-            if ((int) $g->child_count > 0) {
-                $compositeScopes[(string) $g->id] = (string) $g->name;
-            } else {
-                $leafGiants[(string) $g->id] = (string) $g->name;
+        // ONE-FRAME LAW (2026-07-19): the giant tree is the budget cascade's
+        // giant tree (DistrictingService::giantChildrenForScope, local
+        // children-sum frame at every scope) — identical to the sweep's
+        // scope walk and the wizard stepper, so the assessor can never mark
+        // review what the stepper shows complete, or vice versa.
+        $districting = app(\App\Services\DistrictingService::class);
+        $giantSetByScope = [];
+        $compositeIds = [$rootId];
+        $leafGiantIds = [];
+        $queue = [$rootId];
+        $seen  = [$rootId => true];
+        while (! empty($queue)) {
+            $pid = array_shift($queue);
+            $giants = $districting->giantChildrenForScope($pid, (string) $leg->id);
+            $giantSetByScope[$pid] = $giants;
+            foreach ($giants as $cid => $budget) {
+                if (isset($seen[$cid])) {
+                    continue;
+                }
+                $seen[$cid] = true;
+                $hasKids = DB::table('jurisdictions')
+                    ->where('parent_id', $cid)->whereNull('deleted_at')->exists();
+                if ($hasKids) {
+                    $compositeIds[] = $cid;
+                    $queue[] = $cid;
+                } else {
+                    $leafGiantIds[] = $cid;
+                }
             }
         }
+        $names = DB::table('jurisdictions')
+            ->whereIn('id', array_merge($compositeIds, $leafGiantIds))
+            ->pluck('name', 'id')->all();
+        $compositeScopes = [];
+        foreach ($compositeIds as $id) {
+            $compositeScopes[$id] = $id === $rootId ? 'root' : (string) ($names[$id] ?? $id);
+        }
+        $leafGiants = [];
+        foreach ($leafGiantIds as $id) {
+            $leafGiants[$id] = (string) ($names[$id] ?? $id);
+        }
 
-        // 1 — unassigned compositable children (with geometry, non-giant) at
-        // each composite scope.
+        // 1 — unassigned compositable children (with geometry, non-giant in
+        // THIS scope's local frame) at each composite scope. A geometry-less
+        // child big enough to be a local giant is flagged honestly — it can
+        // neither composite nor be a scope.
         foreach ($compositeScopes as $scopeId => $scopeName) {
+            $giantIds = array_keys($giantSetByScope[$scopeId] ?? []);
+            $notIn  = '';
+            $params = [$scopeId];
+            if ($giantIds !== []) {
+                $notIn  = ' AND j.id NOT IN ('.implode(',', array_fill(0, count($giantIds), '?')).')';
+                $params = array_merge($params, $giantIds);
+            }
+            $params[] = $mapId;
+
             $unassigned = (int) DB::scalar("
                 SELECT COUNT(*)
                   FROM jurisdictions j
                  WHERE j.parent_id = ?
                    AND j.deleted_at IS NULL
                    AND j.geom IS NOT NULL
-                   AND CAST(COALESCE(j.population, 0) AS numeric) * ? / ? < ?
+                   {$notIn}
                    AND NOT EXISTS (
                        SELECT 1
                          FROM legislature_district_jurisdictions ldj
@@ -400,10 +417,25 @@ class AutoscaleLegislatureJob implements ShouldQueue
                           AND d.map_id = ?
                           AND d.deleted_at IS NULL
                    )
-            ", [$scopeId, $totalSeats, $rootPop, $giantThreshold, $mapId]);
+            ", $params);
 
             if ($unassigned > 0) {
                 $reasons[] = "{$unassigned} unassigned constituents at "
+                    . ($scopeName === 'root' ? 'the root scope' : $scopeName);
+            }
+
+            $geomlessGiant = (int) DB::scalar('
+                WITH s AS (SELECT COALESCE(SUM(population),0) AS cs FROM jurisdictions
+                            WHERE parent_id = ? AND deleted_at IS NULL)
+                SELECT COUNT(*) FROM jurisdictions j, s
+                 WHERE j.parent_id = ? AND j.deleted_at IS NULL AND j.geom IS NULL
+                   AND s.cs > 0
+                   AND (COALESCE(j.population,0)::float8 * ?) / s.cs >= ?
+            ', [$scopeId, $scopeId,
+                (int) ($districting->computeSeatBudget($scopeId, (string) $leg->id) ?? 0),
+                ConstitutionalDefaults::giantThreshold($rootId)]);
+            if ($geomlessGiant > 0) {
+                $reasons[] = "{$geomlessGiant} geometry-less giant constituents at "
                     . ($scopeName === 'root' ? 'the root scope' : $scopeName);
             }
         }

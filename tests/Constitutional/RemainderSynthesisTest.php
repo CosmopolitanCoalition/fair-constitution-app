@@ -66,6 +66,63 @@ class RemainderSynthesisTest extends TestCase
         });
     }
 
+    public function test_multi_component_gaps_become_one_child_per_component(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // Archi: the child covers the MIDDLE strip; the WEST (wider) and
+            // EAST blocks are two disconnected remainder components. The
+            // run-3 law: one child PER component, populations allocated to
+            // sum EXACTLY to parent − children (area weights here — no
+            // raster covers ZZR), never one swiss-cheese multi-part child.
+            Artisan::call('geodata:synthesize-remainders', ['--min-pop' => 1000]);
+
+            $comps = DB::table('jurisdictions')
+                ->where('parent_id', $ctx['archi_id'])
+                ->where('source', 'synthesized-remainder')
+                ->orderByDesc('population')
+                ->get();
+            $this->assertCount(2, $comps, 'two disconnected gaps → two remainder children');
+            $this->assertSame(1000000, (int) $comps->sum('population'),
+                'component populations sum EXACTLY to the remainder — sizing input unchanged');
+            $this->assertGreaterThan((int) $comps[1]->population, (int) $comps[0]->population,
+                'the larger component carries the larger allocation');
+            foreach ($comps as $c) {
+                $this->assertSame(1, (int) DB::scalar('SELECT ST_NumGeometries(geom) FROM jurisdictions WHERE id = ?', [$c->id]),
+                    'each component child is single-part — line-splittable geometry');
+            }
+        });
+    }
+
+    public function test_resplit_converts_old_style_multipart_remainders(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // An OLD-style (pre run-3) swiss-cheese remainder: one child
+            // holding BOTH of Archi's gap components as a multi-part row.
+            $oldId = (string) Str::uuid();
+            DB::insert("
+                INSERT INTO jurisdictions
+                    (id, name, slug, iso_code, adm_level, parent_id, population, is_active, is_civic_active,
+                     source, parent_assigned_via, official_languages, timezone, geom, centroid, created_at, updated_at)
+                SELECT ?, 'Archi (Remainder)', ?, 'ZZR', 3, ?, 1000000, true, true,
+                       'synthesized-remainder', 'remainder_synthesis', '[]', 'UTC',
+                       ST_Multi(ST_Union(ARRAY[ST_MakeEnvelope(60.0,50.0,60.4,51.0,4326), ST_MakeEnvelope(60.8,50.0,61.0,51.0,4326)])),
+                       ST_PointOnSurface(ST_MakeEnvelope(60.0,50.0,60.4,51.0,4326)), now(), now()
+            ", [$oldId, 'zzr-3-archi-remainder-old-'.substr($oldId, 0, 8), $ctx['archi_id']]);
+
+            Artisan::call('geodata:synthesize-remainders', ['--resplit' => true, '--min-pop' => 1000]);
+
+            $this->assertNotNull(DB::table('jurisdictions')->where('id', $oldId)->value('deleted_at'),
+                'the old multi-part row is retired');
+            $comps = DB::table('jurisdictions')
+                ->where('parent_id', $ctx['archi_id'])
+                ->where('source', 'synthesized-remainder')
+                ->whereNull('deleted_at')
+                ->get();
+            $this->assertCount(2, $comps, 'resplit re-derives one child per component');
+            $this->assertSame(1000000, (int) $comps->sum('population'));
+        });
+    }
+
     public function test_manifest_replay_reproduces_renames_and_remainders(): void
     {
         $this->onLivePg(function (array $ctx) {
@@ -176,10 +233,17 @@ class RemainderSynthesisTest extends TestCase
         $mk('Noise West', $noiseId, 3, 300000, [40.0, 50.0, 40.5, 51.0]);
         $mk('Noise East', $noiseId, 3, 300000, [40.5, 50.0, 41.0, 51.0]);
 
+        // Archi: the child covers the middle strip [60.4,60.8]; two
+        // disconnected remainder components remain — WEST (0.4° wide) and
+        // EAST (0.2° wide). Remainder pop = 1,000,000.
+        [$archiId] = $mk('Archi', null, 2, 1500000, [60.0, 50.0, 61.0, 51.0]);
+        $mk('Archi Middle', $archiId, 3, 500000, [60.4, 50.0, 60.8, 51.0]);
+
         return [
             'gapland_id'   => $gapId,
             'gapland_slug' => $gapSlug,
             'noiseland_id' => $noiseId,
+            'archi_id'     => $archiId,
         ];
     }
 }

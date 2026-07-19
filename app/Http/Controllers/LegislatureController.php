@@ -3631,13 +3631,18 @@ class LegislatureController extends Controller
      */
 
     /**
-     * BFS walk that returns every giant-scope descendant ID at any depth below $rootId.
-     * A jurisdiction is "giant" when its population / rootQuota >= giant_threshold
-     * (constitutional ceiling + 0.5) — meaning it needs its own sub-districting
-     * scope rather than being aggregated with siblings. The walk recurses into
-     * each giant so multi-level hierarchies (e.g. India → UP) are fully captured.
+     * BFS walk that returns every giant-scope descendant ID at any depth
+     * below $rootId — judged in EACH SCOPE'S LOCAL FRAME via the cascade's
+     * own classification (DistrictingService::giantChildrenForScope), the
+     * ONE-FRAME LAW (2026-07-19). The old root-flat-share test stranded any
+     * child that dominates its parent locally while staying sub-threshold
+     * globally (Kozhikode/Kerala, Saint-Pierre/Réunion): a giant to the
+     * composite, invisible to the scope list. The walk recurses into each
+     * giant, so multi-level hierarchies (India → UP → its giants) are fully
+     * captured, and the scope tree is by construction identical to the
+     * budget cascade's giant tree.
      */
-    private function collectGiantDescendants(string $rootId, float $rootQuota, float $giantThreshold): array
+    private function collectGiantDescendants(string $rootId, string $legislatureId): array
     {
         $result = [];
         $queue  = [$rootId];
@@ -3645,19 +3650,13 @@ class LegislatureController extends Controller
 
         while (!empty($queue)) {
             $parentId = array_shift($queue);
-            $children = DB::table('jurisdictions')
-                ->where('parent_id', $parentId)
-                ->whereNull('deleted_at')
-                ->whereNotNull('geom')
-                ->get(['id', 'population']);
-
-            foreach ($children as $child) {
-                if (isset($seen[$child->id])) continue;
-                $seen[$child->id] = true;
-                if (((int) $child->population / max($rootQuota, 1)) >= $giantThreshold) {
-                    $result[] = $child->id;
-                    $queue[]  = $child->id;   // recurse into this giant's children too
+            foreach ($this->districting->giantChildrenForScope($parentId, $legislatureId) as $childId => $budget) {
+                if (isset($seen[$childId])) {
+                    continue;
                 }
+                $seen[$childId] = true;
+                $result[] = $childId;
+                $queue[]  = $childId;   // recurse into this giant's children too
             }
         }
 
@@ -3680,11 +3679,7 @@ class LegislatureController extends Controller
             // Full BFS — every giant-scope descendant at every depth.
             // This fixes the bug where India's sub-states were skipped when clearing
             // at Earth scope (only direct giant children were previously included).
-            $allGiantIds = $this->collectGiantDescendants(
-                $scopeId,
-                $rootQuota,
-                ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id)
-            );
+            $allGiantIds = $this->collectGiantDescendants($scopeId, $legislature_id);
             return array_merge([$scopeId], $allGiantIds);
         }
 
@@ -5400,55 +5395,40 @@ class LegislatureController extends Controller
             return response()->json(['error' => 'Legislature not found'], 404);
         }
 
-        $rootId         = $leg->jurisdiction_id;
-        $totalSeats     = (int) $leg->type_a_seats;
-        $rootPop        = \App\Services\Districting\LeafGiantResolver::shareBase((string) $rootId);
-        $giantThreshold = ConstitutionalDefaults::giantThreshold($rootId);
+        $rootId = $leg->jurisdiction_id;
 
-        if ($rootPop <= 0) {
-            return response()->json(['steps' => [['scope_id' => $rootId, 'scope_name' => '']], 'current_index' => 0]);
+        // ONE-FRAME LAW (2026-07-19): the stepper's giant tree is the budget
+        // cascade's giant tree — each scope's giants come from
+        // DistrictingService::giantChildrenForScope (local children-sum
+        // frame), never the root flat share. The stepper, the mass sweep's
+        // scope walk, and the autoscale assessor can no longer disagree
+        // about what "every step" means.
+        $adj   = [];                       // parent id → child ids, budget DESC
+        $queue = [$rootId];
+        $seen  = [$rootId => true];
+        while (! empty($queue)) {
+            $pid    = array_shift($queue);
+            $giants = $this->districting->giantChildrenForScope($pid, $legislature_id);
+            arsort($giants);               // largest budget first (was fractional DESC)
+            foreach ($giants as $cid => $budget) {
+                if (isset($seen[$cid])) {
+                    continue;
+                }
+                $seen[$cid]  = true;
+                $adj[$pid][] = $cid;
+                $queue[]     = $cid;
+            }
         }
 
-        // Single recursive CTE collects every giant scope in the tree
-        $rows = DB::select("
-            WITH RECURSIVE giant_tree AS (
-                SELECT j.id, j.name, j.parent_id,
-                       ROUND(CAST(j.population AS numeric) * :ts1 / :rp1, 4) AS fractional_seats
-                FROM jurisdictions j
-                WHERE j.parent_id = :root
-                  AND j.deleted_at IS NULL
-                  AND CAST(j.population AS numeric) * :ts2 / :rp2 >= :gt1
-                UNION ALL
-                SELECT j.id, j.name, j.parent_id,
-                       ROUND(CAST(j.population AS numeric) * :ts3 / :rp3, 4) AS fractional_seats
-                FROM jurisdictions j
-                JOIN giant_tree gt ON j.parent_id = gt.id
-                WHERE j.deleted_at IS NULL
-                  AND CAST(j.population AS numeric) * :ts4 / :rp4 >= :gt2
-            )
-            SELECT id, name, parent_id, fractional_seats FROM giant_tree
-        ", [
-            'ts1' => $totalSeats, 'rp1' => $rootPop, 'root' => $rootId,
-            'ts2' => $totalSeats, 'rp2' => $rootPop,
-            'ts3' => $totalSeats, 'rp3' => $rootPop,
-            'ts4' => $totalSeats, 'rp4' => $rootPop,
-            'gt1' => $giantThreshold, 'gt2' => $giantThreshold,
-        ]);
-
-        // Build adjacency list: parent_id → children sorted by fractional_seats DESC
-        $adj = [];
-        foreach ($rows as $r) {
-            $adj[$r->parent_id][] = $r;
-        }
-        foreach ($adj as &$kids) {
-            usort($kids, fn($a, $b) => (float)$b->fractional_seats <=> (float)$a->fractional_seats);
-        }
-        unset($kids);
+        $giantIds = array_keys($seen);
+        $names = DB::table('jurisdictions')
+            ->whereIn('id', $giantIds)
+            ->pluck('name', 'id')
+            ->all();
 
         // Mixed autoseed (2026-07-17): which giants are CHILDLESS (leaf
         // giants → the line-split method) vs composite. One indexed query
         // over the giant set; the stepper labels each step by method.
-        $giantIds     = array_map(fn ($r) => $r->id, $rows);
         $withChildren = empty($giantIds) ? [] : array_flip(
             DB::table('jurisdictions')
                 ->whereIn('parent_id', $giantIds)
@@ -5460,7 +5440,7 @@ class LegislatureController extends Controller
 
         // Post-order DFS: children before parent, largest-first within each level
         $steps = [];
-        $this->postOrderGiants($rootId, $adj, $steps, $withChildren);
+        $this->postOrderGiants($rootId, $adj, $steps, $withChildren, $names);
 
         // Root scope is always the final step (always composite — the mapper
         // never treats the root as a leaf giant).
@@ -5480,15 +5460,15 @@ class LegislatureController extends Controller
         return response()->json(['steps' => $steps, 'current_index' => $currentIdx]);
     }
 
-    private function postOrderGiants(string $scopeId, array &$adj, array &$steps, array $withChildren = []): void
+    private function postOrderGiants(string $scopeId, array &$adj, array &$steps, array $withChildren = [], array $names = []): void
     {
-        foreach ($adj[$scopeId] ?? [] as $child) {
-            $this->postOrderGiants($child->id, $adj, $steps, $withChildren);
+        foreach ($adj[$scopeId] ?? [] as $childId) {
+            $this->postOrderGiants($childId, $adj, $steps, $withChildren, $names);
             $steps[] = [
-                'scope_id'   => $child->id,
-                'scope_name' => (string) $child->name,
+                'scope_id'   => $childId,
+                'scope_name' => (string) ($names[$childId] ?? ''),
                 // Childless giant → the line-split (✂) method; else composite.
-                'is_leaf'    => ! isset($withChildren[$child->id]),
+                'is_leaf'    => ! isset($withChildren[$childId]),
             ];
         }
     }
