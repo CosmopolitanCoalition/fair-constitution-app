@@ -197,20 +197,86 @@ class LeafGiantResolver
         // before giving up to the review list. A previewed commit
         // ($expectedPlanHash set) never ladders — silently swapping the
         // template a human previewed would betray the hash contract.
-        $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, $expectedPlanHash === null);
-        $plan = $planned['plan'];
-
-        if ($expectedPlanHash !== null && ! hash_equals($plan['plan_hash'], $expectedPlanHash)) {
-            throw new PlanRefused('Plan changed — run the preview again.');
-        }
-
         $jurisdictionId = (string) DB::table('legislatures')->where('id', $legislatureId)->value('jurisdiction_id');
 
-        // A replace retires the scope's live drawn set before the first
-        // filing — inside the caller's transaction, so a failed plan rolls
-        // the old districts back too, never leaving the scope emptied.
-        $replaced = $replace ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+        // PREVIEWED PATH (hash set): one template, no ladder, violations
+        // bubble raw — byte-identical to the pre-extraction behavior.
+        if ($expectedPlanHash !== null) {
+            $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, false);
+            if (! hash_equals($planned['plan']['plan_hash'], $expectedPlanHash)) {
+                throw new PlanRefused('Plan changed — run the preview again.');
+            }
+            $replaced = $replace ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+            $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $planned['plan'], $year, false);
 
+            return [
+                'districts_created' => count($ids),
+                'replaced'          => $replaced,
+                'district_ids'      => $ids,
+                'template'          => $planned['template'],
+                'template_fallback' => false,
+            ];
+        }
+
+        // AUTOSEED PATH (the recompute IS the plan): the FULL ladder —
+        // "ladder first, manual for the residue" now survives FILING-stage
+        // refusals too, not just planning-stage ones. A template whose
+        // planned piece violates a filing gate (e.g. the Art. II §8
+        // one-fragment rule against a concave boundary) retires its partial
+        // set and the next template tries; only when every template has
+        // refused at either stage does the scope land on the review list.
+        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
+        $last  = null;
+        foreach ($order as $i => $tpl) {
+            try {
+                $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
+            } catch (PlanRefused $e) {
+                $last = $e;
+                continue;
+            } catch (RuntimeException $e) {
+                $last = new PlanRefused($e->getMessage(), previous: $e);
+                continue;
+            }
+
+            // Each attempt owns the scope's drawn set: retire whatever is
+            // live (the caller's $replace on the first attempt; a previous
+            // attempt's partial filings on later ones).
+            $replaced = ($replace || $i > 0) ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+
+            try {
+                $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, true);
+
+                return [
+                    'districts_created' => count($ids),
+                    'replaced'          => $replaced,
+                    'district_ids'      => $ids,
+                    'template'          => $tpl,
+                    'template_fallback' => $i > 0,
+                ];
+            } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
+                // A filing gate refused this template's pieces — clean up the
+                // partial set and ladder on. The chain honestly records the
+                // attempted filings; the retirement is the same plan-editing
+                // posture as the delete endpoint.
+                $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
+                $last = new PlanRefused($e->getMessage(), previous: $e);
+            }
+        }
+
+        throw $last ?? new PlanRefused('No districting template produced a filable plan.');
+    }
+
+    /** File one F-ELB-008 per planned district; returns the district ids. */
+    private function fileDistricts(
+        string $legislatureId,
+        string $jurisdictionId,
+        string $scopeId,
+        string $mapId,
+        ?User $actor,
+        array $plan,
+        int $year,
+        bool $floorPosture,
+    ): array {
         $ids = [];
         foreach ($plan['districts'] as $d) {
             $res = $this->engine->file('F-ELB-008', $actor, [
@@ -221,21 +287,15 @@ class LeafGiantResolver
                 'geojson'         => json_encode($d['geometry']),
                 'label'           => null,
                 'population_year' => $year,
-                // The recompute IS the plan (no client hash): a marginally
-                // sub-floor piece records the floor_override posture instead
-                // of refusing — pixel granularity, not unlawfulness.
-                'floor_posture'   => $expectedPlanHash === null,
+                // Autoseed only: a marginally sub-floor piece records the
+                // floor_override posture instead of refusing — pixel
+                // granularity, not unlawfulness.
+                'floor_posture'   => $floorPosture,
             ]);
             $ids[] = $res->recorded['district_id'];
         }
 
-        return [
-            'districts_created' => count($ids),
-            'replaced'          => $replaced,
-            'district_ids'      => $ids,
-            'template'          => $planned['template'],
-            'template_fallback' => $planned['fallback'],
-        ];
+        return $ids;
     }
 
     /**

@@ -330,23 +330,44 @@ class PopulationRaster
      * by a differently-gated measurer), the area-proportional grid
      * otherwise. The planners' one entry point.
      */
-    public function gridWithFallback(string $scopeId, int $year = 2023): array
+    /**
+     * THE ONE BASIS DECISION: which population oracle plans AND measures a
+     * scope — 'subpixel' (raster, area-divided below the resolution floor),
+     * 'raster' (native pixels), or 'area' (the geometric grid). Planner and
+     * F-ELB-008 measurement both switch on THIS, so they can never disagree.
+     * 'area' is also the fall-through when coverage looks real (the
+     * multi-country probe found people) but the scope's own-iso pixel grid
+     * is unusable — a cross-border commune whose people sit on a
+     * neighboring tile, or a sliver at a tile seam. Memoized per process.
+     */
+    public function basis(string $scopeId, int $year = 2023): string
     {
-        if ($this->hasRasterCoverage($scopeId, $year)) {
-            $pixels = $this->pixelGrid($scopeId, $year);
-            if (count($pixels) < self::SUBPIXEL_THRESHOLD) {
-                // The resolution floor: cut below the pixel (operator
-                // ruling 2026-07-19) — a handful of atomic pixels cannot
-                // balance a lawful split; their area-divided subcells can.
-                [$sx, $sy] = $this->tileScale($scopeId, $year);
-
-                return $this->subdividePixels($pixels, $sx, $sy);
+        static $memo = [];
+        $key = "{$scopeId}.{$year}";
+        if (! isset($memo[$key])) {
+            if (! $this->hasRasterCoverage($scopeId, $year)) {
+                $memo[$key] = 'area';
+            } else {
+                $n = count($this->pixelGrid($scopeId, $year));
+                $memo[$key] = $n < 2 ? 'area'
+                    : ($n < self::SUBPIXEL_THRESHOLD ? 'subpixel' : 'raster');
             }
-
-            return $pixels;
         }
 
-        return $this->areaGrid($scopeId, $year);
+        return $memo[$key];
+    }
+
+    public function gridWithFallback(string $scopeId, int $year = 2023): array
+    {
+        return match ($this->basis($scopeId, $year)) {
+            'raster'   => $this->pixelGrid($scopeId, $year),
+            'subpixel' => (function () use ($scopeId, $year) {
+                [$sx, $sy] = $this->tileScale($scopeId, $year);
+
+                return $this->subdividePixels($this->pixelGrid($scopeId, $year), $sx, $sy);
+            })(),
+            default    => $this->areaGrid($scopeId, $year),
+        };
     }
 
     /**
@@ -360,42 +381,38 @@ class PopulationRaster
      */
     public function measureWithFallback(string $scopeId, string $geoJson, int $year = 2023): array
     {
-        if ($this->hasRasterCoverage($scopeId, $year)) {
-            // ONE denominator (2026-07-19, the 10-seat-village review class):
-            // the raster is the DISTRIBUTION oracle, the stored population is
-            // the AMOUNT oracle — it sized the legislature, so it is the mass
-            // the seat quota divides. A piece measures as its SHARE of the
-            // scope's raster mass × the stored population; where raster and
-            // stored agree this is the identity, and where they drift (the
-            // accepted geodata noise) a share-balanced plan measures exactly
-            // as the planner balanced it instead of being band-refused by
-            // the offset.
-            [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
+        $basis = $this->basis($scopeId, $year);
 
-            // Sub-resolution scopes measure on the SAME subcell basis the
-            // planner cut on — the piece's share of the subdivided grid's
-            // mass (pixel-atomic SQL would re-coarsen the scorekeeping and
-            // refuse the very cuts the subcells made lawful).
-            if ($this->subResolution($scopeId, $year)) {
-                $grid = $this->gridWithFallback($scopeId, $year);
-                $gridTotal = 0.0;
-                foreach ($grid as [, , $v]) {
-                    $gridTotal += $v;
-                }
-                $pieceSum = (float) (DB::selectOne(
-                    "SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
-                       FROM jsonb_array_elements(?::jsonb) AS c
-                      WHERE ST_Contains(ST_MakeValid(ST_GeomFromGeoJSON(?)),
-                                        ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326))",
-                    [json_encode($grid), $geoJson]
-                )->s ?? 0);
-                $pop = ($gridTotal > 0 && $storedPop > 0)
-                    ? (int) round($storedPop * $pieceSum / $gridTotal)
-                    : (int) round($pieceSum);
-
-                return ['pop' => $pop, 'source' => 'worldpop_raster'];
+        // ONE denominator (2026-07-19): the grid the PLANNER cut on is the
+        // distribution oracle; the stored population is the amount oracle —
+        // it sized the legislature, so it is the mass the seat quota
+        // divides. A piece measures as its SHARE of the planning grid's
+        // mass × the stored population, on the SAME basis the planner used
+        // (a differently-based scorekeeper would refuse the very cuts the
+        // planner lawfully balanced).
+        if ($basis === 'subpixel') {
+            [, $storedPop] = $this->coverageStats($scopeId, $year);
+            $grid = $this->gridWithFallback($scopeId, $year);
+            $gridTotal = 0.0;
+            foreach ($grid as [, , $v]) {
+                $gridTotal += $v;
             }
+            $pieceSum = (float) (DB::selectOne(
+                "SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
+                   FROM jsonb_array_elements(?::jsonb) AS c
+                  WHERE ST_Contains(ST_MakeValid(ST_GeomFromGeoJSON(?)),
+                                    ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326))",
+                [json_encode($grid), $geoJson]
+            )->s ?? 0);
+            $pop = ($gridTotal > 0 && $storedPop > 0)
+                ? (int) round($storedPop * $pieceSum / $gridTotal)
+                : (int) round($pieceSum);
 
+            return ['pop' => $pop, 'source' => 'worldpop_raster'];
+        }
+
+        if ($basis === 'raster') {
+            [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
             $pieceRaw = $this->populationWithinMulti($geoJson, $year);
             $pop = ($rasterPop > 0 && $storedPop > 0)
                 ? (int) round($storedPop * $pieceRaw / $rasterPop)
