@@ -274,9 +274,13 @@ class PopulationRaster
             [$scopeId]
         )->km2 ?? 0.0);
 
-        // The pixelGrid ladder, with a floor: no native 100 m tier exists
-        // without a raster, so small scopes take the finest synthetic cell.
+        // The pixelGrid ladder, extended DOWNWARD: no native 100 m tier
+        // exists without a raster, and a micro-village (~0.04 km²) at the
+        // old 0.002° floor yielded ONE cell — under the two-point minimum,
+        // so even the fallback refused. Sub-block scopes take finer cells.
         $cell = match (true) {
+            $areaKm2 <= 0.5      => 0.0002,
+            $areaKm2 <= 3.0      => 0.0005,
             $areaKm2 <= 3000.0   => 0.002,
             $areaKm2 <= 30000.0  => 0.005,
             $areaKm2 <= 300000.0 => 0.02,
