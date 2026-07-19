@@ -195,15 +195,17 @@ class AutoscaleRevertCommand extends Command
                AND ai.status = 'pending'
         ", [$ceiling, $run->id]);
 
-        // Fresh stats + dead-version cleanup for the items table too
-        // (statuses/kinds just flipped en masse) before the keys + the
-        // enumeration tail's anti-joins.
-        DB::statement('VACUUM ANALYZE autoscale_items');
-
         // The operator's simplest-first ordering (est_districts, cascade
         // height, position) — shared with the sizing job so re-derivation
         // can never drift from enumeration.
         \App\Support\AutoscaleEnumeration::deriveOrderingKeys((string) $run->id, $ceiling);
+
+        // Dead-version cleanup AFTER the key passes, immediately before the
+        // enumeration tail (ordering is the lesson: reset + kind flip + the
+        // three key passes are each a full-table UPDATE — vacuuming before
+        // them left the tail's anti-joins chasing millions of fresh dead
+        // versions at ~1 ms per index probe).
+        DB::statement('VACUUM ANALYZE autoscale_items');
 
         // Re-run the enumeration tail set-based: adopt pre-pass, founding-map
         // mint + stamp, root scopes (same statements as AutoscaleSizingJob B2–B4).
