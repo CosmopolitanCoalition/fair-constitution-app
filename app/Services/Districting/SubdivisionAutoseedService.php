@@ -267,7 +267,15 @@ class SubdivisionAutoseedService
         if ($total <= 0.0) {
             throw new RuntimeException('No population found across the detached parts.');
         }
-        $quota = $total / max($S, 1);
+
+        // MEASUREMENT PARITY (run-6 watch fix 2026-07-19, the Maniari
+        // sliver): seats gate on the SAME oracle F-ELB-008 will re-derive
+        // from — measureWithFallback over each clipped district against the
+        // stored-population quota the handler divides by. The ray-cast part
+        // populations above remain the GROUPING heuristic only; a
+        // boundary-dominated sliver the handler would measure to 0 seats now
+        // refuses here at plan stage instead of dying at filing.
+        $quota = (float) ($ctx['quota'] ?? 0) > 0 ? (float) $ctx['quota'] : $total / max($S, 1);
 
         // LPT-greedy into k districts: heaviest part first, always onto the
         // lightest district so far; every tie breaks by index. With
@@ -290,18 +298,6 @@ class SubdivisionAutoseedService
         $sizes = [];
         $districts = [];
         foreach ($groups as $n => $group) {
-            $seats = (int) round($group['pop'] / $quota);
-            if ($seats < 1) {
-                throw new RuntimeException(
-                    'A group of detached parts holds too little population for a seat — cut this scope by hand.'
-                );
-            }
-            if ($seats > $ceiling) {
-                throw new RuntimeException(
-                    "A detached part holds {$seats} seats of population — above the ceiling {$ceiling}; cut it by hand."
-                );
-            }
-
             sort($group['members']);
             $groupGj = count($group['members']) === 1
                 ? (string) $comps[$group['members'][0]]->gj
@@ -335,12 +331,25 @@ class SubdivisionAutoseedService
                 throw new RuntimeException("Component district c{$n} collapsed to an empty geometry — cut it by hand.");
             }
 
+            $pop = (float) $this->raster->measureWithFallback($scopeId, json_encode($geometry), $year)['pop'];
+            $seats = (int) round($pop / max($quota, 1e-9));
+            if ($seats < 1) {
+                throw new RuntimeException(
+                    'A group of detached parts holds too little population for a seat — cut this scope by hand.'
+                );
+            }
+            if ($seats > $ceiling) {
+                throw new RuntimeException(
+                    "A detached part holds {$seats} seats of population — above the ceiling {$ceiling}; cut it by hand."
+                );
+            }
+
             $sizes[] = $seats;
             $districts[] = [
                 'path'                   => "root.c{$n}",
                 'seats'                  => $seats,
-                'pop'                    => (int) round($group['pop']),
-                'per_seat_deviation_pct' => round(abs($group['pop'] / $seats - $quota) / $quota * 100, 2),
+                'pop'                    => (int) round($pop),
+                'per_seat_deviation_pct' => round(abs($pop / $seats - $quota) / $quota * 100, 2),
                 'convex_hull_ratio'      => round((float) ($row->chr ?? 0.0), 3),
                 'geometry'               => $geometry,
             ];
