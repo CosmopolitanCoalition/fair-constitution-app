@@ -114,15 +114,17 @@ class AutoscaleRevertCommand extends Command
         $this->info('Resetting run state …');
 
         // Post-delete hygiene (2026-07-19, the 72-minute-mint lesson):
-        // deleting ~a million map rows leaves the planner with stale stats
-        // and bloated pages — the enumeration tail's anti-join INSERT then
-        // degrades to a per-row rescan (~120 rows/s). ANALYZE is fast and
-        // makes every statement below plan sanely; parallelism stays off
+        // deleting ~a million map rows leaves bloated pages + stale stats,
+        // and any mass UPDATE of legislatures (the resize repair) leaves
+        // dead row versions that make every FK probe from the mint ~1 ms
+        // (measured: the RI trigger at 2 s per 2,000 rows). VACUUM ANALYZE
+        // collapses both before the set-based tail; parallelism stays off
         // for the planet-wide passes (the /dev/shm lesson).
         DB::statement('SET max_parallel_workers_per_gather = 0');
         foreach (['legislature_district_maps', 'legislature_districts',
-                  'district_subdivisions', 'legislature_district_jurisdictions'] as $t) {
-            DB::statement("ANALYZE {$t}");
+                  'district_subdivisions', 'legislature_district_jurisdictions',
+                  'legislatures'] as $t) {
+            DB::statement("VACUUM ANALYZE {$t}");
         }
 
         // Scopes are derived state — a fresh mapping phase re-mints roots.
@@ -193,9 +195,10 @@ class AutoscaleRevertCommand extends Command
                AND ai.status = 'pending'
         ", [$ceiling, $run->id]);
 
-        // Fresh stats for the items table too (statuses/kinds just flipped
-        // en masse) before the keys + the enumeration tail's anti-joins.
-        DB::statement('ANALYZE autoscale_items');
+        // Fresh stats + dead-version cleanup for the items table too
+        // (statuses/kinds just flipped en masse) before the keys + the
+        // enumeration tail's anti-joins.
+        DB::statement('VACUUM ANALYZE autoscale_items');
 
         // The operator's simplest-first ordering (est_districts, cascade
         // height, position) — shared with the sizing job so re-derivation

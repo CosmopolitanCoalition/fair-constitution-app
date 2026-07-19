@@ -116,6 +116,12 @@ class AutoscaleResizeRepairCommand extends Command
             ->whereNull('deleted_at')->where('type_b_needs_districting', true)->count();
         $this->info("Type B ladder: {$laddered} chambers re-derived; {$flagged} flagged for the deferred Type B districting.");
 
+        // Hygiene: the two mass UPDATEs above leave a dead row version per
+        // touched legislature — without a vacuum, every later FK probe into
+        // this table (the revert's founding-map mint, ~500k rows) pays ~1 ms
+        // walking the chains (measured live, 2026-07-19).
+        DB::statement('VACUUM ANALYZE legislatures');
+
         app(AuditService::class)->append(
             module: 'elections',
             event: 'autoscale.cycle2_sizing_repair',
