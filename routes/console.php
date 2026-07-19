@@ -25,6 +25,29 @@ Artisan::command('inspire', function () {
 // no-op (one node always wins the lock).
 Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOneServer();
 
+// ── Autoscale tick watchdog (2026-07-19, the overnight-stall lesson) ─────
+// The orchestrator's self-rescheduling tick chain can die without ANY
+// survivor to revive it: a horizon-container crash kills the tick worker
+// AND can lose the pre-scheduled successor payload, and the job-level
+// failed() hook only fires for payloads that still exist. Overnight this
+// stalled a healthy run for six hours with 47k sweeps pending. The
+// scheduler container is a separate process tree that survived — so the
+// liveness guarantee lives HERE: any active run whose heartbeat is stale
+// gets a fresh tick chain. Idempotent by design (concurrent ticks no-op on
+// the per-run advisory lock), so a spurious revive costs two queries.
+Schedule::call(function () {
+    $stale = \App\Models\AutoscaleRun::query()
+        ->whereIn('status', ['queued', 'sizing', 'mapping'])
+        ->where('updated_at', '<', now()->subMinutes(10))
+        ->get();
+    foreach ($stale as $run) {
+        \Illuminate\Support\Facades\Log::warning('Autoscale watchdog: reviving stale run', [
+            'run_id' => (string) $run->id, 'last_heartbeat' => (string) $run->updated_at,
+        ]);
+        \App\Jobs\AutoscaleOrchestratorJob::dispatch((string) $run->id);
+    }
+})->name('autoscale-tick-watchdog')->everyFiveMinutes()->onOneServer();
+
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave
