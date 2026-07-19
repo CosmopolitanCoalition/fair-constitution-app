@@ -120,7 +120,9 @@ class AutoscaleResizeRepairCommand extends Command
         // touched legislature — without a vacuum, every later FK probe into
         // this table (the revert's founding-map mint, ~500k rows) pays ~1 ms
         // walking the chains (measured live, 2026-07-19).
-        DB::statement('VACUUM ANALYZE legislatures');
+        if (DB::transactionLevel() === 0) { // VACUUM can't run inside a tx (test harness)
+            DB::statement('VACUUM ANALYZE legislatures');
+        }
 
         app(AuditService::class)->append(
             module: 'elections',
