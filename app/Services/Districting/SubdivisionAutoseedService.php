@@ -35,6 +35,12 @@ class SubdivisionAutoseedService
      *  - vertical_strips    : one fixed north–south blade per cut (θ = 90°)
      *  - horizontal_strips  : one fixed east–west blade per cut (θ = 0°)
      *  - community_cells    : the balanced power diagram (SubdivisionCellSeedService)
+     *  - components         : whole detached parts as districts — NO cutting
+     *                         (run-6 watch fix 2026-07-19; the LA-islands
+     *                         doctrine taken to its limit for scopes whose
+     *                         every straight cut strands a fragment). Rides
+     *                         LAST in the registry so the ladder only reaches
+     *                         it when every cutting template has refused.
      */
     public const TEMPLATE_SHORTEST = 'shortest';
 
@@ -44,11 +50,14 @@ class SubdivisionAutoseedService
 
     public const TEMPLATE_COMMUNITY_CELLS = 'community_cells';
 
+    public const TEMPLATE_COMPONENTS = 'components';
+
     public const TEMPLATES = [
         self::TEMPLATE_SHORTEST,
         self::TEMPLATE_VERTICAL_STRIPS,
         self::TEMPLATE_HORIZONTAL_STRIPS,
         self::TEMPLATE_COMMUNITY_CELLS,
+        self::TEMPLATE_COMPONENTS,
     ];
 
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
@@ -85,6 +94,9 @@ class SubdivisionAutoseedService
         }
         if ($template === self::TEMPLATE_COMMUNITY_CELLS) {
             return $this->cells->plan($scopeId, $ctx, $year);
+        }
+        if ($template === self::TEMPLATE_COMPONENTS) {
+            return $this->componentsPlan($scopeId, $ctx, $year);
         }
 
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
@@ -181,6 +193,170 @@ class SubdivisionAutoseedService
             'cuts'            => $cuts,
             'districts'       => $districts,
             'plan_hash'       => self::planHash($scopeId, $year, $sizes, $cuts, $template),
+        ];
+    }
+
+    /**
+     * The COMPONENTS template (run-6 watch fix 2026-07-19): a multipart scope
+     * whose every straight cut strands a fragment (two detached villages, a
+     * population-heavy "island") is districted WITHOUT cutting — the detached
+     * parts themselves become the districts, grouped LPT-greedy into
+     * k = ceil(S/ceiling) population-balanced districts when there are more
+     * parts than districts. Seats follow the drawn-district law exactly as
+     * the F-ELB-008 handler will re-derive them: nearest-round of measured
+     * population over the quota, sub-floor filed under the autoseed floor
+     * posture, seats < 1 or > ceiling refused. Σ-seat drift is the
+     * indivisible-atom case (no exact drawing exists once every cutting
+     * template refused) and ships honestly — never total-forced.
+     *
+     * Deterministic: components ordered by area DESC then point-on-surface,
+     * pixel partition by the same ray-cast the islands doctrine uses
+     * (boundary-ambiguous cells stay with the largest part), LPT ties broken
+     * by component index.
+     *
+     * @throws RuntimeException single landmass / too few parts / a group out of band
+     */
+    private function componentsPlan(string $scopeId, array $ctx, int $year): array
+    {
+        $S = (int) $ctx['budget'];
+        $ceiling = (int) $ctx['ceiling'];
+        $k = intdiv($S + $ceiling - 1, $ceiling);
+
+        $comps = DB::select(
+            'SELECT ST_AsGeoJSON(g, 15) AS gj,
+                    ST_Area(g::geography) AS area,
+                    ST_X(ST_PointOnSurface(g)) AS cx,
+                    ST_Y(ST_PointOnSurface(g)) AS cy
+               FROM (SELECT (ST_Dump(ST_MakeValid(geom))).geom AS g
+                       FROM jurisdictions WHERE id = ?) t
+              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
+            [$scopeId]
+        );
+        if (count($comps) < 2) {
+            throw new RuntimeException('This scope is a single landmass — the components template needs detached parts.');
+        }
+        if (count($comps) < $k) {
+            throw new RuntimeException(
+                count($comps)." detached parts cannot fill {$k} whole-component districts — a cut is required."
+            );
+        }
+
+        $pixels = $this->raster->gridWithFallback($scopeId, $year);
+        if (count($pixels) < 2) {
+            throw new RuntimeException('No population raster pixels for this scope — load the WorldPop raster first.');
+        }
+
+        // Population per part: pull each smaller part's pixels out of the
+        // grid; the remainder (boundary-ambiguous cells included) stays with
+        // the largest part — the exact posture of the islands partition.
+        $partPops = [0 => 0.0];
+        $rest = $pixels;
+        foreach (array_slice($comps, 1) as $i => $comp) {
+            $poly = json_decode((string) $comp->gj, true);
+            [$inside, $rest] = self::partitionPixelsByPolygon($rest, $poly);
+            $pop = 0.0;
+            foreach ($inside as $p) {
+                $pop += $p[2];
+            }
+            $partPops[$i + 1] = $pop;
+        }
+        foreach ($rest as $p) {
+            $partPops[0] += $p[2];
+        }
+        $total = array_sum($partPops);
+        if ($total <= 0.0) {
+            throw new RuntimeException('No population found across the detached parts.');
+        }
+        $quota = $total / max($S, 1);
+
+        // LPT-greedy into k districts: heaviest part first, always onto the
+        // lightest district so far; every tie breaks by index. With
+        // parts == k this degenerates to one part per district.
+        $byWeight = array_keys($partPops);
+        usort($byWeight, fn (int $a, int $b) => $partPops[$b] <=> $partPops[$a] ?: $a <=> $b);
+        $groups = array_fill(0, $k, ['pop' => 0.0, 'members' => []]);
+        foreach ($byWeight as $ci) {
+            $g = 0;
+            for ($j = 1; $j < $k; $j++) {
+                if ($groups[$j]['pop'] < $groups[$g]['pop']) {
+                    $g = $j;
+                }
+            }
+            $groups[$g]['pop'] += $partPops[$ci];
+            $groups[$g]['members'][] = $ci;
+        }
+        usort($groups, fn (array $a, array $b) => min($a['members']) <=> min($b['members']));
+
+        $sizes = [];
+        $districts = [];
+        foreach ($groups as $n => $group) {
+            $seats = (int) round($group['pop'] / $quota);
+            if ($seats < 1) {
+                throw new RuntimeException(
+                    'A group of detached parts holds too little population for a seat — cut this scope by hand.'
+                );
+            }
+            if ($seats > $ceiling) {
+                throw new RuntimeException(
+                    "A detached part holds {$seats} seats of population — above the ceiling {$ceiling}; cut it by hand."
+                );
+            }
+
+            sort($group['members']);
+            $groupGj = count($group['members']) === 1
+                ? (string) $comps[$group['members'][0]]->gj
+                : json_encode([
+                    'type'       => 'GeometryCollection',
+                    'geometries' => array_map(
+                        fn (int $ci) => json_decode((string) $comps[$ci]->gj, true),
+                        $group['members'],
+                    ),
+                ]);
+
+            // The same clip-and-shave the splitline leaves get: proof-safe
+            // against the handler's exact ST_CoveredBy after the GeoJSON
+            // round-trip.
+            $row = DB::selectOne(
+                'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
+                      leaf AS (
+                          SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                     ST_CollectionExtract(ST_Intersection(
+                                         ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
+                                         (SELECT g FROM gi)), 3),
+                                     -0.00000001)), 3) AS g
+                      )
+                 SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
+                        ST_Area((SELECT g FROM leaf))
+                            / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
+                ['scope' => $scopeId, 'gj' => $groupGj]
+            );
+            $geometry = $row?->gj !== null ? json_decode($row->gj, true) : null;
+            if ($geometry === null) {
+                throw new RuntimeException("Component district c{$n} collapsed to an empty geometry — cut it by hand.");
+            }
+
+            $sizes[] = $seats;
+            $districts[] = [
+                'path'                   => "root.c{$n}",
+                'seats'                  => $seats,
+                'pop'                    => (int) round($group['pop']),
+                'per_seat_deviation_pct' => round(abs($group['pop'] / $seats - $quota) / $quota * 100, 2),
+                'convex_hull_ratio'      => round((float) ($row->chr ?? 0.0), 3),
+                'geometry'               => $geometry,
+            ];
+        }
+
+        return [
+            'scope_id'        => $scopeId,
+            'population_year' => $year,
+            'seat_budget'     => $S,
+            'sizes'           => $sizes,
+            'total_pop'       => (int) round($total),
+            'quota'           => round($quota, 1),
+            'template'        => self::TEMPLATE_COMPONENTS,
+            'cuts'            => [],
+            'districts'       => $districts,
+            'plan_hash'       => self::planHash($scopeId, $year, $sizes, [], self::TEMPLATE_COMPONENTS),
         ];
     }
 

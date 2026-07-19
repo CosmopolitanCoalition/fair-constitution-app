@@ -81,6 +81,29 @@ class LineSplitLadderTest extends TestCase
         }
     }
 
+    public function test_components_rescues_a_scope_every_cutting_template_refused(): void
+    {
+        $attempts = [];
+        $resolver = $this->resolverWith(function ($scope, $ctx, $year, $template) use (&$attempts) {
+            $attempts[] = $template;
+            if ($template !== 'components') {
+                throw new PlanRefused("refused: {$template}");
+            }
+
+            return ['plan_hash' => 'h', 'districts' => [], 'template' => $template];
+        });
+
+        $out = $resolver->planWithFallback('scope', [], 2023, 'shortest', true);
+
+        $this->assertSame(
+            ['shortest', 'vertical_strips', 'horizontal_strips', 'community_cells', 'components'],
+            $attempts,
+            'components rides LAST — the ladder reaches it only after every cutting template refused'
+        );
+        $this->assertSame('components', $out['template']);
+        $this->assertTrue($out['fallback']);
+    }
+
     public function test_requested_template_leads_even_from_mid_registry(): void
     {
         $attempts = [];
