@@ -154,6 +154,20 @@ class PopulationRaster
      */
     public function hasRasterCoverage(string $scopeId, int $year = 2023): bool
     {
+        [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
+
+        return $rasterPop > 0
+            && ($storedPop <= 0 || $rasterPop >= 0.1 * $storedPop);
+    }
+
+    /**
+     * The scope's raster mass over its own geometry + its stored population
+     * — the two oracles every measurement reconciles. Memoized per process.
+     *
+     * @return array{0: int, 1: int} [rasterPop, storedPop]
+     */
+    private function coverageStats(string $scopeId, int $year): array
+    {
         static $memo = [];
         $key = "{$scopeId}.{$year}";
         if (! isset($memo[$key])) {
@@ -164,10 +178,7 @@ class PopulationRaster
                   WHERE j.id = ? AND j.geom IS NOT NULL',
                 [$year, $scopeId]
             );
-            $rasterPop = (int) ($row->raster_pop ?? 0);
-            $storedPop = (int) ($row->stored_pop ?? 0);
-            $memo[$key] = $rasterPop > 0
-                && ($storedPop <= 0 || $rasterPop >= 0.1 * $storedPop);
+            $memo[$key] = [(int) ($row->raster_pop ?? 0), (int) ($row->stored_pop ?? 0)];
         }
 
         return $memo[$key];
@@ -263,7 +274,22 @@ class PopulationRaster
     public function measureWithFallback(string $scopeId, string $geoJson, int $year = 2023): array
     {
         if ($this->hasRasterCoverage($scopeId, $year)) {
-            return ['pop' => $this->populationWithinMulti($geoJson, $year), 'source' => 'worldpop_raster'];
+            // ONE denominator (2026-07-19, the 10-seat-village review class):
+            // the raster is the DISTRIBUTION oracle, the stored population is
+            // the AMOUNT oracle — it sized the legislature, so it is the mass
+            // the seat quota divides. A piece measures as its SHARE of the
+            // scope's raster mass × the stored population; where raster and
+            // stored agree this is the identity, and where they drift (the
+            // accepted geodata noise) a share-balanced plan measures exactly
+            // as the planner balanced it instead of being band-refused by
+            // the offset.
+            [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
+            $pieceRaw = $this->populationWithinMulti($geoJson, $year);
+            $pop = ($rasterPop > 0 && $storedPop > 0)
+                ? (int) round($storedPop * $pieceRaw / $rasterPop)
+                : $pieceRaw;
+
+            return ['pop' => $pop, 'source' => 'worldpop_raster'];
         }
 
         $row = DB::selectOne('
