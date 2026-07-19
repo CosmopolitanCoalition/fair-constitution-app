@@ -403,6 +403,27 @@ onBeforeUnmount(stopPolling)
                     Last error: {{ run.last_error }}
                 </p>
 
+                <!-- THE WORKER STRIP: one honest line per live worker — what
+                     each one holds RIGHT NOW (fast sweeps blink through the
+                     scope list below; this never lies about the pool). -->
+                <div v-if="autoscale.workers_detail?.length" class="mt-4 border-t border-gray-700/50 pt-3">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">
+                        Workers ({{ autoscale.workers_detail.length }})
+                    </div>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                        <li v-for="w in autoscale.workers_detail" :key="w.id" class="flex items-baseline gap-2">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full"
+                                  :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'"></span>
+                            <span class="text-gray-500 text-xs font-mono">{{ w.id }}</span>
+                            <span v-if="w.claim_label" class="text-gray-200 truncate">
+                                {{ w.claim_label }}
+                                <span v-if="w.claim_secs != null" class="text-gray-500 text-xs">· {{ w.claim_secs }}s</span>
+                            </span>
+                            <span v-else class="text-gray-500 italic text-xs">between claims</span>
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- Live scopes: the real in-flight work units (Earth's giant
                      provinces show individually while Earth sweeps). -->
                 <div v-if="autoscale.live_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">

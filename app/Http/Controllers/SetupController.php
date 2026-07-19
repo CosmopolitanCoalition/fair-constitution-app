@@ -2168,11 +2168,23 @@ class SetupController extends Controller
             ? (int) round((max(0, (int) $run->sweeps_total - $sweepsDoneNow) / $sweepRatePerH) * 3600)
             : null;
 
-        // Live workers = lease rows seen in the last 2 minutes.
-        $workers = (int) DB::table('autoscale_worker_leases')
+        // Live workers = lease rows seen in the last 2 minutes, each with
+        // the claim it is holding RIGHT NOW (fast sweeps blink through the
+        // scope list; this strip is the honest per-worker view).
+        $workerRows = DB::table('autoscale_worker_leases')
             ->where('run_id', $run->id)
             ->where('last_seen_at', '>', now()->subMinutes(2))
-            ->count();
+            ->orderBy('started_at')
+            ->get(['id', 'claim_type', 'claim_label', 'claim_started_at', 'started_at']);
+        $workers = $workerRows->count();
+        $workersDetail = $workerRows->map(fn ($w) => [
+            'id'          => substr((string) $w->id, 0, 8),
+            'claim_type'  => $w->claim_type,
+            'claim_label' => $w->claim_label,
+            'claim_secs'  => $w->claim_started_at !== null
+                ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true))
+                : null,
+        ])->values();
 
         return response()->json([
             'run' => [
@@ -2207,10 +2219,11 @@ class SetupController extends Controller
                 'workers'            => $workers,
                 'workers_target'     => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
-            'layers'       => $layers,
-            'precompute'   => $precompute,
-            'live_items'   => $liveItems,
-            'review_items' => $reviewItems,
+            'layers'         => $layers,
+            'precompute'     => $precompute,
+            'workers_detail' => $workersDetail,
+            'live_items'     => $liveItems,
+            'review_items'   => $reviewItems,
         ]);
     }
 

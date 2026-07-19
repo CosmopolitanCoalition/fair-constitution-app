@@ -118,6 +118,17 @@ class AutoscaleWorkerJob implements ShouldQueue
                     break;
                 }
 
+                // Claim visibility (operator ask 2026-07-19): the dashboard
+                // renders one line per worker from the lease row — fast
+                // sweeps blink through the scope list, but THIS shows what
+                // every worker holds at any instant.
+                DB::table('autoscale_worker_leases')->where('id', $token)->update([
+                    'claim_type'       => $claim['type'],
+                    'claim_label'      => $this->claimLabel($claim),
+                    'claim_started_at' => now(),
+                    'last_seen_at'     => now(),
+                ]);
+
                 try {
                     match ($claim['type']) {
                         'singles'    => app(SinglesBatchProcessor::class)->process($run, $token),
@@ -143,7 +154,12 @@ class AutoscaleWorkerJob implements ShouldQueue
 
                 DB::table('autoscale_worker_leases')
                     ->where('id', $token)
-                    ->update(['last_seen_at' => now()]);
+                    ->update([
+                        'last_seen_at'     => now(),
+                        'claim_type'       => null,
+                        'claim_label'      => null,
+                        'claim_started_at' => null,
+                    ]);
             }
         } finally {
             try {
@@ -153,6 +169,28 @@ class AutoscaleWorkerJob implements ShouldQueue
                 // pump prunes stale leases anyway.
             }
         }
+    }
+
+    /** A human-readable line for the dashboard's per-worker strip. */
+    private function claimLabel(array $claim): string
+    {
+        $name = function (?string $jurisdictionId): string {
+            if ($jurisdictionId === null) {
+                return '?';
+            }
+            return (string) (DB::table('jurisdictions')->where('id', $jurisdictionId)->value('name') ?? '?');
+        };
+
+        return match ($claim['type']) {
+            'singles'    => 'leaf-council batch (' . number_format($claim['count']) . ')',
+            'precompute' => 'borders: ' . $name($claim['parent_id']),
+            'scope'      => $name($claim['scope_jurisdiction_id'])
+                . ($claim['depth'] > 0 ? ' (cascade depth ' . $claim['depth'] . ')' : ''),
+            'finalize'   => 'assessing: ' . $name(
+                DB::table('autoscale_items')->where('id', $claim['item_id'])->value('jurisdiction_id')
+            ),
+            default      => $claim['type'],
+        };
     }
 
     /** Best-effort release after an infrastructure error mid-claim. */
