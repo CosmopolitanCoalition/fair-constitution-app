@@ -71,6 +71,12 @@ class ManualDistrictDraw implements FormHandler
         $geoJson = $payload['geojson'] ?? null;
         $label = trim((string) ($payload['label'] ?? ''));
         $year = (int) ($payload['population_year'] ?? 2023);
+        // Autoseed-only (LeafGiantResolver sets it when the recompute IS the
+        // plan): a marginally sub-floor piece files as the SAME recorded
+        // floor_override posture composite bins carry (Art. II §2 — the
+        // assessor treats those rows as postures, not violations). A human
+        // previewed commit never sets it — a human can redraw.
+        $floorPosture = (bool) ($payload['floor_posture'] ?? false);
 
         if (is_array($geoJson)) {
             $geoJson = json_encode($geoJson);
@@ -259,7 +265,14 @@ class ManualDistrictDraw implements FormHandler
         $fractional = $this->raster->impliedSeats($pop, $quota);
         $seats = (int) round($fractional);
 
-        if ($seats < $floor || $seats > $ceiling) {
+        // Band gate: a ceiling violation or an empty/zero-seat piece always
+        // refuses. A sub-floor piece refuses on the HUMAN path (redraw it),
+        // but files as the recorded floor_override posture on the autoseed
+        // path (pixel granularity means the best achievable cut of a small
+        // scope can round one piece just under floor — the same posture the
+        // composite side's sub-floor bins record, seated by nearest rounding
+        // with no total-forcing).
+        if ($seats < 1 || $seats > $ceiling || ($seats < $floor && ! $floorPosture)) {
             throw new ConstitutionalViolation(
                 sprintf(
                     'The drawn district holds %s people (%.2f of the local quota %.1f) — %d seats, '

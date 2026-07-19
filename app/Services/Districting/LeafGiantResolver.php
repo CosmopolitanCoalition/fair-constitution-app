@@ -221,6 +221,10 @@ class LeafGiantResolver
                 'geojson'         => json_encode($d['geometry']),
                 'label'           => null,
                 'population_year' => $year,
+                // The recompute IS the plan (no client hash): a marginally
+                // sub-floor piece records the floor_override posture instead
+                // of refusing — pixel granularity, not unlawfulness.
+                'floor_posture'   => $expectedPlanHash === null,
             ]);
             $ids[] = $res->recorded['district_id'];
         }
