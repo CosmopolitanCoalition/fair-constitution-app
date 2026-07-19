@@ -2192,7 +2192,9 @@ class SetupController extends Controller
                 'finished_at'        => $run->finished_at?->toIso8601String(),
                 'heartbeat_at'       => $run->updated_at?->toIso8601String(),
                 'halt_requested'     => $run->halt_requested_at !== null,
-                'paused_until'       => $run->paused_until?->toIso8601String(),
+                // Only a FUTURE pause is a pause — the stamp lingers after
+                // the breaker window lapses and must not render as state.
+                'paused_until'       => $run->isPaused() ? $run->paused_until->toIso8601String() : null,
                 'sweeps_per_hour'    => $sweepRatePerH,
                 'singles_per_hour'   => round(((int) $rateRow->singles_30m) * 2.0, 1),
                 'eta_seconds'        => $etaSeconds,
