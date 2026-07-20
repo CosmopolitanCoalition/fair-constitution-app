@@ -191,48 +191,23 @@ class ManualDistrictDraw implements FormHandler
         // Geometry validation in one round-trip: contiguity, within the giant,
         // and the piece's part census for persistence.
         //
-        // CONTIGUITY RULE (2026-07-17, the LA-County islands ruling — "it
-        // should be able to handle multiple non-contiguous pieces"): a giant
-        // whose OWN territory is non-contiguous (LA = mainland + Santa
-        // Catalina + San Clemente) can only be districted if its detached
+        // CONTIGUITY RULE (2026-07-17 LA-County islands ruling, generalized
+        // 2026-07-20 for the scattered-remainder class): a giant whose OWN
+        // territory is non-contiguous can only be districted if its detached
         // components ride WHOLE inside some district — the composite side's
-        // fragment doctrine, applied here. A part of the drawn piece is
-        // therefore admissible when it IS an entire original component of the
-        // giant (mutual ≥98% area overlap absorbs the 1e-8° interior shave);
-        // beyond those, at most ONE part may remain — the piece's own cut
-        // fragment of a single landmass. Two-plus non-component parts = a
-        // blade-created fragmentation of one landmass, refused exactly as
-        // before (Art. II §8).
-        $geo = DB::selectOne(
-            'WITH d AS (
-                 SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g
-             ),
-             gi AS (
-                 SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
-             ),
-             dparts AS (
-                 SELECT (ST_Dump((SELECT g FROM d))).geom AS p
-             ),
-             gcomps AS (
-                 SELECT (ST_Dump((SELECT g FROM gi))).geom AS c
-             ),
-             whole AS (
-                 SELECT count(*) AS n
-                   FROM dparts dp
-                  WHERE EXISTS (
-                      SELECT 1 FROM gcomps gc
-                       WHERE ST_Intersects(dp.p, gc.c)
-                         AND ST_Area(ST_Intersection(dp.p, gc.c)) >= 0.98 * ST_Area(gc.c)
-                         AND ST_Area(ST_Intersection(dp.p, gc.c)) >= 0.98 * ST_Area(dp.p)
-                  )
-             )
-             SELECT
-                 ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS parts,
-                 (SELECT n FROM whole)                                      AS whole_parts,
-                 ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
-                 ST_IsEmpty((SELECT g FROM d))                              AS empty',
-            ['gj' => $geoJson, 'scope' => $scopeId]
-        );
+        // fragment doctrine, applied here. Source multipolygons often store
+        // TOUCHING rings as separate components (tiling noise); the blade
+        // side's union dissolves them, so a drawn part may lawfully be a
+        // UNION of whole components — nothing was cut. A part is therefore
+        // admissible when ≥98% of its area is covered by components it
+        // wholly swallows (each ≥98% inside the part; the thresholds absorb
+        // the 1e-8° interior shave). The single-component identity of the
+        // original ruling is the n=1 case. Beyond whole-composed parts, at
+        // most ONE part may remain — the piece's own cut fragment of a
+        // single landmass. Two-plus cut parts = a blade-created
+        // fragmentation of one landmass, refused exactly as before
+        // (Art. II §8 — the one-fragment LAW is unchanged).
+        $geo = self::partCensus($geoJson, $scopeId);
 
         if ($geo === null || (bool) $geo->empty) {
             throw new ConstitutionalViolation('The drawn polygon is empty or invalid.', 'Art. II §2');
@@ -414,5 +389,49 @@ class ManualDistrictDraw implements FormHandler
             'giant_seat_budget' => $S,
             'clamp_superseded' => $clampDistrictIds->isNotEmpty(),
         ];
+    }
+
+    /**
+     * The Art. II §8 part census: how many parts the drawn piece has, how
+     * many are WHOLE-COMPOSED (≥98% of the part's area covered by scope
+     * components the part wholly swallows — a union of whole components was
+     * never cut), whether the piece stays inside the scope, and emptiness.
+     * Public + static so the constitutional pin can interrogate the exact
+     * arithmetic the handler enforces (FragmentAccountingTest).
+     *
+     * @return object{parts:int, whole_parts:int, within:bool, empty:bool}|null
+     */
+    public static function partCensus(string $geoJson, string $scopeId): ?object
+    {
+        return DB::selectOne(
+            'WITH d AS (
+                 SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g
+             ),
+             gi AS (
+                 SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
+             ),
+             dparts AS (
+                 SELECT (ST_Dump((SELECT g FROM d))).geom AS p
+             ),
+             gcomps AS (
+                 SELECT (ST_Dump((SELECT g FROM gi))).geom AS c
+             ),
+             whole AS (
+                 SELECT count(*) AS n
+                   FROM dparts dp
+                  WHERE (
+                      SELECT COALESCE(SUM(ST_Area(ST_Intersection(dp.p, gc.c))), 0)
+                        FROM gcomps gc
+                       WHERE ST_Intersects(dp.p, gc.c)
+                         AND ST_Area(ST_Intersection(dp.p, gc.c)) >= 0.98 * ST_Area(gc.c)
+                  ) >= 0.98 * ST_Area(dp.p)
+             )
+             SELECT
+                 ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS parts,
+                 (SELECT n FROM whole)                                      AS whole_parts,
+                 ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
+                 ST_IsEmpty((SELECT g FROM d))                              AS empty',
+            ['gj' => $geoJson, 'scope' => $scopeId]
+        );
     }
 }
