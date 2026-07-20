@@ -101,7 +101,45 @@ class ComponentsTemplateTest extends TestCase
             [(string) Str::uuid(), self::ISO, 900 / 640, $now]
         );
 
-        return ['twin_id' => $twinId, 'solid_id' => $solidId];
+        // Lopsided Isles — the Chiboo Gaon class (mainland-by-population
+        // pin): the SMALLER-AREA east isle holds 96% of the people (its own
+        // hot tile), the big west isle is nearly empty. The blade mainland
+        // must be chosen by population — an area-chosen mainland has no
+        // balanced cut and the whole ladder used to refuse.
+        $lopsidedId = (string) Str::uuid();
+        DB::insert(
+            "INSERT INTO jurisdictions
+                (id, name, slug, iso_code, adm_level, parent_id, population, is_active, is_civic_active,
+                 source, official_languages, timezone, geom, centroid, created_at, updated_at)
+             VALUES
+                (?, 'Lopsided Isles', ?, ?, 2, NULL, 1000, true, true, 'pin-fixture', '[]', 'UTC',
+                 ST_Collect(ARRAY[
+                     ST_MakeEnvelope(20.0, 50.0, 20.1, 50.1, 4326),
+                     ST_MakeEnvelope(20.3, 50.0, 20.36, 50.1, 4326)
+                 ]),
+                 ST_Centroid(ST_MakeEnvelope(20.0, 50.0, 20.36, 50.1, 4326)), ?, ?)",
+            [$lopsidedId, 'zz-2-lopsided-isles-'.substr($lopsidedId, 0, 8), self::ISO, $now, $now]
+        );
+        // West tile: 20×20 cells × 0.1 = 40 people. East tile: 12×20 × 4.0
+        // = 960. Stored 1000 → coverage exact.
+        DB::insert(
+            "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
+             VALUES (?, ?, 2023, 100,
+                     ST_AddBand(ST_MakeEmptyRaster(20, 20, 20.0, 50.1, 0.005, -0.005, 0, 0, 4326),
+                                '32BF'::text, ?::double precision, NULL),
+                     ?)",
+            [(string) Str::uuid(), self::ISO, 0.1, $now]
+        );
+        DB::insert(
+            "INSERT INTO worldpop_rasters (id, iso_code, year, resolution_m, rast, created_at)
+             VALUES (?, ?, 2023, 100,
+                     ST_AddBand(ST_MakeEmptyRaster(12, 20, 20.3, 50.1, 0.005, -0.005, 0, 0, 4326),
+                                '32BF'::text, ?::double precision, NULL),
+                     ?)",
+            [(string) Str::uuid(), self::ISO, 4.0, $now]
+        );
+
+        return ['twin_id' => $twinId, 'solid_id' => $solidId, 'lopsided_id' => $lopsidedId];
     }
 
     private function ctx(int $budget): array
@@ -146,6 +184,34 @@ class ComponentsTemplateTest extends TestCase
             $again = app(SubdivisionAutoseedService::class)
                 ->plan($ctx['twin_id'], $this->ctx(10), 2023, SubdivisionAutoseedService::TEMPLATE_COMPONENTS);
             $this->assertSame($plan['plan_hash'], $again['plan_hash']);
+        });
+    }
+
+    public function test_blade_mainland_is_chosen_by_population_not_area(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // The Chiboo Gaon class: 96% of the people on the SMALLER-area
+            // part. The splitline must cut the populous isle and let the big
+            // empty isle ride as an island — an area-chosen mainland has no
+            // balanced cut and this plan() used to refuse outright.
+            $plan = app(SubdivisionAutoseedService::class)
+                ->plan(
+                    $ctx['lopsided_id'],
+                    ['floor' => 5, 'ceiling' => 9, 'budget' => 10, 'quota' => 100.0],
+                    2023,
+                    SubdivisionAutoseedService::TEMPLATE_SHORTEST
+                );
+
+            $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $plan['template']);
+            $this->assertCount(2, $plan['districts'], 'one straight cut through the populous isle → two districts');
+            $this->assertSame([5, 5], array_values(array_map(
+                fn (array $d) => $d['seats'],
+                $plan['districts']
+            )), 'budget 10 bisects 5:5');
+            foreach ($plan['districts'] as $d) {
+                $this->assertEqualsWithDelta(500, $d['pop'], 30,
+                    'both sides balance within the per-seat deviation guard — the empty isle rides, never blocks');
+            }
         });
     }
 

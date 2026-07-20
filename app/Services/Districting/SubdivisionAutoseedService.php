@@ -126,9 +126,11 @@ class SubdivisionAutoseedService
         // were refused. Doctrine now matches the composite side: ISLANDS RIDE
         // WHOLE with the blade side their position dictates; only
         // blade-created fragments of a single landmass are refused. The blade
-        // search runs on the LARGEST part (the mainland); each island joins
-        // the search as ONE super-pixel at its representative point carrying
-        // its whole population, so balance stays exact and deterministic.
+        // search runs on the MOST POPULOUS part (the mainland — by people,
+        // not area: only a mainland holding the divisible mass can balance);
+        // each island joins the search as ONE super-pixel at its
+        // representative point carrying its whole population, so balance
+        // stays exact and deterministic.
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
                     ST_Area(g::geography) AS area,
@@ -143,24 +145,54 @@ class SubdivisionAutoseedService
         $mainlandGj = $region->gj;
         $islands = [];
         if (count($comps) > 1) {
-            $mainlandGj = (string) $comps[0]->gj;
-            $mainPixels = $pixels;
-            foreach (array_slice($comps, 1) as $comp) {
+            // Partition the grid across ALL parts first (boundary-ambiguous
+            // cells stay with the largest-area part, as ever) …
+            $rest = $pixels;
+            $partPixels = [];
+            $partPops = [0 => 0.0];
+            foreach (array_slice($comps, 1) as $i => $comp) {
                 $poly = json_decode((string) $comp->gj, true);
-                [$inside, $mainPixels] = self::partitionPixelsByPolygon($mainPixels, $poly);
+                [$inside, $rest] = self::partitionPixelsByPolygon($rest, $poly);
                 $pop = 0.0;
                 foreach ($inside as $p) {
                     $pop += $p[2];
+                }
+                $partPixels[$i + 1] = $inside;
+                $partPops[$i + 1] = $pop;
+            }
+            $partPixels[0] = $rest;
+            foreach ($rest as $p) {
+                $partPops[0] += $p[2];
+            }
+
+            // … then the blade MAINLAND is the part holding the MOST PEOPLE,
+            // not the most area (run-6 watch fix 2026-07-19, the Chiboo Gaon
+            // class: a village whose population lives on the smaller-area
+            // part gave the blade search a near-empty mainland — no balanced
+            // cut can exist there). Only the mainland is ever cut; every
+            // other part rides whole as an island. Ties keep the
+            // largest-area part (index order is area DESC — deterministic).
+            $mainIdx = 0;
+            foreach ($partPops as $i => $pop) {
+                if ($pop > $partPops[$mainIdx]) {
+                    $mainIdx = $i;
+                }
+            }
+
+            $mainlandGj = (string) $comps[$mainIdx]->gj;
+            foreach ($comps as $i => $comp) {
+                if ($i === $mainIdx) {
+                    continue;
                 }
                 $islands[] = [
                     'gj'     => (string) $comp->gj,
                     'cx'     => (float) $comp->cx,
                     'cy'     => (float) $comp->cy,
-                    'pop'    => $pop,
-                    'pixels' => $inside,
+                    'pop'    => $partPops[$i],
+                    'pixels' => $partPixels[$i],
                 ];
             }
-            $pixels = $mainPixels;
+            $pixels = $partPixels[$mainIdx];
         }
 
         // The plan's quota is PIXEL-derived so the deviation figures measure the
