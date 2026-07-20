@@ -418,7 +418,13 @@ class ManualDistrictDraw implements FormHandler
                  SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
              ),
              gcomps AS (
-                 SELECT (ST_Dump((SELECT g FROM gi))).geom AS c
+                 -- TRUE landmasses: UnaryUnion dissolves loosely-touching
+                 -- rings AND overlapping duplicate slivers (scattered-
+                 -- remainder data noise) into the connected landmasses the
+                 -- law actually protects. Without this, a whole island
+                 -- overlapping a duplicate neighbor ring reads as a second
+                 -- "cut landmass" (the Penamaluru class).
+                 SELECT (ST_Dump(ST_UnaryUnion((SELECT g FROM gi)))).geom AS c
              ),
              cutcomps AS (
                  SELECT gc.c,
