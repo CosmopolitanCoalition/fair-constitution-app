@@ -131,12 +131,17 @@ class SubdivisionAutoseedService
         // each island joins the search as ONE super-pixel at its
         // representative point carrying its whole population, so balance
         // stays exact and deterministic.
+        // TRUE landmasses (2026-07-20, the Penamaluru class): UnaryUnion
+        // dissolves loosely-touching rings and overlapping duplicate slivers
+        // BEFORE the island partition — otherwise two stored halves of one
+        // landmass can ride opposite blade sides, cutting the landmass by
+        // assignment (the census refuses exactly that at filing).
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
                     ST_Area(g::geography) AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT (ST_Dump(ST_MakeValid(geom))).geom AS g
+               FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
                        FROM jurisdictions WHERE id = ?) t
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
@@ -254,12 +259,14 @@ class SubdivisionAutoseedService
         $ceiling = (int) $ctx['ceiling'];
         $k = intdiv($S + $ceiling - 1, $ceiling);
 
+        // TRUE landmasses — same dissolve as the splitline island partition
+        // and the filing census (one bookkeeping everywhere).
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
                     ST_Area(g::geography) AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT (ST_Dump(ST_MakeValid(geom))).geom AS g
+               FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
                        FROM jurisdictions WHERE id = ?) t
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
