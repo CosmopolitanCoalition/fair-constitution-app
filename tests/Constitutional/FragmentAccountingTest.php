@@ -48,7 +48,9 @@ class FragmentAccountingTest extends TestCase
     }
 
     /**
-     * Cluster Isles — 6 stored rings, 4 true landmasses:
+     * Cluster Isles — 7 stored rings, 4 true landmasses + 1 degenerate
+     * ribbon (R, ~1 cm × 22 km at lat 50.20 — the scattered-remainder
+     * subtraction-residue shape, censused as boundary noise):
      *   G  (the giant):     [40.00–40.20] × [50.00–50.10]
      *   S1 + S2 (touching): [40.30–40.34] + [40.34–40.38] × [50.00–50.05]
      *   S3 + S4 (touching): [40.30–40.34] + [40.34–40.38] × [50.06–50.10]
@@ -72,7 +74,8 @@ class FragmentAccountingTest extends TestCase
                      ST_MakeEnvelope(40.34, 50.00, 40.38, 50.05, 4326),
                      ST_MakeEnvelope(40.30, 50.06, 40.34, 50.10, 4326),
                      ST_MakeEnvelope(40.34, 50.06, 40.38, 50.10, 4326),
-                     ST_MakeEnvelope(40.00, 50.12, 40.06, 50.16, 4326)
+                     ST_MakeEnvelope(40.00, 50.12, 40.06, 50.16, 4326),
+                     ST_MakeEnvelope(40.00, 50.20, 40.20, 50.2000001, 4326)
                  ]),
                  ST_Centroid(ST_MakeEnvelope(40.0, 50.0, 40.38, 50.16, 4326)), ?, ?)",
             [$id, 'zz-2-cluster-isles-'.substr($id, 0, 8), $now, $now]
@@ -117,6 +120,26 @@ class FragmentAccountingTest extends TestCase
 
             $this->assertSame(0, (int) $geo->cut_components);
             $this->assertSame(0, (int) $geo->fragment_pieces);
+        });
+    }
+
+    public function test_degenerate_ribbons_are_boundary_noise_not_landmasses(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // A cut of G with 60% of the 1 cm ribbon R aboard: R is
+            // subtraction residue with no breadth — it can never count as a
+            // second cut landmass (the Penamaluru class). One cut, one
+            // chunk: filable.
+            $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
+                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.12, 50.00], [40.12, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
+                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.20], [40.12, 50.20], [40.12, 50.2000001], [40.00, 50.2000001], [40.00, 50.20]]]],
+            ]]);
+
+            $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
+
+            $this->assertSame(1, (int) $geo->cut_components,
+                'a centimeter-wide ribbon is boundary noise — never a second cut landmass');
+            $this->assertSame(1, (int) $geo->fragment_pieces);
         });
     }
 

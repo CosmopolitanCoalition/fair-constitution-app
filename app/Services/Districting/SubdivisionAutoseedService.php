@@ -143,6 +143,7 @@ class SubdivisionAutoseedService
                     ST_Y(ST_PointOnSurface(g)) AS cy
                FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
                        FROM jurisdictions WHERE id = ?) t
+              WHERE 2 * ST_Area(g::geography) / NULLIF(ST_Perimeter(g::geography), 0) >= 0.5
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
         );
@@ -268,6 +269,7 @@ class SubdivisionAutoseedService
                     ST_Y(ST_PointOnSurface(g)) AS cy
                FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
                        FROM jurisdictions WHERE id = ?) t
+              WHERE 2 * ST_Area(g::geography) / NULLIF(ST_Perimeter(g::geography), 0) >= 0.5
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
         );
@@ -353,12 +355,24 @@ class SubdivisionAutoseedService
             // round-trip.
             $row = DB::selectOne(
                 'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
+                      ix AS (
+                          SELECT ST_CollectionExtract(ST_Intersection(
+                                     ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
+                                     (SELECT g FROM gi)), 3) AS g
+                      ),
+                      -- PER-PART shave (2026-07-20, the Penamaluru merge): a
+                      -- collection-level negative buffer re-nodes lattice-
+                      -- adjacent parts together (13 raster diamonds came out
+                      -- as 4 fused parts). Shaving each dumped part on its
+                      -- own can never merge parts; parts the shave empties
+                      -- drop out and the null-geometry refusal catches a
+                      -- fully-vanished piece.
                       leaf AS (
-                          SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
-                                     ST_CollectionExtract(ST_Intersection(
-                                         ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
-                                         (SELECT g FROM gi)), 3),
-                                     -0.00000001)), 3) AS g
+                          SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
+                            FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                             (ST_Dump((SELECT g FROM ix))).geom,
+                                             -0.00000001)), 3) AS sg) shaved
+                           WHERE NOT ST_IsEmpty(sg)
                       )
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))
@@ -770,12 +784,24 @@ class SubdivisionAutoseedService
 
             $row = DB::selectOne(
                 'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
+                      ix AS (
+                          SELECT ST_CollectionExtract(ST_Intersection(
+                                     ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
+                                     (SELECT g FROM gi)), 3) AS g
+                      ),
+                      -- PER-PART shave (2026-07-20, the Penamaluru merge): a
+                      -- collection-level negative buffer re-nodes lattice-
+                      -- adjacent parts together (13 raster diamonds came out
+                      -- as 4 fused parts). Shaving each dumped part on its
+                      -- own can never merge parts; parts the shave empties
+                      -- drop out and the null-geometry refusal catches a
+                      -- fully-vanished piece.
                       leaf AS (
-                          SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
-                                     ST_CollectionExtract(ST_Intersection(
-                                         ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
-                                         (SELECT g FROM gi)), 3),
-                                     -0.00000001)), 3) AS g
+                          SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
+                            FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                             (ST_Dump((SELECT g FROM ix))).geom,
+                                             -0.00000001)), 3) AS sg) shaved
+                           WHERE NOT ST_IsEmpty(sg)
                       )
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))

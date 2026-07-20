@@ -423,8 +423,18 @@ class ManualDistrictDraw implements FormHandler
                  -- remainder data noise) into the connected landmasses the
                  -- law actually protects. Without this, a whole island
                  -- overlapping a duplicate neighbor ring reads as a second
-                 -- "cut landmass" (the Penamaluru class).
-                 SELECT (ST_Dump(ST_UnaryUnion((SELECT g FROM gi)))).geom AS c
+                 -- "cut landmass" (the Penamaluru class). DEGENERATE
+                 -- RIBBONS — landmasses with effective width under ~1 m
+                 -- (2·area/perimeter < 0.5 m; Penamaluru carries 1 cm ×
+                 -- 4 km subtraction residue) — are boundary noise, not
+                 -- territory: they cannot host a resident, the interior
+                 -- shave disintegrates them, and they are censused on the
+                 -- same de-minimis footing as the shave itself.
+                 SELECT c FROM (
+                     SELECT (ST_Dump(ST_UnaryUnion((SELECT g FROM gi)))).geom AS c
+                 ) t
+                 WHERE 2 * ST_Area(c::geography)
+                       / NULLIF(ST_Perimeter(c::geography), 0) >= 0.5
              ),
              cutcomps AS (
                  SELECT gc.c,
