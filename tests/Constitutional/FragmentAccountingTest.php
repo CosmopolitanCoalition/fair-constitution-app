@@ -9,16 +9,16 @@ use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * CONSTITUTIONAL PIN — the Art. II §8 part census (LA-County islands ruling
- * 2026-07-17, generalized 2026-07-20 for the scattered-remainder class).
+ * CONSTITUTIONAL PIN — the Art. II §8 COMPONENT census (LA-County islands
+ * ruling 2026-07-17; merge-proof component bookkeeping 2026-07-20, the
+ * scattered-remainder class).
  *
- * Source multipolygons often store TOUCHING rings as separate components
- * (tiling noise — Madanpur Rampur's "108 parts" are a handful of connected
- * clusters). A blade side's union dissolves them, so a drawn part may
- * lawfully be a UNION of whole components — nothing was cut. The census must
- * count such parts as whole-composed; only parts containing genuinely CUT
- * territory are fragments, and at most ONE fragment per piece is admitted.
- * The one-fragment LAW itself is unchanged.
+ * Source data stores loosely-touching rings as separate components, and a
+ * blade side's union merges a cut chunk with whole islands it touches — so
+ * PART counting cannot express the one-fragment law. The census counts
+ * against the components themselves: a piece may cut at most ONE landmass,
+ * and the cut territory must be ONE connected chunk; whole components ride
+ * in any number, merged or not. The one-fragment LAW is unchanged.
  *
  * If an edit breaks these, the edit is the constitutional violation — fix the
  * edit, not the test.
@@ -53,8 +53,8 @@ class FragmentAccountingTest extends TestCase
      *   S1 + S2 (touching): [40.30–40.34] + [40.34–40.38] × [50.00–50.05]
      *   S3 + S4 (touching): [40.30–40.34] + [40.34–40.38] × [50.06–50.10]
      *   D  (detached isle): [40.00–40.06] × [50.12–50.16]
-     * S1|S2 dissolve into one part when unioned; likewise S3|S4. G, the two
-     * clusters, and D are all detached from each other.
+     * S1|S2 dissolve into one landmass under ST_MakeValid (full shared
+     * edge); likewise S3|S4. G, the clusters, and D are detached.
      */
     private function buildClusterIsles(): array
     {
@@ -74,79 +74,57 @@ class FragmentAccountingTest extends TestCase
                      ST_MakeEnvelope(40.34, 50.06, 40.38, 50.10, 4326),
                      ST_MakeEnvelope(40.00, 50.12, 40.06, 50.16, 4326)
                  ]),
-                 ST_Centroid(ST_MakeEnvelope(40.0, 50.0, 40.38, 50.1, 4326)), ?, ?)",
+                 ST_Centroid(ST_MakeEnvelope(40.0, 50.0, 40.38, 50.16, 4326)), ?, ?)",
             [$id, 'zz-2-cluster-isles-'.substr($id, 0, 8), $now, $now]
         );
 
         return ['scope_id' => $id];
     }
 
-    public function test_a_union_of_whole_touching_components_is_not_a_fragment(): void
+    public function test_one_cut_plus_whole_components_files_regardless_of_merging(): void
     {
         $this->onLivePg(function (array $ctx) {
-            // The Madanpur shape: a cut of G + BOTH clusters riding whole.
-            // Parts after dissolve: G-fragment, S1∪S2, S3∪S4 = 3 parts.
-            // The census must see 2 whole-composed parts (the dissolved
-            // clusters) and only 1 cut fragment — a filable piece.
+            // The Madanpur shape: one cut of G plus BOTH whole clusters and
+            // the whole isle D riding along. However the union arranges the
+            // parts, the component census sees exactly one cut landmass in
+            // one connected chunk — a filable piece.
             $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
                 ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.12, 50.00], [40.12, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
                 ['type' => 'Polygon', 'coordinates' => [[[40.30, 50.00], [40.38, 50.00], [40.38, 50.05], [40.30, 50.05], [40.30, 50.00]]]],
                 ['type' => 'Polygon', 'coordinates' => [[[40.30, 50.06], [40.38, 50.06], [40.38, 50.10], [40.30, 50.10], [40.30, 50.06]]]],
-            ]]);
-
-            $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
-
-            $this->assertSame(3, (int) $geo->parts);
-            $this->assertSame(2, (int) $geo->whole_parts,
-                'each dissolved cluster is a UNION of whole components — never a cut fragment');
-            $this->assertSame(1, (int) $geo->parts - (int) $geo->whole_parts,
-                'exactly the one lawful cut fragment (the blade piece of G) remains');
-            $this->assertTrue((bool) $geo->within);
-        });
-    }
-
-    public function test_a_single_whole_component_still_counts_whole(): void
-    {
-        $this->onLivePg(function (array $ctx) {
-            // The original LA-islands identity (n=1 case): G-cut + the whole
-            // detached isle D riding along.
-            $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
-                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.12, 50.00], [40.12, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
                 ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.12], [40.06, 50.12], [40.06, 50.16], [40.00, 50.16], [40.00, 50.12]]]],
             ]]);
 
             $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
 
-            $this->assertSame(2, (int) $geo->parts);
-            $this->assertSame(1, (int) $geo->whole_parts, 'a whole detached component keeps its identity');
+            $this->assertSame(1, (int) $geo->cut_components, 'only G is partially present — one cut landmass');
+            $this->assertSame(1, (int) $geo->fragment_pieces, 'the cut territory is one connected chunk');
+            $this->assertTrue((bool) $geo->within);
         });
     }
 
-    public function test_half_of_a_dissolved_touching_cluster_is_a_cut_fragment(): void
+    public function test_whole_components_only_is_no_fragment_at_all(): void
     {
         $this->onLivePg(function (array $ctx) {
-            // S1 alone: its twin S2 shares a full edge, so the two stored
-            // rings ARE one landmass — taking S1 without S2 cuts it. With
-            // the G-cut also aboard that makes TWO fragments: a violation.
+            // The components template's own shape: whole landmasses, nothing
+            // cut anywhere.
             $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
-                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.12, 50.00], [40.12, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
-                ['type' => 'Polygon', 'coordinates' => [[[40.30, 50.00], [40.34, 50.00], [40.34, 50.05], [40.30, 50.05], [40.30, 50.00]]]],
+                ['type' => 'Polygon', 'coordinates' => [[[40.30, 50.00], [40.38, 50.00], [40.38, 50.05], [40.30, 50.05], [40.30, 50.00]]]],
+                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.12], [40.06, 50.12], [40.06, 50.16], [40.00, 50.16], [40.00, 50.12]]]],
             ]]);
 
             $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
 
-            $this->assertSame(2, (int) $geo->parts);
-            $this->assertSame(0, (int) $geo->whole_parts,
-                'half of one dissolved landmass is never whole — the union rule cannot be gamed by ring boundaries');
+            $this->assertSame(0, (int) $geo->cut_components);
+            $this->assertSame(0, (int) $geo->fragment_pieces);
         });
     }
 
-    public function test_two_genuine_cut_fragments_still_refuse(): void
+    public function test_two_chunks_of_one_landmass_still_refuse(): void
     {
         $this->onLivePg(function (array $ctx) {
-            // Two disconnected CUT chunks of G in one piece — the shape the
-            // one-fragment law exists to refuse. Neither chunk swallows any
-            // whole component, so both are fragments.
+            // Two disconnected CUT chunks of G in one piece — one landmass
+            // cut, but carried in two chunks: the shape the law refuses.
             $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
                 ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.05, 50.00], [40.05, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
                 ['type' => 'Polygon', 'coordinates' => [[[40.15, 50.00], [40.20, 50.00], [40.20, 50.10], [40.15, 50.10], [40.15, 50.00]]]],
@@ -154,10 +132,27 @@ class FragmentAccountingTest extends TestCase
 
             $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
 
-            $this->assertSame(2, (int) $geo->parts);
-            $this->assertSame(0, (int) $geo->whole_parts);
-            $this->assertGreaterThan(1, (int) $geo->parts - (int) $geo->whole_parts,
-                'two blade-created fragments of one landmass remain a violation — the LAW is unchanged');
+            $this->assertSame(1, (int) $geo->cut_components);
+            $this->assertSame(2, (int) $geo->fragment_pieces,
+                'two disconnected chunks of one cut landmass remain a violation — the LAW is unchanged');
+        });
+    }
+
+    public function test_cutting_two_different_landmasses_still_refuses(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // A chunk of G plus HALF of the dissolved S1|S2 cluster: two
+            // different landmasses cut into one piece — a violation even
+            // though each cut is itself connected.
+            $piece = json_encode(['type' => 'GeometryCollection', 'geometries' => [
+                ['type' => 'Polygon', 'coordinates' => [[[40.00, 50.00], [40.12, 50.00], [40.12, 50.10], [40.00, 50.10], [40.00, 50.00]]]],
+                ['type' => 'Polygon', 'coordinates' => [[[40.30, 50.00], [40.34, 50.00], [40.34, 50.05], [40.30, 50.05], [40.30, 50.00]]]],
+            ]]);
+
+            $geo = ManualDistrictDraw::partCensus($piece, $ctx['scope_id']);
+
+            $this->assertSame(2, (int) $geo->cut_components,
+                'half of a dissolved touching cluster is a cut of its landmass — two landmasses cut refuses');
         });
     }
 }
