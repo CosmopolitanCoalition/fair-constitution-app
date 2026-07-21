@@ -296,12 +296,15 @@ class PopulationRaster
      * The gate never needed the mosaic: clip each intersecting tile
      * INDEPENDENTLY (bounded by the tile's own extent, freed per tile — the
      * exact pattern pixelGrid and population_within already use safely at
-     * continental scale) and SUM. Border-overlap pixels double-count across
-     * two countries' tiles, so this SLIGHTLY OVER-counts — harmless for a
-     * coverage gate, whose only failure mode would be a covered scope reading
-     * as uncovered, which inflation can never cause. Antimeridian-safe by
-     * construction (no cross-date-line union). The exact-measurement function
-     * population_within_multi is untouched.
+     * continental scale) and SUM. ONE-ISO FRAME (operator ruling 2026-07-21):
+     * only the scope's OWN country's tiles are read — every scope in the
+     * district pipeline resolves its country through the chain, and the grid
+     * this gate guards IS the own-iso grid, so a gate reading neighbor tiles
+     * could pass a scope whose planning grid is empty. In the one-iso frame
+     * the only possible error is the small accepted undercount (people
+     * outside the admin line are lost, never invented). A NULL/absent iso
+     * yields raster_pop 0 → the area basis, deterministically.
+     * Antimeridian-safe by construction (no cross-date-line union).
      *
      * The clip carries WORLDPOP_NODATA explicitly: population is definitionally
      * non-negative, so the WorldPop -99999 nodata AND the ±3.4e38 fill that a
@@ -327,6 +330,7 @@ class PopulationRaster
                                      THEN ST_SimplifyPreserveTopology(j.geom, 0.001)
                                      ELSE j.geom END
                             ) AS geom,
+                            j.iso_code,
                             GREATEST(COALESCE(j.population, 0), 0) AS stored_pop
                        FROM jurisdictions j
                       WHERE j.id = ? AND j.geom IS NOT NULL
@@ -337,6 +341,7 @@ class PopulationRaster
                                    )).sum))::bigint
                               FROM worldpop_rasters r
                              WHERE r.year = ?::smallint
+                               AND r.iso_code = s.iso_code
                                AND ST_Intersects(r.rast, s.geom)
                         ), 0) AS raster_pop,
                         s.stored_pop AS stored_pop
