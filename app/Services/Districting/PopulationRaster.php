@@ -133,7 +133,26 @@ class PopulationRaster
         };
 
         if (\App\Support\AutoscaleContext::active()) {
-            return $compute();
+            // PER-PROCESS MEMO (2026-07-21, the mega-band 3× regression): the
+            // Redis bypass is right (473k one-shot scopes would balloon the
+            // cache), but measurement parity re-reads the grid PER MEASURED
+            // PIECE — so a 2-district scope recomputed the SAME grid three
+            // times (planner + one per filed piece). On a mega-area scope
+            // whose binning query runs tens of minutes, that tripling stalled
+            // the run (all 10 workers observed stuck in pixelGrid, 29-min
+            // single queries). One worker processes one scope at a time, so a
+            // last-2 memo makes planner and handler share ONE computation —
+            // bytes identical, no semantic change, bounded memory.
+            static $memo = [];
+            $mkey = "{$scopeId}.{$year}.{$cellKey}";
+            if (! isset($memo[$mkey])) {
+                if (count($memo) >= 2) {
+                    $memo = [];
+                }
+                $memo[$mkey] = $compute();
+            }
+
+            return $memo[$mkey];
         }
 
         return Cache::rememberForever("districting.pixelgrid.v2.{$scopeId}.{$year}.{$cellKey}", $compute);
@@ -390,7 +409,17 @@ class PopulationRaster
         };
 
         if (\App\Support\AutoscaleContext::active()) {
-            return $compute();
+            // Same per-process memo as pixelGrid: parity measurement re-reads
+            // the grid per filed piece — share one computation per scope.
+            static $memo = [];
+            if (! isset($memo[$scopeId])) {
+                if (count($memo) >= 2) {
+                    $memo = [];
+                }
+                $memo[$scopeId] = $compute();
+            }
+
+            return $memo[$scopeId];
         }
 
         return Cache::rememberForever("districting.areagrid.v1.{$scopeId}", $compute);
