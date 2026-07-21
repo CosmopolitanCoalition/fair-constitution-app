@@ -864,7 +864,7 @@ class SubdivisionAutoseedService
 
         try {
             $cut = $this->findBlade($gj, $pixels, $islands, $seatsA, $seatsB, $quota, $template);
-        } catch (RuntimeException $e) {
+        } catch (NoContiguousCut $e) {
             // TIER 1 (operator-sanctioned 2026-07-21, the concave-residue fix):
             // the balanced grouping's single cut stranded a fragment at every
             // angle. But a 2-district node may lawfully split at ANY in-band
@@ -893,7 +893,7 @@ class SubdivisionAutoseedService
                     $seatsA = $a;
                     $seatsB = $sNode - $a;
                     break;
-                } catch (RuntimeException $inner) {
+                } catch (NoContiguousCut $inner) {
                     continue;
                 }
             }
@@ -901,7 +901,7 @@ class SubdivisionAutoseedService
                 $lo = max($floor, $sNode - $ceiling);
                 $hi = min($ceiling, $sNode - $floor);
                 $tried = implode(', ', array_map(fn (int $a) => "{$a}:" . ($sNode - $a), range($lo, $hi)));
-                throw new RuntimeException(
+                throw new NoContiguousCut(
                     "No contiguous in-band straight cut found for a {$sNode}-seat two-district split "
                     ."at any lawful sizing ({$tried}) — cut it by hand."
                 );
@@ -1038,7 +1038,11 @@ class SubdivisionAutoseedService
             }
         }
 
-        throw new RuntimeException(
+        // NoContiguousCut (2026-07-21) — the GEOMETRY-exhausted sentinel: the
+        // sweep ran to completion and no angle yields a contiguous in-band cut
+        // for THIS seat ratio. The Tier-1 fallback catches exactly this (and
+        // not a transient DB QueryException) to retry other lawful ratios.
+        throw new NoContiguousCut(
             "No contiguous in-band straight cut found for a {$seatsA}:{$seatsB} split of this region "
             .match ($template) {
                 self::TEMPLATE_VERTICAL_STRIPS   => "(the vertical_strips template's single 90° blade tried) — try the 'shortest' template or cut it by hand.",
