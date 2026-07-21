@@ -261,22 +261,68 @@ class PopulationRaster
     }
 
     /**
-     * The scope's raster mass over its own geometry + its stored population
-     * — the two oracles every measurement reconciles. Memoized per process.
+     * The scope's raster mass over its own geometry + its stored population.
+     * The raster_pop here is a COVERAGE-GATE input ONLY (hasRasterCoverage's
+     * >0 and ≥10%-of-stored test, and basis()'s raster-vs-area decision) —
+     * every measurement that needs an exact, border-deduped population reads
+     * measureWithFallback, which uses only stored_pop from here. Memoized per
+     * process.
+     *
+     * PER-TILE COVERAGE (2026-07-21, the mega-area OOM class): raster_pop was
+     * population_within_multi, whose ST_Union(rast,'MAX') allocates ONE mosaic
+     * over the whole scope — a 95,902 km² Siberian district (Tuguro-Chumikansky)
+     * or 135k km² Canadian territory then demands a multi-GB planet-scale
+     * raster and the postgres backend is OOM-killed (signal 9), taking the run
+     * with it. The est-3+ tail is DENSE with such giants, so the crash looped.
+     * The gate never needed the mosaic: clip each intersecting tile
+     * INDEPENDENTLY (bounded by the tile's own extent, freed per tile — the
+     * exact pattern pixelGrid and population_within already use safely at
+     * continental scale) and SUM. Border-overlap pixels double-count across
+     * two countries' tiles, so this SLIGHTLY OVER-counts — harmless for a
+     * coverage gate, whose only failure mode would be a covered scope reading
+     * as uncovered, which inflation can never cause. Antimeridian-safe by
+     * construction (no cross-date-line union). The exact-measurement function
+     * population_within_multi is untouched.
+     *
+     * The clip carries WORLDPOP_NODATA explicitly: population is definitionally
+     * non-negative, so the WorldPop -99999 nodata AND the ±3.4e38 fill that a
+     * no-nodata band leaves in a crop's outside pixels are BOTH excluded by one
+     * scalar. Without it, a partial/edge clip on a band lacking its own nodata
+     * sums the float sentinel and ROUND(±3.4e38)::bigint throws "bigint out of
+     * range" — production rasters all carry -99999 so it never bit there, but
+     * the gate must not depend on every tile's nodata hygiene.
      *
      * @return array{0: int, 1: int} [rasterPop, storedPop]
      */
+    private const WORLDPOP_NODATA = -99999.0;
+
     private function coverageStats(string $scopeId, int $year): array
     {
         static $memo = [];
         $key = "{$scopeId}.{$year}";
         if (! isset($memo[$key])) {
             $row = DB::selectOne(
-                'SELECT COALESCE(population_within_multi(ST_Multi(ST_MakeValid(j.geom)), ?::smallint), 0) AS raster_pop,
-                        GREATEST(COALESCE(j.population, 0), 0) AS stored_pop
-                   FROM jurisdictions j
-                  WHERE j.id = ? AND j.geom IS NOT NULL',
-                [$year, $scopeId]
+                'WITH s AS MATERIALIZED (
+                     SELECT ST_MakeValid(
+                                CASE WHEN ST_NPoints(j.geom) > 50000
+                                     THEN ST_SimplifyPreserveTopology(j.geom, 0.001)
+                                     ELSE j.geom END
+                            ) AS geom,
+                            GREATEST(COALESCE(j.population, 0), 0) AS stored_pop
+                       FROM jurisdictions j
+                      WHERE j.id = ? AND j.geom IS NOT NULL
+                 )
+                 SELECT COALESCE((
+                            SELECT ROUND(SUM((ST_SummaryStats(
+                                       ST_Clip(r.rast, 1, s.geom, '.self::WORLDPOP_NODATA.'::double precision, TRUE)
+                                   )).sum))::bigint
+                              FROM worldpop_rasters r
+                             WHERE r.year = ?::smallint
+                               AND ST_Intersects(r.rast, s.geom)
+                        ), 0) AS raster_pop,
+                        s.stored_pop AS stored_pop
+                   FROM s',
+                [$scopeId, $year]
             );
             $memo[$key] = [(int) ($row->raster_pop ?? 0), (int) ($row->stored_pop ?? 0)];
         }
