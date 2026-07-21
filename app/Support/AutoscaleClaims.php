@@ -36,6 +36,26 @@ final class AutoscaleClaims
     public const SINGLES_BATCH = 15000;
 
     /**
+     * THE HEAVY LANE (operator ruling 2026-07-21): area_tier ≥ 4 (bbox above
+     * ~30,000 km² — the 0.02°/0.05° grid-ladder class whose single grid
+     * query runs tens of minutes). At most 20% of worker threads may hold
+     * heavy scopes at once (2 of 10 on the game box), so the other workers
+     * keep flying through light work and a consecutive giant block can never
+     * capture the whole pool again (the est-2 tail collapse + both OOM
+     * episodes were exactly that). THE DRAIN RULE: when no light work
+     * remains pending, the cap lifts and every worker may take heavy
+     * remainder. The cap is soft under claim races (two workers can read
+     * the same count in the same instant) — a transient +1 overshoot is
+     * harmless; the steady state honors the cap.
+     */
+    public const HEAVY_TIER = 4;
+
+    public static function heavyWorkerCap(): int
+    {
+        return max(1, (int) ceil(0.2 * HostCapacity::autoscaleWorkers()));
+    }
+
+    /**
      * @return array{type: 'singles'|'precompute'|'scope', ...}|null
      */
     public static function next(AutoscaleRun $run, string $token): ?array
@@ -203,7 +223,28 @@ final class AutoscaleClaims
             }
         }
 
-        $row = DB::selectOne('
+        // Heavy-lane gate: may THIS claim take a heavy scope? Yes when the
+        // heavy pool has a free slot, or when no light work remains (the
+        // drain rule). Two cheap indexed probes per claim.
+        $allowHeavy = true;
+        $lightPending = DB::table('autoscale_scopes AS s')
+            ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
+            ->where('s.run_id', $run->id)
+            ->where('s.status', 'pending')
+            ->whereRaw('COALESCE(ai.area_tier, 1) < ?', [self::HEAVY_TIER])
+            ->exists();
+        if ($lightPending) {
+            $heavyRunning = (int) DB::table('autoscale_scopes AS s')
+                ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
+                ->where('s.run_id', $run->id)
+                ->where('s.status', 'running')
+                ->whereRaw('COALESCE(ai.area_tier, 1) >= ?', [self::HEAVY_TIER])
+                ->count();
+            $allowHeavy = $heavyRunning < self::heavyWorkerCap();
+        }
+
+        $heavyPredicate = $allowHeavy ? 'true' : 'false';
+        $row = DB::selectOne("
             UPDATE autoscale_scopes s
                SET status = ?, claim_token = ?,
                    started_at = COALESCE(s.started_at, now()), updated_at = now()
@@ -211,12 +252,13 @@ final class AutoscaleClaims
                    SELECT s2.id FROM autoscale_scopes s2
                     JOIN autoscale_items ai ON ai.id = s2.item_id
                    WHERE s2.run_id = ? AND s2.status = ?
+                     AND (COALESCE(ai.area_tier, 1) < ? OR {$heavyPredicate})
                    ORDER BY ai.position, s2.depth, s2.id
                    LIMIT 1
                    FOR UPDATE SKIP LOCKED
              )
          RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-        ', ['running', $token, $run->id, 'pending']);
+        ", ['running', $token, $run->id, 'pending', self::HEAVY_TIER]);
 
         if ($row === null) {
             return null;

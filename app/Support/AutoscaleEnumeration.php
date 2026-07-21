@@ -18,8 +18,14 @@ use Illuminate\Support\Facades\Log;
  *                            legislatures (floor→ceiling) first, then 2, 3…
  *   2. cascade_height ASC  — subtree height: leaves (0) before
  *                            parents-of-leaves (1) before deeper cascades
- *   3. adm_level DESC      — deepest layers first within a class
- *   4. population ASC      — smallest first
+ *   3. area_tier ASC       — the pixelGrid ladder's area buckets (operator
+ *                            ruling 2026-07-21): the TRUE cost driver is
+ *                            geometry size, not admin depth. adm DESC alone
+ *                            let every est band end in a consecutive block
+ *                            of shallow-admin giants that captured all
+ *                            workers at once (the est-2 tail collapse).
+ *   4. adm_level DESC      — deepest layers first within a tier
+ *   5. population ASC      — smallest first
  */
 final class AutoscaleEnumeration
 {
@@ -87,12 +93,41 @@ final class AutoscaleEnumeration
             ]);
         }
 
-        // Position: the operator's simplest-first key.
+        // area_tier from the geometry BBOX (header-only — no vertex walk):
+        // width × height in km at the bbox's mid-latitude, bucketed on the
+        // pixelGrid ladder's own thresholds. The bbox over-estimates for
+        // diagonal coastal shapes, which errs HEAVY — safe for both the
+        // ordering and the claim cap. Geometry-less items tier 1 (they
+        // refuse in milliseconds). Idempotent; cheap enough set-based.
+        DB::statement("
+            UPDATE autoscale_items ai
+               SET area_tier = CASE
+                       WHEN j.geom IS NULL THEN 1
+                       ELSE CASE
+                           WHEN bbox.km2 <= 300      THEN 1
+                           WHEN bbox.km2 <= 3000     THEN 2
+                           WHEN bbox.km2 <= 30000    THEN 3
+                           WHEN bbox.km2 <= 300000   THEN 4
+                           ELSE 5
+                       END
+                   END
+              FROM jurisdictions j
+              LEFT JOIN LATERAL (
+                   SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
+                          * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
+                          * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
+              ) bbox ON true
+             WHERE j.id = ai.jurisdiction_id AND ai.run_id = ?
+        ", [$runId]);
+
+        // Position: the operator's simplest-first key (cost-aware since the
+        // 2026-07-21 ruling — area_tier ahead of the adm proxy).
         DB::statement('
             WITH ranked AS (
                 SELECT ai.id,
                        ROW_NUMBER() OVER (
                            ORDER BY ai.est_districts ASC, ai.cascade_height ASC,
+                                    COALESCE(ai.area_tier, 1) ASC,
                                     ai.adm_level DESC, j.population ASC NULLS FIRST, ai.id
                        ) AS rn
                   FROM autoscale_items ai
