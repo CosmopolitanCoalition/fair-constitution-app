@@ -52,12 +52,27 @@ class SubdivisionAutoseedService
 
     public const TEMPLATE_COMPONENTS = 'components';
 
+    /**
+     * BENT (Tier 2, 2026-07-21) — a wedge cut for the concave residue: shapes
+     * whose EVERY straight line at every lawful ratio strands a fragment, and
+     * whose convex power-cells clip disjoint. A straight blade and a power cell
+     * both draw CONVEX boundaries, which cannot follow a concavity; the wedge
+     * hinges a two-segment blade at the population centroid and finds the
+     * second ray by an ANGULAR population prefix-sum (the polar analogue of
+     * bladeOffsetSearch). From a central hinge it separates two pinched lobes
+     * and routes around a single concavity. Rides LAST — after every straight
+     * and cell template (incl. the Tier-1 all-lawful-splits fallback) has
+     * refused.
+     */
+    public const TEMPLATE_BENT = 'bent';
+
     public const TEMPLATES = [
         self::TEMPLATE_SHORTEST,
         self::TEMPLATE_VERTICAL_STRIPS,
         self::TEMPLATE_HORIZONTAL_STRIPS,
         self::TEMPLATE_COMMUNITY_CELLS,
         self::TEMPLATE_COMPONENTS,
+        self::TEMPLATE_BENT,
     ];
 
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
@@ -97,6 +112,9 @@ class SubdivisionAutoseedService
         }
         if ($template === self::TEMPLATE_COMPONENTS) {
             return $this->componentsPlan($scopeId, $ctx, $year);
+        }
+        if ($template === self::TEMPLATE_BENT) {
+            return $this->bentPlan($scopeId, $ctx, $year);
         }
 
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
@@ -420,6 +438,297 @@ class SubdivisionAutoseedService
             'districts'       => $districts,
             'plan_hash'       => self::planHash($scopeId, $year, $sizes, [], self::TEMPLATE_COMPONENTS),
         ];
+    }
+
+    /**
+     * The BENT template (Tier 2, 2026-07-21) — a wedge cut for the concave
+     * residue. Handles exactly the 2-district case (the residue is all k=2:
+     * S in [10,18], ceil(S/ceiling)=2); a bigger budget throws so the ladder
+     * gives up honestly. A two-segment blade hinges at the population centroid
+     * H; the first ray sweeps every angle, and the second ray is placed by an
+     * ANGULAR population prefix-sum around H — the polar analogue of
+     * bladeOffsetSearch — so the wedge holds a lawful seat share. The extended
+     * V-blade [far(θ), H, far(φ)] is ST_Split against the giant; a candidate
+     * survives only when it leaves EXACTLY two single-polygon pieces, both
+     * in-band and within the 5% per-seat guard (this self-rejects any hinge the
+     * region is not star-shaped from). The shortest surviving in-region blade
+     * wins — the same shortest-splitline compactness preference as straight
+     * cuts. Every lawful split ratio is tried, balanced-first.
+     *
+     * @throws NoContiguousCut when no wedge splits this region in-band
+     */
+    private function bentPlan(string $scopeId, array $ctx, int $year): array
+    {
+        $S       = (int) $ctx['budget'];
+        $floor   = (int) $ctx['floor'];
+        $ceiling = (int) $ctx['ceiling'];
+        if ((int) ceil($S / max($ceiling, 1)) !== 2) {
+            throw new NoContiguousCut('The bent template handles only two-district scopes — cut this by hand.');
+        }
+
+        $pixels = $this->raster->gridWithFallback($scopeId, $year);
+        if (count($pixels) < 2) {
+            throw new NoContiguousCut('No population raster pixels for this scope — cut it by hand.');
+        }
+        usort($pixels, fn (array $a, array $b) => $a[0] <=> $b[0] ?: $a[1] <=> $b[1]);
+
+        [$total, $lon0, $lat0, $cosLat] = self::gridFrame($pixels);
+        if ($total <= 0.0) {
+            throw new NoContiguousCut('This region holds no people — cut it by hand.');
+        }
+        $quota = $total / $S;
+        $region = DB::selectOne('SELECT ST_AsGeoJSON(ST_MakeValid(geom), 15) AS gj FROM jurisdictions WHERE id = ?', [$scopeId]);
+        if ($region === null || $region->gj === null) {
+            throw new NoContiguousCut('The scope has no geometry — cut it by hand.');
+        }
+
+        // Pixels in the scaled local frame; the population-weighted centroid
+        // and the polygon's point-on-surface are the two candidate hinges (a
+        // pinched shape's centroid sits near the neck — star-shaped from it).
+        $sp = [];
+        $sumU = 0.0; $sumV = 0.0; $wsum = 0.0;
+        foreach ($pixels as [$x, $y, $v]) {
+            $u = ($x - $lon0) * $cosLat; $w = $y - $lat0;
+            $sp[] = [$u, $w, $v];
+            $sumU += $u * $v; $sumV += $w * $v; $wsum += $v;
+        }
+        $hinges = [[$sumU / $wsum, $sumV / $wsum]];
+        $pos = DB::selectOne('SELECT ST_X(p) x, ST_Y(p) y FROM (SELECT ST_PointOnSurface(ST_MakeValid(geom)) p FROM jurisdictions WHERE id = ?) t', [$scopeId]);
+        if ($pos !== null && $pos->x !== null) {
+            $hinges[] = [((float) $pos->x - $lon0) * $cosLat, (float) $pos->y - $lat0];
+        }
+
+        // Lawful low-side seat counts, balanced-first (reuse the Tier-1 order,
+        // with the balanced pair itself included at the front).
+        $balancedA = intdiv($S, 2);
+        $ratios = array_merge([$balancedA], self::lawfulTwoSplitFallback($S, $floor, $ceiling, $balancedA));
+
+        $best = null;   // ['len','a','b','line','gj_a','gj_b','pop_a','pop_b','chr_a','chr_b','geom_a','geom_b']
+        foreach ($ratios as $a) {
+            $b = $S - $a;
+            $target = $a / $S * $total;
+            foreach ($hinges as [$hu, $hv]) {
+                // Polar angle of every pixel about this hinge (scaled frame).
+                $ang = [];
+                foreach ($sp as $idx => [$u, $w, $val]) {
+                    $ang[$idx] = atan2($w - $hv, $u - $hu);
+                }
+                foreach (self::wedgeAngles() as $theta0) {
+                    // Order pixels by angle CCW from theta0; prefix-sum to the
+                    // wedge whose population first reaches the target.
+                    $order = array_keys($sp);
+                    usort($order, function (int $p, int $q) use ($ang, $theta0) {
+                        $ap = fmod($ang[$p] - $theta0 + 2 * M_PI + 4 * M_PI, 2 * M_PI);
+                        $aq = fmod($ang[$q] - $theta0 + 2 * M_PI + 4 * M_PI, 2 * M_PI);
+
+                        return $ap <=> $aq ?: $p <=> $q;
+                    });
+                    $cum = 0.0; $phi = null;
+                    foreach ($order as $idx) {
+                        $cum += $sp[$idx][2];
+                        if ($cum >= $target) {
+                            $phi = $theta0 + fmod($ang[$idx] - $theta0 + 2 * M_PI + 4 * M_PI, 2 * M_PI);
+                            break;
+                        }
+                    }
+                    if ($phi === null || $phi - $theta0 < 1e-6 || $phi - $theta0 > 2 * M_PI - 1e-6) {
+                        continue;
+                    }
+
+                    // The V-blade in lon/lat: far(theta0) -> hinge -> far(phi).
+                    $hlon = $lon0 + $hu / $cosLat; $hlat = $lat0 + $hv;
+                    [$flon0, $flat0] = self::wedgeFar($hlon, $hlat, $theta0, $cosLat);
+                    [$flon1, $flat1] = self::wedgeFar($hlon, $hlat, $phi, $cosLat);
+                    $blade = json_encode(['type' => 'LineString', 'coordinates' => [
+                        [$flon0, $flat0], [$hlon, $hlat], [$flon1, $flat1],
+                    ]]);
+
+                    $cand = $this->wedgeSplit($scopeId, $region->gj, $blade, $sp, $ang, $theta0, $phi, $hu, $hv, $lon0, $lat0, $cosLat, $quota, $a, $b, $floor, $ceiling);
+                    if ($cand !== null && ($best === null || $cand['len'] < $best['len'])) {
+                        $best = $cand;
+                    }
+                }
+            }
+            if ($best !== null) {
+                break;   // balanced-first: the first ratio that yields any wedge wins
+            }
+        }
+
+        if ($best === null) {
+            throw new NoContiguousCut(
+                "No bent (wedge) cut splits this {$S}-seat region into two contiguous in-band "
+                .'districts — cut it by hand.'
+            );
+        }
+
+        $districts = [
+            [
+                'path'                   => 'wedge.0',
+                'seats'                  => $best['a'],
+                'pop'                    => (int) round($best['pop_a']),
+                'per_seat_deviation_pct' => round(abs($best['pop_a'] / $best['a'] - $quota) / $quota * 100, 2),
+                'convex_hull_ratio'      => round($best['chr_a'], 3),
+                'geometry'               => $best['geom_a'],
+            ],
+            [
+                'path'                   => 'wedge.1',
+                'seats'                  => $best['b'],
+                'pop'                    => (int) round($best['pop_b']),
+                'per_seat_deviation_pct' => round(abs($best['pop_b'] / $best['b'] - $quota) / $quota * 100, 2),
+                'convex_hull_ratio'      => round($best['chr_b'], 3),
+                'geometry'               => $best['geom_b'],
+            ],
+        ];
+        $cuts = [[
+            'order'       => 0,
+            'parent_path' => 'root',
+            'line'        => json_decode($best['line'], true),
+            'angle_deg'   => 0.0,
+            'sides'       => [
+                ['pop' => (int) round($best['pop_a']), 'seats' => $best['a']],
+                ['pop' => (int) round($best['pop_b']), 'seats' => $best['b']],
+            ],
+        ]];
+
+        return [
+            'scope_id'        => $scopeId,
+            'population_year' => $year,
+            'seat_budget'     => $S,
+            'sizes'           => [$best['a'], $best['b']],
+            'total_pop'       => (int) round($total),
+            'quota'           => round($quota, 1),
+            'template'        => self::TEMPLATE_BENT,
+            'cuts'            => $cuts,
+            'districts'       => $districts,
+            'plan_hash'       => self::planHash($scopeId, $year, [$best['a'], $best['b']], $cuts, self::TEMPLATE_BENT),
+        ];
+    }
+
+    /** The 48 wedge first-ray directions over the full circle. */
+    private static function wedgeAngles(): array
+    {
+        return array_map(fn (int $i) => 2 * M_PI * $i / 48, range(0, 47));
+    }
+
+    /** A point EXTENSION_DEG out from ($lon,$lat) along scaled-frame angle $a. */
+    private static function wedgeFar(float $lon, float $lat, float $a, float $cosLat): array
+    {
+        $du = cos($a); $dv = sin($a);
+        $dlon = $du / $cosLat; $dlat = $dv;
+        $len = sqrt($dlon * $dlon + $dlat * $dlat);
+
+        return [$lon + $dlon / $len * self::EXTENSION_DEG, $lat + $dlat / $len * self::EXTENSION_DEG];
+    }
+
+    /**
+     * ST_Split the giant by a V-blade and validate the two pieces: exactly two
+     * single-polygon parts, populations (measured from the pixel grid) rounding
+     * to the target seats, each within the 5% per-seat guard. Returns the
+     * commit-ready piece geometries + the in-region blade length, or null.
+     */
+    private function wedgeSplit(
+        string $scopeId, string $regionGj, string $blade, array $sp, array $ang,
+        float $theta0, float $phi, float $hu, float $hv, float $lon0, float $lat0,
+        float $cosLat, float $quota, int $a, int $b, int $floor, int $ceiling,
+    ): ?array {
+        $rows = DB::select(
+            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+                  blade AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:blade)) AS l),
+                  parts AS (SELECT (ST_Dump(ST_Split((SELECT g FROM r), (SELECT l FROM blade)))).geom AS piece)
+             SELECT ST_AsGeoJSON(piece, 15) AS gj,
+                    ST_X(ST_PointOnSurface(piece)) AS px,
+                    ST_Y(ST_PointOnSurface(piece)) AS py
+               FROM parts",
+            ['gj' => $regionGj, 'blade' => $blade]
+        );
+        if (count($rows) !== 2) {
+            return null;
+        }
+
+        // Assign each piece by whether its point-on-surface falls in the wedge
+        // angular sector [theta0, phi] about the hinge — the same partition the
+        // prefix-sum used, so geometry and population never disagree.
+        $wedgeSpan = $phi - $theta0;
+        $pieces = [];   // side 'a' (wedge) and 'b'
+        foreach ($rows as $row) {
+            $pu = ((float) $row->px - $lon0) * $cosLat; $pv = (float) $row->py - $lat0;
+            $rel = fmod(atan2($pv - $hv, $pu - $hu) - $theta0 + 2 * M_PI + 4 * M_PI, 2 * M_PI);
+            $side = ($rel < $wedgeSpan) ? 'a' : 'b';
+            if (isset($pieces[$side])) {
+                return null;   // both pieces on one side — degenerate split
+            }
+            $pieces[$side] = (string) $row->gj;
+        }
+        if (! isset($pieces['a'], $pieces['b'])) {
+            return null;
+        }
+
+        // Population of each piece straight from the pixel grid (authoritative,
+        // and self-rejects a non-star-shaped hinge whose geometry departs from
+        // the angular sector).
+        $popA = 0.0; $popB = 0.0;
+        foreach ($sp as $idx => [$u, $v, $val]) {
+            $rel = fmod($ang[$idx] - $theta0 + 2 * M_PI + 4 * M_PI, 2 * M_PI);
+            if ($rel < $wedgeSpan) { $popA += $val; } else { $popB += $val; }
+        }
+        if ((int) round($popA / $quota) !== $a || (int) round($popB / $quota) !== $b) {
+            return null;
+        }
+        if (abs($popA / $a - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION
+         || abs($popB / $b - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION) {
+            return null;
+        }
+
+        // Commit-ready leaf geometry per piece: the proven clip + per-part
+        // 1e-8° shave against the live giant. Each must survive as a single
+        // polygon (the F-ELB-008 Art. II §8 gate re-checks this at filing).
+        $geoA = $this->wedgeLeaf($scopeId, $pieces['a']);
+        $geoB = $this->wedgeLeaf($scopeId, $pieces['b']);
+        if ($geoA === null || $geoB === null) {
+            return null;
+        }
+
+        $lenRow = DB::selectOne(
+            'SELECT ST_Length(ST_Intersection(ST_MakeValid(ST_GeomFromGeoJSON(:blade)), ST_MakeValid(ST_GeomFromGeoJSON(:gj)))::geography) AS len',
+            ['blade' => $blade, 'gj' => $regionGj]
+        );
+
+        return [
+            'len'    => (float) ($lenRow->len ?? INF),
+            'a'      => $a, 'b' => $b,
+            'line'   => $blade,
+            'pop_a'  => $popA, 'pop_b' => $popB,
+            'chr_a'  => $geoA['chr'], 'chr_b' => $geoB['chr'],
+            'geom_a' => $geoA['geom'], 'geom_b' => $geoB['geom'],
+        ];
+    }
+
+    /** Clip a wedge piece to the giant + per-part shave; null if it vanishes or fragments. */
+    private function wedgeLeaf(string $scopeId, string $pieceGj): ?array
+    {
+        $row = DB::selectOne(
+            'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
+                  ix AS (
+                      SELECT ST_CollectionExtract(ST_Intersection(
+                                 ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
+                                 (SELECT g FROM gi)), 3) AS g
+                  ),
+                  leaf AS (
+                      SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
+                        FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                         (ST_Dump((SELECT g FROM ix))).geom, -0.00000001)), 3) AS sg) shaved
+                       WHERE NOT ST_IsEmpty(sg)
+                  )
+             SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
+                    ST_NumGeometries(ST_Multi((SELECT g FROM leaf))) AS parts,
+                    ST_Area((SELECT g FROM leaf)) / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
+            ['scope' => $scopeId, 'gj' => $pieceGj]
+        );
+        if ($row?->gj === null || (int) $row->parts !== 1) {
+            return null;
+        }
+
+        return ['geom' => json_decode($row->gj, true), 'chr' => (float) ($row->chr ?? 0.0)];
     }
 
     /**

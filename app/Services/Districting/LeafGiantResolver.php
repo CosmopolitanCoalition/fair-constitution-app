@@ -231,15 +231,16 @@ class LeafGiantResolver
             try {
                 $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
             } catch (PlanRefused $e) {
-                // The components template's plan-stage refusal ("single
-                // landmass") never masks a cutting template's reason — the
-                // review list keeps the diagnosis that matters.
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                // The last-resort templates' refusals (components' "single
+                // landmass", bent's "no wedge cut") never mask a cutting
+                // template's reason — the review list keeps the diagnosis that
+                // matters for the operator's manual worklist.
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_BENT], true)) {
                     $last = $e;
                 }
                 continue;
             } catch (RuntimeException $e) {
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_BENT], true)) {
                     $last = new PlanRefused($e->getMessage(), previous: $e);
                 }
                 continue;
@@ -326,13 +327,13 @@ class LeafGiantResolver
 
                 return ['plan' => $plan, 'template' => $tpl, 'fallback' => $i > 0];
             } catch (PlanRefused $e) {
-                // Components' refusal never masks a cutting template's reason
+                // Last-resort (components/bent) refusals never mask a cutting template's reason
                 // (same posture as the commit ladder).
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_BENT], true)) {
                     $last = $e;
                 }
             } catch (RuntimeException $e) {
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_BENT], true)) {
                     $last = new PlanRefused($e->getMessage(), previous: $e);
                 }
             }
