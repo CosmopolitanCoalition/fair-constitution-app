@@ -216,7 +216,7 @@ class SubdivisionAutoseedService
         $cuts = [];
         $districts = [];
         $order = 0;
-        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling']);
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 
@@ -542,6 +542,37 @@ class SubdivisionAutoseedService
     }
 
     /**
+     * TIER 1 (2026-07-21) — the lawful two-split fallback order. When the
+     * balanced grouping's single cut strands a fragment at every angle, a
+     * 2-district node may still be cut at ANY in-band sizing (each side in
+     * [floor, ceiling]). This returns every OTHER lawful low-side seat count
+     * a — i.e. a ∈ [max(floor, S−ceiling), min(ceiling, S−floor)] minus the
+     * balanced $balancedSeatsA already tried — ordered MOST-BALANCED-FIRST
+     * (|a − S/2| asc, then a asc). The caller takes the first a whose cut is
+     * contiguous, so the least-unbalanced lawful split that works is chosen —
+     * honoring the autoseed doctrine's balance-over-compactness ordering.
+     * Per-seat balance is not sacrificed: a 5:7 split of proportional
+     * population deviates ~0 per seat (the 7-seat side rightly holds more
+     * people). Pure, deterministic; pinned in AutoscalePinTest.
+     *
+     * @return int[] low-side seat counts to try, in order (empty if none)
+     */
+    public static function lawfulTwoSplitFallback(int $S, int $floor, int $ceiling, int $balancedSeatsA): array
+    {
+        $lo = max($floor, $S - $ceiling);
+        $hi = min($ceiling, $S - $floor);
+        $alts = [];
+        for ($a = $lo; $a <= $hi; $a++) {
+            if ($a !== $balancedSeatsA) {
+                $alts[] = $a;
+            }
+        }
+        usort($alts, fn (int $x, int $y) => abs($x - $S / 2) <=> abs($y - $S / 2) ?: $x <=> $y);
+
+        return $alts;
+    }
+
+    /**
      * Split a sizes multiset into the two groups a cut separates, minimizing
      * |sumA − sumB|; ties prefer fewer elements in A, then the lexicographically
      * greatest sorted-descending A. k is small — full enumeration.
@@ -752,6 +783,8 @@ class SubdivisionAutoseedService
         array &$districts,
         int &$order,
         string $template,
+        int $floor,
+        int $ceiling,
     ): void {
         if (count($sizes) === 1) {
             $pop = 0.0;
@@ -826,7 +859,54 @@ class SubdivisionAutoseedService
         }
 
         [$aSizes, $bSizes] = self::bisectSizes($sizes);
-        $cut = $this->findBlade($gj, $pixels, $islands, array_sum($aSizes), array_sum($bSizes), $quota, $template);
+        $seatsA = (int) array_sum($aSizes);
+        $seatsB = (int) array_sum($bSizes);
+
+        try {
+            $cut = $this->findBlade($gj, $pixels, $islands, $seatsA, $seatsB, $quota, $template);
+        } catch (RuntimeException $e) {
+            // TIER 1 (operator-sanctioned 2026-07-21, the concave-residue fix):
+            // the balanced grouping's single cut stranded a fragment at every
+            // angle. But a 2-district node may lawfully split at ANY in-band
+            // sizing — each side only needs seats in [floor, ceiling]. The
+            // balanced pair is the FIRST choice (tried above, preserving the
+            // deterministic map for every scope where it works), not the ONLY
+            // one. On its failure, try each other lawful low-side seat count,
+            // most-balanced-first, and take the first that yields a contiguous
+            // cut. Per-seat balance is preserved — a 5:7 split of proportional
+            // population deviates ~0 per seat, because the 7-seat side rightly
+            // holds more people. Only the TERMINAL 2-way cut gets this
+            // fallback; deeper (k>2) nodes keep the original throw so a giant's
+            // upper-level balance is never traded away silently.
+            if (count($sizes) !== 2) {
+                throw $e;
+            }
+            $sNode = $seatsA + $seatsB;
+            $alts  = self::lawfulTwoSplitFallback($sNode, $floor, $ceiling, $seatsA);
+
+            $cut = null;
+            foreach ($alts as $a) {
+                try {
+                    $cut    = $this->findBlade($gj, $pixels, $islands, $a, $sNode - $a, $quota, $template);
+                    $aSizes = [$a];
+                    $bSizes = [$sNode - $a];
+                    $seatsA = $a;
+                    $seatsB = $sNode - $a;
+                    break;
+                } catch (RuntimeException $inner) {
+                    continue;
+                }
+            }
+            if ($cut === null) {
+                $lo = max($floor, $sNode - $ceiling);
+                $hi = min($ceiling, $sNode - $floor);
+                $tried = implode(', ', array_map(fn (int $a) => "{$a}:" . ($sNode - $a), range($lo, $hi)));
+                throw new RuntimeException(
+                    "No contiguous in-band straight cut found for a {$sNode}-seat two-district split "
+                    ."at any lawful sizing ({$tried}) — cut it by hand."
+                );
+            }
+        }
 
         $cuts[] = [
             'order'       => $order++,
@@ -834,13 +914,13 @@ class SubdivisionAutoseedService
             'line'        => $cut['line'],
             'angle_deg'   => $cut['angle_deg'],
             'sides'       => [
-                ['pop' => (int) round($cut['pop_a']), 'seats' => array_sum($aSizes)],
-                ['pop' => (int) round($cut['pop_b']), 'seats' => array_sum($bSizes)],
+                ['pop' => (int) round($cut['pop_a']), 'seats' => $seatsA],
+                ['pop' => (int) round($cut['pop_b']), 'seats' => $seatsB],
             ],
         ];
 
-        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template);
-        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template);
+        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling);
+        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling);
     }
 
     /**
