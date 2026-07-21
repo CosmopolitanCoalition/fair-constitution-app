@@ -226,22 +226,22 @@ class LeafGiantResolver
         // set and the next template tries; only when every template has
         // refused at either stage does the scope land on the review list.
         $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
-        $last  = null;
+        $first = null;
         foreach ($order as $i => $tpl) {
             try {
                 $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
             } catch (PlanRefused $e) {
-                // The components template's plan-stage refusal ("single
-                // landmass") never masks a cutting template's reason — the
-                // review list keeps the diagnosis that matters.
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
-                    $last = $e;
-                }
+                // FIRST failure wins (2026-07-21): the ladder's PRIMARY
+                // template holds the scope's real diagnosis. Later rungs'
+                // refusals previously overwrote it, so every review row
+                // displayed the LAST cutter's noise ("Community cell N clips
+                // to M disjoint parts") over the shortest template's honest
+                // NoContiguousCut — an entire review class was misdiagnosed
+                // behind that mask during run 6.
+                $first ??= $e;
                 continue;
             } catch (RuntimeException $e) {
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
-                    $last = new PlanRefused($e->getMessage(), previous: $e);
-                }
+                $first ??= new PlanRefused($e->getMessage(), previous: $e);
                 continue;
             }
 
@@ -264,13 +264,15 @@ class LeafGiantResolver
                 // A filing gate refused this template's pieces — clean up the
                 // partial set and ladder on. The chain honestly records the
                 // attempted filings; the retirement is the same plan-editing
-                // posture as the delete endpoint.
+                // posture as the delete endpoint. First failure wins here
+                // too: the primary template's filing refusal (a band-gate
+                // number, a fragment count) is the diagnosis worth keeping.
                 $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
-                $last = new PlanRefused($e->getMessage(), previous: $e);
+                $first ??= new PlanRefused($e->getMessage(), previous: $e);
             }
         }
 
-        throw $last ?? new PlanRefused('No districting template produced a filable plan.');
+        throw $first ?? new PlanRefused('No districting template produced a filable plan.');
     }
 
     /** File one F-ELB-008 per planned district; returns the district ids. */

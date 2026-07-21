@@ -136,6 +136,15 @@ class SubdivisionAutoseedService
         // BEFORE the island partition — otherwise two stored halves of one
         // landmass can ride opposite blade sides, cutting the landmass by
         // assignment (the census refuses exactly that at filing).
+        // EVERY part rides (2026-07-21, the Shenkottai class): the census's
+        // sub-meter degenerate-ribbon filter is deliberately NOT applied
+        // here. Dropping a part from this decomposition left the "mainland"
+        // a MULTIPOLYGON (Shenkottai: 1 of 24 parts survived the filter) —
+        // and a multipolygon mainland can never satisfy "each blade side is
+        // a single polygon", so every candidate at every angle refused.
+        // Ribbons are harmless as islands: they hold no pixels (so they can
+        // never lead the most-populous mainland pick) and the filing census
+        // ignores them as de-minimis on the same footing as the shave.
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
                     ST_Area(g::geography) AS area,
@@ -143,7 +152,6 @@ class SubdivisionAutoseedService
                     ST_Y(ST_PointOnSurface(g)) AS cy
                FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
                        FROM jurisdictions WHERE id = ?) t
-              WHERE 2 * ST_Area(g::geography) / NULLIF(ST_Perimeter(g::geography), 0) >= 0.5
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
         );
@@ -951,90 +959,139 @@ class SubdivisionAutoseedService
         }
         $target = $seatsA / ($seatsA + $seatsB) * $total;
 
-        foreach (self::anglePasses($template) as $pass) {
-            $candidates = [];
-            foreach ($pass as $i => $angleDeg) {
-                $theta = deg2rad($angleDeg);
-                $nx = -sin($theta);
-                $ny = cos($theta);
+        // FRAGMENT ABSORPTION (operator-sanctioned 2026-07-21, the concave-
+        // residue endgame): the strict sweep runs FIRST and EXHAUSTIVELY
+        // (every pass, every candidate — "each side one polygon"), so every
+        // scope a strict cut can split keeps its byte-identical historical
+        // plan. Only when no strict candidate anywhere validates does the
+        // absorb sweep re-walk the same candidate lists, accepting a cut
+        // whose stranded fragments regroup contiguously onto the two sides
+        // (splitRegionAbsorb) — with population RECOUNTED from the assigned
+        // geometry and the per-seat guard re-applied, so a rescue never
+        // ships an unlawful balance.
+        foreach ([false, true] as $absorb) {
+            foreach (self::anglePasses($template) as $pass) {
+                $candidates = [];
+                foreach ($pass as $i => $angleDeg) {
+                    $theta = deg2rad($angleDeg);
+                    $nx = -sin($theta);
+                    $ny = cos($theta);
 
-                $found = self::bladeOffsetSearch($searchPixels, $nx, $ny, $lon0, $lat0, $cosLat, $target);
-                if ($found === null) {
-                    continue;
-                }
-                [$c, $popA, $popB] = $found;
-                if (abs($popA / $seatsA - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION
-                 || abs($popB / $seatsB - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION) {
-                    continue;
-                }
-
-                $candidates[] = [
-                    'i' => $i, 'angle_deg' => $angleDeg,
-                    'nx' => $nx, 'ny' => $ny, 'c' => $c,
-                    'pop_a' => $popA, 'pop_b' => $popB,
-                    'blade' => self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat),
-                ];
-            }
-
-            foreach ($candidates as &$cand) {
-                $row = DB::selectOne(
-                    'SELECT ST_Length(ST_Intersection(
-                         ST_SetSRID(ST_MakeLine(ST_MakePoint(?, ?), ST_MakePoint(?, ?)), 4326),
-                         ST_MakeValid(ST_GeomFromGeoJSON(?))
-                     )::geography) AS len',
-                    [...$cand['blade'], $regionGj]
-                );
-                $cand['len'] = (float) ($row->len ?? 0.0);
-            }
-            unset($cand);
-            usort($candidates, fn (array $a, array $b) => $a['len'] <=> $b['len'] ?: $a['i'] <=> $b['i']);
-
-            foreach ($candidates as $cand) {
-                $sides = $this->splitRegion($regionGj, $cand, $lon0, $lat0, $cosLat);
-                if ($sides === null) {
-                    continue;
-                }
-                $line = $this->clippedLine($regionGj, $cand['blade'], $cosLat);
-                if ($line === null) {
-                    continue;
-                }
-
-                $pixelsA = [];
-                $pixelsB = [];
-                foreach ($pixels as $p) {
-                    if (($p[0] - $lon0) * $cosLat * $cand['nx'] + ($p[1] - $lat0) * $cand['ny'] < $cand['c']) {
-                        $pixelsA[] = $p;
-                    } else {
-                        $pixelsB[] = $p;
+                    $found = self::bladeOffsetSearch($searchPixels, $nx, $ny, $lon0, $lat0, $cosLat, $target);
+                    if ($found === null) {
+                        continue;
                     }
-                }
-
-                // Each island rides WHOLE by its super-pixel's side — the same
-                // strict predicate as the recount, so population and geometry
-                // can never disagree about where an island went.
-                $islandsA = [];
-                $islandsB = [];
-                foreach ($islands as $isl) {
-                    $t = ((float) $isl['cx'] - $lon0) * $cosLat * $cand['nx'] + ((float) $isl['cy'] - $lat0) * $cand['ny'];
-                    if ($t < $cand['c']) {
-                        $islandsA[] = $isl;
-                    } else {
-                        $islandsB[] = $isl;
+                    [$c, $popA, $popB] = $found;
+                    if (abs($popA / $seatsA - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION
+                     || abs($popB / $seatsB - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION) {
+                        continue;
                     }
+
+                    $candidates[] = [
+                        'i' => $i, 'angle_deg' => $angleDeg,
+                        'nx' => $nx, 'ny' => $ny, 'c' => $c,
+                        'pop_a' => $popA, 'pop_b' => $popB,
+                        'blade' => self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat),
+                    ];
                 }
 
-                return [
-                    'angle_deg' => $cand['angle_deg'],
-                    'line'      => $line,
-                    'pop_a'     => $cand['pop_a'],
-                    'pop_b'     => $cand['pop_b'],
-                    'gj_a'      => $sides['a'],
-                    'gj_b'      => $sides['b'],
-                    'pixels_a'  => $pixelsA,
-                    'pixels_b'  => $pixelsB,
-                    'islands_a' => $islandsA,
-                    'islands_b' => $islandsB,
-                ];
+                foreach ($candidates as &$cand) {
+                    $row = DB::selectOne(
+                        'SELECT ST_Length(ST_Intersection(
+                             ST_SetSRID(ST_MakeLine(ST_MakePoint(?, ?), ST_MakePoint(?, ?)), 4326),
+                             ST_MakeValid(ST_GeomFromGeoJSON(?))
+                         )::geography) AS len',
+                        [...$cand['blade'], $regionGj]
+                    );
+                    $cand['len'] = (float) ($row->len ?? 0.0);
+                }
+                unset($cand);
+                usort($candidates, fn (array $a, array $b) => $a['len'] <=> $b['len'] ?: $a['i'] <=> $b['i']);
+
+                foreach ($candidates as $cand) {
+                    $sides = $absorb
+                        ? $this->splitRegionAbsorb($regionGj, $cand, $lon0, $lat0, $cosLat)
+                        : $this->splitRegion($regionGj, $cand, $lon0, $lat0, $cosLat);
+                    if ($sides === null) {
+                        continue;
+                    }
+                    $line = $this->clippedLine($regionGj, $cand['blade'], $cosLat);
+                    if ($line === null) {
+                        continue;
+                    }
+
+                    if ($absorb) {
+                        // An absorbed fragment sits geometrically on one blade
+                        // side but WAS ASSIGNED to the other — the pixel split
+                        // must follow the assigned geometry, not the blade
+                        // sign, or population and territory desynchronize.
+                        [$pixelsA, $pixelsB] = self::partitionPixelsByPolygon($pixels, json_decode($sides['a'], true));
+                    } else {
+                        $pixelsA = [];
+                        $pixelsB = [];
+                        foreach ($pixels as $p) {
+                            if (($p[0] - $lon0) * $cosLat * $cand['nx'] + ($p[1] - $lat0) * $cand['ny'] < $cand['c']) {
+                                $pixelsA[] = $p;
+                            } else {
+                                $pixelsB[] = $p;
+                            }
+                        }
+                    }
+
+                    // Each island rides WHOLE by its super-pixel's side — the same
+                    // strict predicate as the recount, so population and geometry
+                    // can never disagree about where an island went.
+                    $islandsA = [];
+                    $islandsB = [];
+                    foreach ($islands as $isl) {
+                        $t = ((float) $isl['cx'] - $lon0) * $cosLat * $cand['nx'] + ((float) $isl['cy'] - $lat0) * $cand['ny'];
+                        if ($t < $cand['c']) {
+                            $islandsA[] = $isl;
+                        } else {
+                            $islandsB[] = $isl;
+                        }
+                    }
+
+                    $popA = $cand['pop_a'];
+                    $popB = $cand['pop_b'];
+                    if ($absorb) {
+                        // Recount by assignment and re-apply the guard: the
+                        // prefix-sum balance no longer describes the sides once
+                        // a fragment crossed the blade.
+                        $popA = 0.0;
+                        foreach ($pixelsA as $p) {
+                            $popA += $p[2];
+                        }
+                        foreach ($islandsA as $isl) {
+                            $popA += $isl['pop'];
+                        }
+                        $popB = 0.0;
+                        foreach ($pixelsB as $p) {
+                            $popB += $p[2];
+                        }
+                        foreach ($islandsB as $isl) {
+                            $popB += $isl['pop'];
+                        }
+                        if ($popA <= 0.0 || $popB <= 0.0
+                         || abs($popA / $seatsA - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION
+                         || abs($popB / $seatsB - $quota) / $quota > self::MAX_PER_SEAT_DEVIATION) {
+                            continue;
+                        }
+                    }
+
+                    return [
+                        'angle_deg' => $cand['angle_deg'],
+                        'line'      => $line,
+                        'pop_a'     => $popA,
+                        'pop_b'     => $popB,
+                        'gj_a'      => $sides['a'],
+                        'gj_b'      => $sides['b'],
+                        'pixels_a'  => $pixelsA,
+                        'pixels_b'  => $pixelsB,
+                        'islands_a' => $islandsA,
+                        'islands_b' => $islandsB,
+                    ];
+                }
             }
         }
 
@@ -1117,6 +1174,99 @@ class SubdivisionAutoseedService
         }
 
         return isset($out['a'], $out['b']) ? $out : null;
+    }
+
+    /**
+     * FRAGMENT ABSORPTION (2026-07-21, the concave-residue endgame): split by
+     * the blade like splitRegion, but accept a cut that leaves MORE than two
+     * pieces — the concave class where every straight blade at every angle
+     * strands a fragment, which Tier 1's ratio retries cannot rescue. Each
+     * side is seeded with its largest-area piece (by the same point-on-surface
+     * side predicate); the remaining pieces then fix-point-attach, a piece
+     * joining a side only when their union stays ONE polygon. The OPPOSITE
+     * geometric side is tried first — a stranded fragment usually connects
+     * only across the blade (that is what stranded it). Deterministic: pieces
+     * ordered area DESC then point-on-surface x/y, fixed side order, fixed
+     * sweep order. Probed live on the run-6 review cohort: 67/71 concave
+     * items regroup with recounted per-seat deviation ≤ 4.9%.
+     *
+     * The caller RECOUNTS population from the assigned geometry and re-applies
+     * the per-seat deviation guard — this method only settles territory.
+     * Both returned sides are single polygons partitioning the region, so the
+     * downstream leaf clip+shave and the Art. II §8 one-fragment census hold
+     * by construction.
+     *
+     * @return array{a: string, b: string}|null
+     */
+    private function splitRegionAbsorb(string $regionGj, array $cand, float $lon0, float $lat0, float $cosLat): ?array
+    {
+        [$ax, $ay, $bx, $by] = $cand['blade'];
+
+        $rows = DB::select(
+            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+                  blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
+                  parts AS (
+                      SELECT (ST_Dump(ST_Split((SELECT g FROM r), (SELECT l FROM blade)))).geom AS piece
+                  )
+             SELECT ST_AsGeoJSON(piece, 15) AS gj,
+                    CASE WHEN :nx * ((ST_X(ST_PointOnSurface(piece)) - :lon0) * :coslat)
+                            + :ny * (ST_Y(ST_PointOnSurface(piece)) - :lat0) < :c
+                         THEN 'a' ELSE 'b' END AS side
+               FROM parts
+              ORDER BY ST_Area(piece) DESC, ST_X(ST_PointOnSurface(piece)), ST_Y(ST_PointOnSurface(piece))",
+            [
+                'gj' => $regionGj, 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'nx' => $cand['nx'], 'lon0' => $lon0, 'coslat' => $cosLat,
+                'ny' => $cand['ny'], 'lat0' => $lat0, 'c' => $cand['c'],
+            ]
+        );
+
+        if (count($rows) < 3) {
+            return null;                       // ≤ 2 pieces is the strict case — nothing to absorb
+        }
+
+        $sideGj = ['a' => null, 'b' => null];
+        $pending = [];
+        foreach ($rows as $row) {
+            $s = (string) $row->side;
+            if ($sideGj[$s] === null) {
+                $sideGj[$s] = (string) $row->gj;   // largest piece per side seeds it (area DESC order)
+            } else {
+                $pending[] = ['gj' => (string) $row->gj, 'side' => $s];
+            }
+        }
+        if ($sideGj['a'] === null || $sideGj['b'] === null) {
+            return null;                       // every piece fell on one side — nothing to balance
+        }
+
+        // Fix-point attach: a piece can become attachable only after a
+        // neighbor lands, so the sweep repeats until it stalls. A stall with
+        // pieces unattached refuses the candidate (the next blade tries).
+        while ($pending !== []) {
+            $progress = false;
+            foreach ($pending as $k => $piece) {
+                foreach ($piece['side'] === 'a' ? ['b', 'a'] : ['a', 'b'] as $s) {
+                    $row = DB::selectOne(
+                        'SELECT ST_AsGeoJSON(u, 15) AS gj, ST_NumGeometries(ST_Multi(u)) AS parts
+                           FROM (SELECT ST_UnaryUnion(ST_Collect(
+                                     ST_MakeValid(ST_GeomFromGeoJSON(?)),
+                                     ST_MakeValid(ST_GeomFromGeoJSON(?)))) AS u) t',
+                        [$sideGj[$s], $piece['gj']]
+                    );
+                    if ((int) ($row->parts ?? 0) === 1 && $row->gj !== null) {
+                        $sideGj[$s] = (string) $row->gj;
+                        unset($pending[$k]);
+                        $progress = true;
+                        break;
+                    }
+                }
+            }
+            if (! $progress) {
+                return null;
+            }
+        }
+
+        return $sideGj;
     }
 
     /**

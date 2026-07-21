@@ -174,17 +174,44 @@ class PopulationRaster
      */
     public const SUBPIXEL_THRESHOLD = 400;
 
+    /**
+     * CONCENTRATION EXTENSION (2026-07-21, the atomic-pixel review class): a
+     * scope can hold ample pixels yet keep whole seat-quotas locked inside
+     * ONE cell — a desert town in a giant municipality (Bilma, McKinlay:
+     * 500-1000 native pixels, one pixel holding 4-8 quotas). Pixel-atomic
+     * measurement then refuses every blade at every angle: no cut passes the
+     * 5% guard when moving one pixel moves several quotas. Such scopes take
+     * the sub-pixel basis too: dominant cell ≥ 3% of grid mass (≈ half a
+     * quota at S=17), bounded to grids the 16× expansion keeps at
+     * interactive scale (probed: 45-46 of 48 blade candidates unlock).
+     */
+    public const SUBPIXEL_CONCENTRATION = 0.03;
+
+    private const SUBPIXEL_CONCENTRATION_MAX_PIXELS = 4000;
+
+    /** Pure concentration test over a grid — public so the pin can interrogate it. */
+    public static function concentrated(array $grid): bool
+    {
+        $n = count($grid);
+        if ($n >= self::SUBPIXEL_CONCENTRATION_MAX_PIXELS) {
+            return false;
+        }
+        $total = 0.0;
+        $max = 0.0;
+        foreach ($grid as [, , $v]) {
+            $total += $v;
+            if ($v > $max) {
+                $max = $v;
+            }
+        }
+
+        return $total > 0.0 && $max >= self::SUBPIXEL_CONCENTRATION * $total;
+    }
+
     /** Is this scope in the sub-resolution class? Memoized per process. */
     public function subResolution(string $scopeId, int $year = 2023): bool
     {
-        static $memo = [];
-        $key = "{$scopeId}.{$year}";
-        if (! isset($memo[$key])) {
-            $memo[$key] = $this->hasRasterCoverage($scopeId, $year)
-                && count($this->pixelGrid($scopeId, $year)) < self::SUBPIXEL_THRESHOLD;
-        }
-
-        return $memo[$key];
+        return $this->basis($scopeId, $year) === 'subpixel';
     }
 
     /** The scope's raster tile scale [sx, sy] (degrees per pixel). */
@@ -348,9 +375,10 @@ class PopulationRaster
             if (! $this->hasRasterCoverage($scopeId, $year)) {
                 $memo[$key] = 'area';
             } else {
-                $n = count($this->pixelGrid($scopeId, $year));
+                $grid = $this->pixelGrid($scopeId, $year);
+                $n = count($grid);
                 $memo[$key] = $n < 2 ? 'area'
-                    : ($n < self::SUBPIXEL_THRESHOLD ? 'subpixel' : 'raster');
+                    : (($n < self::SUBPIXEL_THRESHOLD || self::concentrated($grid)) ? 'subpixel' : 'raster');
             }
         }
 
@@ -390,7 +418,28 @@ class PopulationRaster
         // mass × the stored population, on the SAME basis the planner used
         // (a differently-based scorekeeper would refuse the very cuts the
         // planner lawfully balanced).
-        if ($basis === 'subpixel') {
+        //
+        // MEASUREMENT PARITY (2026-07-21, the band-drift class): the raster
+        // basis previously normalized against population_within_multi — a
+        // MULTI-country, native-resolution clip — while the planner balanced
+        // on the own-iso BINNED pixel grid. Two different distributions over
+        // the same geometry: a neighbor country's overlapping border tile
+        // inflated one side's share (Patichhari: plan 8:7, handler 12:3) and
+        // the band gate refused lawful cuts. Both raster bases now measure
+        // as share-of-the-planner's-grid — the one-basis law this file
+        // declares, extended to its last branch. This is NOT trust-the-plan:
+        // the filed GeoJSON is still measured independently; an empty,
+        // misplaced, or unbalanced piece still measures wrong and refuses.
+        //
+        // The point-assignment predicate mirrors the planner's blade-sign
+        // TOTALITY: a grid point inside the piece counts for it; a point
+        // outside the SCOPE entirely (a binned cell center that fell off the
+        // boundary — Tinzaouten's border town, 49% of its mass) counts for
+        // the piece achieving the scope's minimum distance (the blade-side
+        // owner; 1e-6° tolerance absorbs GeoJSON round-tripping). Without
+        // recovery, that mass silently vanishes from every piece and a
+        // lawful plan misseats.
+        if ($basis === 'subpixel' || $basis === 'raster') {
             [, $storedPop] = $this->coverageStats($scopeId, $year);
             $grid = $this->gridWithFallback($scopeId, $year);
             $gridTotal = 0.0;
@@ -398,25 +447,23 @@ class PopulationRaster
                 $gridTotal += $v;
             }
             $pieceSum = (float) (DB::selectOne(
-                "SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
+                'WITH scope AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = ?),
+                      piece AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(?)) AS g)
+                 SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
                    FROM jsonb_array_elements(?::jsonb) AS c
-                  WHERE ST_Contains(ST_MakeValid(ST_GeomFromGeoJSON(?)),
-                                    ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326))",
-                [json_encode($grid), $geoJson]
+                  CROSS JOIN LATERAL (
+                      SELECT ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326) AS pt
+                  ) AS p
+                  CROSS JOIN scope
+                  CROSS JOIN piece
+                  WHERE ST_Covers(piece.g, p.pt)
+                     OR (NOT ST_Covers(scope.g, p.pt)
+                         AND ST_Distance(piece.g, p.pt) <= ST_Distance(scope.g, p.pt) + 1e-6)',
+                [$scopeId, $geoJson, json_encode($grid)]
             )->s ?? 0);
             $pop = ($gridTotal > 0 && $storedPop > 0)
                 ? (int) round($storedPop * $pieceSum / $gridTotal)
                 : (int) round($pieceSum);
-
-            return ['pop' => $pop, 'source' => 'worldpop_raster'];
-        }
-
-        if ($basis === 'raster') {
-            [$rasterPop, $storedPop] = $this->coverageStats($scopeId, $year);
-            $pieceRaw = $this->populationWithinMulti($geoJson, $year);
-            $pop = ($rasterPop > 0 && $storedPop > 0)
-                ? (int) round($storedPop * $pieceRaw / $rasterPop)
-                : $pieceRaw;
 
             return ['pop' => $pop, 'source' => 'worldpop_raster'];
         }
