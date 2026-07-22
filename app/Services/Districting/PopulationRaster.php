@@ -564,7 +564,7 @@ class PopulationRaster
                   ) AS p
                   CROSS JOIN scope
                   CROSS JOIN piece
-                  WHERE ST_Covers(piece.g, p.pt)
+                  WHERE (p.pt && piece.g AND ST_Covers(piece.g, p.pt))
                      OR (NOT ST_Covers(scope.g, p.pt)
                          AND ST_Distance(piece.g, p.pt) <= ST_Distance(scope.g, p.pt) + 1e-6)',
                 [$scopeId, $geoJson, json_encode($grid)]

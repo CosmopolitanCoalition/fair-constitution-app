@@ -223,42 +223,55 @@ final class AutoscaleClaims
             }
         }
 
-        // Heavy-lane gate: may THIS claim take a heavy scope? Yes when the
-        // heavy pool has a free slot, or when no light work remains (the
-        // drain rule). Two cheap indexed probes per claim.
-        $allowHeavy = true;
-        $lightPending = DB::table('autoscale_scopes AS s')
-            ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
-            ->where('s.run_id', $run->id)
-            ->where('s.status', 'pending')
-            ->whereRaw('COALESCE(ai.area_tier, 1) < ?', [self::HEAVY_TIER])
-            ->exists();
-        if ($lightPending) {
-            $heavyRunning = (int) DB::table('autoscale_scopes AS s')
+        // Heavy-lane gate, HARD since 2026-07-22: the soft cap overshot to 5
+        // under OOM-kill/reclaim churn (claim races + orphaned claims), and
+        // 3+ concurrent heavies is exactly the memory regime that produces
+        // the kills. The eligibility decision and the claim now run inside
+        // one transaction serialized by an advisory xact lock — two workers
+        // can never both see a free heavy slot. The heavy count ignores
+        // claims idle >30 min (orphans of killed workers — the reclaim
+        // bound), so a kill can't wedge the lane shut. Serializing ALL
+        // scope claims is fine: a claim is milliseconds against seconds-to-
+        // minutes of scope work.
+        $row = DB::transaction(function () use ($run, $token) {
+            DB::statement("SELECT pg_advisory_xact_lock(hashtext('cga_heavy_claim'))");
+
+            $allowHeavy = true;
+            $lightPending = DB::table('autoscale_scopes AS s')
                 ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
                 ->where('s.run_id', $run->id)
-                ->where('s.status', 'running')
-                ->whereRaw('COALESCE(ai.area_tier, 1) >= ?', [self::HEAVY_TIER])
-                ->count();
-            $allowHeavy = $heavyRunning < self::heavyWorkerCap();
-        }
+                ->where('s.status', 'pending')
+                ->whereRaw('COALESCE(ai.area_tier, 1) < ?', [self::HEAVY_TIER])
+                ->exists();
+            if ($lightPending) {
+                $heavyRunning = (int) DB::table('autoscale_scopes AS s')
+                    ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
+                    ->where('s.run_id', $run->id)
+                    ->where('s.status', 'running')
+                    ->where('s.updated_at', '>', now()->subMinutes(30))
+                    ->whereRaw('COALESCE(ai.area_tier, 1) >= ?', [self::HEAVY_TIER])
+                    ->count();
+                $allowHeavy = $heavyRunning < self::heavyWorkerCap();
+            }
 
-        $heavyPredicate = $allowHeavy ? 'true' : 'false';
-        $row = DB::selectOne("
-            UPDATE autoscale_scopes s
-               SET status = ?, claim_token = ?,
-                   started_at = COALESCE(s.started_at, now()), updated_at = now()
-             WHERE s.id = (
-                   SELECT s2.id FROM autoscale_scopes s2
-                    JOIN autoscale_items ai ON ai.id = s2.item_id
-                   WHERE s2.run_id = ? AND s2.status = ?
-                     AND (COALESCE(ai.area_tier, 1) < ? OR {$heavyPredicate})
-                   ORDER BY ai.position, s2.depth, s2.id
-                   LIMIT 1
-                   FOR UPDATE SKIP LOCKED
-             )
-         RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-        ", ['running', $token, $run->id, 'pending', self::HEAVY_TIER]);
+            $heavyPredicate = $allowHeavy ? 'true' : 'false';
+
+            return DB::selectOne("
+                UPDATE autoscale_scopes s
+                   SET status = ?, claim_token = ?,
+                       started_at = COALESCE(s.started_at, now()), updated_at = now()
+                 WHERE s.id = (
+                       SELECT s2.id FROM autoscale_scopes s2
+                        JOIN autoscale_items ai ON ai.id = s2.item_id
+                       WHERE s2.run_id = ? AND s2.status = ?
+                         AND (COALESCE(ai.area_tier, 1) < ? OR {$heavyPredicate})
+                       ORDER BY ai.position, s2.depth, s2.id
+                       LIMIT 1
+                       FOR UPDATE SKIP LOCKED
+                 )
+             RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
+            ", ['running', $token, $run->id, 'pending', self::HEAVY_TIER]);
+        });
 
         if ($row === null) {
             return null;
