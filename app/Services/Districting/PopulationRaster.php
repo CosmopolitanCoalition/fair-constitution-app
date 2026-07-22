@@ -349,6 +349,21 @@ class PopulationRaster
      */
     private const MEASURE_DECODE_CHUNK_BYTES = 2097152;
 
+    /**
+     * EDGE-RECOVERY tolerance (2026-07-22, the seat-drift conservation bug,
+     * operator ruling "there should be no drift in seat counts"): filed
+     * pieces are shaved 1e-8° inward while coastal grid points sit SNAPPED
+     * ON the scope boundary — strictly outside every shaved piece, so the
+     * pure ray-cast dropped their mass from every sibling (Falkland: 6.8%
+     * of the scope → both pieces rounded DOWN → 14 of 15 budgeted seats;
+     * 31k done items planet-wide at net −33k seats). A point the strict
+     * pass missed counts for the piece whose edge lies within this
+     * tolerance — 100x the shave, ~1000x under the grid pitch, the same
+     * 1e-6° the pre-oracle recovery arm used. Points deep inside a sibling
+     * stay out; the measurement remains fail-closed.
+     */
+    private const MEASURE_EDGE_RECOVERY_DEG = 0.000001;
+
     private function coverageStats(string $scopeId, int $year): array
     {
         static $memo = [];
@@ -577,7 +592,9 @@ class PopulationRaster
 
         $pieceSum = 0.0;
         $rest = $grid;
-        if (strlen($geoJson) > self::MEASURE_DECODE_CHUNK_BYTES) {
+        $bigPiece = strlen($geoJson) > self::MEASURE_DECODE_CHUNK_BYTES;
+        $smallMembers = [];
+        if ($bigPiece) {
             // MEMBER-WISE DECODE (2026-07-22, the monster filing fatal): a
             // 700-part island piece serializes to ~23MB of GeoJSON and
             // decoding it whole costs ~20x in PHP arrays — a 768M worker
@@ -602,14 +619,44 @@ class PopulationRaster
             }
         } else {
             $geometry = json_decode($geoJson, true) ?: [];
-            $members = ($geometry['type'] ?? '') === 'GeometryCollection'
+            $smallMembers = ($geometry['type'] ?? '') === 'GeometryCollection'
                 ? ($geometry['geometries'] ?? [])
                 : [$geometry];
 
-            foreach ($members as $member) {
+            foreach ($smallMembers as $member) {
                 [$inside, $rest] = SubdivisionAutoseedService::partitionPixelsByPolygon($rest, $member);
                 foreach ($inside as $p) {
                     $pieceSum += $p[2];
+                }
+            }
+        }
+
+        // EDGE RECOVERY (see MEASURE_EDGE_RECOVERY_DEG): boundary-snapped
+        // points the strict ray-cast left in $rest count for this piece when
+        // one of its edges passes within the tolerance. Big pieces stream
+        // their members a second time (the leftover set is small — only
+        // boundary points survive the strict pass on a partitioning piece).
+        if ($rest !== []) {
+            if ($bigPiece) {
+                $members = DB::select(
+                    'SELECT ST_AsGeoJSON((ST_Dump(ST_CollectionExtract(
+                                ST_GeomFromGeoJSON(?), 3))).geom, 15) AS gj',
+                    [$geoJson]
+                );
+                foreach ($members as $m) {
+                    if ($rest === []) {
+                        break;
+                    }
+                    $member = json_decode((string) $m->gj, true);
+                    $m->gj = null;
+                    [$pieceSum, $rest] = self::recoverNearEdge($pieceSum, $rest, $member);
+                }
+            } else {
+                foreach ($smallMembers as $member) {
+                    if ($rest === []) {
+                        break;
+                    }
+                    [$pieceSum, $rest] = self::recoverNearEdge($pieceSum, $rest, $member);
                 }
             }
         }
@@ -622,6 +669,69 @@ class PopulationRaster
             'pop'    => $pop,
             'source' => $basis === 'area' ? 'area_proportional' : 'worldpop_raster',
         ];
+    }
+
+    /**
+     * Move every leftover point lying within MEASURE_EDGE_RECOVERY_DEG of one
+     * of this member's edges (any ring — the shave displaces outer rings
+     * inward and hole rings outward alike) into the piece sum. Returns the
+     * updated [pieceSum, stillLeft].
+     *
+     * @param array<int, array{0: float, 1: float, 2: float}> $rest
+     */
+    private static function recoverNearEdge(float $pieceSum, array $rest, array $member): array
+    {
+        $polys = match ($member['type'] ?? '') {
+            'Polygon'      => [$member['coordinates']],
+            'MultiPolygon' => $member['coordinates'],
+            default        => [],
+        };
+        if ($polys === []) {
+            return [$pieceSum, $rest];
+        }
+
+        $eps = self::MEASURE_EDGE_RECOVERY_DEG;
+        $eps2 = $eps * $eps;
+
+        $still = [];
+        foreach ($rest as $p) {
+            [$px, $py] = $p;
+            $near = false;
+            foreach ($polys as $rings) {
+                foreach ($rings as $ring) {
+                    $n = count($ring);
+                    for ($i = 0; $i < $n - 1; $i++) {
+                        [$ax, $ay] = $ring[$i];
+                        [$bx, $by] = $ring[$i + 1];
+                        // Cheap reject: the point must fall inside the
+                        // segment's eps-expanded bbox before the projection.
+                        if ($px < min($ax, $bx) - $eps || $px > max($ax, $bx) + $eps
+                            || $py < min($ay, $by) - $eps || $py > max($ay, $by) + $eps) {
+                            continue;
+                        }
+                        $dx = $bx - $ax;
+                        $dy = $by - $ay;
+                        $len2 = $dx * $dx + $dy * $dy;
+                        $t = $len2 > 0.0
+                            ? max(0.0, min(1.0, (($px - $ax) * $dx + ($py - $ay) * $dy) / $len2))
+                            : 0.0;
+                        $ex = $px - ($ax + $t * $dx);
+                        $ey = $py - ($ay + $t * $dy);
+                        if ($ex * $ex + $ey * $ey <= $eps2) {
+                            $near = true;
+                            break 3;
+                        }
+                    }
+                }
+            }
+            if ($near) {
+                $pieceSum += $p[2];
+            } else {
+                $still[] = $p;
+            }
+        }
+
+        return [$pieceSum, $still];
     }
 
     /**
