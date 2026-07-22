@@ -44,6 +44,17 @@ class AutoscaleWorkerJob implements ShouldQueue
     /** Exit the claim loop after this long — the pump re-seeds fresh workers. */
     private const CLAIM_BUDGET_SECONDS = 3000;
 
+    /**
+     * Recycle the worker once the PROCESS holds this much memory (2026-07-22,
+     * the monster-claim fatals): one worker loops through dozens of scopes and
+     * memory creeps across claims — the 768M fatals hit workers ALREADY at the
+     * limit trying to allocate kilobytes (a fresh process runs the same scope
+     * at ~80M peak). Exiting at a claim boundary is free: the lease clears and
+     * the pump seeds a fresh worker within a minute. 480M leaves ~3x headroom
+     * over the largest observed fresh-process peak (~140M, monster class).
+     */
+    private const MEMORY_RECYCLE_BYTES = 480 * 1048576;
+
     /** Consecutive claim failures before the worker exits (≈1-min backoff via the pump). */
     private const MAX_CONSECUTIVE_FAILURES = 3;
 
@@ -104,6 +115,13 @@ class AutoscaleWorkerJob implements ShouldQueue
                     break;
                 }
                 if ((time() - $startedAt) > self::CLAIM_BUDGET_SECONDS) {
+                    break;
+                }
+                if (memory_get_usage(true) > self::MEMORY_RECYCLE_BYTES) {
+                    Log::info('Autoscale worker recycling on memory', [
+                        'run_id' => $run->id,
+                        'bytes'  => memory_get_usage(true),
+                    ]);
                     break;
                 }
 
