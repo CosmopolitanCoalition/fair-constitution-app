@@ -364,6 +364,47 @@ class AutoscalePinTest extends TestCase
                 'the previously activated map is untouched — not archived by a second founding sweep');
             $this->assertSame('done', AutoscaleRun::query()->find($run->id)->status,
                 'the revived run re-completes through the same accounting');
+
+            // ── Pin 7b: the DRIFT-REPAIR flag (operator ruling 2026-07-22,
+            // no drift in seat counts) — an item requeued WITH
+            // redraw_requested_at skips adoption for exactly ONE attempt and
+            // redraws through the audited replace path; the flag is consumed
+            // on completion so a later plain requeue adopts again. Direct
+            // process() call: the pump/worker plumbing is pin 7's territory.
+            AutoscaleItem::query()->whereKey($pinlandItem->id)->update([
+                'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                'redraw_requested_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('autoscale_scopes')->where('item_id', $pinlandItem->id)->delete();
+            $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
+            $repairScopeId = (string) Str::uuid();
+            DB::table('autoscale_scopes')->insert([
+                'id' => $repairScopeId, 'run_id' => $run->id, 'item_id' => $pinlandItem->id,
+                'legislature_id' => $pinlandItem->legislature_id,
+                'scope_jurisdiction_id' => $pinlandItem->jurisdiction_id,
+                'depth' => 0, 'status' => 'running', 'claim_token' => (string) Str::uuid(),
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->process($run->refresh(), [
+                'scope_id'              => $repairScopeId,
+                'item_id'               => (string) $pinlandItem->id,
+                'legislature_id'        => (string) $pinlandItem->legislature_id,
+                'scope_jurisdiction_id' => (string) $pinlandItem->jurisdiction_id,
+            ]);
+            // The item's terminal state (and the flag consumption inside
+            // finishItem) lands in the FINALIZE rung, same as the worker
+            // ladder runs it — the claim rung flips running → assessing
+            // before handing the item to finalize.
+            AutoscaleItem::query()->whereKey($pinlandItem->id)
+                ->update(['status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            $pinlandItem->refresh();
+            $this->assertStringNotContainsString('adopted', (string) $pinlandItem->reason,
+                'a flagged repair item must REDRAW, never adopt the existing active map');
+            $this->assertNull($pinlandItem->redraw_requested_at,
+                'the repair flag is consumed by the attempt it triggered');
+            $this->assertNotSame('pending', $pinlandItem->status,
+                'the flagged repair attempt runs to a terminal state');
         });
     }
 

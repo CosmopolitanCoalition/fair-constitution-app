@@ -90,6 +90,15 @@ class SweepScopeProcessor
             $expected = (int) DB::table('legislatures')
                 ->where('id', $legislatureId)->value('type_a_seats');
 
+            // DRIFT-REPAIR REQUEUE (operator ruling 2026-07-22, "there
+            // should be no drift in seat counts"): an EXPLICITLY flagged
+            // item (autoscale_items.redraw_requested_at, set by the repair
+            // requeue) skips adoption so the sweep below retires and
+            // refiles through the audited replace path. Everything else
+            // keeps ADOPT-NEVER-BULLDOZE byte-identical — an operator's
+            // accepted work is never archived by a plain requeue.
+            if ($item->redraw_requested_at === null) {
+
             DB::transaction(function () use ($run, $itemId, $scopeId) {
                 DB::table('autoscale_scopes')
                     ->where('item_id', $itemId)
@@ -104,6 +113,7 @@ class SweepScopeProcessor
             $this->finishItem($itemId, ['pending', 'running'], 'done', $seated, $expected,
                 'adopted: an active map with districts already exists');
             return;
+            }
         }
 
         // First scope of the item flips it running (idempotent).
@@ -561,6 +571,9 @@ class SweepScopeProcessor
             'reason'      => $reason,
             'finished_at' => now(),
             'updated_at'  => now(),
+            // A drift-repair flag is consumed by the attempt it triggered —
+            // the NEXT plain requeue adopts again (never a standing bypass).
+            'redraw_requested_at' => null,
         ];
         // Keep the enumeration-time expectation when a failure never measured
         // anything — a null overwrite would blank the dashboard's seat column.
