@@ -135,12 +135,26 @@ class PopulationRaster
             // ST_Covers-by-piece and blade-side agree by construction
             // (pieces partition the scope), and no mass is ever placed in
             // the water. Deterministic; sums conserved exactly.
+            // SNAP INSIDE, not onto (2026-07-22, the junction double-count):
+            // a point snapped exactly ON the boundary sits in the 1e-8°
+            // shave gap of every filed piece — outside ALL of them — and any
+            // per-piece recovery near a cut junction can count it twice
+            // (+1/+2 seat drift, 8.5% of the repair sample). The snap target
+            // is now the 2e-8°-shrunken surface (past the shave), so every
+            // snapped point ray-casts STRICTLY into exactly one piece — one
+            // owner by construction, and the measurement needs no recovery
+            // arm at all. A geometry the shrink annihilates (pure ribbons)
+            // falls back to the original surface.
             $rows = DB::select(
-                "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
+                "WITH g0 AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?),
+                      g AS (SELECT CASE WHEN ST_IsEmpty(ST_Buffer(geom, -0.00000002)) THEN geom
+                                        ELSE ST_Buffer(geom, -0.00000002) END AS snapg,
+                                   geom, iso_code
+                              FROM g0)
                  SELECT CASE WHEN ST_Covers(g.geom, q.p) THEN q.x
-                             ELSE ST_X(ST_ClosestPoint(g.geom, q.p)) END AS x,
+                             ELSE ST_X(ST_ClosestPoint(g.snapg, q.p)) END AS x,
                         CASE WHEN ST_Covers(g.geom, q.p) THEN q.y
-                             ELSE ST_Y(ST_ClosestPoint(g.geom, q.p)) END AS y,
+                             ELSE ST_Y(ST_ClosestPoint(g.snapg, q.p)) END AS y,
                         q.val
                    FROM g
                   CROSS JOIN LATERAL (
@@ -349,20 +363,18 @@ class PopulationRaster
      */
     private const MEASURE_DECODE_CHUNK_BYTES = 2097152;
 
-    /**
-     * EDGE-RECOVERY tolerance (2026-07-22, the seat-drift conservation bug,
-     * operator ruling "there should be no drift in seat counts"): filed
-     * pieces are shaved 1e-8° inward while coastal grid points sit SNAPPED
-     * ON the scope boundary — strictly outside every shaved piece, so the
-     * pure ray-cast dropped their mass from every sibling (Falkland: 6.8%
-     * of the scope → both pieces rounded DOWN → 14 of 15 budgeted seats;
-     * 31k done items planet-wide at net −33k seats). A point the strict
-     * pass missed counts for the piece whose edge lies within this
-     * tolerance — 100x the shave, ~1000x under the grid pitch, the same
-     * 1e-6° the pre-oracle recovery arm used. Points deep inside a sibling
-     * stay out; the measurement remains fail-closed.
+    /*
+     * Seat-drift conservation history (2026-07-22, operator ruling "there
+     * should be no drift in seat counts"): grid points snapped ON the scope
+     * boundary sat in every filed piece's 1e-8° shave gap and the ray-cast
+     * dropped their mass from all siblings (Falkland 14/15; planet-wide 31k
+     * items, net −33k seats). A per-piece 1e-6° edge-recovery arm fixed the
+     * loss but double-counted cut-junction bins into BOTH siblings (+1/+2
+     * drift, 8.5% of the repair sample). The standing law: the GRID snaps
+     * outside points strictly INSIDE the territory (2e-8°, past the shave)
+     * — strict ray-cast then gives every point exactly one owner and needs
+     * no recovery at all.
      */
-    private const MEASURE_EDGE_RECOVERY_DEG = 0.000001;
 
     private function coverageStats(string $scopeId, int $year): array
     {
@@ -446,10 +458,18 @@ class PopulationRaster
                      CROSS JOIN LATERAL ST_SquareGrid({$cell}, g.geom) AS sq
                      WHERE ST_Intersects(sq.geom, g.geom)
                 )
+                -- Same snap-INSIDE rule as pixelGrid (junction double-count):
+                -- an on-boundary snap sits in every piece's shave gap.
                 SELECT CASE WHEN ST_Covers(cg, ST_Centroid(cg)) THEN ST_X(ST_Centroid(cg))
-                            ELSE ST_X(ST_ClosestPoint(cg, ST_Centroid(cg))) END AS x,
+                            ELSE ST_X(ST_ClosestPoint(
+                                CASE WHEN ST_IsEmpty(ST_Buffer(cg, -0.00000002)) THEN cg
+                                     ELSE ST_Buffer(cg, -0.00000002) END,
+                                ST_Centroid(cg))) END AS x,
                        CASE WHEN ST_Covers(cg, ST_Centroid(cg)) THEN ST_Y(ST_Centroid(cg))
-                            ELSE ST_Y(ST_ClosestPoint(cg, ST_Centroid(cg))) END AS y,
+                            ELSE ST_Y(ST_ClosestPoint(
+                                CASE WHEN ST_IsEmpty(ST_Buffer(cg, -0.00000002)) THEN cg
+                                     ELSE ST_Buffer(cg, -0.00000002) END,
+                                ST_Centroid(cg))) END AS y,
                        pop * (ST_Area(cg) / NULLIF(total_area, 0)) AS val
                   FROM cells
                  WHERE NOT ST_IsEmpty(cg) AND ST_Area(cg) > 0
@@ -631,35 +651,12 @@ class PopulationRaster
             }
         }
 
-        // EDGE RECOVERY (see MEASURE_EDGE_RECOVERY_DEG): boundary-snapped
-        // points the strict ray-cast left in $rest count for this piece when
-        // one of its edges passes within the tolerance. Big pieces stream
-        // their members a second time (the leftover set is small — only
-        // boundary points survive the strict pass on a partitioning piece).
-        if ($rest !== []) {
-            if ($bigPiece) {
-                $members = DB::select(
-                    'SELECT ST_AsGeoJSON((ST_Dump(ST_CollectionExtract(
-                                ST_GeomFromGeoJSON(?), 3))).geom, 15) AS gj',
-                    [$geoJson]
-                );
-                foreach ($members as $m) {
-                    if ($rest === []) {
-                        break;
-                    }
-                    $member = json_decode((string) $m->gj, true);
-                    $m->gj = null;
-                    [$pieceSum, $rest] = self::recoverNearEdge($pieceSum, $rest, $member);
-                }
-            } else {
-                foreach ($smallMembers as $member) {
-                    if ($rest === []) {
-                        break;
-                    }
-                    [$pieceSum, $rest] = self::recoverNearEdge($pieceSum, $rest, $member);
-                }
-            }
-        }
+        // No recovery arm: the grid snaps outside points STRICTLY INSIDE the
+        // territory (past every piece's shave), so the strict ray-cast above
+        // assigns every gram of mass to exactly one sibling — conservation
+        // and single ownership by construction. (A per-piece edge-recovery
+        // pass double-counted junction bins into both siblings: +1/+2 seat
+        // drift on 8.5% of the first repair sample.)
 
         $pop = ($gridTotal > 0 && $storedPop > 0)
             ? (int) round($storedPop * $pieceSum / $gridTotal)
@@ -671,68 +668,6 @@ class PopulationRaster
         ];
     }
 
-    /**
-     * Move every leftover point lying within MEASURE_EDGE_RECOVERY_DEG of one
-     * of this member's edges (any ring — the shave displaces outer rings
-     * inward and hole rings outward alike) into the piece sum. Returns the
-     * updated [pieceSum, stillLeft].
-     *
-     * @param array<int, array{0: float, 1: float, 2: float}> $rest
-     */
-    private static function recoverNearEdge(float $pieceSum, array $rest, array $member): array
-    {
-        $polys = match ($member['type'] ?? '') {
-            'Polygon'      => [$member['coordinates']],
-            'MultiPolygon' => $member['coordinates'],
-            default        => [],
-        };
-        if ($polys === []) {
-            return [$pieceSum, $rest];
-        }
-
-        $eps = self::MEASURE_EDGE_RECOVERY_DEG;
-        $eps2 = $eps * $eps;
-
-        $still = [];
-        foreach ($rest as $p) {
-            [$px, $py] = $p;
-            $near = false;
-            foreach ($polys as $rings) {
-                foreach ($rings as $ring) {
-                    $n = count($ring);
-                    for ($i = 0; $i < $n - 1; $i++) {
-                        [$ax, $ay] = $ring[$i];
-                        [$bx, $by] = $ring[$i + 1];
-                        // Cheap reject: the point must fall inside the
-                        // segment's eps-expanded bbox before the projection.
-                        if ($px < min($ax, $bx) - $eps || $px > max($ax, $bx) + $eps
-                            || $py < min($ay, $by) - $eps || $py > max($ay, $by) + $eps) {
-                            continue;
-                        }
-                        $dx = $bx - $ax;
-                        $dy = $by - $ay;
-                        $len2 = $dx * $dx + $dy * $dy;
-                        $t = $len2 > 0.0
-                            ? max(0.0, min(1.0, (($px - $ax) * $dx + ($py - $ay) * $dy) / $len2))
-                            : 0.0;
-                        $ex = $px - ($ax + $t * $dx);
-                        $ey = $py - ($ay + $t * $dy);
-                        if ($ex * $ex + $ey * $ey <= $eps2) {
-                            $near = true;
-                            break 3;
-                        }
-                    }
-                }
-            }
-            if ($near) {
-                $pieceSum += $p[2];
-            } else {
-                $still[] = $p;
-            }
-        }
-
-        return [$pieceSum, $still];
-    }
 
     /**
      * THE HALF-PLANE MEASUREMENT (operator ruling 2026-07-22, "a simpler
