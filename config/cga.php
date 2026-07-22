@@ -40,6 +40,16 @@ return [
     'autoscale_singles_workers' => env('CGA_AUTOSCALE_SINGLES_WORKERS', 4),
 
     /*
+    | Heavy-lane cap override (2026-07-22). 0 = the formula
+    | (max(1, ceil(0.2 × workers)) — the operator's 20% ruling). Set 1 when
+    | the frontier holds extreme-multipart monsters (Falkland Islands, Cabo
+    | de Hornos archipelagos) whose grid work OOMs under 2-concurrent-heavy
+    | memory pressure: one monster at a time gets the headroom to FINISH
+    | instead of cycling through kill → 30-min stale reclaim → redo forever.
+    */
+    'autoscale_heavy_cap' => env('CGA_AUTOSCALE_HEAVY_CAP', 0),
+
+    /*
     | Dev impersonation + dev tooling (WI-4). The /dev/* routes (user
     | impersonation, ping simulator) are registered only in the local
     | environment AND gated at runtime by this flag — flipping it to false

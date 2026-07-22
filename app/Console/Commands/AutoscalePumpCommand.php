@@ -45,6 +45,16 @@ class AutoscalePumpCommand extends Command
     private const PRECOMP_STALE = 1800;  // one parent's pair pass; heavy parents take minutes
     private const ASSESS_STALE  = 1800;  // completeness assessment is minutes at worst
 
+    /**
+     * HEAVY scopes (area_tier ≥ 4) get a 4-hour stale bound (2026-07-22):
+     * an extreme-multipart monster (Falkland Islands ~700 islands, Cabo de
+     * Hornos) legitimately spends >30 min inside ONE PostGIS statement with
+     * no heartbeat — the 30-min bound false-reclaimed LIVE workers and,
+     * combined with OOM kills, wedged the heavy lane in an execute-redo
+     * loop (both frontier scopes cycled 12-21 hours without finishing).
+     */
+    private const HEAVY_SCOPE_STALE = 14400;
+
     public function handle(): int
     {
         $runs = AutoscaleRun::query()
@@ -123,14 +133,18 @@ class AutoscalePumpCommand extends Command
 
         // ── Reclaims: stale claims go back to pending (set-based, bounded) ──
         $reclaimed = 0;
-        $reclaimed += DB::table('autoscale_scopes')
-            ->where('run_id', $run->id)
-            ->where('status', 'running')
-            ->where('updated_at', '<', now()->subSeconds(self::SCOPE_STALE))
-            ->update([
-                'status' => 'pending', 'claim_token' => null,
-                'reason' => 'reclaimed: worker died mid-scope', 'updated_at' => now(),
-            ]);
+        $reclaimed += DB::update("
+            UPDATE autoscale_scopes s
+               SET status = 'pending', claim_token = NULL,
+                   reason = 'reclaimed: worker died mid-scope', updated_at = now()
+              FROM autoscale_items ai
+             WHERE ai.id = s.item_id
+               AND s.run_id = ?
+               AND s.status = 'running'
+               AND s.updated_at < now() - make_interval(secs =>
+                       CASE WHEN COALESCE(ai.area_tier, 1) >= ?::int
+                            THEN ?::double precision ELSE ?::double precision END)
+        ", [$run->id, \App\Support\AutoscaleClaims::HEAVY_TIER, self::HEAVY_SCOPE_STALE, self::SCOPE_STALE]);
         $reclaimed += DB::table('autoscale_items')
             ->where('run_id', $run->id)
             ->where('kind', 'single')

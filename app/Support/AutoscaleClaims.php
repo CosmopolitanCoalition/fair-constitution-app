@@ -52,6 +52,11 @@ final class AutoscaleClaims
 
     public static function heavyWorkerCap(): int
     {
+        $override = (int) config('cga.autoscale_heavy_cap', 0);
+        if ($override > 0) {
+            return $override;
+        }
+
         return max(1, (int) ceil(0.2 * HostCapacity::autoscaleWorkers()));
     }
 
