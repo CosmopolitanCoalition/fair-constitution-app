@@ -293,7 +293,11 @@ class LeafGiantResolver
                 'jurisdiction_id' => $jurisdictionId,
                 'scope_id'        => $scopeId,
                 'map_id'          => $mapId,
-                'geojson'         => json_encode($d['geometry']),
+                // INDEXED PARTS (2026-07-22): splitline and components leaves
+                // carry their geometry as a RAW GeoJSON string — a monster
+                // leaf decoded into PHP arrays was a 768M fatal. Cells leaves
+                // (small by construction) still carry decoded geometry.
+                'geojson'         => $d['geometry_json'] ?? json_encode($d['geometry']),
                 'label'           => null,
                 'population_year' => $year,
                 // Autoseed only: a marginally sub-floor piece records the

@@ -145,18 +145,30 @@ class SubdivisionAutoseedService
         // Ribbons are harmless as islands: they hold no pixels (so they can
         // never lead the most-populous mainland pick) and the filing census
         // ignores them as de-minimis on the same footing as the shave.
+        // INDEXED PARTS (2026-07-22, the monster-assembly rework): each part
+        // carries its ST_Dump path index into the DISSOLVED decomposition, so
+        // the leaf assembly can rebuild island parts from the LIVE geometry
+        // by index — no island GeoJSON ever round-trips through PHP (the
+        // 768M island-decode fatal) and no whole-scope ST_Intersection runs
+        // against a monster collection (the pg clip kill). ST_UnaryUnion is
+        // deterministic, so the same index set names the same parts in every
+        // later query against this scope.
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
+                    idx,
                     ST_Area(g::geography) AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
-                       FROM jurisdictions WHERE id = ?) t
+               FROM (SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
+                       FROM jurisdictions j,
+                            LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
+                      WHERE j.id = ?) t
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
         );
 
         $mainlandGj = $region->gj;
+        $mainPartIdx = count($comps) === 1 ? (int) $comps[0]->idx : 0;
         $islands = [];
         if (count($comps) > 1) {
             // Partition the grid across ALL parts first (boundary-ambiguous
@@ -194,16 +206,18 @@ class SubdivisionAutoseedService
             }
 
             $mainlandGj = (string) $comps[$mainIdx]->gj;
+            $mainPartIdx = (int) $comps[$mainIdx]->idx;
             foreach ($comps as $i => $comp) {
                 if ($i === $mainIdx) {
                     continue;
                 }
                 $islands[] = [
-                    'gj'     => (string) $comp->gj,
-                    'cx'     => (float) $comp->cx,
-                    'cy'     => (float) $comp->cy,
-                    'pop'    => $partPops[$i],
-                    'pixels' => $partPixels[$i],
+                    'gj'       => (string) $comp->gj,
+                    'part_idx' => (int) $comp->idx,
+                    'cx'       => (float) $comp->cx,
+                    'cy'       => (float) $comp->cy,
+                    'pop'      => $partPops[$i],
+                    'pixels'   => $partPixels[$i],
                 ];
             }
             $pixels = $partPixels[$mainIdx];
@@ -242,7 +256,7 @@ class SubdivisionAutoseedService
                 break;
             }
         }
-        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling'], $initialCutPath);
+        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling'], $initialCutPath, $mainPartIdx);
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 
@@ -290,11 +304,14 @@ class SubdivisionAutoseedService
         // and the filing census (one bookkeeping everywhere).
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
+                    idx,
                     ST_Area(g::geography) AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS g
-                       FROM jurisdictions WHERE id = ?) t
+               FROM (SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
+                       FROM jurisdictions j,
+                            LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
+                      WHERE j.id = ?) t
               WHERE 2 * ST_Area(g::geography) / NULLIF(ST_Perimeter(g::geography), 0) >= 0.5
               ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
@@ -366,51 +383,42 @@ class SubdivisionAutoseedService
         $districts = [];
         foreach ($groups as $n => $group) {
             sort($group['members']);
-            $groupGj = count($group['members']) === 1
-                ? (string) $comps[$group['members'][0]]->gj
-                : json_encode([
-                    'type'       => 'GeometryCollection',
-                    'geometries' => array_map(
-                        fn (int $ci) => json_decode((string) $comps[$ci]->gj, true),
-                        $group['members'],
-                    ),
-                ]);
 
-            // The same clip-and-shave the splitline leaves get: proof-safe
-            // against the handler's exact ST_CoveredBy after the GeoJSON
-            // round-trip.
+            // INDEXED PARTS (2026-07-22, the monster-assembly rework): the
+            // group's parts are re-collected IN SQL from the live dissolved
+            // geometry by index — no per-part GeoJSON ever decodes in PHP
+            // (the 768M fatal) and no whole-scope ST_Intersection runs (the
+            // pg clip kill). A live part is exactly covered by its scope
+            // already, so the old clip-and-shave round-trip armor is
+            // unnecessary here by construction — these parts never round-trip.
+            $idxs = array_map(fn (int $ci) => (int) $comps[$ci]->idx, $group['members']);
             $row = DB::selectOne(
-                'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
-                      ix AS (
-                          SELECT ST_CollectionExtract(ST_Intersection(
-                                     ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
-                                     (SELECT g FROM gi)), 3) AS g
+                'WITH parts AS (
+                          SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
+                            FROM jurisdictions j,
+                                 LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
+                           WHERE j.id = :scope
                       ),
-                      -- PER-PART shave (2026-07-20, the Penamaluru merge): a
-                      -- collection-level negative buffer re-nodes lattice-
-                      -- adjacent parts together (13 raster diamonds came out
-                      -- as 4 fused parts). Shaving each dumped part on its
-                      -- own can never merge parts; parts the shave empties
-                      -- drop out and the null-geometry refusal catches a
-                      -- fully-vanished piece.
+                      -- Per-part shave: the filed GeoJSON text still
+                      -- round-trips through the parser at filing, so the
+                      -- 1 mm interior margin remains the ST_CoveredBy armor.
                       leaf AS (
                           SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
                             FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
-                                             (ST_Dump((SELECT g FROM ix))).geom,
-                                             -0.00000001)), 3) AS sg) shaved
+                                             g, -0.00000001)), 3) AS sg
+                                    FROM parts WHERE idx = ANY(:idxs::int[])) s
                            WHERE NOT ST_IsEmpty(sg)
                       )
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))
                             / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
-                ['scope' => $scopeId, 'gj' => $groupGj]
+                ['scope' => $scopeId, 'idxs' => '{'.implode(',', $idxs).'}']
             );
-            $geometry = $row?->gj !== null ? json_decode($row->gj, true) : null;
-            if ($geometry === null) {
+            if ($row?->gj === null) {
                 throw new RuntimeException("Component district c{$n} collapsed to an empty geometry — cut it by hand.");
             }
 
-            $pop = (float) $this->raster->measureWithFallback($scopeId, json_encode($geometry), $year)['pop'];
+            $pop = (float) $this->raster->measureWithFallback($scopeId, (string) $row->gj, $year)['pop'];
             $seats = (int) round($pop / max($quota, 1e-9));
             if ($seats < 1) {
                 throw new RuntimeException(
@@ -430,7 +438,7 @@ class SubdivisionAutoseedService
                 'pop'                    => (int) round($pop),
                 'per_seat_deviation_pct' => round(abs($pop / $seats - $quota) / $quota * 100, 2),
                 'convex_hull_ratio'      => round((float) ($row->chr ?? 0.0), 3),
-                'geometry'               => $geometry,
+                'geometry_json'          => (string) $row->gj,
             ];
         }
 
@@ -822,6 +830,7 @@ class SubdivisionAutoseedService
         int $floor,
         int $ceiling,
         ?array $cutPath = [],
+        int $mainPartIdx = 0,
     ): void {
         if (count($sizes) === 1) {
             $pop = 0.0;
@@ -834,52 +843,82 @@ class SubdivisionAutoseedService
             $seats = (int) $sizes[0];
 
             // A LEAF is what F-ELB-008 will file, and the handler proves exact
-            // ST_CoveredBy against the giant — but the piece has round-tripped
-            // through decimal GeoJSON, whose serialization epsilon (~1e-15°)
-            // can nudge a boundary vertex just outside. Clip against the LIVE
-            // giant geometry and shave 1e-8° (~1 mm) inward so the interior
-            // margin dwarfs any round-trip error. Deterministic; invisible.
-            // Islands riding this side union in here — the leaf files as ONE
-            // multi-part piece whose extra parts are whole giant components
-            // (the exact shape the handler's Art. II §8 rule admits).
-            $leafGj = $islands === []
-                ? $gj
-                : json_encode([
-                    'type'       => 'GeometryCollection',
-                    'geometries' => array_merge(
-                        [json_decode($gj, true)],
-                        array_map(fn (array $isl) => json_decode($isl['gj'], true), $islands),
-                    ),
-                ]);
+            // ST_CoveredBy against the giant — but the CUT piece has
+            // round-tripped through decimal GeoJSON, whose serialization
+            // epsilon (~1e-15°) can nudge a boundary vertex just outside.
+            // Clip it against the LIVE MAINLAND PART (a blade side always
+            // descends from the mainland — islands are never cut) and shave
+            // 1e-8° (~1 mm) inward so the interior margin dwarfs any
+            // round-trip error. Deterministic; invisible.
+            //
+            // INDEXED PARTS (2026-07-22): islands riding this side are
+            // re-assembled IN SQL from the live dissolved geometry by part
+            // index — they never round-trip through PHP (the 768M
+            // island-decode fatal on 700-part monsters) and need no clip or
+            // shave (a live part is exactly covered by its scope already).
+            // The leaf geometry stays a RAW GeoJSON string end-to-end
+            // (geometry_json); decoding a monster leaf into PHP arrays was
+            // the third memory bomb.
+            $islandIdxs = array_values(array_map(
+                fn (array $isl) => (int) $isl['part_idx'],
+                $islands,
+            ));
 
             $row = DB::selectOne(
-                'WITH gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
+                'WITH parts AS (
+                          SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
+                            FROM jurisdictions j,
+                                 LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
+                           WHERE j.id = :scope
+                      ),
                       ix AS (
                           SELECT ST_CollectionExtract(ST_Intersection(
                                      ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
-                                     (SELECT g FROM gi)), 3) AS g
+                                     (SELECT g FROM parts WHERE idx = :main_idx)), 3) AS g
                       ),
                       -- PER-PART shave (2026-07-20, the Penamaluru merge): a
                       -- collection-level negative buffer re-nodes lattice-
-                      -- adjacent parts together (13 raster diamonds came out
-                      -- as 4 fused parts). Shaving each dumped part on its
-                      -- own can never merge parts; parts the shave empties
-                      -- drop out and the null-geometry refusal catches a
-                      -- fully-vanished piece.
-                      leaf AS (
+                      -- adjacent parts together; shaving each dumped part on
+                      -- its own can never merge parts; parts the shave
+                      -- empties drop out and the null-geometry refusal
+                      -- catches a fully-vanished piece.
+                      shaved AS (
                           SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
                             FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
                                              (ST_Dump((SELECT g FROM ix))).geom,
-                                             -0.00000001)), 3) AS sg) shaved
+                                             -0.00000001)), 3) AS sg) s
                            WHERE NOT ST_IsEmpty(sg)
+                      ),
+                      -- Island parts get the SAME per-part shave: the filed
+                      -- GeoJSON text still round-trips through the parser at
+                      -- filing, so the 1 mm interior margin stays the proof
+                      -- armor — and ribbon islands rightly shave to nothing
+                      -- and drop out, exactly as the old collection path did.
+                      isl AS (
+                          SELECT ST_CollectionExtract(ST_Collect(sg), 3) AS g
+                            FROM (SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                             g, -0.00000001)), 3) AS sg
+                                    FROM parts WHERE idx = ANY(:idxs::int[])) s
+                           WHERE NOT ST_IsEmpty(sg)
+                      ),
+                      leaf AS (
+                          SELECT ST_CollectionExtract(ST_Collect(x.g), 3) AS g
+                            FROM (SELECT (SELECT g FROM shaved) AS g
+                                  UNION ALL
+                                  SELECT (SELECT g FROM isl)) x
+                           WHERE x.g IS NOT NULL AND NOT ST_IsEmpty(x.g)
                       )
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))
                             / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
-                ['scope' => $scopeId, 'gj' => $leafGj]
+                [
+                    'scope'    => $scopeId,
+                    'gj'       => $gj,
+                    'main_idx' => $mainPartIdx,
+                    'idxs'     => '{'.implode(',', $islandIdxs).'}',
+                ]
             );
-            $geometry = $row?->gj !== null ? json_decode($row->gj, true) : null;
-            if ($geometry === null) {
+            if ($row?->gj === null) {
                 throw new RuntimeException("District {$path} collapsed to an empty geometry — cut it by hand.");
             }
 
@@ -889,7 +928,7 @@ class SubdivisionAutoseedService
                 'pop'                    => (int) round($pop),
                 'per_seat_deviation_pct' => round(abs($pop / $seats - $quota) / $quota * 100, 2),
                 'convex_hull_ratio'      => round((float) ($row->chr ?? 0.0), 3),
-                'geometry'               => $geometry,
+                'geometry_json'          => (string) $row->gj,
                 // The half-plane chain from the root to this leaf ([] = the
                 // whole scope, null = an absorb level broke the chain — the
                 // measurement falls back to the geometric path).
@@ -967,8 +1006,8 @@ class SubdivisionAutoseedService
         $pathA = ($cutPath === null || $frame === null) ? null : array_merge($cutPath, [array_merge($frame, [0])]);
         $pathB = ($cutPath === null || $frame === null) ? null : array_merge($cutPath, [array_merge($frame, [1])]);
 
-        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathA);
-        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathB);
+        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathA, $mainPartIdx);
+        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathB, $mainPartIdx);
     }
 
     /**

@@ -286,6 +286,18 @@ class SubdivisionDrawController extends Controller
         $mapId = $this->resolveMapId($legislature_id, $validated['map_id'] ?? null);
         $existing = $mapId !== null ? $this->liveDrawnCount($scopeId, $mapId) : 0;
 
+        // INDEXED PARTS (2026-07-22): splitline/components leaves carry raw
+        // GeoJSON strings (geometry_json) so monster plans never decode in
+        // PHP; the mapper wire format keeps the decoded 'geometry' object.
+        $plan['districts'] = array_map(function (array $d) {
+            if (! isset($d['geometry']) && isset($d['geometry_json'])) {
+                $d['geometry'] = json_decode($d['geometry_json'], true);
+            }
+            unset($d['geometry_json']);
+
+            return $d;
+        }, $plan['districts']);
+
         // $plan echoes the template back (part of the hashed plan identity).
         return response()->json($plan + [
             'floor'              => $ctx['floor'],

@@ -171,7 +171,7 @@ class ComponentsTemplateTest extends TestCase
                 $row = DB::selectOne(
                     'SELECT ST_XMin(g) AS xmin, ST_XMax(g) AS xmax
                        FROM ST_GeomFromGeoJSON(?) AS g',
-                    [json_encode($plan['districts'][$i]['geometry'])]
+                    [$plan['districts'][$i]['geometry_json']]
                 );
                 if ($i === 0) {
                     $this->assertLessThan(10.2, (float) $row->xmax, 'district c0 = the west isle only');
