@@ -104,8 +104,7 @@ class PopulationRaster
             // NO ST_Union (unioning border-overlapping tiles is ~500× slower). A
             // childless leaf giant sits inside one country, so iso_code suffices.
             // (A rare cross-border giant would need the multi path — out of scope.)
-            $inner = "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
-                 SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
+            $inner = "SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
                    FROM worldpop_rasters r
                    CROSS JOIN g
                    CROSS JOIN LATERAL ST_PixelAsCentroids(ST_Clip(r.rast, g.geom, TRUE), 1) AS pc
@@ -114,20 +113,43 @@ class PopulationRaster
                     AND ST_Intersects(r.rast, g.geom)
                     AND pc.val > 0";
 
-            if ($cell === null) {
-                $rows = DB::select($inner, [$scopeId, $year]);
-            } else {
+            $pts = $cell === null
+                ? $inner
                 // SUM-preserving bin aggregation at cell centers. floor()-based
                 // bin ids are deterministic; population is conserved exactly.
-                $rows = DB::select(
-                    "SELECT (floor(x / {$cell}) + 0.5) * {$cell} AS x,
-                            (floor(y / {$cell}) + 0.5) * {$cell} AS y,
-                            SUM(val) AS val
-                       FROM ({$inner}) px
-                      GROUP BY floor(x / {$cell}), floor(y / {$cell})",
-                    [$scopeId, $year]
-                );
-            }
+                : "SELECT (floor(x / {$cell}) + 0.5) * {$cell} AS x,
+                          (floor(y / {$cell}) + 0.5) * {$cell} AS y,
+                          SUM(val) AS val
+                     FROM ({$inner}) px
+                    GROUP BY floor(x / {$cell}), floor(y / {$cell})";
+
+            // EVERY POINT INSIDE ITS TERRITORY (2026-07-21, the arctic
+            // all-or-nothing class): a coastal bin's center — and even a
+            // native pixel centroid on a ragged shore — can fall in the SEA.
+            // Avannaata carried 53% of its population at offshore bin
+            // centers: the planner split that mass by blade-sign while the
+            // filing measurement's nearest-piece recovery assigned each
+            // outside point WHOLESALE to one piece → one piece measured the
+            // whole scope (18.00 quotas) and its sibling zero. An outside
+            // point now snaps to the closest point ON the territory, so
+            // ST_Covers-by-piece and blade-side agree by construction
+            // (pieces partition the scope), and no mass is ever placed in
+            // the water. Deterministic; sums conserved exactly.
+            $rows = DB::select(
+                "WITH g AS (SELECT ST_MakeValid(geom) AS geom, iso_code FROM jurisdictions WHERE id = ?)
+                 SELECT CASE WHEN ST_Covers(g.geom, q.p) THEN q.x
+                             ELSE ST_X(ST_ClosestPoint(g.geom, q.p)) END AS x,
+                        CASE WHEN ST_Covers(g.geom, q.p) THEN q.y
+                             ELSE ST_Y(ST_ClosestPoint(g.geom, q.p)) END AS y,
+                        q.val
+                   FROM g
+                  CROSS JOIN LATERAL (
+                        SELECT pts.x, pts.y, pts.val,
+                               ST_SetSRID(ST_MakePoint(pts.x, pts.y), 4326) AS p
+                          FROM ({$pts}) pts
+                  ) q",
+                [$scopeId, $year]
+            );
 
             return array_map(fn ($r) => [(float) $r->x, (float) $r->y, (float) $r->val], $rows);
         };
@@ -385,6 +407,9 @@ class PopulationRaster
         };
 
         $compute = function () use ($scopeId, $cell) {
+            // Same inside-the-territory guarantee as pixelGrid (2026-07-21):
+            // the centroid of a clipped concave/multipart cell can fall
+            // outside it (a bay) — snap to the closest point on the cell.
             $rows = DB::select("
                 WITH g AS (
                     SELECT ST_MakeValid(geom) AS geom, GREATEST(COALESCE(population, 0), 0) AS pop
@@ -397,7 +422,10 @@ class PopulationRaster
                      CROSS JOIN LATERAL ST_SquareGrid({$cell}, g.geom) AS sq
                      WHERE ST_Intersects(sq.geom, g.geom)
                 )
-                SELECT ST_X(ST_Centroid(cg)) AS x, ST_Y(ST_Centroid(cg)) AS y,
+                SELECT CASE WHEN ST_Covers(cg, ST_Centroid(cg)) THEN ST_X(ST_Centroid(cg))
+                            ELSE ST_X(ST_ClosestPoint(cg, ST_Centroid(cg))) END AS x,
+                       CASE WHEN ST_Covers(cg, ST_Centroid(cg)) THEN ST_Y(ST_Centroid(cg))
+                            ELSE ST_Y(ST_ClosestPoint(cg, ST_Centroid(cg))) END AS y,
                        pop * (ST_Area(cg) / NULLIF(total_area, 0)) AS val
                   FROM cells
                  WHERE NOT ST_IsEmpty(cg) AND ST_Area(cg) > 0
