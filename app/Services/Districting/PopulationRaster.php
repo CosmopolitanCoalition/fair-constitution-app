@@ -588,6 +588,65 @@ class PopulationRaster
     }
 
     /**
+     * THE HALF-PLANE MEASUREMENT (operator ruling 2026-07-22, "a simpler
+     * strategy to cut the line"): a machine-cut piece IS the intersection of
+     * half-planes down its cut path, so its population is the grid mass
+     * satisfying every level's side test — the planner's own total per-point
+     * rule, re-applied. Pure arithmetic: no ST_Covers, no ST_Distance, no
+     * geometry SQL at all (the geometric measurement's distance recovery ran
+     * HOURS per piece on archipelago monsters — Falkland ~700 islands).
+     * Local non-contiguity (stranded slivers, island riders, boundary
+     * subcells) is accounted for by construction: every point has a side.
+     * Islands that STRADDLE a cut line drift by sub-island amounts vs the
+     * planner's rep-point riding — the 5% guard's territory, not a gate
+     * bypass. Fail-closed is preserved: the sums are recomputed here from
+     * the filed frames, never copied from the plan.
+     *
+     * @param  list<array{0: float, 1: float, 2: float}>  $grid
+     * @param  list<array{0:float,1:float,2:float,3:float,4:float,5:float,6:int}>  $cutPath  [nx,ny,c,lon0,lat0,cosLat,side]
+     * @return array{0: float, 1: float} [pieceSum, gridTotal]
+     */
+    public static function sumByCutPath(array $grid, array $cutPath): array
+    {
+        $total = 0.0;
+        $sum = 0.0;
+        foreach ($grid as [$x, $y, $v]) {
+            $total += $v;
+            foreach ($cutPath as $level) {
+                $t = ($x - (float) $level[3]) * (float) $level[5] * (float) $level[0]
+                   + ($y - (float) $level[4]) * (float) $level[1];
+                if (($t < (float) $level[2]) !== (((int) $level[6]) === 0)) {
+                    continue 2;
+                }
+            }
+            $sum += $v;
+        }
+
+        return [$sum, $total];
+    }
+
+    /**
+     * Measure a machine-cut piece by its half-plane chain against the SAME
+     * grid the planner cut on (one-denominator: share × stored population).
+     *
+     * @return array{pop: int, source: string}
+     */
+    public function measureByCutPath(string $scopeId, array $cutPath, int $year = 2023): array
+    {
+        [, $storedPop] = $this->coverageStats($scopeId, $year);
+        $grid = $this->gridWithFallback($scopeId, $year);
+        [$sum, $total] = self::sumByCutPath($grid, $cutPath);
+        $pop = ($total > 0 && $storedPop > 0)
+            ? (int) round($storedPop * $sum / $total)
+            : (int) round($sum);
+
+        return [
+            'pop'    => $pop,
+            'source' => $this->basis($scopeId, $year) === 'area' ? 'area_proportional' : 'worldpop_raster',
+        ];
+    }
+
+    /**
      * Split a pixel grid by a directed blade A→B: returns [popLeft, popRight] by
      * the sign of the cross product (which side of the line each pixel sits on).
      * O(pixels), no database — the hot path of every split evaluation.

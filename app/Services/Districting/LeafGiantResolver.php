@@ -300,6 +300,12 @@ class LeafGiantResolver
                 // floor_override posture instead of refusing — pixel
                 // granularity, not unlawfulness.
                 'floor_posture'   => $floorPosture,
+                // Machine-cut pieces carry their half-plane chain (operator
+                // ruling 2026-07-22) — the handler re-applies the planner's
+                // own per-point rule instead of geometric measurement.
+                // Null (hand-drawn, components, cells, absorb) keeps the
+                // geometric path.
+                'cut_path'        => $d['cut_path'] ?? null,
             ]);
             $ids[] = $res->recorded['district_id'];
         }

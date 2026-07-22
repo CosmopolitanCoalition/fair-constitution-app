@@ -803,6 +803,7 @@ class SubdivisionAutoseedService
         string $template,
         int $floor,
         int $ceiling,
+        ?array $cutPath = [],
     ): void {
         if (count($sizes) === 1) {
             $pop = 0.0;
@@ -871,6 +872,10 @@ class SubdivisionAutoseedService
                 'per_seat_deviation_pct' => round(abs($pop / $seats - $quota) / $quota * 100, 2),
                 'convex_hull_ratio'      => round((float) ($row->chr ?? 0.0), 3),
                 'geometry'               => $geometry,
+                // The half-plane chain from the root to this leaf ([] = the
+                // whole scope, null = an absorb level broke the chain — the
+                // measurement falls back to the geometric path).
+                'cut_path'               => $cutPath,
             ];
 
             return;
@@ -937,8 +942,15 @@ class SubdivisionAutoseedService
             ],
         ];
 
-        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling);
-        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling);
+        // Extend the half-plane chain: side 0 = the t < c side ('a'), side
+        // 1 = 'b'. A frameless cut (absorb regrouping) poisons the chain —
+        // its subtree measures geometrically.
+        $frame = $cut['frame'] ?? null;
+        $pathA = ($cutPath === null || $frame === null) ? null : array_merge($cutPath, [array_merge($frame, [0])]);
+        $pathB = ($cutPath === null || $frame === null) ? null : array_merge($cutPath, [array_merge($frame, [1])]);
+
+        $this->subdivide($scopeId, "{$path}.0", $cut['gj_a'], $cut['pixels_a'], $cut['islands_a'], $aSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathA);
+        $this->subdivide($scopeId, "{$path}.1", $cut['gj_b'], $cut['pixels_b'], $cut['islands_b'], $bSizes, $quota, $cuts, $districts, $order, $template, $floor, $ceiling, $pathB);
     }
 
     /**
@@ -1119,6 +1131,18 @@ class SubdivisionAutoseedService
                         'pixels_b'  => $pixelsB,
                         'islands_a' => $islandsA,
                         'islands_b' => $islandsB,
+                        // THE CUT'S MACHINE FRAME (operator ruling 2026-07-22,
+                        // "a simpler strategy to cut the line"): the exact
+                        // half-plane parameters this blade balanced with. A
+                        // filed piece carries its frame chain so the F-ELB-008
+                        // measurement can re-apply the planner's own total
+                        // per-point rule — pure arithmetic, no geometry SQL.
+                        // Absorb-accepted cuts are NOT a half-plane (fragments
+                        // regrouped geometrically) — no frame, geometric
+                        // measurement stays their path.
+                        'frame'     => $absorb
+                            ? null
+                            : [$cand['nx'], $cand['ny'], $cand['c'], $lon0, $lat0, $cosLat],
                     ];
                 }
             }

@@ -234,7 +234,17 @@ class ManualDistrictDraw implements FormHandler
         // fallback the planners use (population × area-share, provenance
         // 'area_proportional') — otherwise this band gate would refuse
         // every piece an area-planned cut lawfully produced.
-        $measure = $this->raster->measureWithFallback($scopeId, $geoJson, $year);
+        // HALF-PLANE PATH (operator ruling 2026-07-22): a machine-cut piece
+        // carries its cut chain — measured by the planner's own per-point
+        // rule (pure arithmetic; the geometric path's distance recovery ran
+        // HOURS per piece on archipelago monsters). The sums are recomputed
+        // from the filed frames — never copied from the plan — so the gate
+        // stays fail-closed. Hand-drawn and non-blade pieces keep the
+        // geometric measurement.
+        $cutPath = $payload['cut_path'] ?? null;
+        $measure = is_array($cutPath)
+            ? $this->raster->measureByCutPath($scopeId, $cutPath, $year)
+            : $this->raster->measureWithFallback($scopeId, $geoJson, $year);
         $pop = $measure['pop'];
         $popSource = $measure['source'];
         $fractional = $this->raster->impliedSeats($pop, $quota);
