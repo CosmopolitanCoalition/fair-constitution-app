@@ -174,15 +174,34 @@ class SweepScopeProcessor
                     ]);
 
                 foreach ($giants as $childJid => $budget) {
-                    DB::statement('
+                    // Sub-scope tier from the CHILD's own bbox (2026-07-22,
+                    // the Earth-swarm crash): a geometry-less tier-1 item can
+                    // cascade into continental sub-scopes — the heavy cap
+                    // must see the scope's real weight, not the item's.
+                    DB::statement("
                         INSERT INTO autoscale_scopes
                             (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
-                             parent_scope_id, depth, status, created_at, updated_at)
-                        VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, now(), now())
+                             parent_scope_id, depth, status, area_tier, created_at, updated_at)
+                        SELECT gen_random_uuid(), ?, ?, ?, j.id, ?, ?, ?,
+                               CASE WHEN j.geom IS NULL THEN 1 ELSE CASE
+                                   WHEN bbox.km2 <= 300      THEN 1
+                                   WHEN bbox.km2 <= 3000     THEN 2
+                                   WHEN bbox.km2 <= 30000    THEN 3
+                                   WHEN bbox.km2 <= 300000   THEN 4
+                                   ELSE 5 END END,
+                               now(), now()
+                          FROM jurisdictions j
+                          LEFT JOIN LATERAL (
+                               SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
+                                      * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
+                                      * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
+                          ) bbox ON true
+                         WHERE j.id = ?
                             ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq DO NOTHING
-                    ', [
-                        $run->id, $itemId, $legislatureId, (string) $childJid,
+                    ", [
+                        $run->id, $itemId, $legislatureId,
                         $scopeId, $claim['depth'] + 1, 'pending',
+                        (string) $childJid,
                     ]);
                 }
             });

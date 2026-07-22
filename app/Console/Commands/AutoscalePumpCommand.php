@@ -142,7 +142,7 @@ class AutoscalePumpCommand extends Command
                AND s.run_id = ?
                AND s.status = 'running'
                AND s.updated_at < now() - make_interval(secs =>
-                       CASE WHEN COALESCE(ai.area_tier, 1) >= ?::int
+                       CASE WHEN COALESCE(s.area_tier, ai.area_tier, 1) >= ?::int
                             THEN ?::double precision ELSE ?::double precision END)
         ", [$run->id, \App\Support\AutoscaleClaims::HEAVY_TIER, self::HEAVY_SCOPE_STALE, self::SCOPE_STALE]);
         $reclaimed += DB::table('autoscale_items')

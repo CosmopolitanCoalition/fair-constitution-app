@@ -226,11 +226,11 @@ final class AutoscaleEnumeration
             $n = DB::affectingStatement("
                 INSERT INTO autoscale_scopes
                     (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
-                     depth, status, created_at, updated_at)
+                     depth, status, area_tier, created_at, updated_at)
                 SELECT gen_random_uuid(), ?, x.id, x.legislature_id, x.jurisdiction_id,
-                       0, 'pending', now(), now()
+                       0, 'pending', x.area_tier, now(), now()
                   FROM (
-                        SELECT ai.id, ai.legislature_id, ai.jurisdiction_id
+                        SELECT ai.id, ai.legislature_id, ai.jurisdiction_id, ai.area_tier
                           FROM autoscale_items ai
                          WHERE ai.run_id = ? AND ai.kind = 'sweep' AND ai.status = 'pending'
                            AND NOT EXISTS (SELECT 1 FROM autoscale_scopes s WHERE s.item_id = ai.id)

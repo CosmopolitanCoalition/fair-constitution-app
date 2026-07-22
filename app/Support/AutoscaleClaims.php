@@ -241,12 +241,16 @@ final class AutoscaleClaims
         $row = DB::transaction(function () use ($run, $token) {
             DB::statement("SELECT pg_advisory_xact_lock(hashtext('cga_heavy_claim'))");
 
+            // Tier resolution is SCOPE-first (2026-07-22, the Earth-swarm
+            // crash): a geometry-less tier-1 item cascades into continental
+            // sub-scopes — the scope's own stamped tier is the real weight;
+            // the item tier is the fallback for pre-migration rows.
             $allowHeavy = true;
             $lightPending = DB::table('autoscale_scopes AS s')
                 ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
                 ->where('s.run_id', $run->id)
                 ->where('s.status', 'pending')
-                ->whereRaw('COALESCE(ai.area_tier, 1) < ?', [self::HEAVY_TIER])
+                ->whereRaw('COALESCE(s.area_tier, ai.area_tier, 1) < ?', [self::HEAVY_TIER])
                 ->exists();
             if ($lightPending) {
                 $heavyRunning = (int) DB::table('autoscale_scopes AS s')
@@ -254,7 +258,7 @@ final class AutoscaleClaims
                     ->where('s.run_id', $run->id)
                     ->where('s.status', 'running')
                     ->where('s.updated_at', '>', now()->subMinutes(30))
-                    ->whereRaw('COALESCE(ai.area_tier, 1) >= ?', [self::HEAVY_TIER])
+                    ->whereRaw('COALESCE(s.area_tier, ai.area_tier, 1) >= ?', [self::HEAVY_TIER])
                     ->count();
                 $allowHeavy = $heavyRunning < self::heavyWorkerCap();
             }
@@ -269,7 +273,7 @@ final class AutoscaleClaims
                        SELECT s2.id FROM autoscale_scopes s2
                         JOIN autoscale_items ai ON ai.id = s2.item_id
                        WHERE s2.run_id = ? AND s2.status = ?
-                         AND (COALESCE(ai.area_tier, 1) < ? OR {$heavyPredicate})
+                         AND (COALESCE(s2.area_tier, ai.area_tier, 1) < ? OR {$heavyPredicate})
                        ORDER BY ai.position, s2.depth, s2.id
                        LIMIT 1
                        FOR UPDATE SKIP LOCKED
