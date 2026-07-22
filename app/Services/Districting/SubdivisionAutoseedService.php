@@ -508,8 +508,18 @@ class SubdivisionAutoseedService
             'SELECT ST_AsGeoJSON(ST_MakeValid(geom), 15) AS gj FROM jurisdictions WHERE id = ?',
             [$scopeId]
         );
+        // Full-crossing law here too: a hand-placed line on a multi-degree
+        // scope must out-span it, or the clipped display line stops short.
+        $minX = INF; $maxX = -INF; $minY = INF; $maxY = -INF;
+        foreach ($pixels as [$qx, $qy]) {
+            if ($qx < $minX) { $minX = $qx; }
+            if ($qx > $maxX) { $maxX = $qx; }
+            if ($qy < $minY) { $minY = $qy; }
+            if ($qy > $maxY) { $maxY = $qy; }
+        }
+        $extensionDeg = max(self::EXTENSION_DEG, 2.0 * hypot($maxX - $minX, $maxY - $minY));
         $line = $region?->gj !== null
-            ? $this->clippedLine($region->gj, self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat), $cosLat)
+            ? $this->clippedLine($region->gj, self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat, $extensionDeg), $cosLat)
             : null;
         if ($line === null) {
             throw new RuntimeException('The balanced line no longer crosses the jurisdiction — place it nearer the middle.');
@@ -959,6 +969,25 @@ class SubdivisionAutoseedService
         }
         $target = $seatsA / ($seatsA + $seatsB) * $total;
 
+        // FULL-CROSSING BLADE (2026-07-22, the arctic scrap-cut class): the
+        // fixed 2° over-extension assumed sub-degree scopes — but an arctic
+        // mega spans 10°+ (Avannaata, Cochrane, Northern Rockies), so the
+        // blade SEGMENT ended inside the region: ST_Split clipped off the
+        // corner it happened to cross while the pixel balance used the
+        // infinite half-plane. The plan then filed a scrap piece against
+        // the rest of the scope — "balanced" by blade-sign, all-or-nothing
+        // by geometry, band-refused at filing (18.00-quota pieces). The
+        // extension now out-spans the populated bbox's diagonal from any
+        // interior point, so every candidate blade fully crosses.
+        $minX = INF; $maxX = -INF; $minY = INF; $maxY = -INF;
+        foreach ($searchPixels as [$px, $py]) {
+            if ($px < $minX) { $minX = $px; }
+            if ($px > $maxX) { $maxX = $px; }
+            if ($py < $minY) { $minY = $py; }
+            if ($py > $maxY) { $maxY = $py; }
+        }
+        $extensionDeg = max(self::EXTENSION_DEG, 2.0 * hypot($maxX - $minX, $maxY - $minY));
+
         // FRAGMENT ABSORPTION (operator-sanctioned 2026-07-21, the concave-
         // residue endgame): the strict sweep runs FIRST and EXHAUSTIVELY
         // (every pass, every candidate — "each side one polygon"), so every
@@ -991,7 +1020,7 @@ class SubdivisionAutoseedService
                         'i' => $i, 'angle_deg' => $angleDeg,
                         'nx' => $nx, 'ny' => $ny, 'c' => $c,
                         'pop_a' => $popA, 'pop_b' => $popB,
-                        'blade' => self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat),
+                        'blade' => self::bladeThrough($c, $theta, $lon0, $lat0, $cosLat, $extensionDeg),
                     ];
                 }
 
@@ -1317,9 +1346,12 @@ class SubdivisionAutoseedService
 
     /**
      * The extended blade [ax, ay, bx, by] through offset $c along the normal of
-     * angle $theta, mapped back from the scaled local frame to lon/lat.
+     * angle $theta, mapped back from the scaled local frame to lon/lat. The
+     * extension must OUT-SPAN the region (full-crossing law, 2026-07-22) —
+     * callers pass a bbox-derived value; the 2° floor keeps sub-degree scopes
+     * byte-identical to every plan shipped before the arctic band.
      */
-    private static function bladeThrough(float $c, float $theta, float $lon0, float $lat0, float $cosLat): array
+    private static function bladeThrough(float $c, float $theta, float $lon0, float $lat0, float $cosLat, float $extensionDeg = self::EXTENSION_DEG): array
     {
         $px = $lon0 + ($c * -sin($theta)) / $cosLat;
         $py = $lat0 + $c * cos($theta);
@@ -1331,8 +1363,8 @@ class SubdivisionAutoseedService
         $uy = $dy / $len;
 
         return [
-            $px - $ux * self::EXTENSION_DEG, $py - $uy * self::EXTENSION_DEG,
-            $px + $ux * self::EXTENSION_DEG, $py + $uy * self::EXTENSION_DEG,
+            $px - $ux * $extensionDeg, $py - $uy * $extensionDeg,
+            $px + $ux * $extensionDeg, $py + $uy * $extensionDeg,
         ];
     }
 
