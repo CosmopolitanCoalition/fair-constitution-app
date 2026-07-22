@@ -224,7 +224,25 @@ class SubdivisionAutoseedService
         $cuts = [];
         $districts = [];
         $order = 0;
-        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling']);
+
+        // ISLANDS BREAK THE HALF-PLANE REPLAY (2026-07-22, the band re-fail
+        // cohort: Naantali, Shinkami Gotou, the scattered remainders): the
+        // blade assigns each island WHOLE by its representative point, but
+        // measureByCutPath cascades every grid point by its OWN sign — an
+        // island straddling the infinite half-plane splits sub-island and its
+        // mass drifts across the cut (Naantali D1: plan 6,475 vs replay 7,054
+        // → 10 seats, band-refused). The filed geometry is the assignment
+        // truth, so any island carrying pixel mass poisons the whole plan's
+        // chain and every leaf measures by the ray-cast oracle instead.
+        // Pixel-less ribbon islands can't move mass and keep the exact replay.
+        $initialCutPath = [];
+        foreach ($islands as $isl) {
+            if ($isl['pixels'] !== []) {
+                $initialCutPath = null;
+                break;
+            }
+        }
+        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling'], $initialCutPath);
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 

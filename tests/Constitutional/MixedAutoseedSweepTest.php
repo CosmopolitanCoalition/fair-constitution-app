@@ -220,6 +220,47 @@ class MixedAutoseedSweepTest extends TestCase
         });
     }
 
+    public function test_island_bearing_plan_poisons_the_cut_path_chain(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // The blade assigns the island WHOLE by its representative point,
+            // but measureByCutPath cascades every grid point by its OWN
+            // half-plane sign — an island's pixels can land on the other side
+            // of the chain, drifting mass across the cut at filing (the
+            // Naantali band re-fails, 2026-07-22). Any island carrying pixel
+            // mass must poison the plan's chain so every leaf measures by the
+            // ray-cast oracle, where the filed geometry IS the assignment.
+            $resolver = app(LeafGiantResolver::class);
+            $giantCtx = $resolver->context($ctx['legislature_id'], $ctx['giant_id']);
+            $this->assertNotNull($giantCtx);
+
+            $plan = app(\App\Services\Districting\SubdivisionAutoseedService::class)
+                ->plan($ctx['giant_id'], $giantCtx, 2023, 'shortest');
+
+            $this->assertCount(2, $plan['districts']);
+            foreach ($plan['districts'] as $d) {
+                $this->assertNull($d['cut_path'],
+                    'an island-bearing plan must file every leaf with a null cut_path — '
+                    .'the half-plane replay splits islands sub-island and mis-measures the cut');
+            }
+
+            // CONTROL — the same giant as a SINGLE landmass keeps the exact
+            // half-plane replay (in-transaction geometry swap, rolled back).
+            DB::update(
+                'UPDATE jurisdictions SET geom = ST_Multi(ST_MakeEnvelope(10.0, 50.0, 10.4, 50.1, 4326)) WHERE id = ?',
+                [$ctx['giant_id']]
+            );
+            $single = app(\App\Services\Districting\SubdivisionAutoseedService::class)
+                ->plan($ctx['giant_id'], $giantCtx, 2023, 'shortest');
+            $this->assertCount(2, $single['districts']);
+            foreach ($single['districts'] as $d) {
+                $this->assertIsArray($d['cut_path'],
+                    'a single-landmass strict plan must keep its half-plane chain');
+                $this->assertNotEmpty($d['cut_path']);
+            }
+        });
+    }
+
     public function test_districting_template_setting_resolves_with_shortest_fallback(): void
     {
         $this->onLivePg(function (array $ctx) {
