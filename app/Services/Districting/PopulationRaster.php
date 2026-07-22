@@ -547,44 +547,47 @@ class PopulationRaster
         // owner; 1e-6° tolerance absorbs GeoJSON round-tripping). Without
         // recovery, that mass silently vanishes from every piece and a
         // lawful plan misseats.
-        if ($basis === 'subpixel' || $basis === 'raster') {
-            [, $storedPop] = $this->coverageStats($scopeId, $year);
-            $grid = $this->gridWithFallback($scopeId, $year);
-            $gridTotal = 0.0;
-            foreach ($grid as [, , $v]) {
-                $gridTotal += $v;
-            }
-            $pieceSum = (float) (DB::selectOne(
-                'WITH scope AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = ?),
-                      piece AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(?)) AS g)
-                 SELECT COALESCE(SUM((c->>2)::float8), 0) AS s
-                   FROM jsonb_array_elements(?::jsonb) AS c
-                  CROSS JOIN LATERAL (
-                      SELECT ST_SetSRID(ST_MakePoint((c->>0)::float8, (c->>1)::float8), 4326) AS pt
-                  ) AS p
-                  CROSS JOIN scope
-                  CROSS JOIN piece
-                  WHERE (p.pt && piece.g AND ST_Covers(piece.g, p.pt))
-                     OR (NOT ST_Covers(scope.g, p.pt)
-                         AND ST_Distance(piece.g, p.pt) <= ST_Distance(scope.g, p.pt) + 1e-6)',
-                [$scopeId, $geoJson, json_encode($grid)]
-            )->s ?? 0);
-            $pop = ($gridTotal > 0 && $storedPop > 0)
-                ? (int) round($storedPop * $pieceSum / $gridTotal)
-                : (int) round($pieceSum);
-
-            return ['pop' => $pop, 'source' => 'worldpop_raster'];
+        // THE RAY-CAST ORACLE (2026-07-22, the fallback-drift class): every
+        // basis now measures a piece as its ray-cast share of the planner's
+        // own grid — partitionPixelsByPolygon, the EXACT assignment the
+        // absorb recount and the components grouping already used at plan
+        // time. Parity by construction for every fallback path (the
+        // geometric SQL's coverage/recovery drifted 1.5-5 quotas on
+        // scattered/coastal multipart pieces: La Guaira 14.19q, Subei
+        // 13.53q), no geometry SQL left in measurement (nothing to OOM),
+        // and grid points are already snapped ON the territory. Machine
+        // cuts with a frame chain use measureByCutPath and never reach
+        // here. Boundary-ambiguous cells default outside a piece
+        // (deterministic; edge-cell mass only, the guard's territory).
+        [, $storedPop] = $this->coverageStats($scopeId, $year);
+        $grid = $this->gridWithFallback($scopeId, $year);
+        $gridTotal = 0.0;
+        foreach ($grid as [, , $v]) {
+            $gridTotal += $v;
         }
 
-        $row = DB::selectOne('
-            SELECT GREATEST(COALESCE(j.population, 0), 0)
-                   * (ST_Area(ST_Intersection(ST_MakeValid(ST_GeomFromGeoJSON(?)), ST_MakeValid(j.geom)))
-                      / NULLIF(ST_Area(ST_MakeValid(j.geom)), 0)) AS pop
-              FROM jurisdictions j
-             WHERE j.id = ?
-        ', [$geoJson, $scopeId]);
+        $geometry = json_decode($geoJson, true) ?: [];
+        $members = ($geometry['type'] ?? '') === 'GeometryCollection'
+            ? ($geometry['geometries'] ?? [])
+            : [$geometry];
 
-        return ['pop' => (int) round((float) ($row->pop ?? 0)), 'source' => 'area_proportional'];
+        $pieceSum = 0.0;
+        $rest = $grid;
+        foreach ($members as $member) {
+            [$inside, $rest] = SubdivisionAutoseedService::partitionPixelsByPolygon($rest, $member);
+            foreach ($inside as $p) {
+                $pieceSum += $p[2];
+            }
+        }
+
+        $pop = ($gridTotal > 0 && $storedPop > 0)
+            ? (int) round($storedPop * $pieceSum / $gridTotal)
+            : (int) round($pieceSum);
+
+        return [
+            'pop'    => $pop,
+            'source' => $basis === 'area' ? 'area_proportional' : 'worldpop_raster',
+        ];
     }
 
     /**
