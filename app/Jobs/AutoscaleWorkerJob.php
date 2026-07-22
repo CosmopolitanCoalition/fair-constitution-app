@@ -49,7 +49,7 @@ class AutoscaleWorkerJob implements ShouldQueue
 
     private bool $stopping = false;
 
-    public function __construct(private readonly string $runId)
+    public function __construct(private readonly string $runId, private readonly string $lane = 'auto')
     {
         $this->onQueue('autoscale');
     }
@@ -65,6 +65,7 @@ class AutoscaleWorkerJob implements ShouldQueue
         DB::table('autoscale_worker_leases')->insert([
             'id'           => $token,
             'run_id'       => $run->id,
+            'lane'         => $this->lane,
             'started_at'   => now(),
             'last_seen_at' => now(),
         ]);
@@ -113,7 +114,7 @@ class AutoscaleWorkerJob implements ShouldQueue
                     break;
                 }
 
-                $claim = AutoscaleClaims::next($run, $token);
+                $claim = AutoscaleClaims::next($run, $token, $this->lane);
                 if ($claim === null) {
                     break;
                 }

@@ -217,16 +217,27 @@ class AutoscalePumpCommand extends Command
             ->where('last_seen_at', '<', now()->subMinutes(10))
             ->delete();
 
-        if (! $run->isPaused()) {
-            $target = HostCapacity::autoscaleWorkers();
-            $alive  = (int) DB::table('autoscale_worker_leases')
+        if (! $run->isPaused() && AutoscaleClaims::workAvailable($run)) {
+            // Two pools since the top-down ruling (2026-07-22): 20% of the
+            // threads work the queue from the TOP (most complex, highest
+            // pop — the fast composite/mixed maps + early bug discovery),
+            // the rest bottom-up as ever. Legacy NULL-lane leases count as
+            // 'auto'. Both pools obey the one global heavy cap in claims.
+            $target    = HostCapacity::autoscaleWorkers();
+            $targetTop = min(AutoscaleClaims::topDownWorkerCap(), max($target - 1, 0));
+            $targetAuto = $target - $targetTop;
+
+            $fresh = DB::table('autoscale_worker_leases')
                 ->where('run_id', $run->id)
                 ->where('last_seen_at', '>', now()->subMinutes(2))
-                ->count();
-            if ($alive < $target && AutoscaleClaims::workAvailable($run)) {
-                for ($i = 0; $i < ($target - $alive); $i++) {
-                    AutoscaleWorkerJob::dispatch((string) $run->id);
-                }
+                ->selectRaw("COUNT(*) FILTER (WHERE lane = 'topdown') AS top,
+                             COUNT(*) FILTER (WHERE lane IS NULL OR lane != 'topdown') AS auto")
+                ->first();
+            for ($i = 0; $i < ($targetAuto - (int) ($fresh->auto ?? 0)); $i++) {
+                AutoscaleWorkerJob::dispatch((string) $run->id, 'auto');
+            }
+            for ($i = 0; $i < ($targetTop - (int) ($fresh->top ?? 0)); $i++) {
+                AutoscaleWorkerJob::dispatch((string) $run->id, 'topdown');
             }
         }
 

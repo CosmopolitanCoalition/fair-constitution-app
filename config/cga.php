@@ -50,6 +50,14 @@ return [
     'autoscale_heavy_cap' => env('CGA_AUTOSCALE_HEAVY_CAP', 0),
 
     /*
+    | Top-down lane share (operator ruling 2026-07-22). 0 = the formula
+    | (max(1, ceil(0.2 × workers))): that share of the pool works the queue
+    | from the TOP — most complex, highest population first — churning the
+    | fast composite/mixed maps early and surfacing unreached bug classes.
+    */
+    'autoscale_topdown_cap' => env('CGA_AUTOSCALE_TOPDOWN_CAP', 0),
+
+    /*
     | Dev impersonation + dev tooling (WI-4). The /dev/* routes (user
     | impersonation, ping simulator) are registered only in the local
     | environment AND gated at runtime by this flag — flipping it to false

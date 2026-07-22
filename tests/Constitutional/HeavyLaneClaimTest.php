@@ -91,6 +91,40 @@ class HeavyLaneClaimTest extends TestCase
         });
     }
 
+    public function test_topdown_lane_claims_the_highest_position(): void
+    {
+        $this->onLivePg(function (AutoscaleRun $run): void {
+            $low  = $this->mkScope($run, 1, 'pending', position: 1);
+            $high = $this->mkScope($run, 1, 'pending', position: 900000);
+
+            $claim = $this->claimScope($run, 'topdown');
+
+            $this->assertNotNull($claim);
+            $this->assertSame($high, $claim['scope_id'], 'the top-down lane works the queue from the top');
+
+            // The auto lane still takes the bottom.
+            $claim2 = $this->claimScope($run, 'auto');
+            $this->assertSame($low, $claim2['scope_id'], 'the auto lane keeps bottom-up order');
+        });
+    }
+
+    public function test_topdown_lane_respects_the_global_heavy_cap(): void
+    {
+        $this->onLivePg(function (AutoscaleRun $run): void {
+            // Heavy pool full; the TOP of the queue is a heavy scope. The
+            // top-down claim must skip it and take the highest-position
+            // LIGHT scope instead — one memory bound binds across lanes.
+            $this->fillHeavyPool($run, AutoscaleClaims::heavyWorkerCap());
+            $this->mkScope($run, 5, 'pending', position: 900000);
+            $lightTop = $this->mkScope($run, 1, 'pending', position: 800000);
+
+            $claim = $this->claimScope($run, 'topdown');
+
+            $this->assertNotNull($claim);
+            $this->assertSame($lightTop, $claim['scope_id'], 'a capped top-down worker takes the highest-position light work');
+        });
+    }
+
     // ── fixture plumbing ────────────────────────────────────────────────────
 
     private function onLivePg(callable $body): void
@@ -149,11 +183,11 @@ class HeavyLaneClaimTest extends TestCase
         }
     }
 
-    private function claimScope(AutoscaleRun $run): ?array
+    private function claimScope(AutoscaleRun $run, string $lane = 'auto'): ?array
     {
         $m = new \ReflectionMethod(AutoscaleClaims::class, 'claimScope');
         $m->setAccessible(true);
 
-        return $m->invoke(null, $run, (string) Str::uuid());
+        return $m->invoke(null, $run, (string) Str::uuid(), $lane);
     }
 }

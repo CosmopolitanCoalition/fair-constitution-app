@@ -61,20 +61,48 @@ final class AutoscaleClaims
     }
 
     /**
+     * THE TOP-DOWN LANE (operator ruling 2026-07-22): 20% of the pool works
+     * the queue from the TOP — most complex, highest population first
+     * (position DESC; the enumeration key already encodes complexity
+     * ascending). Composite districting is proven fast (Earth: the whole
+     * planetary cascade in ~2h), so this churns the composite/mixed maps
+     * early AND surfaces bug classes the bottom-up wall would not reach
+     * for days. Top-down claims obey the SAME global heavy cap — the
+     * 2-concurrent memory bound binds across lanes; a capped top-down
+     * worker takes the highest-position LIGHT work instead.
+     */
+    public static function topDownWorkerCap(): int
+    {
+        $override = (int) config('cga.autoscale_topdown_cap', 0);
+        if ($override > 0) {
+            return $override;
+        }
+
+        return max(1, (int) ceil(0.2 * HostCapacity::autoscaleWorkers()));
+    }
+
+    /**
      * @return array{type: 'singles'|'precompute'|'scope', ...}|null
      */
-    public static function next(AutoscaleRun $run, string $token): ?array
+    public static function next(AutoscaleRun $run, string $token, string $lane = 'auto'): ?array
     {
-        if ($claim = static::claimSingles($run, $token)) {
-            return $claim;
+        // Top-down workers skip the bottom-up bulk rungs (singles are long
+        // done; precompute is a run-level pass the auto pool owns) and go
+        // straight for finalize + scopes from the top of the queue.
+        if ($lane !== 'topdown') {
+            if ($claim = static::claimSingles($run, $token)) {
+                return $claim;
+            }
         }
         if ($claim = static::claimFinalize($run, $token)) {
             return $claim;
         }
-        if ($claim = static::claimPrecompute($run, $token)) {
-            return $claim;
+        if ($lane !== 'topdown') {
+            if ($claim = static::claimPrecompute($run, $token)) {
+                return $claim;
+            }
         }
-        if ($claim = static::claimScope($run, $token)) {
+        if ($claim = static::claimScope($run, $token, $lane)) {
             return $claim;
         }
 
@@ -214,7 +242,7 @@ final class AutoscaleClaims
         return ['type' => 'precompute', 'parent_id' => (string) $row->parent_id];
     }
 
-    private static function claimScope(AutoscaleRun $run, string $token): ?array
+    private static function claimScope(AutoscaleRun $run, string $token, string $lane = 'auto'): ?array
     {
         // Sweeps wait for the precompute pass (their Step 7 then reads the
         // table instead of paying ST_Intersection live). Under =lazy the gate
@@ -238,7 +266,7 @@ final class AutoscaleClaims
         // bound), so a kill can't wedge the lane shut. Serializing ALL
         // scope claims is fine: a claim is milliseconds against seconds-to-
         // minutes of scope work.
-        $row = DB::transaction(function () use ($run, $token) {
+        $row = DB::transaction(function () use ($run, $token, $lane) {
             DB::statement("SELECT pg_advisory_xact_lock(hashtext('cga_heavy_claim'))");
 
             // Tier resolution is SCOPE-first (2026-07-22, the Earth-swarm
@@ -264,6 +292,9 @@ final class AutoscaleClaims
             }
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
+            $order = $lane === 'topdown'
+                ? 'ai.position DESC, s2.depth, s2.id'
+                : 'ai.position, s2.depth, s2.id';
 
             return DB::selectOne("
                 UPDATE autoscale_scopes s
@@ -274,7 +305,7 @@ final class AutoscaleClaims
                         JOIN autoscale_items ai ON ai.id = s2.item_id
                        WHERE s2.run_id = ? AND s2.status = ?
                          AND (COALESCE(s2.area_tier, ai.area_tier, 1) < ? OR {$heavyPredicate})
-                       ORDER BY ai.position, s2.depth, s2.id
+                       ORDER BY {$order}
                        LIMIT 1
                        FOR UPDATE SKIP LOCKED
                  )
