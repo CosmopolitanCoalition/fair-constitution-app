@@ -340,6 +340,15 @@ class PopulationRaster
      */
     private const WORLDPOP_NODATA = -99999.0;
 
+    /**
+     * Above this GeoJSON byte size a measured piece decodes MEMBER-WISE via
+     * pg ST_Dump instead of one whole json_decode — decoded PHP arrays cost
+     * ~20x the text, and a monster island piece (Falkland: 23MB) decoded
+     * whole is a 768M worker fatal. 2MB decodes to ~40M — safely under any
+     * worker limit — so every normal scope keeps the query-free path.
+     */
+    private const MEASURE_DECODE_CHUNK_BYTES = 2097152;
+
     private function coverageStats(string $scopeId, int $year): array
     {
         static $memo = [];
@@ -566,17 +575,42 @@ class PopulationRaster
             $gridTotal += $v;
         }
 
-        $geometry = json_decode($geoJson, true) ?: [];
-        $members = ($geometry['type'] ?? '') === 'GeometryCollection'
-            ? ($geometry['geometries'] ?? [])
-            : [$geometry];
-
         $pieceSum = 0.0;
         $rest = $grid;
-        foreach ($members as $member) {
-            [$inside, $rest] = SubdivisionAutoseedService::partitionPixelsByPolygon($rest, $member);
-            foreach ($inside as $p) {
-                $pieceSum += $p[2];
+        if (strlen($geoJson) > self::MEASURE_DECODE_CHUNK_BYTES) {
+            // MEMBER-WISE DECODE (2026-07-22, the monster filing fatal): a
+            // 700-part island piece serializes to ~23MB of GeoJSON and
+            // decoding it whole costs ~20x in PHP arrays — a 768M worker
+            // fatal. Above the threshold pg splits the piece into its member
+            // polygons (pure parsing, no geometry math) and each member
+            // decodes and frees alone, so peak memory is the LARGEST ISLAND,
+            // not the collection. The arithmetic is identical to the whole-
+            // decode path: pieceSum aggregates every member and $rest only
+            // ever shrinks, so member granularity cannot change the sum.
+            $members = DB::select(
+                'SELECT ST_AsGeoJSON((ST_Dump(ST_CollectionExtract(
+                            ST_GeomFromGeoJSON(?), 3))).geom, 15) AS gj',
+                [$geoJson]
+            );
+            foreach ($members as $m) {
+                $member = json_decode((string) $m->gj, true);
+                $m->gj = null;
+                [$inside, $rest] = SubdivisionAutoseedService::partitionPixelsByPolygon($rest, $member);
+                foreach ($inside as $p) {
+                    $pieceSum += $p[2];
+                }
+            }
+        } else {
+            $geometry = json_decode($geoJson, true) ?: [];
+            $members = ($geometry['type'] ?? '') === 'GeometryCollection'
+                ? ($geometry['geometries'] ?? [])
+                : [$geometry];
+
+            foreach ($members as $member) {
+                [$inside, $rest] = SubdivisionAutoseedService::partitionPixelsByPolygon($rest, $member);
+                foreach ($inside as $p) {
+                    $pieceSum += $p[2];
+                }
             }
         }
 
