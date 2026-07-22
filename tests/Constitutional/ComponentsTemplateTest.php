@@ -147,6 +147,48 @@ class ComponentsTemplateTest extends TestCase
         return ['floor' => 5, 'ceiling' => 9, 'budget' => $budget, 'quota' => 900 / max($budget, 1)];
     }
 
+    public function test_zero_pop_islets_never_crash_the_lpt_grouping(): void
+    {
+        $this->onLivePg(function (array $ctx) {
+            // The Batan/Sermersooq fatal: k >= 3 groups + several zero-pop
+            // islet parts piled onto one zero-load group by the strict-<
+            // scan left later groups EMPTY — min([]) is a ValueError that
+            // escapes the ladder and kills the whole sweep. The tie-break
+            // now fills empty groups first, so the plan reaches the HONEST
+            // seats-gate refusal instead of crashing.
+            $now = now();
+            $swarmId = (string) Str::uuid();
+            DB::insert(
+                "INSERT INTO jurisdictions
+                    (id, name, slug, iso_code, adm_level, parent_id, population, is_active, is_civic_active,
+                     source, official_languages, timezone, geom, centroid, created_at, updated_at)
+                 VALUES
+                    (?, 'Islet Swarm', ?, ?, 2, NULL, 900, true, true, 'pin-fixture', '[]', 'UTC',
+                     ST_Collect(ARRAY[
+                         ST_MakeEnvelope(10.0, 50.0, 10.1, 50.1, 4326),
+                         ST_MakeEnvelope(11.0, 50.0, 11.01, 50.01, 4326),
+                         ST_MakeEnvelope(11.1, 50.0, 11.11, 50.01, 4326),
+                         ST_MakeEnvelope(11.2, 50.0, 11.21, 50.01, 4326),
+                         ST_MakeEnvelope(11.3, 50.0, 11.31, 50.01, 4326)
+                     ]),
+                     ST_Centroid(ST_MakeEnvelope(10.0, 50.0, 11.31, 50.1, 4326)), ?, ?)",
+                [$swarmId, 'zz-2-islet-swarm-'.substr($swarmId, 0, 8), self::ISO, $now, $now]
+            );
+
+            try {
+                app(SubdivisionAutoseedService::class)
+                    ->plan($swarmId, ['floor' => 5, 'ceiling' => 9, 'budget' => 20, 'quota' => 45.0], 2023, SubdivisionAutoseedService::TEMPLATE_COMPONENTS);
+                $this->fail('a swarm whose islets hold no population cannot fill 3 whole-component districts');
+            } catch (RuntimeException $e) {
+                $this->assertMatchesRegularExpression(
+                    '/too little population|came out empty|above the ceiling/',
+                    $e->getMessage(),
+                    'the refusal must be an honest seats-gate message (never a min() ValueError)'
+                );
+            }
+        });
+    }
+
     public function test_detached_parts_become_the_districts_with_nearest_rounded_seats(): void
     {
         $this->onLivePg(function (array $ctx) {

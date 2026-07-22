@@ -364,18 +364,37 @@ class SubdivisionAutoseedService
         // LPT-greedy into k districts: heaviest part first, always onto the
         // lightest district so far; every tie breaks by index. With
         // parts == k this degenerates to one part per district.
+        // EMPTY-GROUP GUARD (2026-07-22, the Batan/Sermersooq min() fatal):
+        // on a LOAD TIE an EMPTY group wins before a non-empty one — with
+        // many zero-pop islet parts the strict-< scan piled every one onto
+        // the first zero-load group and later groups came out EMPTY (k >= 3),
+        // crashing min([]) below and killing the whole sweep (ValueError
+        // escapes the ladder's RuntimeException catch). Ties between two
+        // empty or two non-empty groups keep the lowest index, so every
+        // previously-passing grouping is unchanged; with parts >= k
+        // (guarded above) every group now seats at least one part.
         $byWeight = array_keys($partPops);
         usort($byWeight, fn (int $a, int $b) => $partPops[$b] <=> $partPops[$a] ?: $a <=> $b);
         $groups = array_fill(0, $k, ['pop' => 0.0, 'members' => []]);
         foreach ($byWeight as $ci) {
             $g = 0;
             for ($j = 1; $j < $k; $j++) {
-                if ($groups[$j]['pop'] < $groups[$g]['pop']) {
+                if ($groups[$j]['pop'] < $groups[$g]['pop']
+                    || ($groups[$j]['pop'] === $groups[$g]['pop']
+                        && $groups[$j]['members'] === []
+                        && $groups[$g]['members'] !== [])) {
                     $g = $j;
                 }
             }
             $groups[$g]['pop'] += $partPops[$ci];
             $groups[$g]['members'][] = $ci;
+        }
+        foreach ($groups as $group) {
+            if ($group['members'] === []) {
+                throw new RuntimeException(
+                    'A component group came out empty — too few populated parts for '.$k.' whole-component districts.'
+                );
+            }
         }
         usort($groups, fn (array $a, array $b) => min($a['members']) <=> min($b['members']));
 
