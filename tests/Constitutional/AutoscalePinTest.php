@@ -431,33 +431,70 @@ class AutoscalePinTest extends TestCase
             $this->assertStringContainsString('drawn 1 of >=2 districts', implode(' | ', $a['reasons']));
             DB::table('district_subdivisions')->where('id', $halfId)->update(['deleted_at' => null]);
 
-            // ── Pin 8b: ZERO-POP SEATED DISTRICTS (Gnaviyani class) — seats
-            // over zero measured people cannot satisfy one-person-one-vote;
-            // such a map never activates.
+            // ── Pin 8b: ZERO-POP SEATED DISTRICTS (Gnaviyani class) — the
+            // ASSESSOR flags seats over zero measured people (the guard that
+            // makes review the fallback when absorption cannot act)…
             $zeroId = DB::table('legislature_districts')
                 ->where('map_id', $pinlandMap->id)
                 ->where('jurisdiction_id', $ctx['pinland_id'])
                 ->whereNull('deleted_at')->orderBy('id')->value('id');
-            $savedPop = DB::table('legislature_districts')->where('id', $zeroId)->value('actual_population');
+            $zeroSeats = (int) DB::table('legislature_districts')->where('id', $zeroId)->value('seats');
             DB::table('legislature_districts')->where('id', $zeroId)->update(['actual_population' => 0]);
             $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
             $this->assertFalse($a['complete'],
                 'a zero-population seated district must NOT assess complete');
             $this->assertStringContainsString('zero-population seated districts', implode(' | ', $a['reasons']));
 
+            // …and FINALIZE heals it by MAP-LEVEL ABSORPTION (2026-07-23):
+            // the zero-pop district's members merge into the nearest live
+            // district (zero people, zero seats moved), the emptied row
+            // soft-deletes, and the healed map assesses complete and
+            // activates — no rotten borough ever ships.
+            $preSeated = (int) DB::table('legislature_districts')
+                ->where('map_id', $pinlandMap->id)->whereNull('deleted_at')->sum('seats');
+            AutoscaleItem::query()->whereKey($pinlandItem->id)
+                ->update(['status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            $pinlandItem->refresh();
+            $this->assertSame('done', $pinlandItem->status,
+                'a zero-pop district with live siblings absorbs at finalize — the map completes');
+            $this->assertNotNull(DB::table('legislature_districts')->where('id', $zeroId)->value('deleted_at'),
+                'the absorbed zero-pop district is soft-deleted');
+            $this->assertSame(0, (int) DB::table('legislature_district_jurisdictions')
+                ->where('district_id', $zeroId)->count(),
+                'the absorbed district holds no members — they moved to the live target');
+            $this->assertSame($preSeated - $zeroSeats, (int) DB::table('legislature_districts')
+                ->where('map_id', $pinlandMap->id)->whereNull('deleted_at')->sum('seats'),
+                'absorption removes exactly the rotten-borough seats, nothing else');
+            $this->assertSame(0, (int) DB::table('legislature_districts')
+                ->where('map_id', $pinlandMap->id)->whereNull('deleted_at')
+                ->where('seats', '>', 0)->where('actual_population', 0)->count(),
+                'no zero-pop seated district survives on the finalized map');
+            $this->assertSame('active', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
+                'the healed map activates');
+            $this->assertSame(1, (int) DB::table('audit_log')
+                ->where('event', 'district_map.zero_pop_absorbed')->count(),
+                'each absorption appends to the audit chain');
+
             // ── Pin 8c: an incomplete map never STAYS live — the finalize
             // review branch demotes an active map to draft (the flagged-
             // repair contract: an invalid map is never the jurisdiction's
-            // live map).
+            // live map). Doctored via a partial fill, which absorption
+            // cannot heal.
+            $halfId2 = DB::table('district_subdivisions')
+                ->where('map_id', $pinlandMap->id)
+                ->where('parent_jurisdiction_id', $ctx['pin_giant_id'])
+                ->whereNull('deleted_at')->orderBy('id')->value('id');
+            DB::table('district_subdivisions')->where('id', $halfId2)->update(['deleted_at' => now()]);
             AutoscaleItem::query()->whereKey($pinlandItem->id)
                 ->update(['status' => 'assessing', 'updated_at' => now()]);
             app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
             $pinlandItem->refresh();
             $this->assertSame('review', $pinlandItem->status,
-                'the doctored zero-pop map lands on review');
+                'the doctored partial-fill map lands on review');
             $this->assertSame('draft', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
                 'an active map failing assessment demotes to draft — never stays live');
-            DB::table('legislature_districts')->where('id', $zeroId)->update(['actual_population' => $savedPop]);
+            DB::table('district_subdivisions')->where('id', $halfId2)->update(['deleted_at' => null]);
         });
     }
 

@@ -1322,6 +1322,98 @@ class DistrictingService
     }
 
     /**
+     * MAP-LEVEL ZERO-POP ABSORPTION (2026-07-23, rotten-borough class).
+     *
+     * Step 10b absorbs zero-pop bins inside one scope frame, but a
+     * '(Scattered Remainder)' child whose siblings are ALL giants has no
+     * live bin in-frame — its 1-seat district can only be healed once the
+     * whole map is filed. This pass runs at finalize: every seated district
+     * measuring zero people merges its members into the nearest live
+     * district ON THE MAP (member-centroid distance, district_number ties —
+     * deterministic), moving zero population and zero seats; the emptied
+     * row soft-deletes via recomputeDistrict. No live district anywhere, or
+     * a zero-pop root jurisdiction → nothing absorbs, and the completeness
+     * gate reviews the map honestly. Each absorption appends to the audit
+     * chain.
+     *
+     * @return int districts absorbed
+     */
+    public function absorbZeroPopDistricts(string $legislatureId, object $leg, string $mapId): int
+    {
+        $rootPop = (int) DB::table('jurisdictions')
+            ->where('id', $leg->jurisdiction_id)->value('population');
+        if ($rootPop <= 0) {
+            return 0;
+        }
+
+        $zeroRows = DB::table('legislature_districts')
+            ->where('map_id', $mapId)->whereNull('deleted_at')
+            ->where('seats', '>', 0)->where('actual_population', 0)
+            ->orderBy('district_number')
+            ->get(['id', 'district_number', 'seats']);
+        if ($zeroRows->isEmpty()) {
+            return 0;
+        }
+
+        $absorbed = 0;
+        foreach ($zeroRows as $z) {
+            $target = DB::selectOne('
+                WITH zc AS (
+                    SELECT ST_Centroid(ST_Collect(ST_Centroid(j.geom))) AS g
+                      FROM legislature_district_jurisdictions ldj
+                      JOIN jurisdictions j ON j.id = ldj.jurisdiction_id
+                     WHERE ldj.district_id = ? AND j.geom IS NOT NULL
+                )
+                SELECT ld.id
+                  FROM legislature_districts ld
+                  JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                  JOIN jurisdictions j ON j.id = ldj.jurisdiction_id, zc
+                 WHERE ld.map_id = ? AND ld.deleted_at IS NULL
+                   AND ld.id <> ? AND ld.actual_population > 0
+                   AND j.geom IS NOT NULL
+                 GROUP BY ld.id, ld.district_number, zc.g
+                 ORDER BY ST_Distance(ST_Centroid(ST_Collect(ST_Centroid(j.geom))), zc.g) ASC,
+                          ld.district_number ASC
+                 LIMIT 1
+            ', [$z->id, $mapId, $z->id]);
+            if ($target === null) {
+                continue;   // no live district anywhere — honest review instead
+            }
+
+            $memberIds = DB::table('legislature_district_jurisdictions')
+                ->where('district_id', $z->id)->pluck('jurisdiction_id')->all();
+            DB::table('legislature_district_jurisdictions')
+                ->where('district_id', $z->id)
+                ->update(['district_id' => $target->id]);
+
+            // Target keeps its Step-11 seats (zero people moved); pop +
+            // spatial stats recompute. The emptied zero-pop district
+            // soft-deletes itself inside recomputeDistrict.
+            $this->recomputeDistrict((string) $target->id, $legislatureId, $leg, true);
+            $this->recomputeDistrict((string) $z->id, $legislatureId, $leg, true);
+
+            app(\App\Services\AuditService::class)->append(
+                module: 'elections',
+                event: 'district_map.zero_pop_absorbed',
+                payload: [
+                    'map_id'            => $mapId,
+                    'legislature_id'    => $legislatureId,
+                    'absorbed_district' => (string) $z->id,
+                    'district_number'   => (int) $z->district_number,
+                    'seats_removed'     => (int) $z->seats,
+                    'into_district'     => (string) $target->id,
+                    'member_count'      => count($memberIds),
+                ],
+                ref: 'WF-ELE-02',
+                jurisdictionId: (string) $leg->jurisdiction_id,
+            );
+            $absorbed++;
+        }
+
+        return $absorbed;
+    }
+
+    /**
      * Recompute seats + geometry for a district based on its current members.
      * If the district has no remaining members, soft-delete it.
      */

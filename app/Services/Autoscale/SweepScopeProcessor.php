@@ -271,6 +271,22 @@ class SweepScopeProcessor
                 ->pluck('reason')
                 ->all();
 
+            // MAP-LEVEL ZERO-POP ABSORPTION (2026-07-23): before assessment,
+            // any seated district measuring zero people merges into the
+            // nearest live district on the map — a cross-scope remainder
+            // (all-giant sibling frames) can only heal here, once every
+            // scope has filed. A map absorption cannot help (no live
+            // district, zero-pop root) falls through to the honest review.
+            try {
+                $absorbedCount = app(\App\Services\DistrictingService::class)
+                    ->absorbZeroPopDistricts($legislatureId, $leg, $mapId);
+                if ($absorbedCount > 0) {
+                    $scopeReasons[] = "{$absorbedCount} zero-pop districts absorbed at finalize";
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Zero-pop absorption failed (non-fatal): '.$e->getMessage());
+            }
+
             $assessment = $this->assessCompleteness($leg, $mapId, ['errors' => $scopeReasons]);
 
             $seated = (int) DB::table('legislature_districts')
