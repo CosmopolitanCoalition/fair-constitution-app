@@ -24,7 +24,13 @@ class LineSplitLadderTest extends TestCase
         $autoseed = $this->createMock(SubdivisionAutoseedService::class);
         $autoseed->method('plan')->willReturnCallback($planFn);
 
-        return new LeafGiantResolver($autoseed, $this->createMock(ConstitutionalEngine::class));
+        // The exactness pre-gate's oracle: mocked to echo the plan's own
+        // pops (measured == planned → drift 0), so the ladder pins keep
+        // exercising template order, not measurement.
+        $raster = $this->createMock(\App\Services\Districting\PopulationRaster::class);
+        $raster->method('measureWithFallback')->willReturn(['pop' => 0, 'source' => 'worldpop_raster']);
+
+        return new LeafGiantResolver($autoseed, $this->createMock(ConstitutionalEngine::class), $raster);
     }
 
     public function test_refused_template_falls_through_the_registry_order(): void

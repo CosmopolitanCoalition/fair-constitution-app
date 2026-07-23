@@ -32,6 +32,7 @@ class LeafGiantResolver
     public function __construct(
         private readonly SubdivisionAutoseedService $autoseed,
         private readonly ConstitutionalEngine $engine,
+        private readonly PopulationRaster $raster,
     ) {
     }
 
@@ -227,6 +228,7 @@ class LeafGiantResolver
         // refused at either stage does the scope land on the review list.
         $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
         $first = null;
+        $closest = null;   // least-|drift| measured-inexact plan, the lawful last resort
         foreach ($order as $i => $tpl) {
             try {
                 $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
@@ -245,34 +247,127 @@ class LeafGiantResolver
                 continue;
             }
 
-            // Each attempt owns the scope's drawn set: retire whatever is
-            // live (the caller's $replace on the first attempt; a previous
-            // attempt's partial filings on later ones).
-            $replaced = ($replace || $i > 0) ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+            // MEASURED-EXACTNESS PRE-GATE (2026-07-22, the ±1 composite
+            // class — Kolkata 154/153): the plan's own seat vector sums to
+            // the budget by construction, but the FILING oracle re-derives
+            // seats from measured pops, and a null-cut_path plan (islands,
+            // absorb, cells) can measure a rounding-edge district one seat
+            // off. The exactness rule (seating law step 6) demands another
+            // configuration be considered — so the ladder pre-measures with
+            // the handler's own oracle and treats a drifting plan as
+            // refused, keeping the CLOSEST one as the lawful last resort
+            // (only when NO exact drawing exists does the closest ship).
+            // Frame-carrying plans replay the planner's own counts and are
+            // exact by construction — no extra measurement spent on them.
+            $measuredDrift = $this->measuredSeatDrift($scopeId, $ctx, $plan, $year);
+            if ($measuredDrift !== 0) {
+                if ($closest === null || abs($measuredDrift) < abs($closest['drift'])) {
+                    $closest = ['plan' => $plan, 'tpl' => $tpl, 'i' => $i, 'drift' => $measuredDrift];
+                }
+                $first ??= new PlanRefused(
+                    "Template {$tpl}: measured seats drift {$measuredDrift} from the budget — configuration excluded (exactness rule)."
+                );
+                continue;
+            }
 
-            try {
-                $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, true);
+            $filed = $this->fileTemplatePlan($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, $tpl, $i, $replace, $first);
+            if ($filed !== null) {
+                return $filed;
+            }
+        }
 
-                return [
-                    'districts_created' => count($ids),
-                    'replaced'          => $replaced,
-                    'district_ids'      => $ids,
-                    'template'          => $tpl,
-                    'template_fallback' => $i > 0,
-                ];
-            } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
-                // A filing gate refused this template's pieces — clean up the
-                // partial set and ladder on. The chain honestly records the
-                // attempted filings; the retirement is the same plan-editing
-                // posture as the delete endpoint. First failure wins here
-                // too: the primary template's filing refusal (a band-gate
-                // number, a fragment count) is the diagnosis worth keeping.
-                $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
-                $first ??= new PlanRefused($e->getMessage(), previous: $e);
+        // No template measured exact — the indivisible-atom arm: the closest
+        // drawing ships honestly (its drift records on the item), exactly
+        // the seating law's "only when NO exact drawing exists" posture.
+        if ($closest !== null) {
+            $filed = $this->fileTemplatePlan($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $closest['plan'], $year, $closest['tpl'], $closest['i'], $replace, $first);
+            if ($filed !== null) {
+                return $filed;
             }
         }
 
         throw $first ?? new PlanRefused('No districting template produced a filable plan.');
+    }
+
+    /**
+     * Σ round(measured/quota) − budget for the plan's districts, using the
+     * SAME oracle F-ELB-008 re-derives seats from at filing. Plans whose
+     * every district carries a half-plane chain replay the planner's own
+     * counts and short-circuit to 0.
+     */
+    private function measuredSeatDrift(string $scopeId, array $ctx, array $plan, int $year): int
+    {
+        $needsMeasure = false;
+        foreach ($plan['districts'] as $d) {
+            if (($d['cut_path'] ?? null) === null) {
+                $needsMeasure = true;
+                break;
+            }
+        }
+        if (! $needsMeasure) {
+            return 0;
+        }
+
+        $quota = (float) ($ctx['quota'] ?? 0);
+        if ($quota <= 0) {
+            return 0;
+        }
+
+        $sum = 0;
+        foreach ($plan['districts'] as $d) {
+            $gj = $d['geometry_json'] ?? json_encode($d['geometry']);
+            $pop = (float) $this->raster->measureWithFallback($scopeId, (string) $gj, $year)['pop'];
+            $sum += (int) round($pop / $quota);
+        }
+
+        return $sum - (int) $ctx['budget'];
+    }
+
+    /**
+     * One template's retire-and-file attempt (the ladder's shared tail):
+     * returns the commit result, or null when a filing gate refused and the
+     * ladder should continue.
+     */
+    private function fileTemplatePlan(
+        string $legislatureId,
+        string $jurisdictionId,
+        string $scopeId,
+        string $mapId,
+        ?User $actor,
+        array $plan,
+        int $year,
+        string $tpl,
+        int $i,
+        bool $replace,
+        ?PlanRefused &$first,
+    ): ?array {
+        // Each attempt owns the scope's drawn set: retire whatever is
+        // live (the caller's $replace on the first attempt; a previous
+        // attempt's partial filings on later ones).
+        $replaced = ($replace || $i > 0) ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+
+        try {
+            $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, true);
+
+            return [
+                'districts_created' => count($ids),
+                'replaced'          => $replaced,
+                'district_ids'      => $ids,
+                'template'          => $tpl,
+                'template_fallback' => $i > 0,
+            ];
+        } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
+            // A filing gate refused this template's pieces — clean up the
+            // partial set and ladder on. The chain honestly records the
+            // attempted filings; the retirement is the same plan-editing
+            // posture as the delete endpoint. First failure wins here
+            // too: the primary template's filing refusal (a band-gate
+            // number, a fragment count) is the diagnosis worth keeping.
+            $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
+            $first ??= new PlanRefused($e->getMessage(), previous: $e);
+
+            return null;
+        }
     }
 
     /** File one F-ELB-008 per planned district; returns the district ids. */
