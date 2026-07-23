@@ -326,6 +326,15 @@ class SweepScopeProcessor
                         : null);
             } else {
                 // Map stays draft; the operator reviews from the dashboard.
+                // A flagged repair redraw runs on an ACTIVE map (adoption
+                // skipped) — if it still assesses incomplete, the map demotes
+                // to draft: an invalid map never remains the live map
+                // (operator ruling 2026-07-22, no drift). No-op for the
+                // normal first-pass path, whose maps are already draft.
+                DB::table('legislature_district_maps')
+                    ->where('id', $mapId)
+                    ->where('status', 'active')
+                    ->update(['status' => 'draft', 'updated_at' => now()]);
                 $this->finishItem($itemId, ['assessing'], 'review', $seated, $expected,
                     implode(' | ', array_slice($assessment['reasons'], 0, 12)));
             }
@@ -395,6 +404,7 @@ class SweepScopeProcessor
         $giantSetByScope = [];
         $compositeIds = [$rootId];
         $leafGiantIds = [];
+        $leafGiantBudget = [];
         $queue = [$rootId];
         $seen  = [$rootId => true];
         while (! empty($queue)) {
@@ -413,6 +423,7 @@ class SweepScopeProcessor
                     $queue[] = $cid;
                 } else {
                     $leafGiantIds[] = $cid;
+                    $leafGiantBudget[$cid] = (int) $budget;
                 }
             }
         }
@@ -502,7 +513,12 @@ class SweepScopeProcessor
             }
         }
 
-        // 2 — undrawn leaf giants.
+        // 2 — undrawn or PARTIALLY drawn leaf giants (partial-fill gate,
+        // 2026-07-23). Any complete drawing of budget B needs at least
+        // ceil(B / ceiling) districts (each seats <= ceiling), so a filing
+        // that died partway always falls short of that count — while a
+        // lawful closest-ships atom files its full district set and never
+        // trips this (drift stays informational, ruling 2026-07-13).
         foreach ($leafGiants as $giantId => $giantName) {
             $drawn = (int) DB::table('district_subdivisions')
                 ->where('map_id', $mapId)
@@ -511,6 +527,11 @@ class SweepScopeProcessor
                 ->count();
             if ($drawn === 0) {
                 $reasons[] = "leaf giant {$giantName} has no line-split districts";
+                continue;
+            }
+            $needed = (int) ceil(($leafGiantBudget[$giantId] ?? 0) / max($ceiling, 1));
+            if ($drawn < $needed) {
+                $reasons[] = "leaf giant {$giantName} drawn {$drawn} of >={$needed} districts";
             }
         }
 
@@ -527,6 +548,25 @@ class SweepScopeProcessor
             ->count();
         if ($outOfBand > 0) {
             $reasons[] = "{$outOfBand} districts out of the [{$floor},{$ceiling}] band";
+        }
+
+        // 4 — zero-population seated districts (Gnaviyani class, 2026-07-23):
+        // seats over zero measured people cannot satisfy one-person-one-vote;
+        // such a row files only when a constituent's geometry captures no
+        // raster mass (micro-island raster/geometry mismatch) — honest review,
+        // never activation. Guarded on the root actually having people so a
+        // genuinely empty jurisdiction cannot flag forever.
+        $rootPop = (int) DB::table('jurisdictions')->where('id', $rootId)->value('population');
+        if ($rootPop > 0) {
+            $zeroPop = (int) DB::table('legislature_districts')
+                ->where('map_id', $mapId)
+                ->whereNull('deleted_at')
+                ->where('seats', '>', 0)
+                ->where('actual_population', 0)
+                ->count();
+            if ($zeroPop > 0) {
+                $reasons[] = "{$zeroPop} zero-population seated districts";
+            }
         }
 
         // A map with zero districts is never complete (a sweep that produced

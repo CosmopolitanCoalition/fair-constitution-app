@@ -405,6 +405,59 @@ class AutoscalePinTest extends TestCase
                 'the repair flag is consumed by the attempt it triggered');
             $this->assertNotSame('pending', $pinlandItem->status,
                 'the flagged repair attempt runs to a terminal state');
+
+            // ── Pin 8: the PARTIAL-FILL GATE (2026-07-23, Zamboanga class) —
+            // leaf-giant completeness demands the full district COUNT
+            // (ceil(budget/ceiling)), not mere existence: a filing that died
+            // partway must fail assessment, while a lawful closest-ships atom
+            // files its full set and still activates (pin 4's drifting map is
+            // the concrete no-false-positive baseline).
+            $assess = new \ReflectionMethod(\App\Services\Autoscale\SweepScopeProcessor::class, 'assessCompleteness');
+            $proc = app(\App\Services\Autoscale\SweepScopeProcessor::class);
+            $pinlandLeg = DB::table('legislatures')->where('id', $pinlandLegId)->first();
+
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertTrue($a['complete'],
+                'the fully drawn (drifting, pin 4) Pinland map assesses complete — the structural checks never flag lawful drift');
+
+            $halfId = DB::table('district_subdivisions')
+                ->where('map_id', $pinlandMap->id)
+                ->where('parent_jurisdiction_id', $ctx['pin_giant_id'])
+                ->whereNull('deleted_at')->orderBy('id')->value('id');
+            DB::table('district_subdivisions')->where('id', $halfId)->update(['deleted_at' => now()]);
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertFalse($a['complete'],
+                'a partially drawn leaf giant (1 of 2 districts) must NOT assess complete');
+            $this->assertStringContainsString('drawn 1 of >=2 districts', implode(' | ', $a['reasons']));
+            DB::table('district_subdivisions')->where('id', $halfId)->update(['deleted_at' => null]);
+
+            // ── Pin 8b: ZERO-POP SEATED DISTRICTS (Gnaviyani class) — seats
+            // over zero measured people cannot satisfy one-person-one-vote;
+            // such a map never activates.
+            $zeroId = DB::table('legislature_districts')
+                ->where('map_id', $pinlandMap->id)
+                ->where('jurisdiction_id', $ctx['pinland_id'])
+                ->whereNull('deleted_at')->orderBy('id')->value('id');
+            $savedPop = DB::table('legislature_districts')->where('id', $zeroId)->value('actual_population');
+            DB::table('legislature_districts')->where('id', $zeroId)->update(['actual_population' => 0]);
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertFalse($a['complete'],
+                'a zero-population seated district must NOT assess complete');
+            $this->assertStringContainsString('zero-population seated districts', implode(' | ', $a['reasons']));
+
+            // ── Pin 8c: an incomplete map never STAYS live — the finalize
+            // review branch demotes an active map to draft (the flagged-
+            // repair contract: an invalid map is never the jurisdiction's
+            // live map).
+            AutoscaleItem::query()->whereKey($pinlandItem->id)
+                ->update(['status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            $pinlandItem->refresh();
+            $this->assertSame('review', $pinlandItem->status,
+                'the doctored zero-pop map lands on review');
+            $this->assertSame('draft', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
+                'an active map failing assessment demotes to draft — never stays live');
+            DB::table('legislature_districts')->where('id', $zeroId)->update(['actual_population' => $savedPop]);
         });
     }
 
