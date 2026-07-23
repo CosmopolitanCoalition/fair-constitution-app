@@ -1377,6 +1377,20 @@ class DistrictingService
                  LIMIT 1
             ', [$z->id, $mapId, $z->id]);
             if ($target === null) {
+                // Geometry-blind fallback: nearness is a preference, not an
+                // eligibility rule (drawn-piece districts carry geomless
+                // members — Perpignan-3 class). The largest live district
+                // absorbs with the least relative distortion; ties resolve
+                // by district_number (determinism is a settled property).
+                $target = DB::table('legislature_districts')
+                    ->where('map_id', $mapId)->whereNull('deleted_at')
+                    ->where('id', '<>', $z->id)
+                    ->where('actual_population', '>', 0)
+                    ->orderByDesc('actual_population')
+                    ->orderBy('district_number')
+                    ->first(['id']);
+            }
+            if ($target === null) {
                 continue;   // no live district anywhere — honest review instead
             }
 
