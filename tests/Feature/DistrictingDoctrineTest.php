@@ -1534,6 +1534,55 @@ class DistrictingDoctrineTest extends TestCase
      * Root → scope → chain of children (adjacent unit squares along the x axis).
      * Returns [$legRow, $scopeId].
      */
+    // ─── (24) Zero-pop absorption: no rotten boroughs ───────────────────────
+
+    public function test_zero_pop_child_absorbs_and_never_seats_its_own_district(): void
+    {
+        $this->onLivePg(function () {
+            // Two adjacent 500k children + one DETACHED zero-pop child (a
+            // scattered-remainder analogue, its own connected component).
+            // Budget 10, quota 100k. Pre-fix (2026-07-23): the zero-pop bin
+            // reached Step 11, minSeat clamped it to 1 (10 < 3×5 made the
+            // floor infeasible) → districts [5,5,1] = 11 seats, +1 drift and
+            // a district over ZERO electors. Post-fix: the zero-pop bin
+            // absorbs into a live sibling → [5,5] = the exact budget, and the
+            // zero child still rides a district (territory stays covered).
+            $total   = 1_000_000;
+            $rootId  = $this->makeJurisdiction('zzzp-0-root', 'ZP Root', 0, null, $this->square(0, 0, 8, 3), $total);
+            $scopeId = $this->makeJurisdiction('zzzp-1-scope', 'ZP Scope', 1, $rootId, $this->square(0, 0, 8, 1), $total);
+            $this->makeJurisdiction('zzzp-2-west', 'ZP West', 2, $scopeId, $this->square(0, 0, 1, 1), 500_000);
+            $this->makeJurisdiction('zzzp-2-east', 'ZP East', 2, $scopeId, $this->square(1, 0, 2, 1), 500_000);
+            $zeroId = $this->makeJurisdiction('zzzp-2-crumb', 'ZP Crumb', 2, $scopeId, $this->square(7, 0, 8, 1), 0);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['id', 'seats', 'actual_population']);
+
+            $this->assertSame(10, (int) $districts->sum('seats'),
+                'absorption restores the exact budget — the zero-pop bin adds no rotten-borough seat');
+            foreach ($districts as $d) {
+                $this->assertGreaterThanOrEqual(5, (int) $d->seats,
+                    'no sub-floor district survives — the 1-seat zero-pop clamp is gone');
+                $this->assertGreaterThan(0, (int) $d->actual_population,
+                    'no district seats zero electors');
+            }
+
+            $covered = DB::table('legislature_district_jurisdictions')
+                ->whereIn('district_id', $districts->pluck('id'))
+                ->where('jurisdiction_id', $zeroId)
+                ->exists();
+            $this->assertTrue($covered,
+                'the zero-pop child is absorbed as a MEMBER of a live district — territory stays covered');
+        });
+    }
+
     private function makeScopeFixture(string $prefix, array $pops, int $popUnit, int $seats): array
     {
         $n      = count($pops);

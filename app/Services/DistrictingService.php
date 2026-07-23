@@ -1092,6 +1092,73 @@ class DistrictingService
             ];
         }
 
+        // ── Step 10b: ZERO-POP ABSORPTION (2026-07-23, rotten-borough fix) ───
+        // A bin holding zero people must never seat: territory has to be
+        // covered, but a district over no electors is a rotten borough —
+        // Step 11's minimum-seat clamp was minting 1-seat (floor-infeasible)
+        // and 5-seat (floor-feasible) districts over zero-pop scattered
+        // remainders. Each zero-pop bin merges into a LIVE sibling bin —
+        // adjacency first (longest shared border, the compactness currency),
+        // nearest-centroid fallback — adding zero population and zero seats,
+        // so every surviving bin's share, rounding, and the pool budget are
+        // untouched. A scope with no live sibling keeps its zero-pop bin
+        // (nothing to absorb into); the completeness gate reviews it honestly.
+        $zeroIdx = [];
+        $liveIdx = [];
+        foreach ($binData as $i => $b) {
+            if ($b['pop'] === 0) {
+                $zeroIdx[] = $i;
+            } else {
+                $liveIdx[] = $i;
+            }
+        }
+        if ($zeroIdx !== [] && $liveIdx !== []) {
+            foreach ($zeroIdx as $zi) {
+                $target = null;
+                $bestBorder = 0.0;
+                foreach ($liveIdx as $li) {
+                    $shared = 0.0;
+                    foreach ($binData[$zi]['jids'] as $zj) {
+                        foreach ($adj[$zj] ?? [] as $nb) {
+                            if (in_array($nb, $binData[$li]['jids'], true)) {
+                                $shared += $this->borderLen[$zj.'|'.$nb]
+                                    ?? $this->borderLen[$nb.'|'.$zj] ?? 0.0;
+                                $shared = max($shared, 1e-9); // adjacency with unrecorded length still counts
+                            }
+                        }
+                    }
+                    if ($shared > $bestBorder) {
+                        $bestBorder = $shared;
+                        $target = $li;
+                    }
+                }
+                if ($target === null) {
+                    // No adjacent live bin (scattered confetti): nearest live
+                    // bin by minimum centroid pair distance, ties to the
+                    // lowest bin index (determinism is a settled property).
+                    $bestD = INF;
+                    foreach ($liveIdx as $li) {
+                        foreach ($binData[$zi]['jids'] as $zj) {
+                            foreach ($binData[$li]['jids'] as $lj) {
+                                $zc = $centroids[$zj] ?? null;
+                                $lc = $centroids[$lj] ?? null;
+                                if ($zc === null || $lc === null) continue;
+                                $d = ($zc['x'] - $lc['x']) ** 2 + ($zc['y'] - $lc['y']) ** 2;
+                                if ($d < $bestD) {
+                                    $bestD = $d;
+                                    $target = $li;
+                                }
+                            }
+                        }
+                    }
+                    $target ??= $liveIdx[0];
+                }
+                $binData[$target]['jids'] = array_merge($binData[$target]['jids'], $binData[$zi]['jids']);
+                $binData[$zi]['jids'] = [];
+            }
+            $binData = array_values(array_filter($binData, fn($b) => $b['jids'] !== []));
+        }
+
         // ── Step 11: Seat each drawn district by NEAREST ROUNDING ───────────
         // Operator ruling 2026-07-13 (settled law): "It always rounds to
         // nearest. … The rounding takes place in the giant splitting phase and
