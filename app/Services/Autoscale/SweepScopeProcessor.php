@@ -432,8 +432,12 @@ class SweepScopeProcessor
                     continue;
                 }
                 $seen[$cid] = true;
+                // INERT CHILD LAYER (ruling 2026-07-23): zero-stored children
+                // under a populated scope — effectively childless, the scope
+                // line-splits itself; classified LEAF so check 2 counts it.
                 $hasKids = DB::table('jurisdictions')
-                    ->where('parent_id', $cid)->whereNull('deleted_at')->exists();
+                        ->where('parent_id', $cid)->whereNull('deleted_at')->exists()
+                    && ! $districting->childLayerIsInert($cid);
                 if ($hasKids) {
                     $compositeIds[] = $cid;
                     $queue[] = $cid;
@@ -462,7 +466,8 @@ class SweepScopeProcessor
         // transaction) must never activate. In-band childless roots never
         // reach the sweep path (they ride the at-large singles shape).
         $rootIsLeaf = ! DB::table('jurisdictions')
-            ->where('parent_id', $rootId)->whereNull('deleted_at')->exists();
+                ->where('parent_id', $rootId)->whereNull('deleted_at')->exists()
+            || $districting->childLayerIsInert($rootId);
         if ($rootIsLeaf) {
             $needed = (int) ceil(((int) $leg->type_a_seats) / max($ceiling, 1));
             $drawn  = (int) DB::table('district_subdivisions')
@@ -482,6 +487,9 @@ class SweepScopeProcessor
         // child big enough to be a local giant is flagged honestly — it can
         // neither composite nor be a scope.
         foreach ($compositeScopes as $scopeId => $scopeName) {
+            if ($districting->childLayerIsInert($scopeId)) {
+                continue;   // inert layer: the scope draws ITSELF — checks 0/2 cover it
+            }
             $giantIds = array_keys($giantSetByScope[$scopeId] ?? []);
             $notIn  = '';
             $params = [$scopeId];

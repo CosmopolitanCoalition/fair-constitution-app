@@ -1322,6 +1322,29 @@ class DistrictingService
     }
 
     /**
+     * INERT CHILD LAYER (operator ruling 2026-07-23): a child layer whose
+     * stored populations sum to ZERO under a scope that holds people cannot
+     * apportion anything — border-off-raster ingestion left phantom or
+     * empty children (Foammulah's polygon sits 9 km offshore of its parent
+     * with 0% overlap while the parent's own geometry measures its stored
+     * population exactly). Such a layer is inert for districting: the scope
+     * is EFFECTIVELY CHILDLESS and draws itself over its own geometry and
+     * raster (the root-leaf / leaf-giant law). The children remain as
+     * territory records — they hold nobody, so no representation is lost.
+     */
+    public function childLayerIsInert(string $scopeId): bool
+    {
+        $row = DB::selectOne('
+            SELECT (SELECT COALESCE(population, 0) FROM jurisdictions WHERE id = ?) AS scope_pop,
+                   COUNT(*) AS n, COALESCE(SUM(c.population), 0) AS cs
+              FROM jurisdictions c
+             WHERE c.parent_id = ? AND c.deleted_at IS NULL
+        ', [$scopeId, $scopeId]);
+
+        return $row !== null && (int) $row->n > 0 && (int) $row->cs === 0 && (int) $row->scope_pop > 0;
+    }
+
+    /**
      * MAP-LEVEL ZERO-POP ABSORPTION (2026-07-23, rotten-borough class).
      *
      * Step 10b absorbs zero-pop bins inside one scope frame, but a
@@ -1396,15 +1419,31 @@ class DistrictingService
 
             $memberIds = DB::table('legislature_district_jurisdictions')
                 ->where('district_id', $z->id)->pluck('jurisdiction_id')->all();
+            $preTarget = DB::table('legislature_districts')
+                ->where('id', $target->id)->first(['actual_population', 'fractional_seats']);
+            $movedStored = $memberIds === [] ? 0
+                : (int) DB::table('jurisdictions')->whereIn('id', $memberIds)->sum('population');
             DB::table('legislature_district_jurisdictions')
                 ->where('district_id', $z->id)
                 ->update(['district_id' => $target->id]);
 
-            // Target keeps its Step-11 seats (zero people moved); pop +
-            // spatial stats recompute. The emptied zero-pop district
-            // soft-deletes itself inside recomputeDistrict.
+            // Target keeps its Step-11 seats (zero people moved); spatial
+            // stats recompute. The emptied zero-pop district soft-deletes
+            // itself inside recomputeDistrict.
             $this->recomputeDistrict((string) $target->id, $legislatureId, $leg, true);
             $this->recomputeDistrict((string) $z->id, $legislatureId, $leg, true);
+
+            // POPULATION CONSERVATION (Perpignan-3 class): recomputeDistrict
+            // re-derives population from member STORED pops — a drawn-piece
+            // target (geomless / zero-stored members) would be clobbered to
+            // 0, minting a NEW rotten borough. The target's measured
+            // population is not a function of the members it absorbs: it
+            // keeps its own value plus the stored people it actually gained.
+            DB::table('legislature_districts')->where('id', $target->id)->update([
+                'actual_population' => (int) ($preTarget->actual_population ?? 0) + $movedStored,
+                'fractional_seats'  => $preTarget->fractional_seats,
+                'updated_at'        => now(),
+            ]);
 
             app(\App\Services\AuditService::class)->append(
                 module: 'elections',

@@ -100,9 +100,15 @@ class LeafGiantResolver
         // THIS one detector, they inherit root-leaf support together (the
         // one-frame law's no-disagreement guarantee).
         if ($scopeId === (string) $leg->jurisdiction_id) {
+            // INERT CHILD LAYER (operator ruling 2026-07-23): a child-bearing
+            // root whose children sum to ZERO stored population while it
+            // holds people is EFFECTIVELY CHILDLESS — the layer cannot
+            // apportion anything (border-off-raster phantoms) and the root
+            // line-splits itself over its own geometry and raster.
             $rootChildren = (int) DB::table('jurisdictions')
                 ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-            if ($rootChildren > 0) {
+            if ($rootChildren > 0
+                && ! app(\App\Services\DistrictingService::class)->childLayerIsInert($scopeId)) {
                 return null;
             }
             $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
@@ -124,8 +130,9 @@ class LeafGiantResolver
         }
 
         $childCount = (int) DB::table('jurisdictions')->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-        if ($childCount > 0) {
-            return null;
+        if ($childCount > 0
+            && ! app(\App\Services\DistrictingService::class)->childLayerIsInert($scopeId)) {
+            return null;   // a live child layer composites; an INERT one line-splits (ruling 2026-07-23)
         }
 
         // ONE-FRAME LAW (2026-07-19): gianthood + budget come from the
@@ -391,11 +398,24 @@ class LeafGiantResolver
             ->pluck('id')
             ->all();
 
-        if (empty($subdivisionIds)) {
+        // Stale COMPOSITE rows filed AT this scope retire too (2026-07-23):
+        // an INERT-child-layer scope previously composited zero-pop bins
+        // here; the line-split replace must clear them or they double-cover
+        // the territory. Normal leaf giants never composite at their own
+        // scope, so this arm is a no-op for them.
+        $compositeIds = DB::table('legislature_districts')
+            ->where('legislature_id', $legislatureId)
+            ->where('map_id', $mapId)
+            ->where('jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at')
+            ->pluck('id')
+            ->all();
+
+        if (empty($subdivisionIds) && empty($compositeIds)) {
             return 0;
         }
 
-        $districtIds = DB::table('legislature_district_jurisdictions AS ldj')
+        $districtIds = empty($subdivisionIds) ? [] : DB::table('legislature_district_jurisdictions AS ldj')
             ->join('legislature_districts AS ld', 'ld.id', '=', 'ldj.district_id')
             ->whereIn('ldj.subdivision_id', $subdivisionIds)
             ->where('ld.legislature_id', $legislatureId)
@@ -403,6 +423,7 @@ class LeafGiantResolver
             ->distinct()
             ->pluck('ld.id')
             ->all();
+        $districtIds = array_values(array_unique(array_merge($districtIds, $compositeIds)));
 
         if (! empty($districtIds)) {
             DB::table('legislature_district_jurisdictions')->whereIn('district_id', $districtIds)->delete();

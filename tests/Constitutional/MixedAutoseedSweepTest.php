@@ -86,6 +86,29 @@ class MixedAutoseedSweepTest extends TestCase
             $this->assertNull($resolver->context($ctx['legislature_id'], $ctx['root_id']));
             // A sub-threshold child (frac 5.95 < 9.5) is never a leaf giant.
             $this->assertNull($resolver->context($ctx['legislature_id'], $ctx['composite_ids'][0]));
+
+            // INERT CHILD LAYER (operator ruling 2026-07-23): zero the whole
+            // child layer's stored pops — the child-bearing root becomes
+            // EFFECTIVELY CHILDLESS (the layer cannot apportion anything,
+            // border-off-raster phantoms) and detects as a root-leaf
+            // line-split, budget = its OWN type_a per the root-leaf law.
+            $savedPops = DB::table('jurisdictions')
+                ->where('parent_id', $ctx['root_id'])->whereNull('deleted_at')
+                ->pluck('population', 'id');
+            DB::table('jurisdictions')
+                ->where('parent_id', $ctx['root_id'])->whereNull('deleted_at')
+                ->update(['population' => 0]);
+            $collapsed = $resolver->context($ctx['legislature_id'], $ctx['root_id']);
+            $this->assertNotNull($collapsed,
+                'a populated root over a zero-stored child layer collapses to a root-leaf');
+            $typeA = (int) DB::table('legislatures')->where('id', $ctx['legislature_id'])->value('type_a_seats');
+            $this->assertSame($typeA, $collapsed['budget'],
+                'collapsed budget = the root\'s own type_a (root-leaf law, never a parent-frame share)');
+            foreach ($savedPops as $jid => $pop) {
+                DB::table('jurisdictions')->where('id', $jid)->update(['population' => $pop]);
+            }
+            $this->assertNull($resolver->context($ctx['legislature_id'], $ctx['root_id']),
+                'restoring the child pops restores the composite path — the collapse keys on the LAYER, not structure');
         });
     }
 
