@@ -107,13 +107,19 @@ class LeafGiantResolver
             // line-splits itself over its own geometry and raster.
             $rootChildren = (int) DB::table('jurisdictions')
                 ->where('parent_id', $scopeId)->whereNull('deleted_at')->count();
-            if ($rootChildren > 0
-                && ! app(\App\Services\DistrictingService::class)->childLayerIsInert($scopeId)) {
+            $inertLayer = $rootChildren > 0
+                && app(\App\Services\DistrictingService::class)->childLayerIsInert($scopeId);
+            if ($rootChildren > 0 && ! $inertLayer) {
                 return null;
             }
             $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
             $budget  = (int) $leg->type_a_seats;
-            if ($budget <= $ceiling) {
+            // A genuinely childless IN-BAND root stays null (the at-large
+            // singles shape; the mapper must not offer line-split UI for a
+            // village). An INERT-collapsed in-band root proceeds instead:
+            // ceil(budget/ceiling) = 1 drawn district covering the whole
+            // root = the at-large shape, through the same audited path.
+            if ($budget <= $ceiling && ! $inertLayer) {
                 return null;
             }
 
