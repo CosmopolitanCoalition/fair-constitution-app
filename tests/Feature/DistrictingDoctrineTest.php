@@ -1534,6 +1534,40 @@ class DistrictingDoctrineTest extends TestCase
      * Root → scope → chain of children (adjacent unit squares along the x axis).
      * Returns [$legRow, $scopeId].
      */
+    // ─── (25) The exactness rule on the composite plane ─────────────────────
+
+    public function test_composite_plane_lands_exact_when_an_exact_partition_exists(): void
+    {
+        $this->onLivePg(function () {
+            // The Mbwe class (live specimen 2026-07-24): four children whose
+            // fracs sum to the pool EXACTLY (9.33 + 5.12 + 6.18 + 4.37 = 25)
+            // — the trivial one-per-child partition lands 25 (the 4.37 child
+            // floors to 5 as a recorded posture), yet the generator's chosen
+            // grouping filed 24. Step 11b (seating law step 6 generalized):
+            // a drifting configuration is EXCLUDED when any partition lands
+            // exact. Whatever grouping wins, Σ seats MUST equal the budget.
+            $pops = [9330, 5120, 6180, 4370];
+            [$leg, $scopeId] = $this->makeScopeFixture('zzex', $pops, 1, 25);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 25, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['seats', 'actual_population']);
+
+            $this->assertSame(25, (int) $districts->sum('seats'),
+                'an exact partition exists (9+5+6+5 singletons) — the composite plane must land it, never ship 24');
+            foreach ($districts as $d) {
+                $this->assertGreaterThanOrEqual(5, (int) $d->seats, 'constitutional floor (posture-recorded where sub-frac)');
+                $this->assertLessThanOrEqual(9, (int) $d->seats, 'constitutional ceiling');
+            }
+        });
+    }
+
     // ─── (24) Zero-pop absorption: no rotten boroughs ───────────────────────
 
     public function test_zero_pop_child_absorbs_and_never_seats_its_own_district(): void

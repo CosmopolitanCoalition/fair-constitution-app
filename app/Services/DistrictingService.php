@@ -1202,6 +1202,92 @@ class DistrictingService
         }
         unset($b);
 
+        // ── Step 11b: THE EXACTNESS RULE ON THE COMPOSITE PLANE ─────────────
+        // (operator ruling 2026-07-24, "there is no such thing as a lawful
+        // drift map" — seating law step 6 generalized from the drawn plane.)
+        // When the chosen bins' nearest-rounded seats MISS the pool budget,
+        // a drifting configuration is EXCLUDED if another configuration
+        // lands exactly: for scopes with <= 10 live children, exhaustively
+        // enumerate set partitions under Step 11's own arithmetic (partition
+        // quota, minSeat, ceiling clamp), keep those whose seats sum to the
+        // budget EXACTLY, and adopt the best by the standing doctrine ladder
+        // (scoreConfiguration: banded balance > contiguity > compactness).
+        // The Mbwe class proved the gap: 4 children with fracs summing 25.00
+        // filed 24 while the trivial one-per-child partition lands 25. When
+        // NO exact partition exists the current bins ship unchanged — a
+        // PROVEN indivisible atom (Pinland pin 4 stays +1 by exhaustion).
+        $seatSum = array_sum(array_column($binData, 'seats'));
+        $allJids = array_merge(...array_map(fn ($b) => $b['jids'], $binData ?: [['jids' => []]]));
+        if ($seatSum !== $effectiveBudget && count($allJids) >= 2 && count($allJids) <= 10 && $totalBinPop > 0) {
+            $exact = [];
+            $groups = [];
+            $enumerate = function (int $i) use (&$enumerate, &$groups, &$exact, $allJids, $childById, $totalBinPop, $effectiveBudget, $floor, $ceiling): void {
+                if (count($exact) >= 2000) {
+                    return; // plenty of exact candidates — scoring picks the best
+                }
+                if ($i === count($allJids)) {
+                    $k = count($groups);
+                    $min = ($effectiveBudget >= $floor * $k) ? $floor : 1;
+                    $quota = $totalBinPop / max($effectiveBudget, 1);
+                    $sum = 0;
+                    foreach ($groups as $g) {
+                        $gp = 0;
+                        foreach ($g as $jid) {
+                            $gp += (int) $childById[$jid]->population;
+                        }
+                        $sum += max($min, min($ceiling, (int) round($gp / max($quota, 1))));
+                        if ($sum > $effectiveBudget) {
+                            return;
+                        }
+                    }
+                    if ($sum === $effectiveBudget) {
+                        $exact[] = array_map(fn ($g) => array_values($g), $groups);
+                    }
+                    return;
+                }
+                foreach ($groups as $gi => $_) {
+                    $groups[$gi][] = $allJids[$i];
+                    $enumerate($i + 1);
+                    array_pop($groups[$gi]);
+                }
+                $groups[] = [$allJids[$i]];
+                $enumerate($i + 1);
+                array_pop($groups);
+            };
+            $enumerate(0);
+
+            if ($exact !== []) {
+                $best = null;
+                $bestScore = null;
+                foreach ($exact as $candidate) {
+                    $score = $this->scoreConfiguration($candidate, $childById, $adj, (float) max($totalBinPop, 1), $effectiveBudget, $floor, $ceiling, $floorBoundary);
+                    if ($best === null || $this->scoreBeats($score, $bestScore)) {
+                        $best = $candidate;
+                        $bestScore = $score;
+                    }
+                }
+                // Rebuild binData from the winning exact partition and re-seat
+                // it under the same Step 11 arithmetic.
+                $binData = [];
+                foreach ($best as $g) {
+                    $gp = 0;
+                    foreach ($g as $jid) {
+                        $gp += (int) $childById[$jid]->population;
+                    }
+                    $binData[] = ['jids' => $g, 'pop' => $gp, 'floor_override' => false, 'seats' => 0, 'fractional' => 0.0];
+                }
+                $binCount      = count($binData);
+                $floorFeasible = ($effectiveBudget >= $binCount * $floor);
+                $minSeat       = $floorFeasible ? $floor : 1;
+                foreach ($binData as &$b) {
+                    $b['fractional']     = $b['pop'] / max($binQuota, 1);
+                    $b['floor_override'] = $b['fractional'] < $floorBoundary;
+                    $b['seats']          = max($minSeat, min($ceiling, (int) round($b['fractional'])));
+                }
+                unset($b);
+            }
+        }
+
         // ── Step 12: Insert districts ──────────────────────────────────────────
         // The district's `seats` value is the canonical seat budget for any
         // composite member at this scope. When a downstream caller needs a
