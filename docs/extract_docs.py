@@ -10,6 +10,12 @@ Output: docs/extracted/ folder with markdown versions of all reference docs.
 import os
 import sys
 
+# Windows consoles default to cp1252, which cannot print the arrows/glyphs in
+# our status lines — force UTF-8 so a cosmetic print can never abort extraction.
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 docs_dir = os.path.join(os.path.dirname(__file__))
 output_dir = os.path.join(docs_dir, 'extracted')
 os.makedirs(output_dir, exist_ok=True)
