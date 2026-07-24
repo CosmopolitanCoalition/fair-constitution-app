@@ -109,6 +109,11 @@ forms (census below).
 
 ## 4. Architecture plan → rewrite outline for `CGA_Architecture_Plan_2026-07.docx`
 
+> The complete phase-by-phase recounting — the A→O ledger, status chart (mermaid),
+> and the census of both drawio authorities — lives in
+> [PHASE_LEDGER_A_TO_O.md](PHASE_LEDGER_A_TO_O.md). It is the §5 skeleton for this
+> rewrite. Summary table below covers the non-phase sections.
+
 | Section | Feb 2026 says | As-built |
 |---|---|---|
 | §2 Stack | Laravel 11, Meilisearch, Vue SPA + Pinia, Capacitor now | Laravel 12 + Inertia; no Meilisearch; Redis + Horizon; Matrix (Synapse+MAS) + LiveKit (K-3); Capacitor deferred (G-V1 parked); dual-stack dev convention |
