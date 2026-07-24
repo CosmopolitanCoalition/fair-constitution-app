@@ -175,12 +175,12 @@ directly to its inventory).
 - **Lane 5**: Art. V §4 official-language power → carry a per-jurisdiction
   official-language concept in Phase N design.
 
-## 8. Lane 7 pipeline from here
+## 8. Lane 7 pipeline from here (rescoped 2026-07-24)
 
-1. Operator reviews this inventory (T-1..T-5 dispositions especially).
-2. Draft `docs/findings/PROPOSED_AMENDMENTS.md` — every item status `proposed`.
-3. Draft `docs/findings/FINDINGS_DIGEST.md` + `TEMPLATE_TEXT.md` (zero-context
-   readers; raw-URL consumers).
-4. Produce `CGA_Architecture_Plan_2026-07.docx` + updated chart xlsx (originals
-   untouched).
-5. First push round on the operator's word → 8a/8b feed goes live.
+Scope ruling: lane 7 does NOT author template amendments — template text is the
+operator's, executed with the website chats. Orchestration lives in
+[DELTA_DELIVERABLES_MASTER.md](DELTA_DELIVERABLES_MASTER.md) — the D-ledger,
+phase↔lane matrix, and update-prompt pack. Lane 7 order of work: D-01 digest +
+D-02 TEMPLATE_TEXT (verbatim rendering) → D-04 architecture docx copy → D-05 chart
+xlsx copy → D-06 citation verification. First push on the operator's word →
+the 8a/8b feed goes live.
