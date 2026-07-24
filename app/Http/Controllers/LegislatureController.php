@@ -818,6 +818,13 @@ class LegislatureController extends Controller
                 (j_dspar.parent_id IS NULL) AS district_scope_gp_is_root
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): drawn districts render via
+                -- the drawn branch; absorption riders must not resurface them
+                -- here (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j
                 ON j.id = ldj.jurisdiction_id
                AND j.parent_id = :scope_id
@@ -2098,6 +2105,15 @@ class LegislatureController extends Controller
                 COALESCE(scc.cnt, 0)       AS scope_child_count
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): a district emits as DRAWN
+                -- or COMPOSITE, never both. A drawn district can carry plain
+                -- jurisdiction memberships (zero-pop absorption riders) — those
+                -- must not resurface it through the member branches with
+                -- shifted column semantics (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
                 AND j_member.deleted_at IS NULL
                 AND j_member.geom IS NOT NULL
@@ -2154,6 +2170,15 @@ class LegislatureController extends Controller
                 COALESCE(scc2.cnt, 0)
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): a district emits as DRAWN
+                -- or COMPOSITE, never both. A drawn district can carry plain
+                -- jurisdiction memberships (zero-pop absorption riders) — those
+                -- must not resurface it through the member branches with
+                -- shifted column semantics (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
                 AND j_member.deleted_at IS NULL
                 AND j_member.geom IS NOT NULL
@@ -2406,6 +2431,15 @@ class LegislatureController extends Controller
                 1 AS depth
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): a district emits as DRAWN
+                -- or COMPOSITE, never both. A drawn district can carry plain
+                -- jurisdiction memberships (zero-pop absorption riders) — those
+                -- must not resurface it through the member branches with
+                -- shifted column semantics (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
                 AND j_member.deleted_at IS NULL
             JOIN jurisdictions j_giant ON j_giant.id = j_member.parent_id
@@ -2426,6 +2460,15 @@ class LegislatureController extends Controller
                 1
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): a district emits as DRAWN
+                -- or COMPOSITE, never both. A drawn district can carry plain
+                -- jurisdiction memberships (zero-pop absorption riders) — those
+                -- must not resurface it through the member branches with
+                -- shifted column semantics (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
                 AND j_member.deleted_at IS NULL
             JOIN jurisdictions j_state ON j_state.id = j_member.parent_id
@@ -2448,6 +2491,15 @@ class LegislatureController extends Controller
                 2 AS depth
             FROM legislature_districts ld
             JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                -- EMISSION EXCLUSIVITY (2026-07-24): a district emits as DRAWN
+                -- or COMPOSITE, never both. A drawn district can carry plain
+                -- jurisdiction memberships (zero-pop absorption riders) — those
+                -- must not resurface it through the member branches with
+                -- shifted column semantics (the Perpignan-3 ghost row).
+                AND NOT EXISTS (
+                    SELECT 1 FROM legislature_district_jurisdictions ldx
+                     WHERE ldx.district_id = ld.id AND ldx.subdivision_id IS NOT NULL
+                )
             JOIN jurisdictions j_member ON j_member.id = ldj.jurisdiction_id
                 AND j_member.deleted_at IS NULL
             JOIN jurisdictions j_state ON j_state.id = j_member.parent_id

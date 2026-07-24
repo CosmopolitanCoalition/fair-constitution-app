@@ -1316,8 +1316,16 @@ class DistrictingService
             }
         }
         if ($giantSeatsTotal === 0) return $fullQuota;
-        $ngBudget = max($seatBudget - $giantSeatsTotal, 1);
-        $ngPop    = max($effectivePop - $giantPopTotal, 1);
+        $ngBudget = $seatBudget - $giantSeatsTotal;
+        $ngPop    = $effectivePop - $giantPopTotal;
+        if ($ngBudget <= 0 || $ngPop <= 0) {
+            // ALL-GIANT SCOPE (2026-07-24): no non-giant pool exists, so there
+            // is nothing to normalize — the old max(0,1)/max(0,1) degenerated
+            // to quota 1, rendering 'Quota: 1 pop/seat' and garbage Rep/Dev%
+            // on every single-child-chain and all-giant root (Nunavut,
+            // Perpignan-3 class). The full quota is the honest basis.
+            return $fullQuota;
+        }
         return $ngPop / $ngBudget;
     }
 
