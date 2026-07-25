@@ -1043,6 +1043,43 @@ carries 6.2 GB of PostGIS geometry — call it **25–50 minutes**, still well i
 > The lesson generalises — a set-based engine stops being set-based the moment ids round-trip
 > through the application.
 
+### 11.1 The un-indexed foreign keys (found by measurement, mostly still open)
+
+PostgreSQL does not index foreign keys automatically. A schema-wide audit found **212
+single-column FKs with no plain index**. Most sit on small tables and cost nothing today. Three
+were measured causing real pathology at scale, and all three are now fixed:
+
+| Column | Symptom measured | After index |
+|---|---|---|
+| `election_board_members.election_board_id` (only *partial* indexes existed) | 3-way delete over 50k boards: **>7 min, CPU-bound** | **9.25 s** |
+| `election_boards` deletion blocked behind the above | **24 min** | **5.3 s** |
+| `executives.parent_executive_id` (**self-referencing**) | 50k-row delete: **>7 min, zero rows removed** | **6.4 s** |
+
+The self-referencing case is the dangerous class and deserves naming: every DELETE must prove no
+sibling still points at the row, so with no index that is **one full table scan per deleted row**
+— quadratic. Six self-referencing FKs were un-indexed; `2026_07_25_000005` indexes the four on
+tables that reach roughly one row per jurisdiction or more (`executives`, `judiciaries`,
+`elections`, `organizations` — the last because lane 14's Foundation → Coalition parent link uses
+exactly that column). The two remaining (`cases.appeal_of_case_id`,
+`department_rules.supersedes_rule_id`) are on tables that stay small.
+
+**Deliberately not fixed: the other ~206.** Indexing every FK would cost write throughput and
+disk for no measured benefit. The right rule is to index a FK when its table reaches planet scale
+or when a measurement shows it hurting — not by policy. Anyone provisioning, reverting or merging
+at scale should run the audit query below first rather than discovering it the way this lane did.
+
+```sql
+SELECT c.conrelid::regclass AS tbl, a.attname AS fk_col, c.conrelid = c.confrelid AS self_ref
+  FROM pg_constraint c
+  JOIN unnest(c.conkey) WITH ORDINALITY AS k(attnum, ord) ON true
+  JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
+ WHERE c.contype = 'f' AND array_length(c.conkey, 1) = 1
+   AND NOT EXISTS (SELECT 1 FROM pg_index i
+                    WHERE i.indrelid = c.conrelid AND i.indpred IS NULL
+                      AND i.indkey[0] = a.attnum)
+ ORDER BY self_ref DESC, 1;
+```
+
 ### Deliberately not built
 
 - **`jurisdiction_activations` rows.** §5.2.1 — writing them would forge the Art. II §1 consent
