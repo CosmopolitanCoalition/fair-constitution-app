@@ -23,7 +23,10 @@ state in §13.
 | ✅ | `GuardsSyntheticData` wired into all **6** generator commands (there were **zero** guards before) |
 | ✅ | `CohortBallotExpander` + `HashChainRandom` — pure, outside the hardened surface |
 | ✅ | `SyntheticDataGuardTest`, `GregoryTruncationOrderTest`, `CountingEnginePerformanceTest`, `WeightedBallotIdentityTest` |
-| ⬜ | everything else below |
+| ✅ | **The pull engine** — `sim_runs`/`sim_items`/`sim_worker_leases`, `SimClaims` (SKIP-LOCKED ladder, largest-first, network sub-cap), `sim:pump` (halt · breaker · reclaim · phase advance · counters), `SimPullEnginePinTest` |
+| ⬜ | the generation stages, live bars, `sim:revert`, the research lane, the sandbox |
+
+**33 tests / 129+ assertions green across the lane.**
 
 **The keystone is proven, not asserted:** a real Droop/Gregory count over an
 electorate of **8,347,150,193** — the planet's actual leaf population — returns the
@@ -1009,6 +1012,11 @@ Each step lands green before the next.
    Phase-B §C.8 budget that had gone four phases without a test.
 3. `TabulationRecorder::completeBatch()` refactor + equivalence pin. **Gated on
    DECISION 3** — do not build batching for governance acts before the ruling.
+4. ✅ **DONE** — migration + models + `SimClaims` + `sim:pump` + 8 mechanics pins. The
+   pins caught three real bugs at the source: a `make_interval(secs => ?)` bind that
+   would have failed only at runtime under load; an expression idempotency key that
+   collapsed every jurisdiction-less unit of a kind into one; and `ON CONFLICT ON
+   CONSTRAINT` resolving constraint names only, which an expression index can never be.
 4. Migration (§8) + models + `SimClaims` + `sim:pump` + the mechanics pins (3–6 above).
 5. The generation stages, cheapest first: cohorts → identities → elections.
 6. The counting stage + the seating stage.
