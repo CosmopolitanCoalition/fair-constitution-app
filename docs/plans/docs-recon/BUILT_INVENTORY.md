@@ -266,9 +266,18 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     appender lock for the whole chunk, serializing every other lane's writes behind it. Rule for
     every bulk/chunked writer (lanes 1, 3, 4, 13): append the batch summary **after** the bulk
     write commits, in its own short transaction. Found by lane 4; broadcast to 1/3/13.
-14. **No artisan command carries an environment guard** — every `*:demo*` / seeding command will
-    run against whatever database it is pointed at, including a production cloud node. Pre-launch
-    exposure → lane 2's launch checklist. (Related: existing demo commands use `@cga.test` +
+14. **✅ CLOSED 2026-07-25 (lane 4, `2ff1af6`, operator-triggered).** Was: no artisan command
+    carried an environment guard — `elections:demo` would mint 40 permanent users with password
+    `demo` against whatever database `.env` pointed at, production included. **Not a Phase-O risk;
+    live in the repo today.** Now: `instance_settings.instance_class` (`production`|`scale_demo`,
+    NOT NULL DEFAULT production + CHECK — Phase O's persistence half, landed early because this
+    needed it) + a `GuardsSyntheticData` trait in all six demo commands, permitting on **either**
+    declared world property (`instance_class=scale_demo` OR `game_mode=sandbox`), so the game box
+    keeps working and the un-founded dev box now correctly refuses. `App\Support\InstanceClass`
+    **fails closed to production** (the dangerous direction is a generator believing it is on a
+    demo when it is not). The CI-2 boot assertion is deliberately **HTTP-only — it refuses to
+    serve, never to boot**, so an operator who lands in the bad state can still reach the console;
+    a bootstrap assertion that also bricks artisan is a trap, not a rail. (Related: existing demo commands use `@cga.test` +
     `Hash::make('demo')`; the reserved `*@demo.invalid` namespace + random secrets is the correct
     pattern, live only in `SocialDemoCommand`/`MatrixDemoCommand`.)
 15. **86,066 soft-deleted districts sit inside active maps** (~4.5% overcount) — any district

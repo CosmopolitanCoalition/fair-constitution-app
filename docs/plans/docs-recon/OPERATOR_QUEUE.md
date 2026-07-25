@@ -42,6 +42,22 @@ ordering was superseded by the operator in-chat, correctly.
 
 ## E. Closed this round
 
+**Risk #14 — no environment guard on any artisan command** (lane 4, `2ff1af6`, operator-triggered):
+was a **live** exposure, not a Phase-O one — `elections:demo` would mint 40 permanent users with
+password `demo` against whatever database `.env` pointed at. Now guarded by a declared **world
+property** (`instance_class=scale_demo` OR `game_mode=sandbox`), never an env var or code flag, per
+the no-dev-exceptions rule. Fails closed to production; the CI-2 boot assertion refuses to *serve*,
+not to boot, so a bad state never locks the operator out of the console. Side effect: Phase O's
+`instance_class` persistence landed early, because this needed it.
+
+**D-09 age settings — CLOSED as NOT APPLICABLE** (operator ruling via lane 13, `066567f`):
+`age_of_majority = 18` is real Template/website constitutional text, but it is **not a property of
+the simulated world** — this is a game, every account is a character, and there is no date of birth
+in the system. Nothing ships: no settings keys, no columns, no rail, no test. Lane 13 left both of
+its earlier wrong framings on the record so the next reader stops sooner. **Reassign to whoever owns
+Template text and website copy, or close outright — it is not a code deliverable.**
+*(This removes the "age values" item from the operator's decision list.)*
+
 **Risk #17 — the documented install path** (lane 2, `92ca3be`, verified): the public path now runs
 `deploy.sh --public-url`, which regenerates the app key and seeds clocks, requires https, and
 **refuses `--seed`** so demo data cannot enter a real launch. README re-scopes `get-started` to
