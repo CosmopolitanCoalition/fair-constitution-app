@@ -68,6 +68,23 @@ pattern, and it is what lets one dashboard show the whole translation plane.
 - **Glossary before prose.** The charter's named top human task. `glossary_seed` is a hard barrier
   *per locale*: no `catalog_batch` for locale L is claimable until L's seed is `done`. This is the
   only cross-item dependency in the ladder — everything else is embarrassingly parallel.
+- **The enumeration latch.** THE ETL RULE mints items in bounded committed chunks, which means a
+  pool can *look* drained while later chunks are still landing — and a phase that advances on
+  "zero pending+running" would then publish a locale at partial coverage. The `manifest` item
+  therefore stamps `translation_runs.enumerated_at` in the same transaction as its final chunk,
+  and **no phase advances while it is NULL**. The pump's enumeration-repair duty keys off that
+  stamp rather than off a zero row-count, so the repair terminates instead of rescanning forever.
+- **Completion = zero OPEN work**, mirroring `AutoscalePumpCommand` exactly (`open_items === 0 &&
+  open_scopes === 0`), never a `done == total` equality. `review`, `refused` and `failed` are
+  counted separately precisely so they can never block completion — a done-count test would let
+  one string that ate six provider timeouts strand a 99.9%-finished run forever, with the pump
+  seeding workers every minute against nothing claimable and `revert` refusing because the run is
+  not halted.
+- **Emission is separate from publication.** A locale's catalog is emitted once its units are
+  settled, with QA-failing keys **absent** (so the loader falls back to `en` — a missing key is a
+  visible English string, not a broken page). `publish_locale` is the separate gate that carries
+  the operator's zero-error rule. Conflating the two either strands runs or auto-publishes failed
+  QA; splitting them makes both properties true at once.
 - **Ordering: CHEAPEST-FIRST** (`position` by `est_tokens` ASC) — autoscale's simplest-first
   posture, the opposite of the geodata engine's largest-first. Translation has real triage benefit:
   small namespaces finish and publish while `Pages/Legislature` (932 strings) is still running, so
@@ -115,10 +132,15 @@ survive every revert iteration.
   *normalized* source, §7), `locale`, `source_text`, `translated_text`, `provider`, `status`
   (`machine|reviewed|locked`), `is_private` bool, `quality_flags` jsonb, `hits` int,
   `frozen_reason` text null, `verified_by` uuid null, `verified_at`, timestamps.
-  `UNIQUE(source_hash, locale)`; index `(locale, status)`.
+  **`UNIQUE(source_hash, locale, is_private)`** — `is_private` is part of the key, not just a
+  column, so a public string translated by the cloud tier can never be *matched* for a private
+  unit carrying identical text. Index `(locale, status)`.
   **The privacy rail as a database CHECK**, per the charter:
   `CHECK (NOT (is_private AND provider LIKE 'cloud-%'))` — the rail lives in the schema, not only
-  in `TranslationGate`, so no code path can route private text to a cloud provider.
+  in `TranslationGate`, so no code path can route private text to a cloud provider. Every memory
+  lookup additionally carries `AND m.is_private = u.is_private` in its join predicate: without it
+  the CHECK fires *inside* the batch UPDATE, aborting the whole statement and livelocking the
+  batch, which is a rail that punishes the engine instead of protecting the content.
 
 No changes to any PROTECTED file. `public_records.translations` keeps its existing shape and read
 path; the only server change is at publish time (§7).
@@ -163,8 +185,16 @@ RETURNING *;
 **Batch size = 40 strings per claim**, defended: autoscale's 15,000 is right for set-based SQL,
 where a claim is a filter. A translation unit is one provider round-trip, so the size is set by the
 provider's context window and by failure blast radius. 40 strings × mean 77 chars ≈ 770 tokens of
-payload — comfortably inside Haiku's 200K window and NLLB's practical batch — ~20–40 s per NLLB
-batch, and a failed batch costs at most 40 strings of redone work.
+payload — comfortably inside Haiku's 200K window — and a failed batch costs at most 40 strings of
+redone work.
+
+**The local-tier segment size is PROVISIONAL pending a bench**, and is written that way on purpose:
+every "N ms per segment" figure for NLLB is an assumption until measured, and an assumed rate
+silently propagates into the segment size, the stale threshold, and the tail wall-clock. Build step
+6 reports the measurement as **(model, precision, device, batch size, mean source chars) →
+segments/second**, in lane 1's bench-protocol style, and the constants are derived from it — not
+the other way round. Until then the local segment is sized adaptively from observed rolling
+throughput, floored at "≥5 s of work per claim, ≤120 s of redo".
 
 ---
 
@@ -213,7 +243,7 @@ append per batch, never one per string (the autoscale audit-cardinality law).
   Duty ladder, in order: (0) load non-terminal runs, oldest wins, supersede-dedupe · (1) halt/resume
   state machine, the DB column is the source of truth · (2) breaker tick — the same
   `pg_postmaster_start_time() || stats_reset` fingerprint, **pause-only, never a governor** ·
-  (3) **budget tick** — roll `metrics->tokens` into `budget_tokens_spent`; at cap, park the run ·
+  (3) **budget tick** — read the append-only spend ledger (below); at cap, park the run ·
   (4) stale-claim reclaim (>30 min → `pending`, token cleared) · (5) phase advance when a pool
   drains — **advance lives in the pump, never in a worker** · (6) enumeration repair
   `INSERT..SELECT..ON CONFLICT DO NOTHING` · (7) lease cull (`last_seen_at < now()-10min`) ·
@@ -238,6 +268,15 @@ UPDATE translation_items SET status='pending', claim_token=null, reason=null,
 
   Requeue may target any settled item, `done` included — re-running a locale after a prompt tweak
   is the point.
+- **Spend is append-only and is never reconciled from surviving rows.** One immutable ledger row
+  per provider response (`run_id`, item, unit count, input/output tokens, cost, outcome), and
+  `budget_tokens_spent` = `SUM(ledger)` — a number a reclaim, a retry or a revert can only
+  increase. Money leaves the account per API call, not per surviving row: a segment stale-reclaimed
+  at 30 minutes and re-translated is **two billed calls and one row**, so any scheme that recomputes
+  spend from the rows that happen to exist silently erases real spend and lets the claim-path
+  ceiling be exceeded without bound. Per-item cost stays as an attribution field for the review UI.
+  Transient failures whose response consumed tokens are charged, because the provider charged them.
+  **The pump reconciles counters, never money.**
 - **`translation:revert {--locale=} {--run=} [--keep-reviewed] [--resume] [--force]`** — the
   adopt-never-bulldoze analogue, and the reason provenance lives in a column. Guards: the run is
   `halted|done` unless `--force`; zero live leases in the last 2 minutes unless `--force`.
@@ -275,10 +314,31 @@ writes, invoked via `docker compose run --rm etl`, never `exec`.
   messages inside one ternary-bound `:label`; a static-attribute scanner misses both.
 - **`<script setup>` literals** — 1,055 of them: column/tab label banks, enum→copy maps, state
   machine labels, `announce()` strings.
-- **Interpolation-mixed nodes** — 645 — become ICU messages with named placeholders.
+- **Interpolation-mixed nodes** — 645 — become messages with named placeholders.
 - **Pluralization** — ~62 hand-rolled ternaries today and *no* `$tc` anywhere; the floor is higher
   than the count, because `{{ n }} clocks` with no singular branch is grep-invisible and currently
-  renders "1 clocks". These become ICU plurals with the registry's per-locale plural rules.
+  renders "1 clocks". These become plural sets driven by the registry's per-locale CLDR rules.
+
+**The message format is vue-i18n's, NOT ICU — and this is a correctness rail, not a preference.**
+The repo runs `vue-i18n ^11.4.5` and `createI18n` (`resources/js/i18n/index.js:81-97`) registers
+**no `pluralRules`**. Three consequences the build must handle, none of which a generic
+"ICU placeholders" plan would catch:
+
+1. **`|` is the plural separator, `{` opens an interpolation, and `@:` / `@.` / `@[` open linked
+   messages.** Any English source containing a literal `|` (breadcrumb or table copy) silently
+   becomes a plural set with the wrong branch rendered, and a literal `{` becomes an unresolved
+   interpolation — across ~5,100 strings × 77 locales, **silently**, because `missingWarn` and
+   `fallbackWarn` are both `false` today. The extractor therefore **escapes reserved characters on
+   emit** (`{'|'}`, `{'@'}`, `{'{'}`).
+2. **vue-i18n's built-in choice selector resolves at most three forms.** Arabic has six CLDR
+   categories. Without registered `pluralRules` an Arabic 6-form message renders the wrong branch
+   for zero/two/few/many at runtime while a segment-counting QA check reports it as correct.
+   `languages.py` therefore generates `pluralRules` per locale from the registry's CLDR categories
+   and `index.js` passes them to `createI18n` — that file is this lane's to change.
+3. **`check.mjs` compiles every source and target with `@intlify/message-compiler`** — the actual
+   runtime parser — not an ICU parser, so the gate validates the grammar the app really speaks.
+
+Pinned by an Arabic 6-form message asserted to render the correct branch at n = 0, 1, 2, 3, 11, 100.
 - **The component-prop allow-list** — `label`, `title`, `text`, `hint`, `eyebrow`, `caption`, plus
   native `placeholder`/`aria-label`/`alt` and `<Head title>`. **Including the six untranslated
   default literals declared inside component definitions**, which any call-site-only extractor
@@ -308,14 +368,26 @@ an edit to `scripts/etl/languages.py`**, which is a geodata country→official-l
 `enabled`. It emits `config/locales.php` and the JS registry; `check.mjs` fails if either generated
 file is stale.
 
-**115 → 77, with the arithmetic.** `scripts/etl/languages.py` contains exactly **115 distinct
-language codes** — which is where the charter's "115 registered locales" number came from.
-Reconciling to the charter's other number: 6 codes are not ISO 639-1 (`ber fil pap pau tet tpi`)
-and are reclassified rather than silently dropped; Norwegian is triple-counted (`no` + `nb` + `nn`
-→ one product locale, −2); `la` and `cr` are not product locales (−2); `zh` must split into
-`zh-Hans` and `zh-Hant` (+1, and the external accessibility doc requires both with distinct font
-stacks). The remaining product set lands at **~77 locales** — the two charter numbers finally
-connected. The build pins the exact list and this derivation so neither number floats again.
+**115 → 77 is TWO ladders, not one — and the first ladder does not reach 77.**
+`scripts/etl/languages.py` contains exactly **115 distinct language codes**, which is where the
+charter's "115 registered locales" came from. Normalizing that set to product locale tags:
+Norwegian is triple-counted (`no` + `nb` + `nn` → one, **−2**); `la` and `cr` are not product
+locales (**−2**); `zh` must split into `zh-Hans`/`zh-Hant` (**+1**, and the external accessibility
+doc requires both with distinct font stacks); the 6 non-ISO-639-1 codes (`ber fil pap pau tet tpi`)
+are reclassified to their proper tags rather than dropped (**±0**). That gives **115 − 2 − 2 + 1 =
+112 registered locales**, not 77.
+
+**77 is a translation-capability count, not a registration count**, and it needs its own explicit
+ladder — model coverage (does NLLB-200 carry the pair at usable quality?) plus a speaker floor,
+with sole-official-language locales exempt from the floor. Those two numbers were being used
+interchangeably; they are different sets, and `registered ⊃ translated ⊃ published`.
+
+**The generator prints the counts; this document does not assert them.** `languages.py` emits the
+enumerated list and its count for each tier, and the pin asserts **exact equality against a
+committed list** — not `>= 77` — so a membership change is a failing diff rather than a silently
+passing inequality. Every figure downstream (units, cost, ETA denominators, the coverage grid)
+cites the generator's number with its provenance, so a re-measurement updates one value rather
+than five.
 
 **Glossary.** 36 → **38 terms**, adding **Public record** and **Testimony** per the operator's
 ruling — the two whose absence was most conspicuous (WF-SYS-03 is the only constitutional
@@ -357,9 +429,15 @@ user-authored content out of Git.
 `resources/js/i18n/locales/<code>/<ns>.json`, the exact shape the existing glob already accepts with
 **zero loader changes**. `en/*.json` is **generated by the extractor** (the components are the
 source of truth); translated catalogs are generated from `translation_memory` at build time.
-Per-key metadata (`source_hash`, `status`, `provider`) lives in a sibling
-`locales/<code>/<ns>.meta.json` — **no new tables on the build-time path**, per the charter — and a
-changed source string invalidates its translations by hash mismatch, which `check.mjs` reports.
+
+Per-key metadata (`source_hash`, `status`, `provider`) lives at
+**`resources/js/i18n/meta/<code>/<ns>.json` — a sibling tree the loader glob never sees.** This is
+deliberate and was a bug in the first draft of this plan: a co-located `locales/<code>/<ns>.meta.json`
+*matches* `./locales/*/*.json` and would be merged as a namespace literally called `<ns>.meta`,
+shipping every provenance record to every browser and inflating each locale by ~40%. Metadata is
+read only by `check.mjs` and the build step. **No new tables on the build-time path**, per the
+charter, and a changed source string invalidates its translations by hash mismatch, which
+`check.mjs` reports.
 
 **Git ergonomics.** 77 locales × ~20 namespaces ≈ **1,540 files** that a single run rewrites. Only
 `en/**` and the meta files are committed and reviewed; translated catalogs are **build artifacts**,
@@ -370,11 +448,22 @@ so no human is ever asked to review a 1,540-file diff, and a re-translation is n
 Latin locale is ≈ 358 KB of text plus ~30 chars/key of JSON key and quoting overhead (~140 KB) ≈
 **~500 KB**. Non-Latin is worse, and it is measured rather than assumed: `hi.json` is 6,643 B
 against `en.json`'s 4,572 B for *fewer* keys — ~1.57× per key — so Hindi ≈ **785 KB**. Eager × 77
-locales ≈ **~45 MB uncompressed** in the main bundle. Not shippable. The fix is entirely inside this
-lane's own file: drop `eager: true`, fix `mergeNamespaces` to seed **every registry code** rather
-than the five it hardcodes (`index.js:31` — a known bug that would silently drop locales 6–77), and
-`await` the active locale's namespace chunks at boot. Per-page-load cost becomes one locale × the
-namespaces that page uses ≈ **20–60 KB gzipped**.
+locales ≈ **~45 MB uncompressed** in the main bundle. Not shippable. The fix is mostly inside this
+lane's own file — drop `eager: true`, and fix `mergeNamespaces` to seed **every registry code**
+rather than the five it hardcodes (`index.js:31`, a bug that would otherwise silently drop locales
+6 through 77). Two wiring details decide whether it works at all:
+
+- **Seed an empty message object for every enabled code at `createI18n` time.** `app.js:23-26`
+  gates the initial locale on `i18n.global.availableLocales.includes(...)`. Seed only `en` and
+  every non-English user silently renders English on first paint regardless of their persisted
+  `users.locale` — the exact opposite of the change's purpose, and invisible because
+  `missingWarn`/`fallbackWarn` are `false`.
+- **Hang the namespace load off `createInertiaApp`'s `resolve` callback**, which is already `async`
+  and is awaited before the component is handed to Inertia. `router.on('before')` does **not** await
+  a returned promise, so it races the render and every first visit to a namespace paints English
+  and then re-renders — a flash on every navigation, in every locale.
+
+Per-page-load cost then becomes one locale × the namespaces that page uses ≈ **20–60 KB gzipped**.
 
 ### Plane B — the memory, not the materialization
 
@@ -427,22 +516,35 @@ constitutional-adjacent rather than decided here.
 
 ### The numbers
 
-Assumptions stated: Haiku 4.5 at **$1 / $5 per MTok** with the Batch API's **−50%**; ~5,100 unique
-source strings ≈ 393k chars ≈ **98k input tokens** at ~4 chars/token; output ≈ **1.4×** input for a
-mixed-script target set (the measured `hi.json` expansion is the anchor).
+Assumptions stated once and used everywhere: Haiku 4.5 at **$1 / $5 per MTok** with the Batch API's
+**−50%**; ~5,100 unique source strings ≈ 393k chars ≈ **98k input tokens** at ~4 chars/token; output
+≈ **2.0× input, blended** across a mixed-script target set — not the 1.25–1.4× a Latin-only estimate
+suggests. The anchor is measured in this repo: `hi.json` is 6,643 B against `en.json`'s 4,572 B for
+*fewer* keys (~1.57× per key in **bytes**), and non-Latin scripts tokenize worse than their byte
+ratio implies. Indic/Arabic/Thai run nearer 2.5×; Latin nearer 1.25×.
 
 | Scenario | Input | Output | Cost |
 |---|---:|---:|---:|
-| One language, one pass | 98k | 137k | **$0.42** |
-| Full UI → 77 languages | 7.5M | 10.6M | **≈ $32** |
-| Full UI → 115 locales | 11.3M | 15.8M | **≈ $48** |
-| One public record × 77 locales | 5.8k | 8.1k | **$0.023** |
+| One language, one pass | 98k | 196k | **$0.57** |
+| Full UI → 77 translated locales | 7.5M | 15.1M | **≈ $44** |
+| One public record × 77 locales | 5.8k | 11.6k | **$0.032** |
 
-The cached prefix is why those numbers are small: a ~4.5k-token glossary+style prefix **uncached**
-costs $0.58/language — more than the corpus — and **cached** (1.25× write once, 0.1× per read)
-costs $0.06. Haiku's 4,096-token cache floor means the prefix must be deliberately large enough to
-qualify. **Money is not the constraint here; human verification is** — which is why the verifier
-queue, not the provider bill, is the thing this plan optimizes.
+(No 115-locale row: 112 locales are *registered*, ~77 are *translated* — see §6. Display-only
+locales cost nothing.)
+
+**Correcting the first draft's framing:** it called the prompt cache the reason those numbers are
+small. It is not. Per language the cached prefix costs ~$0.03 against ~$0.29 uncached, so caching
+is a **~1.45× lever on total cost** ($0.57 vs $0.83) — worth having, and worth respecting Haiku's
+4,096-token floor for, but **output volume is the dominant term at ~86% of the cached total**. Note
+also that Batch and prompt caching interact: batch requests are scheduled asynchronously over a
+long window, so prefix hits across a submission are not guaranteed — both figures are stated so the
+plan is robust to Batch defeating the cache.
+
+The conclusion survives the correction and is strengthened by it: **money is not the constraint on
+this lane; human verification is.** Forty-four dollars buys the machine pass for the entire user
+interface in seventy-seven languages. What it does not buy is a human who can confirm that the
+Arabic word for *quorum* is right — which is why this plan optimizes the verifier queue and the
+glossary, not the provider bill.
 
 ---
 
@@ -451,10 +553,36 @@ queue, not the provider bill, is the thing this plan optimizes.
 - **One limiter**: `HostCapacity::autoscaleWorkers()` — reused, never duplicated. Cloud lane capped
   at 30% of that.
 - **The budget rail is enforced in the claim path**, not reported after the fact (§3 step 1).
-- Provider binding stays `LocalStubTranslationProvider` → NLLB by default; the currently-dead
-  `config/matrix.php:129` `provider` key gets wired to a factory, so the cloud tier is one env var
-  away when local capacity runs out — the operator's "local for now" posture, without a code change
-  standing between him and the switch.
+- **The router is NEVER bound globally over `TranslationProvider::class`** — this is the single
+  most dangerous edit available in this lane, and it is ruled out by design. `TranslationGate`
+  takes one injected provider and calls `isCloud()` **with no arguments, before it knows anything
+  but the room**; `AppServiceProvider:25` binds that interface globally, and the live K-3 path
+  (`POST /civic/matrix/translate`) resolves exactly that binding. Rebind it to a tier-routing
+  provider and one of two things happens: the router reports `isCloud() = true` conservatively and
+  **every private, encrypted and org-private room silently loses translation** — a shipped K-3
+  feature, gone; or it reports `false` and the rail **fails open**, putting private text on a cloud
+  wire. It cannot report accurately, because `isCloud()` is called before `translate()` and never
+  learns the locale or namespace.
+  **And the existing pins would not notice either outcome**: `TranslationPrivacyRailTest`
+  constructs `TranslationGate` directly with Mockery doubles and never resolves the container.
+  So the plan's "the four constitutional pins stay green" is true and *not a safety argument*.
+  Instead: the router is a **contextual binding injected only into the sweep engine** (the
+  `MediaScanProvider` pattern applied per-consumer), the Matrix gate keeps the local provider, and
+  routing is decided by the caller from `(tier, namespace, is_private)` **before** a provider is
+  handed to a gate — never inside an `isCloud()` the gate calls first.
+  New pin: resolve the binding `MatrixTranslationController` actually receives and assert
+  `isCloud() === false`.
+- Default posture stays local NLLB; `config/matrix.php:129`'s currently-dead `provider` key becomes
+  the sweep-side factory's input, so the cloud tier is one env var away when local capacity runs
+  out — the operator's "local for now" posture, without a code change standing between him and the
+  switch.
+- **Cross-engine core contention is a real constraint, not a footnote.** `HostCapacity` states the
+  settled ruling verbatim — *one* concurrency limiter, cores−2. The local NLLB lane contends for
+  exactly the resource autoscale's limiter governs, so a live districting run (10 workers) plus a
+  translation run on a 12-core box is 18 CPU-bound processes against 10 reserved cores, and the
+  geodata engine would add a third pool. Rule: **local-tier translation claims are refused while
+  any autoscale or geodata run is non-terminal**; the cloud tier, being network-bound, keeps
+  flowing. No second dial is minted.
 - **THE ETL RULE** applies to every bulk memory write: bounded committed chunks with per-chunk
   progress, resumable at any boundary, never one opaque multi-hour transaction.
   `SET max_parallel_workers_per_gather=0` on planet-wide passes; `VACUUM ANALYZE` churned tables at
@@ -476,7 +604,13 @@ queue, not the provider bill, is the thing this plan optimizes.
   cap arithmetic, a full cloud pool routes the next claim to local work, the drain rule lifts the
   cap.
 - **`TranslationPrivacyRailTest`** — **extended, not replaced**: the existing four constitutional
-  pins stay green, plus the new DB `CHECK` rejects a cloud-provider row marked private.
+  pins stay green, plus the new DB `CHECK` rejects a cloud-provider row marked private, plus — the
+  gap the existing pins cannot see — **a container pin**: resolve the `TranslationProvider` that
+  `MatrixTranslationController` actually receives and assert `isCloud() === false`, so no future
+  global rebinding can disarm the K-3 rail while the Mockery-based pins stay green.
+- **`I18nMessageFormatTest`** — an Arabic 6-form plural renders the correct branch at
+  n = 0, 1, 2, 3, 11, 100 (proving `pluralRules` are registered), and a source string containing a
+  literal `|`, `{` and `@` survives extract → emit → compile without changing meaning.
 - **`I18nCatalogParityTest`** — the day-one case is the **live 8-key drift**: `nav.commons`,
   `nav.federation`, `nav.halls`, `nav.liveHalls`, `nav.liveSquare`, `nav.operatorOps`,
   `nav.publicSquare`, `nav.rooms` — missing from all four non-English catalogs and silent today
@@ -530,7 +664,15 @@ queue, not the provider bill, is the thing this plan optimizes.
 - **No change to the hardened layer, PROTECTED files, the hash-chained audit log, or ballot
   secrecy.** Translation is presentation-only: **no locale ever alters a hardened computation.**
 - Private content is local-provider-only, **triple-railed**: the gate, the provider's `isCloud()`
-  bit, and the database CHECK.
+  bit, and the database CHECK — plus the container pin that keeps the first rail armed.
+- **No CHECK constraint on `public_records.translations`.** It is a federation-replicated column
+  (`FederationSyncService.php:117,514` export and import it verbatim), and the current reader
+  deliberately accepts two shapes — a scalar quality string *or* an object with a `quality` key
+  (`PublicRecordsController.php:171`). A constraint tight enough to be useful would reject payloads
+  the reader is written to consume and would abort an inbound sync batch from a peer on older code
+  — and because `publish()` runs inside `ConstitutionalEngine::file()`'s transaction, it could
+  abort a lawful local publication too. **Validate on local publish; normalize, never reject, on
+  import.**
 - Standing CI up is lane 2's call; migrating any of the 19 old-shell pages is lane 6's punchlist,
   pending the operator.
 
@@ -551,4 +693,42 @@ queue, not the provider bill, is the thing this plan optimizes.
    necessarily also touches `database/migrations/` (one additive migration),
    `app/Services/Translation/`, `app/Jobs/`, `app/Console/Commands/`, one line in
    `routes/console.php`, the generated `config/locales.php`, and — for WF-SYS-03 only —
-   `PublicRecordService::publish()` and `PublicRecordsController`'s read path.
+   `PublicRecordService::publish()` and `PublicRecordsController`'s read path. Note that
+   `routes/console.php` is now a **three-lane shared write** (autoscale, geodata, translation all
+   schedule `everyMinute` commands); a collision protocol for it is worth stating fleet-wide.
+5. **May private source text be retained in the translation memory at all?** The memory keeps
+   `source_text` so the verifier queue can show a reviewer what they are correcting. For T3
+   content that means private prose sits in a table verifiers can page through, outliving deletion
+   of the row it came from. The privacy rail keeps it off cloud wires; it does not make it
+   *forgettable*. Two honest options: keep it (and scope who may read the queue), or have private
+   units bypass the memory entirely — translated per-row, never pooled, at the cost of losing reuse
+   on exactly the highest-volume corpus. This is a privacy posture, not an engineering dial.
+
+---
+
+## 13. Revision note — adversarial review pass (2026-07-25)
+
+This document was re-verified after publication by an independent adversarial pass over three
+lenses (constitutional rails, arithmetic, engine mechanism). Twelve findings were adopted; the
+substantive corrections, recorded so the reasoning is not lost:
+
+| # | What was wrong | Where |
+|---|---|---|
+| 1 | Binding the tier router globally over `TranslationProvider::class` would break the live K-3 private-room path — and the existing pins could not detect it | §8, §9 |
+| 2 | `translation_memory`'s uniqueness key omitted `is_private`, letting a cloud-translated public string be matched for private content | §2 |
+| 3 | The message format is **vue-i18n's, not ICU**; no `pluralRules` are registered, and `\|`/`{`/`@` are reserved characters an extractor must escape | §6 |
+| 4 | **The 115 → 77 arithmetic did not work** — the stated exclusions give 112. Registration and translation-capability are two different ladders | §6 |
+| 5 | **Metadata sidecars sat inside the loader's glob** — `<ns>.meta.json` would have shipped to browsers as a namespace | §7 |
+| 6 | Phase advance could fire mid-enumeration, publishing a locale at partial coverage | §1 |
+| 7 | Completion defined as a done-count could strand a 99.9%-finished run forever | §1 |
+| 8 | Spend reconciled from surviving rows silently erases real money on any retry | §5 |
+| 9 | Lazy loading would break `app.js`'s `availableLocales` guard and race Inertia's render | §7 |
+| 10 | Output expansion at 1.4× was optimistic (2.0× blended); the prompt cache is a ~1.45× lever, not the dominant one — output volume is | §7 |
+| 11 | Local-tier workers contend with autoscale for the same cores under a one-limiter ruling | §8 |
+| 12 | A CHECK on the federation-replicated `translations` column would abort peer syncs | §11 |
+
+Findings 4 and 5 were errors introduced by this lane. Both are corrected above rather than
+quietly amended. One finding was **declined**: the review flagged the WF-SYS-03 badge as unable to
+express a shortfall — its recommended fix (seal the owed locale set at INSERT, let delivery records
+carry only delivery) is already this plan's design, arrived at independently from the immutability
+trigger in §0.
