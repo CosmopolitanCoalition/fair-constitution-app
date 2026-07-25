@@ -274,6 +274,20 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 15. **86,066 soft-deleted districts sit inside active maps** (~4.5% overcount) — any district
     count that omits `whereNull('deleted_at')` overstates. Found by lane 4, posted to lane 1;
     all district figures are timestamped because the healing loop moves them hourly.
+16. **⚑ `racePlan()` blocks a WHOLE election plan when only the Type B half is illegal** — found
+    independently by lanes 3 and 4, and the most consequential engine finding of the review round.
+    `ElectionLifecycleService`'s `$blocked` is a **run-level** flag: `scheduleGeneral()` returns
+    early (`:166-170`) *before* `createRaces()` (`:173`), and `generateRaces()` throws a
+    ConstitutionalViolation for the entire plan (`:640-660`). So a chamber whose `type_b_seats`
+    exceeds the ceiling loses its perfectly lawful **Type A district races** as collateral.
+    Measured: **30,262 legislatures have `type_b_seats > 9`** (only 9,708 carry the
+    `type_b_needs_districting` flag — a predicate keyed to the flag misses **20,667**), and lane 4
+    puts the collateral at **23.8% of all planet seats**. Consequence: at planet scale the
+    elections phase is a no-op on ~30k chambers, and any lane that "routes around" it would be an
+    engine overriding the seating law. **Operator decision, not a lane fix**: make `racePlan()`
+    per-kind (schedule the lawful Type A races, defer only the illegal Type B half) — it touches
+    the elections engine, so it needs the operator's word. Launch relevance: any such jurisdiction
+    that activates on the Standard instance cannot hold an election.
 
 ---
 
