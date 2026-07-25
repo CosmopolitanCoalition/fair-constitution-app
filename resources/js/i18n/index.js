@@ -28,7 +28,14 @@ import hi from './hi.json';
 const NS_MODULES = import.meta.glob('./locales/*/*.json', { eager: true });
 
 function mergeNamespaces(base) {
-    const merged = { en: { ...base.en }, es: { ...base.es }, ar: { ...base.ar }, 'zh-Hans': { ...base['zh-Hans'] }, hi: { ...base.hi } };
+    /* Seed EVERY registered code, not the five this once hardcoded. app.js gates
+       the initial locale on `availableLocales.includes(...)`, so a locale absent
+       here is silently discarded and the user renders English regardless of their
+       stored preference — invisibly, because missingWarn/fallbackWarn are false.
+       An empty object is enough to make the locale "available"; its messages fall
+       back to en until a catalog exists. */
+    const merged = {};
+    for (const l of ALL_LOCALES) merged[l.code] = { ...(base[l.code] ?? {}) };
     for (const path in NS_MODULES) {
         const m = path.match(/\.\/locales\/([^/]+)\/([^/]+)\.json$/);
         if (!m) continue;
@@ -39,15 +46,28 @@ function mergeNamespaces(base) {
     return merged;
 }
 
-export const LOCALES = [
-    { code: 'en', name: 'English', dir: 'ltr' },
-    { code: 'es', name: 'Español', dir: 'ltr' },
-    { code: 'ar', name: 'العربية', dir: 'rtl' },
-    { code: 'zh-Hans', name: '中文（简体）', dir: 'ltr' },
-    { code: 'hi', name: 'हिन्दी', dir: 'ltr' },
-    /* en-XA intentionally not listed: it is a QA tool surfaced in the dev
-       bar, not a product language. */
-];
+/* THE locale registry now lives in ONE generated place — scripts/i18n/languages.py
+   emits both this and config/locales.php, which is what ends the five-way drift
+   (this file, SetLocale::SUPPORTED, MyRecordController, app.blade.php's RTL set,
+   and Register.vue's hardcoded array).
+
+   LOCALES keeps its historical shape — {code, name, dir} — so every existing
+   consumer (the switcher, applyDir) works untouched; `name` is the ENDONYM,
+   because a language picker that lists languages in English is useless to the
+   person who needs it. `enabled` is the switcher's filter: a registered locale
+   with no catalog yet is known to the app but not offered as a choice.
+
+   en-XA is still deliberately absent: it is the pseudo-locale QA tool surfaced
+   in the dev bar, never a product language. */
+import { LOCALES as REGISTRY, pluralRules, ENABLED } from './locales.generated.js';
+
+export const LOCALES = REGISTRY
+    .filter((l) => l.enabled)
+    .map((l) => ({ code: l.code, name: l.endonym, dir: l.dir }));
+
+/** Every registered locale, including display-only ones (name + direction). */
+export const ALL_LOCALES = REGISTRY;
+export { pluralRules, ENABLED };
 
 /* en-XA pseudo-locale: accent + ~35% pad + bracket markers. Deterministic.
    ID tokens (R-/WF-/F-/I-/CLK-) and {placeholders} survive untouched. */
@@ -88,6 +108,11 @@ export const i18n = createI18n({
         ...mergeNamespaces({ en, es, ar, 'zh-Hans': zhHans, hi }),
         'en-XA': {},
     },
+    /* CLDR plural selectors, generated per locale. vue-i18n's built-in selector
+       resolves at most three forms; Arabic has six. Without this an Arabic
+       plural renders the wrong branch at runtime while a form-counting check
+       reports it as correct — silent, because the warnings below are off. */
+    pluralRules,
     missingWarn: false,
     fallbackWarn: false,
     postTranslation: (translated) =>

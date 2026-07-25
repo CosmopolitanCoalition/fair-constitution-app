@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Civic;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetLocale;
 use App\Models\AuditEntry;
 use App\Models\Candidacy;
 use App\Services\JourneyService;
@@ -40,8 +41,17 @@ use Inertia\Response;
  */
 class MyRecordController extends Controller
 {
-    /** Locales offered in the personal-settings panel (mirrors onboarding). */
-    public const LOCALES = ['en', 'es', 'ar', 'zh-Hans', 'hi'];
+    /**
+     * Locales offered in the personal-settings panel — resolved from THE locale
+     * registry (config/locales.php) rather than hand-copied. This was the third
+     * of five copies of the same list, and they had drifted.
+     *
+     * @return list<string>
+     */
+    public static function locales(): array
+    {
+        return SetLocale::supported();
+    }
 
     /** Profile tabs (profile-v2.js tabsFor(), self view). Invalid ?tab= → 'overview'. */
     public const TABS = [
@@ -162,7 +172,7 @@ class MyRecordController extends Controller
                 'timezone'     => $user->timezone,
                 'languages'    => $user->languages ?? [],
             ],
-            'localeOptions'   => self::LOCALES,
+            'localeOptions'   => self::locales(),
             'languageOptions' => RegisteredUserController::LANGUAGES,
         ]);
     }
@@ -172,7 +182,7 @@ class MyRecordController extends Controller
     {
         $validated = $request->validate([
             'display_name' => ['nullable', 'string', 'max:255'],
-            'locale'       => ['nullable', 'string', Rule::in(self::LOCALES)],
+            'locale'       => ['nullable', 'string', Rule::in(self::locales())],
             'timezone'     => ['nullable', 'string', 'timezone:all'],
             'languages'    => ['sometimes', 'array', 'max:' . count(RegisteredUserController::LANGUAGES)],
             'languages.*'  => ['string', Rule::in(RegisteredUserController::LANGUAGES)],

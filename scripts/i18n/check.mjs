@@ -71,9 +71,21 @@ function flatten(obj, prefix = '', out = {}) {
     return out;
 }
 
-/* chrome: resources/js/i18n/<code>.json */
-const chromeFiles = readdirSync(I18N).filter((f) => /^[a-zA-Z-]+\.json$/.test(f));
-const chromeLocales = chromeFiles.map((f) => f.replace(/\.json$/, ''));
+/* THE registry decides what counts as a locale. Pattern-matching filenames in
+   the i18n root swept up this script's own coverage.json and reported it as a
+   language stuck at 0%. */
+function registryCodes() {
+    const p = join(I18N, 'locales.generated.js');
+    if (!existsSync(p)) return null;
+    return new Set([...readFileSync(p, 'utf8').matchAll(/code:\s*"([\w-]+)"/g)].map((m) => m[1]));
+}
+const REGISTRY_CODES = registryCodes();
+
+/* chrome: resources/js/i18n/<code>.json — only for codes the registry knows. */
+const chromeLocales = readdirSync(I18N)
+    .filter((f) => /^[a-zA-Z-]+\.json$/.test(f))
+    .map((f) => f.replace(/\.json$/, ''))
+    .filter((code) => (REGISTRY_CODES ? REGISTRY_CODES.has(code) : code !== 'coverage'));
 
 /* namespaces: resources/js/i18n/locales/<code>/<ns>.json */
 const nsLocales = existsSync(LOCALES)
@@ -191,18 +203,24 @@ function jsRegistryCodes() {
     if (!block) return null;
     return [...block[1].matchAll(/code:\s*'([^']+)'/g)].map((m) => m[1]).sort();
 }
-function phpSupportedCodes() {
-    const p = join(ROOT, 'app', 'Http', 'Middleware', 'SetLocale.php');
+/* The PHP side is now generated too, so C7 compares the two GENERATED artifacts
+   rather than two hand-copies. A mismatch means one was edited by hand or one
+   generator run is stale — both of which are exactly what C7 exists to catch. */
+function phpEnabledCodes() {
+    const p = join(ROOT, 'config', 'locales.php');
     if (!existsSync(p)) return null;
     const src = readFileSync(p, 'utf8');
-    const block = src.match(/SUPPORTED\s*=\s*\[([\s\S]*?)\];/);
-    if (!block) return null;
-    return [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();
+    return [...src.matchAll(/'([\w-]+)'\s*=>\s*\[[^\]]*'enabled'\s*=>\s*true/g)]
+        .map((m) => m[1])
+        .sort();
 }
 const jsCodes  = jsRegistryCodes();
-const phpCodes = phpSupportedCodes();
+const phpCodes = phpEnabledCodes();
 if (jsCodes && phpCodes && jsCodes.join(',') !== phpCodes.join(',')) {
     fail('C7-registry', null, null, null, `JS[${jsCodes.join(',')}] vs PHP[${phpCodes.join(',')}]`);
+}
+if (jsCodes && !phpCodes) {
+    fail('C7-registry', null, null, null, 'config/locales.php missing — run scripts/i18n/languages.py --write');
 }
 
 /* ─── Coverage artifact (the dashboard reads this) ───────────────────────── */
