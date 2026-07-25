@@ -666,6 +666,26 @@ directions matter:** a red result during concurrent work is not automatically re
 before believing it), and a green result is not proof if a hardened file changed mid-run. Report
 either outcome on the board rather than silently re-running until green. Found by lane 4.
 
+### Suite state during the build wave: 571 passed / 8 failed — and the 8 are NOT this wave's
+
+Lane 3 ran a clean full suite on a quiet dev DB (571 passed, 8 failed, 134 skipped, 295,207
+assertions, 752s — down from 11) and **proved** the remainder weren't its own by reverting its five
+files to their pre-build state and re-running to the identical eight. Lane 7 extended the
+attribution, because "not lane 3's" ≠ "pre-existing" while lanes 4 and 13 also have code in the
+tree: **not one of the eight tests' subject files was touched in today's wave** (swept every commit
+since 12:00 against CgcIpRegisterService/OrgOwnership/Conversion/Transfer · CoDeterminationService/
+OrgMembership/org_contracts · TabulationRecorder/Domain-Counting/VoteCounting/BallotCrypto ·
+ColdSync/Mirror · Matrix/social · Transport/Federation). **The build wave did not break these.**
+
+**Working hypothesis: environmental, not code.** Three of the original eleven vanished purely by
+seeding `clocks` — database-state failures wearing the costume of code failures. The dev box is a
+virgin install, and the reported causes are assertion failures plus *one empty-uuid cast*, which is
+what a lookup returning nothing looks like. **Re-run on a seeded instance before reading service
+code.** Not assigned to a build lane mid-wave; lane 7 carries them until a seeded run adjudicates.
+**Lane 2's checklist gains an item: a green suite must be demonstrated on a SEEDED instance** — a
+virgin box cannot produce one, and that failure mode is indistinguishable from broken code at a
+glance.
+
 ### Two SQL constructs that pass review and fail in production (lane 4's pins, propagated)
 
 1. **`make_interval(secs => ?)` is broken with a bound parameter** — PDO binds integers as text, so
