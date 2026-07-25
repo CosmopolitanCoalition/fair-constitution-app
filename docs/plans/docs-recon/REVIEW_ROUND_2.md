@@ -647,9 +647,32 @@ a real-dated file landing mid-sequence broke virgin installs").
 **Gap:** the one-lane-at-a-time **slot** rule serializes `migrate` *runs*; it does not stop two
 lanes from *naming* files independently, because names are chosen while another lane holds the slot.
 
-**Recommended (cheap):** when claiming the migration slot on the board, **claim the sequence number
-in the same entry** (`claiming 2026_07_25_000004`). One line, prevents the dependent case. Fresh
-installs should also be smoke-tested from the migration files, not only from the flattened baseline.
+**RESOLVED 2026-07-25 17:14 — per-lane ORDINAL BLOCKS assigned** (adopting lane 4's proposal over
+this desk's weaker one; lane 4 counted **three** collisions across four lanes, not one). Claiming a
+number on the board still required every lane to read the board before naming a file; **blocks
+require no coordination at all**: lane 1 `1–9` · lane 3 `000010+` · lane 4 `000020+` · lane 13
+`000030+` · lane 14 `000040+` · lane 5 `000050+` · lane 2 `000060+`. Within a block a lane is the
+only writer, so collision is impossible rather than unlikely. **The five already-applied files are
+NOT renumbered** — renaming an applied migration re-runs it on every box that has seen it, and
+today's ties are verified independent. Fresh installs must still be smoke-tested from the migration
+**files**, not only the flattened baseline.
+
+### ⚑ Fleet-wide: `ConstitutionalVersionTest` can go FALSE RED under concurrent work
+
+`ConstitutionalVersionService` hashes the hardened files **off disk**, and `DistrictingService.php`
+is on that surface — so if any lane commits to a hardened file *while another lane's suite runs*,
+the test fails for a reason unrelated to the code under test and does not reproduce. **Both
+directions matter:** a red result during concurrent work is not automatically real (re-run alone
+before believing it), and a green result is not proof if a hardened file changed mid-run. Report
+either outcome on the board rather than silently re-running until green. Found by lane 4.
+
+### Two SQL constructs that pass review and fail in production (lane 4's pins, propagated)
+
+1. **`make_interval(secs => ?)` is broken with a bound parameter** — PDO binds integers as text, so
+   it fails **at runtime under load**, not at parse time. Any lane binding into `make_interval`
+   has a latent production failure its tests may not show.
+2. **`ON CONFLICT ON CONSTRAINT` resolves constraint NAMES only** — an expression index can never
+   be one. Relevant to anyone copying the autoscale re-mint idiom onto a nullable-column key.
 
 ## 4g. Lane 13's ledger spine (L-2, `01d019a`) — a REASONED deviation from an ordered rail, checked and endorsed
 
