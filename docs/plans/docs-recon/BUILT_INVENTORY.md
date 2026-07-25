@@ -66,10 +66,18 @@ alongside as [BUILT_INVENTORY_EVIDENCE.md](BUILT_INVENTORY_EVIDENCE.md).
    wired, UI badge) + the K-3 TranslationProvider/TranslationGate seam whose code comment says
    "The full hybrid router is Phase N; the rail is permanent."
 5. **O instance_class** — the column is absent, but the `scale_demo` class's key invariant (CI-2:
-   no federation consent) is **already enforced and constitutionally pinned**:
+   no federation consent) is **already implemented and constitutionally pinned**:
    `MatrixFederationGateService::desiredFederationWhitelist(scaleDemo: true) === []`,
    `MatrixFederationWhitelistTest:51-52`. Persistence half unbuilt; note `game_mode`
    (production|sandbox) is a DIFFERENT axis.
+   **⚠ QUALIFIED 2026-07-25 (lane 4 adversarial verification — sharper than the original claim):
+   the rail is INERT IN PRODUCTION.** The only production caller, `setRoomServerACL()`
+   (`MatrixFederationGateService.php:67`), passes no argument, so `$scaleDemo` is always false;
+   the `true` path is exercised *only* by the test. Worse, the anti-self-brick guard at `:70`
+   (`empty($allow) || ! in_array($local, $allow)` → ConstitutionalViolation) means naively wiring
+   it globally converts an inert rail into a live self-brick. Correct reading: **the invariant
+   exists and is pinned; the production path never reaches it.** Wiring it touches a pinned
+   constitutional test → operator decision, routed via lane 4's plan.
 6. **H F-ELB-007 splitline** — the automated shortest-splitline generator SHIPPED
    (`SubdivisionAutoseedService` + `LeafGiantResolver`, 473k planetary line-splits, filings under
    F-ELB-008); only the form ID was never minted. `ManualDistrictDraw.php:17` literally calls
@@ -241,6 +249,23 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 11. **Phase I activation pipeline has zero automated tests** (live-stack verified only).
 12. **users.languages multi-select + "records are translated" UI copy promise a pipeline that
     doesn't exist** — either deliver minimally in N or soften the copy pre-launch.
+
+*Added 2026-07-25 from lane adversarial-verification passes (fleet-wide, not lane-local):*
+
+13. **The audit lock is transaction-scoped — bulk writers must append LAST.**
+    `AuditService::append()` takes `pg_advisory_xact_lock` (`AuditService.php:77`) *inside the
+    caller's transaction*, so any worker that appends its batch summary early holds a GLOBAL
+    appender lock for the whole chunk, serializing every other lane's writes behind it. Rule for
+    every bulk/chunked writer (lanes 1, 3, 4, 13): append the batch summary **after** the bulk
+    write commits, in its own short transaction. Found by lane 4; broadcast to 1/3/13.
+14. **No artisan command carries an environment guard** — every `*:demo*` / seeding command will
+    run against whatever database it is pointed at, including a production cloud node. Pre-launch
+    exposure → lane 2's launch checklist. (Related: existing demo commands use `@cga.test` +
+    `Hash::make('demo')`; the reserved `*@demo.invalid` namespace + random secrets is the correct
+    pattern, live only in `SocialDemoCommand`/`MatrixDemoCommand`.)
+15. **86,066 soft-deleted districts sit inside active maps** (~4.5% overcount) — any district
+    count that omits `whereNull('deleted_at')` overstates. Found by lane 4, posted to lane 1;
+    all district figures are timestamped because the healing loop moves them hourly.
 
 ---
 
