@@ -813,6 +813,27 @@ class SetupController extends Controller
      */
     public function saveConstants(Request $request): JsonResponse
     {
+        // Operator-only (the route is auth-gated; require the operator flag so a
+        // self-registered citizen can't author the world's constitution). The
+        // founder account is created BEFORE any wizard step by design — index()
+        // sends a userless instance to /setup/operator first — so this can never
+        // lock a legitimate founder out of step 1.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        // Founding property: LOCK once setup completes. Constitutional settings
+        // are amendable ONLY through F-LEG-031 → EnactmentService, which writes
+        // the setting_changes ledger, the audit chain and the enacting act. This
+        // path writes constitutional_settings RAW (writeConstitutionalSettings),
+        // so leaving it open after founding would let every governed key —
+        // including judiciary_is_elected, the sole DUAL_DOOR_KEYS entry — be
+        // rewritten with no act, no ledger row and no audit entry, defeating the
+        // dual door entirely. Mirrors saveGameMode's founding lock.
+        if (InstanceSettings::current()->isSetupComplete()) {
+            return response()->json([
+                'error' => 'The constitution is authored at founding. Once setup is complete, settings change only through an act of a legislature (F-LEG-031).',
+            ], 409);
+        }
+
         $data = $request->validate([
             'legislature_min_seats'             => ['required', 'integer', 'min:1'],
             'legislature_max_seats'             => ['required', 'integer', 'min:1'],

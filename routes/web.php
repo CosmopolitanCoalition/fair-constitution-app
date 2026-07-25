@@ -95,7 +95,13 @@ Route::post('/api/setup/bootstrap/create-founder', [SetupController::class, 'cre
 
 Route::get('/api/setup/state', [SetupController::class, 'state'])->name('api.setup.state');
 Route::post('/api/setup/cosmic-address', [SetupController::class, 'saveCosmicAddress'])->name('api.setup.cosmic-address');
-Route::post('/api/setup/constants', [SetupController::class, 'saveConstants'])->name('api.setup.constants');
+// Setup v2 — the founding constitution + economy defaults. AUTH-gated for the
+// same reason game-mode is: this writes constitutional_settings RAW, bypassing
+// F-LEG-031 / EnactmentService, so it must never be a guest trigger. The handler
+// additionally requires is_operator + refuses once setup is complete (post-
+// founding, settings move only by act of a legislature).
+Route::post('/api/setup/constants', [SetupController::class, 'saveConstants'])
+    ->middleware('auth')->name('api.setup.constants');
 // Setup v2 — world game mode (production | sandbox) chosen at the defaults step.
 // AUTH-gated: flipping to sandbox unlocks the dev toolbox, so it must never be a
 // guest trigger (the founder is logged in from createFounder onward); the handler
@@ -869,6 +875,10 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     // mockups/v3/system/amendments.html). Zero actions by design.
     Route::get('/clocks', [\App\Http\Controllers\System\ClocksController::class, 'show'])->name('clocks');
     Route::get('/amendments', [\App\Http\Controllers\System\AmendmentsController::class, 'show'])->name('amendments');
+    // Phase N (lane 5) — translation status board. Read-only; the numbers are
+    // the coverage artifact scripts/i18n/check.mjs writes, never a second
+    // computation that could disagree with the gate.
+    Route::get('/translations', [\App\Http\Controllers\System\TranslationCoverageController::class, 'show'])->name('translations');
 });
 
 // mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form
