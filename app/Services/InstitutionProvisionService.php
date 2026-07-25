@@ -56,7 +56,46 @@ class InstitutionProvisionService
     /** The steps this service provisions, in dependency order. */
     public const STEPS = ['executives', 'judiciaries', 'election_boards', 'board_members', 'social_spaces'];
 
+    private ?string $binding = null;
+
     public function __construct(private readonly AuditService $audit) {}
+
+    /**
+     * The world's population binding — a FOUNDING property, read once per run.
+     *
+     * `real` = institutions scale to actual population (the zero rule applies).
+     * `free` = population imposes nothing; every jurisdiction gets its set.
+     * Never a per-jurisdiction dial: one place cannot exempt itself from the
+     * world's physics.
+     */
+    public function binding(): string
+    {
+        return $this->binding ??= (string) (DB::table('instance_settings')
+            ->whereNull('deleted_at')
+            ->value('population_binding') ?: InstitutionScaleService::BINDING_REAL);
+    }
+
+    /**
+     * How many jurisdictions the zero rule excludes — the "nothing for nobody"
+     * count, reported so the operator sees what was deliberately skipped
+     * rather than silently missing.
+     */
+    public function skippedUninhabited(): int
+    {
+        if ($this->binding() === InstitutionScaleService::BINDING_FREE) {
+            return 0;
+        }
+
+        return (int) DB::scalar('
+            SELECT count(*) FROM jurisdictions j
+             WHERE j.deleted_at IS NULL
+               AND COALESCE(j.population, 0) < 1
+               AND NOT EXISTS (SELECT 1 FROM jurisdictions c
+                                WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
+               AND EXISTS (SELECT 1 FROM legislatures l
+                            WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
+        ');
+    }
 
     /**
      * Provision every step across every jurisdiction holding a legislature.
@@ -223,10 +262,24 @@ class InstitutionProvisionService
                                     AND s.is_private = false AND s.deleted_at IS NULL) < 2",
         };
 
+        // THE ZERO RULE (operator ruling 2026-07-25). Under `real` population
+        // binding an uninhabited jurisdiction gets NOTHING — empty boundary
+        // rows are geodata, not polities. A place whose population reads 0
+        // while it holds real constituents is a raster artefact, not an empty
+        // place, so "has parts" also qualifies: its constituents still need
+        // somewhere to meet. Mirrors InstitutionScaleService::tierFor(), which
+        // is the reference implementation and is pinned against this SQL.
+        $inhabited = $this->binding() === InstitutionScaleService::BINDING_FREE
+            ? 'true'
+            : "(COALESCE(j.population, 0) >= 1
+                OR EXISTS (SELECT 1 FROM jurisdictions c
+                            WHERE c.parent_id = j.id AND c.deleted_at IS NULL))";
+
         return "SELECT j.id AS jid
                   FROM jurisdictions j
                  WHERE j.deleted_at IS NULL
                    {$keyset}
+                   AND {$inhabited}
                    AND EXISTS (SELECT 1 FROM legislatures l
                                 WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
                    AND {$missing}";

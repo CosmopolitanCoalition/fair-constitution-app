@@ -50,7 +50,21 @@ class InstitutionsProvisionCommand extends Command
             .number_format(InstitutionProvisionService::CHUNK).' per committed transaction');
 
         $legislatures = (int) DB::scalar('SELECT count(*) FROM legislatures WHERE deleted_at IS NULL');
+        $binding      = $service->binding();
+        $skipped      = $service->skippedUninhabited();
+
         $this->line('  Jurisdictions with a legislature: <fg=yellow>'.number_format($legislatures).'</>');
+        $this->line('  Population binding (founding property): <fg=yellow>'.$binding.'</>');
+
+        if ($binding === 'real') {
+            // Report what the zero rule excludes, so "nothing for nobody" reads
+            // as a decision rather than as missing data.
+            $this->line('  Uninhabited, deliberately skipped: <fg=yellow>'.number_format($skipped).'</>'
+                .' <fg=gray>(no people, no parts → no institutions)</>');
+        } else {
+            $this->line('  <fg=gray>Population imposes nothing — every jurisdiction gets its full set.</>');
+        }
+
         $this->line('');
 
         if ($this->option('dry-run')) {
