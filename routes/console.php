@@ -39,6 +39,17 @@ Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOne
 Schedule::command('autoscale:pump')
     ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
+// ── Simulated-world pump (Phase O populate engine, 2026-07-25) ───────────
+// The same pattern, third instance (autoscale → geodata plan → simworld).
+// A populate run's ONLY liveness root: phase advance, stale-claim reclaim,
+// pg-crash breaker, lease cull, counters. Every duty idempotent and
+// seconds-long, so a missed tick costs a minute and a double tick costs
+// nothing. Phase advance lives HERE and nowhere else — a worker that can
+// advance a phase can advance it twice. No-ops in ~1 query when no run is
+// live, so it is free to leave scheduled on every instance.
+Schedule::command('sim:pump')
+    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave
