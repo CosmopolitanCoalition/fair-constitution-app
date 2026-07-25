@@ -119,7 +119,7 @@ forms (census below).
 | §2 Stack | Laravel 11, Meilisearch, Vue SPA + Pinia, Capacitor now | Laravel 12 + Inertia; no Meilisearch; Redis + Horizon; Matrix (Synapse+MAS) + LiveKit (K-3); Capacitor deferred (G-V1 parked); dual-stack dev convention |
 | §2.3/§3 Federation | ActivityPub + custom extensions | Custom peer mesh: FF&C sync, authority flip (export bundle = seed), mesh roles & channels of trust, dual-meter consent |
 | §4 DB | individuals, residency_pings, jurisdiction_boundaries, jurisdiction_settings, legislature_seats (with faction affiliation) | users, location_pings, `jurisdictions.geom` + versioned `jurisdiction_maps`, `constitutional_settings`, `legislature_members` (**faction columns removed**); 183-table flattened baseline (`database/schema/pgsql-schema.sql`, 2026-07-05) + real-dated additive migrations |
-| §5 Phases 0–6 | 76-week plan | 0–5 complete + G, K-1, K-3; districting/autoscale campaign complete (951,626 legislatures, Earth 1,999 seats exact); forward plan = `docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md` (H→L+M→I→K-2→N→O→J) + the 2026-09-01 scoped cloud launch |
+| §5 Phases 0–6 | 76-week plan | 0–5 complete + G, K-1, K-3; districting/autoscale campaign complete (≈955,130 legislatures across ≈951,626 jurisdictions, Earth 1,999 seats exact); forward plan = `docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md` (H→L+M→I→K-2→N→O→J) + the 2026-09-01 scoped cloud launch |
 | §5 Phase 0 seed | Natural Earth + OSM | geoBoundaries + WorldPop + protomaps ETL; geodata pull engine plan next |
 | §6 i18n/a11y | in Phase 6 | vue-i18n live (5 locales + glossary); full i18n/WCAG = Phase N |
 | §6 Security | baseline list | + hash-chained audit, ballot commitment scheme, late-production credential pass (pre-launch gate) |

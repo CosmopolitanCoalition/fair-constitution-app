@@ -191,6 +191,7 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 | `vote_casts` | citizen ballots | chamber/board voting lanes |
 | `audit_checkpoints` | Phase A audit | Phase F federation checkpoint publishing |
 | F-CHR-001..004 | civic-record (Charter?) forms | Committee CHAIR forms; civic record = F-SOC-* |
+| "M-5" (risk item 6) | Phase M market economy | K-3 Matrix legal-compliance layer (illegal-content plane) — the letter fools exactly this way; flagged by lane 13 |
 
 ---
 
