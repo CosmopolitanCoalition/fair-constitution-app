@@ -6,6 +6,24 @@ Status: **PLAN ONLY.** No code ships until the operator settles eager-vs-lazy (�
 Owner: lane 3 (`docs/plans/scaling/`). Consumed by lane 2 (cloud sizing), lane 4 (simulated
 world), lane 13 (per-jurisdiction economic objects), lane 15 (reach gauge).
 
+> **Revision 2 (2026-07-25) — corrections from adversarial verification.** Every claim here was
+> first verified directly against the live database and the code; a second pass then tried to
+> *refute* those claims, and five findings survived and changed the design:
+> (1) CLK-06's candidate set is **inverted, not empty** — the only rows that can pass are the
+> 1,206 soft-deleted jurisdictions, so the first thing the sweep would ever do is boot a
+> government inside a deleted place (§3);
+> (2) the provisioning engine must **never write `jurisdiction_activations`** — doing so forges
+> the Art. II §1 consent crossing and re-kills CLK-06 by our own hand (§5.2.1);
+> (3) the activation threshold is **not amendable by any legislature today**, so the "one
+> amendable row" framing is false until two PROTECTED files change (§6.1);
+> (4) per-cell k-anonymity is **provably insufficient** on an additive hierarchy — a suppressed
+> child is recovered exactly by subtraction (§6.3.1);
+> (5) gating the Plane A public square on a headcount is an **Art. I error**, distinct from the
+> capacity question about Matrix rooms (§5.6).
+> A third verification pass (numbers and Synapse capacity) and the synthesis pass were lost to a
+> spend limit; §5.5's capacity argument is therefore **operator-verified reasoning, not
+> independently re-checked** — flagged so it is not mistaken for a confirmed figure.
+
 ---
 
 ## 1. Why this plan exists
@@ -114,32 +132,73 @@ WHERE rc.is_active
 GROUP BY rc.jurisdiction_id
 ```
 
-Every live jurisdiction now has a legislature (§2.2), so `NOT EXISTS (legislatures …)` excludes
-**the entire planet**. The job is dispatched unconditionally every minute
-(`app/Jobs/EvaluateClocksJob.php:65`) and can never return a candidate.
+Every live jurisdiction now has a legislature (§2.2), so `NOT EXISTS (legislatures …)` is false
+for all of them. The job is dispatched unconditionally every minute
+(`app/Jobs/EvaluateClocksJob.php:65`).
 
-The predicate was correct when it was written: "has a legislature" then meant "is already
-governed". After the autoscale run it means nothing of the sort — a `forming` chamber with zero
-members is scaffolding.
+**The candidate set is not empty — it is inverted, and that is worse.** The query never joins
+`jurisdictions` at all: no `deleted_at` filter, no `adm_level`. Measured: live jurisdictions
+with no live legislature = **0**; **soft-deleted** jurisdictions with no live legislature =
+**1,206**. So the only rows that can ever pass the predicate are the deleted ones, plus any
+jurisdiction minted after the autoscale run without a legislature (federation import, manual
+split, a later ETL load).
 
-**The fix.** Test governance, not row existence. A jurisdiction is a candidate when it has
-active residents and is not yet self-governing:
+That is a live hazard rather than a curiosity. `residency_confirmations` has an FK
+`ON DELETE CASCADE` to `jurisdictions`, but jurisdictions are **soft**-deleted, so the cascade
+never fires and an active confirmation outlives its jurisdiction's deletion.
+`ActivationService::onCriticalPopulation` performs no liveness check of its own (`:158-201`
+reads nothing from `jurisdictions`), so the first thing this sweep would ever do on a populated
+instance is **boot a government inside a deleted jurisdiction**.
+
+The predicate was correct when written: "has a legislature" then meant "is already governed".
+After the autoscale run it means nothing of the sort — a `forming` chamber with zero members is
+scaffolding.
+
+**The fix.** Test governance, not row existence, and make jurisdiction liveness an explicit rail
+rather than a side effect of needing `population`:
 
 ```sql
 SELECT rc.jurisdiction_id, count(*) AS verified_residents
 FROM residency_confirmations rc
+JOIN jurisdictions j ON j.id = rc.jurisdiction_id AND j.deleted_at IS NULL   -- RAIL, not optional
 WHERE rc.is_active
   AND NOT EXISTS (SELECT 1 FROM jurisdiction_activations a
                   WHERE a.jurisdiction_id = rc.jurisdiction_id
                     AND a.deleted_at IS NULL
                     AND a.state IN ('critical_population','bootstrapping','self_governing'))
+  AND NOT EXISTS (SELECT 1 FROM legislatures l
+                  JOIN legislature_members lm ON lm.legislature_id = l.id
+                                             AND lm.deleted_at IS NULL
+                  WHERE l.jurisdiction_id = rc.jurisdiction_id AND l.deleted_at IS NULL)
 GROUP BY rc.jurisdiction_id
 HAVING count(*) >= <threshold>
 ```
 
-Dropping the legislature predicate entirely is safe because `ActivationService::ensureLegislature()`
-already **adopts** an existing legislature untouched (`app/Services/ActivationService.php:361-368`),
-and `onCriticalPopulation` refuses to re-enter a state it has passed (`:166-172`).
+Three things about that shape, each of which a later "cleanup" would otherwise undo:
+
+1. **The `jurisdictions` join must survive every variant**, including the tier-flag-off path
+   where the population lookup is not needed. It is the only thing standing between the sweep
+   and the 1,206 deleted jurisdictions.
+2. **The membership anti-join is load-bearing, not belt-and-braces.** Certification can seat a
+   chamber without ever calling `ActivationService` — `activate()` has exactly two callers
+   (`JurisdictionActivateCommand.php:112`, `ElectionsDemoCommand.php:250`) — so a seated-but-
+   unactivated jurisdiction is reachable, and without this clause the sweep would write
+   `critical_population` on top of a working government.
+3. **It means "no membership record at all", not "is anyone seated".** Vacancy in
+   `legislature_members` is a `status` change with `vacated_at`/`vacancy_reason`, not a soft
+   delete. This shape deliberately matches the codebase's own definition of memberless,
+   `ActivationService::isMemberlessForming` (`:711-714`). Anyone "fixing" it to
+   `lm.status = 'seated'` would re-open a jurisdiction whose entire chamber had vacated.
+
+Dropping the legislature-existence predicate is safe because `ensureLegislature()` **adopts** an
+existing legislature untouched (`:361-368`), and `onCriticalPopulation` refuses to re-enter a
+state it has passed (`:166-172`). Verified: nothing in `app/` or `database/` ever writes a
+`boundary_loaded` row — both insert paths `forceFill` a state first, so the column default is
+never taken.
+
+> **Schema note found while verifying:** `residency_confirmations` and `constitutional_settings`
+> have **no `deleted_at` column at all**. CLAUDE.md's "Soft deletes: all tables use `deleted_at`"
+> is doc drift for at least these two, and any predicate written against them must not assume it.
 
 **Two scale defects in the same job, fixed at the same time.**
 
@@ -268,7 +327,7 @@ reads by keyset in chunks of 25,000, matching `AutoscaleEnumeration`'s `CHUNK` c
 
 | Object | Planet total | Basis |
 |---|---:|---|
-| Activation rows | 955,130 | 1 each |
+| Activation rows | **0 — never written by the engine (§5.2.1)** | CLK-06 is the sole writer |
 | Executives | 955,130 | 1 each |
 | Judiciaries | 955,130 | 1 each |
 | Bootstrap boards + members | 955,130 + 955,130 | 1 each |
@@ -283,6 +342,31 @@ reads by keyset in chunks of 25,000, matching `AutoscaleEnumeration`'s `CHUNK` c
 
 Storage: institution rows ≈ **2–3 GB** at the measured 340–610 bytes/row, plus **~4 GB** of
 audit chain at 853 bytes/entry — roughly 25% growth on a 28 GB database. Affordable.
+
+### 5.2.1 The engine must never write `jurisdiction_activations` — a hard rail
+
+An earlier draft of this plan had the provisioning run stamp every jurisdiction into
+`bootstrapping`. That is unconstitutional and self-defeating, for two independent reasons:
+
+1. **It forges the Art. II §1 consent crossing.** `JurisdictionActivation::hasReached()`
+   (`app/Models/JurisdictionActivation.php:59-66`) is an index comparison over `STATE_ORDER`, so
+   stamping `bootstrapping` makes `hasReached('critical_population')` return **true for all
+   955,130** — a planet where nobody lives would report that its consent threshold had been met.
+   Consent is the one thing a provisioning engine cannot manufacture.
+2. **It re-kills CLK-06 a second time.** §3 removes the legislature predicate; the *other*
+   predicate is `a.state <> 'boundary_loaded'`. Writing a non-`boundary_loaded` row everywhere
+   satisfies it everywhere, and the sweep is dead again — this time by our own hand.
+
+**The rail:** institution stubs may be minted eagerly as dormant scaffolding, but the activation
+state machine has exactly two lawful writers, `CLK-06` and `jurisdiction:activate`. The engine
+records its own provenance in its own tables, never in `jurisdiction_activations.state`.
+
+A corollary for revert (§7.3): `jurisdiction_activations` carries a **full** `UNIQUE
+(jurisdiction_id)` while the model uses `SoftDeletes`. A soft-deleted activation row is invisible
+to every service query but still raises a unique violation on INSERT — so a revert that
+soft-deletes activation rows would **permanently wedge** re-provisioning of that jurisdiction.
+Since the engine never writes them, it never reverts them either; the rule is simply that this
+table is out of the engine's reach in both directions.
 
 ### 5.3 The constraint that actually binds: the audit chain is a global mutex
 
@@ -306,27 +390,51 @@ set-based, and `autoscale:revert` appends **one** chain entry for an entire reve
 writes go out as bounded committed chunks with **one chain entry per chunk**, carrying the chunk
 manifest in its payload. Tamper-evidence is preserved; the fleet is not serialized.
 
-### 5.4 Three idempotency gaps that block parallel provisioning
+### 5.4 Four idempotency gaps that block parallel provisioning
 
-`InstitutionStubService` decides "does one already exist?" by reading, then inserting — safe
-single-threaded, unsafe the moment two workers claim neighbouring batches. Verified on
-PostgreSQL 17.5:
+`ActivationService::activate()` is idempotent under **sequential** re-run and **not** under
+concurrency. Say it in those words, because the code reads as though it were safe:
+`InstitutionStubService` decides "does one already exist?" by reading, then inserting
+(`:46-59` → `:98-103`, a bare `insert()` with no transaction and no `ON CONFLICT`).
 
-| Table | State | Effect |
+The row lock does not help. Step 1 takes `lockForUpdate()` on the activation row, but the only
+early return is `state === self_governing` (`:226-228`, `:251-253`) — so worker B, unblocking to
+find `bootstrapping`, **proceeds anyway**. And in `ElectionLifecycleService::scheduleGeneral`
+(`:136-142`) the `lockForUpdate()` sits on a SELECT that returns **zero rows**, which locks
+nothing at all: both workers see `null` and both create.
+
+Verified live on PostgreSQL 17.5 via `pg_constraint` and `pg_index`:
+
+| Table | Actual uniqueness | Concurrent double-insert? |
 |---|---|---|
-| `judiciaries` | **no uniqueness on `jurisdiction_id`** — primary key only | two workers → two Superior Courts |
-| `executives` | `UNIQUE (jurisdiction_id, deleted_at)` | **ineffective**: unique indexes treat NULLs as distinct, and every live row has `deleted_at IS NULL`, so duplicate live rows do not conflict |
-| `elections` | primary key only | duplicate bootstrap elections |
+| `judiciaries` | **`judiciaries_pkey` only** — no unique index of any kind | **yes** — two Superior Courts |
+| `executives` | `UNIQUE (jurisdiction_id, deleted_at)`, `indnullsnotdistinct = f` | **yes** — two live rows |
+| `elections` | **`elections_pkey` only** | **yes** — two open general elections |
+| `election_board_members` | partial unique `… WHERE status='seated' AND user_id IS NOT NULL` | **yes** — the `user_id IS NULL` system member is unconstrained |
+| `jurisdiction_activations` | `UNIQUE (jurisdiction_id)`, full | no — one transaction aborts |
+| `election_boards` | `election_boards_one_active`, partial on the active row | no — aborts |
+| `election_races` | full unique **plus** `election_races_one_at_large_per_kind` | no — already covered |
 
-Safe by design, for contrast: `jurisdiction_activations` (`UNIQUE (jurisdiction_id)`),
-`election_boards` (`election_boards_one_active`, partial on the active row), `social_spaces`
-(partial `WHERE deleted_at IS NULL`), `matrix_rooms` (`NULLS NOT DISTINCT`), `social_subforums`.
+`indnullsnotdistinct = f` on `executives_jurisdiction_unique` is the decisive fact: PostgreSQL
+defaults to NULLS DISTINCT, so two rows sharing a `jurisdiction_id` with `deleted_at IS NULL`
+both satisfy the constraint. It guards the soft-delete history and not the live invariant.
 
-The correct patterns are therefore already in this schema — this is inconsistency, not
-ignorance. **Fix: one short additive migration** adding a partial unique index
-`WHERE deleted_at IS NULL` on `judiciaries(jurisdiction_id)`, replacing the executives index
-with the same shape, and adding a partial unique on `elections` for the bootstrap general
-election.
+The correct patterns are already in this schema — `social_spaces` (partial `WHERE deleted_at IS
+NULL`), `matrix_rooms` (`NULLS NOT DISTINCT`), `election_boards` — so this is inconsistency, not
+ignorance. **Fix: one additive migration with four partial unique indexes**
+(`judiciaries`, `executives`, `elections`, `election_board_members`). Not five: `election_races`
+already has `election_races_one_at_large_per_kind`, byte-identical in effect, and proposing a
+duplicate would be noise.
+
+Two details that will otherwise be got wrong:
+
+- **The `elections` predicate must be `status NOT IN ('certified','final','cancelled')`**, not
+  `status IN ('scheduled','approval_open')`. The status CHECK also admits `finalist_cutoff`,
+  `ranked_open`, `voting_closed`, `tabulating`, `audit_rerun` — so the narrow form would mint a
+  **second live general election during an open ballot**, which is the exact failure the index
+  exists to prevent.
+- The `election_boards` `ON CONFLICT` clause must **prove** predicate implication against the
+  stored index predicate at build time rather than assuming the planner infers it.
 
 > **A trap worth naming, because it looks like protection and is not:** the global audit
 > advisory lock serializes chain **appends**, not the reads that precede them. Both workers can
@@ -370,16 +478,36 @@ a category error, not a tuning problem.
 **Band 1 — scaffolding. Already eager, already paid.** 955,130 legislatures, 955,130 maps,
 1,895,048 districts, 951,622 settings rows: 2.1 GB of the existing 28 GB. Nothing to decide.
 
-**Band 2 — institution rows. Recommend EAGER, tier-gated.** ~5 rows and ~5 chain entries per
-jurisdiction; ~2–3 GB of rows plus ~4 GB of audit chain. Cheap in storage; the binding cost is
-the serialized chain (§5.3), which is why they are written in chunks with one chain entry per
-chunk. Eager here buys a real property: every jurisdiction can *show* its institutions and its
-first election before anyone lives there, which is what makes the world browsable.
+**Band 1½ — the Plane A public square. Recommend EAGER and UNGATED. This is an Art. I correction.**
+An earlier draft gated the `social_spaces` `public_square` row on ≥1 *verified* resident. That is
+a speech gate keyed to a headcount, and it fails the same test this document applies everywhere
+else. Someone 29 days into residency monitoring (role R-02) would have nowhere to organise, and a
+place with real people but no confirmations yet would have no square to recruit into — the
+chicken-and-egg moved down one integer rather than removed. One row is ~350 bytes, so all 955,130
+squares cost **≈0.33 GB**, comfortably inside the Band 1 budget already accepted. **Gating the
+durable record of the square on a headcount is the CI-4 error; gating the Matrix room on capacity
+is a legitimate engineering decision.** Different objects, decided separately.
 
-**Band 3 — rooms. Recommend LAZY — and note it already is.** Rooms are provisioned on seating
-with a nightly backstop, and LiveKit never pre-creates anything. **Eager rooms would be a
-deliberate regression against working code**, and it would target the one component that
-provably cannot hold the volume.
+**Band 2 — institution rows. Recommend EAGER, tier-gated.** Executive, judiciary, election board
++ member, bootstrap election — **never the activation row** (§5.2.1). ~4 rows and ~4 chain
+entries per jurisdiction; ~2–3 GB of rows plus ~4 GB of audit chain. Cheap in storage; the
+binding cost is the serialized chain (§5.3), which is why they are written in chunks with one
+chain entry per chunk. Eager here buys a real property: every jurisdiction can *show* its
+institutions and its first election before anyone lives there, which is what makes the world
+browsable.
+
+**Band 3 — Matrix and LiveKit rooms. Recommend LAZY — and note they already are.** Rooms are
+provisioned on seating with a nightly backstop, and LiveKit never pre-creates anything. **Eager
+rooms would be a deliberate regression against working code**, and it would target the one
+component that provably cannot hold the volume.
+
+> **A disclosure channel this creates, named rather than hidden.** Synapse's public room
+> directory is enumerable, so the existence of `#square-<slug>` publishes "this place has ≥1
+> verified resident" whatever k-anonymity is applied to the numbers (§6.3). Making Plane A
+> unconditional removes the Plane-A half of that leak. The Plane-B half is inherent to
+> demand-driven creation and must be either accepted explicitly as a `≥1` band disclosure with
+> that reasoning written down, or mitigated by creating the room on first *visit* rather than
+> first resident.
 
 #### The two worlds
 
@@ -448,6 +576,38 @@ non-NULL (`SettingsResolver.php:60-65`), so a `NOT NULL DEFAULT` would pin every
 its own row and destroy the cascade. A jurisdiction that genuinely needs an override still sets
 `critical_population_threshold` on its own row and wins, exactly as today.
 
+#### The amendability premise is false today, and fixing it touches PROTECTED files
+
+This document, the roadmap, and the mockup all describe the threshold as policy a legislature can
+amend. Verified: **it cannot.**
+
+- `SettingsController::REGISTER_KEYS` (`app/Http/Controllers/Legislature/SettingsController.php:38-56`)
+  lists 17 keys. `critical_population_threshold` is **absent** — so the settings register never
+  displays it and `BillController` never offers it.
+- `ConstitutionalValidator::SETTING_BOUNDS` (`app/Services/ConstitutionalValidator.php:169+`) —
+  **absent**. At `:332` any bill naming a key outside that table is rejected outright:
+  *"[key] is not an amendable constitutional setting."*
+- `ConstitutionalSettings::$fillable` omits it likewise.
+
+So shipping five `activation_tier_*` columns without registering them would deliver **a policy
+dial no legislature can amend and no citizen can see** — precisely contradicting the charter
+framing this design rests on. Registering them means editing `ConstitutionalValidator.php` and
+`ConstitutionalSettings.php`, **both on the PROTECTED list**, so this is constitutional-review
+work and must not be presented as a purely additive migration.
+
+**The bounds must carry a MAX, and that is a rights question, not a tidiness one.** Because
+`SettingsResolver` takes the nearest non-NULL ancestor, an unbounded setting lets *any* ancestor
+— up to Earth — set an arbitrarily large threshold or `cap` and render every descendant
+**permanently unbootable**. That is the franchise harm this curve exists to avoid, arriving by
+the back door. Bounds: `k ≥ 1`, `exponent` fixed at 3, `floor ≥ 1`, `cap ≥ floor` and `cap ≤` a
+hard ceiling, cited to Art. II §1 and Art. I — plus a pin asserting no resolved threshold can
+exceed the cap.
+
+**Alternative, if the operator prefers:** declare the curve params operator/founder-only
+configuration rather than legislative settings, and say so plainly in the doc and the UI. What
+is not acceptable is the current in-between, where the text calls them amendable and the code
+makes that impossible.
+
 Worked against the real planet:
 
 | Scope | Population | Threshold |
@@ -497,11 +657,34 @@ already accepts the threshold as a parameter and records it in `notes` and the a
 Putting the curve in a **pure static** is deliberate: it matches the established DB-free test
 posture (§8) so it can be pinned without a schema, exactly as `cubeRootSeats` is.
 
+**A third reader exists and must be named.** `ActivationTierService` is the only place that
+resolves the *effective activation threshold*, but it is **not** the only place that reads the
+column. `ClockService::resolvedInt` (`app/Services/ClockService.php:258-276`) is generic: it
+takes any clock's registry `setting_key` and calls `SettingsResolver::resolveInt`. CLK-06's
+registry row names `critical_population_threshold` and is `amendable => true`
+(`ClockRegistrySeeder.php:104-111`), so that path resolves the **raw column, bypassing the
+curve** — and since CLK-06's `default_value.value` is `null`, it would fall through to the
+caller's fallback rather than to the tier. It is unreachable today only because CLK-06 is
+`type => 'threshold'` and never arms a timer, and the sole caller
+(`ClockRederivationService.php:44-66, 92`) walks armed timers. Pin that CLK-06 never arms, or
+route `resolvedInt` through the tier service for CLK-06. Do not leave it undocumented.
+
 ### 6.3 Reach
 
 `reach = verified_residents / population_estimate` — honestly named *reach/enrolment*, and
 **explicitly not** the Art. VI §3 legitimacy verdict, which is a wartime allegiance test
 (roadmap `:202-203`, `:208`).
+
+That disclaimer has to be **in the artefacts, not just in this document**, because everything
+this layer is named — `LegitimacyService`, `legitimacy_snapshots`, `legitimacy:revert`,
+`cga.legitimacy_k_anon_floor`, the audit event `legitimacy.snapshot_run` — invites exactly the
+conflation the charter forbids. Art. VI §2–3 is live implemented code, not an abstraction:
+`RestorationService` and `RestorationEvent` (`:10-12`) carry judicially-confirmed restoration on
+`countermanded | captured | destroyed`. Conflating a headcount with that regime opens a road to
+"this place has low reach, therefore its government is restorable." So the disclaimer appears in
+four places — the `LegitimacyService` class docblock, the table and column comments, the surface
+`citation` string, and visible copy on the Reach page — and a grep pin asserts that no
+`legitimacy_snapshots` value is ever read by `RestorationService` or any other Art. VI path.
 
 `legitimacy_snapshots`: `jurisdiction_id`, `as_of_date`, `verified_residents`,
 `population_estimate`, `ratio_micro` (integer millionths — no float drift),
@@ -527,16 +710,60 @@ residency table in keyset chunks and emits a snapshot only where a numerator exi
 no residents are *unmeasurable* and need no nightly row. On the live instance in year one that
 is a few thousand rows a night; it stays proportional to real enrolment forever.
 
-**k-anonymity, and the subtlety that has to be closed.** Suppress any jurisdiction whose active
-resident count is below `k` (recommend `k = 5`, matching the seat floor's "a crowd is at least
-five" intuition), enforced on the **write** side so a suppressed count never reaches storage,
-and again on read. But independent thresholding is not enough: because residency confirmations
-sweep every ancestor, a parent's count is very nearly the sum of its children's, so publishing a
-parent and all-but-one sibling **leaks the remaining child by subtraction**. Suppression
-therefore cascades — a parent publishes ratio-only, without counts, whenever any child of it is
-suppressed. The same reasoning applies across time: publishing nightly deltas on a place with a
-handful of residents reveals individual arrivals, so a suppressed place publishes no series
-either.
+### 6.3.1 k-anonymity — per-cell suppression is provably insufficient here
+
+Suppress any jurisdiction whose active resident count is below `k` (recommend `k = 5`), enforced
+on the **write** side so a sub-`k` count never reaches storage, and again on read. That is the
+starting point, not the design. Adversarial verification found four ways through it, and the
+first is exact arithmetic rather than a residual risk.
+
+**(a) Parent-minus-children differencing is exact.** `ResidencyService`'s F-IND-006 sweep
+(`:208-215`, `:539-580`) writes **one confirmation row per distinct enclosing jurisdiction** over
+the whole ancestor chain, deduped by `MIN(depth)`. For a tree partition that makes
+`verified(parent) = Σ verified(children)` **identically**. So a suppressed child is recovered as
+`parent − Σ(published siblings)` whenever exactly one sibling is suppressed — and that is the
+*normal* case, since L6 (median population 765) sits under L3 parents (median 25,844) that will
+be far above any k. This fires across the majority of the tree.
+
+The fix is **complementary (secondary) suppression**, computed bottom-up once per run: a parent
+publishes counts only when **at least two** of its children are suppressed *and* the suppressed
+group itself sums to ≥ k; otherwise the parent is suppressed or coarsened too. The alternative is
+to publish only **banded** counts (fixed multiple plus a per-jurisdiction fixed offset) so
+differences are not invertible. Either is a design change, not a footnote.
+
+**(b) The WI-9 gate is a second, live channel that bypasses the nightly suppression entirely.**
+Publishing `verified_residents` and `remaining` on the jurisdiction viewer, computed from a live
+`COUNT(*)`, hands an observer the count at **sub-minute resolution** — strictly worse than the
+nightly table, and it lets attack (a) run continuously. The WI-9 gate must read the **same
+suppression decision** the snapshot writes, never a live raw count. Where §6.4 and this section
+would otherwise conflict, the stricter rule wins.
+
+**(c) Temporal differencing.** The design handles k *rising*; it does not handle a count
+*falling* below k when residents relocate (`ResidencyService.php:293-297` deactivates
+associations outside the new sweep). A place that published 11 last night and is suppressed
+tonight is thereby bounded at ≤ k−1, and monthly keyframes are kept forever. So suppression must
+apply **retroactively to the stored series**, or raw counts must never be stored at all — only
+the banded value. Note the interaction with the chunk hash chain: the digest must be computed
+over the **published** tuple, not the raw one, or the chain becomes a permanent commitment to
+the secret.
+
+**(d) A pre-existing sub-k publication this plan must stop treating as untouchable.**
+`ActivationService::onCriticalPopulation` writes the raw `verified_residents` into both
+`jurisdiction_activations.notes` and an `audit_log` payload (`:174-197`). The chain is
+hash-chained and append-only, and the doctrine is explicit that *"the chain is the public
+record"* (`AuditChainController.php:14-21`). So this count can never be redacted, and Phase 6
+FF&C replicates rows. §6.2's "zero signature churn" claim is therefore wrong on the privacy
+axis: `onCriticalPopulation` must record the crossing as a **boolean or banded fact**
+(`threshold`, `met: true`, `count_band`), never the raw sub-k integer — in `notes` and in the
+audit payload alike.
+
+**Channels to enumerate and cover with one decision.** Anything that is a function of the
+verified count leaks it: the nightly snapshot, the WI-9 gate, `jurisdiction_activations.state`
+and `critical_population_at` (both **already public** via `JurisdictionController.php:166-169`,
+`:203-212` — with `threshold = 5` and `k = 10`, the state alone is a sub-k disclosure carrying a
+timestamp), Matrix room existence, and Plane A space existence. Either one suppression decision
+governs all of them, or the coarser ones are accepted explicitly as `≥ threshold` band
+disclosures with the reasoning written down. Silence is not an option.
 
 Rails, restated because they are the point of the feature: reach is *a gauge, never a lever* —
 it changes no vote, no seat, no right (CI-1); no per-person score, ever; no leaderboard of
@@ -570,6 +797,27 @@ progress resolution (sub-1% steps) and keeps a reclaim cheap.
 Ordering: **simplest-first by layer**, matching autoscale's triage rather than the geodata
 plan's largest-first inversion — deep leaf layers dominate by count (700,976 at L6) and
 finishing them early makes the per-layer bars move honestly from the start.
+
+#### 7.1.1 The elections phase needs a pre-flight, or it ratifies map defects forever
+
+Minting one race per district looks obvious and is wrong in two places. Both are the seating law
+being quietly overridden by an engine, which is exactly what CLAUDE.md forbids.
+
+**Seat drift.** Planet-wide, `type_a` totals 13,131,216 while drawn districts hold 13,111,461 —
+a gap of **19,755 lawful seats with no district to elect them in**. The settled law says that
+drift is *the drawing's defect, fixed by redrawing, never by a redistribution loop*. Minting
+races district-by-district converts a map defect into a **permanent electoral fact**: those
+19,755 seats silently never get a race, and once ballots exist the drift is no longer
+diagnosable. So the `enumerating` phase computes, per legislature,
+`seat_drift = type_a_seats − Σ(district seats)` and **excludes any drifting pool from the
+elections phase**, writing it to a flags table for redraw. This is the exactness rule applied one
+layer up, and it is not optional.
+
+**Type B chambers awaiting districting.** 9,708 chambers carry `type_b_needs_districting`,
+set by `TypeBSeatLadder` when the ladder is still over `type_a` at `rep_floor = 2`. By the
+settled 2026-07-19 ladder those are explicitly **not** at-large bodies, so minting a single
+at-large `type_b` race for them contradicts the ruling. The elections phase skips `type_b` race
+creation wherever that flag is set, and flags them instead.
 
 ### 7.2 Schema
 
@@ -620,6 +868,25 @@ never delete audit entries — the chain is append-only, so a revert *appends* i
 `autoscale:revert` does. Certified elections and seated members are likewise never revertible;
 if a run reaches seating, revert refuses and says why.
 
+Three constraints on revert that adversarial review surfaced, each of which turns a plausible
+implementation into a destructive one:
+
+- **The delete list must be exactly the engine's own write set.** An earlier sketch of the
+  TRUNCATE fast path listed `committees`, `departments` and `legislature_members` — none of which
+  this engine ever creates (§4.3). Naming a seated-member table in a delete order is a standing
+  hazard that no guard should be trusted to hold. Those three appear **only in the refusal
+  guards**, never in the delete order.
+- **`jurisdiction_activations` is out of bounds in both directions.** The engine never writes it
+  (§5.2.1), so it never reverts it. This matters beyond tidiness: the table's `UNIQUE
+  (jurisdiction_id)` is full while the model uses `SoftDeletes`, so a soft-deleted activation row
+  is invisible to every service query yet still raises a unique violation on INSERT —
+  **permanently wedging** re-provisioning of that jurisdiction, with a `critical_population`
+  audit entry that can never be reconciled against it.
+- **Guards are re-checked per chunk, not once.** A chunked revert runs for minutes; evaluating
+  guards 3–8 only at the start means a citizen who files a candidacy mid-revert is deleted out
+  from under. The guards are cheap `NOT EXISTS` probes, so they re-assert inside every chunk
+  transaction and abort the revert on first violation.
+
 Queue: its own `institutions` queue and its own `supervisor-institutions` block on `redis-long`
 (retry_after 14400). **Never shares the `autoscale` queue.**
 
@@ -660,13 +927,26 @@ median populations; `tier(0)` and `tier(null)` both return the floor; the clamp 
 
 **Live PG** (`LivePgConnection`, rolled-back transaction, synthetic fixture):
 - the four-state machine, including that no reverse transition exists;
-- the corrected CLK-06 candidate predicate — returns a jurisdiction that has residents and a
-  `forming` legislature, and does **not** return one already `self_governing`;
+- the corrected CLK-06 candidate predicate — returns a jurisdiction with residents and a
+  memberless `forming` legislature; does **not** return one already `self_governing`; does
+  **not** return a **soft-deleted** jurisdiction (the 1,206-row hole, §3); does **not** return a
+  jurisdiction whose chamber is seated but unactivated;
+- **the engine never writes `jurisdiction_activations`** — run a full provisioning pass over the
+  fixture and assert the table is untouched, and that `hasReached('critical_population')` is
+  still false everywhere (§5.2.1);
 - **a concurrency pin**: two workers provisioning the same jurisdiction produce exactly one
-  executive, one judiciary and one election — this fails today and passes after §5.4's migration;
-- reach snapshot k-anonymity, including the **differencing** case: a parent whose children are
-  partly suppressed publishes no counts;
-- one chunk of provisioning emits exactly one audit chain entry, and the chain verifies.
+  executive, one judiciary, one election and one system board member — fails today, passes after
+  §5.4's migration. Written against those four tables specifically, since `election_races` is
+  already covered and would pass regardless;
+- reach k-anonymity, including the **exact differencing** case: a parent with one suppressed
+  child publishes no counts; and the **temporal** case: a jurisdiction falling below k has its
+  prior series suppressed too;
+- `onCriticalPopulation` records a band or boolean, never a raw sub-k count, in `notes` or the
+  audit payload (§6.3.1d);
+- the elections pre-flight: a legislature with `seat_drift ≠ 0` is excluded and flagged, and a
+  `type_b_needs_districting` chamber gets no at-large race (§7.1.1);
+- one chunk of provisioning emits exactly one audit chain entry, and `verifyChain()` passes;
+- a grep pin: no Art. VI path reads `legitimacy_snapshots`.
 
 **Engine**, modelled on `AutoscalePinTest`'s `driveRun` harness (`:70-80`): halt parks and resume
 completes; a stale claim is reclaimed and redo never double-provisions; the breaker trips on a
@@ -685,12 +965,22 @@ the audit chain intact.
    verified residents. Higher makes large places harder to boot; lower makes them trivially
    bootable. A policy dial the roadmap marks `[POLICY]`, founder-authored — not an engineering
    constant.
-3. **The k-anonymity floor.** Recommending 5. It interacts with the cap: a threshold below the
-   suppression floor means a place can activate while its own reach stays hidden, which is
-   intended but worth confirming.
-4. **Ownership of the Item 0 fix and the §5.4 migration** — lane 2's launch window or lane 3's.
-5. **Documentation drift** (§4.1): three stale docblocks and one stale column comment still
+3. **The k-anonymity floor, and what it costs.** Recommending 5. But note §6.3.1: honest
+   suppression on an additive hierarchy needs **complementary suppression or banded counts**,
+   which means a good many parents publish a ratio without a count. That is a visible product
+   change, not just a privacy setting, and it is worth your eye before it is built. It also
+   interacts with the cap: a threshold below the suppression floor lets a place activate while
+   its own reach stays hidden — intended, but confirm it.
+4. **Are the curve params legislative settings or founder configuration?** (§6.1). Today they
+   are neither: the column exists and no legislature can amend it. Making them genuinely
+   amendable means editing two **PROTECTED** files under constitutional review. Declaring them
+   operator-only is also a legitimate answer. The status quo — documented as amendable, coded as
+   unamendable — is the only option that is not.
+5. **Ownership of the Item 0 fix and the §5.4 migration** — lane 2's launch window or lane 3's.
+6. **Documentation drift** (§4.1): three stale docblocks and one stale column comment still
    describe the retired ceiling clamp. Cheap to fix; needs a nod because the files are PROTECTED.
+   Adjacent, and free to fix in the same pass: CLAUDE.md's "Soft deletes: all tables use
+   `deleted_at`" is false for `residency_confirmations` and `constitutional_settings` (§3).
 
 ---
 
