@@ -94,7 +94,18 @@ class SubdivisionCellSeedService
         $targets = array_map(fn (int $sz) => $sz * ($total / $S), $seedSizes);
 
         // ── Balance the diagram ─────────────────────────────────────────────
-        [$weights, $pops] = self::balanceWeights($px, $seeds, $targets);
+        // GRAPH FALLBACK (2026-07-25, operator-approved via lane 7): the
+        // weight balancer is tried FIRST and unchanged, so every scope that
+        // draws today takes its historical path and re-plans byte-identically
+        // — the no-regression gate. Only on its refusal (a concentrated or
+        // desert-fragmented scope where 6,000 iterations still leave >50%
+        // error) does the graph partitioner take over, and those scopes file
+        // ZERO districts today, so there is nothing to regress.
+        try {
+            [$weights, $pops] = self::balanceWeights($px, $seeds, $targets);
+        } catch (RuntimeException $balancerRefused) {
+            return $this->graphFallbackPlan($scopeId, $year, $pixels, $sizes, $S, $quota, $total, $ctx);
+        }
 
         // ── Exact cell polygons (radical-axis half-planes), then ONE PostGIS
         // clip+shave per cell against the live giant geometry ────────────────
@@ -217,6 +228,67 @@ class SubdivisionCellSeedService
             'seeds'           => $seedsLngLat,
             'districts'       => $districts,
             'plan_hash'       => self::planHash($scopeId, $year, $sizes, $seedsLngLat, $weights),
+        ];
+    }
+
+    /**
+     * The graph-partition rung: reached ONLY when balanceWeights() refuses.
+     * Contiguity holds by construction (spanning-tree edge cut), seats round
+     * to nearest inside the band independently, and drift is recorded
+     * honestly — the drawn plane's standing law, no total-forcing.
+     *
+     * @param  array  $pixels  raw [[lon, lat, pop], ...]
+     * @param  int[]  $sizes
+     */
+    private function graphFallbackPlan(
+        string $scopeId,
+        int $year,
+        array $pixels,
+        array $sizes,
+        int $S,
+        float $quota,
+        float $total,
+        array $ctx
+    ): array {
+        $result = app(GraphPartitionPlanner::class)->partition(
+            $scopeId,
+            $pixels,
+            $sizes,
+            $quota,
+            (int) $ctx['floor'],
+            (int) $ctx['ceiling']
+        );
+
+        $districts = $result['districts'];
+        if ($districts === []) {
+            throw new RuntimeException('The graph partitioner produced no districts for this region.');
+        }
+
+        // Signature over the PARTS (there are no seeds or weights on this
+        // rung) — deterministic for a given grid + seat groups.
+        $sig = [];
+        foreach ($districts as $d) {
+            $sig[] = $d['path'].':'.$d['seats'].':'.$d['pop'];
+        }
+
+        return [
+            'scope_id'        => $scopeId,
+            'population_year' => $year,
+            'seat_budget'     => $S,
+            'sizes'           => $sizes,
+            'total_pop'       => (int) round($total),
+            'quota'           => round($quota, 1),
+            'template'        => SubdivisionAutoseedService::TEMPLATE_COMMUNITY_CELLS,
+            'cuts'            => [],
+            'seeds'           => [],
+            'districts'       => $districts,
+            'generator'       => 'graph_partition',
+            'grid_step'       => $result['step'],
+            'components'      => $result['components'],
+            'plan_hash'       => hash('sha256', implode('|', array_merge(
+                [$scopeId, (string) $year, 'graph_partition', implode(',', $sizes)],
+                $sig
+            ))),
         ];
     }
 
