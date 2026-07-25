@@ -604,6 +604,32 @@ operator's time · the co-determination chain verified hop-for-hop.
 
 ---
 
+## 4e. ⚑ PROCESS FAILURE — the shared index sweeps other lanes' in-flight work (three confirmed instances, including this desk)
+
+Reported by lane 5 at 15:40; this desk then found it had caused an instance itself.
+
+**Mechanism (counter-intuitive, which is why it keeps happening):** `git add <my-file>` stages only
+that file — but `git commit -m …` **commits the entire index**, including whatever another lane
+staged in the shared working tree and had not yet committed. The `add` is safe; **the `commit` is
+what sweeps.**
+
+**Confirmed instances:** lane 15's `ddde935` took lane 3's 710-line plan file · lane 5 reports being
+swept repeatedly · **lane 7's `4ac2d7e`** — nominally a one-file docs correction — committed **70
+files, 69 of them lane 5's** entire i18n build (extractor, gate, status board, 35 locale + 35 meta
+catalogs, a controller, a Vue page). Lane 5's own commit `002fb44` two minutes later therefore holds
+only 3 files.
+
+**Nothing was lost in any instance.** The damage is (a) attribution and (b) **revertability** —
+reverting lane 7's "curriculum" commit would delete lane 5's build. History is deliberately **not**
+being rewritten: fifteen lanes share this tree, and rebasing published commits under active work is
+far more destructive than a wrong message. The record is the remedy — **lane 5's step-1/2 build
+lives in `4ac2d7e`.**
+
+**THE RULE (recommended fleet-wide, adopted by this desk immediately):**
+`git commit -- <path> [<path>…]` — the `--` pathspec commits ONLY those paths and ignores the index.
+**Never `git add X && git commit`.** Then verify with `git show --stat <sha>`; if the file count is
+not what you expect, post it to the board at once. Recommend adding both to board README rule 7.
+
 ## 5. Fleet-wide items (belong to no single lane)
 
 1. **⚑ `racePlan()` blocks a whole election plan when only the Type B half is illegal.**
