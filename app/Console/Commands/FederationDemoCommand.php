@@ -26,6 +26,8 @@ use Illuminate\Support\Str;
  */
 class FederationDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'federation:demo {--fresh : Retire demo-tagged peers/claims/exports first}';
 
     protected $description = 'Stand up a browsable demo federation peer + sync history + a flipped partition';
@@ -38,6 +40,10 @@ class FederationDemoCommand extends Command
         AuthorityFlipService $flips,
         AuditService $audit,
     ): int {
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         $identity->ensureIdentity();
         $identity->setEnabled(true);
 

@@ -10,8 +10,26 @@ populations). This document covers **simulated** ones. It rides the autoscale
 pull-engine pattern rather than inventing a second orchestration idiom, and follows
 the house shape set by `docs/plans/etl/GEODATA_PULL_ENGINE_PLAN.md`.
 
-**STATUS: PLAN ONLY — nothing here is built.** Schema needs are FLAGGED (§3), never
-migrated. Build order in §12.
+**STATUS: BUILD STARTED 2026-07-25.** The foundation (build-order steps 1–3) is
+LANDED and green; everything from the pull engine onward is still design. Schema
+needs beyond `instance_class` remain FLAGGED, not migrated. Build order and current
+state in §13.
+
+| landed | what |
+|---|---|
+| ✅ | `instance_settings.instance_class` (`production` \| `scale_demo`), NOT NULL DEFAULT `production` + CHECK |
+| ✅ | `App\Support\InstanceClass` — fails closed to `production` |
+| ✅ | `InstanceClassProvider` — CI-2 boot assertion, HTTP-only so console stays usable for repair |
+| ✅ | `GuardsSyntheticData` wired into all **6** generator commands (there were **zero** guards before) |
+| ✅ | `CohortBallotExpander` + `HashChainRandom` — pure, outside the hardened surface |
+| ✅ | `SyntheticDataGuardTest`, `GregoryTruncationOrderTest`, `CountingEnginePerformanceTest`, `WeightedBallotIdentityTest` |
+| ⬜ | everything else below |
+
+**The keystone is proven, not asserted:** a real Droop/Gregory count over an
+electorate of **8,347,150,193** — the planet's actual leaf population — returns the
+correct quota, fills every seat, and reports `total_valid` as the true number. And
+grouped-vs-individually-expanded counts are byte-identical on `recordHash()` across
+six race shapes.
 
 Every planet figure below was measured against the game box (`fc_postgres`,
 `fair_constitution`) on 2026-07-25 and the query is printed beside it. Every code
@@ -976,11 +994,21 @@ districting or any PROTECTED file.
 
 Each step lands green before the next.
 
-1. `instance_class` + the boot assertion + the generator refusal check + contamination
-   pins. **Nothing else is safe to build first.**
-2. `CohortBallotExpander` (pure) + `WeightedBallotIdentityTest`. The keystone proof
-   before anything depends on it.
-3. `TabulationRecorder::completeBatch()` refactor + equivalence pin.
+1. ✅ **DONE** — `instance_class` + boot assertion + generator refusal + pins. Nothing
+   else was safe to build first: before this, **none of the 54 artisan commands
+   carried any guard**, so `elections:demo` would mint permanent users against
+   whatever database `.env` pointed at. Landed with the migration, `InstanceClass`
+   (fail-closed), `InstanceClassProvider` (HTTP-only so console repair still works),
+   `GuardsSyntheticData` in all 6 generators, and `SyntheticDataGuardTest`.
+2. ✅ **DONE** — `CohortBallotExpander` + `HashChainRandom` (pure, outside the hardened
+   surface, exact integer apportionment, overflow guard) + `WeightedBallotIdentityTest`.
+   The keystone, proven before anything was built on it.
+2b. ✅ **DONE** — `GregoryTruncationOrderTest` and `CountingEnginePerformanceTest`. The
+   truncation-ORDER pin is the one nothing else could catch (every ballot-level
+   identity test passes under either arithmetic); the performance pin closes the
+   Phase-B §C.8 budget that had gone four phases without a test.
+3. `TabulationRecorder::completeBatch()` refactor + equivalence pin. **Gated on
+   DECISION 3** — do not build batching for governance acts before the ruling.
 4. Migration (§8) + models + `SimClaims` + `sim:pump` + the mechanics pins (3–6 above).
 5. The generation stages, cheapest first: cohorts → identities → elections.
 6. The counting stage + the seating stage.

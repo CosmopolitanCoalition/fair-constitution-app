@@ -104,6 +104,8 @@ use RuntimeException;
  */
 class PhaseDDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'institutions:demo-d
                             {--fresh : tear down prior Phase D demo state and reseed}';
 
@@ -146,6 +148,10 @@ class PhaseDDemoCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         $startedAt = microtime(true);
 
         // All queue dispatches in THIS process run inline — the demo must

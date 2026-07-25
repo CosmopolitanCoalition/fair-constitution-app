@@ -33,6 +33,8 @@ use Illuminate\Support\Str;
  */
 class SocialDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'social:demo {--fresh : soft-delete the prior demo social graph and reseed}';
 
     protected $description = 'Seed a standing, browsable Phase K-1 civic commons (square + halls + testimony) on San Marino.';
@@ -54,6 +56,10 @@ class SocialDemoCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         // Fire the queued EvaluateSocialStructureJob inline so its effects are observable now.
         config(['queue.default' => 'sync']);
 

@@ -82,6 +82,8 @@ use RuntimeException;
  */
 class ElectionsDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'elections:demo
                             {slug : Jurisdiction slug or UUID}
                             {--voters=40 : Demo voters to seed (F-IND-001/003/005/006)}
@@ -126,6 +128,10 @@ class ElectionsDemoCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         $startedAt = microtime(true);
 
         $instant    = (bool) $this->option('instant');

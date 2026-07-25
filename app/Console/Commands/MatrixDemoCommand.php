@@ -35,6 +35,8 @@ use Throwable;
  */
 class MatrixDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'matrix:demo {--fresh : reseed} {--offline : skip the homeserver round-trips}';
 
     protected $description = 'Seed a standing Matrix-commons demo (topology + testimony + the legitimacy flip) on San Marino.';
@@ -55,6 +57,10 @@ class MatrixDemoCommand extends Command
 
     public function handle(): int
     {
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         config(['queue.default' => 'sync']);
         $this->identity->ensureIdentity();
         $offline = (bool) $this->option('offline');

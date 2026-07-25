@@ -41,6 +41,9 @@ class InstanceSettings extends Model
         'setup_districts_confirmed_at',
         'setup_mode',                     // Phase 1 (roles campaign) — 'solo' | 'join' fork
         'game_mode',                      // Setup v2 — 'production' | 'sandbox' world property (dev toolbox gate)
+        'instance_class',                 // Phase O — 'production' | 'scale_demo'. A DIFFERENT AXIS from game_mode:
+                                          // game_mode asks "is the dev toolbox legitimate here?", instance_class asks
+                                          // "is this world a government or an illustration?". Never merge them.
         // Phase F — federation identity (federation:init mints these).
         'server_id',
         'public_key',
