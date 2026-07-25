@@ -27,6 +27,25 @@ updates belong to the operator, executed with the website chats). Sources:
 | **O** full-scale demo | ◻ substrate-only (audit 07-25) | **Lane 4** = design front-runner (the Attained instance). Formal gates H (done) / I (lane 3) / N (long arc) — design proceeds now. **Audit: scope narrower than chartered** — CI-2 (scale_demo → empty federation whitelist) already coded + constitutionally pinned in K-3; `*@demo.invalid` namespace in live seeder use; SANDBOX game mode end-to-end (a DIFFERENT axis from instance_class); the Standard half = Phase H's output. Novel scope = instance_class persistence + CoW overlay + populate engine — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
 | Cross-phase | — | **Lane 2** scoped cloud launch (earth.* Standard ≠ Phase O) · **Lane 7** this desk · lanes 8–12 content/ops |
 
+### 1.1 Approved marching orders (operator, 2026-07-25 — the execution wave)
+
+GO in parallel: **1** map repair (running) · **2** GitHub→Azure one-command bring-up
+plan, fresh-box AND multibox (Pi cross-machine join PASSED; Azure environment = the
+challenge, so the app can scale before the volunteer mesh matures) · **3**
+user/social-infrastructure scaling plan · **4** simulated-workflow/data scaling plan
+(parallel with 3) · **5** string-translation/storage scaling plan — **3/4/5 must
+show live progress and ride lane 1's autoscale pull-engine pattern** (pump →
+SKIP-LOCKED lease workers → halt flag → breaker → revert law) · **9/10/11/12**
+build general flows + run ONE test flow each (real runs gated on **15**'s content;
+10's manifest conventions feed 11/12; 11 studies the Learn-flyout education
+embedding; 12 dry-run only) · **13** economic-engine AUDIT plan → operator
+walkthrough · **15** CONTENT KEYSTONE: achievement libraries + education system
+around the Learn tab (mixed App/Civic per page). WAITING: **6** (until the 1–5
+scale wave lands) · **14** (lane 2's window + operator go). 8a/8b off-board:
+current content-design refresh (8a) / theme change + refresh (8b) while template
+and constitution copy updates wait on the operator's rounds. GO prompt pack:
+PROMPTS.md "GO prompt pack 2026-07-25".
+
 **Remaining unowned: none.** The 2026-07-24 additions closed the set — L+M → lane
 13 · J → lane 14 · K-2 → lane 15 · a11y audit → lane 6 · rig-gate verification →
 lane 2. Operator-parked (not lanes): D-08 App_Flows dispositions (lane 13 consumes
@@ -56,7 +75,7 @@ optional enrichment = reopen archives and export into docs/plans/explorations/.
 | D-15 | Phase J build — two nonprofits, `public_domain_charter`, `demo-coalition` seeder, civil-society firewall pins | **Lane 14** | assigned 07-24 | Ships by live-game opening (2026-09-01); plan first, migrations via the one-lane rule; org names/details verified with operator before seeding |
 | D-16 | `docs/plans/education/K2_CURRICULUM.md` (The_Chart extraction, factions→polymorphic teaching correction) + `K2_ENGINE_PLAN.md` (achievements) | **Lane 15** | assigned 07-24 | Curriculum now; engine half gated on D-07 (lane 3's Phase-I draft) |
 | D-17 | A11y audit dimension inside the parity punchlist (WCAG 2.2 AA basics per screen) | **Lane 6** | assigned 07-24 | Quick fixes ride parity waves; structural items flagged for Phase N; source: App Docs\accessibility_internationalization.md |
-| D-18 | Rig-gate verification via the cloud instance (browser-GPS secure-context test + real cross-machine peer join) | **Lane 2** | assigned 07-24 | In the launch plan's soak phase; native Capacitor stays device-gated |
+| D-18 | Rig-gate verification via the cloud instance (browser-GPS secure-context test + real cross-machine peer join) | **Lane 2** | ◐ half done 07-25 | **Cross-machine peer join PASSED via the operator's Pi test (2026-07-25)** — the G-V2-shaped proof is in; remaining: phone-browser GPS against the HTTPS cloud URL (needs lane 2's TLS) + native Capacitor (device-gated). Lane 2's challenge re-scoped by the operator: GitHub→Azure one-command bring-up, fresh-box AND multibox, so the app can scale before the volunteer mesh matures |
 | D-19 | **Definitive built-vs-unbuilt audit** — `BUILT_INVENTORY.md` + `BUILT_INVENTORY_EVIDENCE.md` (14 agents, 34 absence claims re-hunted, 6 overturned; ledger + matrix corrected) | Lane 7 | ✅ DONE 07-25 | Operator cuts lanes 13+ prompts against it; §3 audit addenda below feed the staged lanes |
 | D-20 | Defect follow-ups from the audit's risk register (GrantService dead code · BallotCrypto receipt review pre-launch · locale-key drift · earned_at coarse-DATE decision · M-5 entry point · "records are translated" copy promise) | owners per item (2, 6, 13, 15) | logged 07-25 | Register = [BUILT_INVENTORY §7](BUILT_INVENTORY.md); none blocks the 40-day path alone; BallotCrypto item belongs in lane 2's launch checklist |
 
