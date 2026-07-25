@@ -49,6 +49,14 @@ class ConstitutionalSettings extends Model
         'pay_social_moderator',
         'pay_office_holder',
         'stipend_interval',
+        // Phase L (slice L-1) — the monetary levers. Nullable by design so
+        // SettingsResolver can actually inherit them up the jurisdiction
+        // chain; defaults live in ConstitutionalDefaults, not the DDL.
+        'stipend_enabled',
+        'stipend_funding_source',
+        'stipend_period_days',
+        'issuance_rate_bps',
+        'inflation_target_bps',
         'type_b_seats_per_child',
         'last_amended_by_act_id',
         'last_amended_at',
@@ -80,6 +88,10 @@ class ConstitutionalSettings extends Model
         'pay_node_operator' => 'integer',
         'pay_social_moderator' => 'integer',
         'pay_office_holder' => 'integer',
+        'stipend_enabled' => 'boolean',
+        'stipend_period_days' => 'integer',
+        'issuance_rate_bps' => 'integer',
+        'inflation_target_bps' => 'integer',
         'type_b_seats_per_child' => 'integer',
         'last_amended_at' => 'datetime',
     ];

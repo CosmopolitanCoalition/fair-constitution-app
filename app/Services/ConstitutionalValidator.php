@@ -125,11 +125,37 @@ class ConstitutionalValidator
      * supermajority — they need the constituent door too (Door 2a). A setting
      * in this list CANNOT be amended through Door 1 (ordinary F-LEG-031) alone;
      * the validator rejects an F-LEG-031 setting bill targeting it unless the
-     * filing flags requires_constituent_consent. Starts minimal
+     * filing flags requires_constituent_consent. Started minimal
      * (judiciary_is_elected — the one explicitly gated, Art. IV §3) and grows
-     * only under constitutional review. AmendmentDualDoorTest pins this list.
+     * only under constitutional review.
+     *
+     * Phase L (slice L-1) adds the MONETARY levers. Rationale, on the record:
+     * the people who receive a civic stipend overlap heavily with the
+     * legislators who would set its size, so Door 1 alone lets a chamber vote
+     * itself a raise. Door 2a pulls that decision out to the constituent
+     * jurisdictions whose money it is. This is the anti-self-dealing rail and
+     * it is the reason monetary policy is a legislative lever rather than an
+     * admin knob (Art. V §5 reserves currency and its regulation to the root).
+     *
+     * Pinned by Art4Section5Test (membership) and SettingsBoundsTest (the
+     * exact bounds registry). NOTE: the docblock previously named
+     * "AmendmentDualDoorTest" — no such test exists, and never did.
      */
-    public const DUAL_DOOR_KEYS = ['judiciary_is_elected'];
+    public const DUAL_DOOR_KEYS = [
+        'judiciary_is_elected',
+        // Phase L — monetary levers (see MONETARY_KEYS below; same set).
+        'stipend_enabled',
+        'stipend_funding_source',
+        'civic_stipend_floor',
+        'stipend_bump_cap',
+        'pay_node_operator',
+        'pay_social_moderator',
+        'pay_office_holder',
+        'stipend_interval',
+        'stipend_period_days',
+        'issuance_rate_bps',
+        'inflation_target_bps',
+    ];
 
     /**
      * Payload keys that would smuggle an eligibility condition into a
@@ -208,6 +234,67 @@ class ConstitutionalValidator
         'finalist_multiplier' => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §2 · as implemented'],
         'ranked_window_days' => ['min' => 1, 'max' => 60, 'citation' => 'Art. II §2 · as implemented'],
         'approval_min_days' => ['min' => 1, 'max' => 365, 'citation' => 'Art. II §2 · as implemented'],
+        // ── Phase L (slice L-1) — the monetary levers ────────────────────
+        // The Template is SILENT on basic income, on compensation for office,
+        // and on every rate: no clause mandates, forbids or sizes any of it.
+        // So each key below is [POLICY] — the player base's to set, never the
+        // app's — and the citation records the clause that AUTHORISES the
+        // lever, not one that requires the payment. Art. II §9 creates the
+        // Treasury that manages the money; Art. V §5 reserves currency and its
+        // regulation to the root jurisdiction.
+        //
+        // All of them are DUAL_DOOR_KEYS: the recipients of a stipend overlap
+        // the legislators who set it, so the constituents whose money it is
+        // must consent too. That is the anti-self-dealing rail, and it is the
+        // whole reason these are levers and not admin knobs.
+        //
+        // Ranges are sanity rails, not constitutional numbers — the currency
+        // is abstract and unit-less, so any ceiling here is 'as implemented'.
+        // The real protection on stacking is the cross-field rule below
+        // (Σ pay_* ≤ stipend_bump_cap), which the setup wizard never had.
+        'stipend_enabled' => ['allowed' => [true, false], 'citation' => 'Art. II §9 · [POLICY]'],
+        'stipend_funding_source' => [
+            'allowed' => ['minted', 'treasury_draw'],
+            'citation' => 'Art. V §5 · [POLICY]',
+        ],
+        'civic_stipend_floor' => ['min' => 0, 'max' => 1000000, 'citation' => 'Art. II §9 · [POLICY]'],
+        'stipend_bump_cap' => ['min' => 0, 'max' => 1000000, 'citation' => 'Art. II §9 · [POLICY]'],
+        'pay_node_operator' => ['min' => 0, 'max' => 1000000, 'citation' => 'Art. II §9 · [POLICY]'],
+        'pay_social_moderator' => ['min' => 0, 'max' => 1000000, 'citation' => 'Art. II §9 · [POLICY]'],
+        'pay_office_holder' => ['min' => 0, 'max' => 1000000, 'citation' => 'Art. II §9 · [POLICY]'],
+        'stipend_interval' => [
+            'allowed' => ['monthly', 'quarterly', 'per_cycle'],
+            'citation' => 'Art. II §9 · [POLICY]',
+        ],
+        'stipend_period_days' => ['min' => 1, 'max' => 365, 'citation' => 'Art. II §9 · [POLICY]'],
+        // Basis points: 10000 bps = 100%.
+        'issuance_rate_bps' => ['min' => 0, 'max' => 10000, 'citation' => 'Art. V §5 · [POLICY]'],
+        'inflation_target_bps' => ['min' => 0, 'max' => 10000, 'citation' => 'Art. V §5 · [POLICY]'],
+    ];
+
+    /**
+     * The monetary levers (Phase L). Kept as a named set so the stipend
+     * engine, the settings register and the dual-door list all read one
+     * source instead of three drifting copies.
+     *
+     * NOTE currency_name/code/symbol are deliberately ABSENT: they are the
+     * currency's identity, not a lever, and they change through F-LEG-040
+     * (Currency Definition, root-only) rather than F-LEG-031. SETTING_BOUNDS
+     * could not express them anyway — free text has neither a whitelist nor
+     * a numeric range, and every bounded key must carry one.
+     */
+    public const MONETARY_KEYS = [
+        'stipend_enabled',
+        'stipend_funding_source',
+        'civic_stipend_floor',
+        'stipend_bump_cap',
+        'pay_node_operator',
+        'pay_social_moderator',
+        'pay_office_holder',
+        'stipend_interval',
+        'stipend_period_days',
+        'issuance_rate_bps',
+        'inflation_target_bps',
     ];
 
     /**
@@ -404,6 +491,37 @@ class ConstitutionalValidator
             $parity = $key === 'worker_rep_parity_employees' ? (int) $value : (int) ($payload['worker_rep_parity_employees'] ?? 2000);
 
             self::assertCodeterminationOrdering($min, $parity);
+        }
+
+        // Stipend stacking cap (Phase L cross-key guard): no single role
+        // differential may exceed the cap on the SUM of differentials one
+        // person can stack. The setup wizard collects these four values with
+        // no upper bound and no cross-field rule at all, so the field it
+        // labels "max stacked" is decorative today — a founder can set a cap
+        // of 20 and a per-role pay of 500. Companion values default to the
+        // wizard's own defaults when the filing changes only one side (the
+        // supermajority-fraction pattern); the enactment-time re-run repeats
+        // the check.
+        $payKeys = ['pay_node_operator', 'pay_social_moderator', 'pay_office_holder'];
+        if ($key === 'stipend_bump_cap' || in_array($key, $payKeys, true)) {
+            $defaults = ['pay_node_operator' => 8, 'pay_social_moderator' => 5, 'pay_office_holder' => 12];
+            $cap = $key === 'stipend_bump_cap' ? (int) $value : (int) ($payload['stipend_bump_cap'] ?? 20);
+
+            foreach ($payKeys as $payKey) {
+                $pay = $key === $payKey ? (int) $value : (int) ($payload[$payKey] ?? $defaults[$payKey]);
+
+                if ($pay > $cap) {
+                    throw new ConstitutionalViolation(
+                        sprintf(
+                            'A role differential (%s = %d) may not exceed the stipend bump cap (%d) — the cap bounds the SUM a person can stack.',
+                            $payKey,
+                            $pay,
+                            $cap
+                        ),
+                        'Art. II §9 · [POLICY]'
+                    );
+                }
+            }
         }
 
         // Judicial/civil appointment lockstep (Art. IV §1 · Art. II §9 —

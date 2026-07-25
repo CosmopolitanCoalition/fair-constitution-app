@@ -53,6 +53,23 @@ class SettingsController extends Controller
         'judiciary_is_elected',
         'worker_rep_min_employees',
         'worker_rep_parity_employees',
+        // Phase L (slice L-1) — the monetary levers. Until now the register
+        // showed 17 keys and NONE of the economy dials, so a founder set a
+        // currency and a stipend at setup and no screen ever showed them
+        // again. They are amendable settings like any other and belong here;
+        // BillController also builds the F-LEG-031 key dropdown from this
+        // list, so omitting them made them undraftable as well as invisible.
+        'stipend_enabled',
+        'stipend_funding_source',
+        'civic_stipend_floor',
+        'stipend_bump_cap',
+        'pay_node_operator',
+        'pay_social_moderator',
+        'pay_office_holder',
+        'stipend_interval',
+        'stipend_period_days',
+        'issuance_rate_bps',
+        'inflation_target_bps',
     ];
 
     /** Display meta per key (clock annotations — mockup grammar). */
@@ -74,6 +91,19 @@ class SettingsController extends Controller
         'judiciary_is_elected'              => 'appointed is the default',
         'worker_rep_min_employees'          => 'first worker board seat · CLK-13',
         'worker_rep_parity_employees'       => 'worker/shareholder parity · CLK-14',
+        // Phase L — monetary levers. All dual-door: a chamber cannot vote
+        // itself a raise without its constituents' consent.
+        'stipend_enabled'                   => 'the civic stipend runs · dual-door',
+        'stipend_funding_source'            => 'minted, or drawn from the treasury · dual-door',
+        'civic_stipend_floor'               => 'everyone with active residency receives this · dual-door',
+        'stipend_bump_cap'                  => 'ceiling on the SUM of role differentials · dual-door',
+        'pay_node_operator'                 => 'role differential · dual-door',
+        'pay_social_moderator'              => 'role differential · dual-door',
+        'pay_office_holder'                 => 'role differential · dual-door',
+        'stipend_interval'                  => 'payout cadence · dual-door',
+        'stipend_period_days'               => 'sweep period · dual-door',
+        'issuance_rate_bps'                 => 'basis points · Art. V §5 · dual-door',
+        'inflation_target_bps'              => 'basis points · Art. V §5 · dual-door',
     ];
 
     /** The civil/judicial lockstep pair renders as one joined row. */
