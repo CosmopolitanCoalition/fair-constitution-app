@@ -147,9 +147,9 @@ Work:
   managing the money, with the policy marker making clear the Template mandates no such payment.
 - Add a cross-field rail: `Σ pay_* ≤ stipend_bump_cap` — today the cap is decorative (audit §E4).
 
-New keys: `stipend_funding_source` (R2), `stipend_enabled` (default **false** — a fresh instance pays
-nothing until its legislature turns it on), `issuance_rate_bps`, `inflation_target_bps`,
-`stipend_period_days`.
+New keys: `stipend_funding_source` (R2), `stipend_enabled` (**default TRUE — operator ruling
+2026-07-25: the stipend is always on, for all players**; a legislature can turn it off by act, but a
+fresh world pays from day one), `issuance_rate_bps`, `inflation_target_bps`, `stipend_period_days`.
 
 ### 4.2 The public ledger
 
@@ -227,8 +227,12 @@ special case.
 
 ```
 1. eligibility  = active residency association ONLY  (the same absolute gate as voting)
+   — no age condition, no balance, no badge, no fee.  Always on (stipend_enabled = true).
 2. amount       = civic_stipend_floor
                 + min( Σ pay_* for the recipient's active roles , stipend_bump_cap )
+   the three shipped dials ARE the class set (operator ruling): every node operator,
+   every social moderator, and EVERY civic role-holder qualifies — no role subset,
+   no per-role table. An office is an office.
 3. funding:
      minted        → IssuanceService::mint(total) → issuance_event + ledger credit
      treasury_draw → debit the designated treasury_account
@@ -277,8 +281,9 @@ through F-IND-014.** Pinned by a test asserting no other writer touches `org_wor
 ### 5.3 Marketplace and the exchange
 
 ```
-marketplace_listings id · seller_account_id · kind(good|service) · title · description
-                     · qty · price · currency_id · status · cgc bool (derived)
+marketplace_listings id · seller_account_id · kind(good|service) · asset_id nullable → §5.4
+                     · title · description · qty · price · currency_id · status
+                     · cgc bool (derived)
 marketplace_orders   id · listing_id · buyer_account_id · qty · price · status
                      · contract_id · ledger_entry_group
 ```
@@ -293,7 +298,39 @@ cap table is empty and there is nothing to trade. **Therefore in scope here:** o
 registration opens a founding stake, and share issuance (`acquired_via='issue'`) gets a writer.
 Fair-market valuation feeds the Art. III §5 monopoly-conversion floor that already exists.
 
-### 5.4 Mutual aid, joint ledgers, agreements
+### 5.4 Assets — the thing being traded (operator ruling)
+
+A marketplace listing must point at a **thing that exists**, not at free text. The registry is the
+inventory model: an asset has its own identity, attributes and history, it is owned, and it moves.
+
+```
+assets           id · owner_account_id · kind(physical|virtual) · name · description
+                 · attributes jsonb        ← open schema: dimensions, materials, stats, rarity…
+                 · quantity numeric        ← fungible stacks (10 planks) vs unique (this blanket)
+                 · origin(crafted|imported|issued|split) · created_by_account_id
+                 · jurisdiction_id nullable ← where a PHYSICAL thing is; null for virtual
+                 · status(held|listed|escrow|transferred|retired) · deleted_at
+asset_transfers  id · asset_id · from_account_id · to_account_id · quantity
+                 · order_id nullable · contract_id nullable · at   [append-only]
+```
+
+**Design notes.**
+- **`attributes` is deliberately open.** A blanket carries materials and dimensions; a game item
+  carries whatever the world needs. The app does not enumerate what a thing can be — that is content,
+  and enumerating it would be the app deciding what people may make.
+- **Physical vs virtual is one flag, not two systems.** Same table, same transfer path. A physical
+  asset optionally carries a jurisdiction (where it is); a virtual one does not. This is what lets
+  the fantasy maps and a real craft economy run on one engine.
+- **`marketplace_listings.asset_id`** (nullable) — a listing either points at a registered asset or
+  is a pure service offer. Selling an asset moves it: order settles → `asset_transfers` row →
+  `assets.owner_account_id` changes → ledger posts the money leg. **One transaction, both legs.**
+- **Assets are account-scoped**, so they inherit §3's reader privacy with no special case: the
+  ledger shows a thing moved between accounts, not between people.
+- **No constitutional hook needed and none claimed** — assets are `[POLICY]`, Art. I freedom to
+  contract. The one hard rail: **an asset can never be a civic-right precondition** (§6.1), and a
+  CGC's public-domain IP is not an asset that can be privatised (Art. III §5).
+
+### 5.5 Mutual aid, joint ledgers, agreements
 
 ```
 assistance_requests id · requester_account_id · title · need · privacy default 'private'
@@ -388,6 +425,7 @@ one thing that must never be public. Recorded here because it directly reverses 
 | F-IND-021 | Grant Application *(replaces the engine-bypassing service call)* | R-01 / R-23 |
 | F-IND-022 | Marketplace Listing / Order | R-01 / R-23 |
 | F-IND-023 | Funds Transfer · Joint-Ledger Movement | R-01 |
+| **F-IND-024** | **Asset Registration / Transfer** *(§5.4 — operator ruling)* | R-01 / R-23 |
 | F-ORG-008 | Organization Market Participation | R-23 |
 
 All IDs verified free (families end at LEG-036 / IND-017 / ORG-007; no `F-TRE-*` exists).
@@ -402,18 +440,30 @@ All IDs verified free (families end at LEG-036 / IND-017 / ORG-007; no `F-TRE-*`
 | Apply for Grants | Half-built | **Fold in** — §4.4 completes it, including individual applicants |
 | Fund distribution | Exists (appropriations by act) | **Already delivered** — no new work |
 | Fundraising (donation intake) | The genuinely absent half | **Fold in** — a donation is a transfer to a treasury or org account (F-IND-023); no new plane, and it gives nonprofits the intake side Phase J will want |
-| Asset registration | Truly absent | **Retire.** The Template ties money to ownership in exactly one place — shares (Art. III §5) — which `org_ownership_stakes` already models. A general asset registry has no constitutional hook, invites a property-rights regime the Template does not define, and would be the app taking an economic position. Recorded as a deliberate no. |
+| Asset registration | Truly absent | **BUILD IT — §5.5.** *(Operator ruling 2026-07-25, overturning my recommendation to retire it. I read it as a property-rights regime; it is an **inventory model**. A seller lists a specific thing — a blanket they made — and that thing has its own identity and attributes. Required for virtual **and** physical goods, and it is the substrate the fantasy/D&D-style maps need.)* |
 | Endorse Policies | Confirmed absent | Not economy — out of lane |
 
 ---
 
 ## 10. D-09 — age settings
 
-`age_of_majority` and `age_of_consent` are absent everywhere. Added as bounded settings with a
-**hard rail pinned in the constitutional suite: neither may ever appear in any path that resolves
-voting, candidacy, residency or any R-## role.** The Template makes voting and standing for office
-absolute on residency alone; an age setting exists for contract capacity and market participation,
-and must be structurally incapable of leaking into rights. Values are the operator's to set.
+**The operator's challenge is correct and it narrows this to almost nothing:** *this is a game, and
+every account is a character.* There is no verified date of birth in the system and there should not
+be one — collecting it would be a privacy liability the Template never asks for. So **age gates
+nothing, economic or otherwise.**
+
+What ships:
+- `age_of_majority` and `age_of_consent` as bounded settings, **default 18** (the Template's own
+  default), amendable by act like any other.
+- They exist as **declared world facts** — a jurisdiction's stated age of majority, publishable and
+  citable — not as an enforcement input.
+- **Pinned rail:** neither key may appear in any path that resolves voting, candidacy, residency, any
+  R-## role, **or any economic action** (account opening, listing, order, transfer, contract,
+  stipend eligibility). A source-scan test asserts the keys are read by no such path.
+
+That closes D-09 without introducing an age check anywhere. My earlier framing — that the setting
+existed for "contract capacity and market participation" — was the mistake; it would have quietly
+built an age gate into the economy.
 
 ---
 
@@ -431,7 +481,7 @@ Nine slices. Each is committable, tested, and leaves the app working.
 | **L-6** | Stipend engine, both funding paths, F-TRE-001..004, k-anon aggregates | **L exit: a budget funded by an enacted stream, disbursed on a verifiable ledger** |
 | **M-1** | `economic_accounts` + bindings + transfers; the §3 privacy rails and their pins | No-`user_id` pin green |
 | **M-2** | Labor board → F-IND-014; founding stakes + share issuance | **M exit: a board hire auto-triggers co-determination** |
-| **M-3** | Marketplace + exchange + agreements/redlines + mutual aid + joint ledgers; F-ORG-008 | All 14 screens live; 3 journey arcs flip to `live` |
+| **M-3** | **Assets/inventory (§5.4)** + marketplace + exchange + agreements/redlines + mutual aid + joint ledgers; F-ORG-008, F-IND-024 | All 14 screens live; 3 journey arcs flip to `live` |
 
 **Slot:** post-launch, per the standing work order. **L-1 and L-4 are the exceptions worth
 considering earlier** — both are completions of shipped-but-broken code rather than new surface.
@@ -458,14 +508,14 @@ Standing demo: `institutions:demo-treasury --fresh`, the chartered name, in the 
 
 ## 13. Open questions
 
-**For the operator, at review — none blocks starting L-1:**
-1. **Age values** (§10) — numbers are yours; rails are mine.
-2. **`stipend_enabled` default** — I have it **false** so a fresh instance pays nothing until its
-   legislature acts. Confirm, or default it on.
-3. **Which roles qualify for a bump** — the three shipped `pay_*` keys imply operator / moderator /
-   office-holder; office-holder needs a role set. Recommend the high-burden set (R-09, R-18, R-19,
-   R-20), excluding the politically-neutral offices (R-08, R-29).
-4. **Asset registration retired** (§9) — flagged as a deliberate no; say if you want it built.
+**All four are ANSWERED (operator, 2026-07-25) — nothing blocks the build:**
+
+| # | Question | Ruling |
+|---|---|---|
+| 1 | Age values | **18**, Template default — and age gates **nothing**; it is a declared world fact, not an enforcement input (§10 rewritten) |
+| 2 | `stipend_enabled` default | **ON, always, for all players.** A legislature may switch it off by act; a fresh world pays from day one |
+| 3 | Which roles earn a bump | **All civic roles and operators** — the three shipped `pay_*` dials are the class set; no subset, no per-role table |
+| 4 | Asset registration | **BUILD IT** — an inventory model for virtual *and* physical things, required for the fantasy/D&D maps (§5.4) |
 
 **Carried from `phase-g-continuation/DECISIONS.md:65-70`** — the 7 existing L/M items remain open and
 are answered by this design where R1/R2 settle them (funding source: **both**; dual-door: **yes**;
