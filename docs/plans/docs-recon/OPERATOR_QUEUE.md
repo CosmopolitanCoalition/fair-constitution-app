@@ -1,67 +1,55 @@
-# Operator Queue — open decisions (2026-07-25, 15:55)
+# Operator Queue — open decisions (rebuilt 2026-07-25 22:10 from every lane's TRANSCRIPT)
 
-One page. Everything waiting on the operator, with lane 7's recommendation where it has one.
-Nothing here is decided; the recommendations exist so a "yes" is a complete answer.
-Sources: [BUILT_INVENTORY §7](BUILT_INVENTORY.md) risk register · [REVIEW_ROUND_2.md](REVIEW_ROUND_2.md).
+Rebuilt after reading all eleven idle lanes' actual chat transcripts, not just their board posts.
+That changed the picture materially: **most of the fleet is idle for want of a NUDGE, not a
+decision.** Organised by what it costs you, cheapest first.
+
+Lane 1 is the only lane still running (healing wave). Everything below is stopped.
 
 ---
 
-## A. Gating a lane's next step
+## TIER 1 — say "continue" and they run (no decision content at all)
 
-| # | Decision | Why it's yours | Lane 7 recommends |
+| Lane | What it's waiting for |
+|---|---|
+| **13 Economy** | **Nothing.** It ended its turn "Starting L-3" and its board says Blocked: nothing. All four D-14 questions were answered. It needs a nudge, that is all. L-1 and L-2 are shipped. |
+| **5 Translation** | A plain go for **step 4** (the glossary). It runs a per-step "you are good to proceed" cadence with you — that is how step 3 was authorised. No numbered decision open. |
+| **6 UI + A11y** | The plain **GO** it has been holding for since 09:36. It posted its tour method first so you could veto the shape before it burns a tour. |
+| **14 Coalition** | GO to **write the plan** (its seeding question gates seeding only, not planning — see Tier 3). |
+
+## TIER 2 — one short answer each
+
+| # | Lane | The question | Recommendation |
 |---|---|---|---|
-| A1 | **The setup-endpoint class.** One endpoint fixed (`4b17b08`); **8 remain** with no founding lock — `startMapData` (a live planet-scale ETL trigger on a founded world), `controlMapData`, `saveCosmicAddress`, `setMode`, `detectStep1`, `activateStep1`, `completeStep3`, `completeStep4`. Guards are ad hoc, not by rule. | It is app code outside any lane's declared path; someone must be assigned | **One systematic pass** keyed on "does this have a post-founding consequence?", using lane 13's proven pattern. Assign to lane 13 (has the pattern + context) or lane 2 (owns launch). **Before any public node exists.** |
-| A2 | **Per-kind `racePlan()`.** A run-level block means an illegal Type B half kills the lawful Type A district races with it — **30,262 legislatures**, 23.8% of planet seats. Found independently by lanes 3 and 4. | Touches the elections engine | Make it per-kind: schedule the lawful races, defer only the illegal half. Until then ~30k chambers cannot hold an election. |
-| A3 | **May lane 11 clone the operator's voice?** Its XTTS bench already generates Spanish from a 20-second reference of him. Charter sanctions it for evaluation; **no code-level provenance/quarantine gate exists** (unlike lane 10's). | It is his voice and likeness | Answer the *policy* question either way, then require lane 11 to adopt lane 10's `audio_provenance` + fail-closed quarantine so the answer is enforced, not remembered. Benchmarking may continue meanwhile; nothing cloned publishes. |
-| A4 | **`achievements.earned_at` → coarse DATE.** It is a full timestamptz and it federates unredacted; the charter's privacy rail wanted a date. | Schema change on a shipped table | **Take it now.** Both databases hold zero achievement rows, so it is a one-migration fix today and a data-truncation decision after the first real medal. |
+| Q1 | **3 Institutions** | Are the **tier-curve parameters legislative settings (amendable) or founder-only config**? They work and their bounds are enforced but are registered as neither. Making them amendable means editing two PROTECTED files, "which I won't do without your word." | **Amendable.** A population curve that decides when a government may boot is exactly the kind of thing a world should be able to change by act; founder-only makes it a permanent dictate — the same defect lane 13 just closed for the monetary levers. |
+| Q2 | **4 Sim World** | Its **DECISION 3** — whether to build batching for governance acts. Step 3 is parked on it; everything else in its plan proceeds. | Ask it to restate the decision in one line, then rule. It has been parked longest on this. |
+| Q3 | **12 Social** | **API-immediate or native schedulers?** The deciding fact: **13 of 14 platforms have no usable API scheduling**; exactly one (Facebook Page) is free and ungated. It defaults to API-immediate if unanswered. | **Native schedulers** for the 13, API only where it genuinely works. Also: its `publishAt` line in CLAUDE.md is "true and materially misleading" — unverified projects force videos private, so **YouTube must route through Studio**. |
+| Q4 | **10 Video** | Four defaulted questions: master geometry (1080p default vs your uniformly 1280×720 library), audio bitrate (256k to match your ~244kbps), whether to **add a `Governance App` row to `Topic_Knowledge.xlsx`** (your file, untouched), and whether to stage the master into the library (default no). | Take its defaults except geometry — **match your library at 720p**. The xlsx row is worth adding: lanes 11 and 12 both key off it. |
+| Q5 | **15 Education** | A **build slot** for 5 additive changes, all free *right now* because both tables hold zero rows: `journey_id`→`award_key`, `earned_at`→`awarded_on DATE` + audit_seq channel, i18n key instead of denormalized English title, the `AchievementCatalog` registry, and awarding through the existing seal path. | **Grant the slot now.** This is the `earned_at` item from the old queue, grown into a clean five-part change while it is still free. After the first real medal it becomes a data migration. |
 
-| A5 | **Approve the graph-partitioner swap as lane 1's next build.** It has *proven* the general fix for the ~400-map class that produces **zero districts today** — partition the population **graph**, not the geometry, so contiguity holds **by construction** (cut one spanning-tree edge → exactly two connected components). Measured on scopes that currently yield nothing: **Sharjah 0 → 14 parts, 124/124 seats, 3.96% deviation in 6.7s** (would pass the filing band outright); Sermersooq 0 → 3 parts, 23/23. Abu Dhabi reaches 152/152 but 34.3% deviation — **and the reason is physical, not algorithmic**: its populated pixels form 230 disconnected settlement clusters, so districts are unions of indivisible clusters and balance is bin-packing-limited. | **Approve.** This is the gate on "build the full world" — ~400 jurisdictions cannot be districted at all today. The route is contained: the existing `community_cells` template already emits district geometry and rides the normal filing path; **its only failure is the weight balancer**. Swapping that one balancer for the graph partitioner leaves the geometry, gate and hash machinery untouched — one service plus pins. |
+## TIER 3 — these need real thought
 
-## B. Values calls (no deadline, but they shape what gets built)
-
-| # | Question | The situation |
+| # | Lane | The decision |
 |---|---|---|
-| B1 | **The untranslatable back catalogue.** `public_records` rows are immutable by trigger, so anything already published carries an empty translation set **permanently** — no locale ever addable. WF-SYS-03 ("records publish *with* translations") is the only hard constitutional mandate in Phase N. | Accept a permanently non-compliant back catalogue, or add a compliant re-publication path. |
-| B2 | **The locale roster excludes major languages.** The base derives from a geodata map of *official* languages per country, and the ladder only subtracts — so **Telugu, Marathi, Punjabi, Gujarati, Kannada, Malayalam, Hausa, Yoruba, Igbo, Javanese** can never enter, despite NLLB support and hundreds of millions of speakers each. **Re-verified 2026-07-25 against lane 5's new single registry (`101c315`, `scripts/i18n/languages.py`, 117 entries): all ten are still absent.** | For a cosmopolitan template whose Art. I rights do not key off officialdom, the base list deserves an explicit widening pass. **Now cheap:** the five drifting lists have collapsed into ONE generator, so widening is a single-file edit plus `python3 scripts/i18n/languages.py --write`. Decide the *principle* (speakers? NLLB coverage? official status?) and the roster follows. |
-| B3 | **Seating-doctrine scope qualifier.** The law says no textbook apportionment method appears "anywhere in seat allocation" — but **largest-remainder is used today** for committee seat apportionment across the type_a:type_b ratio (`CommitteeService.php:28,56,79`, Phase C, shipped). This is a live contradiction: lane 12's publish lint now **blocks accurate copy** about the bicameral committee split. | Districting doctrine is untouched. One line — the law governs *jurisdiction and legislature seat allocation*; committee splits inside a chamber are a different layer — resolves it. **Wording is the operator's; nobody should "fix" either side unilaterally.** |
-| B4 | **Two fleet process rules** — both found the hard way, both one line to adopt. (a) **The shared index sweeps in-flight work**: three confirmed instances, including lane 7's own commit taking 69 of lane 5's files. (b) **Migration numbering collided**: lane 4 and lane 13 independently took `2026_07_25_000001`; harmless this time (different tables) but Laravel orders by filename, so a future collision that shares objects breaks **virgin installs** — i.e. Azure — while every existing box stays green. | (a) Make `git commit -- <path>` **mandatory** fleet-wide, plus a `git show --stat` file-count check in board rule 7. (b) **Claim the sequence number in the same board entry as the migration slot.** Also: lane 2 should smoke-test a fresh install **from the migration files**, not only from the flattened baseline — five now sit on top of it, so a virgin `migrate` is no longer the one-step path flattening was meant to provide. |
+| T1 | **11 Video Translation** | **The licence question outranks the cloning question.** XTTS-v2 ships under CPML, non-commercial, and the restriction **follows the output files** — and Coqui shut down in early 2024, so no exception can be granted. Complicated by the `Shop` subject and by assets produced by an L.L.C. while the app ships under the nonprofit. **Settle this first: if CPML rules XTTS out, cloning is moot.** Then the cloning question, correctly reframed by the lane: *your HeyGen library is already your cloned voice in 77 languages (4,697 tracks)*, so a decision against cloning is not avoiding it — it is **stopping**, and accepting that new tracks sound like a different person than everything shipped. Third, listening-only: a blind loudness-normalised **A/B/C/D scoresheet** awaits your ear with **HeyGen as one of the four**, key withheld — "the only quality verdict in this benchmark". |
+| T2 | **2 Cloud Launch** | **Which box is sovereign.** Its finding: a peer join yields a **mirror** — authoritative for nothing, carrying no `users` — so **players cannot register on it**. Therefore the fresh Azure box must be the front door and your home box joins *it*. That inverts the intuitive arrangement and must be chosen before the first run. Also needs: **who controls the `worldofstatecraft.org` DNS zone** (it says by 08-01 or the schedule re-cuts). |
+| T3 | **9 Presentations** | **Review the house style and say what is wrong** — the fix lands in `house.json` once and every future deck inherits it. Its own caveat: the 136-slide prior deck is **still unmined** (that agent died on a spend limit), so the style is "the design system's answer, not yet yours." |
+| T4 | **14 Coalition** | Four seeding facts: exact legal names (is "Cosmopolitan Party Foundation" verbatim?), the parent/child direction (Foundation → 8b, Coalition of United Earth → 8a), founding details to carry, and any divergence between what the sites say today and what the app should store. |
 
-## C. Cheap and time-sensitive
+## TIER 4 — actions only you can take (not decisions)
 
-- **Lane 10's pilot script still carries the wrong seat-rule line** and waits on the operator to record. Free to fix now; a reshoot later costs a session. Vetted replacement is in the 12:38 board ruling.
-- **Lane 15's §5 lint defect is live in lane 12's publish gate** — it blocks the fleet's own approved wording (`FAC-1`, `FAC-2`) and accurate committee copy (`APP-1`, see B3). Fix at the source, bump `upstream_version`, lane 12 re-imports. Content lanes told: treat a block on approved wording as a **lint** defect, not a copy defect.
-- **The staged fleet broadcast** (review verdicts + fleet-wide findings) is written and held for the operator's preview per his standing rule.
+1. **Stand up the Azure VM and run the one-liner.** Lane 2 has verified statically only and says plainly the first real run will find something — port, DNS timing, or the ETL container. It needs 3 A records, opened ports, and **UDP 7882 for voice (TCP will not substitute)**.
+2. **Record `projects/cga-intro/01-script.md`**, then tell lane 10 "recorded". Everything downstream of it is waiting. **Apply the corrected seat line first** (below) — a reshoot costs a session.
+3. **Fill the Connect panel** at `file:///E:/workflows/social-posting/board.html` at your convenience — lane 12 built it so you never paste credentials into chat.
+4. **Confirm two login-walled numbers** for lane 12: X's 18-month scheduling horizon and Instagram's ~75-day / 25-per-day limits.
 
-## D. Answered by lane 7 — no action needed (recorded so nobody re-opens them)
+## SETTLED BY LANE 7 THIS ROUND (no action needed)
 
-GATE-3's predicate was wrong, not lane 14's seeding (the nonprofits are real entities, not
-synthetic data) · lane 12 adopts lane 9's shipped `claims_check` rather than authoring a second ·
-lane 10 reconciles the language-allowlist drift as upstream authority · the faction freeze is
-**lifted** for lanes 9–11, lane 12 on prose only until the lint is patched · lane 5 builds its
-checker standalone, CI bring-up is not 40-day-critical · the Register.vue copy stays while lane 5
-pilots delivery, lane 6 softens if unproven when its wave arrives · lane 13's walkthrough-then-design
-ordering was superseded by the operator in-chat, correctly.
+- **The public seat rule.** Verified in code: `max(5, round(pop^(1/3)))` — floor five, **no ceiling**. The 5–9 band governs **districts**. Approved line: *"Power stays local: every district elects five to nine representatives. Bigger places simply have more districts — Earth's world legislature seats 1,999 members across 282 of them."* Lanes 10 and 12 are unblocked. **One doc item is yours:** CLAUDE.md's row *"Legislature max seats 9"* reads like a cap and has now stalled two lanes — suggest *"District max seats 9 (a legislature above 9 must subdivide into districts)"*; say the word and I will make exactly that edit.
+- Migration ordinal blocks assigned; the 8 suite failures attributed as pre-existing and probably environmental; the git pathspec rule; risk items 13–20.
 
-## E. Closed this round
+## DEFECTS FOUND, NOT YET OWNED
 
-**Risk #14 — no environment guard on any artisan command** (lane 4, `2ff1af6`, operator-triggered):
-was a **live** exposure, not a Phase-O one — `elections:demo` would mint 40 permanent users with
-password `demo` against whatever database `.env` pointed at. Now guarded by a declared **world
-property** (`instance_class=scale_demo` OR `game_mode=sandbox`), never an env var or code flag, per
-the no-dev-exceptions rule. Fails closed to production; the CI-2 boot assertion refuses to *serve*,
-not to boot, so a bad state never locks the operator out of the console. Side effect: Phase O's
-`instance_class` persistence landed early, because this needed it.
-
-**D-09 age settings — CLOSED as NOT APPLICABLE** (operator ruling via lane 13, `066567f`):
-`age_of_majority = 18` is real Template/website constitutional text, but it is **not a property of
-the simulated world** — this is a game, every account is a character, and there is no date of birth
-in the system. Nothing ships: no settings keys, no columns, no rail, no test. Lane 13 left both of
-its earlier wrong framings on the record so the next reader stops sooner. **Reassign to whoever owns
-Template text and website copy, or close outright — it is not a code deliverable.**
-*(This removes the "age values" item from the operator's decision list.)*
-
-**Risk #17 — the documented install path** (lane 2, `92ca3be`, verified): the public path now runs
-`deploy.sh --public-url`, which regenerates the app key and seeds clocks, requires https, and
-**refuses `--seed`** so demo data cannot enter a real launch. README re-scopes `get-started` to
-local/LAN. Residual: a LAN node still boots on the committed key with debug on — scoped, noted, not
-blocking.
+- **Your shipped library has language-untagged tracks.** `ReCombineVideos.py:223` uses `parts[1]` instead of `parts[-1]`, so `Scaling Co-Determination-Spanish.m4a` parses its language as "Determination" → `und`. **All 77 audio tracks in the Co-Determination multilingual video are untagged.** Lane 10 reported it and touched nothing of yours.
+- **The app's own player emits invalid `srclang` values** (`ben_bn`, `arm`/`cze`/`wel`). Lane 11 will not fix it — changing `wp_code` would mutate srclang on 4,697 live tracks; it is a Coalition-site call.
+- **212 un-indexed foreign keys** exist; lane 3 fixed only the four that reach planet scale and documented the audit query.
