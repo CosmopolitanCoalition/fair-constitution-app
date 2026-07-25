@@ -371,9 +371,98 @@ built; no WORKLOG.
 
 ---
 
-## 4c. Lanes 13, 15
+## 4c. Lane 15 — Civic Education & Achievements (four documents)
 
-*(reviews in flight at the time of this section's writing — appended as they land)*
+| Document | Verdict |
+|---|---|
+| `K2_FACTION_CORRECTION.md` (D-16a) | **APPROVE WITH NOTES** |
+| `K2_CURRICULUM.md` (D-16c) | **APPROVE WITH NOTES** |
+| `K2_ACHIEVEMENT_LIBRARY.md` (D-16b) | **NEEDS REVISION** |
+| `K2_ENGINE_PLAN.md` (D-16d) | **NEEDS REVISION** |
+
+Both revisions are narrow. The premise is correctly honored throughout — the engine plan
+**extends** `JourneyService` and specifies `education_progress` to the `journey_progress`
+shape; all seven iron rails are pinned in both documents.
+
+### ⚑ FREEZE-LIFT RULING
+**LIFTED for lanes 9, 10, 11 — unconditionally.** The corrected wording was verified against
+live source, not against the document's own citations, and every approved replacement matched
+verbatim. Ground truth holds: zero `faction` anywhere in the schema; `endorsements` is
+genuinely polymorphic. **Lane 12 may use the PROSE, but §5's JSON must be patched before it is
+wired as a publication gate** — see finding 1.
+
+1. **⚑ The lint blocks the document's own approved wording.** `FAC-1` fails on `\bfaction`
+   with only four exempt phrases — but **six of the nine approved replacements contain
+   "faction"** and none of the exemptions ("faction-independent", "not a faction layer", "no
+   faction registration"…). `FAC-2` compounds it by failing "no party column", which the
+   document itself nominates as the best on-camera proof. As written, the lint would reject the
+   exact copy lanes 9–11 are told to use verbatim.
+2. `unless_within` has no defined scope (same line? sentence? document?) in a rule set handed
+   to another lane as an implementation contract.
+3. **`APP-1` is factually contradicted by the build** — it fails any mention of
+   largest-remainder as "no textbook apportionment method is used anywhere in seat allocation",
+   but largest-remainder **is** used for committee seat apportionment over the type_a:type_b
+   ratio (`CommitteeService.php:28,56,79`; `CommitteeCreationAct.php:15`). See the operator
+   item below — the doctrine needs a scope qualifier, not a change.
+4. Do-not #6 (the public-square residency-gate error) has no lint rule despite being called the
+   largest chart-vs-code divergence.
+5. **Webster scope understated by ~13 files** — it survives in `mockups/v3` fixtures/manifests
+   and in *visible page copy* in `mockups/v2` ("Webster allocation", "192, Webster-split by
+   population"), plus a stale docblock in live app code (`LegislatureController.php:1387`).
+   Those are exactly the surfaces lanes 9/10 would screenshot.
+6. **Achievement catalog form-ID errors** — `ACH-ORG-FOUNDED` keys to F-ORG-001 (profile
+   management, agent-only, no creation branch); founding is F-IND-012. And the verification
+   spine has **no actor-vs-subject rule**, so `ACH-IND-VALIDATED` awards the candidate's medal
+   to the **board member who validated**, and `ACH-LEG-COMMITTEE` keys to preference *ranking*,
+   not placement. Re-audit the catalog against an explicit rule.
+7. **The `earned_at` federation table is wrong on two of three rows — and it is the evidence
+   base for an operator ruling.** `audit_seq` and `source_server_id` do **not** federate
+   (exporter-local, pinned by `assertArrayNotHasKey`), so the "audit_seq compounds it" threat
+   narrative is false. **The core finding survives**: `earned_at` is a full timestamptz and it
+   *does* federate unredacted, so the coarse-DATE migration is still right — but the operator
+   was given an overstated threat model.
+8. **The costed three-way on self-reported ticks was promised and not delivered** — the
+   documents present a resolved recommendation instead, so the operator can approve or reject
+   but cannot compare. Requested at the lane's own 09:37 commitment.
+9. Smaller: "nine places" for the never-block quote is three (and not byte-identical, which
+   defeats the reason for quoting); the placeholder roll-call is 16, not 17; C2's replacement is
+   sourced from a **mockup**, not a built surface, and the ledger item it comes from contains the
+   very individual-endorsement claim §1.5 forbids — lanes quoting it need that warning inline.
+10. Criterion 8 half-met: lane 5 got the **legacy** corpus number (131,903 words → ≈10.2M at 77
+    languages) but not the app-native curriculum K-2 will create.
+
+**Good catches (verified):** **no individual-endorsement write path exists** — the only writer
+hardcodes `ENDORSER_ORGANIZATION`, so R-07 and observer standing are org-only, which genuinely
+changes what lanes 9–12 may say · the `correct_keys` permanence hazard (rejected filings are
+sealed with a sanitized payload, and `SENSITIVE_KEYS` holds no answer-key entry — while the
+mockup lesson ships the answer index client-side) · the envelope-not-ballot rail carried through
+to its abstention-leak second half · a **live defect**: the sidebar renders an *enabled* Learn
+link to a route that does not exist (404) · two constitutional sections absent from the
+curriculum chart entirely · PI-5 does not exist anywhere.
+
+**Lane discipline note (self-disclosed, no harm):** commit `ddde935` swept lane 3's plan file
+into a K-2 commit (`git add <path> && git commit` commits the *index*). The lane found it
+itself, disclosed it in full with the mechanism, and proposed the fleet-wide fix
+(`git commit -- <path>`). No work lost; lane 3 committed on top.
+
+---
+
+## 4d. Lane 13 — Economy Engine
+
+**Sequencing is correct, not a violation:** the operator cancelled the walkthrough in-chat and
+directed the lane straight to design, so `ECONOMY_ENGINE_PLAN.md` (D-14, `31cca78`) landing
+before the walkthrough is his call, not a jumped gun. The audit plan shipped first anyway
+(`0bd9a63` + `b459881`).
+
+**The lane self-corrected a published claim** — it had written that `acquired_via='founding'`
+has no writer anywhere; `CgcService.php:147-153` is one. It published the correction with the
+narrowed finding rather than quietly amending, which is the standard this fleet should hold.
+
+**Its security finding is the most serious item of the entire round — verified by this desk and
+promoted to risk-register #19 (LAUNCH-BLOCKING).** See §5 item 8.
+
+*(The independent review of lane 13's documents was still running when this section was written
+and will be appended.)*
 
 ---
 
@@ -398,3 +487,19 @@ built; no WORKLOG.
    green** — the K-3 translation privacy gate is the live example (its test constructs the
    gate directly and never touches the container). Any lane swapping a bound implementation
    must add a pin on *what the production consumer actually receives*, not just on the class.
+8. **⚑⚑⚑ LAUNCH-BLOCKING: `POST /api/setup/constants` is unauthenticated.** No route
+   middleware, no `is_operator` check, no setup-complete refusal — while the sibling endpoint
+   `saveGameMode` on the next line has all three *plus a comment explaining why a guest trigger
+   would be unacceptable*. All 29 constitutional keys are writable by anyone who can reach the
+   URL on a founded world, and the armed CLK-13/14 timers then desync from the settings row.
+   Found by lane 13, verified by lane 7 at both the route and handler layers. Risk register
+   #19 → lane 2's launch checklist as a **blocking gate**. Every dual-door and supermajority
+   guarantee above it is decorative until it closes.
+9. **Doctrine scope question for the operator (not a change):** the seating law says no
+   textbook apportionment method appears "anywhere in seat allocation", but **largest-remainder
+   is used today for committee seat apportionment** across the type_a:type_b ratio
+   (`CommitteeService.php:28,56,79`, Phase C, built and shipped). The districting/seat-budget
+   doctrine is untouched by this. What is needed is a one-line scope qualifier — the law governs
+   *jurisdiction and legislature seat allocation*; committee splits within a chamber are a
+   different layer — so lints and teaching copy stop contradicting the build. **Operator's call
+   to word it; nobody should "fix" either side unilaterally.**

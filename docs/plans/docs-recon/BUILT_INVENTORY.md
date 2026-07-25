@@ -306,6 +306,27 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     nginx, scheduler, LiveKit, and a Redis capped at 768 MB. Recomputed serving floor ≈14 GB, which
     puts an 8 GiB box out and a 16 GiB box at modest headroom. (`HostCapacity::autoscaleWorkers()`
     is the autoscale limiter — not Horizon's process count; don't reuse it for sizing.)
+19. **⚑⚑⚑ LAUNCH-BLOCKING — the constitution is writable by an unauthenticated request.**
+    Found by lane 13, **independently verified by lane 7 at both layers**:
+    `POST /api/setup/constants` → `SetupController::saveConstants` carries **no route
+    middleware** (`routes/web.php:98` — bare, no `->middleware('auth')`), **no `is_operator`
+    check, and no `isSetupComplete()` refusal**. The comparison is the proof that this is a
+    defect and not a design choice: `POST /api/setup/game-mode`, the *very next route*
+    (`:103-104`) and the next handler in the same controller, is auth-gated **with a comment
+    explaining that it must never be a guest trigger**, requires `is_operator`
+    (`abort_unless(... 403)`), and 409s once setup completes. The guard pattern exists in that
+    file and was simply not applied to the endpoint that writes the constitution.
+    **Blast radius (lane 13's measurement): all 29 constitutional keys** — not just the 9
+    economy ones — including `judiciary_is_elected` (the sole dual-door key) and the
+    `worker_rep_*` pair, whose armed CLK-13/14 timers then **desync** from the settings row
+    because `RederiveClockTimersJob` never fires. On success the endpoint returns
+    `next: /setup/step/2` — the Map Data page, also re-enterable — leaving a caller one click
+    from a live ETL submit form on a founded world.
+    **Consequence: a public cloud node is rewritable by anyone who can reach the URL.** Every
+    dual-door and supermajority guarantee above it is decorative until this closes.
+    → **lane 2's launch checklist as a blocking gate**; the fix itself is small (apply the
+    sibling's three guards) but touches setup auth, so it needs the operator's word on who
+    lands it.
 
 ---
 
