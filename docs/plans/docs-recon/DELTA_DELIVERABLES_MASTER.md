@@ -240,83 +240,140 @@ operator's direction.
 > The full WCAG certification pass remains Phase N — you are the audit
 > front-runner, not the certifier.
 
-### New-lane opening prompts (added 2026-07-24; open in E:\fair-constitution-app)
+### New-lane opening prompts — v2, audit-integrated (2026-07-25; open in E:\fair-constitution-app)
+
+*(v1 prompts of 2026-07-24 superseded — they predated the code audit and the fleet
+board. These are the canonical openers; PROMPTS.md mirrors them.)*
 
 **→ Lane 13 — Economy Engine (Phases L+M, one unit):**
 > NEW LANE — ECONOMY ENGINE (Phases L + M as ONE unit — operator ruling: never
 > handled apart). Design-first: NO code, NO migrations until the operator settles
-> the plan. Authority: docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase L +
-> §Phase M (theses, schema, forms, hard rails, exit criteria — the original
-> exploration doc is gone; the charter + memory recall are your sources). Also
-> read docs/plans/docs-recon/PHASE_LEDGER_A_TO_O.md + DELTA_DELIVERABLES_MASTER.md
-> (you are D-14).
+> the plan. FIRST ACTION: read E:\fair-constitution-personal\parallel-chats\fleet\
+> README.md (the fleet-board standing order binds you), sweep the board starting
+> with lane-07's broadcast, claim fleet\lane-13.md (fill the STATUS block).
 >
-> Deliverable: docs/plans/economy/ECONOMY_ENGINE_PLAN.md — (a) the fiscal layer:
-> revenue/levies (filings private), budgets → the existing Phase-D appropriations
-> substrate, double-entry hash-chained public ledger (LedgerService sole writer),
-> borrowings, currency RESERVED to the root jurisdiction (Art. V §5); (b) the
-> market layer: labor board feeding co-determination, marketplace, mutual aid,
-> UBI — eligibility = active residency ONLY, public aggregate + private receipts,
-> never federated; (c) hard rails as pins: no paywall on civic rights (Art. II
-> §8), monetary levers legislative-only dual-door (F-LEG-031), private-local
-> FORBIDDEN_SUBJECT_TYPES additions; (d) dispositions for App_Flows' unbuilt
-> concepts (grants, fundraising/fund-distribution, asset registration — census in
-> the phase ledger): fold-in or retire, per concept, with reasoning; (e) the form
-> plan F-LEG-037..040, F-TRE-001..004, F-IND-018..023, F-ORG-008. Build slot is
-> post-launch per the standing work order — your design runs parallel now. Lane
-> owns docs/plans/economy/ only.
+> Required reading, in order: docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase L
+> + §Phase M (the spec: theses, schema, forms, hard rails, exit criteria) ·
+> docs/plans/docs-recon/BUILT_INVENTORY.md §3 (Phases L+M) — the 2026-07-25 code
+> audit's substrate list · DELTA_DELIVERABLES_MASTER.md §3.0 lane-13 addendum +
+> §2 (you are D-14, D-09, D-20 items).
+>
+> THE AUDIT CHANGED YOUR STARTING POINT — you do not design from zero: (1) the
+> UBI/stipend PARAMETER layer is live (civic_stipend_floor, stipend_bump_cap,
+> pay_* toggles, stipend_interval, currency_name/code/symbol — Setup Step 1 → the
+> PROTECTED ConstitutionalSettings model; design doc
+> docs/plans/phase-g-continuation/LM-fiscal-civic-stipend.md); (2) the Phase-D
+> grants/appropriations stub exists but GrantService::award/decline/disburse/
+> createAppropriation are DEAD CODE — zero callers, zero tests; wiring them is
+> your cheapest early win; (3) the labor→co-determination chain (M's exit
+> criterion's hardest link) is BUILT and constitutionally pinned; (4)
+> org_contracts kind 'commercial' is in schema with the cosign constraint; (5) an
+> Art. II §8 proto-rail exists (fee/payment_required in the PROTECTED validator's
+> FORBIDDEN_ELIGIBILITY_KEYS) — NO_FEE_FORMS generalizes it; (6) the dual-door
+> machinery is live — monetary levers are configuration on tested rails; (7) the
+> UI is designed: 14 economy pages in BOTH mockups/v2/economy and v3/economy plus
+> a live "Market · planned" nav section — design to those contracts.
+>
+> Deliverable: docs/plans/economy/ECONOMY_ENGINE_PLAN.md — (a) fiscal layer:
+> revenue/levies (filings private), budgets → the existing appropriations rows,
+> double-entry hash-chained public ledger (LedgerService sole writer), borrowings,
+> currency RESERVED to root (Art. V §5); (b) market layer: labor board feeding
+> co-determination, marketplace, mutual aid, UBI — eligibility = active residency
+> ONLY, public aggregate + private receipts, never federated; (c) hard rails as
+> pins: no paywall on civic rights, monetary levers dual-door only (F-LEG-031),
+> FORBIDDEN_SUBJECT_TYPES additions; (d) App_Flows dispositions — CORRECTED by the
+> audit: grants = half-built (finish, don't invent), fund-DISTRIBUTION exists
+> (only donation-intake fundraising is absent — dispose of that half), asset
+> registration = truly absent (fold-in or retire, with reasoning); (e) form plan
+> F-LEG-037..040, F-TRE-001..004, F-IND-018..023, F-ORG-008; (f) the
+> age_of_majority/age_of_consent settings gap (D-09) lands with you. Build slot is
+> post-launch per the standing work order — design runs parallel now. Lane owns
+> docs/plans/economy/ only. Post readiness to the board and stand by for the
+> operator's go.
 
 **→ Lane 14 — Coalition Organization (Phase J build):**
 > NEW LANE — COALITION ORGANIZATION (Phase J). Re-timed by the standing order's
-> own terms: J ships when the live game opens, and the live game now opens
-> 2026-09-01 — this small additive build lands INSIDE the 40-day window,
-> coordinated with lane 2's launch plan. Authority:
-> docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase J + memory (coalition org
-> structure) + docs/plans/docs-recon/DELTA_DELIVERABLES_MASTER.md (you are D-15).
+> own terms: J ships when the live game opens = 2026-09-01, so this small additive
+> build lands INSIDE the 40-day window, coordinated with lane 2's launch plan.
+> FIRST ACTION: read E:\fair-constitution-personal\parallel-chats\fleet\README.md
+> (fleet-board standing order binds you), sweep the board starting with lane-07's
+> broadcast, claim fleet\lane-14.md (fill the STATUS block).
 >
-> Scope (small by design, rides the built Phase-D org module): two nonprofits —
-> Cosmopolitan Party Foundation (legal parent) + Cosmopolitan Coalition of United
-> Earth (operating/authoring child) — type='nonprofit', linked by
-> organizations.parent_organization_id, registered at Earth (ADM0);
+> Required reading: docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase J ·
+> docs/plans/docs-recon/BUILT_INVENTORY.md §3 (Phase J) ·
+> DELTA_DELIVERABLES_MASTER.md §3.0 lane-14 addendum (you are D-15).
+>
+> Scope (audit-confirmed exactly as chartered — every J delta verified absent):
+> two nonprofits — Cosmopolitan Party Foundation (legal parent) + Cosmopolitan
+> Coalition of United Earth (operating/authoring child) — type='nonprofit',
+> linked by organizations.parent_organization_id (column EXISTS; zero test
+> coverage — add pins), registered at Earth (ADM0);
 > organizations.public_domain_charter (ONE-WAY false→true) +
 > cgc_ip_register.dedication_basis (constitutional_mandate|voluntary_charter);
-> optional org_memberships.is_public. The Δ4 authorship bridge is OWNED BY K/N —
-> do not create it. Strict civil-society firewall: Article-I levers only, zero
-> Leg/Exec/Jud/CGC power — pin it; the CGC Art. III §5 branch stays
-> byte-identical. Exit: institutions:demo-coalition --fresh seeds both nonprofits
-> at Earth with a member-elected co-determined board and a public-domain corpus,
-> firewall pins green. Sequence: plan first
-> (docs/plans/coalition/PHASE_J_PLAN.md), build on operator go; migrations
-> coordinate through the one-lane-at-a-time rule. These are the same two
-> nonprofits the 8a/8b websites represent — verify naming/details with the
-> operator before seeding.
+> optional org_memberships.is_public; institutions:demo-coalition seeder;
+> civil-society firewall pins (Article-I levers only, zero Leg/Exec/Jud/CGC
+> power); the CGC Art. III §5 branch stays byte-identical. The Δ4 authorship
+> bridge is OWNED BY K/N — do not create it.
+>
+> AUDIT LANDMINES (read before writing a line): CgcIpRegisterService::dedicate()
+> hard-rejects non-CGC orgs AND the service is source-scanned by
+> CgcIpPublicDomainTest — your voluntary-dedication branch must EXTEND that
+> test's contract, never weaken it; OrgRegistryService::register() cannot set
+> parent_organization_id — your seeder sets it programmatically; F-LEG-028
+> Cultural-Institution recognition (your Art. V grounding) is ALREADY BUILT;
+> foundation_sync_cursors is federation plumbing, NOT a Foundation artifact.
+>
+> Exit: institutions:demo-coalition --fresh seeds both nonprofits at Earth with a
+> member-elected co-determined board and a public-domain corpus, firewall pins
+> green. Sequence: plan first (docs/plans/coalition/PHASE_J_PLAN.md), build on
+> operator go; migrations through the one-lane-at-a-time rule; these are the same
+> two nonprofits the 8a/8b websites represent — verify naming/details with the
+> operator before seeding. Post readiness to the board and stand by.
 
 **→ Lane 15 — Civic Education & Achievements (Phase K-2):**
-> NEW LANE — CIVIC EDUCATION & ACHIEVEMENTS (Phase K-2). Two halves on different
-> clocks. Authority: docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase K +
-> docs/plans/docs-recon/PHASE_LEDGER_A_TO_O.md + DELTA_DELIVERABLES_MASTER.md
-> (you are D-16).
+> NEW LANE — CIVIC EDUCATION & ACHIEVEMENTS (Phase K-2). FIRST ACTION: read
+> E:\fair-constitution-personal\parallel-chats\fleet\README.md (fleet-board
+> standing order binds you), sweep the board starting with lane-07's broadcast,
+> claim fleet\lane-15.md (fill the STATUS block).
 >
-> HALF 1 — CURRICULUM (start now): The_Chart.drawio is the curriculum map — 549
+> Required reading: docs/plans/CGA_PHASE_G_AND_BEYOND_ROADMAP.md §Phase K (the
+> K-2 slice) · docs/plans/docs-recon/BUILT_INVENTORY.md §3 (Phase K-2) —
+> THE 2026-07-25 AUDIT REWROTE YOUR PREMISE · DELTA_DELIVERABLES_MASTER.md §3.0
+> lane-15 addendum (you are D-16, plus two D-20 items).
+>
+> THE PREMISE CHANGE: the achievements half of K-2 is ALREADY BUILT — the journeys
+> engine (JourneyService, 13 arcs/10 live, config/cga/journeys.php as the
+> charter's code-registry catalog), journey_progress + append-only achievements
+> (DB-trigger enforced), profile badges, and cross-instance medal federation
+> (AchievementFederationTest). It shipped as mockups-v3-wiring Phase 3c and was
+> never attributed to K-2. Your engine plan therefore starts FROM JourneyService,
+> not greenfield, and does NOT wait on lane 3 — only the reach gauge +
+> jurisdiction-only leaderboards wait on Phase I.
+>
+> HALF 1 — CURRICULUM (start now): The_Chart.drawio = the curriculum map — 549
 > labels decomposing A Fair Constitution into Units → Lessons → Chapters with
-> weight percentages (python docs/extract_docs.py → docs/extracted/the_chart.xml).
-> Deliverable: docs/plans/education/K2_CURRICULUM.md — the structured extraction
-> (section → unit → lesson → chapter, weights preserved), reconciled against the
-> as-built app. The factions→polymorphic teaching correction is a NAMED work
-> item: the STV teaching materials predate open endorsements — keep factions as a
-> labeled teaching device + add a how-endorsements-actually-work module.
-> Cross-reference docs/Topic_Knowledge.xlsx transcripts for existing video
-> lessons per subject.
+> weights (python docs/extract_docs.py → docs/extracted/the_chart.xml).
+> Deliverable: docs/plans/education/K2_CURRICULUM.md — structured extraction,
+> reconciled against the as-built app; cross-reference docs/Topic_Knowledge.xlsx
+> transcripts for existing video lessons. The factions→polymorphic teaching
+> correction: the correction COPY is already live across built surfaces (OrgDetail
+> banner, Committees, constitutional-questions items 1+6) — your job is packaging
+> it as a Learn module + flagging the Coalition's external STV materials for the
+> operator's site chats.
 >
-> HALF 2 — ACHIEVEMENTS + education engine design (starts when lane 3's Phase-I
-> draft exists — achievements model on the legitimacy/reach gauge): deliverable
-> docs/plans/education/K2_ENGINE_PLAN.md per charter §K — education
-> tracks/modules/questions/progress (progress NEVER federates; correct_keys never
-> serialized to client), achievements append-only + AchievementCatalog as a code
-> registry, iron rails: NO governance advantage, NO per-person composite score,
-> NO individual leaderboards, participation measured from the envelope not the
-> ballot. Build slot post-launch per work order. Lane owns docs/plans/education/
-> only; no code until settle.
+> HALF 2 — EDUCATION ENGINE plan (start now, from the as-built): deliverable
+> docs/plans/education/K2_ENGINE_PLAN.md — the graded half that's genuinely
+> missing: education questions/correct_keys + server-side grading (correct_keys
+> NEVER serialized to client; progress NEVER federates — the journeys posture
+> already models this), F-EDU forms, integration with JourneyService rather than
+> replacement. Iron rails: NO governance advantage, NO per-person composite
+> score, NO individual leaderboards, participation from the envelope not the
+> ballot. SURFACE EARLY to the operator (via the board): two as-built fidelity
+> gaps — journey steps are self-reported ticks, not verified acts; and
+> achievements.earned_at is a full federating timestamptz where the charter's
+> privacy rail wanted a coarse DATE (cheap to fix before real medals exist).
+> Build slot post-launch per work order. Lane owns docs/plans/education/ only; no
+> code until settle. Post readiness to the board and stand by.
 
 ## 4. Maintenance contract
 
