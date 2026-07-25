@@ -324,6 +324,20 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     Fix direction: add the `isSetupComplete()` refusal (+ `is_operator`) to every setup endpoint
     with post-founding consequence. A blanket `auth` sweep is the wrong instrument and risks
     breaking bootstrap ordering.
+    **STATUS 2026-07-25: ONE endpoint fixed (`4b17b08`, lane 13) — THE CLASS IS STILL OPEN.**
+    `saveConstants` now mirrors `saveGameMode` (route `auth` + `is_operator` + 409), and lane 7
+    verified the fix cannot lock out a founder (the setup router sends a userless instance to
+    operator-creation before any wizard step; `createFounder` calls `Auth::login`). But a full
+    audit of the surface shows the guards are **ad hoc, not systematic** — 12 of 20 setup routes
+    carry no `auth`, and of 11 handlers checked only **three** carry a founding lock
+    (`joinFromSetup`, `saveConstants`, `saveGameMode`). **Eight have neither guard:**
+    `setMode` · `saveCosmicAddress` · `detectStep1` · `activateStep1` · **`startMapData`**
+    (lane 13's named corollary — a live planet-scale ETL trigger on a founded world) ·
+    `controlMapData` (controls a running ETL) · `completeStep3` · `completeStep4`.
+    The inconsistency is itself evidence: `step2/archive-path` and the autoscale halt/resume
+    routes *are* auth-gated while ETL start/control are not, so gating was applied per-endpoint
+    rather than by rule. **Remaining work: one systematic pass keyed on "does this have a
+    post-founding consequence?", not another one-off.**
     **Blast radius (lane 13's measurement): all 29 constitutional keys** — not just the 9
     economy ones — including `judiciary_is_elected` (the sole dual-door key) and the
     `worker_rep_*` pair, whose armed CLK-13/14 timers then **desync** from the settings row
