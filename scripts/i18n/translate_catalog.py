@@ -63,7 +63,13 @@ REGISTRY_JS = I18N / "locales.generated.js"
 # Reserved by vue-i18n. A translated message must not invent or lose these.
 PLACEHOLDER = re.compile(r"(?<!\{')\{([A-Za-z_$][\w$]*)\}")
 ID_TOKEN = re.compile(r"\b(?:R|WF|F|I|CLK)-[\dA-Z][\dA-Z-]*\b")
-CITATION = re.compile(r"Art\.\s*[IVXLC]+(?:\s*§\s*\d+)?")
+# Citations carry section RANGES with an en-dash in this repo's copy
+# ("Art. V §1–2 · CLK-05"), and a regex that stops at §1 leaves "–2" exposed to
+# the model, which then "translates" it. Match the whole citation or none of it.
+CITATION = re.compile(
+    r"Art\.\s*[IVXLC]+"
+    r"(?:\s*§+\s*\d+(?:\s*[–—-]\s*\d+)?(?:\s*,\s*\d+)*)?"
+)
 ESCAPED = re.compile(r"\{'[|{}@]'\}")
 
 # Status values that a machine pass must never touch.
@@ -237,7 +243,7 @@ class NllbProvider(Provider):
         pieces: list[str] = []
         spans: list[tuple[int, int]] = []
         for t in texts:
-            parts = [p for p in _SENT_SPLIT.split(t.strip()) if p.strip()] or [t]
+            parts = sentences(t) or [t]
             spans.append((len(pieces), len(pieces) + len(parts)))
             pieces.extend(parts)
 
@@ -342,9 +348,33 @@ def qa(source: str, out: str | None) -> str | None:
 
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-ZÀ-ɏ])")
 
+# A period does NOT end a sentence after these. Without this, "e.g. Saturday
+# crew" is torn into two fragments, each translated blind to the other, and the
+# sentence-count rail then reports the rejoined result as content loss —
+# a rail firing on a defect the splitter itself introduced.
+_ABBREV = (
+    "e.g", "i.e", "etc", "vs", "cf", "approx", "no", "fig", "art", "sec",
+    "mr", "mrs", "ms", "dr", "st", "jr", "sr", "vol", "ch", "para",
+)
+
+
+def sentences(s: str) -> list[str]:
+    """Split into sentences, refusing to break after a known abbreviation."""
+    parts = _SENT_SPLIT.split(s.strip())
+    out: list[str] = []
+    for part in parts:
+        if out:
+            tail = out[-1].rstrip()
+            last = re.split(r"[\s(\[]", tail)[-1].rstrip(".").lower()
+            if last in _ABBREV:
+                out[-1] = f"{out[-1]} {part}"
+                continue
+        out.append(part)
+    return [p for p in out if p.strip()]
+
 
 def _sentence_count(s: str) -> int:
-    return len([p for p in _SENT_SPLIT.split(s.strip()) if p.strip()])
+    return len(sentences(s))
 
 
 def load(path: Path) -> dict:
@@ -424,6 +454,15 @@ def self_test() -> int:
     # sentence splitting is what prevents the loss in the first place
     check("sentence splitter finds both sentences", _sentence_count(long_src) == 2)
     check("single sentence stays single", _sentence_count("Log in") == 1)
+
+    # both observed in the first full Spanish pass, both bugs in THIS file
+    check("abbreviation is not a sentence end",
+          _sentence_count("e.g. Saturday crew") == 1,
+          str(sentences("e.g. Saturday crew")))
+    cite = "Art. V §1–2 · CLK-05"
+    m2, k2 = mask(cite)
+    check("en-dash citation range masks whole",
+          "§" not in m2 and unmask(m2, k2) == cite, m2)
 
     failed = [c for c in cases if not c[1]]
     for label, ok, detail in cases:
