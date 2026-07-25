@@ -1103,10 +1103,22 @@ class DistrictingService
         // so every surviving bin's share, rounding, and the pool budget are
         // untouched. A scope with no live sibling keeps its zero-pop bin
         // (nothing to absorb into); the completeness gate reviews it honestly.
+        // CRUMB EXTENSION (2026-07-25, the De'an class): a bin whose seat
+        // ENTITLEMENT rounds to ZERO (frac < 0.5 — 445 people against a
+        // 4,160 quota) is as unseatable as a zero-pop bin: Step 11's clamp
+        // would mint it 1 (or floor) unearned seats, over-representing its
+        // few residents ~9x and drifting the pool. Crumbs merge like
+        // zero-pop bins — but their PEOPLE ride along into the target
+        // (represented by the neighbor's seats, one-person-one-vote served).
+        // Bins with frac in [0.5, floorBoundary) keep the sanctioned
+        // floor_override posture — only round-to-zero entitlements merge.
+        $crumbCutoff = $nonGiantBudget > 0
+            ? (array_sum(array_column($binData, 'pop')) / $nonGiantBudget) * 0.5
+            : 0;
         $zeroIdx = [];
         $liveIdx = [];
         foreach ($binData as $i => $b) {
-            if ($b['pop'] === 0) {
+            if ($b['pop'] === 0 || ($crumbCutoff > 0 && $b['pop'] < $crumbCutoff)) {
                 $zeroIdx[] = $i;
             } else {
                 $liveIdx[] = $i;
@@ -1154,7 +1166,11 @@ class DistrictingService
                     $target ??= $liveIdx[0];
                 }
                 $binData[$target]['jids'] = array_merge($binData[$target]['jids'], $binData[$zi]['jids']);
+                // The crumb's people ride into the target (zero-pop bins add
+                // nothing; De'an-class crumbs add their few hundred).
+                $binData[$target]['pop'] += $binData[$zi]['pop'];
                 $binData[$zi]['jids'] = [];
+                $binData[$zi]['pop'] = 0;
             }
             $binData = array_values(array_filter($binData, fn($b) => $b['jids'] !== []));
         }

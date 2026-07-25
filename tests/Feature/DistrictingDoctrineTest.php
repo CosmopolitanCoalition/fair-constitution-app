@@ -1534,6 +1534,50 @@ class DistrictingDoctrineTest extends TestCase
      * Root → scope → chain of children (adjacent unit squares along the x axis).
      * Returns [$legRow, $scopeId].
      */
+    // ─── (26) Crumb absorption: entitlement-zero bins never seat ────────────
+
+    public function test_crumb_child_rides_a_neighbor_and_never_seats_its_own_district(): void
+    {
+        $this->onLivePg(function () {
+            // The De'an class (live specimen 2026-07-25): 445 people held a
+            // dedicated 1-seat district against a ~4,160 quota — 9x
+            // over-represented and +1 pool drift. A bin whose entitlement
+            // rounds to ZERO (frac < 0.5) merges into a live sibling WITH
+            // its people: here 300 people against a ~100k quota join a
+            // neighbor, the map seats [5,5] = the exact budget, and the
+            // crumb's population is counted inside its host district.
+            $total   = 1_000_300;
+            $rootId  = $this->makeJurisdiction('zzcr-0-root', 'CR Root', 0, null, $this->square(0, 0, 3, 3), $total);
+            $scopeId = $this->makeJurisdiction('zzcr-1-scope', 'CR Scope', 1, $rootId, $this->square(0, 0, 3, 1), $total);
+            $this->makeJurisdiction('zzcr-2-west', 'CR West', 2, $scopeId, $this->square(0, 0, 1, 1), 500_000);
+            $this->makeJurisdiction('zzcr-2-east', 'CR East', 2, $scopeId, $this->square(1, 0, 2, 1), 500_000);
+            $crumbId = $this->makeJurisdiction('zzcr-2-crumb', 'CR Crumb', 2, $scopeId, $this->square(2, 0, 3, 1), 300);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['id', 'seats', 'actual_population']);
+
+            $this->assertSame(10, (int) $districts->sum('seats'),
+                'the crumb adds no seat — the pool lands exactly');
+            $this->assertCount(2, $districts, 'two districts, no crumb borough');
+            foreach ($districts as $d) {
+                $this->assertGreaterThanOrEqual(5, (int) $d->seats);
+            }
+            $host = DB::table('legislature_district_jurisdictions')
+                ->where('jurisdiction_id', $crumbId)->value('district_id');
+            $this->assertNotNull($host, 'the crumb rides a district — territory covered');
+            $this->assertSame(500_300, (int) $districts->firstWhere('id', $host)->actual_population,
+                'the crumb\'s 300 people are COUNTED inside the host district');
+        });
+    }
+
     // ─── (25) The exactness rule on the composite plane ─────────────────────
 
     public function test_composite_plane_lands_exact_when_an_exact_partition_exists(): void
