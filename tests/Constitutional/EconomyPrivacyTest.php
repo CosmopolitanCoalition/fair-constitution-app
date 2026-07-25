@@ -190,4 +190,50 @@ class EconomyPrivacyTest extends TestCase
         $this->assertSame('physical', AssetService::KIND_PHYSICAL);
         $this->assertSame('virtual', AssetService::KIND_VIRTUAL);
     }
+
+    // ─── Art. II §8 — the first general no-fee rail (slice L-5) ──────────
+
+    /**
+     * A fee may not be attached to ANY form, at ANY depth. The older
+     * rights-automatic guard covers six forms and top-level keys only; this
+     * covers the other 102.
+     */
+    public function test_no_form_may_carry_a_charge_for_filing(): void
+    {
+        $validator = app(\App\Services\ConstitutionalValidator::class);
+
+        // A non-rights-automatic form, nested three deep.
+        try {
+            $validator->check('F-ORG-001', ['action' => 'x', 'meta' => ['billing' => ['fee' => 25]]]);
+            $this->fail('a nested fee must be rejected on any form');
+        } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
+            $this->assertSame('Art. II §8', $e->citation);
+            $this->assertStringContainsString('meta.billing.fee', $e->getMessage());
+        }
+
+        // The rights-automatic forms keep their narrower Art. I citation.
+        try {
+            $validator->check('F-IND-016', ['fee' => 100]);
+            $this->fail('a fee on a rights-automatic form must be rejected');
+        } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
+            $this->assertSame('Art. I', $e->citation);
+        }
+    }
+
+    /** Money still moves: transaction fields are not tolls. */
+    public function test_ordinary_money_fields_are_not_fees(): void
+    {
+        $validator = app(\App\Services\ConstitutionalValidator::class);
+
+        // Must not throw — the economy is full of lawful amounts.
+        $validator->check('F-ORG-001', [
+            'action' => 'x',
+            'amount' => 500,
+            'price'  => 25,
+            'rate'   => 0.05,
+            'total'  => 525,
+        ]);
+
+        $this->assertTrue(true, 'amount/price/rate/total are transaction fields, not charges on an act');
+    }
 }

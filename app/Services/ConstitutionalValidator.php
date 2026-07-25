@@ -273,6 +273,48 @@ class ConstitutionalValidator
     ];
 
     /**
+     * NO_FEE_FORMS (Art. II §8, HARDENED — Phase L slice L-5).
+     *
+     * "Individuals cannot be compelled to pay taxes, fees, liens, or costs to
+     * exercise their Civic Rights and Obligations."
+     *
+     * This is the FIRST general no-fee rail in the codebase, not a
+     * generalisation of an existing one — a distinction worth stating because
+     * the plan of record said otherwise. What existed before was
+     * FORBIDDEN_ELIGIBILITY_KEYS, which catches two fee-shaped keys but only
+     * on the six RIGHTS_AUTOMATIC_FORMS, only at the top level of a payload,
+     * and rejects citing Art. I. That is a rights-automatic ELIGIBILITY guard
+     * that happens to catch a fee; it left 102 of 108 forms with no fee guard
+     * at all.
+     *
+     * This rail is DENY-BY-DEFAULT across EVERY form and at ANY nesting
+     * depth: no filing may carry a key that makes an act cost money. Money
+     * still moves through the economy — but through `amount`, `price`,
+     * `rate`, `principal`: fields that describe a transaction, never a toll
+     * on an act of citizenship.
+     *
+     * Why deny-by-default rather than an allow-list of protected forms: a
+     * fee attached anywhere is the failure mode. Enumerating which rights
+     * deserve protection invites the argument that the others do not.
+     */
+    public const NO_FEE_FORMS = [
+        'fee',
+        'fees',
+        'payment_required',
+        'requires_payment',
+        'charge',
+        'surcharge',
+        'toll',
+        'levy_on_filing',
+        'filing_fee',
+        'cost_to_file',
+        'processing_fee',
+        'administrative_fee',
+        'deposit_required',
+        'lien',
+    ];
+
+    /**
      * The monetary levers (Phase L). Kept as a named set so the stipend
      * engine, the settings register and the dual-door list all read one
      * source instead of three drifting copies.
@@ -357,7 +399,13 @@ class ConstitutionalValidator
      */
     public function check(string $canonicalFormId, array $payload): void
     {
+        // ORDER MATTERS. guardAutomaticRights runs first so the six
+        // rights-automatic forms keep rejecting under Art. I — their guard is
+        // narrower and more specific (ANY eligibility condition, not just a
+        // fee), and Art4Section5Test pins that citation. guardNoFee is the
+        // general rail that catches the other 102 forms, at any depth.
         $this->guardAutomaticRights($canonicalFormId, $payload);
+        $this->guardNoFee($canonicalFormId, $payload);
         $this->guardEmergencyCivicProcessShield($canonicalFormId, $payload);
 
         match ($canonicalFormId) {
@@ -1576,6 +1624,60 @@ class ConstitutionalValidator
      * attempt to attach eligibility conditions to the residency forms is a
      * constitutional violation, regardless of who files.
      */
+    /**
+     * Art. II §8 (HARDENED) — no filing, on any form, may carry a key that
+     * makes an act of citizenship cost money.
+     *
+     * Runs FIRST in check() and against EVERY form, at any nesting depth: a
+     * fee smuggled into payload['meta']['fee'] spends exactly as well as one
+     * at the top level, and the older rights-automatic guard inspects only
+     * top-level keys.
+     *
+     * Note what this does NOT forbid: `amount`, `price`, `rate`, `principal`,
+     * `total`. The economy moves money constantly and lawfully. What is
+     * forbidden is a charge levied on the act of filing itself — the toll
+     * between a person and their rights.
+     */
+    private function guardNoFee(string $canonicalFormId, array $payload): void
+    {
+        $offender = $this->findFeeKey($payload);
+
+        if ($offender === null) {
+            return;
+        }
+
+        throw new ConstitutionalViolation(
+            sprintf(
+                '%s may not carry a charge for filing (offending key: %s). Individuals cannot be compelled to pay taxes, fees, liens, or costs to exercise their Civic Rights and Obligations.',
+                $canonicalFormId,
+                $offender
+            ),
+            'Art. II §8'
+        );
+    }
+
+    /** Depth-first scan for a fee-shaped key. Returns the dotted path or null. */
+    private function findFeeKey(array $payload, string $prefix = ''): ?string
+    {
+        foreach ($payload as $key => $value) {
+            $path = $prefix === '' ? (string) $key : $prefix . '.' . $key;
+
+            if (is_string($key) && in_array(strtolower($key), self::NO_FEE_FORMS, true)) {
+                return $path;
+            }
+
+            if (is_array($value)) {
+                $found = $this->findFeeKey($value, $path);
+
+                if ($found !== null) {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private function guardAutomaticRights(string $canonicalFormId, array $payload): void
     {
         if (! in_array($canonicalFormId, self::RIGHTS_AUTOMATIC_FORMS, true)) {

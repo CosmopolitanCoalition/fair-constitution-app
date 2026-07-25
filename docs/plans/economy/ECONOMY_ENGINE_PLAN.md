@@ -348,6 +348,13 @@ clauses, redlines with accept/reject state, threaded comments, per-party signatu
 redline interface rather than inventing a second one. **The Art. I floor is non-negotiable: no
 clause in any agreement can waive a constitutional right**, enforced pre-commit.
 
+**⏸ PARKED — DocuSeal** (operator, 2026-07-25, relayed via lane 7). An open-source option worth
+evaluating for contract execution and signature when contracting is built out properly. **Recorded
+as a future option; deliberately not built.** The in-app cosign path (`org_contracts`' two-signature
+constraint) is what ships now, and it is sufficient for a sale. Evaluate DocuSeal at the point
+agreements need real-world execution — the two are complementary, not alternatives: the constitution
+cares who consented, DocuSeal would care what the artefact looks like outside the app.
+
 ---
 
 ## 6. The hard rails, as pins
@@ -468,7 +475,21 @@ Template text / website copy. It is not an L/M deliverable and it is not a code 
 
 ---
 
-## 11. Build order
+## 11. Build order — STATUS 2026-07-25
+
+| Slice | Commit | State |
+|---|---|---|
+| L-1 monetary levers on the rails | `dee246f` | ✅ 25 tests / 199 assertions |
+| L-2 ledger + currency *(L-3's currency half merged in — see below)* | `01d019a` | ✅ 11 tests / 25 assertions |
+| L-3 issuance · L-6 stipend · M-1 wallets · M-2 labour board · M-3 market+assets | `ff013c2` | ✅ 7 tests / 33 assertions |
+| L-4 budgets → appropriations · L-5 `NO_FEE_FORMS` | *this commit* | ✅ +2 tests |
+
+**Two orderings changed during the build, both recorded rather than quietly done:**
+1. **The currency moved from L-3 into L-2.** A ledger entry must be denominated in something; a
+   nullable FK to backfill later is the half-wiring this lane's own audit criticised.
+2. **The remaining schema landed as ONE additive migration** (`000030`) instead of seven. The tables
+   reference each other and the fleet shares a single migrate slot; services then landed slice by
+   slice on top of it.
 
 Nine slices. Each is committable, tested, and leaves the app working.
 
