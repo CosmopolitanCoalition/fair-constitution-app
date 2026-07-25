@@ -300,6 +300,18 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     following the instructions** — the documented path is the path. Fix belongs in lane 2's
     `get-started.*`/`deploy.*` (hand off to `deploy.sh --public-url`), and the clock-seeder fix must
     target `SetupController::runMigrations`, NOT the update branch.
+    **STATUS 2026-07-25: CLOSED for the public path (`92ca3be`, lane 2 — verified here).** The
+    documented internet path is now `git clone && ./deploy.sh --public-url https://<HOST>`, which
+    runs `key:generate --force` and the ClockRegistrySeeder; `--public-url` **requires https** (with
+    the browser-geolocation reason stated), refuses a bare hostname, guards against burning
+    `MATRIX_DOMAIN=localhost` permanently, and — closing a second finding — **refuses `--seed`
+    alongside `--public-url`**, so `institutions:demo-e` can no longer put demo residency
+    confirmations into a zero-synthetic-data launch. Ships with a Caddy TLS edge, a public compose
+    overlay, and `docs/FRESH-NODE-START-CLOUD.md`. The README now scopes `get-started.*` to *"a
+    world on your own computer"* / home-LAN use and routes the public internet to the new guide.
+    **Residual (lower severity, scoped):** a LAN node stood up via `get-started.*` still boots on
+    the committed `.env.example` key with debug on — acceptable for "trying it out", worth a note in
+    that script, not launch-blocking.
 18. **Cloud sizing must count the production Horizon profile.** `config/horizon.php`
     `environments.production` = supervisor-1 maxProcesses 10 @128MB + long-running 1@512 + autoscale
     `clamp(cores−2,2,12)`@512 + prewarm 1@512 ⇒ ≈3.3 GB of worker ceiling on 4 vCPU, not ~1 GB; plus
