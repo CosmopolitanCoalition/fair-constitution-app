@@ -28,6 +28,10 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+# ...but that pattern is unanchored, and Phase N names a message catalog after
+# every page folder — including Pages/Auth. Without this negation the `auth`
+# namespace silently never commits, in every locale.
+!resources/js/i18n/**/auth.json
 
 # Claude session files
 .claude/
