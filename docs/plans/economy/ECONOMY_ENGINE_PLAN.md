@@ -445,25 +445,26 @@ All IDs verified free (families end at LEG-036 / IND-017 / ORG-007; no `F-TRE-*`
 
 ---
 
-## 10. D-09 — age settings
+## 10. D-09 — age settings: OUT OF SCOPE
 
-**The operator's challenge is correct and it narrows this to almost nothing:** *this is a game, and
-every account is a character.* There is no verified date of birth in the system and there should not
-be one — collecting it would be a privacy liability the Template never asks for. So **age gates
-nothing, economic or otherwise.**
+**Operator ruling 2026-07-25: this is not part of the game's scope, and nothing ships.**
 
-What ships:
-- `age_of_majority` and `age_of_consent` as bounded settings, **default 18** (the Template's own
-  default), amendable by act like any other.
-- They exist as **declared world facts** — a jurisdiction's stated age of majority, publishable and
-  citable — not as an enforcement input.
-- **Pinned rail:** neither key may appear in any path that resolves voting, candidacy, residency, any
-  R-## role, **or any economic action** (account opening, listing, order, transfer, contract,
-  stipend eligibility). A source-scan test asserts the keys are read by no such path.
+`age_of_majority` = 18 is real and factually correct — it is **Template/website constitutional text**,
+belonging to the document and the public site. It is **not a property of the simulated world**.
+This is a game; every account is a character; there is no date of birth in the system and there will
+not be one.
 
-That closes D-09 without introducing an age check anywhere. My earlier framing — that the setting
-existed for "contract capacity and market participation" — was the mistake; it would have quietly
-built an age gate into the economy.
+**Nothing is built here** — no settings keys, no columns, no rail, no test. There is nothing to gate
+and therefore nothing to guard against.
+
+I got this wrong twice before landing on it, and both attempts are recorded so the next reader stops
+sooner: first I framed the keys as existing for *"contract capacity and market participation"*, which
+would have quietly built an age gate into the economy; then I proposed shipping them as inert
+"declared world facts," which was still building a thing the game does not have. **The correct answer
+was to build none of it.**
+
+**@lane-07 — D-09 should be closed as NOT APPLICABLE to the app**, or reassigned to whoever owns the
+Template text / website copy. It is not an L/M deliverable and it is not a code deliverable at all.
 
 ---
 
@@ -495,7 +496,7 @@ per currency · `LedgerService` is the sole writer (source scan) · ledger rows 
 (trigger) · no fee-shaped key on any form at any depth · monetary keys are dual-door only · stipend
 eligibility reads residency and nothing else · no economy table is read by any eligibility path ·
 no `user_id` outside `economic_account_bindings` · a binding can never be published · a hire reaches
-headcount only via F-IND-014 · age settings never touch a rights path.
+headcount only via F-IND-014.
 
 Property tests: ledger balances under random transaction sets · stipend arithmetic including cap
 saturation and pro-rata short-pay · `award ≤ remaining` and `Σ disbursements ≤ award` (the guards
@@ -512,7 +513,7 @@ Standing demo: `institutions:demo-treasury --fresh`, the chartered name, in the 
 
 | # | Question | Ruling |
 |---|---|---|
-| 1 | Age values | **18**, Template default — and age gates **nothing**; it is a declared world fact, not an enforcement input (§10 rewritten) |
+| 1 | Age values | **OUT OF SCOPE — nothing ships.** 18 is Template/website text, not a property of the simulated world (§10). D-09 → close as N/A to the app |
 | 2 | `stipend_enabled` default | **ON, always, for all players.** A legislature may switch it off by act; a fresh world pays from day one |
 | 3 | Which roles earn a bump | **All civic roles and operators** — the three shipped `pay_*` dials are the class set; no subset, no per-role table |
 | 4 | Asset registration | **BUILD IT** — an inventory model for virtual *and* physical things, required for the fantasy/D&D maps (§5.4) |
