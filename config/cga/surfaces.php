@@ -969,7 +969,7 @@ return [
     |----------------------------------------------------------------------
     | Contract data from mockups/v3/journeys/journey.html (CGA_PAGE block)
     | + config/cga/journeys.php. Zero forms/clocks — journeys are the learn
-    | layer: they nudge, never gate, and a medal grants nothing.
+    | layer: they nudge, never gate, and an achievement grants nothing.
     */
 
     'civic/journeys' => [
@@ -980,7 +980,7 @@ return [
         'workflows' => [],
         'forms'     => [],
         'clocks'    => [],
-        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+        'citation'  => 'An achievement never changes a vote, a seat, or what you are allowed to do.',
     ],
 
     'civic/journey' => [
@@ -991,7 +991,7 @@ return [
         'workflows' => [],
         'forms'     => [],
         'clocks'    => [],
-        'citation'  => 'A medal never changes a vote, a seat, or what you are allowed to do.',
+        'citation'  => 'An achievement never changes a vote, a seat, or what you are allowed to do.',
     ],
 
     /*

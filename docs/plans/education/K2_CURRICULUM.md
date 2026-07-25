@@ -203,7 +203,7 @@ The socket is three parts, **two built and one stubbed**:
 
 | Part | What it is | State |
 |---|---|---|
-| **Server** | `config/cga/surfaces.php` — **69** records, **8 keys each** (`title, module, nav, roles, workflows, forms, clocks, citation`) | built |
+| **Server** | `config/cga/surfaces.php` — **70** records, **8 keys each** (`title, module, nav, roles, workflows, forms, clocks, citation`) | built |
 | **Client** | `resources/js/registry/surfaces.js` — hand-maintained, mirrors **nothing** from PHP | built, drifting |
 | **Drawer** | `LearnFlyout.vue` — about line + form chips + citation + a disabled stub | stubbed |
 
@@ -211,16 +211,16 @@ The socket is three parts, **two built and one stubbed**:
 
 | Education half | Source today | Coverage |
 |---|---|---|
-| **Civic** ("the constitutional why") | `surface.citation` + per-form `citation` + `roles` + `clocks` | **69/69 as a citation · 0/69 as a lesson** |
-| **App** ("how to use this page") | `LEARN_BY_SURFACE` → `LEARN_BY_MODULE` → generic string | **5/69 bespoke (7.2%)** · 0/69 with an SOP · 0/69 with a video |
+| **Civic** ("the constitutional why") | `surface.citation` + per-form `citation` + `roles` + `clocks` | **70/70 as a citation · 0/70 as a lesson** |
+| **App** ("how to use this page") | `LEARN_BY_SURFACE` → `LEARN_BY_MODULE` → generic string | **5/70 bespoke (7.1%)** · 0/70 with an SOP · 0/70 with a video |
 
 The five bespoke surfaces are `system/audit-chain`, `system/public-records`, `elections/detail`,
 `system/clocks`, `system/amendments`. Everything else falls back to one of 12 module paragraphs or
 the literal string `'A quick guide to this screen.'` — **silently**, which is why the gap has gone
 unnoticed.
 
-Surfaces by module: civic 14 · legislature 12 · electoral 9 · judiciary 7 · organizations 6 ·
-operator 6 · executive 6 · system 5 · jurisdictions 4.
+Surfaces by module: civic 14 · legislature 12 · electoral 9 · judiciary 7 · executive 6 ·
+operator 6 · organizations 6 · system 6 · jurisdictions 4.
 
 ### 8.1 Live drift, measured
 
@@ -265,7 +265,7 @@ per-surface. Zero new CSS, per the roadmap's own constraint.
 |---|---|---|
 | `learn` | authored | one plain-language sentence: what this screen is about |
 | `howto` | authored | 3-6 `sopPanel` steps (`do` / `detail` / `cite`) |
-| `citation` | **exists** | already on all 69 records — reused, never re-authored |
+| `citation` | **exists** | already on all 70 records — reused, never re-authored |
 | `forms[].citation` | **exists** | per-form article basis, already resolved by `SurfaceMeta::for()` |
 | `where_this_fits` | `surface.workflows` | see §10 |
 
@@ -274,7 +274,7 @@ per-surface. Zero new CSS, per the roadmap's own constraint.
 keys are purely additive and nothing breaks — and it kills the drift in §8.1 at the source rather
 than testing around it.
 
-**Authoring volume, stated honestly: 69 × 2.** The component work is small; the copy work is the
+**Authoring volume, stated honestly: 70 × 2 = 140 items.** The component work is small; the copy work is the
 deliverable. **That authoring does not start until the operator approves this template.**
 
 ---
@@ -289,7 +289,7 @@ deliverable. **That authoring does not start until the operator approves this te
 **Their CSS already ships unused** in `components-v2.css` (`.ld-video`, `.ld-flow*`).
 
 This matters because every surface record **already carries `workflows`** (71 distinct WF-* codes
-across the 69 surfaces). The data and the styling both exist; only the markup is missing. This is
+across the 70 surfaces). The data and the styling both exist; only the markup is missing. This is
 the cheapest large education win available and it is where the WF-* walkthroughs finally get a home.
 
 **Unblocking "Full lessons"** is one line — swap the disabled `<span>` at `LearnFlyout.vue:63-66`
@@ -381,7 +381,7 @@ table. @lane-10 @lane-11, this is your naming contract meeting mine.
 ## 13. What happens next
 
 1. **Operator approves (or edits) the §9 authoring template.** Nothing is authored before that.
-2. Then: the 69 × 2 authoring pass, ordered by module traffic, delivered in waves.
+2. Then: the 70 × 2 authoring pass, ordered by module traffic, delivered in waves.
 3. In parallel and independent of authoring: the §8.1 drift test, the §10 "Where this fits" block,
    and the `learn/*` surface registrations.
 4. The six-course LMS grouping already shipped publicly (Cosmopolitan Coalition Explained · Focus
