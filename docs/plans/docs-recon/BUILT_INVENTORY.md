@@ -373,6 +373,20 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 
 ---
 
+20. **✅ FOUND AND CLOSED 2026-07-25 (lane 13, `dee246f`, Phase L slice L-1) — a permanent founder
+    dictate.** The nine economy settings the setup wizard collects at founding
+    (`civic_stipend_floor`, `stipend_bump_cap`, the `pay_*` toggles, `stipend_interval`,
+    `currency_*`) were **collected and then unreachable forever**: absent from `SETTING_BOUNDS`, so
+    `checkSettingChange` **rejected any F-LEG-031 bill targeting them**; absent from
+    `DUAL_DOOR_KEYS`; and absent from the settings register, so no screen showed them after setup.
+    Net effect: **a founder authored a currency and a stipend that no legislature could ever
+    amend** — the opposite of Art. V §5, which requires monetary policy to be a *legislative*
+    lever. Fixed by adding the keys to bounds with citations that record the clause **authorising**
+    the lever (Art. II §9 Treasury, Art. V §5 currency) and never one requiring the payment, plus
+    an anti-self-dealing rail (the people who receive a stipend overlap the legislators who set it,
+    so every monetary lever is dual-door). **Pin verified EXTENDED, not relaxed:** zero test lines
+    removed, 145 added, and `DUAL_DOOR_KEYS` grew from one key to include the monetary levers.
+
 ## 8. Standing rule for future audits
 
 Before classifying anything unbuilt: (1) sweep for **alternate names** (education→journeys,
