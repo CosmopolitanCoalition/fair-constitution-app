@@ -1080,6 +1080,33 @@ SELECT c.conrelid::regclass AS tbl, a.attname AS fk_col, c.conrelid = c.confreli
  ORDER BY self_ref DESC, 1;
 ```
 
+### 11.2 What the constitutional suite caught, and what it did not
+
+The suite is the reason two of these are recorded rather than shipped silently.
+
+**Mine, and wrong: `elections_open_general_uq` was over-broad.** It asserted one unfinished
+*general* election per jurisdiction. `PeerUpgradeAgreementTest` legitimately creates a second one
+while probing the Art. II §7 version guard, and the index rejected it. The hazard the index was
+written for is narrower — `scheduleBootstrapElection()`'s read-then-write can mint two
+**bootstrap** elections — so `2026_07_25_000006` rescopes it to `trigger = 'bootstrap'`. Ordinary
+general elections across successive cycles are lawful and none of this engine's business.
+
+> A uniqueness constraint asserts a constitutional invariant. Asserting one **wider** than the
+> law requires does not make the system safer; it makes lawful states unreachable. That is a
+> failure mode worth naming, because it looks like rigour.
+
+**Not mine: the `clocks` table was empty.** Two `GovernorRemovalOrdinaryMajorityTest` cases failed
+inserting a CLK-09 timer against an empty `clocks` table — the known gap where
+`ClockRegistrySeeder` does not ride the schema dump. Running the seeder turned those green
+(5 passed, 218 assertions). This corroborates lane 2's launch-checklist item from a second
+direction: **a bare `php artisan migrate` leaves an instance whose clock-dependent paths fail at
+runtime, not at boot.**
+
+**A methodological error of mine worth recording:** the first suite run happened while I was
+mutating the same dev database, which contaminated the results and produced a failure that did
+not reproduce. Full-suite runs need the database to themselves — the fleet's "full-suite gates
+serialized" rule exists for exactly this, and I ignored it.
+
 ### Deliberately not built
 
 - **`jurisdiction_activations` rows.** §5.2.1 — writing them would forge the Art. II §1 consent
