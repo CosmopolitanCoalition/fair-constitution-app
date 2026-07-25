@@ -89,7 +89,24 @@ does **not** design CI-2 — it designs the persistence half that gives `$scaleD
 a source, because today it is a default-false parameter with exactly one production
 caller that never passes `true`.
 
-> ### ⚑ DECISION 1 — CI-2 is INERT, and naive wiring would make it dangerous
+> ### ✅ DECISION 1 — RULED 2026-07-25: the demo federates, within its own class
+> The charter's "scale_demo forces federation off" is **withdrawn**. A demo
+> instance federates — with other demo instances only. Implemented as
+> class-scoped federation: the class rides the signed handshake, and
+> `PeerService` refuses a cross-class peer at BOTH ends through one shared
+> `assertSameClass()`. `InstanceClass::normalize()` fails closed, so anything
+> unrecognised (including the nothing every pre-Phase-O instance advertises)
+> reads as production — a demo refuses any peer it cannot positively identify as
+> a demo. `InstanceClassProvider`'s boot assertion was DELETED: it encoded the
+> reversed rule. Pinned by `ClassScopedFederationTest`.
+>
+> This is a better rail than the charter's. "Federation off" protected real
+> instances only if every demo remembered to switch itself off; class matching is
+> symmetric, so neither side is the lenient one.
+>
+> *The original analysis, which the ruling supersedes:*
+>
+> ### ⚑ DECISION 1 (superseded) — CI-2 is INERT, and naive wiring would make it dangerous
 > *(Corrected after adversarial verification — an earlier draft of this plan called
 > CI-2 "self-contradictory". That was wrong, and the truth is worse.)*
 >
@@ -1049,6 +1066,22 @@ Each step lands green before the next.
 ---
 
 ## 15. Open decisions — collected, not buried
+
+**ALL FOUR ANSWERED 2026-07-25 (operator, relayed by lane 7).**
+
+| # | Decision | Ruling |
+|---|---|---|
+| 1 | CI-2 / demo federation | **REVERSED — the demo DOES federate, with other demos only.** "It's gonna be its own federation." Implemented as class-scoped federation (§1). Founder chooses at setup whether to load demo data. |
+| 2 | per-kind `racePlan()` | **YES.** Emit lawful type_a races, record the type_b blocked posture. "Maps that don't have problems, we proceed. Maps that do have problems, we will not proceed, and we keep them flagged." 30,262 of ~1M is acceptable and known. |
+| 3 | audit posture | **Batching + Merkle root — BOTH.** He hates all-or-nothing transactions where one failure rolls back everything and "it becomes a black box." Wants what the geodata ingest and district mapper do: visible incremental progress, resumable, multithreaded. |
+| 4 | accelerated time | **NOT YET.** First demo is real time. "If you can show me a frozen world at any point in time, then we can discuss the subsequent slices." `time_mode` stays dormant. |
+
+The demo's target, in his words: a visitor at `demo.worldofstatecraft.org` arrives and sees
+simulated representatives for **their** area, simulated organisations and people — "something to
+reflect a full population in progress for any given jurisdiction." Built on lane 1's clean set;
+**the demo does not need perfect maps.**
+
+*Superseded table, kept for the record of what was asked:*
 
 | # | Decision | Owner | Blocks |
 |---|---|---|---|
