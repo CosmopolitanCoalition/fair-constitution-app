@@ -230,6 +230,15 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 - **Install-order coupling nobody recorded:** the 21-clock registry does NOT ride in the schema
   dump — `COPY public.clocks` is empty; clocks are seeded by `ClockRegistrySeeder` via
   deploy.ps1/deploy.sh. A bare `php artisan migrate` install has an empty clocks table.
+  **⚑ SHARPENED 2026-07-25 (lane 3, confirmed independently on the dev stack): the failure is
+  SILENT UNTIL RUNTIME.** Two `GovernorRemovalOrdinaryMajorityTest` cases failed inserting a
+  CLK-09 timer purely because `clocks` was empty; seeding turned them green (5 passed, 218
+  assertions). So a bare-migrate instance **boots fine, serves fine, and then fails the first
+  time any clock-dependent path tries to arm a timer** — a governor removal, an election
+  deadline, an emergency-power expiry. Nothing warns you in between. **Consequence for lane 2:
+  a runbook line is NOT sufficient — this needs an explicit post-deploy assertion** (clocks
+  count == the registry's) in the launch checklist, failing loudly rather than waiting for a
+  governance action to discover it.
 
 ---
 
