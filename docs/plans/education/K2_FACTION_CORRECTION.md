@@ -189,6 +189,12 @@ the cascade or say nothing.
    wording in R-14, F-LEG-010 and two workflow rows; those cells wait on D-03/D-05.
 5. **Do not present rewritten constitutional text as adopted.** The Template is unamended; that is
    the operator's item with 8a/8b.
+6. **Do not say the public square is residency-gated.** The roles/forms chart says F-SOC-001 is
+   *"Filed by R-03"*, but the code carries **`roles => []`** — per the operator's 2026-06-27
+   correction, and pinned by `PublicSquareTest`: *"ANY authenticated player may open a thread +
+   post, resident OR visitor… Residency gates governance POWERS (and the testimony SEAL,
+   F-SOC-002), never access."* Any material generated from the chart will teach a gate the app does
+   not enforce. Say: **the square is open; residency gates powers, not speech.**
 
 ---
 
