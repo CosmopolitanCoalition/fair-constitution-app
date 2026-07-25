@@ -651,6 +651,33 @@ lanes from *naming* files independently, because names are chosen while another 
 in the same entry** (`claiming 2026_07_25_000004`). One line, prevents the dependent case. Fresh
 installs should also be smoke-tested from the migration files, not only from the flattened baseline.
 
+## 4g. Lane 13's ledger spine (L-2, `01d019a`) — a REASONED deviation from an ordered rail, checked and endorsed
+
+The charter ordered the ledger to reuse "the **same** `audit_log_block_mutation()` trigger". As
+built, it reuses the *primitives* — `AuditService::chainHash` / `canonicalJson` / genesis constant,
+explicitly "one hash discipline in the codebase, not two" — but runs its **own** chain, its own
+`ledger_entries_immutable` DB trigger, and a **separate advisory-lock key** (`0x4c45444752`,
+"LEDGR"), documented as *"distinct from the audit chain's key so the two chains never contend."*
+
+**This is the better design and it should not be flagged as drift.** It absorbs the fleet-wide
+finding lane 4 made and this desk broadcast (risk #13): `AuditService::append()` holds a
+**transaction-scoped global** advisory lock, so routing every economic posting through the audit
+chain would serialize the entire economy behind the one global appender. A separate chain with
+identical crypto and DB-enforced immutability keeps the guarantee without the contention. It also
+matches the house pattern — the schema already carries six sibling per-table immutability
+functions, so a per-table trigger is the convention, not an exception.
+
+Other rails verified present: `LedgerService` is the **sole writer**, enforced by a source scan
+over `app/` (the same technique `CgcIpPublicDomainTest` uses for the public-domain register);
+direction semantics stated explicitly because the accounting convention is ambiguous and the
+ambiguity would be a bug; **minting deliberately lives elsewhere** (`IssuanceService`, slice L-3)
+so money can only come into existence where Art. V §5 permits; a correction is a new balanced
+posting, never an edit.
+
+**Doc action:** the roadmap's §Phase L wording ("same `audit_log_block_mutation()` trigger") should
+be read as *same hash discipline*, not *same trigger object* — worth a one-line annotation if the
+charter is ever revised.
+
 ## 5. Fleet-wide items (belong to no single lane)
 
 1. **⚑ `racePlan()` blocks a whole election plan when only the Type B half is illegal.**
