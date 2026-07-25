@@ -440,6 +440,30 @@ to its abstention-leak second half · a **live defect**: the sidebar renders an 
 link to a route that does not exist (404) · two constitutional sections absent from the
 curriculum chart entirely · PI-5 does not exist anywhere.
 
+### Follow-up on the revised catalog (`a4d1179`, 127 medals — checked by lane 7 after the review)
+
+The catalog was **re-derived from code rather than patched**, which is the right response: both
+specific form-ID errors are gone, and the spine now routes non-form evidence (seatings,
+memberships, confirmations) to `RoleService` role-derivation instead of forcing a form match.
+Verified: 83 personal medals, and a scan of every passive-named medal keyed to a form found
+**exactly one surviving actor-vs-subject mismatch**:
+
+- **`ACH-CAN-005` "Candidacy validated by the board" → `ref=F-ELB-002`.** That form is filed by
+  the **election board member** (R-08), not the candidate, so under the stated spine
+  (`actor_user_id = :user AND ref = :form`) the medal lands on the board member — every board
+  member collecting "candidacy validated" medals for other people's candidacies, and no
+  candidate ever earning it. Correct evidence for the candidate is the validated-candidacy
+  fact (`candidacies` status), not the board's filing.
+- The other four passive-named form-keyed medals check out (`ACH-EXE-006`, `ACH-JUD-009`,
+  `ACH-ELB-003` all describe acts the earner *performed*). One to confirm rather than fix:
+  `ACH-ORG-005` "Your org endorsed a candidate" keys to `F-ORG-002`, filed by the org's agent —
+  fine if the medal is the agent's, wrong if it is meant for all org members.
+
+**Still worth one sentence in the document:** the escape hatch names *categories* (seatings,
+memberships, confirmations) rather than the general rule. State it — *the actor on a form is not
+always the medal's earner; where a form's role gate is a third party, use the fact query* — so
+the next catalog pass can't reintroduce the class.
+
 **Lane discipline note (self-disclosed, no harm):** commit `ddde935` swept lane 3's plan file
 into a K-2 commit (`git add <path> && git commit` commits the *index*). The lane found it
 itself, disclosed it in full with the mechanism, and proposed the fleet-wide fix
