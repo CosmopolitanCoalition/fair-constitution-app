@@ -1479,11 +1479,29 @@ class DistrictingService
             return 0;
         }
 
-        $zeroRows = DB::table('legislature_districts')
-            ->where('map_id', $mapId)->whereNull('deleted_at')
-            ->where('seats', '>', 0)->where('actual_population', 0)
-            ->orderBy('district_number')
-            ->get(['id', 'district_number', 'seats']);
+        // Zero-pop rows AND entitlement-zero CRUMBS (2026-07-25, De'an
+        // class): a composite district whose fractional rounds to zero
+        // (fractional_seats < 0.5) holds unearned seats over a handful of
+        // people — its own scope frame has no live sibling (all giants), so
+        // only this map-level pass can merge it. The people transfer with
+        // the members (the conservation arm below adds their stored pops to
+        // the target). Drawn pieces are never crumbs (their fracs are
+        // seat-scale); the selector keeps them out via subdivision links.
+        $zeroRows = DB::table('legislature_districts as d')
+            ->where('d.map_id', $mapId)->whereNull('d.deleted_at')
+            ->where('d.seats', '>', 0)
+            ->where(function ($q) {
+                $q->where('d.actual_population', 0)
+                    ->orWhere('d.fractional_seats', '<', 0.5);
+            })
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('legislature_district_jurisdictions as ldx')
+                    ->whereColumn('ldx.district_id', 'd.id')
+                    ->whereNotNull('ldx.subdivision_id');
+            })
+            ->orderBy('d.district_number')
+            ->get(['d.id', 'd.district_number', 'd.seats']);
         if ($zeroRows->isEmpty()) {
             return 0;
         }
