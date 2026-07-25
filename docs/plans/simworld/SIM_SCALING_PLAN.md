@@ -68,13 +68,29 @@ does **not** design CI-2 — it designs the persistence half that gives `$scaleD
 a source, because today it is a default-false parameter with exactly one production
 caller that never passes `true`.
 
-> ### ⚑ DECISION 1 — the CI-2 self-brick, `@operator`
-> The same class throws `ConstitutionalViolation` when the resulting allow-list is
-> empty or lacks the local server (the anti-self-brick guard). So switching
-> `scaleDemo` on makes `setRoomServerACL()` **unconditionally un-callable**. The
-> likely resolution is that a `scale_demo` instance never calls it — its rooms are
-> local-only and an ACL is meaningless with no peers — but this touches a pinned
-> constitutional test, so it is the operator's ruling, not this lane's.
+> ### ⚑ DECISION 1 — CI-2 is INERT, and naive wiring would make it dangerous
+> *(Corrected after adversarial verification — an earlier draft of this plan called
+> CI-2 "self-contradictory". That was wrong, and the truth is worse.)*
+>
+> The `if ($scaleDemo) return []` branch (`MatrixFederationGateService.php:38-40`) is
+> **dead code**. Its sole production caller, `setRoomServerACL()` at `:67`, passes no
+> argument, so `$scaleDemo` is always the default `false`. The branch is reachable
+> only from `MatrixFederationWhitelistTest:52`. **CI-2 is pinned but inert: the test
+> passes, and the production path never exercises it.** On a `scale_demo` instance
+> today, `setRoomServerACL()` would compute and write the **real trusted-peer
+> whitelist**.
+>
+> There is a live anti-self-brick guard at `:71` that throws when the allow-list is
+> empty or lacks the local server. So the naive fix — making
+> `desiredFederationWhitelist()` read `instance_class` globally — would convert an
+> inert rail into a **real self-brick**. Don't.
+>
+> **Recommended shape:** supply the `scaleDemo` argument at the config-render /
+> runbook call site (which is where the whitelist is actually consumed — the class
+> docblock says it is computed "for the runbook", applied to Synapse config at
+> deploy/rig time), and make `setRoomServerACL()` **refuse early** on a `scale_demo`
+> instance with its own explicit error, *before* it ever computes an allow-list.
+> Operator's ruling, because it touches a pinned constitutional test.
 
 ---
 
@@ -135,6 +151,25 @@ SELECT count(*), sum(type_a_seats), sum(type_b_seats) FROM legislatures WHERE de
 
 The 21,918 gap between Σ `type_a_seats` and Σ district seats is the settled honest
 drift — the drawing's defect, visible, fixed by redrawing, never total-forced.
+
+> ⚑ **Query trap — `legislature_districts` carries soft-deleted rows inside active
+> maps.** 1,980,908 rows sit under `status='active'` maps, of which **86,066 are
+> soft-deleted**; only **1,894,842 are live**. A query that forgets
+> `d.deleted_at IS NULL` overcounts districts by 4.5% and seats by ~4%. This is not
+> hypothetical — it produced a wrong district count during this plan's own design
+> review. Every figure in this document filters it; anyone re-deriving them must too.
+> (Lane 1's healing loop moves these numbers continuously: the same query returned
+> 1,894,746 districts at 12:00 and 1,894,842 at 13:30. Treat all district figures as
+> timestamped, not fixed.)
+
+**Baseline: the world today is pure scaffolding.** `jurisdiction_activations`,
+`executives`, and `judiciaries` are all **0 rows**; `users` is **1**;
+`residency_confirmations` is **0**. Nothing this plan describes has to displace
+existing data — the populate engine writes onto an empty institutional plane.
+
+**`official_languages` is populated for 951,625 of 955,130 jurisdictions (99.6%).**
+Persona languages come free from the DB; `scripts/etl/languages.py` covers only the
+3,505 gaps.
 
 Earth itself: `type_a_seats` **1,999** across **282 districts summing to exactly
 1,999** — zero drift at the root, corroborating both the Draft-9 result and the
@@ -205,6 +240,11 @@ world legislature that cannot be seated.**
 > This ruling gates everything above the leaf tier. Until it lands, §7's throughput
 > numbers describe a leaf-only world.
 
+**There are ZERO at-large Type A races on this planet.** All 448 legislatures without
+an active district map have `type_a_seats > 9`, so `racePlan()` blocks them under
+Art. II §8 rather than falling back to at-large. The `(D > 0 ? D : 1)` at-large branch
+is unreachable at current data — worth knowing before anyone budgets for it.
+
 **Related, same class:** 444 over-ceiling Type A chambers have no active map and are
 election-blocked on their own account. That independently corroborates @lane-01's
 finding (board, 10:58) that **391 of 452 review maps are childless root leaves
@@ -252,6 +292,30 @@ Two consequences worth stating plainly:
 - **The demo is the first thing to exercise the bcmath path at volume.** `Micro`'s
   docblock anticipates exactly this: weight × surplus exceeds 2⁶³ at Earth-district
   scale, and `mulDiv()` routes that product through bcmath.
+
+**Measured — the count is not the bottleneck, and it is not close.** Run against the
+real pure service with zero DB (`docker exec fc_app php -r`, using
+`tests/Support/SyntheticBallotGenerator::grouped()` verbatim):
+
+| candidates | seats | ballots | distinct rankings | count time | peak RSS |
+|---|---|---|---|---|---|
+| 24 | 9 | 500,000 | 2,117 | **0.894 s** | 14 MB |
+| 12 | 7 | 20,000 | 1,607 | 0.013 s | 16 MB |
+| 10 | 9 | 12,000 | 954 | **0.014 s** | 16 MB |
+| 9 | 8 | 2,500 | 514 | 0.011 s | 16 MB |
+| 8 | 7 | 900 | 293 | 0.006 s | 16 MB |
+
+500,000 ballots collapse to 2,117 distinct rankings — the `BallotSet` property,
+confirmed empirically rather than argued. The design spec's budget in
+`docs/plans/institutions/PHASE_B_DESIGN_counting_engine.md` §C.8 (500k / 24 / 9 in
+under 60 s, under 256 MB) is **beaten 67×, at 14 MB**. That spec has never had a test;
+**this table is that missing performance pin**, and it can be written today.
+
+Ballot crypto is likewise free: `newSaltHex` + `commitmentHash` + `encryptCanonical`
+runs at **8.7 µs/ballot = ~115,500 ballots/sec/core**, 264-byte ciphertext.
+
+**So the constitutional count is cheap and the bookkeeping is the wall.** Every
+throughput decision in this plan follows from that inversion.
 
 **One guard rail.** Round-0 tallying does `$tally[$first] += $mult * Micro::SCALE` —
 a **raw native multiply**, not `mulDiv`. It is safe to `$mult ≈ 9.22e12`
@@ -314,14 +378,31 @@ The cohort is never stored expanded — only its seed.
 `AuditService::append()` takes a **global** `pg_advisory_xact_lock(0x4155444954)`
 and re-reads the chain head for **every** entry
 (`app/Services/AuditService.php:63-101`). It is a strictly serial writer,
-instance-wide; no amount of Horizon parallelism helps. The design panel measured
-**~61 appends/second**, consistent with a ~16 ms lock-hold round trip.
+instance-wide; no amount of Horizon parallelism helps.
 
-One append per race across 1,694,888 electable races is **7.7 hours of
+**Measured from the live chain** (`audit_log` is 1,965,182 rows / 1,599 MB ≈ 853 B/row):
+
+```sql
+SELECT date_trunc('minute', occurred_at) AS minute, count(*) FROM audit_log
+GROUP BY 1 ORDER BY count(*) DESC LIMIT 5;
+--  2026-07-23 09:32  1718      2026-07-23 09:31  1657
+--  2026-07-23 09:33  1717      2026-07-23 09:30  1610
+--                              2026-07-23 09:29  1603
+```
+
+Five consecutive minutes above 1,600 under a live 10-worker autoscale load:
+**~28.6 appends/second sustained.** State this honestly — that workload was already
+batching (one summary entry per unit), so it was never trying to saturate the lock.
+**28.6/s is the highest rate this system has ever been observed to sustain, i.e. a
+lower bound on the ceiling, not the ceiling itself.** Nothing in the repo
+demonstrates more, so it is the number to plan against.
+
+At that rate, one append per race across ~1.69M electable races is **~16.4 hours of
 unparallelizable lock time**, before certification even starts. Per-person engine
-filing is worse by orders of magnitude: `ResidencyService::simulatePings` files one
-F-IND-005 per day per resident and then *deletes them all* at verification — ~240
-billion serialized appends to produce nothing.
+filing is worse by orders of magnitude: 8.35B filings ÷ 28.6/s ≈ **9.3 years**, and
+`ResidencyService::simulatePings` files one F-IND-005 per day per resident and then
+*deletes them all* at verification — ~240 billion serialized appends to produce
+nothing.
 
 **The settled precedent is autoscale's**: bulk set-based writes plus **one summary
 audit entry per batch**, already constitutionally pinned in `AutoscalePinTest`
@@ -378,7 +459,8 @@ That is precisely `SinglesBatchProcessor`'s shape. No PROTECTED file is opened.
 | `ActivationService::cubeRootSeats/seatPlan/quorumRequired` | pure statics — the seat math |
 | `TypeBSeatLadder::apportion()` | pure |
 | `ConstitutionalDefaults::sizeFromPopulation/ceiling` | pure — **`::flush()` per chunk is mandatory**, its static cache is unbounded and keyed per jurisdiction |
-| `InstitutionStubService::generate()` | per bounded chunk |
+| `InstitutionStubService::generate()` | per bounded chunk — **already chunked bulk inserts with no per-row audit append** (`:99-102`), so it needs no adaptation |
+| `App\Support\CivicPopulation` | the honesty rail; already the denominator for every population-pegged threshold (§5) |
 | `PublishBallotHashesJob::rootHash()` | batch Merkle root + `tieSeedBase` |
 | `AuditService::append()` | once per batch |
 | `jurisdictions.official_languages` (120 distinct sets / 232 countries) | persona languages |
@@ -423,7 +505,33 @@ re-count the identical electorate as a cohort-weighted `BallotSet` and assert th
 `CountResult::recordHash()` values are byte-identical. That converts "demo math ==
 engine math" from a claim into an executable pin (§11).
 
-### The honesty rail
+### The honesty rail — and the good news that it already exists
+
+**`App\Support\CivicPopulation` already draws exactly the line this design needs.**
+Its docblock is unambiguous:
+
+> civic population = count of ACTIVE `residency_confirmations` rows for the
+> jurisdiction — **never WorldPop `jurisdictions.population`**.
+
+It is already *the* denominator for every population-pegged threshold in the app —
+petition CLK-17, referendum majority and supermajority, Phase F union formation and
+border votes — and it is pinned by `ReferendumShieldTest`. Real population is
+explicitly "provenance data".
+
+That is a large gift. It means **the tiering is already self-describing in the app's
+own math**: the demo's synthetic residents *are* the civic population, WorldPop stays
+provenance, and every threshold pegs itself to what was actually materialized without
+a single new mechanism. The demo does not have to invent honesty; it has to avoid
+breaking the honesty already there.
+
+> ⚑ **The consequence, stated so nobody is surprised by it.** At Tier 1 the civic
+> population of a jurisdiction is roughly its candidate count, so petitions and
+> referendums in the demo clear on a handful of signatures. That is arithmetically
+> *correct* and looks broken. Either a tier deliberately materializes enough
+> `residency_confirmations` to make thresholds meaningful (this is what the Tier-2
+> resident sample is really for), or the demo shows the tiny numbers honestly. It
+> must not fake the denominator — that would corrupt the one seam the app already
+> gets right.
 
 Nothing synthetic may be dressed up as attained consent. Concretely:
 
@@ -680,15 +788,30 @@ check, and no reserved-domain blocklist in any of the six demo commands**.
 `elections:demo` will happily mint 40 permanent `@cga.test` users with password
 `demo` on a production world.
 
-| vector | closure |
-|---|---|
-| generator / demo artisan commands | refuse unless `instance_class = 'scale_demo'` — one shared check, not per-command discipline |
-| federation / FF&C sync | CI-2, already coded and pinned |
-| **export bundle used as a seed** | the bundle carries `instance_class`; a Standard instance **refuses to import** a `scale_demo` bundle (per Phase F, the bundle *is* the seed) |
-| mirror adoption / authority flip | same class check |
-| shared Postgres / Redis | physical stack separation (distinct `COMPOSE_PROJECT_NAME`, distinct volumes) |
-| restored backup | backups are class-tagged |
-| Matrix appservice | CI-2 |
+Adversarial review confirmed the gap is **wider** than first stated: `app/Providers/`
+contains four providers and a grep for `throw|abort|ConstitutionalViolation` across
+all of them returns **zero matches** — there is no boot-time assertion of any kind
+anywhere in the provider layer. And across all 54 artisan commands there is not one
+`GameMode`, `app()->environment()`, `isSandbox()`, `APP_ENV`, or `confirmToProceed`
+check. Every demo command runs, unprompted, against whatever database `.env` points at.
+
+**Enforcement is FIVE layers, not two.** `instance_class` plus a boot assertion closes
+only the local-artisan and restored-dump vectors:
+
+| # | layer | closure |
+|---|---|---|
+| 1 | local execution | every generator and demo command refuses unless `instance_class = 'scale_demo'` — one shared check, not per-command discipline; plus a boot assertion refusing to serve a `scale_demo` instance with federation on |
+| 2 | **signed peer handshake** | the class travels in the handshake, and `ColdSyncService` / `FederationSyncService` **refuse a `scale_demo` peer on ingest**. Critical: the demo's *local* column is invisible to a remote Standard instance, so layer 1 cannot protect it |
+| 3 | **export bundle** | the class rides the `OperationalBundleService` manifest with importer refusal — Phase F makes the bundle *the seed*, so this is the highest-bandwidth contamination path |
+| 4 | **authority flip** | a class check inside `AuthorityFlipService` so a demo instance can never be flipped to authority |
+| 5 | **row-level synthetic provenance** | a marker on every generated row so contamination is **detectable and removable after the fact**. Today it is neither |
+| — | shared Postgres / Redis | physical stack separation (distinct `COMPOSE_PROJECT_NAME`, distinct volumes) |
+| — | Matrix homeserver whitelist | rendered at **deploy time**, in Synapse config — **not reachable by any PHP boot assertion**, so it needs its own deploy-side check (see §1) |
+
+Layer 5 is the one most likely to be skipped and the one that matters most on a bad
+day: **prevention-only enforcement fails closed exactly once and then never again.**
+Once a synthetic row is on the Standard instance without a provenance marker, there is
+no query that finds it.
 
 Synthetic identities use the reserved **`*@demo.invalid`** namespace with
 `Str::random(40)` passwords (unloggable), matching `SocialDemoCommand` and
@@ -731,6 +854,12 @@ Mirroring `AutoscalePinTest`'s mechanics coverage, live-pg, synthetic fixtures:
    `complete()` for the same input, differing only in audit-entry count.
 9. **Overflow guard** — the expander refuses an electorate above the raw-multiply
    ceiling.
+10. **The counting-engine performance pin that has never existed.** §4.1's table is
+    the measurement; `PHASE_B_DESIGN_counting_engine.md` §C.8 budgeted 500k / 24 / 9
+    in under 60 s and under 256 MB and no test was ever written. Actual: 0.894 s at
+    14 MB. This is free to pin (`SyntheticBallotGenerator::grouped()` + a pure
+    `countStv`, zero DB) and it protects the engine for every lane, not just this
+    one. **Worth landing even if the rest of this plan is deferred.**
 
 `DistrictingDoctrineTest` and the autoscale pins must stay green: nothing here touches
 districting or any PROTECTED file.
