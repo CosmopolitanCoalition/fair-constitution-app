@@ -267,7 +267,111 @@ format.
 
 ---
 
-## 4b. Lanes 13, 15, 9–12
+## 4b. Lanes 9–12 — the workflow lanes — **ALL ON TRACK** (notes on 9, 11, 12)
+
+Snapshot: all four were mid-flight during the review (files landing 14:47–14:57). Rails were
+judged **at code level, not from prose**. No lane wrote into the app repo — verified two ways.
+
+### ⚑ OPERATOR RULING NEEDED — lane 11 is synthesizing the operator's voice
+
+`bench/xtts_smoke.py:65-67` calls XTTS with `speaker_wav` pointing at
+`work/_smoke/ref_jd_20s.wav` — a 20-second reference of the operator — and generates Spanish
+speech he never said. The lane's charter **explicitly sanctions this** ("Coqui XTTS-v2
+(quality/voice-clone)") and the file is framed as evaluation-only, so the lane is inside its
+orders. The problem is the *boundary*: lane 10 solved the identical risk with a code-level
+`audio_provenance` enum + fail-closed quarantine, and **lane 11 has no provenance, rail,
+publishable or quarantine gate anywhere** (grep across `vtdub/` and `bench/` returns nothing).
+The line between "benchmark a cloned voice" and "publish a cloned voice" is currently held by
+prose alone. Two questions for the operator: (1) is cloning his voice for dubbing **allowed at
+all**, or must every language track be performed or use a neutral synthetic voice? (2) either
+way, lane 11 should adopt lane 10's provenance+quarantine pattern so the answer is enforced in
+code. Until ruled: benchmarking may continue; **nothing cloned may be published.**
+
+### Lane 9 — Presentations · ON TRACK WITH NOTES
+Built: 3 design docs, a house-style system derived from the app's mockup CSS (40 icons × 4
+colorways), `build_deck.js`, a **built and rendered** `template.pptx` (→ PDF + 16 PNGs), and a
+screenshot harness with a 117-stop target file parsed from the mockups tour.
+**Test flow partially run** — corpus parse passed 13/13 self-checks with input sha256 recorded;
+8 shots captured at 3 sizes with provenance. The deck itself and the V1–V14 driver are not yet
+built. **Lane 9 shipped the `claims_check` lint lane 12 promised** — 6 rules with real teeth:
+the build-status rule parses BUILT_INVENTORY §1's table into `{phase → rating}` and fails an
+inconsistent claim *even with a correct citation* (calling L or M "built" fails; I/K-2 "built"
+fails, "partly built" passes). Open: **no WORKLOG** (its charter names one), deck+verification
+not run, and its asks to lane 1 are still open.
+
+### Lane 10 — Video Factory · ON TRACK (cleanest execution in the fleet)
+**Test flow RAN END-TO-END and the rail proved itself.** Run `20260725T185609Z_177e9d`
+produced master/silent/audio/captions/manifest + 4 per-beat clips + 3 thumbs, QC 4/4 beats,
+`duration_delta_s −0.001333` against a one-frame tolerance — and emitted
+`publishable:false, publish_blocks:[RAIL-VOICE-01]` because the test audio wasn't operator
+performance. The no-synthetic-voice rail is **enforced, not promised**: `audio_provenance` is
+settable only in `00-project.json`, never by CLI flag, so an automated run cannot assert
+publishability; non-conforming output quarantines under a deliberately hyphenless stem that is
+invisible to all four of the operator's ingest filters (each documented with file:line).
+**Manifest v1.0 conforms to the 12:38 ruling and exceeds it** — timestamped transcript is
+*required by schema*, `exports.variants[]` and per-beat `clips[]` both required, plus two
+explicit timebases so a consumer can't silently mix them. `{Subject}` resolved to
+**"Governance App"**. Open: WORKLOG predates today's work; the pilot script still carries the
+old "five to nine seats" line — free to fix now, a reshoot later.
+
+### Lane 11 — Video Translation · ON TRACK WITH NOTES
+Built: the `vtdub/` package (write gate, fitting-grid with explicit capacity algebra,
+byte-exact VTT round-trip preserving the library's existing EOL/BOM quirks, never-translate
+token protect→restore→*pronounce*), 4 benches, a 77-language join table generated from the
+**live** player with names copied verbatim because changing one would mutate 4,697 live tracks.
+**Strongest write-gate in the fleet**: `guard_write()` refuses anything under protected roots —
+which include the app repo **and lane 10's tree** — with no CLI flag to disable it.
+Test flow partially run: the grid stage produced 20 units on a real subject, but `out/` and
+`reports/` are empty — no fitted track, no drift report, no benchmark numbers. Also caught a
+real app-side gap and **reported rather than patched** it (the `ID_TOKEN` regex misses `Art.`
+and `§` though the glossary claims citations are never translated) → routed to lane 5.
+
+### Lane 12 — Social Posting · ON TRACK WITH NOTES
+Git-init'd itself and committed `.gitignore` **first**, deliberately, "so the credential rule
+binds from commit one". Built `netguard.py` + 20 guard tests, `counting.py` + 55 tests (two real
+emoji bugs caught), `limits.py` + 29 tests with per-row citations. **The publish rail is
+genuinely enforced in four independent layers**: an AST walk asserting no module imports any of
+24 network libraries (with `webbrowser` named because the operator's own script uses it for
+OAuth); runtime interception patched at `socket`/`getaddrinfo`/`ssl`/`Popen` rather than at
+`requests`, so an unaudited transitive dependency is still caught; a **self-test that makes a
+real connection attempt and requires it to be refused** ("a guard never tested against a real
+attempt is indistinguishable from a no-op"); and subprocess containment allowing only
+ffmpeg/ffprobe with argv scanned for network tokens — because *this box's* ffmpeg is built with
+RIST/SRT/SSH/GnuTLS, making `ffmpeg -f flv rtmp://…` a publish. No password/login handling
+anywhere. The account blocker is **resolved and already absorbed** (12:38 ruling cited verbatim
+in `limits.py`). Open: **`claims_check` does not exist here** (zero hits) while lane 9 shipped a
+working one — see the consolidation item below; `PLATFORM_MATRIX.md` + the account-field UI not
+built; no WORKLOG.
+
+### Cross-lane items
+1. **⚑ Language allowlists disagree — a filename-slot break.** Lane 10 carries 79 tokens from
+   the operator's `Combine Videos.py`; lane 11 carries 77 from the live WP player, lacking
+   **"Chinese"** and **"Norwegian Bokmål"** and carrying **"Mandarin"** / **"Norwegian Bokmal"**
+   instead. Since those tokens *are* the filename slot, a lane-11 `{Subject}-Mandarin.m4a` would
+   never pair with a lane-10 `{Subject}-Chinese.mp4` under the operator's inventory scripts.
+   Lane 10 already ships `check_language_table.py` for exactly this diff; it hasn't been run
+   across lanes. **Lane 10 reconciles as upstream authority.**
+2. **Two `claims_check` implementations are converging** — lane 9 shipped one with teeth; lane 12
+   owes one. Lane 9's own design doc says it: "two lanes shipping divergent lints is worse than
+   one imperfect lint." **Ruling: lane 12 adopts lane 9's implementation** and both swap in lane
+   15's §5 machine-readable term table (lane 9's rules file already carries a `_swap_point` for
+   exactly this, so it's a data swap, not a code change).
+3. **Lane 12 is coded against lane 10's pre-v1.0 emitter** — a pure timing artifact (its headers
+   were true this morning, false by 14:56). v1.0's `exports` is an object keyed by role, not a
+   positional array of basenames; the version key moved; the frozen fixture still expects
+   `"CGA-Intro"`. Fix is a re-read; lane 12 already declared "you are upstream: I adapt to you."
+4. **The faction list landed at 14:53 and none of the four has consumed it yet.** Per lane:
+   9 swaps its rules file wholesale and re-runs · 10 applies corrected wording **plus the 12:38
+   vetted seat-rule line to `01-script.md` before the operator records** · 11 confirms its proof
+   specimen is clear in the drift report · 12 builds the lint from §5 by adopting lane 9's.
+5. **WORKLOG discipline is the fleet's weakest link right now** — 9, 11, 12 have none and 10's
+   predates its own completed run. Board rule 7 makes the WORKLOG the non-repo lane's substitute
+   for a commit hash; without it the operator cannot see what a lane did without reading its
+   tree. All four: write the WORKLOG before the next work item.
+
+---
+
+## 4c. Lanes 13, 15
 
 *(reviews in flight at the time of this section's writing — appended as they land)*
 
