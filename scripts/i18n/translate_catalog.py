@@ -116,12 +116,54 @@ NLLB_TAG = {
 }
 
 
+# ─── Token masking ────────────────────────────────────────────────────────────
+# Anything that must survive a translation byte-for-byte is hidden from the model
+# behind an opaque marker and restored afterwards. Asking a translation model to
+# "leave Art. II §2 alone" and then rejecting its output when it doesn't is a
+# worse design than never showing it the citation: it turns a preventable defect
+# into human review queue volume.
+_MASKABLE = [ESCAPED, ID_TOKEN, CITATION, PLACEHOLDER]
+
+
+def mask(text: str) -> tuple[str, list[str]]:
+    kept: list[str] = []
+
+    def take(m: re.Match) -> str:
+        kept.append(m.group(0))
+        # Digits-in-brackets survives NLLB and Haiku intact and is not itself
+        # translatable text.
+        return f"[{len(kept) - 1}]"
+
+    out = text
+    for pattern in _MASKABLE:
+        out = pattern.sub(take, out)
+    return out, kept
+
+
+def unmask(text: str, kept: list[str]) -> str:
+    out = text
+    for i, original in enumerate(kept):
+        # models occasionally pad the marker with spaces or drop the brackets
+        out = re.sub(rf"\[\s*{i}\s*\]", lambda _m, o=original: o, out, count=1)
+    return out
+
+
 # ─── Providers ────────────────────────────────────────────────────────────────
 class Provider:
     name = "abstract"
     is_cloud = False
 
     def translate_batch(self, texts: list[str], target: str) -> list[str | None]:
+        """Mask protected tokens, translate, restore. Subclasses implement _run."""
+        masked, kepts = [], []
+        for t in texts:
+            m, k = mask(t)
+            masked.append(m)
+            kepts.append(k)
+        outs = self._run(masked, target)
+        return [None if o is None else unmask(o, k) for o, k in zip(outs, kepts)]
+
+    def _run(self, texts: list[str], target: str) -> list[str | None]:
         raise NotImplementedError
 
 
@@ -130,7 +172,7 @@ class StubProvider(Provider):
 
     name = "stub"
 
-    def translate_batch(self, texts, target):
+    def _run(self, texts, target):
         return [f"[{target}] {t}" for t in texts]
 
 
@@ -139,23 +181,36 @@ class NllbProvider(Provider):
 
     name = "nllb"
 
-    def __init__(self, model_id="facebook/nllb-200-distilled-600M"):
+    def __init__(self, model_id="facebook/nllb-200-distilled-600M", device=None):
         import torch
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
         self.torch = torch
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"  loading {model_id} on {self.device} …", flush=True)
+        # This box shares its GPU with the dub lane's whisper models, so CUDA
+        # being *present* does not mean it is free. Half precision roughly halves
+        # the footprint, and an OOM mid-run falls back to CPU rather than
+        # failing the pass — slower is a cost, stopping is a defect.
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        dtype = torch.float16 if self.device == "cuda" else torch.float32
+        print(f"  loading {model_id} on {self.device} ({dtype}) …", flush=True)
         t0 = time.time()
         self.tok = AutoTokenizer.from_pretrained(model_id)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_id).to(self.device)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_id, dtype=dtype)
+        self.model.to(self.device)
         self.model.eval()
         print(f"  model ready in {time.time() - t0:.1f}s", flush=True)
 
-    def translate_batch(self, texts, target):
-        tag = NLLB_TAG.get(target)
-        if tag is None:
-            return [None] * len(texts)
+    def _to_cpu(self):
+        print("  GPU out of memory — falling back to CPU for the rest of this run",
+              flush=True)
+        self.model = self.model.to("cpu").float()
+        self.device = "cpu"
+        try:
+            self.torch.cuda.empty_cache()
+        except Exception:  # noqa: BLE001
+            pass
+
+    def _generate(self, texts, tag):
         self.tok.src_lang = "eng_Latn"
         enc = self.tok(texts, return_tensors="pt", padding=True, truncation=True,
                        max_length=512).to(self.device)
@@ -164,6 +219,37 @@ class NllbProvider(Provider):
             out = self.model.generate(**enc, forced_bos_token_id=bos, max_length=512,
                                       num_beams=4)
         return self.tok.batch_decode(out, skip_special_tokens=True)
+
+    def _run(self, texts, target):
+        """
+        Translate SENTENCE BY SENTENCE, then rejoin.
+
+        NLLB-200-distilled-600M is a sentence-level model. Handed two sentences
+        it frequently returns one — fluent, well-formed, and missing half the
+        meaning, which no placeholder or citation rail can detect. Feeding it
+        one sentence at a time is the fix at the root rather than at the gate.
+        """
+        tag = NLLB_TAG.get(target)
+        if tag is None:
+            return [None] * len(texts)
+
+        # flatten: remember which sentences belong to which source string
+        pieces: list[str] = []
+        spans: list[tuple[int, int]] = []
+        for t in texts:
+            parts = [p for p in _SENT_SPLIT.split(t.strip()) if p.strip()] or [t]
+            spans.append((len(pieces), len(pieces) + len(parts)))
+            pieces.extend(parts)
+
+        try:
+            done = self._generate(pieces, tag)
+        except Exception as exc:  # noqa: BLE001
+            if "out of memory" not in str(exc).lower() or self.device == "cpu":
+                raise
+            self._to_cpu()
+            done = self._generate(pieces, tag)
+
+        return [" ".join(done[a:b]).strip() for a, b in spans]
 
 
 class ClaudeProvider(Provider):
@@ -178,7 +264,7 @@ class ClaudeProvider(Provider):
         self.client = anthropic.Anthropic()
         self.glossary = glossary or {}
 
-    def translate_batch(self, texts, target):
+    def _run(self, texts, target):
         import anthropic  # noqa: F811
 
         terms = "\n".join(f"  {k} -> {v}" for k, v in self.glossary.items())
@@ -238,7 +324,27 @@ def qa(source: str, out: str | None) -> str | None:
     # a translation many times the source length is almost always a runaway decode
     if len(out) > max(60, len(source) * 4):
         return "implausible length"
+    # ...and one far SHORTER than its source means content was dropped. Observed
+    # for real: NLLB-600M silently returned only the second sentence of
+    # "Sign in to your Individual record. Your rights ride with your residency…"
+    # Placeholder and citation rails cannot see that — a fluent, well-formed,
+    # half-missing sentence passes every one of them. No translation is far
+    # better than a confidently truncated one.
+    if len(source) >= 40 and len(out) < len(source) * 0.45:
+        return "suspiciously short — source content likely dropped"
+    # every sentence in must be a sentence out
+    if _sentence_count(source) > _sentence_count(out) + 0:
+        if _sentence_count(source) >= 2 and _sentence_count(out) < _sentence_count(source):
+            return (f"sentence count fell {_sentence_count(source)} -> "
+                    f"{_sentence_count(out)}")
     return None
+
+
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-ZÀ-ɏ])")
+
+
+def _sentence_count(s: str) -> int:
+    return len([p for p in _SENT_SPLIT.split(s.strip()) if p.strip()])
 
 
 def load(path: Path) -> dict:
@@ -272,7 +378,63 @@ def glossary_terms(locale: str) -> dict[str, str]:
     return out
 
 
+def self_test() -> int:
+    """
+    Pins the rails. Every case here is a defect that was observed for real
+    against NLLB-200 on this repo's own strings — not a hypothetical.
+    """
+    cases: list[tuple[str, bool, str]] = []
+
+    def check(label: str, ok: bool, detail: str = "") -> None:
+        cases.append((label, ok, detail))
+
+    # masking round-trips everything that must survive byte-for-byte
+    src = "Sign in. Art. I; Art. V §1 applies to {name} under F-IND-003."
+    m, kept = mask(src)
+    check("mask/unmask round-trips", unmask(m, kept) == src)
+    check("mask hides the citation from the model", "Art." not in m, m)
+    check("mask hides the ID token", "F-IND-003" not in m, m)
+    check("mask hides the placeholder", "{name}" not in m, m)
+
+    # the rails
+    check("placeholder loss is caught",
+          qa("Hello {name}", "Hola") is not None)
+    check("citation damage is caught",
+          qa("See Art. II §2", "Ver Art. III §9") is not None)
+    check("ID token damage is caught",
+          qa("File F-IND-003", "Archivar F-IND-009") is not None)
+    check("empty output is caught", qa("Anything at all", "") is not None)
+    check("runaway decode is caught",
+          qa("Hi", "x" * 500) is not None)
+
+    # the two the placeholder/citation rails CANNOT see — content loss
+    long_src = ("Sign in to your Individual record. Your rights ride with your "
+                "residency, not with this session.")
+    dropped = "Sus derechos van con su residencia, no con esta sesión."
+    check("dropped sentence is caught", qa(long_src, dropped) is not None,
+          str(qa(long_src, dropped)))
+    check("a faithful translation passes",
+          qa("Log in", "Iniciar sesión") is None,
+          str(qa("Log in", "Iniciar sesión")))
+    check("a faithful long translation passes",
+          qa(long_src,
+             "Inicie sesión en su registro individual. Sus derechos van con su "
+             "residencia, no con esta sesión.") is None)
+
+    # sentence splitting is what prevents the loss in the first place
+    check("sentence splitter finds both sentences", _sentence_count(long_src) == 2)
+    check("single sentence stays single", _sentence_count("Log in") == 1)
+
+    failed = [c for c in cases if not c[1]]
+    for label, ok, detail in cases:
+        print(f"  {'ok  ' if ok else 'FAIL'}  {label}" + (f"   [{detail}]" if not ok and detail else ""))
+    print(f"\n  {len(cases) - len(failed)}/{len(cases)} passed")
+    return 1 if failed else 0
+
+
 def main() -> int:
+    if "--self-test" in sys.argv:
+        return self_test()
     ap = argparse.ArgumentParser(description="Machine-translate the message catalogs.")
     ap.add_argument("--locale", required=True)
     ap.add_argument("--namespace")

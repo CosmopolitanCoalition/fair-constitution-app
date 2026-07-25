@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "Unirse al grupo",
+  "federation_syncprogress.of_left": "{fmtValue} de {fmtValue2}~{fmtDuration} izquierda",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} registros · {fmtNum2} páginasImportación de la base en la base de datos...Importación...{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "Puede dejar esta página  la sincronización se ejecuta en segundo plano y se reanuda si se interrumpe."
+}

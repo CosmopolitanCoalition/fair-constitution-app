@@ -1,0 +1,14 @@
+{
+  "geodata_geodataflagqueue.accept_flag": "Accepta la bandera",
+  "geodata_geodataflagqueue.data_review_repair": "Revisión y reparación de datos",
+  "geodata_geodataflagqueue.last_scan": "El último escaneo {formatTime}",
+  "geodata_geodataflagqueue.loading_flags": "Cargando banderas...",
+  "geodata_geodataflagqueue.loading_repairs": "La carga de reparaciones...",
+  "geodata_geodataflagqueue.map_data_accepted_repairs_are_locked": "Los datos del mapa aceptados  Las reparaciones están bloqueadas.",
+  "geodata_geodataflagqueue.no_open_flags_run_a_scan_to_re_check_the_i": "No hay banderas abiertas. ejecuta un escaneo para (re) comprobar los datos importados.",
+  "geodata_geodataflagqueue.no_repairs_applied_yet": "Aún no se han realizado reparaciones.",
+  "geodata_geodataflagqueue.prune": "¿Qué es eso?",
+  "geodata_geodataflagqueue.repairs_log": "Registro de reparaciones",
+  "geodata_geodataflagqueue.showing_the_most_severe_of_flags_filter_by": "Mostrando la {length} más severa de {flagsTotal} {statusFilter} banderas  filtrar por categoría, o trabajar la cola hacia abajo y actualizar.",
+  "geodata_geodatarepairmodal.accept_this_flag_as_is_the_condition_stays": "Acepta esta bandera tal y como es: la condición permanece en los datos, registrada como revisada y aceptable."
+}

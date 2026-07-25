@@ -1,0 +1,70 @@
+{
+  "geodata_geodataflagqueue.accept_flag": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.applied": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.critical_warning_info": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.data_review_repair": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.last_scan": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.loading_flags": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.loading_repairs": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.map_data_accepted_repairs_are_locked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.no_flags": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.no_open_flags_run_a_scan_to_re_check_the_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.no_repairs_applied_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.prune": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.repairs_log": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.scan_running": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "geodata_geodataflagqueue.showing_the_most_severe_of_flags_filter_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.accept_this_flag_as_is_the_condition_stays": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

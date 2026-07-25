@@ -1,0 +1,18 @@
+{
+  "federation_syncprogress.joining_the_cluster": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "federation_syncprogress.of_left": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}
