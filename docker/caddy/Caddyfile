@@ -1,0 +1,65 @@
+# TLS edge for a public (cloud / VPS) node.
+#
+# Certificates are obtained and renewed automatically over HTTP-01 — no cron, no
+# systemd timer, no operator action. Requires ports 80 and 443 reachable from the
+# internet and the DNS records already pointing here.
+#
+# Hostnames come from PUBLIC_HOSTNAME, written by `./deploy.sh --public-url`.
+# Three A records, all to this box's IP:
+#     <host>          the app, Matrix client API, Matrix federation, .well-known
+#     auth.<host>     MAS (the OIDC service Matrix login goes through)
+#     rtc.<host>      LiveKit signalling (voice/video)
+{
+	email {$ACME_EMAIL}
+	# Uncomment for rehearsals so you never spend production rate limit:
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# ── The app + Matrix ─────────────────────────────────────────────────────────
+# nginx already routes /_matrix/ to Synapse and /_matrix/app/ to Laravel's appservice,
+# and serves /.well-known/matrix/{server,client} from Laravel — so one proxy pass here
+# covers the app, the Matrix client API and federation delegation together.
+{$PUBLIC_HOSTNAME} {
+	encode zstd gzip
+
+	# No request-body cap: map-data import moves multi-GB bundles and the app's own
+	# nginx is sized at 20g. Caddy has no default limit; this is a note, not a setting.
+
+	reverse_proxy nginx:80 {
+		header_up X-Forwarded-Proto https
+		# The seeded-planet map endpoints and the ETL progress stream are slow by nature.
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+}
+
+# ── Matrix server-to-server backstop ─────────────────────────────────────────
+# .well-known delegation (MATRIX_DELEGATE_SERVER=<host>:443) is the primary path, but a
+# portless m.server value means 8448 to a remote homeserver. Serving both removes an
+# entire class of federation failure for one block of config.
+:8448 {
+	tls {$ACME_EMAIL}
+	reverse_proxy nginx:80 {
+		header_up X-Forwarded-Proto https
+	}
+}
+
+# ── MAS — the OIDC service Matrix login goes through ─────────────────────────
+auth.{$PUBLIC_HOSTNAME} {
+	encode zstd gzip
+	reverse_proxy mas:8080 {
+		header_up X-Forwarded-Proto https
+	}
+}
+
+# ── LiveKit signalling (voice / video) ───────────────────────────────────────
+# Signalling only — media is raw UDP straight to the VM on 7882 (and 7881/tcp as a
+# fallback), which is why those two ports must be open in the cloud firewall and why
+# an HTTP proxy in front of this node would break voice.
+rtc.{$PUBLIC_HOSTNAME} {
+	reverse_proxy livekit:7880 {
+		header_up X-Forwarded-Proto https
+	}
+}

@@ -1,0 +1,54 @@
+# Public (cloud / VPS) overlay — the TLS edge.
+#
+# Used automatically by `./deploy.sh --public-url https://<host>`, which writes
+# COMPOSE_FILE=docker-compose.yml:docker-compose.public.yml into .env so every bare
+# `docker compose …` command in the runbooks picks it up too.
+#
+# It adds ONE service. Everything else about a public node is .env: the internal ports
+# bind to loopback, and this proxy becomes the only public listener.
+#
+# Why Caddy rather than the `tls` profile's tlsproxy: tlsproxy has no certificate
+# ISSUANCE (it serves certs the mesh broker already minted, with the rig's wildcard
+# filename hardcoded) and caps request bodies at 25m, which would break map-data import.
+# The baked-in lego binary is wired to the governed broker channel, which a FIRST node
+# with no peers cannot use — a chicken-and-egg. Caddy issues and renews on its own with
+# no cron and no operator action. The broker path stays what it is for: issuing certs to
+# peers under mesh governance.
+
+services:
+  edge:
+    image: caddy:2-alpine
+    container_name: ${CONTAINER_PREFIX:-fc}_edge
+    restart: unless-stopped
+    ports:
+      - "80:80"       # ACME HTTP-01 challenge + redirect to https
+      - "443:443"     # app, Matrix client + federation, MAS, LiveKit signalling
+      - "443:443/udp" # HTTP/3
+      - "8448:8448"   # Matrix S2S backstop (same cert)
+    environment:
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME:?set by deploy.sh --public-url}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates MUST persist: Let's Encrypt rate-limits duplicate certificates to
+      # 5/week, and re-issuing on every container recreation burns that in an afternoon.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+    networks:
+      fc_network:
+        aliases:
+          # The FQDN must resolve to the edge from INSIDE the network. MAS runs with
+          # discovery_mode: oidc, so it fetches https://<host>/.well-known/openid-configuration
+          # at runtime — from inside Docker. On a cloud VM, a container reaching the host's own
+          # public IP (hairpin/NAT loopback) is not reliably supported, so that fetch fails and
+          # Matrix login breaks in a way that looks like an app bug. These aliases close the
+          # loop over the bridge, with the same valid certificate.
+          - ${PUBLIC_HOSTNAME:?}
+          - auth.${PUBLIC_HOSTNAME:?}
+          - rtc.${PUBLIC_HOSTNAME:?}
+
+volumes:
+  caddy_data:
+  caddy_config:

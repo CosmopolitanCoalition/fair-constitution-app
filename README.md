@@ -75,6 +75,18 @@ data are never touched by an update.
 **Didn't open?** Make sure Docker Desktop is running, give a first run a few more minutes (it's
 still building), then reload the page.
 
+## Running it on the internet
+
+The steps above give you a world on **your own computer** — perfect for trying it out, and for
+a home node others on your network can reach. To put a node on the **public internet** at your
+own domain, with HTTPS, chat and voice working, follow
+**[docs/FRESH-NODE-START-CLOUD.md](docs/FRESH-NODE-START-CLOUD.md)**.
+
+It is the same app and the same one command; a rented cloud machine is just a computer you
+don't have to keep under a desk. The extra work is only what any public address needs: a
+machine, DNS records, and a few open ports. Written against Azure because that is what has
+been tested — any provider with a Linux VM and a public IP works identically.
+
 ## Map data
 
 The world is built from real datasets: **geoBoundaries** (jurisdiction boundaries) and

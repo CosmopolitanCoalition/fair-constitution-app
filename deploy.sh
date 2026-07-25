@@ -14,6 +14,7 @@
 # Examples:
 #   ./deploy.sh                                    # default ports (8080/5432/5173)
 #   ./deploy.sh --with-etl                         # a FOUNDER node that will import map data (incl. Raspberry Pi)
+#   ./deploy.sh --public-url https://earth.example.org --with-etl   # a PUBLIC (cloud/VPS) node, TLS + Matrix
 #   ./deploy.sh --prefix fcm --nginx-port 8082 --pg-port 5434 --vite-port 5175 \
 #               --join http://host.docker.internal:8081 --key handle.secret
 #
@@ -29,6 +30,7 @@ SEED=""
 JOIN_URL=""
 JOIN_KEY=""
 WITH_ETL=""
+PUBLIC_URL=""
 
 usage() {
   sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
@@ -41,6 +43,7 @@ while [[ $# -gt 0 ]]; do
     --pg-port)     PG_PORT="$2"; shift 2;;
     --vite-port)   VITE_PORT="$2"; shift 2;;
     --self-url)    SELF_URL="$2"; shift 2;;
+    --public-url)  PUBLIC_URL="$2"; shift 2;;
     --project)     PROJECT="$2"; shift 2;;
     --seed)        SEED="1"; shift;;
     --join)        JOIN_URL="$2"; shift 2;;
@@ -50,6 +53,44 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1" >&2; usage; exit 1;;
   esac
 done
+
+# ── PUBLIC (cloud / VPS) MODE ────────────────────────────────────────────────
+# --public-url turns a LAN-shaped deploy into an internet-facing one. It is the ONLY
+# place the box's permanent public identity is set, because three of these values are
+# LOCKED once the stack has booted once:
+#   * MATRIX_DOMAIN      — Synapse writes it into every event; changing it orphans every
+#                          @user:domain identity. There is no rename.
+#   * FEDERATION_SELF_URL— peers PIN it at handshake; changing it re-handshakes the mesh.
+#   * APP_URL            — MAS pins it as the OIDC issuer.
+# Getting them right BEFORE the first boot is the whole reason this flag exists: a plain
+# ./deploy.sh on a cloud box would burn MATRIX_DOMAIN=localhost permanently.
+PUBLIC_HOST=""
+if [[ -n "$PUBLIC_URL" ]]; then
+  PUBLIC_URL="${PUBLIC_URL%/}"
+  case "$PUBLIC_URL" in
+    https://*) ;;
+    http://*)  echo "ERROR: --public-url must be https:// (TLS is required for browser geolocation," >&2
+               echo "       secure cookies, and Matrix federation). Got: $PUBLIC_URL" >&2; exit 1;;
+    *)         echo "ERROR: --public-url must start with https:// — got: $PUBLIC_URL" >&2; exit 1;;
+  esac
+  PUBLIC_HOST="${PUBLIC_URL#https://}"
+  PUBLIC_HOST="${PUBLIC_HOST%%/*}"
+  PUBLIC_HOST="${PUBLIC_HOST%%:*}"
+  if [[ -z "$PUBLIC_HOST" || "$PUBLIC_HOST" != *.* ]]; then
+    echo "ERROR: --public-url needs a real hostname (e.g. https://earth.example.org)," >&2
+    echo "       not an IP or a bare name — Let's Encrypt cannot issue for '$PUBLIC_HOST'." >&2
+    exit 1
+  fi
+  # A public box must never be seeded with demo institutions: institutions:demo-e writes
+  # residency confirmations, i.e. MANUFACTURED CONSENT, into an append-only ledger.
+  if [[ -n "$SEED" ]]; then
+    echo "ERROR: --seed cannot be combined with --public-url. --seed runs institutions:demo-e," >&2
+    echo "       which fabricates residents on a public instance. Refusing." >&2
+    exit 1
+  fi
+  # --self-url still wins if given explicitly (overlay transports pass it).
+  [[ -z "$SELF_URL" ]] && SELF_URL="$PUBLIC_URL"
+fi
 
 # FEDERATION_SELF_URL: the callback URL peers reach THIS box at. `host.docker.internal` is a
 # machine-RELATIVE alias — a remote peer resolves it to ITSELF, so it only works for two instances
@@ -104,7 +145,36 @@ set_env NGINX_HOST_PORT    "$NGINX_PORT"
 set_env POSTGRES_HOST_PORT "$PG_PORT"
 set_env VITE_HOST_PORT     "$VITE_PORT"
 set_env FEDERATION_SELF_URL "$SELF_URL"
-set_env APP_URL            "http://localhost:${NGINX_PORT}"
+
+if [[ -n "$PUBLIC_URL" ]]; then
+  # The public identity. See the --public-url block above for why these are locked.
+  set_env APP_URL "$PUBLIC_URL"
+  set_env MATRIX_DOMAIN "$PUBLIC_HOST"
+  # Matrix delegation: WellKnownController derives "<server_name>:<port>" from APP_URL's
+  # port — and an https URL HAS no port, so it emits a bare hostname, which the Matrix spec
+  # reads as port 8448, NOT 443. Set it explicitly or remote homeservers dial a closed port.
+  set_env MATRIX_DELEGATE_SERVER "${PUBLIC_HOST}:443"
+  set_env MATRIX_MAS_ISSUER "https://auth.${PUBLIC_HOST}/"
+  set_env LIVEKIT_PUBLIC_URL "wss://rtc.${PUBLIC_HOST}"
+  # Every internal port binds LOOPBACK on a public box. The host half of a compose port
+  # spec accepts a bind address, so this needs no compose edit. Postgres (fc_user/fc_password),
+  # raw Synapse, raw MAS and the Vite dev port must never face the internet; the edge proxy
+  # is the only public listener. NOTE: livekit's 7881 is hardcoded in docker-compose.yml and
+  # cannot be rebound here — it is a media port and is expected to be reachable.
+  set_env NGINX_HOST_PORT    "127.0.0.1:${NGINX_PORT}"
+  set_env POSTGRES_HOST_PORT "127.0.0.1:${PG_PORT}"
+  set_env VITE_HOST_PORT     "127.0.0.1:${VITE_PORT}"
+  set_env MATRIX_HOST_PORT   "127.0.0.1:8008"
+  set_env MAS_HOST_PORT      "127.0.0.1:8090"
+  set_env LIVEKIT_HOST_PORT  "127.0.0.1:7880"
+  set_env PUBLIC_HOSTNAME    "$PUBLIC_HOST"
+  set_env ACME_EMAIL         "${ACME_EMAIL:-admin@${PUBLIC_HOST#*.}}"
+  # Make every bare `docker compose` command in the runbooks pick up the edge proxy too.
+  set_env COMPOSE_FILE "docker-compose.yml:docker-compose.public.yml"
+  export COMPOSE_FILE="docker-compose.yml:docker-compose.public.yml"
+else
+  set_env APP_URL "http://localhost:${NGINX_PORT}"
+fi
 
 # Architecture: the official postgis image is amd64-only; on arm64 (Pi, ARM
 # servers, Apple Silicon) use the multi-arch rebuild. amd64 keeps the default.
@@ -181,8 +251,12 @@ echo "→ Starting the Matrix homeserver…"
 # secrets — fine for a LAN rig; a PUBLIC deploy should run `php artisan matrix:setup` first to regenerate
 # them. Without this, a fresh founder gets NO Matrix login until `docker compose up -d mas` is run by hand
 # (the gap Box B hit). The matrix_auth DB was ensured in the loop above.
-echo "→ Starting the Matrix Auth Service…"
-"${DC[@]}" up -d mas
+# On a PUBLIC box we must NOT start MAS yet: the committed config carries dev-only secrets
+# and a localhost issuer. It is started further down, after `matrix:setup` regenerates both.
+if [[ -z "$PUBLIC_URL" ]]; then
+  echo "→ Starting the Matrix Auth Service…"
+  "${DC[@]}" up -d mas
+fi
 
 # The app entrypoint runs `composer install` on first boot (minutes on a Pi) and
 # writes vendor/.installed-hash as its DONE marker. Wait for that STAMP — NOT
@@ -203,8 +277,46 @@ for _ in $(seq 1 240); do
 done
 
 # 2. A FRESH APP_KEY — clone-identity-safe (never reuse the repo's shared dev key).
-echo "→ Generating a fresh APP_KEY…"
-art key:generate --force
+#
+#    CONDITIONAL, and this is load-bearing: APP_KEY is what encrypts
+#    instance_settings.private_key_encrypted (the node's Ed25519 federation identity).
+#    Rotating it on an ALREADY-KEYED box makes every Crypt::decryptString() throw "MAC is
+#    invalid" — the identity is unrecoverable, there is no re-wrap path, and the only exit
+#    is federation:init --rotate = a BRAND-NEW server_id that every peer must re-handshake.
+#    So: mint a key only when the box has never had one of its own. Detection is exact —
+#    a virgin .env carries the committed .env.example key verbatim, so "differs from the
+#    example key" means "this box has already been keyed", and we leave it alone. That is
+#    what makes re-running this script to update a live node safe.
+EXAMPLE_APP_KEY="$(grep -E '^APP_KEY=' .env.example | head -1 | cut -d= -f2-)"
+CURRENT_APP_KEY="$(grep -E '^APP_KEY=' .env | head -1 | cut -d= -f2-)"
+if [[ -z "$CURRENT_APP_KEY" || "$CURRENT_APP_KEY" == "$EXAMPLE_APP_KEY" ]]; then
+  echo "→ Generating a fresh APP_KEY…"
+  art key:generate --force
+else
+  echo "→ Preserving the existing APP_KEY (federation identity intact)."
+fi
+
+# 2b. PUBLIC boxes: regenerate every Matrix/MAS/LiveKit secret and point the OIDC issuer at
+#     the real hostname, THEN start MAS. The committed docker/matrix/mas/config.yaml ships
+#     dev placeholders (cga_dev_*) and a localhost issuer — shipping those to the internet
+#     would mean a publicly-known appservice token and an unusable login. matrix:setup writes
+#     config.generated.yaml; compose mounts config.yaml, and nothing else copies one to the
+#     other, so we do it here.
+if [[ -n "$PUBLIC_URL" ]]; then
+  echo "→ Regenerating Matrix/MAS/LiveKit secrets for ${PUBLIC_HOST}…"
+  art matrix:setup --server-name="$PUBLIC_HOST" \
+                   --issuer="$PUBLIC_URL" \
+                   --mas-issuer="https://auth.${PUBLIC_HOST}/"
+  if [[ -f docker/matrix/mas/config.generated.yaml ]]; then
+    cp docker/matrix/mas/config.generated.yaml docker/matrix/mas/config.yaml
+    echo "  ✓ MAS config installed (generated secrets)."
+  else
+    echo "  ! matrix:setup produced no config.generated.yaml — MAS will start on DEV secrets." >&2
+    echo "    Fix before exposing the box: docs/operator/matrix.md" >&2
+  fi
+  echo "→ Starting the Matrix Auth Service…"
+  "${DC[@]}" up -d mas
+fi
 
 echo "→ Migrating…"
 art migrate --force
@@ -273,4 +385,20 @@ echo "→ Reloading workers with the final APP_KEY…"
 echo "→ Starting nginx…"
 "${DC[@]}" up -d nginx
 
-echo "✓ Instance up (production assets) — http://localhost:${NGINX_PORT}"
+if [[ -n "$PUBLIC_URL" ]]; then
+  # The edge proxy terminates TLS and obtains/renews certificates automatically (HTTP-01),
+  # so it must start LAST — nginx has to be answering before the ACME challenge is served.
+  echo "→ Starting the TLS edge (obtaining certificates — first run takes ~30s)…"
+  "${DC[@]}" up -d edge
+  echo ""
+  echo "✓ Instance up — ${PUBLIC_URL}"
+  echo ""
+  echo "  Matrix server_name : ${PUBLIC_HOST}   (LOCKED — never change it on this box)"
+  echo "  Federation URL     : ${SELF_URL}"
+  echo ""
+  echo "  Next: open ${PUBLIC_URL}/setup and complete the wizard."
+  echo "  If the page does not load, certificates are still being issued — give it a minute,"
+  echo "  then check:  docker compose logs edge"
+else
+  echo "✓ Instance up (production assets) — http://localhost:${NGINX_PORT}"
+fi
