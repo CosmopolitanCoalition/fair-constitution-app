@@ -21,6 +21,49 @@ use Tests\TestCase;
  */
 class TwoSplitFallbackTest extends TestCase
 {
+    public function test_composition_ladder_starts_at_the_historical_grouping_and_buys_slack(): void
+    {
+        // RUNG 0 IS THE HISTORY (2026-07-25): the ladder's first composition
+        // must equal seatGroups() for every budget, or every drawable scope
+        // would re-plan. Then each rung must stay lawful and in band.
+        foreach ([10, 13, 21, 32, 65, 69, 73, 79, 124, 152] as $S) {
+            $kMin = intdiv($S + 9 - 1, 9);
+            $this->assertSame(S::seatGroups($S, 5, 9), S::seatGroupsForK($S, $kMin, 5, 9),
+                "rung 0 must reproduce seatGroups for S={$S}");
+
+            for ($k = $kMin; $k <= min(intdiv($S, 5), $kMin + 3); $k++) {
+                $sizes = S::seatGroupsForK($S, $k, 5, 9);
+                if ($sizes === null) {
+                    continue;
+                }
+                $this->assertSame($S, array_sum($sizes), "composition must seat exactly S={$S} at k={$k}");
+                $this->assertCount($k, $sizes);
+                foreach ($sizes as $s) {
+                    $this->assertGreaterThanOrEqual(5, $s);
+                    $this->assertLessThanOrEqual(9, $s);
+                }
+            }
+        }
+
+        // THE ABU DHABI SHAPE: at k_min a 152-seat budget crowds the ceiling
+        // (sixteen 9s), so its 18-seat nodes admit exactly ONE sizing (9:9) —
+        // zero slack, undrawable when no blade fits. A later rung breaks the
+        // deadlock: nineteen 8s, whose 16-seat nodes admit 7:9, 8:8 and 9:7.
+        $rigid = S::seatGroupsForK(152, 17, 5, 9);
+        $this->assertSame(16, count(array_filter($rigid, fn (int $s) => $s === 9)));
+        $this->assertSame([], S::lawfulTwoSplitFallback(18, 5, 9, 9),
+            'an 18-seat node has no alternative sizing — the rigidity that forced the ladder');
+
+        $slack = S::seatGroupsForK(152, 19, 5, 9);
+        $this->assertSame(array_fill(0, 19, 8), $slack);
+        $this->assertSame([7, 9], S::lawfulTwoSplitFallback(16, 5, 9, 8),
+            'a 16-seat node offers real alternatives — the slack the ladder buys');
+
+        // Unsatisfiable rungs are refused, never fudged.
+        $this->assertNull(S::seatGroupsForK(152, 16, 5, 9), 'k too small: would exceed the ceiling');
+        $this->assertNull(S::seatGroupsForK(152, 31, 5, 9), 'k too large: would breach the floor');
+    }
+
     public function test_bisection_alternatives_lead_with_the_historical_choice(): void
     {
         // THE DETERMINISM GUARANTEE for backtracking (2026-07-25): the search

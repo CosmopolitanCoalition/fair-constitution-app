@@ -75,6 +75,14 @@ class SubdivisionAutoseedService
 
     private const BLADE_BUDGET_PER_PLAN = 240;
 
+    /**
+     * How many EXTRA districts the composition ladder may add above the
+     * minimum lawful count before a scope is honestly refused. Each step
+     * shrinks the districts and buys slack; the first (k_min) rung is the
+     * historical, most-proportional composition.
+     */
+    private const MAX_COMPOSITION_STEPS = 3;
+
     /** Remaining findBlade calls for the plan in flight. */
     private int $bladeBudget = self::BLADE_BUDGET_PER_PLAN;
 
@@ -273,7 +281,49 @@ class SubdivisionAutoseedService
                 break;
             }
         }
-        $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $sizes, $quota, $cuts, $districts, $order, $template, (int) $ctx['floor'], (int) $ctx['ceiling'], $initialCutPath, $mainPartIdx);
+
+        // ── THE COMPOSITION LADDER (2026-07-25, the zero-slack class) ───────
+        // seatGroups() takes the FEWEST lawful districts (k = ceil(S/ceiling))
+        // — the most proportional shape, and the right first choice. But it is
+        // also the most BRITTLE: at k_min the sizes crowd the ceiling, and a
+        // pair of ceiling-sized districts has ZERO slack (an 18-seat node with
+        // ceiling 9 admits exactly one sizing, 9:9). When no blade splits it,
+        // no amount of re-splitting an ancestor helps — every node in that
+        // composition is equally rigid — and a 152-seat scope filed NOTHING
+        // (Abu Dhabi, Sharjah, Ajman, Fujairah, Transnistria, Sermersooq).
+        // So on total refusal, step k up: more districts → smaller sizes →
+        // real slack at every node (152 at k=19 is nineteen 8s, and a 16-seat
+        // node admits 7:9, 8:8 and 9:7). Proportionality is preserved by
+        // ORDER: the most proportional composition that can actually be drawn
+        // wins, and a scope that draws at k_min today is untouched.
+        $floorC   = (int) $ctx['floor'];
+        $ceilingC = (int) $ctx['ceiling'];
+        $kMin     = intdiv($S + $ceilingC - 1, $ceilingC);
+        $kMax     = min(intdiv($S, max($floorC, 1)), $kMin + self::MAX_COMPOSITION_STEPS);
+        $lastRefusal = null;
+        $drawn = false;
+
+        for ($k = $kMin; $k <= $kMax; $k++) {
+            $candidateSizes = self::seatGroupsForK($S, $k, $floorC, $ceilingC);
+            if ($candidateSizes === null) {
+                continue;
+            }
+            $cuts = [];
+            $districts = [];
+            $order = 0;
+            $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+            try {
+                $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $candidateSizes, $quota, $cuts, $districts, $order, $template, $floorC, $ceilingC, $initialCutPath, $mainPartIdx);
+                $sizes = $candidateSizes;
+                $drawn = true;
+                break;
+            } catch (NoContiguousCut $e) {
+                $lastRefusal = $e;
+            }
+        }
+        if (! $drawn) {
+            throw $lastRefusal ?? new NoContiguousCut('No lawful composition could be drawn for this scope — cut it by hand.');
+        }
 
         usort($districts, fn (array $a, array $b) => strcmp($a['path'], $b['path']));
 
@@ -617,6 +667,26 @@ class SubdivisionAutoseedService
                 "A {$S}-seat budget cannot be grouped into districts of {$floor}–{$ceiling} seats."
             );
         }
+
+        return array_merge(array_fill(0, $k - $r, $q), array_fill(0, $r, $q + 1));
+    }
+
+    /**
+     * The same even grouping for an EXPLICIT district count k — the
+     * composition ladder's rung (2026-07-25). k = ceil(S/ceiling) reproduces
+     * seatGroups() exactly; larger k trades a little proportionality for the
+     * slack a rigid scope needs to be drawable at all. Returns null when k
+     * cannot hold S in band (every district must stay in [floor, ceiling]).
+     *
+     * @return int[]|null each in [floor, ceiling], summing to $S
+     */
+    public static function seatGroupsForK(int $S, int $k, int $floor = 5, int $ceiling = 9): ?array
+    {
+        if ($k < 1 || $S < $k * $floor || $S > $k * $ceiling) {
+            return null;
+        }
+        $q = intdiv($S, $k);
+        $r = $S % $k;
 
         return array_merge(array_fill(0, $k - $r, $q), array_fill(0, $r, $q + 1));
     }
