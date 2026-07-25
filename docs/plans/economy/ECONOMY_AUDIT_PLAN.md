@@ -58,23 +58,59 @@ check. It calls `writeConstitutionalSettings` (`:979-1001`), a raw `DB::table()`
 `RedirectIfSetupIncomplete` cannot backstop it — self-documented as *"Once setup completes, this is a
 no-op"* (`:20`), and it returns early for anything that is not a GET+HTML navigation (`:56`).
 
-**Consequence.** After a world is founded, that endpoint stays live and rewrites *every* constitutional
-setting — including `judiciary_is_elected`, the **sole `DUAL_DOOR_KEYS` entry**, whose entire purpose
-is that it cannot move without a chamber supermajority **and** a supermajority of constituent
-jurisdictions. The rewrite produces no `setting_changes` row, no audit-chain entry, and no enacting
-law. The only residual barrier is the `web` group's CSRF token, which is not authentication.
+**The write persists post-founding.** `saveConstants` takes its `if ($root)` branch once
+`resolveRootJurisdiction()` finds Earth (`SetupController.php:868-877`, resolver at `:3047-3057`), so
+after map data exists a save lands on the live root row and `ConstitutionalDefaults::flush()` makes it
+effective immediately (`:882`).
+
+**Blast radius — all 29 keys, not the 9 economy ones.** `saveConstants` validates and writes the whole
+constitutional set (`:816-851`), with only four hand-rolled invariants at `:854-865` standing in for
+`SETTING_BOUNDS`. That includes:
+- **`judiciary_is_elected`** — the sole `DUAL_DOOR_KEYS` member. This path flips it with no chamber
+  supermajority and no constituent consent, defeating `ConstitutionalValidator:345-355`,
+  `BillService:360-372` and `SettingAmendmentDoorService` in one POST.
+- **`worker_rep_min_employees` / `worker_rep_parity_employees`** — because `RederiveClockTimersJob`
+  never fires on this path, armed CLK-13/14 timers **desync from the settings row**.
+- `supermajority_numerator/denominator`, `emergency_powers_max_days`, `legislature_min/max_seats` — all
+  governed keys whose bounds and citations this path never consults.
+
+The rewrite produces no `setting_changes` row, no audit-chain entry, and no enacting law. The only
+residual barrier is the `web` group's CSRF token, which is not authentication.
+
+**⚑ And the same controller proves it is a defect, not a design choice.** `saveGameMode` — the very
+next endpoint — *is* `auth`-gated at the route and *does* refuse once setup completes
+(`SetupController.php:2635-2637`, 409 *"Game mode is set at founding and locked once setup is
+complete"*). The guard exists here, in this file, and was simply not applied to the endpoint that
+writes the constitution. Demonstrating both side by side is the cleanest way to show it.
+
+**⚑ Compounding risk.** On success the endpoint returns `next: '/setup/step/2'` (`:886`) and the page
+navigates there (`Step1_Constants.vue:244`) — step 2 being the **Map Data** page, which is likewise
+re-enterable (`step()` has no completion check either, `:97-169`). Re-entering step 1 on a founded
+world leaves the operator one click from a live ETL submit form.
 
 **Routing.** Not lane 13's to fix. → **@operator**, **@lane-02** (launch security gate; the cloud
 instance is public 2026-09-01), **@lane-07** for `BUILT_INVENTORY` §7.
 
-**Verification — dev box only.** Never against the game box; a write there corrupts lane 1's world.
+**Verification — dev box only, and LAST, because it mutates the fixture.** Never against the game box.
 
+*Pre-state capture:*
 ```bash
-docker exec fcd_postgres psql -U fc_user -d fair_constitution -c "select judiciary_is_elected, civic_stipend_floor from constitutional_settings limit 5;"
+docker exec fcd_postgres psql -U fc_user -d fair_constitution -c "select judiciary_is_elected, worker_rep_min_employees, currency_code, civic_stipend_floor, last_amended_by_act_id, last_amended_at from constitutional_settings;"
+docker exec fcd_postgres psql -U fc_user -d fair_constitution -c "select (select count(*) from setting_changes) as changes, (select max(seq) from audit_log) as max_seq;"
 ```
-Then, on a **founded** dev fixture, POST the constants payload with a changed `judiciary_is_elected`
-and re-run the query. **Expected if the reading is right:** the value moves, and
-`select count(*) from setting_changes;` is unchanged. That difference is the whole finding.
+
+| Test | Action | Expected if the reading is right |
+|---|---|---|
+| **A** | Navigate to `/setup/step/1` on the founded fixture | The wizard renders, **pre-filled from the live row** (not template defaults). Screenshot. |
+| **B** | Change two values with distinctive signatures — `currency_code` → `AUDIT`, `civic_stipend_floor` → `4242` — and Save | Both change; `setting_changes` count **unchanged**; `max(seq)` **unchanged**; `last_amended_by_act_id` still NULL. **That triple is the finding.** |
+| **C** | ⚠ **Operator authorisation required, recorded before running.** Flip `judiciary_is_elected` | It flips, with no `MultiJurisdictionVote`, no `setting_changes` row, no audit entry — against what `Art4Section5Test:566-605` pins. |
+| **D** | From a session with **no login**: GET any page for the `XSRF-TOKEN` cookie, then POST the payload with `X-XSRF-TOKEN` | A 200 and a write ⇒ the only gate is CSRF. A 419 narrows the finding but does not remove it. |
+| **E** | *Control.* On the same page, toggle game mode | **409.** Proves the lock exists in this controller and was simply not applied to `saveConstants`. |
+
+Then `docker exec fcd_app php artisan audit:verify` — it will pass, because nothing was appended.
+That is the point.
+
+**Record the trace, the citations and the reproduction; leave the severity call to the operator.**
 
 **It also falsifies the surviving L/M design doc**, which argues its anti-self-dealing case from
 *"No admin write path exists… A node operator who runs the server **cannot** raise their own bump by
@@ -159,32 +195,81 @@ Act 2 runs, it should be built once and offered to lane 6 on the board.
 ### 2.4 ⚠ Three hazards — read before touching anything
 
 1. **`docs/FRESH-NODE-START.md:16` says `docker compose -p fc down -v`.** On this checkout `-p fc` is
-   the **game box** — the accepted planet, and lane 1's live work surface. Following that runbook line
-   verbatim during a dev-box session **destroys 956,336 jurisdictions**. Use `-p fcd`, or bare (the
-   repo `.env:153` pins `COMPOSE_PROJECT_NAME=fcd`, so a bare `docker compose` from
-   `E:\fair-constitution-app` already targets the dev box). *This line should be fixed in the runbook —
-   it belongs to lane 2's path, so it is flagged, not edited here.*
+   the **game box** — the accepted planet, and lane 1's live work surface. `-p` selects a project by
+   name at the daemon level, so it does **not** matter which directory you run it from: that line
+   verbatim **destroys 956,336 jurisdictions**. Use `-p fcd`, or bare (the repo `.env:153` pins
+   `COMPOSE_PROJECT_NAME=fcd`, so a bare `docker compose` from `E:\fair-constitution-app` already
+   targets the dev box). *The runbook line belongs to lane 2's path — flagged, not edited here.*
+
+   **Reassurance, so the rest of the walk is unencumbered:** the two stacks are **independent clones**,
+   not worktrees — `fcd_app`'s working dir is `E:\fair-constitution-app`, `fc_nginx`'s is
+   `C:\Users\Joseph Sileo\fair-constitution-app`. Nothing done in this checkout (code, ETL control
+   files, database) can reach :8080. The only shared resource is `D:/fair-constitution-map-files`,
+   mounted **read-only** at `/archive` in both. So `-p` is the single hazard, and it is the only one.
 2. **`psql -U postgres` fails** — the role is `fc_user` (`.env:110`). Every query in this document
    uses `-U fc_user -d fair_constitution`.
 3. **`ClockRegistrySeeder` must be run explicitly** after `migrate` — the 21-clock registry does not
    ride the schema dump (`clocks` = 0 on the dev box right now), and bare `php artisan db:seed` only
    creates a `Test User` (`database/seeders/DatabaseSeeder.php:18-22`). Always pass `--class=`.
 
-### 2.5 Act 2 bring-up, in order
+### 2.5 Act 2 bring-up — the ordered procedure
 
-```bash
-docker compose exec app php artisan migrate --force
-docker compose exec app php artisan db:seed --class=ClockRegistrySeeder --force
-docker compose exec app php artisan federation:init
-```
-Verify after each: `select count(*) from clocks;` → **21**. Then found the world through the wizard at
-`http://localhost:8082/setup` (mode → operator → step 0 → **step 1, which is station S1** → 2 → 3 → 4),
-and finally:
-```bash
-docker compose exec app php artisan institutions:demo-d --fresh
-```
-Keep a queue worker up (`fcd_horizon` is already running) — the co-determination recompute in S6 is an
-`afterCommit` queued job and will not advance without it.
+**There is no synthetic-map path** — `saveCosmicAddress` hard-rejects anything but `physical_earth`
+(`SetupController.php:739-743`). **But there is a scoped one:** `startMapData` accepts `countries[]`
+(ISO3) and `adm_levels[]` (`SetupController.php:1071-1074`), forwarded to the ETL as
+`--countries` / `--adm-levels` (`scripts/etl/supervisor.py:178-186`). So the fixture is a
+**one-country import**, and the country is **forced, not chosen**: `PhaseDDemoCommand.php:113`
+hardcodes `SAN_MARINO_SLUG = 'smr-1-san-marino'`, which is what the SMR **ADM0** file produces
+(`import_geoboundaries.py:74` maps ADM0 → `adm_level=1`; `:155-177` builds `{iso}-{adm_level}-{name}`).
+SMR ADM0 (36 KB), ADM1 (55 KB, 9 castelli) and the WorldPop raster (49 KB) are all staged in the
+archive, which both stacks mount read-only at `/archive`.
+
+Use `docker exec fcd_app` with the literal container name throughout.
+
+| # | Step | Command / action | Verify | Est. |
+|---|---|---|---|---|
+| 0 | Pre-flight | `docker ps --filter name=fcd_` | 10 up, `fcd_app` healthy | 1 m |
+| 1 | **Clock registry** | `docker exec fcd_app php artisan db:seed --class=ClockRegistrySeeder --force` | `select count(*) from clocks;` → **21** | 10 s |
+| 2 | Fork + founder | `http://localhost:8082/setup` → **START (solo)** → create founder + establish founding roles | 1 user, `is_operator=t`; `setup_mode='solo'` | 3 m |
+| 3 | Step 0 | `/setup/step/0` — name it, pick **Earth**, time mode `real` | `setup_step_completed=1` | 2 m |
+| 4 | **Step 1 = station S1** | `/setup/step/1` — ⚠ **set game mode = `sandbox` FIRST** (below), then record every economy default verbatim, then Save | `setup_step_completed=2` | 10 m |
+| 5 | Step 2 — scoped ETL | `/setup/step/2` — source **archive**, Fresh on, **countries `SMR`**, **adm levels `0,1`**, population on | `select adm_level, count(*) from jurisdictions group by 1;` → Earth 1 · San Marino 1 · castelli 9 | **10–30 m (estimate)** |
+| 6 | Accept maps | Step 2 "Accept Map Data & Continue" | `map_accepted_at` stamped; `apportionment_completed_at` fills | **5–20 m (estimate)** |
+| 7 | Steps 3 + 4 | Step 3 "Back to Setup" → Step 4 **Finish Setup** | `setup_completed_at` stamped; `/civic` stops 302-ing | 3 m |
+| 8 | **Seat a chamber** | `docker exec fcd_app php artisan elections:demo smr-1-san-marino --voters=120 --candidates=60 --instant` | certified races + seated members | 5–15 m |
+| 9 | Phase D substrate | `docker exec fcd_app php artisan institutions:demo-d` | org crosses 100 workers, `worker_seats` 0→1, CGC + its stake | 2–5 m |
+| 10 | Chain integrity | `docker exec fcd_app php artisan audit:verify` | green | 30 s |
+
+**~1–2 hours, most of it steps 5–6.** Migrations are already applied on fcd (13, `pending_count: 0`),
+so `migrate` is a no-op. The ETL and autoscale durations are **estimates, not measurements** — replace
+them with the real numbers after the first run rather than treating them as promises.
+
+**Three ordering constraints that are load-bearing, not stylistic:**
+
+1. **⚠ `game_mode = sandbox` must be set at step 4 (Step 1) — it is a ONE-WAY DOOR.**
+   `saveGameMode` returns 409 once setup completes (`SetupController.php:2635-2637`), and
+   `DevToolsEnabled` 404s the entire `/dev/*` toolbox unless sandbox is on
+   (`app/Http/Middleware/DevToolsEnabled.php:33-40`). Miss it and `/dev/executive-kit` (S7) and
+   `/dev/users` impersonation are unavailable **for the life of this world**.
+2. **`elections:demo` must run before `institutions:demo-d`** — the latter fails hard if the chamber
+   has ≤ 5 serving members (`PhaseDDemoCommand.php:194-203`). If `elections:demo` refuses, it prints
+   the exact minimum voters/candidates it needs (`ElectionsDemoCommand.php:584-593`): read the number
+   and re-run rather than guessing.
+3. **Queue.** `institutions:demo-d` forces `queue.default = sync` in-process
+   (`PhaseDDemoCommand.php:151-154`), so step 9 needs no worker. Horizon **is** required for the
+   UI-driven path — `OrgMembershipService.php:298-299` dispatches the recompute `afterCommit()` — which
+   makes "add a worker in the browser → the seat appears" the observation that actually proves the
+   queue. `fcd_horizon` is already running; `/horizon` shows the `default` supervisor tick.
+
+### 2.6 Two traps that will mislead an operator mid-walk
+
+- **`curl` gives a false pass.** The setup lock keys on `wantsHtml`
+  (`RedirectIfSetupIncomplete.php:54-58`), so a bare `curl http://localhost:8082/organizations`
+  **without** `Accept: text/html` slips through and looks like the page works. Always send the header:
+  `curl -H "Accept: text/html" …` returns the honest `302 /setup`.
+- **`WorkerRepresentationTest` fails on a virgin box, and that is not a regression.** Its six pure-math
+  pins always run, but the two live pins assert on a real jurisdiction row and the clock registry —
+  they need Station 0 to have happened. Run S6's **X** step only after step 9.
 
 ---
 
@@ -232,6 +317,21 @@ could do*. The gap between them is the lane's scope.
 ---
 
 ## 4. The stations
+
+### 4.0 Ordering is forced by the fixture's lifecycle, not by editorial taste
+
+Three observations are **destroyed** by advancing the world, and cannot be recovered on that world:
+
+| When | What is only visible then | Why it is lost |
+|---|---|---|
+| **During Step 1, before Save** | The economy panel in its *founding* state, and the wizard's own claim that these values *"cascade to child jurisdictions"* (`Step1_Constants.vue:707`) | Not lost from the page, but this is the only moment the operator is authoring them rather than reading them back — and it is the exhibit for S4 |
+| **During Step 1, before Finish** | The `game_mode` production/sandbox toggle | 409s forever once setup completes (`SetupController.php:2635-2637`) — **one-way door**, and sandbox gates `/dev/*` for the life of the world |
+| **After Finish, before any demo command** | The genuine empty-state baseline: `/organizations`, `/organizations/co-determination`, `/organizations/transfers-conversions`, `/executives/{id}/actions` with **zero** rows | `institutions:demo-d` populates them permanently; this is what a real fresh world shows, and it is the evidence for the *absence* claims |
+
+So the running order is: **S11 and S9 first** (source, tests and mockups — they need no fixture and give
+the operator something real to walk while the ETL runs) → **S1** at Step 1 → the empty-state baseline →
+**S2, S4, S10, S12** → **S5, S6, S7, S8** after the demo commands → **S3 last**, because it mutates the
+fixture.
 
 ### S1 — The stipend / currency parameter layer · **U + D**
 
@@ -318,9 +418,11 @@ engineering one.
 
 ---
 
-### S3 — ⚠ The unguarded write path · **D**, dev box only
+### S3 — ⚠ The unguarded write path · **U + D**, dev box only, **run LAST**
 
-Covered in full at §1a. Runs in Act 2 only, on the dev box, never the game box.
+Covered in full at §1a, including the pre-state capture and Tests A–E. Act 2 only, dev box only, never
+the game box — and it is the **final** station because Tests B and C mutate the fixture. Test C needs
+the operator's authorisation recorded in the log before it runs.
 
 ---
 
@@ -417,6 +519,8 @@ drives the real engine path and asserts the 100th worker trips the first seat.
 **How to see it live.** **U · dev box, Act 2**, after `institutions:demo-d`:
 `/organizations/{uuid}` (worker form + co-sign button) → `/organizations/co-determination`
 → `/organizations/{uuid}/board-elections`. **X:** `php artisan test --filter=WorkerRepresentationTest`
+(**only after Act 2 step 9** — see §2.6; the two live pins need a real jurisdiction row and the clock
+registry, so on a virgin box they fail as a fixture artifact, not a regression)
 — watching the pin pass is faster and more convincing than clicking it.
 **Prerequisite:** a queue worker must be running or the chain stalls after the co-sign.
 
@@ -436,11 +540,16 @@ Art. III §6 becomes optional.)
 services `OrgOwnershipService` / `OrgTransferService` / `OrgConversionService`, forms F-ORG-005/006/007,
 and the page `resources/js/Pages/Organizations/TransfersConversions.vue`.
 
-**⚑ But the cap table can never be populated.** `OrgOwnershipService::openStake` has exactly three
-callers — CGC charter, conversion, and transfer completion. `OrgRegistryService::register` opens
-**none**. So `acquired_via='founding'` and `acquired_via='issue'` have **no writer anywhere in the
-codebase**, and every organization created through the UI has a permanently empty ownership panel.
-There is no share-issuance surface.
+**⚑ But an ordinary organization's cap table can never be populated.** `OrgOwnershipService::openStake`
+has exactly three callers — CGC charter, conversion, and transfer completion —
+and `OrgRegistryService::register` opens **none**. Precisely:
+
+- `acquired_via='founding'` has **exactly one writer**: `CgcService.php:147-153`, which seats the
+  jurisdiction at 100% when a CGC is chartered ("the jurisdiction stands where shareholders would").
+  So `institutions:demo-d` does produce one stake row — the CGC's.
+- `acquired_via='issue'` has **no writer anywhere**.
+- **An organization registered through the UI (F-IND-012) gets no stake at all**, so its ownership
+  panel is permanently empty, and there is no share-issuance surface anywhere in the app.
 
 This is constitutionally load-bearing, not cosmetic. `CONSTITUTION-CURRENCY-OPS.md:56,61-65` observes
 that **the only place the Template ties money to ownership is shares** — Art. III §5's guarantee that
@@ -453,8 +562,10 @@ validated label with no behaviour distinguishing it from `partnership`.
 
 **How to see it live.** **U · dev box, Act 2:** `/organizations/{uuid}` → the Ownership panel, empty
 for any UI-registered org. **U:** `/dev/executive-kit` renders the *populated* component from fixtures —
-useful for showing what it is supposed to look like without seeding one. **D:**
-`select acquired_via, count(*) from org_ownership_stakes group by 1;`
+useful for showing what it is supposed to look like without seeding one (**requires sandbox game mode**
+— see §2.5's one-way door). **D:** `select acquired_via, count(*) from org_ownership_stakes where ended_at is null group by 1;`
+— after `institutions:demo-d`, expect exactly **one row, `founding`**, held by the jurisdiction against
+the demo CGC. Contrast it with the demo's ordinary 100-worker org, which has none.
 
 **Gaps.** Founding cap table; share issuance; valuation; org-type conversion.
 
