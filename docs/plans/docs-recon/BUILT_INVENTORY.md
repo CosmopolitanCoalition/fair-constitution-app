@@ -96,7 +96,15 @@ alongside as [BUILT_INVENTORY_EVIDENCE.md](BUILT_INVENTORY_EVIDENCE.md).
 - **To build:** the tier CURVE (`activation_tier_enabled/k/exponent/floor/cap` settings +
   `ActivationTierService::tierThreshold = clamp(ceil(k·pop^⅓), floor, cap)`) feeding the existing
   resolver seam; `legitimacy_snapshots` + `LegitimacyService` + nightly `SnapshotLegitimacyJob`
-  (the `onOneServer` + LeaderProbe pattern in routes/console.php is the ready-made CI-6 rail);
+  (**⚠ CORRECTED 2026-07-25 — the original wording here was WRONG, caught by lane 3's
+  verification**: `onOneServer` + `LeaderProbe::isPrimary()` is the **Patroni/HA scheduler-leader
+  axis**, NOT federation authority. CI-6 — "only the authoritative instance writes a snapshot" —
+  rides the *separate* `jurisdictions.authoritative_server_id` axis
+  (`app/Services/Federation/AuthorityResolver.php`; `LocalAutonomyService.php:32` names the two
+  apart). A mirror node runs its own scheduler and wins its own probe, so the writer needs an
+  explicit per-jurisdiction `authoritative_server_id IS NULL` filter — the leader probe alone
+  does NOT satisfy CI-6. Still undecided: whether `legitimacy_snapshots` carries
+  `source_server_id`, i.e. whether snapshots federate at all);
   k-anon suppression; the reach UI against `mockups/v3/social/legitimacy.html`.
 - **Caution:** the "sizing law" (`cubeRootSeats`) is legislature SIZING, not the tier threshold —
   cousins, not the same thing. Its leaf ceiling-9 clamp was retired 2026-07-19 (floor-clamp only).

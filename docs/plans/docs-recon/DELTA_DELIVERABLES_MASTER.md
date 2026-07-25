@@ -91,8 +91,11 @@ optional enrichment = reopen archives and export into docs/plans/explorations/.
 > (surfaces.js:102, href:null) against `mockups/v3/social/legitimacy.html`. Your design scope is
 > ONLY: the tier CURVE (settings params + `ActivationTierService::tierThreshold =
 > clamp(ceil(k·pop^⅓), floor, cap)` feeding the existing resolver seam) + the reach/legitimacy
-> layer (`legitimacy_snapshots`, `LegitimacyService`, nightly job on the existing
-> onOneServer+LeaderProbe pattern, k-anon suppression). Caution: `cubeRootSeats` is legislature
+> layer (`legitimacy_snapshots`, `LegitimacyService`, nightly job, k-anon suppression).
+> **CORRECTION 2026-07-25 (lane 3 verified; this addendum was wrong):** the onOneServer +
+> LeaderProbe pattern is the Patroni/HA scheduler-leader axis, NOT federation authority — CI-6
+> requires a per-jurisdiction `authoritative_server_id IS NULL` filter (AuthorityResolver), since
+> a mirror node runs its own scheduler and wins its own probe. Caution: `cubeRootSeats` is legislature
 > SIZING, not the tier threshold — and its leaf ceiling-9 clamp was retired 07-19. Also note the
 > live activation pipeline has ZERO automated tests — pin it as part of your work. Full detail:
 > docs/plans/docs-recon/BUILT_INVENTORY.md §3.
