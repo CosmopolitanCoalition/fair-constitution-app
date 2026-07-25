@@ -440,6 +440,27 @@ to its abstention-leak second half · a **live defect**: the sidebar renders an 
 link to a route that does not exist (404) · two constitutional sections absent from the
 curriculum chart entirely · PI-5 does not exist anywhere.
 
+### ⚑ CONFIRMED LIVE: the §5 lint defect has propagated into lane 12's publish gate
+
+Predicted in finding 1 above; now real. Lane 12 imported `K2_FACTION_CORRECTION.md` §5 verbatim
+at 15:27 with a sha256 pin and an explicit **do-not-hand-edit** note (`claims/terms.json`,
+`source_kind: lane-15`, 8 upstream rules + 1 local guard). Lane 12 did exactly the right thing —
+which is precisely why the defect is now enforced downstream:
+
+| Rule | Severity | Live effect |
+|---|---|---|
+| `FAC-1` | **block** | Exemptions are the same four phrases ("as implemented", "helpful colors", "illustrative grouping", "the Template still says") — **none** covers the approved replacements *"faction-independent"*, *"not a faction layer"*, *"no faction registration"*. The gate rejects the fleet's own approved wording. |
+| `FAC-2` | **block** | Fails "party column" — the phrase lane 15's own document nominates as the best on-camera proof. |
+| `APP-1` | **block** | Fails any mention of largest-remainder, which **is** used today for committee seat apportionment. Accurate copy about the bicameral committee split is unpublishable. |
+
+**Fix at the source, not downstream:** lane 15 patches §5 (widen `FAC-1`'s exemptions to the
+approved wordings, scope `unless_within`, narrow `APP-1` to seat *allocation* per the doctrine
+clarification in §5 item 9), bumps `upstream_version`, and lane 12 re-imports. **No lane should
+hand-edit the imported table** — lane 12's discipline here is correct and worth preserving.
+
+*(Credit where due: the imported set also carries `SEAT-2`, which warns on the "951,626
+legislatures" conflation this desk corrected — the fleet is now policing that error itself.)*
+
 ### Follow-up on the revised catalog (`a4d1179`, 127 medals — checked by lane 7 after the review)
 
 The catalog was **re-derived from code rather than patched**, which is the right response: both
