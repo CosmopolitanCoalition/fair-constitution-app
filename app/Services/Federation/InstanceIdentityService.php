@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\InstanceSettings;
 use Illuminate\Support\Facades\Crypt;
 use RuntimeException;
+use App\Support\InstanceClass;
 
 /**
  * This instance's federation identity (Phase F).
@@ -188,6 +189,13 @@ class InstanceIdentityService
             // federation_domain_whitelist (the SAME peers that mirror our records may federate our rooms).
             // Signed with the rest of this payload; the receiver stores it in the peer's metadata.
             'matrix_server_name' => (string) config('matrix.server_name'),
+            // Phase O (operator ruling 2026-07-25) — our INSTANCE CLASS.
+            // A demo federates, but only with other demos: "it's gonna be its own
+            // federation". A peer that is not our class is refused at discovery,
+            // symmetrically, so neither side can ingest the other's records.
+            // Advertised (and therefore signed) rather than inferred, because a
+            // remote instance cannot see our local column.
+            'instance_class' => InstanceClass::current(),
         ];
     }
 

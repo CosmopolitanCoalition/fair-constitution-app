@@ -163,10 +163,15 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             $plan = $this->racePlan($legislature);
 
+            // Record the blocked posture for ANY blocked kind — the flag the
+            // operator asked to keep — but only STOP when nothing at all is
+            // lawful. A partially-blocked chamber seats what it lawfully can.
             if ($plan['blocked']) {
                 $this->recordBlocked($election, $legislature, $plan);
 
-                return $election->refresh();
+                if ($plan['fully_blocked']) {
+                    return $election->refresh();
+                }
             }
 
             $races = $this->createRaces($election, $legislature, $plan);
@@ -620,8 +625,25 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             }
         }
 
+        // PER-KIND BLOCKING (operator ruling 2026-07-25). A chamber whose
+        // type_b half has no lawful race must NOT lose its perfectly lawful
+        // type_a district races with it. His framing: "maps that don't have
+        // problems, we proceed. Maps that do have problems, we will not
+        // proceed, and we keep them flagged."
+        //
+        // Before this, `blocked` was a single run-level flag and one bad kind
+        // condemned the whole plan — which cost 218,320 districts / 1,568,448
+        // type_a seats planet-wide, Earth's own lower house among them, purely
+        // because their chambers' type_b halves exceed the per-race maximum.
+        //
+        // `blocked` is KEPT for callers that only ask "is anything wrong?";
+        // `fully_blocked` is the one that means "generate nothing".
+        $generable = collect($kinds)->reject(fn ($spec) => $spec['mode'] === 'blocked');
+
         return [
             'blocked'         => $blocked,
+            'fully_blocked'   => $generable->isEmpty(),
+            'generable_kinds' => $generable->keys()->all(),
             'district_map_id' => $districts->isNotEmpty() ? $activeMap?->id : null,
             'kinds'           => $kinds,
         ];
@@ -648,7 +670,10 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
         $plan = $this->racePlan($legislature);
 
-        if ($plan['blocked']) {
+        // Refuse ONLY when no kind is lawful. A filing that can lawfully seat
+        // half a chamber should seat that half and flag the rest, not roll the
+        // whole thing back (operator ruling 2026-07-25).
+        if ($plan['fully_blocked']) {
             $reasons = collect($plan['kinds'])
                 ->filter(fn ($spec) => $spec['mode'] === 'blocked')
                 ->map(fn ($spec, $kind) => "{$kind}: {$spec['reason']}")
@@ -658,6 +683,10 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 "Race generation is blocked pending subdivision — {$reasons}.",
                 'Art. II §8'
             );
+        }
+
+        if ($plan['blocked']) {
+            $this->recordBlocked($election, $election->legislature, $plan);
         }
 
         return array_map(fn (ElectionRace $r) => [
@@ -679,7 +708,11 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
     {
         $plan ??= $this->racePlan($legislature);
 
-        if ($plan['blocked']) {
+        // Refuse only when NO kind is lawful. A partially-blocked plan
+        // materializes its lawful kinds and skips the rest — the blocked kinds
+        // are dropped in the loop below, and their posture is recorded by the
+        // caller (operator ruling 2026-07-25, per-kind blocking).
+        if ($plan['fully_blocked']) {
             throw new ConstitutionalViolation(
                 'Race generation is blocked pending subdivision.',
                 'Art. II §8'
@@ -695,6 +728,12 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         $races      = [];
 
         foreach ($plan['kinds'] as $kind => $spec) {
+            // A blocked kind generates nothing and does not stop its siblings.
+            // Its posture is recorded on the election by recordBlocked().
+            if ($spec['mode'] === 'blocked') {
+                continue;
+            }
+
             if ($spec['mode'] === 'districts') {
                 foreach ($spec['districts'] as $district) {
                     $races[] = ElectionRace::create([

@@ -68,6 +68,33 @@ class InstanceClass
         return self::$cached;
     }
 
+    /**
+     * Coerce an EXTERNAL, untrusted class value (a peer's advertised handshake
+     * field) to one of the two known classes.
+     *
+     * Anything unrecognised — null, empty, a typo, a value from a future
+     * release — reads as `production`. That is the fail-closed direction for
+     * BOTH sides of the rule: a demo refuses to peer with an instance it cannot
+     * positively identify as a demo, and a real instance's behaviour is
+     * unchanged by a peer that says nothing (which is what every pre-Phase-O
+     * instance says).
+     */
+    public static function normalize(mixed $value): string
+    {
+        return $value === self::SCALE_DEMO ? self::SCALE_DEMO : self::PRODUCTION;
+    }
+
+    /**
+     * The class-scoped federation rule (operator ruling 2026-07-25): a demo
+     * federates only with demos, a real instance only with real instances.
+     * Symmetric by construction — this is plain equality, deliberately, so
+     * neither side can be the lenient one.
+     */
+    public static function federatesWith(mixed $peerClass): bool
+    {
+        return self::normalize($peerClass) === self::current();
+    }
+
     public static function isScaleDemo(): bool
     {
         return self::current() === self::SCALE_DEMO;

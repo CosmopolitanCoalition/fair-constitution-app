@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\FederationPeer;
 use App\Services\AuditService;
 use RuntimeException;
+use App\Support\InstanceClass;
 
 /**
  * Federation peer lifecycle (Phase F, WF-JUR-06).
@@ -63,6 +64,20 @@ class PeerService
             throw new RuntimeException('Refusing to peer with self.');
         }
 
+        // Phase O (operator ruling 2026-07-25) — CLASS-SCOPED FEDERATION.
+        // A demo instance federates, but only with other demo instances: "it's
+        // gonna be its own federation." The rule is SYMMETRIC — a production
+        // instance refuses a demo peer and a demo refuses a production peer — so
+        // unconsented synthetic records can never cross into a consent-bearing
+        // mesh under Full Faith & Credit.
+        //
+        // Enforced at BOTH ends of the handshake because a remote instance cannot
+        // see our local `instance_class` column: the class rides the signed
+        // payload and is checked on ingest. A peer advertising nothing is read as
+        // production — the old, consent-bearing default, which is the fail-closed
+        // direction for a demo.
+        $this->assertSameClass(InstanceClass::normalize($remote['instance_class'] ?? null), $url);
+
         $peer = FederationPeer::query()->where('server_id', $serverId)->first()
             ?? new FederationPeer(['server_id' => $serverId, 'status' => FederationPeer::STATUS_DISCOVERED]);
 
@@ -73,6 +88,7 @@ class PeerService
             'metadata' => [
                 'schema_version' => $remote['schema_version'] ?? null,
                 'matrix_server_name' => $remote['matrix_server_name'] ?? ($peer->metadata['matrix_server_name'] ?? null),
+                'instance_class' => InstanceClass::normalize($remote['instance_class'] ?? null),
             ],
             'constitutional_version' => $remote['constitutional_version'] ?? null,
             'app_release' => $remote['app_release'] ?? null,
@@ -155,6 +171,26 @@ class PeerService
     }
 
     /**
+     * Refuse a cross-class peering. See the CLASS-SCOPED FEDERATION note in
+     * discover(). Kept as one method so both ends of the handshake enforce
+     * byte-identical semantics.
+     */
+    private function assertSameClass(string $peerClass, string $where): void
+    {
+        $ourClass = InstanceClass::current();
+
+        if ($peerClass === $ourClass) {
+            return;
+        }
+
+        throw new RuntimeException(
+            "Refusing to peer across instance classes: this instance is '{$ourClass}' but "
+            ."{$where} advertises '{$peerClass}'. A demo federates only with demos, and a "
+            .'real instance only with real instances.'
+        );
+    }
+
+    /**
      * Server side of POST /api/federation/handshake (signature already TOFU-
      * verified by the middleware). Pins the caller and returns OUR identity.
      *
@@ -173,6 +209,12 @@ class PeerService
             throw new RuntimeException('Refusing to peer with self.');
         }
 
+        // The same class rule, on the receiving side (see discover()).
+        $this->assertSameClass(
+            InstanceClass::normalize($payload['instance_class'] ?? null),
+            (string) ($payload['url'] ?? 'the calling peer')
+        );
+
         $this->upsertTrustedPeer($serverId, $publicKey, [
             'name' => $payload['name'] ?? null,
             'url' => $payload['url'] ?? null,
@@ -180,6 +222,7 @@ class PeerService
             'constitutional_version' => $payload['constitutional_version'] ?? null,
             'app_release' => $payload['app_release'] ?? null,
             'matrix_server_name' => $payload['matrix_server_name'] ?? null,
+            'instance_class' => InstanceClass::normalize($payload['instance_class'] ?? null),
         ], FederationPeer::RELATION_SOVEREIGN, 'received');
 
         // Learn the introducing peer's transports (G8b), and advertise ours back so
