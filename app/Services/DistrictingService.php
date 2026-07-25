@@ -1487,13 +1487,9 @@ class DistrictingService
         // the members (the conservation arm below adds their stored pops to
         // the target). Drawn pieces are never crumbs (their fracs are
         // seat-scale); the selector keeps them out via subdivision links.
-        $zeroRows = DB::table('legislature_districts as d')
+        $candidates = DB::table('legislature_districts as d')
             ->where('d.map_id', $mapId)->whereNull('d.deleted_at')
             ->where('d.seats', '>', 0)
-            ->where(function ($q) {
-                $q->where('d.actual_population', 0)
-                    ->orWhere('d.fractional_seats', '<', 0.5);
-            })
             ->whereNotExists(function ($q) {
                 $q->select(DB::raw(1))
                     ->from('legislature_district_jurisdictions as ldx')
@@ -1501,7 +1497,47 @@ class DistrictingService
                     ->whereNotNull('ldx.subdivision_id');
             })
             ->orderBy('d.district_number')
-            ->get(['d.id', 'd.district_number', 'd.seats']);
+            ->get(['d.id', 'd.district_number', 'd.seats', 'd.actual_population', 'd.jurisdiction_id']);
+
+        // Entitlement is recomputed from FIRST PRINCIPLES — the stored
+        // fractional cannot be trusted for crumbs (De'an's 445-person
+        // 1-seat district stored fractional 1.000000, computed against the
+        // degenerate pool-of-1 quota). Crumb iff its people are under HALF
+        // a seat's worth at its own scope's quota (scope pop / cascade
+        // budget; legislature root quota as the fallback frame).
+        // A populated crumb's seats are only unlawful when they are EXCESS:
+        // in a floor-infeasible pool (distribute-what-is-available, 1-seat
+        // minimum) sub-half fracs are the lawful norm and must stay. Guard:
+        // absorb a populated crumb only while the map OVER-seats and the
+        // absorption moves the total toward the budget (each absorption
+        // strictly improves drift; De'an 66/65 -> 65/65). Zero-pop rows
+        // absorb unconditionally — nobody loses representation.
+        $rootQuota = $rootPop / max((int) $leg->type_a_seats, 1);
+        $seatExcess = (int) DB::table('legislature_districts')
+                ->where('map_id', $mapId)->whereNull('deleted_at')->sum('seats')
+            - (int) $leg->type_a_seats;
+        $zeroRows = collect();
+        foreach ($candidates as $d) {
+            $pop = (int) $d->actual_population;
+            if ($pop === 0) {
+                $zeroRows->push($d);
+                continue;
+            }
+            $quota = $rootQuota;
+            if ($d->jurisdiction_id !== null) {
+                $scopePop = (int) DB::table('jurisdictions')
+                    ->where('id', $d->jurisdiction_id)->value('population');
+                $scopeBudget = $this->computeSeatBudget((string) $d->jurisdiction_id, $legislatureId);
+                if ($scopePop > 0 && $scopeBudget !== null && $scopeBudget > 0) {
+                    $quota = $scopePop / $scopeBudget;
+                }
+            }
+            if ($quota > 0 && $pop < 0.5 * $quota && (int) $d->seats <= $seatExcess) {
+                $zeroRows->push($d);
+                $seatExcess -= (int) $d->seats;
+            }
+        }
+        $zeroRows = $zeroRows->values();
         if ($zeroRows->isEmpty()) {
             return 0;
         }
